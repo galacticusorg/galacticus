@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,6 +64,7 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (excursionSetBarrierClass     ), pointer       :: excursionSetBarrier_
     double precision                                               :: factor
+    integer                                                        :: applyTo
 
     ! Check and read parameters.
     !![
@@ -83,7 +84,8 @@ contains
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
-    self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
+    applyTo=enumerationExcursionSetRemapEncode(self%applyToText,includesPrefix=.false.)
+    self   =excursionSetBarrierRemapScale(factor,applyTo,excursionSetBarrier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"/>

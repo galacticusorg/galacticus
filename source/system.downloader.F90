@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,9 +52,9 @@ contains
     if (.not.downloadInitialized) then
        !$omp critical(downloadInitialize)
        if (.not.downloadInitialized) then
-          call System_Command_Do("which -s wget",status)
+          call System_Command_Do("which wget > /dev/null 2>&1",status)
           downloadUsingWget=status == errorStatusSuccess
-          call System_Command_Do("which -s curl",status)
+          call System_Command_Do("which curl > /dev/null 2>&1",status)
           downloadUsingCurl=status == errorStatusSuccess
           downloadInitialized=.true.
        end if
@@ -83,20 +83,24 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
     use :: System_Command  , only : System_Command_Do
     implicit none
-    character(len=*), intent(in   )           :: url, outputFileName
+    character(len=*), intent(in   )           :: url    , outputFileName
     integer         , intent(  out), optional :: status
     integer                                   :: status_
     
     call downloadInitialize()
     status_=errorStatusFail
     if      (downloadUsingWget) then
-       call System_Command_Do("wget --no-check-certificate "//trim(url)//" -O "      //trim(outputFileName),status_)
+       call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
     else if (downloadUsingCurl) then
-       call System_Command_Do("curl --insecure --location " //trim(url)//" --output "//trim(outputFileName),status_)
+       call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
     else if (.not.present(status)) then
        call Galacticus_Error_Report('no downloader available'//{introspection:location})
     end if
-    if (present(status)) status=status_
+    if (present(status)) then
+       status=status_
+    else if (status_ /= 0) then
+       call Galacticus_Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
+    end if
     return
   end subroutine downloadChar
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -186,8 +186,8 @@ contains
     <optionalArgument name="presentDay" defaultsTo=".false." />
     !!]
 
-    if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
-       uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
+    if (node%hostTree%nodeBase%uniqueID() /= uniqueIDPrevious) then
+       uniqueIDPrevious=node%hostTree%nodeBase%uniqueID()
        if (node%hostTree%properties%exists('haloEnvironmentOverdensity')) then
           overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else

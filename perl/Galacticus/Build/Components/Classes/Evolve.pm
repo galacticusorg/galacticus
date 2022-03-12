@@ -19,15 +19,16 @@ use Galacticus::Build::Components::Utils qw(&offsetName);
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Build_Rate_Functions    ,
-	      \&Build_Scale_Functions   ,
-	      \&Build_Inactive_Functions
+	      \&Build_Meta_Rate_Functions    ,
+	      \&Build_Meta_Scale_Functions   ,
+	      \&Build_Meta_Inactive_Functions,
+	      \&Build_Meta_Analytic_Functions
 	     ]
      }
     );
 
-sub Build_Rate_Functions {
-    # Build rate setting functions for non-virtual, evolvable properties.
+sub Build_Meta_Rate_Functions {
+    # Build rate setting functions for evolvable meta-properties.
     my $build = shift();
     my $class = shift();
     # Build the function.
@@ -35,8 +36,12 @@ sub Build_Rate_Functions {
     my $function =
     {
 	type        => "void",
-	name        => $class->{'name'}."MetaPropertyRate",
-	description => "Accumulate to the rate of change of the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	name        => $class->{'name'}."FloatRank0MetaPropertyRate",
+	description => "Accumulate to the rate of change of the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -77,10 +82,13 @@ sub Build_Rate_Functions {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: interrupt, interruptProcedure, self
 CODE
-	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'metaProperties');
-	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'metaProperties');
-	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'metaProperties');
+	$code::className          = $class->{'name'};
+	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'floatRank0MetaProperties');
+	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'floatRank0MetaProperties');
+	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (.not.{$className}FloatRank0MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}FloatRank0MetaPropertyLabels(metaPropertyID)),'float',0)
+if (nodeAnalytics({$offsetNameAll}(metaPropertyID))) call Galacticus_Error_Report('attempt to set rate of analytically-solved meta-property'//\{introspection:location\})
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}(metaPropertyID)
 else if (rateComputeState == propertyTypeActive  ) then
@@ -89,6 +97,8 @@ else if (rateComputeState == propertyTypeActive  ) then
 else if (rateComputeState == propertyTypeInactive) then
  if (.not.nodeInactives({$offsetNameAll}(metaPropertyID))) return
  offset={$offsetNameInactive}(metaPropertyID)
+else if (rateComputeState == propertyTypeNumerics) then
+ offset={$offsetNameActive}(metaPropertyID)
 else
  return
 end if
@@ -101,13 +111,13 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "metaPropertyRate"
+	    name        => "floatRank0metaPropertyRate"
 	}
 	);
 }
 
-sub Build_Scale_Functions {
-    # Build scale setting functions for non-virtual, evolvable properties.
+sub Build_Meta_Scale_Functions {
+    # Build scale setting functions for evolvable meta-properties.
     my $build = shift();
     my $class = shift();
     # Build the function.
@@ -115,8 +125,12 @@ sub Build_Scale_Functions {
     my $function =
     {
 	type        => "void",
-	name        => $class->{'name'}."MetaPropertyScale",
-	description => "Set the absolute scale of the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	name        => $class->{'name'}."FloatRank0MetaPropertyScale",
+	description => "Set the absolute scale of the rank-0 float indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -139,9 +153,11 @@ sub Build_Scale_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
+	$code::className  = $class->{'name'};
+	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
+if (.not.{$className}FloatRank0MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}FloatRank0MetaPropertyLabels(metaPropertyID)),'float',0)
 nodeScales({$offsetName}(metaPropertyID))=setValue
 CODE
 	}
@@ -151,12 +167,12 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "metaPropertyScale"
+	    name        => "floatRank0MetaPropertyScale"
 	}
 	);  
 }
 
-sub Build_Inactive_Functions {
+sub Build_Meta_Inactive_Functions {
     # Build functions to indicate variables which are inactive (i.e. do not appear on the right-hand side of any differential equation being solved) for meta-properties.
     my $build = shift();
     my $class = shift();
@@ -165,8 +181,8 @@ sub Build_Inactive_Functions {
     my $function =
     {
 	type        => "void",
-	name        => $class->{'name'}."MetaPropertyJcbnZr",
-	description => "Indicate that the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is inactive for differential equation solving.",
+	name        => $class->{'name'}."FloatRank0MetaPropertyJcbnZr",
+	description => "Indicate that the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is inactive for differential equation solving.",
 	variables   =>
 	    [
 	     {
@@ -184,7 +200,7 @@ sub Build_Inactive_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
+	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 nodeInactives({$offsetName}(metaPropertyID))=.true.
@@ -196,7 +212,53 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "metaPropertyInactive"
+	    name        => "floatRank0MetaPropertyInactive"
+	}
+	);  
+}
+
+sub Build_Meta_Analytic_Functions {
+    # Build functions to indicate variables which are to be solved analytically for meta-properties.
+    my $build = shift();
+    my $class = shift();
+    # Build the function.
+    my $classTypeName = "nodeComponent".ucfirst($class->{'name'});
+    my $function =
+    {
+	type        => "void",
+	name        => $class->{'name'}."FloatRank0MetaPropertyAlytc",
+	description => "Indicate that the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is to be solved analytically for differential evolution.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $classTypeName,
+		 attributes => [ "intent(inout)" ],
+		 ,variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "metaPropertyID" ]
+	     }
+	    ]
+    };
+    # Build the function.
+    if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: self
+if (nodeAnalytics({$offsetName}(metaPropertyID))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+nodeAnalytics({$offsetName}(metaPropertyID))=.true.
+CODE
+    }
+    # Insert a type-binding for this function into the relevant type.
+    push(
+	@{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "floatRank0MetaPropertyAnalytic"
 	}
 	);  
 }

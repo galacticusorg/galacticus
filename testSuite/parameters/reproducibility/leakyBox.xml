@@ -95,8 +95,12 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="stellarFeedbackDisks">
@@ -108,7 +112,13 @@
       </stellarFeedbackOutflows>
     </nodeOperator>
   </nodeOperator>
-  
+
+
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="spin"/>
+    <nodePropertyExtractor value="virialProperties"/>
+  </nodePropertyExtractor>
+
   <!-- Output options -->
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>

@@ -121,11 +121,9 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="null"/>
   <componentHotHalo value="null"/>
-  <componentMergingStatistics value="standard"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="null"/>
-  <componentSpin value="vitvitska"/>
-  <spinVitvitskaMassExponent value="0.274460218346487"/>
+  <componentSpin value="vector"/>
 
   <!-- Merger tree construction -->
   <mergerTreeBuilder value="cole2000">
@@ -226,10 +224,22 @@
   <nodeMajorMergerFraction value="0.206728116479416"/>
 
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo angular momentum -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.274460218346487"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
+    <!-- Analyses -->
+    <nodeOperator value="nodeMajorMergerTime"/>
   </nodeOperator>
 </parameters>

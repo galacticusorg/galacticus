@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,7 @@
   Implements a non-evolving class for evolving merger trees.
   !!}
 
-  use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
+  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   
   !![
   <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
@@ -133,7 +133,7 @@ contains
     treeDidEvolve =  .true.
     currentTree   => tree
     do while (associated(currentTree))
-       if (associated(currentTree%baseNode)) then
+       if (associated(currentTree%nodeBase)) then
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
           call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)

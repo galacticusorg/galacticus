@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,17 +42,17 @@
      A merger tree operator class which records and outputs tree processing time information.
      !!}
      private
-     logical                                                :: collectMemoryUsageData
-     double precision                                       :: timePostEvolution     , timePreConstruction, &
-          &                                                    timePreEvolution      , mass
+     logical                                                :: collectMemoryUsageData=.false.
+     double precision                                       :: timePostEvolution             , timePreConstruction, &
+          &                                                    timePreEvolution              , mass
      integer         (kind_int8)                            :: treeID
-     integer         (c_size_t )                            :: memoryUsagePeak       , countNodes
+     integer         (c_size_t )                            :: memoryUsagePeak               , countNodes
      real                                                   :: time
      integer                                                :: countTrees
-     double precision           , allocatable, dimension(:) :: timesConstruct        , timesEvolve    , &
+     double precision           , allocatable, dimension(:) :: timesConstruct                , timesEvolve        , &
           &                                                    masses
      integer         (kind_int8), allocatable, dimension(:) :: treeIDs
-     integer         (c_size_t ), allocatable, dimension(:) :: memoryUsagesPeak      , countsNodes
+     integer         (c_size_t ), allocatable, dimension(:) :: memoryUsagesPeak              , countsNodes
    contains
      final     ::                           treeProcessingTimerDestructor
      procedure :: operatePreConstruction => treeProcessingTimerOperatePreConstruction
@@ -136,7 +136,8 @@ contains
     implicit none
     type(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
 
-    if (self%collectMemoryUsageData) call postEvolveEvent%detach(self,treeProcessingTimerPostEvolve)
+    if (self%collectMemoryUsageData .and. postEvolveEvent%isAttached(self,treeProcessingTimerPostEvolve)) &
+         & call postEvolveEvent%detach(self,treeProcessingTimerPostEvolve)
     return
   end subroutine treeProcessingTimerDestructor
 
@@ -179,7 +180,7 @@ contains
     real                                                                 :: time
     
     ! Record the mass and ID of the tree.
-    node        => tree %baseNode
+    node        => tree %nodeBase
     basic       => node %basic   ()
     self%mass   =  basic%mass    ()
     self%treeID =  tree %index

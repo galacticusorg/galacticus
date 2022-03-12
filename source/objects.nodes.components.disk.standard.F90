@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -343,8 +343,8 @@ contains
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
-       call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
        !![
        <objectDestructor name="darkMatterHaloScale_"        />
        <objectDestructor name="stellarPopulationProperties_"/>
@@ -431,8 +431,7 @@ contains
 
   !![
   <postStepTask>
-  <unitName>Node_Component_Disk_Standard_Post_Step</unitName>
-  <after>Node_Component_Basic_Standard_Post_Step</after>
+    <unitName>Node_Component_Disk_Standard_Post_Step</unitName>
   </postStepTask>
   !!]
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
@@ -443,24 +442,25 @@ contains
     use :: Display                       , only : displayMessage         , verbosityLevelWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : defaultDiskComponent   , nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
-          &                                       treeNode
+          &                                       treeNode               , nodeComponentBasic
     use :: ISO_Varying_String            , only : assignment(=)          , operator(//)       , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                    , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    integer                                   , intent(inout)          :: status
-    class           (nodeComponentDisk       )               , pointer :: disk
-    class           (nodeComponentSpin       )               , pointer :: spin
-    double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
-    double precision                          , save                   :: fractionalErrorMaximum  =0.0d+0
-    double precision                                                   :: diskMass                       , fractionalError, &
-         &                                                                specificAngularMomentum
-    character       (len=20                  )                         :: valueString
-    type            (varying_string          ), save                   :: message
+    type            (treeNode           ), intent(inout), pointer :: node
+    integer                              , intent(inout)          :: status
+    class           (nodeComponentDisk  )               , pointer :: disk
+    class           (nodeComponentBasic )               , pointer :: basic
+    class           (nodeComponentSpin  )               , pointer :: spin
+    double precision                     , parameter              :: angularMomentumTolerance=1.0d-2
+    double precision                     , save                   :: fractionalErrorMaximum  =0.0d+0
+    double precision                                              :: massDisk                       , fractionalError, &
+         &                                                           specificAngularMomentum
+    character       (len=20             )                         :: valueString
+    type            (varying_string     ), save                   :: message
     !$omp threadprivate(message)
-    type            (stellarLuminosities     ), save                   :: luminositiesStellar
+    type            (stellarLuminosities), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
 
     ! Return immediately if this class is not in use.
@@ -502,9 +502,9 @@ contains
           end if
           !$omp end critical (Standard_Disk_Post_Evolve_Check)
           ! Get the specific angular momentum of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              specificAngularMomentum=0.0d0
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
@@ -518,7 +518,7 @@ contains
              call luminositiesStellar%reset()
              call disk%luminositiesStellarSet(luminositiesStellar)
           else
-             specificAngularMomentum=disk%angularMomentum()/diskMass
+             specificAngularMomentum=disk%angularMomentum()/massDisk
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
           ! Reset the gas, abundances and angular momentum of the disk.
@@ -559,14 +559,14 @@ contains
           end if
           !$omp end critical (Standard_Disk_Post_Evolve_Check)
           ! Get the specific angular momentum of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              specificAngularMomentum=0.0d0
              call disk%      massGasSet(         0.0d0)
              call disk%abundancesGasSet(zeroAbundances)
           else
-             specificAngularMomentum=disk%angularMomentum()/diskMass
+             specificAngularMomentum=disk%angularMomentum()/massDisk
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
           ! Reset the stellar, abundances and angular momentum of the disk.
@@ -577,7 +577,8 @@ contains
        end if
        ! Trap negative angular momentum.
        if (disk%angularMomentum() < 0.0d0) then
-          spin => node%spin()
+          spin  => node%spin ()
+          basic => node%basic()
           if      (                           &
                &     disk  %massStellar    () &
                &    +disk  %massGas        () &
@@ -586,30 +587,28 @@ contains
                &  ) then
              call disk%angularMomentumSet(0.0d0)
           else if (.not.diskNegativeAngularMomentumAllowed) then
-             if  (                                 &
-                  &    abs(disk%angularMomentum()) &
-                  &   /(                           &
-                  &        disk%massStellar    ()  &
-                  &     +  disk%massGas        ()  &
-                  &    )                           &
-                  &  <                             &
-                  &    angularMomentumTolerance    &
-                  &   *darkMatterHaloScale_%virialRadius  (node) &
-                  &   *darkMatterHaloScale_%virialVelocity(node) &
-                  &   *spin            %spin          (        ) &
+             if  (                                &
+                  &    abs(disk%angularMomentum())&
+                  &   /(                          &
+                  &        disk%massStellar    () &
+                  &     +  disk%massGas        () &
+                  &    )                          &
+                  &  <                            &
+                  &    angularMomentumTolerance   &
+                  &   *spin    %angularMomentum() &
+                  &   /basic   %mass           () &
                   & ) then
                 call disk%angularMomentumSet(0.0d0)
              else
                 message='negative angular momentum in disk with positive mass'
-                write (valueString,'(e12.6)') disk%angularMomentum()
+                write (valueString,'(e12.6)') disk  %angularMomentum()
                 message=message//char(10)//' -> angular momentum       = '//trim(valueString)
-                write (valueString,'(e12.6)') disk%massStellar    ()
+                write (valueString,'(e12.6)') disk  %massStellar    ()
                 message=message//char(10)//' -> stellar mass           = '//trim(valueString)
-                write (valueString,'(e12.6)') disk%massGas        ()
+                write (valueString,'(e12.6)') disk  %massGas        ()
                 message=message//char(10)//' -> gas mass               = '//trim(valueString)
-                write (valueString,'(e12.6)') +darkMatterHaloScale_%virialRadius  (node) &
-                     &                        *darkMatterHaloScale_%virialVelocity(node) &
-                     &                        *spin                %spin          (    )
+                write (valueString,'(e12.6)') +spin %angularMomentum() &
+                     &                        /basic%mass           ()
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
                 call Galacticus_Error_Report(message//{introspection:location})
              end if
@@ -978,8 +977,8 @@ contains
                   &                 disk%massStellar()                        &
                   &                +disk%massGas    ()                        &
                   &               )                                           &
-                  &               * darkMatterHaloScale_%virialRadius  (node) &
-                  &               * darkMatterHaloScale_%virialVelocity(node)
+                  &               * darkMatterHaloScale_%radiusVirial  (node) &
+                  &               * darkMatterHaloScale_%velocityVirial(node)
              if     (                                                                      &
                   &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
                   &  .or.                                                                  &
@@ -1078,7 +1077,7 @@ contains
     procedure       (Node_Component_Disk_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
     procedure       (Node_Component_Disk_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentDisk                            )               , pointer :: disk
-    double precision                                                                        :: angularMomentum                , diskMass    , &
+    double precision                                                                        :: angularMomentum                , massDisk    , &
          &                                                                                     specificAngularMomentumMean
 
     ! Determine if node has an active disk component supported by this module.
@@ -1093,10 +1092,10 @@ contains
           angularMomentum=disk%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-             diskMass= disk%massGas    () &
+             massDisk= disk%massGas    () &
                   &   +disk%massStellar()
-             if (diskMass > 0.0d0) then
-                specificAngularMomentumMean=angularMomentum/diskMass
+             if (massDisk > 0.0d0) then
+                specificAngularMomentumMean=angularMomentum/massDisk
              else
                 specificAngularMomentumMean=0.0d0
              end if
@@ -1112,7 +1111,7 @@ contains
                   &                                    specificAngularMomentum**2                      &
                   &                                   -diskRadiusSolverFlatVsSphericalFactor           &
                   &                                   *gravitationalConstantGalacticus                 &
-                  &                                   *diskMass                                        &
+                  &                                   *massDisk                                        &
                   &                                   *Node_Component_Disk_Standard_Radius_Solve(node) &
                   &                                  )                                                 &
                   )
@@ -1210,6 +1209,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
+    <stateStore variables="diskMassDistribution darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
     </workaround>
@@ -1218,11 +1218,9 @@ contains
     !$omp critical(gfortranInternalIO)
 #endif
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
-    write (stateFile) associated(diskMassDistribution)
 #ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
 #endif
-    if (associated(diskMassDistribution)) call diskMassDistribution%stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine Node_Component_Disk_Standard_State_Store
 
@@ -1235,18 +1233,17 @@ contains
     !!{
     Retrieve the tabulation state from the file.
     !!}
-    use            :: Display                          , only : displayMessage         , verbosityLevelInfo
-    use            :: Galacticus_Error                 , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding                    , only : c_ptr                  , c_size_t
+    use            :: Display                          , only : displayMessage      , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                    , only : c_ptr               , c_size_t
     use            :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
-    logical                          :: wasAllocated
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
+    <stateRestore variables="diskMassDistribution darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
     </workaround>
@@ -1255,14 +1252,9 @@ contains
     !$omp critical(gfortranInternalIO)
 #endif
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
-    read (stateFile) wasAllocated
 #ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
 #endif
-    if (wasAllocated) then
-       if (.not.associated(diskMassDistribution)) call Galacticus_Error_Report('diskMassDistribution was stored, but is now not allocated'//{introspection:location})
-       call diskMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
-    end if
     return
   end subroutine Node_Component_Disk_Standard_State_Retrieve
 

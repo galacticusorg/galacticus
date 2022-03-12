@@ -88,7 +88,8 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	$buildData->{'content'} .= "  use Galacticus_Error\n";
 	if ( exists($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
 	    foreach my $module ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
-		$buildData->{'content'} .= "use :: ".$module."\n";
+		(my $moduleName = $module) =~ s/,.*//;
+		$buildData->{'content'} .= "use".($moduleName eq "ISO_C_Binding" ? ", intrinsic" : "")." :: ".$module."\n";
 	    }
 	}
 	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} ne "void" ) {

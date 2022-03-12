@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -136,7 +136,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call basic_    %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_    %massSet            (massVirial                           )
   call satellite_%boundMassSet       (massVirial                           )
-  radiusVirial =+darkMatterHaloScale_%virialRadius(node_)
+  radiusVirial =+darkMatterHaloScale_%radiusVirial(node_)
   radiusScale  =+radiusVirial &
        &        /concentration
   call darkMatterProfile_%scaleSet(radiusScale)

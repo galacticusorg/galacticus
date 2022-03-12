@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,6 +54,7 @@ contains
     implicit none
     type            (outputAnalysisSpinDistributionBett2007)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
+    class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                      ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass               ), pointer       :: nbodyHaloMassError_
@@ -61,6 +62,7 @@ contains
     class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
+    class           (virialDensityContrastClass            ), pointer       :: virialDensityContrast_
     class           (*                                     ), pointer       :: percolationObjects_
     double precision                                                        :: logNormalRange
     logical                                                                 :: errorTolerant
@@ -79,6 +81,7 @@ contains
       <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
       <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
     </inputParameter>
+    <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
@@ -86,11 +89,13 @@ contains
     <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
     !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisSpinDistributionBett2007(logNormalRange,errorTolerant,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisSpinDistributionBett2007(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"         />
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="outputTimes_"                 />
     <objectDestructor name="nbodyHaloMassError_"          />
@@ -98,11 +103,12 @@ contains
     <objectDestructor name="darkMatterHaloScale_"         />
     <objectDestructor name="darkMatterProfileDMO_"        />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    <objectDestructor name="virialDensityContrast_"       />
     !!]
     return
   end function spinDistributionBett2007ConstructorParameters
 
-  function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
+  function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_) result(self)
     !!{
     Internal constructor for the ``spinDistributionBett2007'' output analysis class.
     !!}
@@ -117,6 +123,7 @@ contains
     type            (outputAnalysisSpinDistributionBett2007)                              :: self
     double precision                                                     , intent(in   )  :: logNormalRange
     logical                                                              , intent(in   )  :: errorTolerant
+    class           (cosmologyParametersClass              ), target     , intent(in   )  :: cosmologyParameters_
     class           (cosmologyFunctionsClass               ), target     , intent(inout)  :: cosmologyFunctions_
     class           (outputTimesClass                      ), target     , intent(inout)  :: outputTimes_
     class           (nbodyHaloMassErrorClass               ), target     , intent(in   )  :: nbodyHaloMassError_
@@ -124,13 +131,14 @@ contains
     class           (darkMatterHaloScaleClass              ), target     , intent(in   )  :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass             ), target     , intent(in   )  :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), target     , intent(in   )  :: darkMatterProfileScaleRadius_
+    class           (virialDensityContrastClass            ), target     , intent(in   )  :: virialDensityContrast_
     class           (*                                     ), target     , intent(in   )  :: percolationObjects_
-    type            (virialDensityContrastPercolation      ), pointer                     :: virialDensityContrast_
+    type            (virialDensityContrastPercolation      ), pointer                     :: virialDensityContrastDefinition_
 
     ! Create a virial density contrast class to match the friends-of-friends halo definition used by Bett et al. (2007).
-    allocate(virialDensityContrast_)
+    allocate(virialDensityContrastDefinition_)
     !![
-    <referenceConstruct object="virialDensityContrast_" constructor="virialDensityContrastPercolation(0.2d0,cosmologyFunctions_,percolationObjects_)"/>
+    <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastPercolation(0.2d0,cosmologyFunctions_,percolationObjects_)"/>
     !!]
     self%outputAnalysisSpinDistribution=outputAnalysisSpinDistribution(                                                                                             &
          &                                                             char   (galacticusPath(pathTypeDataStatic)//'darkMatter/bett2007HaloSpinDistribution.hdf5'), &
@@ -138,6 +146,7 @@ contains
          &                                                             var_str(                                    'Distribution of halo spin parameters'        ), &
          &                                                             logNormalRange                                                                             , &
          &                                                             errorTolerant                                                                              , &
+         &                                                             cosmologyParameters_                                                                       , &
          &                                                             cosmologyFunctions_                                                                        , &
          &                                                             nbodyHaloMassError_                                                                        , &
          &                                                             haloMassFunction_                                                                          , &
@@ -145,10 +154,11 @@ contains
          &                                                             darkMatterProfileDMO_                                                                      , &
          &                                                             darkMatterProfileScaleRadius_                                                              , &
          &                                                             outputTimes_                                                                               , &
-         &                                                             virialDensityContrast_                                                                       &
+         &                                                             virialDensityContrast_                                                                     , &
+         &                                                             virialDensityContrastDefinition_                                                             &
          &                                                            )
     !![
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function spinDistributionBett2007ConstructorInternal

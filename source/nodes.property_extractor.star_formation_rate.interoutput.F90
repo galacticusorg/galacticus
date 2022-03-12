@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,12 +71,13 @@ contains
     !!{
     Internal constructor for the ``starFormationRateInterOutput'' output extractor property extractor class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self
-  
-    self%starFormationRateDiskInterOutputID    =defaultDiskComponent    %addMetaProperty(var_str('starFormationRateDiskInterOutputID'    ),'disk:starFormationRateDiskInterOutput'    ,isEvolvable=.true.)
-    self%starFormationRateSpheroidInterOutputID=defaultSpheroidComponent%addMetaProperty(var_str('starFormationRateSpheroidInterOutputID'),'spheroid:starFormationRateDiskInterOutput',isEvolvable=.true.)
+    
+    !![
+    <addMetaProperty component="disk"     name="starFormationRateDiskInterOutput" isEvolvable="yes" id="self%starFormationRateDiskInterOutputID"    />
+    <addMetaProperty component="spheroid" name="starFormationRateDiskInterOutput" isEvolvable="yes" id="self%starFormationRateSpheroidInterOutputID"/>
+    !!]
     return
   end function starFormationRateInterOutputConstructorInternal
 
@@ -117,14 +118,14 @@ contains
        ! Disk does not yet exist.
        starFormationRateDisk    =0.0d0
     class default
-       starFormationRateDisk    =disk    %metaPropertyGet(self%starFormationRateDiskInterOutputID    )
+       starFormationRateDisk    =disk    %floatRank0MetaPropertyGet(self%starFormationRateDiskInterOutputID    )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist.
        starFormationRateSpheroid=0.0d0
     class default
-       starFormationRateSpheroid=spheroid%metaPropertyGet(self%starFormationRateSpheroidInterOutputID)
+       starFormationRateSpheroid=spheroid%floatRank0MetaPropertyGet(self%starFormationRateSpheroidInterOutputID)
     end select
     starFormationRateInterOutputExtract=[                           &
          &                               starFormationRateDisk    , &

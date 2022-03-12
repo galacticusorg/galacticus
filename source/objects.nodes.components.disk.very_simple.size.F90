@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,6 @@ module Node_Component_Disk_Very_Simple_Size
   !!{
   Implements a very simple disk component.
   !!}
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   implicit none
   private
   public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver    , &
@@ -73,12 +72,8 @@ module Node_Component_Disk_Very_Simple_Size
   </component>
   !!]
 
-  ! Classes used.
-  class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-  !$omp threadprivate(darkMatterProfileDMO_)
-
   ! Parameters controlling the physical implementation.
-  double precision                                  :: diskMassToleranceAbsolute
+  double precision :: diskMassToleranceAbsolute
 
 contains
 
@@ -129,7 +124,6 @@ contains
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        !![
-       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
        <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
         <default>
          <diskMassDistribution value="exponentialDisk">
@@ -158,7 +152,6 @@ contains
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        !![
-       <objectDestructor name="darkMatterProfileDMO_"/>
        <objectDestructor name="diskMassDistribution" />
        !!]
     end if
@@ -219,8 +212,8 @@ contains
     !!{
     Interface for the size solver algorithm.
     !!}
-    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
-    use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode, &
+         &                          nodeComponentSpin
     implicit none
     type            (treeNode                                       ), intent(inout)          :: node
     logical                                                          , intent(  out)          :: componentActive
@@ -230,6 +223,7 @@ contains
     procedure       (Node_Component_Disk_Very_Simple_Size_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentDisk                              )               , pointer :: disk
     class           (nodeComponentBasic                             )               , pointer :: basic
+    class           (nodeComponentSpin                              )               , pointer :: spin
 
     ! Determine if node has an active disk component supported by this module.
     componentActive =  .false.
@@ -238,8 +232,10 @@ contains
     class is (nodeComponentDiskVerySimpleSize)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          basic                  => node             %basic()
-          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)/basic%mass()
+          basic                   =>  node               %basic()
+          spin                    =>  node               %spin ()
+          specificAngularMomentum =  +spin%angularMomentum     () &
+               &                     /basic              %mass ()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Disk_Very_Simple_Size_Radius
@@ -327,18 +323,8 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
+    <stateStore variables="diskMassDistribution"/>
     !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
-    write (stateFile) associated(diskMassDistribution)
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
-    if (associated(diskMassDistribution)) call diskMassDistribution%stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Store
 
@@ -352,32 +338,17 @@ contains
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                                  , only : displayMessage         , verbosityLevelInfo
-    use            :: Galacticus_Error                         , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                            , only : c_ptr                  , c_size_t
     use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
-    logical                          :: wasAllocated
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
+    <stateRestore variables="diskMassDistribution"/>
     !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
-    read (stateFile) wasAllocated
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
-    if (wasAllocated) then
-       if (.not.associated(diskMassDistribution)) call Galacticus_Error_Report('diskMassDistribution was stored, but is now not allocated'//{introspection:location})
-       call diskMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
-    end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve
 

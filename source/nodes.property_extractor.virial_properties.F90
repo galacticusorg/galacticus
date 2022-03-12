@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@
      A property extractor which extracts virialProperties properties.
      !!}
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                 virialPropertiesDestructor
      procedure :: elementCount => virialPropertiesElementCount
@@ -132,8 +132,8 @@ contains
 
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
-         &                   self%darkMatterHaloScale_%virialRadius  (node), &
-         &                   self%darkMatterHaloScale_%virialVelocity(node)  &
+         &                   self%darkMatterHaloScale_%radiusVirial  (node), &
+         &                   self%darkMatterHaloScale_%velocityVirial(node)  &
          &                  ]
     return
   end function virialPropertiesExtract

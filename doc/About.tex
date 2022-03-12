@@ -4,7 +4,7 @@ At its core, \glc\ is a semi-analytic model of galaxy formation. It solves equat
 
 In designing \glc\ our main goal was to make the code flexible, modular and easily extensible. Much greater priority was placed on making the code easy to use and modify than on making it fast. We believe that a modular and extensible nature is crucial as galaxy formation is an evolving science. In particular, key design features are:
 \begin{description}
- \item [Extensible implementations for all functions:] Essentially all functions within \glc\ are designed to be extensible following an Object Oriented methodology, meaning that you can write your own version and insert it into \glc\ easily. For example, suppose you want to use an improved functional form for the \gls{cdm} halo mass function. You would simply write a new {\normalfont \ttfamily haloMassFunction} class that computes this mass function, decorate it with a short directive (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf#sec.CodeDirectives}{here}) which explains to the build system how to insert this class into \glc. A recompile of the code will then incorporate your new function.
+ \item [Extensible implementations for all functions:] Essentially all functions within \glc\ are designed to be extensible following an Object Oriented methodology, meaning that you can write your own version and insert it into \glc\ easily. For example, suppose you want to use an improved functional form for the \gls{cdm} halo mass function. You would simply write a new {\normalfont \ttfamily haloMassFunction} class that computes this mass function, decorate it with a short directive (see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#sec.CodeDirectives}{here}) which explains to the build system how to insert this class into \glc. A recompile of the code will then incorporate your new function.
 
  \item [Extensible components for tree nodes:] The basic structure in \glc\ is a merger tree, which consists of a linked tree of nodes (each corresponding a dark matter halo and its content) which have various properties. \glc\ works by evolving the nodes forward in time subject to a collection of differential equations and other rules. Each node can contain an arbitrary number of \emph{components}. A component may be a dark matter halo, a galactic disk, a black hole etc. Each component may have an arbitrary number of \emph{properties} (some of which may be evolving, others of which can be fixed). \glc\ makes it easy to add additional components. For example, suppose you wanted to add a ``stellar halo'' components (consisting of stars stripped from satellite galaxies). To do this, you would write a module which specifies the following for this component:
  \begin{itemize}
@@ -20,11 +20,11 @@ In designing \glc\ our main goal was to make the code flexible, modular and easi
 
 \section{Getting Galacticus}
 
-Galacticus is available in many different forms: a precompiled binary, \href{https://www.docker.com/}{Docker} and \href{https://sylabs.io/}{Singularity} images, and the full source code. Downloads and installation instructions can be found \href{https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus}{here}.
+Galacticus is available in many different forms: a precompiled binary, a \href{https://www.docker.com/}{Docker} image, and the full source code. Downloads and installation instructions can be found \href{https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus}{here}.
 
 \section{License}
 
-Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, Andrew Benson \href{mailto:abenson@carnegiescience.edu}{\normalfont \ttfamily <abenson@carnegiescience.edu>}\\
+Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022 Andrew Benson \href{mailto:abenson@carnegiescience.edu}{\normalfont \ttfamily <abenson@carnegiescience.edu>}\\
 
 \glc\ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

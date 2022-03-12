@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,7 +143,7 @@ contains
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout), target :: self
     type            (treeNode                                  ), intent(inout), target :: node
     double precision                                            , intent(in   )         :: mass
-    class           (nodeComponentBasic                        ), pointer               :: baseBasicComponent
+    class           (nodeComponentBasic                        ), pointer               :: basicBase
     double precision                                            , parameter             :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
     double precision                                            , dimension(1)          :: nowTime
     double precision                                                                    :: baseMass                              , baseTime                     , &
@@ -154,9 +154,9 @@ contains
     type            (odeSolver                                 )                        :: solver
 
     ! Get properties of the base node.
-    baseBasicComponent => node%basic()
-    baseMass=baseBasicComponent%mass()
-    baseTime=baseBasicComponent%time()
+    basicBase => node     %basic()
+    baseMass  =  basicBase%mass ()
+    baseTime  =  basicBase%time ()
     ! Trap cases where the mass occurs in the future.
     if (mass > baseMass) call Galacticus_Error_Report('specified mass is in the future'//{introspection:location})
     ! Calculate quantities which remain fixed through the ODE.

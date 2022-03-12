@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,6 +62,8 @@ contains
     class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                 ), pointer                     :: outputTimes_
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
+    class           (virialDensityContrastClass                       ), pointer                     :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                        ), pointer                     :: darkMatterProfileDMO_
     class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
     class           (*                                                ), pointer                     :: percolationObjects_
     integer         (c_size_t                                         )                              :: likelihoodBin
@@ -90,20 +92,24 @@ contains
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
+    <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"         />
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="outputTimes_"                 />
     <objectDestructor name="outputAnalysisMolecularRatio_"/>
+    <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="virialDensityContrast_"       />
     !!]
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
-  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
+  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
     !!{
     Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
     !!}
@@ -134,6 +140,8 @@ contains
     double precision                                                    , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                          ), intent(inout), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), intent(inout), target         :: cosmologyFunctions_
+    class           (virialDensityContrastClass                        ), intent(in   )                 :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                         ), intent(in   )                 :: darkMatterProfileDMO_
     class           (outputTimesClass                                  ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target         :: outputAnalysisMolecularRatio_
     class           (*                                                 ), intent(in   ), target         :: percolationObjects_
@@ -163,7 +171,7 @@ contains
     type            (propertyOperatorList                              ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                         ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                       :: cosmologyFunctionsData
-    type            (virialDensityContrastPercolation                  ), pointer                       :: virialDensityContrast_
+    type            (virialDensityContrastPercolation                  ), pointer                       :: virialDensityContrastDefinition_
     type            (virialDensityContrastBryanNorman1998              ), pointer                       :: virialDensityContrastData
     type            (darkMatterHaloScaleVirialDensityContrastDefinition), pointer                       :: darkMatterHaloScaleData
     type            (surveyGeometryMartin2010ALFALFA                   ), pointer                       :: surveyGeometry_
@@ -308,13 +316,13 @@ contains
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
-    allocate(virialDensityContrast_                                )
+    allocate(virialDensityContrastDefinition_                                )
     !![
-    <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
+    <referenceConstruct object="virialDensityContrastDefinition_"                       constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
     !!]
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (virialDensityContrast_                                                            )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
     ! virial density contrast definition. However (Padmanabhan, private communication), they assume it gives the density contrast
@@ -344,7 +352,7 @@ contains
        call basicWork%massSet(massHalo(iBin))
        ! Compute virial velocity, including the extra factor of Ωₘ^⅙ to correct for incorrect definition of virial density
        ! contrast used by Padmanabhan & Refrigier (2017).
-       velocityVirial               =+darkMatterHaloScaleData%virialVelocity(nodeWork)                &
+       velocityVirial               =+darkMatterHaloScaleData%velocityVirial(nodeWork)                &
             &                        *cosmologyParametersData%OmegaMatter   (        )**(1.0d0/6.0d0)
        massHILogarithmicTarget(iBin)=+alphaFit                                                       &
             &                        *fractionHydrogenCosmic                                         &
@@ -398,7 +406,7 @@ contains
          &                                                         massHaloLogarithmic                                   , &
          &                                                         0_c_size_t                                            , &
          &                                                         outputWeight                                          , &
-         &                                                         nodePropertyExtractor_                      , &
+         &                                                         nodePropertyExtractor_                                , &
          &                                                         outputAnalysisWeightPropertyExtractor_                , &
          &                                                         outputAnalysisPropertyOperator_                       , &
          &                                                         outputAnalysisWeightPropertyOperator_                 , &
@@ -442,7 +450,7 @@ contains
     <objectDestructor name="outputAnalysisWeightPropertyOperatorAntiLog10_"        />
     <objectDestructor name="cosmologyParametersData"                               />
     <objectDestructor name="cosmologyFunctionsData"                                />
-    <objectDestructor name="virialDensityContrast_"                                />
+    <objectDestructor name="virialDensityContrastDefinition_"                      />
     <objectDestructor name="virialDensityContrastData"                             />
     <objectDestructor name="darkMatterHaloScaleData"                               />
     !!]

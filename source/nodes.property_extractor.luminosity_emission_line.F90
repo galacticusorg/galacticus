@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,7 +66,7 @@ Contains a module which implements a stellar mass output analysis property extra
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
      double precision                                    , allocatable, dimension(:          ) :: metallicity                             , densityHydrogen             , &
           &                                                                                       ionizingFluxHydrogen                    , ionizingFluxHeliumToHydrogen, &
-          &                                                                                       ionizingFluxOxygenToHydrogen            , wavelength
+          &                                                                                       ionizingFluxOxygenToHelium              , wavelength
      double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
      integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                                                 , dimension(2,3        ) :: filterExtent
@@ -94,7 +94,7 @@ Contains a module which implements a stellar mass output analysis property extra
   ! Enumerations for galactic components and ionizing continuua.
   !![
   <enumeration>
-   <name>galacticComponent</name>
+   <name>component</name>
    <description>Specifies the galactic component for emission line calculations.</description>
    <indexing>1</indexing>
    <entry label="disk"    />
@@ -207,11 +207,11 @@ contains
     call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )
     call emissionLinesFile%readDataset('ionizingFluxHydrogen'         ,self%ionizingFluxHydrogen        )
     call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen' ,self%ionizingFluxHeliumToHydrogen)
-    call emissionLinesFile%readDataset('ionizingFluxOxygenToHydrogen' ,self%ionizingFluxOxygenToHydrogen)
+    call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'   ,self%ionizingFluxOxygenToHelium  )
     call allocateArray(                                          &
          &             self%luminosity,                          &
          &             [                                         &
-         &              size(self%ionizingFluxOxygenToHydrogen), &
+         &              size(self%ionizingFluxOxygenToHelium  ), &
          &              size(self%ionizingFluxHeliumToHydrogen), &
          &              size(self%ionizingFluxHydrogen        ), &
          &              size(self%densityHydrogen             ), &
@@ -239,7 +239,7 @@ contains
     self%densityHydrogen             =log10(self%densityHydrogen             )
     self%ionizingFluxHydrogen        =log10(self%ionizingFluxHydrogen        )
     self%ionizingFluxHeliumToHydrogen=log10(self%ionizingFluxHeliumToHydrogen)
-    self%ionizingFluxOxygenToHydrogen=log10(self%ionizingFluxOxygenToHydrogen)
+    self%ionizingFluxOxygenToHelium  =log10(self%ionizingFluxOxygenToHelium  )
     self%luminosity                  =log10(self%luminosity                  )
     ! Find indices of ionizing continuua filters.
     call allocateArray(self%ionizingContinuumIndex,[self%outputTimes_%count(),3_c_size_t])
@@ -262,7 +262,7 @@ contains
     self%interpolator_(interpolantDensity    )=interpolator(self%densityHydrogen             )
     self%interpolator_(interpolantHydrogen   )=interpolator(self%ionizingFluxHydrogen        )
     self%interpolator_(interpolantHelium     )=interpolator(self%ionizingFluxHeliumToHydrogen)
-    self%interpolator_(interpolantOxygen     )=interpolator(self%ionizingFluxOxygenToHydrogen)
+    self%interpolator_(interpolantOxygen     )=interpolator(self%ionizingFluxOxygenToHelium  )
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
@@ -342,22 +342,22 @@ contains
     type            (stellarLuminosities                 ), dimension(  2  )        :: luminositiesStellar
     type            (abundances                          ), dimension(  2  )        :: abundancesGas
     double precision                                      , dimension(3,2  )        :: luminosityIonizing
-    double precision                                      , dimension(  2  )        :: massGas                                                 , radius                         , &
-         &                                                                             rateStarFormation                                       , metallicityGas                 , &
-         &                                                                             densityHydrogen                                         , luminosityLymanContinuum       , &
-         &                                                                             ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
-         &                                                                             countHIIRegion                                          , densitySurfaceGas              , &
-         &                                                                             massClouds                                              , densitySurfaceClouds           , &
-         &                                                                             depthOpticalDiffuse                                     , densitySurfaceMetals           , &
+    double precision                                      , dimension(  2  )        :: massGas                                                 , radius                       , &
+         &                                                                             rateStarFormation                                       , metallicityGas               , &
+         &                                                                             densityHydrogen                                         , luminosityLymanContinuum     , &
+         &                                                                             ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHelium, &
+         &                                                                             countHIIRegion                                          , densitySurfaceGas            , &
+         &                                                                             massClouds                                              , densitySurfaceClouds         , &
+         &                                                                             depthOpticalDiffuse                                     , densitySurfaceMetals         , &
          &                                                                             ionizingFluxMultiplier
     logical                                               , dimension(  2  )        :: isPhysical
     integer         (c_size_t                            ), dimension(0:1,5)        :: interpolateIndex
     double precision                                      , dimension(0:1,5)        :: interpolateFactor
     double precision                                                                :: weight                                                  , luminosityLinePerHIIRegion
     integer         (c_size_t                            )                          :: output
-    integer                                                                         :: component                                               , continuum                      , &
-         &                                                                             i                                                       , j                              , &
-         &                                                                             k                                                       , l                              , &
+    integer                                                                         :: component                                               , continuum                    , &
+         &                                                                             i                                                       , j                            , &
+         &                                                                             k                                                       , l                            , &
          &                                                                             m                                                       , line
     !$GLC attributes unused :: instance
 
@@ -368,16 +368,16 @@ contains
     ! Determine output index.
     output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
-    luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar             (    )
-    luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar             (    )
-    abundancesGas      (galacticComponentDisk    )=disk    %abundancesGas                   (    )
-    abundancesGas      (galacticComponentSpheroid)=spheroid%abundancesGas                   (    )
-    massGas            (galacticComponentDisk    )=disk    %massGas                         (    )
-    massGas            (galacticComponentSpheroid)=spheroid%massGas                         (    )
-    radius             (galacticComponentDisk    )=disk    %radius                          (    )
-    radius             (galacticComponentSpheroid)=spheroid%radius                          (    )
-    rateStarFormation  (galacticComponentDisk    )=self    %starFormationRateDisks_    %rate(node)
-    rateStarFormation  (galacticComponentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
+    luminositiesStellar(componentDisk    )=disk    %luminositiesStellar             (    )
+    luminositiesStellar(componentSpheroid)=spheroid%luminositiesStellar             (    )
+    abundancesGas      (componentDisk    )=disk    %abundancesGas                   (    )
+    abundancesGas      (componentSpheroid)=spheroid%abundancesGas                   (    )
+    massGas            (componentDisk    )=disk    %massGas                         (    )
+    massGas            (componentSpheroid)=spheroid%massGas                         (    )
+    radius             (componentDisk    )=disk    %radius                          (    )
+    radius             (componentSpheroid)=spheroid%radius                          (    )
+    rateStarFormation  (componentDisk    )=self    %starFormationRateDisks_    %rate(node)
+    rateStarFormation  (componentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
     ! Extract ionizing continuum luminosities.
     do component=1,2
        do continuum=1,3
@@ -445,8 +445,8 @@ contains
        luminosityLymanContinuum       =+log10(                                                                             luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute helium to Lyman continuum luminosity logarithmic ratio.
        ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
-       ! Compute oxygen to Lyman continuum luminosity logarithmic ratio.
-       ratioLuminosityOxygenToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumOxygen,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
+       ! Compute oxygen to helium continuum luminosity logarithmic ratio.
+       ratioLuminosityOxygenToHelium  =+log10(max(luminosityIonizing(ionizingContinuumOxygen,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHelium  ,:))
        ! Compute number of HII regions.
        countHIIRegion                 =+rateStarFormation   &
             &                          *lifetimeHIIRegion   &
@@ -461,7 +461,7 @@ contains
        densityHydrogen                =0.0d0
        metallicityGas                 =0.0d0
        ratioLuminosityHeliumToHydrogen=0.0d0
-       ratioLuminosityOxygenToHydrogen=0.0d0
+       ratioLuminosityOxygenToHelium  =0.0d0
     end where
     ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
     !
@@ -471,7 +471,7 @@ contains
     !! value we must then apply a multiplicative correction to the line luminosity to ensure
     !! that we correctly account for all ionizing photons produced.
     !!
-    !! For metallicity and the He/H and O/H ionizing flux ratios we truncate only at the
+    !! For metallicity and the He/H and O/He ionizing flux ratios we truncate only at the
     !! upper extent of the tabulated range. The table is assumed to be tabulated up to the
     !! maximum physically plausible extent for these quantities. Extrapolation to lower
     !! values should be reasonably robust (and the table is assumed to extend to
@@ -503,8 +503,8 @@ contains
     where     (ratioLuminosityHeliumToHydrogen > self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen)))
        ratioLuminosityHeliumToHydrogen=self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen))
     end where
-    where     (ratioLuminosityOxygenToHydrogen > self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen)))
-       ratioLuminosityOxygenToHydrogen=self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen))
+    where     (ratioLuminosityOxygenToHelium   > self%ionizingFluxOxygenToHelium  (size(self%ionizingFluxOxygenToHelium  )))
+       ratioLuminosityOxygenToHelium  =self%ionizingFluxOxygenToHelium  (size(self%ionizingFluxOxygenToHelium  ))
     end where
     ! Perform dust calculation if necessary.
     if (self%depthOpticalISMCoefficient > 0.0d0) then
@@ -532,7 +532,7 @@ contains
        call self%interpolator_(interpolantDensity    )%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    ),interpolateFactor(:,interpolantDensity    ))
        call self%interpolator_(interpolantHydrogen   )%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   ),interpolateFactor(:,interpolantHydrogen   ))
        call self%interpolator_(interpolantHelium     )%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     ),interpolateFactor(:,interpolantHelium     ))
-       call self%interpolator_(interpolantOxygen     )%linearFactors(ratioLuminosityOxygenToHydrogen(component),interpolateIndex(0,interpolantOxygen     ),interpolateFactor(:,interpolantOxygen     ))
+       call self%interpolator_(interpolantOxygen     )%linearFactors(ratioLuminosityOxygenToHelium  (component),interpolateIndex(0,interpolantOxygen     ),interpolateFactor(:,interpolantOxygen     ))
        !$ call OMP_Unset_Lock(self%interpolateLock)
        interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
        interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,6 @@ program Test_DiemerKravtsov2014_Concentration
   use :: File_Utilities                      , only : File_Exists
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Error                    , only : Galacticus_Error_Report
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                    , nodeComponentBasic                                          , treeNode
   use :: Galacticus_Paths                    , only : galacticusPath                                  , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                                   , char                                                        , operator(//)                       , varying_string
@@ -254,5 +253,4 @@ program Test_DiemerKravtsov2014_Concentration
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_DiemerKravtsov2014_Concentration

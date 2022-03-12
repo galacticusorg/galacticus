@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -95,7 +95,7 @@ contains
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
-    type            (distributionFunction1DPeakBackground)                        ::           self
+    type            (distributionFunction1DPeakBackground)                                  :: self
     double precision                                      , intent(in   )                   :: varianceBackground          , thresholdCollapse
     class           (randomNumberGeneratorClass          ), intent(in   ), target, optional :: randomNumberGenerator_
     double precision                                      , parameter                       :: rangeTable            =7.0d0
@@ -233,7 +233,7 @@ contains
     !!}
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout) :: self
-    double precision                                     , intent(in   ) :: x
+    double precision                                      , intent(in   ) :: x
 
     if      (x < self%cdf%x(+1)) then
        peakBackgroundCumulative=0.0d0

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,7 @@ module Input_Parameters
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
   private
-  public :: inputParameters, inputParameter, inputParameterList, globalParameters
+  public :: inputParameters, inputParameter, inputParameterList
   
   !![
   <generic identifier="Type">
@@ -73,10 +73,12 @@ module Input_Parameters
      !!}
      private
      type   (node             ), pointer                   :: content
-     type   (inputParameter   ), pointer    , public       :: parent         , firstChild        , &
-          &                                                   sibling        , referenced
+     type   (inputParameter   ), pointer    , public       :: parent                 , firstChild        , &
+          &                                                   sibling                , referenced
      type   (genericObjectList), allocatable, dimension(:) :: objects
-     logical                                               :: created=.false., removed   =.false.
+     type   (varying_string   )                            :: contentOriginal
+     logical                                               :: created        =.false., removed   =.false.,&
+          &                                                   evaluated      =.false.
    contains
      !![
      <methods>
@@ -110,15 +112,13 @@ module Input_Parameters
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
      type   (inputParameter ), pointer         :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
-     logical                                   :: global                 =  .false., isNull                   =.false., &
-          &                                       outputParametersCopied =  .false., outputParametersTemporary=.false.
-   contains
+     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
+          &                                       isNull                 =  .false.
+        contains
      !![
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
-       <method description="Mark an input parameter set as the global set." method="markGlobal" />
-       <method description="Return true if these parameters are the global set." method="isGlobal" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
@@ -140,8 +140,6 @@ module Input_Parameters
      procedure :: buildTree           => inputParametersBuildTree
      procedure :: resolveReferences   => inputParametersResolveReferences
      procedure :: destroy             => inputParametersDestroy
-     procedure :: markGlobal          => inputParametersMarkGlobal
-     procedure :: isGlobal            => inputParametersIsGlobal
      procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
      procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
      procedure :: validateName        => inputParametersValidateName
@@ -210,11 +208,8 @@ module Input_Parameters
   </enumeration>
   !!]
 
-  ! Pointer to the global input parameters.
-  type   (inputParameters), pointer   :: globalParameters       => null()
-
   ! Maximum length allowed for parameter entries.
-  integer                 , parameter :: parameterLengthMaximum =  1024
+  integer, parameter :: parameterLengthMaximum=1024
 
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
@@ -241,7 +236,6 @@ contains
          &                                                         )
     inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
     inputParametersConstructorNull%parameters => null()
-    inputParametersConstructorNull%global     = .false.
     inputParametersConstructorNull%isNull     = .true.
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
@@ -369,7 +363,6 @@ contains
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
     inputParametersConstructorCopy%parent     =>                 parameters%parent
-    inputParametersConstructorCopy%global     =                  parameters%global
     return
   end function inputParametersConstructorCopy
 
@@ -409,7 +402,6 @@ contains
     !!]
 #include "os.inc"
     
-    inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
     inputParametersConstructorNode%rootNode =>                  parametersNode
@@ -812,20 +804,22 @@ contains
     return
   end subroutine inputParameterObjectSet
 
-  recursive subroutine inputParameterReset(self,children)
+  recursive subroutine inputParameterReset(self,children,evaluations)
     !!{
     Reset objects associated with this parameter and any sub-parameters.
     !!}
-    use :: FoX_dom, only : destroy
+    use :: FoX_DOM, only : destroy
     implicit none
     class  (inputParameter), intent(inout), target   :: self
-    logical                , intent(in   ), optional :: children
-    type   (inputParameter), pointer                 :: child, childNext
+    logical                , intent(in   ), optional :: children, evaluations
+    type   (inputParameter), pointer                 :: child   , childNext
     integer                                          :: i
     !![
-    <optionalArgument name="children" defaultsTo=".true."/>
+    <optionalArgument name="children"    defaultsTo=".true." />
+    <optionalArgument name="evaluations" defaultsTo=".false."/>
     !!]
 
+    ! Destroy any objects associated with this parameter node.
     if (allocated(self%objects)) then
        do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
           if (associated(self%objects(i)%object)) then
@@ -835,6 +829,13 @@ contains
           end if
        end do
     end if
+    ! For evaluated parameters, restore them to their unevaluated state.
+    if (evaluations_) then
+       if (self%evaluated) then
+          self%evaluated=.false.
+          call self%set(self%contentOriginal)
+       end if
+    end if
     ! Clean up children if requested.
     if (children_) then
        ! Remove if this parameter was created.
@@ -843,7 +844,7 @@ contains
        child => self%firstChild
        do while (associated(child))
           childNext => child%sibling
-          call child%reset()
+          call child%reset(children,evaluations)
           child => childNext
        end do
     end if
@@ -918,9 +919,11 @@ contains
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
           &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
-    use :: FoX_dom            , only : destroy                        , getNodeName         , node
+    use :: FoX_dom            , only : destroy                        , getNodeName         , node           , hasAttribute    , &
+         &                             getAttributeNode               , extractDataContent  , inException    , DOMException
     use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char           , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: Hashes             , only : integerHash
@@ -929,12 +932,13 @@ contains
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node           ), pointer                               :: node_
+    type     (node           ), pointer                               :: node_                     , ignoreWarningsNode
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
     logical                                                           :: warningsFound             , parameterMatched    , &
-         &                                                               verbose
+         &                                                               verbose                   , ignoreWarnings      , &
+         &                                                               isException
     integer                                                           :: allowedParametersCount    , errorStatus         , &
          &                                                               distance                  , distanceMinimum     , &
          &                                                               j
@@ -943,6 +947,7 @@ contains
          &                                                               parameterNameGuess
     type     (varying_string )                                        :: message                   , verbosityLevel
     type     (integerHash    )                                        :: parameterNamesSeen
+    type     (DOMException   )                                        :: exception
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -960,6 +965,15 @@ contains
              node_ => currentParameter%content
              ! Attempt to read the parameter value.
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
+             ! Determine if warnings should be ignored for this parameter.
+             ignoreWarnings=.false.
+             if (hasAttribute(node_,'ignoreWarnings')) then
+                ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
+                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
+                isException=inException(exception)
+                if (isException .or. errorStatus /= 0) &
+                     & call Galacticus_Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
+             end if
              ! Check for a match with allowed parameter names.
              allowedParametersCount=0
              if (present(allowedParameterNames)) allowedParametersCount=size(allowedParameterNames)
@@ -988,12 +1002,14 @@ contains
                   &     .not.parameterMatched                           &
                   &   )                                                 &
                   &  .and.                                              &
+                  &   .not.ignoreWarnings                               &
+                  &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
                 if (verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                 warningsFound=.true.
              end if
-             if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
+             if (errorStatus /= inputParameterErrorStatusSuccess .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 select case (errorStatus)
                 case (inputParameterErrorStatusEmptyValue    )
@@ -1004,7 +1020,7 @@ contains
                 !$omp end critical (FoX_DOM_Access)
                 call displayMessage(message)
              end if
-             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
+             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 unknownName    =getNodeName(node_)
                 !$omp end critical (FoX_DOM_Access)
@@ -1030,7 +1046,7 @@ contains
                 parameterMatched=.false.
                 if (present(allowedMultiParameterNames)) &
                      & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
-                if (.not.parameterMatched) then
+                if (.not.parameterMatched .and. .not.ignoreWarnings) then
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
                    if (verbose) then
@@ -1049,32 +1065,6 @@ contains
     if (warningsFound .and. verbose) call displayUnindent('')
     return
   end subroutine inputParametersCheckParameters
-
-  subroutine inputParametersMarkGlobal(self)
-    !!{
-    Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(inputParameters), intent(inout), target :: self
-
-    ! Mark as global.
-    self%global=.true.
-    ! Set global parameters pointer.
-    globalParameters => self
-    return
-  end subroutine inputParametersMarkGlobal
-
-  logical function inputParametersIsGlobal(self)
-    !!{
-    Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
-    !!}
-    implicit none
-    class(inputParameters), intent(in   ), target :: self
-
-    inputParametersIsGlobal=self%global
-    return
-  end function inputParametersIsGlobal
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !!{
@@ -1364,13 +1354,12 @@ contains
        end if
        copyCount                               =  1
     else
-       copyCount                               =  self%copiesCount(parameterName                                                                                           ,requireValue=requireValue                          )
+       copyCount                               =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
        parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
        inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode
     end if
     inputParametersSubParameters%parent => self
-    inputParametersSubParameters%global =  self%global
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) then
        groupName=parameterName
@@ -1511,7 +1500,11 @@ contains
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=") then
              {Type¦match¦^Double$¦if (.true.) then¦if (.false.) then}
-                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.
+                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.             
+                !! Mark this parameter as being evaluated and store its original content. This allows the parameter to be reset to
+                !! its original (unevaluated) state if necessary.
+                parameterNode%evaluated      =.true.
+                parameterNode%contentOriginal=expression
                 !! Remove the initial "=".
                 expression=expression(2:len_trim(expression))
                 !! Replace other parameter values inside the parameter.
@@ -1738,7 +1731,7 @@ contains
     !!}
     use :: FoX_DOM           , only : serialize
     use :: ISO_Varying_String, only : char
-   implicit none
+    implicit none
     class(inputParameters), intent(in   ) :: self
     type (varying_string ), intent(in   ) :: parameterFile
 
@@ -1810,6 +1803,7 @@ contains
        currentParameter%sibling    => null()
        currentParameter%referenced => null()
        currentParameter%created    =  .true.
+       currentParameter%evaluated  =  .false.
     end if
     currentParameter%removed=.false.
     return
@@ -1822,7 +1816,7 @@ contains
     implicit none
     class(inputParameters), intent(inout) :: self
 
-    call self%parameters%reset()
+    call self%parameters%reset(evaluations=.true.)
     return
   end subroutine inputParametersReset
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,7 +48,6 @@
        <method description="Run {\normalfont \scshape Cloudy} to tabulate the cooling function as necessary." method="tabulate" />
      </methods>
      !!]
-     final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: coolingFunction                    => atomicCIECloudyCoolingFunction
      procedure :: coolingFunctionFractionInBand      => atomicCIECloudyCoolingFunctionFractionInBand
@@ -87,9 +86,11 @@ contains
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingFunctionAtomicCIECloudy()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function atomicCIECloudyConstructorParameters
 
@@ -108,18 +109,6 @@ contains
     self%initialized             =.false.
    return
   end function atomicCIECloudyConstructorInternal
-
-  subroutine atomicCIECloudyDestructor(self)
-    !!{
-    Destructor for the ``atomic CIE Cloudy'' cooling function class.
-    !!}
-    implicit none
-    type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine atomicCIECloudyDestructor
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
     !!{

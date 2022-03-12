@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,7 +140,8 @@ module Stellar_Luminosities_Structure
   integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
        &                                                                                            luminosityMap
   double precision                                                   , allocatable, dimension(:) :: luminosityBandRedshift                               , luminosityCosmicTime          , &
-       &                                                                                            luminosityRedshift
+       &                                                                                            luminosityRedshift                                   , luminosityWavelengthEffective , &
+       &                                                                                            luminosityVegaOffset
   type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: luminosityPostprocessor
   type            (varying_string                                   ), allocatable, dimension(:) :: luminosityFilter                                     , luminosityName                , &
        &                                                                                            luminosityPostprocessSet                             , luminosityType                , &
@@ -173,10 +174,10 @@ contains
     use            :: Cosmology_Functions, only : cosmologyFunctions     , cosmologyFunctionsClass
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use            :: ISO_Varying_String , only : assignment(=)          , char                   , operator(//), operator(/=), &
+    use            :: ISO_Varying_String , only : assignment(=)          , char                       , operator(//)      , operator(/=), &
           &                                       operator(==)           , var_str
     use            :: Input_Parameters   , only : inputParameters
-    use            :: Instruments_Filters, only : Filter_Get_Index
+    use            :: Instruments_Filters, only : Filter_Get_Index       , Filter_Wavelength_Effective, Filter_Vega_Offset
     use            :: Sorting            , only : sortByIndex            , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
@@ -318,18 +319,22 @@ contains
        call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
        luminosityCount=size(luminosityRedshift)
        ! Allocate remaining required arrays.
-       if (allocated(luminosityName         )) deallocate(luminosityName         )
-       if (allocated(luminosityPostprocessor)) deallocate(luminosityPostprocessor)
-       if (allocated(luminosityFilterIndex  )) deallocate(luminosityFilterIndex  )
-       if (allocated(luminosityIndex        )) deallocate(luminosityIndex        )
-       if (allocated(luminosityCosmicTime   )) deallocate(luminosityCosmicTime   )
-       if (allocated(luminosityTimeIndex    )) deallocate(luminosityTimeIndex    )
-       allocate(luminosityName         (luminosityCount))
-       allocate(luminosityPostprocessor(luminosityCount))
-       allocate(luminosityFilterIndex  (luminosityCount))
-       allocate(luminosityIndex        (luminosityCount))
-       allocate(luminosityCosmicTime   (luminosityCount))
-       allocate(luminosityTimeIndex    (luminosityCount))
+       if (allocated(luminosityName               )) deallocate(luminosityName               )
+       if (allocated(luminosityPostprocessor      )) deallocate(luminosityPostprocessor      )
+       if (allocated(luminosityFilterIndex        )) deallocate(luminosityFilterIndex        )
+       if (allocated(luminosityIndex              )) deallocate(luminosityIndex              )
+       if (allocated(luminosityCosmicTime         )) deallocate(luminosityCosmicTime         )
+       if (allocated(luminosityTimeIndex          )) deallocate(luminosityTimeIndex          )
+       if (allocated(luminosityWavelengthEffective)) deallocate(luminosityWavelengthEffective)
+       if (allocated(luminosityVegaOffset         )) deallocate(luminosityVegaOffset         )
+       allocate(luminosityName               (luminosityCount))
+       allocate(luminosityPostprocessor      (luminosityCount))
+       allocate(luminosityFilterIndex        (luminosityCount))
+       allocate(luminosityIndex              (luminosityCount))
+       allocate(luminosityCosmicTime         (luminosityCount))
+       allocate(luminosityTimeIndex          (luminosityCount))
+       allocate(luminosityWavelengthEffective(luminosityCount))
+       allocate(luminosityVegaOffset         (luminosityCount))
        ! Process the list of luminosities.
        do iLuminosity=1,luminosityCount
           ! Assign a name to this luminosity.
@@ -353,12 +358,15 @@ contains
              end do
           end if
           ! Assign an index for this luminosity.
-          luminosityIndex(iLuminosity)=iLuminosity
+          luminosityIndex              (iLuminosity)=                                                                      iLuminosity
           ! Get the index of the specified filter.
-          luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
+          luminosityFilterIndex        (iLuminosity)=Filter_Get_Index                               (luminosityFilter     (iLuminosity))
+          ! Get effctive wavelength and Vega offset.
+          luminosityWavelengthEffective(iLuminosity)=Filter_Wavelength_Effective                    (luminosityFilterIndex(iLuminosity))
+          luminosityVegaOffset         (iLuminosity)=Filter_Vega_Offset                             (luminosityFilterIndex(iLuminosity))
           ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
-          expansionFactor                  =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift(iLuminosity))
-          luminosityCosmicTime(iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                )
+          expansionFactor                           =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift   (iLuminosity))
+          luminosityCosmicTime         (iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                   )
           ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
           ! it is set to zero to indicate a rest-frame filter.
           select case(char(luminosityType(iLuminosity)))
@@ -374,15 +382,17 @@ contains
        end do
        ! Sort the luminosities such that the latest luminosities are stored first.
        luminosityTimeIndex=Array_Reverse(sortIndex(luminosityCosmicTime))
-       call sortByIndex             (luminosityFilterIndex   ,luminosityTimeIndex)
-       call sortByIndexPostprocessor(luminosityPostprocessor ,luminosityTimeIndex)
-       call sortByIndex             (luminosityCosmicTime    ,luminosityTimeIndex)
-       call sortByIndex             (luminosityName          ,luminosityTimeIndex)
-       call sortByIndex             (luminosityRedshift      ,luminosityTimeIndex)
-       call sortByIndex             (luminosityBandRedshift  ,luminosityTimeIndex)
-       call sortByIndex             (luminosityFilter        ,luminosityTimeIndex)
-       call sortByIndex             (luminosityType          ,luminosityTimeIndex)
-       call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)
+       call sortByIndex             (luminosityFilterIndex        ,luminosityTimeIndex)
+       call sortByIndexPostprocessor(luminosityPostprocessor      ,luminosityTimeIndex)
+       call sortByIndex             (luminosityCosmicTime         ,luminosityTimeIndex)
+       call sortByIndex             (luminosityName               ,luminosityTimeIndex)
+       call sortByIndex             (luminosityRedshift           ,luminosityTimeIndex)
+       call sortByIndex             (luminosityBandRedshift       ,luminosityTimeIndex)
+       call sortByIndex             (luminosityFilter             ,luminosityTimeIndex)
+       call sortByIndex             (luminosityType               ,luminosityTimeIndex)
+       call sortByIndex             (luminosityPostprocessSet     ,luminosityTimeIndex)
+       call sortByIndex             (luminosityWavelengthEffective,luminosityTimeIndex)
+       call sortByIndex             (luminosityVegaOffset         ,luminosityTimeIndex)
        ! Allocate unit and zero stellar abundance objects.
        if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
        if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
@@ -970,6 +980,8 @@ contains
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
              doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+             call doubleProperties(doubleProperty)%metaData%set('wavelengthEffective',luminosityWavelengthEffective(i))
+             call doubleProperties(doubleProperty)%metaData%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if
        end do
     end if
@@ -1210,7 +1222,7 @@ contains
     double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
     type            (inputParameters              ), intent(inout)                            :: parameters_
     integer         (c_size_t                     )                                           :: i                        , j                          , &
-         &                                                                                       k                        , newFilterCount
+         &                                                                                       k                        , newFilterCount,luminosityCount
     integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
     type            (varying_string               )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                       luminosityTypeTmp        , luminosityPostprocessSetTmp
@@ -1236,8 +1248,23 @@ contains
     i=1
     do while (i <= size(luminosityRedshiftText))
        ! Check for special cases.
+       luminosityCount=size(luminosityMap)
        if (luminosityRedshiftText(i) == "all") then
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+outputCount-1))
+          allocate(luminosityFilter        (luminosityCount+outputCount-1))
+          allocate(luminosityType          (luminosityCount+outputCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+outputCount-1))
+          allocate(luminosityMap           (luminosityCount+outputCount-1))
+          allocate(luminosityRedshift      (luminosityCount+outputCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+outputCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & outputCount                ,          &
@@ -1267,16 +1294,30 @@ contains
                 luminosityBandRedshift(j+i-1)=luminosityBandRedshiftTmp  (i)
              end if
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Alias for filters required for emission line calculations.
        if (luminosityFilter(i) == "emissionLineFilters") then
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+3_c_size_t-1))
+          allocate(luminosityFilter        (luminosityCount+3_c_size_t-1))
+          allocate(luminosityType          (luminosityCount+3_c_size_t-1))
+          allocate(luminosityPostprocessSet(luminosityCount+3_c_size_t-1))
+          allocate(luminosityMap           (luminosityCount+3_c_size_t-1))
+          allocate(luminosityRedshift      (luminosityCount+3_c_size_t-1))
+          allocate(luminosityBandRedshift  (luminosityCount+3_c_size_t-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & 3_c_size_t                 ,          &
@@ -1306,6 +1347,13 @@ contains
              luminosityType           (  i+0)=var_str("rest"           )
              luminosityType           (  i+1)=var_str("rest"           )
              luminosityType           (  i+2)=var_str("rest"           )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then
@@ -1327,6 +1375,20 @@ contains
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+newFilterCount-1))
+          allocate(luminosityFilter        (luminosityCount+newFilterCount-1))
+          allocate(luminosityType          (luminosityCount+newFilterCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+newFilterCount-1))
+          allocate(luminosityMap           (luminosityCount+newFilterCount-1))
+          allocate(luminosityRedshift      (luminosityCount+newFilterCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+newFilterCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
@@ -1364,13 +1426,13 @@ contains
              ! Increase the central wavelength.
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters for SEDs
        if (extract(luminosityFilter(i),1,30) == "adaptiveResolutionTopHatArray_") then
@@ -1404,6 +1466,20 @@ contains
                   &                                    )
           end do
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+newFilterCount-1))
+          allocate(luminosityFilter        (luminosityCount+newFilterCount-1))
+          allocate(luminosityType          (luminosityCount+newFilterCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+newFilterCount-1))
+          allocate(luminosityMap           (luminosityCount+newFilterCount-1))
+          allocate(luminosityRedshift      (luminosityCount+newFilterCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+newFilterCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
@@ -1454,13 +1530,13 @@ contains
                   &                                     stellarPopulationSpectra_     &
                   &                                    )
           end do
-          deallocate          (luminosityRedshiftTextTmp  )
-          deallocate          (luminosityFilterTmp        )
-          deallocate          (luminosityTypeTmp          )
-          deallocate          (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters for equivalent width calculations
        if (extract(luminosityFilter(i),1,26) == "emissionLineContinuumPair_") then
@@ -1487,6 +1563,20 @@ contains
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+newFilterCount-1))
+          allocate(luminosityFilter        (luminosityCount+newFilterCount-1))
+          allocate(luminosityType          (luminosityCount+newFilterCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+newFilterCount-1))
+          allocate(luminosityMap           (luminosityCount+newFilterCount-1))
+          allocate(luminosityRedshift      (luminosityCount+newFilterCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+newFilterCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
@@ -1528,13 +1618,13 @@ contains
              ! Increase the central wavelength.
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Next luminosity.
        i=i+1
@@ -1570,32 +1660,18 @@ contains
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     implicit none
-    integer         (c_size_t      ), intent(in   )                            :: expandFrom               , expandCount
-    integer                         , intent(inout), allocatable, dimension(:) :: luminosityMap
-    type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
-         &                                                                        luminosityType           , luminosityPostprocessSet
-    double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    integer                         , intent(inout), allocatable, dimension(:) :: luminosityMapTmp
-    type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
-         &                                                                        luminosityTypeTmp        , luminosityPostprocessSetTmp
-    double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
-    integer                                                                    :: luminosityCount
+    integer         (c_size_t      ), intent(in   )               :: expandFrom               , expandCount
+    integer                         , intent(inout), dimension(:) :: luminosityMap
+    type            (varying_string), intent(inout), dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
+         &                                                           luminosityType           , luminosityPostprocessSet
+    double precision                , intent(inout), dimension(:) :: luminosityRedshift       , luminosityBandRedshift
+    integer                         , intent(inout), dimension(:) :: luminosityMapTmp
+    type            (varying_string), intent(inout), dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
+         &                                                           luminosityTypeTmp        , luminosityPostprocessSetTmp
+    double precision                , intent(inout), dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
+    integer                                                       :: luminosityCount
 
-    luminosityCount=size(luminosityMap)
-    call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
-    call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
-    call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
-    call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
-    call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
-    call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
-    call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
-    allocate        (luminosityRedshiftText   (size(luminosityRedshiftTextTmp  )+expandCount-1))
-    allocate        (luminosityFilter         (size(luminosityFilterTmp        )+expandCount-1))
-    allocate        (luminosityType           (size(luminosityTypeTmp          )+expandCount-1))
-    allocate        (luminosityPostprocessSet (size(luminosityPostprocessSetTmp)+expandCount-1))
-    call allocateArray(luminosityMap           ,[size(luminosityRedshiftTmp      )+expandCount-1])
-    call allocateArray(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+expandCount-1])
-    call allocateArray(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+expandCount-1])
+    luminosityCount=size(luminosityMapTmp)
     if (expandFrom > 1              ) then
        luminosityMap           (1            :expandFrom                          -1)=luminosityMapTmp           (1  :expandFrom-1            )
        luminosityRedshiftText  (1            :expandFrom                          -1)=luminosityRedshiftTextTmp  (1  :expandFrom-1            )

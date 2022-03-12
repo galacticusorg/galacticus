@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -130,9 +130,9 @@ contains
              nodeBranch%sibling => null()
           end if
           ! Destroy the original tree.
-          call treeCurrent%baseNode%destroy()
-          deallocate(treeCurrent%baseNode)
-          treeCurrent%baseNode => nodeBranch
+          call treeCurrent%nodeBase%destroy()
+          deallocate(treeCurrent%nodeBase)
+          treeCurrent%nodeBase => nodeBranch
           treeHost             => treeCurrent
        end if
        ! Move to the next tree.
@@ -143,7 +143,7 @@ contains
     do while (associated(treeCurrent))
        treeNext => treeCurrent%nextTree
        ! Destroy all nodes in the tree if it is not the one hosting the target node.
-       if (.not.associated(treeCurrent,treeHost)) call treeCurrent%baseNode%destroy()
+       if (.not.associated(treeCurrent,treeHost)) call treeCurrent%nodeBase%destroy()
        ! Destroy the tree itself unless it is the initial tree, or the one hosting the target node.
        if (.not.associated(treeCurrent,treeHost).and..not.associated(treeCurrent,tree)) then
           call treeCurrent%destroy()
@@ -152,7 +152,7 @@ contains
        treeCurrent => treeNext
     end do
     ! Assign the tree containing the target node to the initial tree in the forest.
-    tree%baseNode     => treeHost%baseNode
+    tree%nodeBase     => treeHost%nodeBase
     tree%nextTree     => null()
     tree%firstTree    => tree
     tree%index        =  treeHost%index

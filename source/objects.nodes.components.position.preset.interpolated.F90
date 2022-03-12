@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +29,10 @@ module Node_Component_Position_Preset_Interpolated
   !!}
   implicit none
   private
-  public :: threadInitialize    , threadUninitialize , &
-       &    computeInterpolation, rateCompute        , &
-       &    initialize
+  public :: threadInitialize                                   , threadUninitialize                               , &
+       &    computeInterpolation                               , rateCompute                                      , &
+       &    initialize                                         , nodeComponentPositionPresetInterpolatedStateStore, &
+       &    nodeComponentPositionPresetInterpolatedStateRestore
   
   !![
   <component>
@@ -122,7 +123,7 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks                                    , only : nodePromotionEvent      , openMPThreadBindingAtLevel
+    use :: Events_Hooks                                    , only : nodePromotionEvent      , postEvolveEvent, openMPThreadBindingAtLevel
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Input_Parameters                                , only : inputParameters
     use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
@@ -134,6 +135,7 @@ contains
        <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters_"/>
        !!]
        call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPresetInterpolated')
+       call    postEvolveEvent%attach(defaultPositionComponent,postEvolve   ,openMPThreadBindingAtLevel,label='nodeComponentPositionPresetInterpolated')
     end if
     return
   end subroutine threadInitialize
@@ -147,7 +149,7 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks                                    , only : nodePromotionEvent
+    use :: Events_Hooks                                    , only : nodePromotionEvent      , postEvolveEvent
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
     implicit none
@@ -156,7 +158,8 @@ contains
        !![
        <objectDestructor name="cosmologyFunctions_"/>
        !!]
-       call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultPositionComponent,nodePromotion)) call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
+       if (   postEvolveEvent%isAttached(defaultPositionComponent,postEvolve   )) call    postEvolveEvent%detach(defaultPositionComponent,postEvolve   )
     end if
     return
   end subroutine threadUninitialize
@@ -185,6 +188,25 @@ contains
     end select
     return
   end subroutine nodePromotion
+
+  subroutine postEvolve(self,node)
+    !!{
+    Trigger interpoltion recalculation after an evolution step.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentPositionPresetInterpolated, treeNode
+    implicit none
+    class(*       ), intent(inout)          :: self
+    type (treeNode), intent(inout), target  :: node
+
+    select type (self)
+    class is (nodeComponentPositionPresetInterpolated)
+       call computeInterpolation(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine postEvolve
 
   !![
   <nodeMergerTask>
@@ -581,13 +603,19 @@ contains
                   &   Dot_Product(positionRelative(2,:),+vectorInPlaneNormal(k,2,:)) &
                   & ) vectorInPlaneNormal(k,2,:)=-vectorInPlaneNormal(k,2,:)
              !! Find the linear fit coefficients to angle.
-             coefficientsAngle    (k,2)=+acos(                                                                    &
-                  &                           +Dot_Product     (positionRelative(2,:),vectorInPlaneNormal(k,1,:)) &
-                  &                           /Vector_Magnitude(positionRelative(2,:)                           ) &
-                  &                          )                                                                    &
-                  &                     /    (                                                                    &
-                  &                           +time(2) &
-                  &                           -time(1) &
+             coefficientsAngle    (k,2)=+acos(                                                                              &
+                  &                           min(                                                                          &
+                  &                               +1.0d0                                                                  , &
+                  &                               max(                                                                      &
+                  &                                   -1.0d0                                                              , &
+                  &                                   +Dot_Product     (positionRelative(2,:),vectorInPlaneNormal(k,1,:))   &
+                  &                                   /Vector_Magnitude(positionRelative(2,:)                           )   &
+                  &                                  )                                                                      &
+                  &                               )                                                                         &
+                  &                          )                                                                              &
+                  &                     /    (                                                                              &
+                  &                           +time(2)                                                                      &
+                  &                           -time(1)                                                                      &
                   &                          )
              coefficientsAngle    (k,1)=-time(1) &
                   &                     *coefficientsAngle(k,2)
@@ -655,5 +683,53 @@ contains
     end if
     return
   end subroutine rateCompute
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>nodeComponentPositionPresetInterpolatedStateStore</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine nodeComponentPositionPresetInterpolatedStateStore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display                                         , only : displayMessage     , verbosityLevelInfo
+    use            :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
+    use, intrinsic :: ISO_C_Binding                                   , only : c_ptr              , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentPosition -> presetInterpolated',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine nodeComponentPositionPresetInterpolatedStateStore
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>nodeComponentPositionPresetInterpolatedStateRestore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine nodeComponentPositionPresetInterpolatedStateRestore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display                                         , only : displayMessage     , verbosityLevelInfo
+    use            :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
+    use, intrinsic :: ISO_C_Binding                                   , only : c_ptr              , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentPosition -> presetInterpolated',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine nodeComponentPositionPresetInterpolatedStateRestore
 
 end module Node_Component_Position_Preset_Interpolated

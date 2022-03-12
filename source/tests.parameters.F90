@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,7 @@ program Test_Parameters
   use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
   use :: IO_HDF5                   , only : hdf5Object
   use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
-  use :: Input_Parameters          , only : inputParameters
+  use :: Input_Parameters          , only : inputParameters         , inputParameter
   use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object                   )          :: outputFile
@@ -38,6 +38,7 @@ program Test_Parameters
   class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
   class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
   type            (inputParameters              ), target  :: testParameters
+  type            (inputParameter               ), pointer :: testParameter
   double precision                                         :: valueNumerical
   
   ! Set verbosity level.
@@ -80,11 +81,21 @@ program Test_Parameters
   ! Test evaluation.
   call Unit_Tests_Begin_Group("Parameter evaluation")
   call testParameters%value('fixedValue'   ,valueNumerical)
-  call Assert('fixed value'              ,valueNumerical,+1.234000000d0,absTol=1.0d-6)
+  call Assert('fixed value'                          ,valueNumerical,+1.234000000d0,absTol=1.0d-6)
   call testParameters%value('derivedValue1',valueNumerical)
-  call Assert('derived value'            ,valueNumerical,+1.234000000d1,absTol=1.0d-6)
+  call Assert('derived value'                        ,valueNumerical,+1.234000000d1,absTol=1.0d-6)
   call testParameters%value('derivedValue2',valueNumerical)
-  call Assert('derived value [recursive]',valueNumerical,-8.264825587d0,absTol=1.0d-6)
+  call Assert('derived value [recursive]'            ,valueNumerical,-8.264825587d0,absTol=1.0d-6)
+  !! Reset the value of the fixed parameter.
+  testParameter => testParameters%node('fixedValue')
+  call testParameter %set  (2.468d0)
+  call testParameters%reset(       )
+  call testParameters%value('fixedValue'   ,valueNumerical)
+  call Assert('fixed value [post-reset]'             ,valueNumerical,+2.468000000d0,absTol=1.0d-6)
+  call testParameters%value('derivedValue1',valueNumerical)
+  call Assert('derived value [post-reset]'           ,valueNumerical,+2.468000000d1,absTol=1.0d-6)
+  call testParameters%value('derivedValue2',valueNumerical)
+  call Assert('derived value [recursive; post-reset]',valueNumerical,-1.344442852d2,absTol=1.0d-6)
   call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_Finish   ()

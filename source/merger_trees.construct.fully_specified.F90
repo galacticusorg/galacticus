@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -149,7 +149,7 @@
      !!}
      private
      type   (node), pointer :: doc       => null()
-     integer                :: copyCount
+     integer                :: copyCount =  0
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
@@ -184,9 +184,9 @@ contains
     self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
-     <objectDestructor name="randomNumberGenerator_"/>
-     !!]
-   return
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
+    return
   end function fullySpecifiedConstructorParameters
 
   function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_) result(self)
@@ -229,14 +229,16 @@ contains
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
 
     ! Reduce the count of document copies.
-    !$omp atomic
-    self%document%copyCount=self%document%copyCount-1
-    ! Destroy the XML document only if the count of document copies decreases to 0.
-    if (self%document%copyCount == 0) then
-       !$omp critical (FoX_DOM_Access)
-       call destroy(self%document%doc)
-       if (associated(self%document)) deallocate(self%document)
-       !$omp end critical (FoX_DOM_Access)
+    if (associated(self%document)) then
+       !$omp atomic
+       self%document%copyCount=self%document%copyCount-1
+       ! Destroy the XML document only if the count of document copies decreases to 0.
+       if (self%document%copyCount == 0) then
+          !$omp critical (FoX_DOM_Access)
+          call destroy(self%document%doc)
+          if (associated(self%document)) deallocate(self%document)
+          !$omp end critical (FoX_DOM_Access)
+       end if
     end if
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
@@ -295,7 +297,7 @@ contains
        tree%index            =  int(treeNumber)
        tree%initializedUntil =  0.0d0
        tree%firstTree        => tree
-       tree%baseNode         => null()
+       tree%nodeBase         => null()
        tree%event            => null()
        call tree%properties%initialize()
        ! Restart the random number sequence.
@@ -330,8 +332,8 @@ contains
           !$omp end critical (FoX_DOM_Access)
           ! Assign the tree root node if this node has no parent.
           if (.not.associated(nodeArray(i)%node%parent)) then
-             if (associated(tree%baseNode)) call Galacticus_Error_Report('multiple root nodes found in the tree'//{introspection:location})
-             tree%baseNode => nodeArray(i)%node
+             if (associated(tree%nodeBase)) call Galacticus_Error_Report('multiple root nodes found in the tree'//{introspection:location})
+             tree%nodeBase => nodeArray(i)%node
           end if
           ! Build components.
           call nodeArray(i)%node%componentBuilder(nodeDefinition)
@@ -343,7 +345,7 @@ contains
        ! Destroy the node array.
        deallocate(nodeArray)
        ! Check that we found a root node.
-       if (.not.associated(tree%baseNode)) call Galacticus_Error_Report('no root node was found'//{introspection:location})
+       if (.not.associated(tree%nodeBase)) call Galacticus_Error_Report('no root node was found'//{introspection:location})
     else
        nullify(tree)
     end if

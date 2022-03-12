@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,7 +78,6 @@
      procedure :: radiusFromSpecificAngularMomentum => finiteResolutionRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => finiteResolutionRotationNormalization
      procedure :: energy                            => finiteResolutionEnergy
-     procedure :: energyGrowthRate                  => finiteResolutionEnergyGrowthRate
      procedure :: kSpace                            => finiteResolutionKSpace
      procedure :: freefallRadius                    => finiteResolutionFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => finiteResolutionFreefallRadiusIncreaseRate
@@ -468,7 +467,7 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                                      :: radiusVirial
 
-    radiusVirial                         =+self%darkMatterHaloScale_%virialRadius(node                                                           )
+    radiusVirial                         =+self%darkMatterHaloScale_%radiusVirial(node                                                           )
     finiteResolutionRotationNormalization=+self                     %radialMoment(node,moment=2.0d0,radiusMinimum=0.0d0,radiusMaximum=radiusVirial) &
          &                                /self                     %radialMoment(node,moment=3.0d0,radiusMinimum=0.0d0,radiusMaximum=radiusVirial)
     return
@@ -489,22 +488,6 @@ contains
     end if
     return
   end function finiteResolutionEnergy
-
-  double precision function finiteResolutionEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a finiteResolution halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOFiniteResolution), intent(inout)         :: self
-    type (treeNode                            ), intent(inout), target :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       finiteResolutionEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       finiteResolutionEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function finiteResolutionEnergyGrowthRate
 
   double precision function finiteResolutionKSpace(self,node,waveNumber)
     !!{

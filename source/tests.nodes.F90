@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,6 +128,9 @@ program Test_Nodes
   !
   ! Test serialization functions.
   !
+
+  ! Establish property offsets.
+  call node%serializationOffsets(propertyTypeAll)
 
   ! Check that total count of properties is correct.
   call Assert('Total count of properties in tree node',node%serializeCount(propertyTypeAll),2)

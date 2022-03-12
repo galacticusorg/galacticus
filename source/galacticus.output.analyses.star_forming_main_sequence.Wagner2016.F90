@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,14 +70,18 @@ contains
     !!{
     Constructor for the ``starFormingMainSequenceWagner2016'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-    use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-    use :: Input_Parameters    , only : inputParameter     , inputParameters
+    use :: Cosmology_Parameters    , only : cosmologyParameters       , cosmologyParametersClass
+    use :: Cosmology_Functions     , only : cosmologyFunctions        , cosmologyFunctionsClass
+    use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+    use :: Virial_Density_Contrast , only : virialDensityContrastClass
+    use :: Input_Parameters        , only : inputParameter            , inputParameters
     implicit none
     type            (outputAnalysisStarFormingMainSequenceWagner2016)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
     class           (cosmologyParametersClass                       ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                        ), pointer                     :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass                      ), pointer                     :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass                     ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                               ), pointer                     :: outputTimes_
     class           (starFormationRateDisksClass                    ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                ), pointer                     :: starFormationRateSpheroids_
@@ -142,15 +146,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters"        name="cosmologyParameters_"        source="parameters"/>
     <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
+    <objectBuilder class="virialDensityContrast"      name="virialDensityContrast_"      source="parameters"/>
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     !!]
-    self=outputAnalysisStarFormingMainSequenceWagner2016(enumerationWagner2016SSFRRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),enumerationWagner2016SSFRGalaxyTypeEncode(char(galaxyType),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisStarFormingMainSequenceWagner2016(enumerationWagner2016SSFRRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),enumerationWagner2016SSFRGalaxyTypeEncode(char(galaxyType),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"       />
     <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="darkMatterProfileDMO_"      />
+    <objectDestructor name="virialDensityContrast_"     />
     <objectDestructor name="outputTimes_"               />
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
@@ -158,13 +166,14 @@ contains
     return
   end function starFormingMainSequenceWagner2016ConstructorParameters
 
-  function starFormingMainSequenceWagner2016ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function starFormingMainSequenceWagner2016ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{
     Internal constructor for the ``starFormingMainSequenceWagner2016'' output analysis class.
     !!}
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
     use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
     use :: Output_Times                          , only : outputTimesClass
     use :: Statistics_NBody_Halo_Mass_Errors     , only : nbodyHaloMassErrorClass
@@ -172,11 +181,11 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
-    use :: Galactic_Filters                      , only : galacticFilterAll                                  , galacticFilterHaloNotIsolated, galacticFilterStellarMass, galacticFilterStarFormationRate, &
-         &                                                galacticFilterHighPass                             , galacticFilterNull           , galacticFilterNot        , galacticFilterClass            , &
+    use :: Galactic_Filters                      , only : galacticFilterAll                                  , galacticFilterHaloNotIsolated, galacticFilterStellarMass , galacticFilterStarFormationRate, &
+         &                                                galacticFilterHighPass                             , galacticFilterNull           , galacticFilterNot         , galacticFilterClass            , &
          &                                                filterList
     use :: Node_Property_Extractors              , only : nodePropertyExtractorHostNode                      , nodePropertyExtractorMassHalo
-    use :: Virial_Density_Contrast               , only : virialDensityContrastFixed                         , fixedDensityTypeCritical
+    use :: Virial_Density_Contrast               , only : virialDensityContrastFixed                         , fixedDensityTypeCritical     , virialDensityContrastClass
     implicit none
     type            (outputAnalysisStarFormingMainSequenceWagner2016    )                              :: self
     integer                                                              , intent(in   )               :: redshiftRange                                    , galaxyType
@@ -188,13 +197,15 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
+    class           (virialDensityContrastClass                         ), intent(in   ), target       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                          ), intent(in   ), target       :: darkMatterProfileDMO_
     type            (galacticFilterHaloNotIsolated                      )               , pointer      :: galacticFilterIsSubhalo_
     type            (galacticFilterHighPass                             )               , pointer      :: galacticFilterHostHaloMass_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilterStellarMass_
     type            (galacticFilterStarFormationRate                    )               , pointer      :: galacticFilterStarFormationRate_                 , galacticFilterStarFormationRateNonZero_
     type            (galacticFilterAll                                  )               , pointer      :: galacticFilter_
     class           (galacticFilterClass                                )               , pointer      :: galacticFilterGalaxyType_
-    type            (virialDensityContrastFixed                         )               , pointer      :: virialDensityContrast_
+    type            (virialDensityContrastFixed                         )               , pointer      :: virialDensityContrastDefinition_
     type            (nodePropertyExtractorHostNode                      )               , pointer      :: nodePropertyExtractorHost_
     type            (nodePropertyExtractorMassHalo                      )               , pointer      :: nodePropertyExtractorHostMass_
     type            (filterList                                         )               , pointer      :: filters_
@@ -288,13 +299,13 @@ contains
     case default
        call Galacticus_Error_Report('unrecognized galaxy type'   //{introspection:location})
     end select    
-    allocate(virialDensityContrast_)
+    allocate(virialDensityContrastDefinition_)
     !![
-    <referenceConstruct object="virialDensityContrast_"           constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)"/>
+    <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     allocate(nodePropertyExtractorHostMass_)
     !![
-    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (virialDensityContrast_=virialDensityContrast_                                                                                                                                       )"/>
+    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                                                              )"/>
     !!]
     allocate(nodePropertyExtractorHost_)
     !![

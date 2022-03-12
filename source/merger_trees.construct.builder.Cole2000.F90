@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -267,7 +267,8 @@ contains
     !!{
     Build a merger tree.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Display                 , only : displayReset                 , displayMagenta
+    use :: Galacticus_Error        , only : Galacticus_Error_Report      , Galacticus_Warn
     use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
     use :: ISO_Varying_String      , only : varying_string
     use :: Kind_Numbers            , only : kind_int8
@@ -277,31 +278,32 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
     type            (mergerTree                      ), intent(inout), target :: tree
-    type            (treeNode                        ), pointer               :: nodeNew1                  , nodeNew2                   , node
-    class           (nodeComponentBasic              ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
-         &                                                                       basicParent
+    type            (treeNode                        ), pointer               :: nodeNew1                     , nodeNew2                   , node                      , &
+         &                                                                       nodeChild
+    class           (nodeComponentBasic              ), pointer               :: basicNew1                    , basicNew2                  , basic                     , &
+         &                                                                       basicParent                  , basicChild
     double precision                                  , parameter             :: toleranceTimeEarliest =2.0d-6
     double precision                                  , parameter             :: toleranceDeltaCritical=1.0d-6
     double precision                                  , parameter             :: toleranceTime         =1.0d-6
     type            (mergerTreeWalkerTreeConstruction)                        :: treeWalkerConstruction
     type            (mergerTreeWalkerIsolatedNodes   )                        :: treeWalkerIsolated
     integer         (kind=kind_int8                  )                        :: nodeIndex
-    double precision                                                          :: accretionFraction         , baseNodeTime               , branchingProbability      , &
-         &                                                                       collapseTime              , deltaCritical              , deltaCritical1            , &
-         &                                                                       deltaCritical2            , deltaW                     , nodeMass1                 , &
-         &                                                                       nodeMass2                 , deltaCriticalEarliest      , uniformRandom             , &
-         &                                                                       massResolution            , accretionFractionCumulative, branchMassCurrent         , &
-         &                                                                       branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                       branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                       collapseTimeTruncate      , rootVarianceGrowthFactor   , time
-    logical                                                                   :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
+    double precision                                                          :: accretionFraction            , timeNodeBase               , branchingProbability      , &
+         &                                                                       collapseTime                 , deltaCritical              , deltaCritical1            , &
+         &                                                                       deltaCritical2               , deltaW                     , nodeMass1                 , &
+         &                                                                       nodeMass2                    , deltaCriticalEarliest      , uniformRandom             , &
+         &                                                                       massResolution               , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                                       branchDeltaCriticalCurrent   , branchingInterval          , branchingIntervalScaleFree, &
+         &                                                                       branchingProbabilityRate     , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                       collapseTimeTruncate         , rootVarianceGrowthFactor   , time
+    logical                                                                   :: doBranch                     , branchIsDone               , snapAccretionFraction     , &
          &                                                                       snapEarliestTime
     type            (varying_string                  )                        :: message
     character       (len=20                          )                        :: label
 
     ! Begin construction.
     nodeIndex =  1               ! Initialize the node index counter to unity.
-    node      => tree%baseNode   ! Point to the base node.
+    node      => tree%nodeBase   ! Point to the base node.
     basic     => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
        ! Note that we use a unit rate - we will scale the results to the actual rate required.
@@ -320,8 +322,8 @@ contains
          &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow           ,mass=basic%mass()          ) &
          &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest/2.0d0,mass=basic%mass()          )
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this class).
-    baseNodeTime            =                                                  basic%time        ()
-    rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      baseNodeTime  ,mass=basic%mass()          ) &
+    timeNodeBase            =                                                  basic%time        ()
+    rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      timeNodeBase  ,mass=basic%mass()          ) &
          &                   /self%cosmologicalMassVariance_%rootVariance(time=self %timeNow       ,mass=basic%mass()          )
     deltaCritical           =+self%criticalOverdensity_     %value       (time=basic%time        (),mass=basic%mass(),node=node) &
          &                   /rootVarianceGrowthFactor
@@ -613,15 +615,32 @@ contains
        collapseTime =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic%time(),mass=basic%mass(),node=node)
        call basic%timeSet(collapseTime)
     end do
-    basic => tree%baseNode%basic()
-    call basic%timeSet(baseNodeTime)
+    basic => tree%nodeBase%basic()
+    call basic%timeSet(timeNodeBase)
+    ! Check for mis-ordering of the base node and its child node(s). This can happen because we force the time of the base node to
+    ! be precisely the base time, but for other nodes the time is computed by inverting the w(t)=delta_crit(t)/D(t)
+    ! relation. Numerical inaccuracies in the inversion can lead to small mis-ordering in the tree times.
+    if (associated(tree%nodeBase%firstChild)) then
+       basicChild => tree%nodeBase%firstChild%basic()
+       if (basic%time() <= basicChild%time()) then
+          ! Base node is mis-ordered. Simply shift and child nodes to be slightly earlier. If this leads to mis-ordering of those
+          ! child nodes it will be detected below.
+          call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered at base node - fixing')
+          nodeChild => tree%nodeBase%firstChild
+          do while (associated(nodeChild))
+             basicChild => nodeChild%basic()
+             call basicChild%timeSet(basic%time())
+             nodeChild => nodeChild%sibling
+          end do
+       end if
+    end if
     ! Check for well-ordering in time.
     treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
     do while (treeWalkerIsolated%next(node))
        if (associated(node%parent)) then
           basic       => node       %basic()
           basicParent => node%parent%basic()
-          if (basicParent%time() <= basic%time()) then
+          if (basicParent%time() < basic%time()) then
              if     (                                                                            &
                   &   basicParent%mass() < massResolution*(1.0d0+self%toleranceResolutionParent) &
                   &  .and.                                                                       &
@@ -652,7 +671,7 @@ contains
                 message=message//" ->         node δc = "//label        //char(10)
                 write (label,'(e20.14)') self%criticalOverdensity_%value(time=basicParent%time(),mass=basicParent%mass(),node=node%parent)
                 message=message//" ->       parent δc = "//label        //char(10)
-                basic => tree%baseNode%basic()
+                basic => tree%nodeBase%basic()
                 write (label,'(e20.14)')                                   basic%time()
                 message=message//" ->       tree time = "//label//" Gyr"//char(10)
                 write (label,'(e20.14)')                                                               basic      %mass()

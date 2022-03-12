@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,6 +20,8 @@
   !!{
   Implements a thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class.
   !!}
+
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
@@ -59,6 +61,7 @@ contains
     class           (hotHaloTemperatureProfileClass          ), pointer                     :: hotHaloTemperatureProfile_
     class           (chemicalStateClass                      ), pointer                     :: chemicalState_
     class           (outputTimesClass                        ), pointer                     :: outputTimes_
+    class           (galacticStructureClass                  ), pointer                     :: galacticStructure_
     double precision                                                                        :: randomErrorMinimum                  , randomErrorMaximum
 
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -99,9 +102,10 @@ contains
     <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
     <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
     <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
+    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisSunyaevZeldovichPlanck2013(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_)
+    self=outputAnalysisSunyaevZeldovichPlanck2013(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"      />
@@ -111,11 +115,12 @@ contains
     <objectDestructor name="hotHaloTemperatureProfile_"/>
     <objectDestructor name="chemicalState_"            />
     <objectDestructor name="outputTimes_"              />
+    <objectDestructor name="galacticStructure_"        />
     !!]
     return
   end function sunyaevZeldovichPlanck2013ConstructorParameters
 
-  function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_) result (self)
+  function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_,galacticStructure_) result (self)
     !!{
     Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class for internal use.
     !!}
@@ -147,6 +152,7 @@ contains
     class           (hotHaloTemperatureProfileClass                     ), intent(in   ), target         :: hotHaloTemperatureProfile_
     class           (chemicalStateClass                                 ), intent(in   ), target         :: chemicalState_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
+    class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.000d08, covarianceBinomialMassHaloMaximum=1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses                                                    , functionValueTarget                     , &
@@ -309,6 +315,7 @@ contains
         &amp;                                              hotHaloMassDistribution_   , &amp;
         &amp;                                              hotHaloTemperatureProfile_ , &amp;
         &amp;                                              chemicalState_             , &amp;
+        &amp;                                              galacticStructure_         , &amp;
         &amp;                    densityContrast          =500.0d0                    , &amp;
         &amp;                    densityContrastRelativeTo=densityCosmologicalCritical, &amp;
         &amp;                    distanceAngular          =500.0d0                      &amp;

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -108,7 +108,7 @@ contains
     !!{
     Perform star formation in a spheroid.
     !!}
-    use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSpheroid
     implicit none
     class           (nodeOperatorTidalHeatingSpheroids), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout)          :: node
@@ -119,7 +119,7 @@ contains
     double precision                                                            :: tidalField       , tidalTorque
     
     ! Do nothing during inactive property solving.
-    if     (propertyType == propertyTypeInactive) return
+    if     (propertyInactive(propertyType)      ) return
     ! Return if the node is not a satellite.
     if     (.not.node%isSatellite()             ) return
     ! Return if the spheroid is unphysical.
@@ -131,9 +131,9 @@ contains
          & ) return
     ! Return if the spheroid has excessive angular momentum or radius.
     if     (                                                                                                                                                                      &
-         &   spheroid%angularMomentum() > (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%virialRadius(node)*self%darkMatterHaloScale_%virialVelocity(node) &
+         &   spheroid%angularMomentum() > (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%radiusVirial(node)*self%darkMatterHaloScale_%velocityVirial(node) &
          &  .or.                                                                                                                                                                  &
-         &   spheroid%radius         () >                                             self%darkMatterHaloScale_%virialRadius(node)                                                &
+         &   spheroid%radius         () >                                             self%darkMatterHaloScale_%radiusVirial(node)                                                &
          & ) return
     tidalField =self%satelliteTidalField_%tidalTensorRadial(node)
     tidalTorque=+abs(tidalField)              &

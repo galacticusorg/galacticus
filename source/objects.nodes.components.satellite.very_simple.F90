@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,7 @@ module Node_Component_Satellite_Very_Simple
   public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create             , &
        &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute       , &
        &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Very_Simple_State_Store        , Node_Component_Satellite_Very_Simple_State_Restore      , &
        &    Node_Component_Satellite_Very_Simple_Initialize
 
   !![
@@ -210,7 +211,6 @@ contains
   !![
   <mergerTreeInitializeTask>
    <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
-   <after>darkMatterProfile</after>
   </mergerTreeInitializeTask>
   !!]
   subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(node)
@@ -277,5 +277,51 @@ contains
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Create
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Satellite_Very_Simple_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Satellite_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentSatellite -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="virialOrbit_ satelliteMergingTimescales_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Satellite_Very_Simple_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Satellite_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentSatellite -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="virialOrbit_ satelliteMergingTimescales_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_State_Restore
 
 end module Node_Component_Satellite_Very_Simple

@@ -15,7 +15,7 @@
   <componentDisk value="null"/>
   <componentSatellite value="orbiting"/>
   <componentSpheroid value="null"/>
-  <componentSpin value="null"/>
+  <componentSpin value="scalar"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
@@ -134,7 +134,11 @@
   <darkMatterProfileDMO value="NFW"/>
 
   <!-- Halo accretion options -->
-  <accretionHalo value="zero"/>
+  <accretionHalo value="coldMode">
+    <widthTransitionStabilityShock value="0.01"/>
+    <redshiftReionization value="10.5"/>
+    <velocitySuppressionReionization value="35.0"/>
+  </accretionHalo>
 
   <!-- Hot halo gas model options -->
   <hotHaloMassDistribution value="null"/>
@@ -147,6 +151,26 @@
     <efficiency value="1.0"/>
   </satelliteTidalStripping>
   <satelliteTidalHeatingRate value="gnedin1999"/>
+  <!-- Satellite orbit options -->
+  <virialOrbit value="spinCorrelated">
+    <alpha             value="0.47263"  /> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+    <virialOrbit value="jiang2014" >
+      <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+      <bRatioHigh             value="+2.88333 +4.06371 +3.86726"/>
+      <bRatioIntermediate     value="+1.05361 +1.56868 +2.89027"/>
+      <bRatioLow              value="+0.07432 +0.54554 +1.04721"/>
+      <gammaRatioHigh         value="+0.07124 +0.04737 -0.01913"/>
+      <gammaRatioIntermediate value="+0.10069 +0.07821 +0.04231"/>
+      <gammaRatioLow          value="+0.10866 +0.11260 +0.11698"/>
+      <muRatioHigh            value="+1.10168 +1.09639 +1.09819"/>
+      <muRatioIntermediate    value="+1.18205 +1.19573 +1.24581"/>
+      <muRatioLow             value="+1.22053 +1.22992 +1.25528"/>
+      <sigmaRatioHigh         value="+0.09244 +0.14335 +0.21079"/>
+      <sigmaRatioIntermediate value="+0.07397 +0.09590 +0.10941"/>
+      <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
+    </virialOrbit>
+  </virialOrbit>
+  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Satellite merger options -->
   <mergerRemnantSize value="null"/>
@@ -174,6 +198,22 @@
   <luminosityFilter value="SDSS_r"/>
   <luminosityRedshift value="0.0"/>
   <luminosityType value="rest"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+     <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+  </nodeOperator>
 
   <!-- Output options -->
   <outputTimestepHistory value="false"/>

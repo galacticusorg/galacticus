@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,6 +40,7 @@ Contains a module which implements an N-body data importer which generates rando
    contains
      final     ::           randomDestructor
      procedure :: import => randomImport
+     procedure :: isHDF5 => randomIsHDF5
   end type nbodyImporterRandom
 
   interface nbodyImporterRandom
@@ -131,7 +132,8 @@ contains
     Import data from a Random file.
     !!}
     use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
+    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, &
+         &                 doubleHash        , integerSizeTHash        , varyingStringHash     , genericHash
     implicit none
     class           (nbodyImporterRandom), intent(inout)                              :: self
     type            (nBodyData          ), intent(  out), dimension(  :), allocatable :: simulations
@@ -149,6 +151,10 @@ contains
     simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesInteger     =integerSizeTHash        ()
+    simulations(1)%attributesReal        =doubleHash              ()
+    simulations(1)%attributesText        =varyingStringHash       ()
+    simulations(1)%attributesGeneric     =genericHash             ()
     do i=1_c_size_t,self%countPoints
        particleID(  i)=i
        position  (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]
@@ -164,3 +170,13 @@ contains
     return
   end subroutine randomImport
 
+  logical function randomIsHDF5(self)
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
+    implicit none
+    class(nbodyImporterRandom), intent(inout) :: self
+
+    randomIsHDF5=.false.
+    return
+  end function randomIsHDF5

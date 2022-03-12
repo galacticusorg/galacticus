@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,16 +36,17 @@
      !!}
      private
      type            (varying_string                )          :: outputGroup
-     integer                                                   :: massesPerDecade           , timesPerDecade
-     double precision                                          :: massMaximum               , massMinimum   , &
-          &                                                       timeMinimum               , timeMaximum
-     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_ => null()
-     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
-     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_ => null()
-     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_ => null()
+     integer                                                   :: massesPerDecade                      , timesPerDecade
+     double precision                                          :: massMaximum                          , massMinimum   , &
+          &                                                       timeMinimum                          , timeMaximum
+     logical                                                   :: nodeComponentsInitialized  =  .false.
+     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_       => null()
+     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
+     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
+     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_          => null()
+     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_       => null()
      class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
-     class           (powerSpectrumClass            ), pointer :: powerSpectrum_ => null()
+     class           (powerSpectrumClass            ), pointer :: powerSpectrum_             => null()
    contains
      final     ::            excursionSetsDestructor
      procedure :: perform => excursionSetsPerform
@@ -98,6 +99,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>massMinimum</name>
@@ -238,7 +240,7 @@ contains
     <objectDestructor name="self%powerSpectrum_"            />
     !!]
     call self%outputGroup%destroy()
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine excursionSetsDestructor
 

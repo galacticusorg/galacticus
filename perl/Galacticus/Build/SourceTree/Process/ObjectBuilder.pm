@@ -52,15 +52,11 @@ sub Process_ObjectBuilder {
     my $depth              = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "objectBuilder" && ! $node->{'directive'}->{'processed'} ) {
-	    # Generate source code for the object builder. The logic here is that we search for
-	    # a matching parameter in the given parameter set. If none is found, we step up
-	    # through parent parameters until we do find one or we reach the top-level parameter
-	    # set. If a match is found, we use that definition to build our object, unless this
-	    # is the global parameter set and we're at the top level (in which case we use the
-	    # default object of the relevant class). If no object is found, we again use the
-	    # default object of the class if this is the global parameter set, otherwise we
-	    # abort. If using a specific, given definition to build the object, we first check
-	    # if it has already been built, reusing if it has, and building and storing if it
+	    # Generate source code for the object builder. The logic here is that we search for a matching parameter in the given
+	    # parameter set. If none is found, we step up through parent parameters until we do find one or we reach the top-level
+	    # parameter set. If a match is found, we use that definition to build our object. If no object is found we insert a
+	    # default object of the relevant class at the top level of the parameter tree. If using a specific, given definition
+	    # to build the object, we first check if it has already been built, reusing if it has, and building and storing if it
 	    # has not. This prevents creating instances more than once when not necessary.
 	    # Determine function return value name.
 	    my $returnValueLabel;
@@ -139,7 +135,7 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      parametersCurrent => parametersCurrent%parent\n";
 		$builderCode .= "   end do\n";
 	    }
-	    $builderCode .= "   if (parametersCurrent%isPresent('".$parameterName."').and.(.not.".$node->{'directive'}->{'source'}."%isGlobal().or.associated(parametersCurrent%parent))) then\n"
+	    $builderCode .= "   if (parametersCurrent%isPresent('".$parameterName."')) then\n"
 		if ( $defaultName );
 	    # Handle multiple copies.
 	    my $copyInstance  = "";
@@ -178,15 +174,8 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "      end if\n";
 	    $builderCode .= $copyLoopClose;
 	    if ( $defaultName ) {
-		$builderCode .= "   else if (".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
-		$builderCode .= "      ! This is the global parameter set - so we can use the default object of this class. Increment the reference counter as this is a new reference to an existing object.\n";
-		$builderCode .= $copyLoopOpen;
-		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
-		$builderCode .= $debugMessage;
-		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
-		$builderCode .= $copyLoopClose;
 		$builderCode .= "   else\n";
-		$builderCode .= "      ! Object is not explicitly defined, and this is not the global parameters object. Cause a default object of the class to be added to the parameters. Increment the reference count here as this is a new object.\n";
+		$builderCode .= "      ! Object is not explicitly defined. Cause a default object of the class to be added to the parameters. Increment the reference count here as this is a new object.\n";
 		$builderCode .= $copyLoopOpen;
 		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent)\n";
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
@@ -339,8 +328,11 @@ sub Process_ObjectBuilder {
 		$node->{'parent'}->{'objectBuilderDefaultDeclarations'} = 1;
 	    }
 	    unless ( exists($node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}}) ) {
-		&Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"])
-		    if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$node->{'directive'}->{'source'}) );
+		if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$node->{'directive'}->{'source'}) ) {
+		    my $sourceDeclaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'source'});
+		    &Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"])
+			unless ( grep {$_ eq "target" || $_ eq "pointer"} @{$sourceDeclaration->{'attributes'}} );
+		}
 		$node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}} = 1;
 	    }
 	    # Mark the directive as processed.

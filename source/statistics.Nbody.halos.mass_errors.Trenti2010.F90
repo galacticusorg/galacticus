@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@ Contains a module which implements an N-body dark matter halo mass error class u
      ! Parameters of the correlation model.
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
      double precision                                   :: correlationNormalization             , correlationMassExponent, &
-          &                                                correlationRedshiftExponent
+          &                                                correlationRedshiftExponent          , massParticle
    contains
      final     ::                trenti2010Destructor
      procedure :: correlation => trenti2010Correlation
@@ -121,6 +121,7 @@ contains
     double precision                              , parameter                       :: normalization           =+0.135d0
     double precision                              , parameter                       :: particleNumberReference =+1.000d3
 
+    self%massParticle                  =massParticle
     self%normalizationSquared          =(normalization*(powerLawMassReference/particleNumberReference/massParticle)**exponent)**2
     self%exponent                      =                                                                             exponent
     self%fractionalErrorHighMassSquared=+0.0d0
@@ -188,4 +189,3 @@ contains
          &                *         expansionFactorRatio**self%correlationRedshiftExponent
     return
   end function trenti2010Correlation
-

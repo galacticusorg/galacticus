@@ -26,7 +26,7 @@ my @tests =
 	 mean             => 1.104,
 	 meanTolerance    => 0.040,
 	 scatter          => 0.103,
-	 scatterTolerance => 0.005
+	 scatterTolerance => 0.008
      },
      {
 	 # Model with environmental dependence.
@@ -42,7 +42,7 @@ my @tests =
 foreach my $test ( @tests ) {
 
     # Run the model.
-    system("cd ..; Galacticus.exe testSuite/parameters/concentrationDistributionLudlow2016".ucfirst($test->{'suffix'}).".xml");
+    system("cd ..; ./Galacticus.exe testSuite/parameters/concentrationDistributionLudlow2016".ucfirst($test->{'suffix'}).".xml");
     unless ( $? == 0 ) {
     	print "FAILED: Ludlow2016 ".$test->{'suffix'}." concentration model failed to run\n";
     	exit;
@@ -73,6 +73,8 @@ foreach my $test ( @tests ) {
     # Evaluate the mean and scatter and check these match the target values.
     my $mean    = $concentrationsMeasured->average();
     my $scatter = $concentrationsMeasured->stdv();
+    print "Mean - ".$mean. " (target = ".$test->{'mean'}." +/- ".$test->{'meanTolerance'}."\n";
+    print "Scatter - ".$scatter. " (target = ".$test->{'scatter'}." +/- ".$test->{'scatterTolerance'}."\n";
     my $status  =
 	(
 	 abs($mean   -$test->{'mean'   }) < $test->{'meanTolerance'   }

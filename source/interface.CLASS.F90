@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,8 +85,8 @@ contains
     classPath       =galacticusPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
-       call Directory_Make(classPath)
-       call File_Lock(char(classPath//"class"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     classPath                                        )
+       call File_Lock     (char(classPath//"class"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(classPath//"Makefile")) then
           ! Download CLASS if necessary.
@@ -102,9 +102,9 @@ contains
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
        command='cd '//classPath//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
-       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^CCFLAG = "/"CCFLAG ='//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
+       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^CCFLAG = "/"CCFLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
-       command=command//'"/ Makefile.tmp; make -f Makefile.tmp -j1 class'
+       command=command//' "/ Makefile.tmp; make -f Makefile.tmp -j1 class'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(classPath//"class")) call Galacticus_Error_Report("failed to build CLASS code"//{introspection:location})
        call File_Unlock(fileLock)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,7 @@
   !!}
 
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Galactic_Structure              , only : galacticStructureClass
 
   !![
   <mergerProgenitorProperties name="mergerProgenitorPropertiesSimple">
@@ -33,6 +34,7 @@
      A merger progenitor properties class which uses a simple calculation.
      !!}
      private
+     class(galacticStructureClass  ), pointer :: galacticStructure_   => null()
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
      final     ::        simpleDestructor
@@ -61,6 +63,7 @@ contains
     type (mergerProgenitorPropertiesSimple)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(mergerMassMovementsClass        ), pointer       :: mergerMassMovements_
+    class(galacticStructureClass          ), pointer       :: galacticStructure_
 
     ! Ensure that required methods are supported.
     if     (                                                                                                                                          &
@@ -101,24 +104,27 @@ contains
          &        )
     !![
     <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=mergerProgenitorPropertiesSimple(mergerMassMovements_)
+    self=mergerProgenitorPropertiesSimple(mergerMassMovements_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerMassMovements_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function simpleConstructorParameters
 
- function simpleConstructorInternal(mergerMassMovements_) result(self)
+ function simpleConstructorInternal(mergerMassMovements_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesSimple)                        :: self
     class(mergerMassMovementsClass        ), intent(in   ), target :: mergerMassMovements_
+    class(galacticStructureClass          ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*mergerMassMovements_"/>
+    <constructorAssign variables="*mergerMassMovements_, *galacticStructure_"/>
     !!]
 
     return
@@ -133,6 +139,7 @@ contains
 
     !![
     <objectDestructor name="self%mergerMassMovements_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine simpleDestructor
@@ -141,13 +148,12 @@ contains
     !!{
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid    , treeNode
-    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Galactic_Structure_Options      , only : massTypeGalactic
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , treeNode
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
-    class           (mergerProgenitorPropertiesSimple), intent(inout)         :: self
+    class           (mergerProgenitorPropertiesSimple), intent(inout), target :: self
     type            (treeNode                        ), intent(inout), target :: nodeSatellite            , nodeHost
     double precision                                  , intent(  out)         :: factorAngularMomentum    , massHost                 , &
          &                                                                       radiusHost               , massSpheroidHost         , &
@@ -168,8 +174,8 @@ contains
     diskSatelite      => nodeSatellite%disk    ()
     spheroidSatellite => nodeSatellite%spheroid()
     ! Find the baryonic masses of the two galaxies.
-    massSatellite=Galactic_Structure_Enclosed_Mass(nodeSatellite,massType=massTypeGalactic)
-    massHost     =Galactic_Structure_Enclosed_Mass(nodeHost     ,massType=massTypeGalactic)
+    massSatellite=self%galacticStructure_%massEnclosed(nodeSatellite,massType=massTypeGalactic)
+    massHost     =self%galacticStructure_%massEnclosed(nodeHost     ,massType=massTypeGalactic)
     ! Find the masses of material that will end up in the spheroid component of the remnant.
     select case (destinationGasHost)
     case (destinationMergerSpheroid)

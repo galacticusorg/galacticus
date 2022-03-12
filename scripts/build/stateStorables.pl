@@ -10,6 +10,7 @@ use List::ExtraUtils;
 use Data::Dumper;
 use Storable;
 use Fortran::Utils;
+use File::Changes;
 
 # Builds a list of classes which support store/restore of their state.
 # Andrew Benson (10-April-2018)
@@ -151,15 +152,17 @@ foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocati
 }
 # Sort results.
 my $stateStorables;
-@{$stateStorables->{'functionClasses'       }} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClasses'       }) ? @{$storablesPerFile->{$_}->{'functionClasses'       }} : ()} keys(%{$storablesPerFile});
+@{$stateStorables->{'functionClasses'       }} = sort {$a->{'name'} cmp $b->{'name'}} map {exists($storablesPerFile->{$_}->{'functionClasses'       }) ? @{$storablesPerFile->{$_}->{'functionClasses'       }} : ()} keys(%{$storablesPerFile});
 @{$stateStorables->{'functionClassTypes'    }} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClassTypes'    }) ? @{$storablesPerFile->{$_}->{'functionClassTypes'    }} : ()} keys(%{$storablesPerFile});
 @{$stateStorables->{'functionClassInstances'}} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClassInstances'}) ? @{$storablesPerFile->{$_}->{'functionClassInstances'}} : ()} keys(%{$storablesPerFile});
 @{$stateStorables->{'stateStorables'        }} = sort {$a->{'type'} cmp $b->{'type'}} map {exists($storablesPerFile->{$_}->{'stateStorables'        }) ? @{$storablesPerFile->{$_}->{'stateStorables'        }} : ()} keys(%{$storablesPerFile});
 # Output the results.
-open(my $outputFile,">".$ENV{'BUILDPATH'}."/stateStorables.xml");
+open(my $outputFile,">".$ENV{'BUILDPATH'}."/stateStorables.xml.tmp");
 print $outputFile $xml->XMLout($stateStorables, RootName => "storables");
 close($outputFile);
+&File::Changes::Update($ENV{'BUILDPATH'}."/stateStorables.xml",$ENV{'BUILDPATH'}."/stateStorables.xml.tmp");
 # Output the per file module use data.
-store($storablesPerFile,$ENV{'BUILDPATH'}."/stateStorables.blob");
+store($storablesPerFile,$ENV{'BUILDPATH'}."/stateStorables.blob.tmp");
+&File::Changes::Update($ENV{'BUILDPATH'}."/stateStorables.blob",$ENV{'BUILDPATH'}."/stateStorables.blob.tmp");
 
 exit 0;

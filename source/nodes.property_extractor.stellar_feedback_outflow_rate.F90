@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,19 +63,6 @@
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
   end interface nodePropertyExtractorStellarFeedbackOutflowRate
-
-  ! Enumerations for galactic components.
-  !![
-  <enumeration>
-   <name>galacticComponent</name>
-   <description>Specifies the galactic component for star formation rate calculations.</description>
-   <visibility>private</visibility>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="disk"    />
-   <entry label="spheroid"/>
-   <entry label="total"   />
-  </enumeration>
-  !!]
 
 contains
 

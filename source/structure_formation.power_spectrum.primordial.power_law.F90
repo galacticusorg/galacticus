@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,6 +66,7 @@ contains
     !!{
     Constructor for the ``power-law'' primordial power spectrum class which takes a parameter set as input.
     !!}
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumPrimordialPowerLaw)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -118,6 +119,8 @@ contains
     !!{
     Internal constructor for the ``power-law'' primordial power spectrum class.
     !!}
+    use :: Galacticus_Error, only : Galacticus_Warn
+    use :: Display         , only : displayBlue    , displayYellow, displayGreen, displayReset
     implicit none
     type            (powerSpectrumPrimordialPowerLaw)                :: self
     double precision                                 , intent(in   ) :: index_                , wavenumberReference, &
@@ -127,6 +130,21 @@ contains
     <constructorAssign variables="index_, wavenumberReference, running, runningRunning, runningSmallScalesOnly"/>
     !!]
 
+    if     (                                                                                                                                                                                                          &
+         &   (                                                                                                                                                                                                        &
+         &     running        > 0.0d0                                                                                                                                                                                 &
+         &    .or.                                                                                                                                                                                                    &
+         &     runningRunning > 0.0d0                                                                                                                                                                                 &
+         &   )                                                                                                                                                                                                        &
+         &  .and.                                                                                                                                                                                                     &
+         &   .not.runningSmallScalesOnly                                                                                                                                                                              &
+         & )                                                                                                                                                                                                          &
+         & call Galacticus_Warn(                                                                                                                                                                                      &
+         &                      'primordial power spectra with positive running can lead to divergent σ(M) integrals - if this happens consider setting:'                                                //char(10)// &
+         &                      '    <'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>' //char(10)// &
+         &                      '      <'//displayBlue()//'runningSmallScalesOnly'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/>'   //char(10)// &
+         &                      '    </'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>'             &
+         &)
     return
   end function powerLawConstructorInternal
 

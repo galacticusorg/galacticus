@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,37 +86,37 @@
      Implementation of a task which computes and stores covariance matrices for mass functions.
      !!}
      private
-     class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_
-     class           (surveyGeometryClass         ), pointer                     :: surveyGeometry_
-     class           (powerSpectrumNonlinearClass ), pointer                     :: powerSpectrumNonlinear_
-     class           (darkMatterHaloBiasClass     ), pointer                     :: darkMatterHaloBias_
-     class           (conditionalMassFunctionClass), pointer                     :: conditionalMassFunction_
-     class           (haloMassFunctionClass       ), pointer                     :: haloMassFunction_
-     integer                                                                     :: countMassBins            , sizeGridFFT
-     double precision                                                            :: massMinimum              , massMaximum          , &
-          &                                                                         massHaloMinimum          , massHaloMaximum      , &
+     class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_      => null()
+     class           (surveyGeometryClass         ), pointer                     :: surveyGeometry_          => null()
+     class           (powerSpectrumNonlinearClass ), pointer                     :: powerSpectrumNonlinear_  => null()
+     class           (darkMatterHaloBiasClass     ), pointer                     :: darkMatterHaloBias_      => null()
+     class           (conditionalMassFunctionClass), pointer                     :: conditionalMassFunction_ => null()
+     class           (haloMassFunctionClass       ), pointer                     :: haloMassFunction_        => null()
+     integer                                                                     :: countMassBins                     , sizeGridFFT
+     double precision                                                            :: massMinimum                       , massMaximum          , &
+          &                                                                         massHaloMinimum                   , massHaloMaximum      , &
           &                                                                         completenessErrorObserved
-     logical                                                                     :: includePoisson           , includeHalo          , &
+     logical                                                                     :: includePoisson                    , includeHalo          , &
           &                                                                         includeLSS
      type            (varying_string              )                              :: massFunctionFileName
      ! State used in integrations etc.
      double precision                                                            :: time
      double precision                                                            :: waveNumberGlobal
-     double precision                                                            :: logMassLower             , logMassUpper
-     double precision                              , dimension(:  ), allocatable :: log10MassBinWidth        , logMassBinWidth
-     integer                                                                     :: binI                     , binJ                 , &
+     double precision                                                            :: logMassLower                      , logMassUpper
+     double precision                              , dimension(:  ), allocatable :: log10MassBinWidth                 , logMassBinWidth
+     integer                                                                     :: binI                              , binJ                 , &
           &                                                                         lssBin
-     double precision                                                            :: massBinCenterI           , massBinMinimumI      , &
+     double precision                                                            :: massBinCenterI                    , massBinMinimumI      , &
           &                                                                         massBinMaximumI
-     double precision                                                            :: massBinCenterJ           , massBinMinimumJ      , &
+     double precision                                                            :: massBinCenterJ                    , massBinMinimumJ      , &
           &                                                                         massBinMaximumJ
      integer                                                                     :: countTimeBins
      double precision                              , dimension(:  ), allocatable :: timeTable
      double precision                              , dimension(:,:), allocatable :: biasTable
-     double precision                                                            :: surveyRedshiftMinimum    , surveyRedshiftMaximum
-     double precision                              , dimension(:  ), allocatable :: volumeNormalizationI     , volumeNormalizationJ , &
-          &                                                                         timeMinimumI             , timeMinimumJ         , &
-          &                                                                         timeMaximumI             , timeMaximumJ         , &
+     double precision                                                            :: surveyRedshiftMinimum             , surveyRedshiftMaximum
+     double precision                              , dimension(:  ), allocatable :: volumeNormalizationI              , volumeNormalizationJ , &
+          &                                                                         timeMinimumI                      , timeMinimumJ         , &
+          &                                                                         timeMaximumI                      , timeMaximumJ         , &
           &                                                                         logMassBinCenter
    contains
      final     ::                       massFunctionCovarianceDestructor

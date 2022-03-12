@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,6 +24,7 @@
 
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
+  use :: Galactic_Structure           , only : galacticStructureClass
   use :: Cooling_Functions            , only : coolingFunctionClass
   use :: Cosmology_Functions          , only : cosmologyFunctionsClass
   use :: Chemical_States              , only : chemicalStateClass
@@ -50,6 +51,7 @@
      class  (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
      class  (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
      class  (chemicalStateClass                     ), pointer :: chemicalState_             => null()
+     class  (galacticStructureClass                 ), pointer :: galacticStructure_         => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
      integer                                                   :: energyRadiatedID
    contains
@@ -84,6 +86,7 @@ contains
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(coolingFunctionClass             ), pointer       :: coolingFunction_
     class(chemicalStateClass               ), pointer       :: chemicalState_
+    class(galacticStructureClass           ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
@@ -91,8 +94,9 @@ contains
     <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
     <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
     <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
+    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_)
+     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloTemperatureProfile_"/>
@@ -100,15 +104,15 @@ contains
     <objectDestructor name="coolingFunction_"          />
     <objectDestructor name="cosmologyFunctions_"       />
     <objectDestructor name="chemicalState_"            />
+    <objectDestructor name="galacticStructure_"        />
     !!]
     return
   end function coolingEnergyRadiatedConstructorParameters
 
-  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_) result(self)
+  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
     class(cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
@@ -116,15 +120,16 @@ contains
     class(hotHaloTemperatureProfileClass   ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class(chemicalStateClass               ), intent(in   ), target :: chemicalState_
+    class(galacticStructureClass           ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     allocate(self%radiation)
     !![
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    <addMetaProperty component="hotHalo" name="energyRadiatedBensonBower2010" id="self%energyRadiatedID" isEvolvable="yes" isCreator="yes"/>
     !!]
-    self%energyRadiatedID=defaultHotHaloComponent%addMetaProperty(var_str('energyRadiatedBensonBower2010'),'hotHalo:energyRadiated',isEvolvable=.true.)  
     return
   end function coolingEnergyRadiatedConstructorInternal
 
@@ -155,6 +160,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"      />
     <objectDestructor name="self%chemicalState_"            />
     <objectDestructor name="self%radiation"                 />
+    <objectDestructor name="self%galacticStructure_"        />
     !!]
     if (hotHaloMassEjectionEvent%isAttached(self,coolingEnergyRadiatedHotHaloMassEjection)) call hotHaloMassEjectionEvent%detach(self,coolingEnergyRadiatedHotHaloMassEjection)
     return
@@ -185,8 +191,8 @@ contains
     basic         => node                      %basic         (    )
     hotHalo       => node                      %hotHalo       (    )
     massVirial    =  basic                     %mass          (    )
-    velocityVirial=  self %darkMatterHaloScale_%virialVelocity(node)
-    call hotHalo%metaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
+    velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
+    call hotHalo%floatRank0MetaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolutionScales
   
@@ -194,18 +200,17 @@ contains
     !!{
     Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
     !!}
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic                  , nodeComponentHotHalo
-    use :: Abundances_Structure              , only : abundances
-    use :: Chemical_Abundances_Structure     , only : chemicalAbundances                  , Chemicals_Property_Count
-    use :: Chemical_Reaction_Rates_Utilities , only : Chemicals_Mass_To_Density_Conversion
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : radiusLarge                         , massTypeGalactic
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                            , massSolar               , megaParsec
-    use :: Numerical_Constants_Atomic        , only : massHydrogenAtom
-    use :: Numerical_Constants_Physical      , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes      , only : hecto                               , centi
-    use :: Numerical_Constants_Units         , only : ergs
-    use :: Numerical_Constants_Math          , only : Pi
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
+    use :: Abundances_Structure             , only : abundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galactic_Structure_Options       , only : radiusLarge                         , massTypeGalactic
+    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar               , megaParsec
+    use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
+    use :: Numerical_Constants_Physical     , only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes     , only : hecto                               , centi
+    use :: Numerical_Constants_Units        , only : ergs
+    use :: Numerical_Constants_Math         , only : Pi
     implicit none
     class           (nodeOperatorCoolingEnergyRadiated), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout)          :: node
@@ -228,10 +233,10 @@ contains
     type is (nodeComponentHotHalo)
        ! Hot halo does not exists - nothing to do here.
     class default
-       basic        =>  node   %basic        ()
-       massNotional =  +hotHalo%mass         ()                                                      &
-            &          +hotHalo%outflowedMass()                                                      &
-            &          +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGalactic)
+       basic        =>  node                      %basic        (                                          )
+       massNotional =  +hotHalo                   %mass         (                                          ) &
+            &          +hotHalo                   %outflowedMass(                                          ) &
+            &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
        if (massNotional <= 0.0d0) return
        ! Compute the mean density and temperature of the hot halo.
        density    =+massNotional             &
@@ -285,12 +290,12 @@ contains
        ! Set the rate. Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and
        ! nₕ is the number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
        ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-       call hotHalo%metaPropertyRate(                        &
-            &                         self%energyradiatedID, &
-            &                        +coolingFunction        &
-            &                        /numberDensityHydrogen  &
-            &                        *countParticles         &
-            &                       )
+       call hotHalo%floatRank0MetaPropertyRate(                        &
+            &                                   self%energyradiatedID, &
+            &                                  +coolingFunction        &
+            &                                  /numberDensityHydrogen  &
+            &                                  *countParticles         &
+            &                                 )
     end select
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolution
@@ -312,11 +317,11 @@ contains
        ! Component has not yet been created - therefore we do not need to do anything here.
     class default
        hotHaloParent => node%parent%hotHalo(autoCreate=.true.)
-       call hotHalo%metaPropertySet(                                                      &
-            &                                                      self%energyRadiatedID, &
-            &                       +hotHalo      %metaPropertyGet(self%energyRadiatedID) &
-            &                       +hotHaloParent%metaPropertyGet(self%energyRadiatedID) &
-            &                      )
+       call hotHalo%floatRank0MetaPropertySet(                                                                &
+            &                                                                          self%energyRadiatedID, &
+            &                                 +hotHalo      %floatRank0MetaPropertyGet(self%energyRadiatedID) &
+            &                                 +hotHaloParent%floatRank0MetaPropertyGet(self%energyRadiatedID) &
+            &                                )
     end select
     return
   end subroutine coolingEnergyRadiatedNodePromote
@@ -334,10 +339,10 @@ contains
     ! We do not add the energy radiated from this node to that of its parent, as we assume that, on merging, the hot halo gas of
     ! this node is shock heated to the virial temperature of the parent, effectively negating the energy radiated.
     hotHalo => node%hotHalo()
-    call hotHalo%metaPropertySet(                        &
-         &                        self%energyRadiatedID, &
-         &                       +0.0d0                  &
-         &                      )
+    call hotHalo%floatRank0MetaPropertySet(                        &
+         &                                  self%energyRadiatedID, &
+         &                                 +0.0d0                  &
+         &                                )
     return
   end subroutine coolingEnergyRadiatedNodesMerge
   
@@ -345,10 +350,9 @@ contains
     !!{
     Respond to mass ejection from the hot halo component.    
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic              , nodeComponentHotHalo
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : radiusLarge                     , massTypeGalactic
+    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentHotHalo
+    use :: Galactic_Structure_Options, only : radiusLarge            , massTypeGalactic
     implicit none
     class           (*                   ), intent(inout) :: self
     class           (nodeComponentHotHalo), intent(inout) :: hotHalo
@@ -361,12 +365,12 @@ contains
     class is (nodeOperatorCoolingEnergyRadiated)
        ! Compute the mass in the notional hot halo.
        node         =>  hotHalo%hostNode
-       basic        =>  node   %basic        ()
-       massNotional =  +hotHalo%mass         ()                                                      &
-            &          +hotHalo%outflowedMass()                                                      &
-            &          +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGalactic)
+       basic        =>  node                      %basic        (                                          )
+       massNotional =  +hotHalo                   %mass         (                                          ) &
+            &          +hotHalo                   %outflowedMass(                                          ) &
+            &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
     if (massNotional > 0.0d0) &
-         & call hotHalo%metaPropertyRate(self%energyRadiatedID,-hotHalo%metaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
+         & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select

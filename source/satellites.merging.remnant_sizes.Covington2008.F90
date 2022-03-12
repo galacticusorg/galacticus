@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -162,8 +162,8 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"       />
     <objectDestructor name="self%mergerProgenitorProperties_"/>
     !!]
-    call calculationResetEvent%detach(self,covington2008CalculationReset)
-    call satelliteMergerEvent %detach(self,covington2008GetHook         )
+    if (calculationResetEvent%isAttached(self,covington2008CalculationReset)) call calculationResetEvent%detach(self,covington2008CalculationReset)
+    if (satelliteMergerEvent %isAttached(self,covington2008GetHook         )) call satelliteMergerEvent %detach(self,covington2008GetHook         )
     return
   end subroutine covington2008Destructor
 
@@ -293,7 +293,7 @@ contains
                 message=message//trim(joinString)//'negative spheroid mass'
                 joinString=", "
              end if
-             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
              call displayMessage(message)
              errorCondition=.true.
           end if
@@ -323,7 +323,7 @@ contains
                 message=message//trim(joinString)//'negative spheroid mass'
                 joinString=", "
              end if
-             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
              call displayMessage(message)
              errorCondition=.true.
           end if
@@ -362,8 +362,8 @@ contains
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
              if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then
-                radiusVirial  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
-                velocityVirial=self%darkMatterHaloScale_%virialVelocity(nodeHost)
+                radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
+                velocityVirial=self%darkMatterHaloScale_%velocityVirial(nodeHost)
                 if (angularMomentumSpecific < fractionAngularMomentumSpecificSmall*radiusVirial*velocityVirial) then
                    message=displayMagenta()//'WARNING:'//displayReset()//' the specific angular momentum for node '
                    message=message//nodeHost%index()//' has become very small'//char(10)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -123,7 +123,7 @@ contains
     class           (mergerTreeBuildControllerSubsample), intent(inout)          :: self    
     type            (treeNode                          ), intent(inout), pointer :: node
     class           (mergerTreeWalkerClass             ), intent(inout)          :: treeWalker_
-    type            (treeNode                          )               , pointer :: nodeNext       , nodeChild, &
+    type            (treeNode                          )               , pointer :: nodeNext       , nodeChild  , &
          &                                                                          nodeParent
     class           (nodeComponentBasic                )               , pointer :: basic          , basicParent
     double precision                                                             :: rateSubsampling
@@ -131,7 +131,7 @@ contains
     logical                                                                      :: finished
 
     ! The node which we return to the tree builder must be one that we have determined will not be pruned, since this node will be
-    ! fully-processed by the tree builder. Therefore, if we prune a node which must check for pruning of the next node, and so on
+    ! fully-processed by the tree builder. Therefore, if we prune a node we must check for pruning of the next node, and so on
     ! until we reach a node that is not pruned.
     finished=.false.
     do while (.not.finished)
@@ -188,9 +188,9 @@ contains
                   &     >                                                            &
                   &      basicParent%mass()                                          &
                   &   )
-                nodeChild => nodeChild%firstChild
-                basic => nodeChild%basic()
-                countNodes=countNodes+1_c_size_t
+                nodeChild  => nodeChild%firstChild
+                basic      => nodeChild%basic     ()
+                countNodes =  countNodes+1_c_size_t
              end do
              ! If we have found nodes that can be consolidated, remove the intervening nodes.
              if (countNodes > 0_c_size_t) then

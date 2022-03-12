@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,6 +60,8 @@ contains
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                              ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_
+    class           (virialDensityContrastClass                    ), pointer       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
     integer                                                                         :: distributionNumber
     double precision                                                                :: rootVarianceFractionalMinimum
     
@@ -75,44 +77,51 @@ contains
       <source>parameters</source>
       <description>The number (1-7) of the distribution to compute.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
-    <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/>
     !!]
-    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,darkMatterProfileDMO_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters" />
-    <objectDestructor name="cosmologyParameters_"/>
-    <objectDestructor name="cosmologyFunctions_" />
-    <objectDestructor name="outputTimes_"        />
-    <objectDestructor name="nbodyHaloMassError_" />
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="outputTimes_"          />
+    <objectDestructor name="nbodyHaloMassError_"   />
+    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="darkMatterProfileDMO_" />
     !!]
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 
-  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
+  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
     !!}
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters                    , only : cosmologyParametersClass
-    use :: Galacticus_Paths                        , only : galacticusPath          , pathTypeDataStatic
+    use :: Dark_Matter_Profiles_DMO                , only : darkMatterProfileDMOClass
+    use :: Galacticus_Paths                        , only : galacticusPath           , pathTypeDataStatic
     use :: Output_Times                            , only : outputTimesClass
     use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
     use :: String_Handling                         , only : operator(//)
-    use :: Virial_Density_Contrast                 , only : fixedDensityTypeCritical, virialDensityContrastFixed
+    use :: Virial_Density_Contrast                 , only : fixedDensityTypeCritical , virialDensityContrastFixed, virialDensityContrastClass
     implicit none
     type            (outputAnalysisConcentrationDistributionCDMCOCO)                           :: self
     class           (cosmologyParametersClass                      ), target   , intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), target   , intent(inout) :: cosmologyFunctions_
+    class           (virialDensityContrastClass                    ), target   , intent(in   ) :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                     ), target   , intent(in   ) :: darkMatterProfileDMO_
     class           (outputTimesClass                              ), target   , intent(inout) :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), target   , intent(in   ) :: nbodyHaloMassError_
     integer                                                                    , intent(in   ) :: distributionNumber
     double precision                                                           , intent(in   ) :: rootVarianceFractionalMinimum
-    type            (virialDensityContrastFixed                    ), pointer                  :: virialDensityContrast_
-    double precision                                                , parameter                :: haloDensityContrast          =200.0d0
+    type            (virialDensityContrastFixed                    ), pointer                  :: virialDensityContrastDefinition_
+    double precision                                                , parameter                :: haloDensityContrast             =200.0d0
     !![
     <constructorAssign variables="distributionNumber"/>
     !!]
@@ -120,17 +129,17 @@ contains
     ! Validate input.
     if (distributionNumber < 1 .or. distributionNumber > 7) call Galacticus_Error_Report('distributionNumber ∈ [1..7] is required'//{introspection:location})
     ! Create a virial density contrast object matched to the definition used by Ludlow et al. (2016).
-    allocate(virialDensityContrast_                )
+    allocate(virialDensityContrastDefinition_                )
     !![
-    <referenceConstruct object="virialDensityContrast_">
+    <referenceConstruct object="virialDensityContrastDefinition_">
      <constructor>
-      virialDensityContrastFixed                      (                          &amp;
-         &amp;                                         haloDensityContrast     , &amp;
-         &amp;                                         fixedDensityTypeCritical, &amp;
-         &amp;                                         2.0d0                   , &amp;
-         &amp;                                         cosmologyParameters_    , &amp;
-         &amp;                                         cosmologyFunctions_       &amp;
-         &amp;                                        )
+      virialDensityContrastFixed(                          &amp;
+         &amp;                   haloDensityContrast     , &amp;
+         &amp;                   fixedDensityTypeCritical, &amp;
+         &amp;                   2.0d0                   , &amp;
+         &amp;                   cosmologyParameters_    , &amp;
+         &amp;                   cosmologyFunctions_       &amp;
+         &amp;                  )
      </constructor>
     </referenceConstruct>
     !!]
@@ -139,13 +148,16 @@ contains
          &                                                                               var_str(                                    'concentrationDistributionCDMCOCO'                                        ), &
          &                                                                               var_str(                                    'Distribution of halo concentrations'                                     ), &
          &                                                                               rootVarianceFractionalMinimum                                                                                          , &
+         &                                                                               cosmologyParameters_                                                                                                   , &
          &                                                                               cosmologyFunctions_                                                                                                    , &
          &                                                                               nbodyHaloMassError_                                                                                                    , &
+         &                                                                               darkMatterProfileDMO_                                                                                                  , &
          &                                                                               virialDensityContrast_                                                                                                 , &
+         &                                                                               virialDensityContrastDefinition_                                                                                       , &
          &                                                                               outputTimes_                                                                                                             &
          &                                                                              )
     !![
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function concentrationDistributionCDMCOCOConstructorInternal

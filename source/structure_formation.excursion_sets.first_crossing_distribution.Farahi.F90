@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,38 +156,38 @@ Contains a module which implements a excursion set first crossing statistics cla
      class           (excursionSetBarrierClass     ), pointer                       :: excursionSetBarrier_             => null()
      class           (cosmologicalMassVarianceClass), pointer                       :: cosmologicalMassVariance_        => null()
      ! Variables used in tabulation the first crossing function.
-     double precision                                                               :: timeMaximum                               , timeMinimum             , &
+     double precision                                                               :: timeMaximum                                , timeMinimum             , &
           &                                                                            varianceMaximum
-     integer                                                                        :: timeTableCount                            , varianceTableCount
+     integer                                                                        :: timeTableCount                             , varianceTableCount
      double precision                               , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
-     double precision                               , allocatable, dimension(:  )   :: timeTable                                 , varianceTable
+     double precision                               , allocatable, dimension(:  )   :: timeTable                                  , varianceTable
      double precision                                                               :: varianceTableStep
-     logical                                                                        :: tableInitialized                          , fileNameInitialized
-     type            (interpolator                 ), allocatable                   :: interpolatorTime                          , interpolatorVariance
+     logical                                                                        :: tableInitialized                 =  .false., fileNameInitialized
+     type            (interpolator                 ), allocatable                   :: interpolatorTime                           , interpolatorVariance
      ! Variables used in tabulation the first crossing rate function.
-     double precision                                                               :: timeMaximumRate                           , timeMinimumRate         , &
+     double precision                                                               :: timeMaximumRate                            , timeMinimumRate         , &
           &                                                                            varianceMaximumRate
-     integer                                                                        :: timeTableCountRate                        , varianceTableCountRate  , &
+     integer                                                                        :: timeTableCountRate                         , varianceTableCountRate  , &
           &                                                                            varianceTableCountRateBase
      double precision                               , allocatable, dimension(:,:,:) :: firstCrossingTableRate
      double precision                               , allocatable, dimension(:,:  ) :: nonCrossingTableRate
-     double precision                               , allocatable, dimension(:    ) :: timeTableRate                             , varianceTableRate       , &
+     double precision                               , allocatable, dimension(:    ) :: timeTableRate                              ,  varianceTableRate       , &
           &                                                                            varianceTableRateBase
-     logical                                                                        :: tableInitializedRate
-     type            (interpolator                 ), allocatable                   :: interpolatorTimeRate                      , interpolatorVarianceRate, &
+     logical                                                                        :: tableInitializedRate             =  .false.
+     type            (interpolator                 ), allocatable                   :: interpolatorTimeRate                       , interpolatorVarianceRate, &
           &                                                                            interpolatorVarianceRateBase
      ! File name used to store tabulations.
      type            (varying_string               )                                :: fileName
      logical                                                                        :: useFile
      ! Tabulation resolutions.
-     integer                                                                        :: varianceNumberPerUnitProbability          , varianceNumberPerUnit   , &
-          &                                                                            timeNumberPerDecade                       , varianceNumberPerDecade
+     integer                                                                        :: varianceNumberPerUnitProbability           , varianceNumberPerUnit   , &
+          &                                                                            timeNumberPerDecade                        , varianceNumberPerDecade
      ! The fractional step in time used to compute barrier crossing rates.
      double precision                                                               :: timeStepFractional
      ! Record of variance and time in previous call to rate functions.
-     double precision                                                               :: timeRatePrevious                          , varianceRatePrevious
-     double precision                                            , dimension(0:1)   :: hTimeRate                                 , hVarianceRate
-     integer         (c_size_t                     )                                :: iTimeRate                                 , iVarianceRate
+     double precision                                                               :: timeRatePrevious                           , varianceRatePrevious
+     double precision                                            , dimension(0:1)   :: hTimeRate                                  , hVarianceRate
+     integer         (c_size_t                     )                                :: iTimeRate                                  , iVarianceRate
    contains
      !![
      <methods>
@@ -1164,7 +1164,7 @@ contains
        write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
        write (label,'(e22.16)') self%varianceMaximumRate
-       message=var_str('variance minimum: ')//label
+       message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
@@ -1235,7 +1235,7 @@ contains
        write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
        write (label,'(e22.16)') self%varianceMaximumRate
-       message=var_str('variance minimum: ')//label
+       message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if

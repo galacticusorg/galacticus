@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,8 @@
   host halo.
   !!}
 
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+
   !![
   <virialOrbit name="virialOrbitSpinCorrelated">
    <description>A virial orbit class which assigns infall directions and tangential velocities directions to an orbit return by another virial orbit class such that the orbital angular momentum of the satellite is correlated with the spin vector of the host. Specifically, the angle, $\theta$, between the orbital angular momentum of the satellite and the spin of the host is assumed to be distributed such that $P(\cos \theta) = (1 + \alpha | \lambda | \cos \theta)/2$, where $|\lambda|$ is the magnitude of the host halo spin, and $\alpha$ is a parameter.</description>
@@ -32,8 +34,9 @@
      A virial orbit class which assumes that the orbital angular momentum is correlated with the spin vector of the host halo.
      !!}
      private
-     double precision                            :: alpha
-     class           (virialOrbitClass), pointer :: virialOrbit_
+     double precision                                     :: alpha
+     class           (virialOrbitClass         ), pointer :: virialOrbit_          => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::                                    spinCorrelatedDestructor
      procedure :: orbit                           => spinCorrelatedOrbit
@@ -66,6 +69,7 @@ contains
     type            (virialOrbitSpinCorrelated)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
     class           (virialOrbitClass         ), pointer       :: virialOrbit_
+    class           (darkMatterProfileDMOClass), pointer       :: darkMatterProfileDMO_
     double precision                                           :: alpha
 
     !![
@@ -75,17 +79,19 @@ contains
       <source>parameters</source>
       <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
     </inputParameter>
-    <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
+    <objectBuilder class="virialOrbit"          name="virialOrbit_"          source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=virialOrbitSpinCorrelated(alpha,virialOrbit_)
+    self=virialOrbitSpinCorrelated(alpha,virialOrbit_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="virialOrbit_"/>
+    <objectDestructor name="virialOrbit_"         />
+    <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function spinCorrelatedConstructorParameters
 
-  function spinCorrelatedConstructorInternal(alpha,virialOrbit_) result(self)
+  function spinCorrelatedConstructorInternal(alpha,virialOrbit_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
     !!}
@@ -93,8 +99,9 @@ contains
     type            (virialOrbitSpinCorrelated)                        :: self
     double precision                           , intent(in   )         :: alpha
     class           (virialOrbitClass         ), intent(in   ), target :: virialOrbit_
+    class           (darkMatterProfileDMOClass), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="alpha, *virialOrbit_"/>
+    <constructorAssign variables="alpha, *virialOrbit_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -108,7 +115,8 @@ contains
     type(virialOrbitSpinCorrelated), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%virialOrbit_"/>
+    <objectDestructor name="self%virialOrbit_"         />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     return
   end subroutine spinCorrelatedDestructor
@@ -117,11 +125,12 @@ contains
     !!{
     Return spinCorrelated orbital parameters for a satellite.
     !!}
-    use :: Coordinates             , only : assignment(=)          , coordinateCartesian
+    use :: Coordinates             , only : assignment(=)                          , coordinateCartesian
+    use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes        , only : nodeComponentSpin      , treeNode
+    use :: Galacticus_Nodes        , only : nodeComponentSpin                      , treeNode
     use :: Numerical_Constants_Math, only : Pi
-    use :: Vectors                 , only : Vector_Magnitude       , Vector_Product
+    use :: Vectors                 , only : Vector_Magnitude                       , Vector_Product
     implicit none
     type            (keplerOrbit              )                         :: spinCorrelatedOrbit
     class           (virialOrbitSpinCorrelated), intent(inout), target  :: self
@@ -151,15 +160,16 @@ contains
        call spinCorrelatedOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator_%uniformSample()-1.0d0))
        call spinCorrelatedOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()       )
        ! Compute the cosine of the angle between the angular momentum of this orbit and the spin of the host halo.
-       spinHost                 => host               %spin      ()
-       spinVector               =  spinHost           %spinVector()
-       coordinates              =  spinCorrelatedOrbit%position  ()
-       position                 =  coordinates
-       coordinates              =  spinCorrelatedOrbit%velocity  ()
-       velocity                 =  coordinates
-       spinMagnitude            =  Vector_Magnitude(spinVector                   )
-       angularMomentum          =  Vector_Product  (position     ,velocity       )
-       angularMomentumMagnitude =  Vector_Magnitude(              angularMomentum)
+       spinHost  =>  host                   %spin  ()
+       spinVector               =  +spinHost%angularMomentumVector() &
+            &                      /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterProfileDMO_)
+       coordinates              =   spinCorrelatedOrbit%position  ()
+       position                 =   coordinates
+       coordinates              =   spinCorrelatedOrbit%velocity  ()
+       velocity                 =   coordinates
+       spinMagnitude            =   Vector_Magnitude(spinVector                   )
+       angularMomentum          =   Vector_Product  (position     ,velocity       )
+       angularMomentumMagnitude =   Vector_Magnitude(              angularMomentum)
        if (spinMagnitude <= 0.0d0.or.angularMomentumMagnitude <= 0.0d0) then
           cosineTheta=0.0d0
        else
@@ -203,17 +213,19 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Galacticus_Nodes      , only : nodeComponentSpin       , treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedVelocityTangentialVectorMean
     class           (virialOrbitSpinCorrelated), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node                                       , host
     class           (nodeComponentSpin        ), pointer       :: spinHost
 
-    spinHost                                   =>  host    %spin                           (         )
-    spinCorrelatedVelocityTangentialVectorMean =  +self    %alpha                                      &
-         &                                        *self    %velocityTangentialMagnitudeMean(node,host) &
-         &                                        *spinHost%spinVector                     (         ) &
+    spinHost                                   =>  host                   %spin            (         )
+    spinCorrelatedVelocityTangentialVectorMean =  +self    %alpha                                                           &
+         &                                        *self    %velocityTangentialMagnitudeMean(node,host)                      &
+         &                                        *spinHost%angularMomentumVector          (         )                      &
+         &                                        /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterProfileDMO_) &
          &                                        /3.0d0
     return
   end function spinCorrelatedVelocityTangentialVectorMean
@@ -234,17 +246,19 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Galacticus_Nodes      , only : nodeComponentSpin       , treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedAngularMomentumVectorMean
     class           (virialOrbitSpinCorrelated), intent(inout) :: self
-    type            (treeNode                 ), intent(inout) :: node                                       , host
+    type            (treeNode                 ), intent(inout) :: node                                   , host
     class           (nodeComponentSpin        ), pointer       :: spinHost
 
     spinHost                                =>  host    %spin                        (         )
-    spinCorrelatedAngularMomentumVectorMean =  +self    %alpha                                   &
-         &                                     *self    %angularMomentumMagnitudeMean(node,host) &
-         &                                     *spinHost%spinVector                  (         ) &
+    spinCorrelatedAngularMomentumVectorMean =  +self    %alpha                                                           &
+         &                                     *self    %angularMomentumMagnitudeMean(node,host)                         &
+         &                                     *spinHost%angularMomentumVector       (         )                         &
+         &                                     /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterProfileDMO_) &
          &                                     /3.0d0
     return
   end function spinCorrelatedAngularMomentumVectorMean

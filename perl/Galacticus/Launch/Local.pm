@@ -11,6 +11,7 @@ use Sys::CPU;
 use Clone qw(clone);
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PostProcess;
+use System::Redirect;
 
 # Insert hooks for our functions.
 %Galacticus::Launch::Hooks::moduleHooks = 
@@ -30,8 +31,9 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 threadCount => 1        ,
-	 ompThreads  => "maximum"
+	 threadCount => 1               ,
+	 ompThreads  => "maximum"       ,
+	 executable  => "Galacticus.exe"
 	);
     foreach ( keys(%defaults) ) {
 	$launchScript->{'local'}->{$_} = $defaults{$_}
@@ -54,14 +56,20 @@ sub Launch {
     # Launch models on local machine.
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %options      = %{shift()}
+        if ( scalar(@_) > 0 );
+    # Determine number of threads to use.
+    my $threadCount = $launchScript->{'local'}->{'threadCount'};
+    $threadCount = $options{'threadMaximum'}
+        if ( exists($options{'threadMaximum'}) );
     # Launch model threads.
     my @threads;
-    for(my $iThread=0;$iThread<$launchScript->{'local'}->{'threadCount'};++$iThread) {
+    for(my $iThread=0;$iThread<$threadCount;++$iThread) {
 	print " -> launching thread ".$iThread." of ".$launchScript->{'local'}->{'threadCount'}."\n"
 		if ( $launchScript->{'verbosity'} > 0 );
  	push(
 	    @threads,
-	    threads->create(\&Launch_Models, $iThread, \@jobs, $launchScript)
+	    threads->create(\&Launch_Models, $iThread, $threadCount, \@jobs, $launchScript, \%options)
 	    );
    }
     # Wait for threads to finish.
@@ -72,18 +80,30 @@ sub Launch {
 
 sub Launch_Models {
     my $iThread      =   shift() ;
+    my $threadCount  =   shift() ;
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %options      = %{shift()}
+        if ( scalar(@_) > 0 );
+    my $ompThreads = $launchScript->{'local'}->{'ompThreads'};
+    $ompThreads = $options{'ompThreads'}
+        if ( exists($options{'ompThreads'}) );
+    my $verbosity = $launchScript->{'verbosity'};
+    $verbosity = $options{'verbosity'}
+    if ( exists($options{'verbosity'}) );
+    my $executable = $launchScript->{'local'}->{'executable'};
+    $executable = $options{'executable'}
+        if ( exists($options{'executable'}) );
     for(my $i=0;$i<scalar(@jobs);++$i) {
-	if ( ( $i % $launchScript->{'local'}->{'threadCount'} ) == $iThread ) {
+	if ( ( $i % $threadCount ) == $iThread ) {
  	    print " -> thread ".$iThread." running job: ".$jobs[$i]->{'label'}."\n"
-		if ( $launchScript->{'verbosity'} > 0 );
-	    system(
+		if ( $verbosity > 0 );
+	    &System::Redirect::tofile(
 		    "ulimit -t unlimited;"        .
 		    "ulimit -c unlimited;"        .
 		    "export GFORTRAN_ERROR_DUMPCORE=YES;".
-		    "export OMP_NUM_THREADS=".$launchScript->{'local'}->{'ompThreads'}.";".
-		    $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml &> ".
+		    "export OMP_NUM_THREADS=".$ompThreads.";".
+		    $ENV{'GALACTICUS_EXEC_PATH'}."/".$executable." ".$jobs[$i]->{'directory'}."/parameters.xml",
 		    $jobs[$i]->{'directory'}."/galacticus.log"
 		);
 	    if ( $? == 0 ) {
@@ -142,6 +162,8 @@ sub jobArrayLaunch {
 	    } elsif ( exists($localConfig->{'ompThreads'}) ) {
 		$ompThreads = $localConfig->{'ompThreads'};
 	    }
+	    $ompThreads = $arguments{'ompThreads'}
+	        if ( exists($arguments{'ompThreads'}) );
 	    print $scriptFile "export OMP_NUM_THREADS=".$ompThreads."\n"
 		if ( defined($ompThreads) );
 	    print $scriptFile $newJob->{'command'}."\n";

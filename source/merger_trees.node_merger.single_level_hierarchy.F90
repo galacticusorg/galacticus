@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,9 +57,11 @@ contains
     implicit none
     type(mergerTreeNodeMergerSingleLevelHierarchy)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=mergerTreeNodeMergerSingleLevelHierarchy()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function singleLevelHierarchyConstructorParameters
 
@@ -70,6 +72,7 @@ contains
     use :: Display            , only : displayGreen              , displayReset
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes   , only : treeNode
+    use :: ISO_Varying_String , only : varying_string            , operator(//), assignment(=)
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     use :: String_Handling    , only : operator(//)
     implicit none

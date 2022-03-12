@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
 Contains a module which implements a property extractor class that extracts the radius enclosing the current bound mass.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusBoundMass">
    <description>
@@ -33,7 +35,9 @@ Contains a module which implements a property extractor class that extracts the 
      A property extractor class that extracts the radius enclosing the current bound mass.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                radiusBoundMassDestructor
      procedure :: extract     => radiusBoundMassExtract
      procedure :: name        => radiusBoundMassName
      procedure :: description => radiusBoundMassDescription
@@ -46,6 +50,7 @@ Contains a module which implements a property extractor class that extracts the 
      Constructors for the ``radiusBoundMass'' output analysis class.
      !!}
      module procedure radiusBoundMassConstructorParameters
+     module procedure radiusBoundMassConstructorInternal
   end interface nodePropertyExtractorRadiusBoundMass
 
 contains
@@ -56,20 +61,54 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(nodePropertyExtractorRadiusBoundMass)                :: self
-    type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (nodePropertyExtractorRadiusBoundMass)                :: self
+    type (inputParameters                     ), intent(inout) :: parameters
+    class(galacticStructureClass              ), pointer       :: galacticStructure_
     
-    self=nodePropertyExtractorRadiusBoundMass()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorRadiusBoundMass(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function radiusBoundMassConstructorParameters
+
+  function radiusBoundMassConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Constructor for the {\normalfont \ttfamily radiusBoundMass} property extractor class which takes a parameter set as input.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type (nodePropertyExtractorRadiusBoundMass)                        :: self
+    class(galacticStructureClass              ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function radiusBoundMassConstructorInternal
+  
+  subroutine radiusBoundMassDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily radiusBoundMass} property extractor class which takes a parameter set as input.
+    !!}
+    implicit none
+    type(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine radiusBoundMassDestructor
 
   double precision function radiusBoundMassExtract(self,node,instance)
     !!{
     Implement a bound mass radius property extractor.
     !!}
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class(nodePropertyExtractorRadiusBoundMass), intent(inout)           :: self
     type (treeNode                            ), intent(inout), target   :: node
@@ -78,7 +117,7 @@ contains
     !$GLC attributes unused :: instance
 
     satellite              => node%satellite()
-    radiusBoundMassExtract =  Galactic_Structure_Radius_Enclosing_Mass(node,mass=satellite%boundMass())
+    radiusBoundMassExtract =  self%galacticStructure_%radiusEnclosingMass(node,mass=satellite%boundMass())
     return
   end function radiusBoundMassExtract
 

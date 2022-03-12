@@ -22,18 +22,19 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 # Get any command line options.
 my %options =
     (
-     'processesPerNode' => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
+     'processesPerNode'  => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
+     'allow-run-as-root' => "no"
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
-# We need at least 8 processes to run this test.
+# We need at least 2 processes to run this test.
 if ( $options{'processesPerNode'} < 2 ) {
     print "SKIPPED: at least 2 processes per node are required for this test\n";
     exit;
 }
 
 # Run the calculation.
-system("cd ..; mpirun -np ".$options{'processesPerNode'}." Galacticus.exe_MPI testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
+system("cd ..; mpirun -np ".$options{'processesPerNode'}.($options{'allow-run-as-root'} eq "yes" ? " --allow-run-as-root" : "")." Galacticus.exe_MPI testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
 die("FAILED: failed to run calculation")
     unless ( $? == 0 );
 # Read model output and parameters.

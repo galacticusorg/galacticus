@@ -26,7 +26,8 @@ my %dependencies =
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
-     FoX_utils      => [ "FoX_wxml"                         ]
+     FoX_utils      => [ "FoX_wxml"                         ],
+     qhullcpp       => [ "qhull_r", "stdc++"                ]
     );
 # Library order dependencies for static linking. Each key specifies a library name. The associated value is a list of libraries
 # before which the key library must appear in the link command when static linking is used.
@@ -40,7 +41,9 @@ my %staticLinkDependencies =
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax", "FoX_wxml" ],
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
-     FoX_common     => [ "FoX_fsys"                                     ]
+     FoX_common     => [ "FoX_fsys"                                     ],
+     matheval       => [ "fl"                                           ],
+     qhullcpp       => [ "stdc++"                                       ]
     );
 # Find default preprocessor directives.
 my @preprocessorDirectives;
@@ -66,7 +69,7 @@ my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
 my %libraries;
 # Open the file of dependencies for the executable.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.exe$/\.d/;
+(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.(exe|o)$/\.d/;
 die("libraryDependencies.pl: dependency file is missing")
     unless ( -e $dependencyFileName );
 open(my $dependencyFile,$dependencyFileName);
@@ -94,12 +97,20 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );
+# Remove qhull library if not used.
+delete($libraries{'qhullcpp'})
+    if ( exists($libraries{'qhullcpp'}) && ! grep {$_ eq "-DQHULLAVAIL"} @compilerOptions );
+delete($libraries{'qhull_r' })
+    if ( exists($libraries{'qhull_r' }) && ! grep {$_ eq "-DQHULLAVAIL"} @compilerOptions );
 # Remove libmatheval if not used.
 delete($libraries{'matheval'})
     if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
 my @libraryNames = sort(keys(%libraries));
 my @sortedLibraries = &Sort::Topo::sort(\@libraryNames,\%staticLinkDependencies);
+# For static linking qhull libraries must be renamed.
+@sortedLibraries = map {$_ eq "qhull_r" ? "qhullstatic_r" : $_} @sortedLibraries
+    if ( $isStatic );
 # Add static link options.
 my $staticOptions = ( $isStatic && ! $pthreadIncluded ) ? " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive" : "";
 # Add OS specific options.

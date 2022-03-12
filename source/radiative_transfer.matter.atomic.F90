@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,6 +140,7 @@ contains
     Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
+    use :: ISO_Varying_String              , only : var_str
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (radiativeTransferMatterAtomic               )                             :: self
@@ -228,6 +229,7 @@ contains
     !!]
     self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
     !![
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="massDistribution_"                       />
     <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
     <objectDestructor name="atomicRecombinationRateRadiative_"       />
@@ -782,6 +784,7 @@ contains
     use :: Display                             , only : displayIndent          , displayMessage    , displayUnindent      , verbosityLevelStandard
     use :: Galacticus_Error                    , only : Galacticus_Error_Report, errorStatusFail   , errorStatusOutOfRange, errorStatusSuccess
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
+    use :: ISO_Varying_String                  , only : operator(//)
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
     class           (radiativeTransferPropertiesMatter), intent(inout) , target      :: properties
@@ -1421,7 +1424,7 @@ contains
     Return the name of the scalar property to be output.
     !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: ISO_Varying_String      , only : operator(//)
+    use :: ISO_Varying_String      , only : operator(//)           , var_str
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
     implicit none
     type   (varying_string               )                :: atomicOutputName

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,7 +85,7 @@
       halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
     \item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such
       nodes will be created as satellites in the merger tree and, providing the selected node components (see
-      \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.Components}{here})
+      \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.Components}{here})
       initialize their properties appropriately, will be evolved correctly.
     \item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all
       progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
@@ -93,7 +93,7 @@
       not affect the evolution of the tree.
     \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
       the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
-      [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
+      [missingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
       nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
       correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
       is not available.
@@ -102,9 +102,9 @@
       forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
       allowing to nodes to move between their branches.
     \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
-      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [mergerTreeReadAllowSubhaloPromotions]}$=${\normalfont \ttfamily true}
+      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily true}
       then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If {\normalfont
-        \ttfamily [mergerTreeReadAllowSubhaloPromotions]}$=${\normalfont \ttfamily false} then subhalos are not permitted to become
+        \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily false} then subhalos are not permitted to become
       isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
     
       \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
@@ -146,33 +146,33 @@
     \begin{itemize}
     \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in
       the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily
-        [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch;
+        [mismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch;
     \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\normalfont
         \ttfamily [allTreesExistAtFinalTime]}$=${\normalfont \ttfamily false}.
     \end{itemize}
     
     \textbf{Dark Matter Scale Radii}: \index{dark matter halo!concentration}\index{dark matter halo!scale radius} If {\normalfont
-      \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily halfMassRadius}
+      \ttfamily [presetScaleRadii]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily halfMassRadius}
     dataset is available within the {\normalfont \ttfamily haloTrees} group (see
     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the half-mass radii
     of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found
       by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
       (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This
     requires a dark matter profile scale component which supports setting of the scale length (see
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
     
     \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
-      [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
+      [presetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
     from the merger tree data read from file. When a subhalo has an isolated halo as a descendent it is assumed to undergo a merger
     with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
     times (e.g. {\normalfont \ttfamily [componentSatellite]}$=${\normalfont \ttfamily preset}).
     
-    \textbf{Dark Matter Halo Spins:}\index{dark matter halo!spin} If {\normalfont \ttfamily
-      [mergerTreeReadPresetSpins]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available
+    \textbf{Dark Matter Halo Angular Momenta:}\index{dark matter halo!angular momentum} If {\normalfont \ttfamily
+      [presetAngularMomenta]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available
     within the {\normalfont \ttfamily haloTrees} group (see
-    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
-    of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the angular momenta
+    of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the angular momentum (see
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
   !!]
 
   !![
@@ -197,41 +197,41 @@
      class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_                => null()
      class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_                         => null()
      integer                                                                          :: fileCurrent
-     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                      , presetNamedReals                    , &
+     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
-     integer                                              , allocatable, dimension(:) :: indexNamedReals                                , indexNamedIntegers
-     logical                                                                          :: importerOpen
+     integer                                              , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
+     logical                                                                          :: importerOpen                          =  .false.
      integer         (kind_int8                          )                            :: beginAt
      double precision                                                                 :: treeWeightCurrent
      logical                                                                          :: allowBranchJumps
      logical                                                                          :: allowSubhaloPromotions
-     integer         (c_size_t                           )                            :: forestSizeMaximum                              , treeNumberOffset
+     integer         (c_size_t                           )                            :: forestSizeMaximum                               , treeNumberOffset
      logical                                                                          :: presetMergerTimes
      logical                                                                          :: presetMergerNodes
      logical                                                                          :: presetSubhaloMasses
      logical                                                                          :: presetSubhaloIndices
      logical                                                                          :: presetPositions
-     logical                                                                          :: presetScaleRadii                               , scaleRadiiFailureIsFatal
-     double precision                                                                 :: presetScaleRadiiMinimumMass                    , presetScaleRadiiConcentrationMinimum, &
+     logical                                                                          :: presetScaleRadii                                , scaleRadiiFailureIsFatal
+     double precision                                                                 :: presetScaleRadiiMinimumMass                     , presetScaleRadiiConcentrationMinimum, &
           &                                                                              presetScaleRadiiConcentrationMaximum
-     logical                                                                          :: presetSpins                                    , presetSpins3D                       , &
-          &                                                                              presetUnphysicalSpins
-     logical                                                                          :: presetOrbits                                   , presetOrbitsAssertAllSet            , &
-          &                                                                              presetOrbitsBoundOnly                          , presetOrbitsSetAll
+     logical                                                                          :: presetAngularMomenta                            , presetAngularMomenta3D              , &
+          &                                                                              presetUnphysicalAngularMomenta
+     logical                                                                          :: presetOrbits                                    , presetOrbitsAssertAllSet            , &
+          &                                                                              presetOrbitsBoundOnly                           , presetOrbitsSetAll
      integer                                                                          :: subhaloAngularMomentaMethod
      logical                                                                          :: missingHostsAreFatal
      logical                                                                          :: treeIndexToRootNodeIndex
      integer         (c_size_t                           )                            :: outputTimesCount
      double precision                                                                 :: outputTimeSnapTolerance
      double precision                                     , allocatable, dimension(:) :: outputTimes
-     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                             , nodeLocations
-     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                         , nodeIndicesSorted
+     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                              , nodeLocations
+     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                          , nodeIndicesSorted
      !$ integer      (omp_lock_kind                      )                            :: splitForestLock
      integer                                                                          :: splitForestActiveForest
-     integer         (c_size_t                           )                            :: splitForestNextTree                             , splitForestUniqueID
-     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                             , splitForestTreeStart               , &
+     integer         (c_size_t                           )                            :: splitForestNextTree                              , splitForestUniqueID
+     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                              , splitForestTreeStart               , &
           &                                                                              splitForestMapIndex
-     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                               , splitForestPullFrom
+     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                                , splitForestPullFrom
      integer                                              , allocatable, dimension(:) :: splitForestPushType
      double precision                                     , allocatable, dimension(:) :: splitForestPushTime
      logical                                              , allocatable, dimension(:) :: splitForestIsPrimary                            , splitForestPushDone                , &
@@ -254,7 +254,7 @@
        <method description="Assign named properties to nodes." method="assignNamedProperties" />
        <method description="Assign scale radii to nodes." method="assignScaleRadii" />
        <method description="Scan for and record mergers between nodes." method="scanForMergers" />
-       <method description="Assign spin parameters to nodes." method="assignSpinParameters" />
+       <method description="Assign angular momenta to nodes." method="assignAngularMomenta" />
        <method description="Assign pointers to merge targets." method="assignMergers" />
        <method description="Search for subhalos which move between branches/trees." method="scanForBranchJumps" />
        <method description="Build and attached bound mass histories to subhalos." method="buildSubhaloMassHistories" />
@@ -286,7 +286,7 @@
      procedure :: assignNamedProperties         => readAssignNamedProperties
      procedure :: assignScaleRadii              => readAssignScaleRadii
      procedure :: scanForMergers                => readScanForMergers
-     procedure :: assignSpinParameters          => readAssignSpinParameters
+     procedure :: assignAngularMomenta          => readAssignAngularMomenta
      procedure :: assignMergers                 => readAssignMergers
      procedure :: scanForBranchJumps            => readScanForBranchJumps
      procedure :: buildSubhaloMassHistories     => readBuildSubhaloMassHistories
@@ -409,8 +409,8 @@ contains
          &                                                                              presetMergerNodes                   , presetSubhaloMasses                 , &
          &                                                                              presetSubhaloIndices                , presetPositions                     , &
          &                                                                              presetScaleRadii                    , scaleRadiiFailureIsFatal            , &
-         &                                                                              presetUnphysicalSpins               , presetSpins                         , &
-         &                                                                              presetSpins3D                       , presetOrbits                        , &
+         &                                                                              presetUnphysicalAngularMomenta      , presetAngularMomenta                , &
+         &                                                                              presetAngularMomenta3D              , presetOrbits                        , &
          &                                                                              presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                              presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
          &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps
@@ -501,21 +501,21 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>presetUnphysicalSpins</name>
+      <name>presetUnphysicalAngularMomenta</name>
       <defaultValue>.false.</defaultValue>
-      <description>When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.</description>
+      <description>When reading merger trees from file and presetting halo angular momenta, detect unphysical (&lt;=0) angular momenta and preset them using the selected halo spin method.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>presetSpins</name>
+      <name>presetAngularMomenta</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether node spins should be preset when reading merger trees from a file.</description>
+      <description>Specifies whether node angular momenta should be preset when reading merger trees from a file.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>presetSpins3D</name>
+      <name>presetAngularMomenta3D</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether node 3-D spin vectors should be preset when reading merger trees from a file.</description>
+      <description>Specifies whether node 3-D angular momenta vectors should be preset when reading merger trees from a file.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -557,7 +557,7 @@ contains
     <inputParameter>
       <name>missingHostsAreFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
+      <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -641,9 +641,9 @@ contains
          &                                                                               presetScaleRadiiConcentrationMaximum                         , &
          &                                                                               presetScaleRadiiMinimumMass                                  , &
          &                                                                               scaleRadiiFailureIsFatal                                     , &
-         &                                                                               presetUnphysicalSpins                                        , &
-         &                                                                               presetSpins                                                  , &
-         &                                                                               presetSpins3D                                                , &
+         &                                                                               presetUnphysicalAngularMomenta                               , &
+         &                                                                               presetAngularMomenta                                         , &
+         &                                                                               presetAngularMomenta3D                                       , &
          &                                                                               presetOrbits                                                 , &
          &                                                                               presetOrbitsSetAll                                           , &
          &                                                                               presetOrbitsAssertAllSet                                     , &
@@ -681,14 +681,13 @@ contains
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalAngularMomenta,presetAngularMomenta,presetAngularMomenta3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     !!}
     use    :: Display                    , only : displayMagenta         , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
     use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
-    use    :: Galacticus_Nodes           , only : defaultNBodyComponent  , nodeComponentNBodyGeneric
     use    :: Memory_Management          , only : allocateArray
     use    :: Numerical_Constants_Boolean, only : booleanFalse           , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
@@ -714,8 +713,8 @@ contains
          &                                                                                presetMergerNodes                   , presetSubhaloMasses                 , &
          &                                                                                presetSubhaloIndices                , presetPositions                     , &
          &                                                                                presetScaleRadii                    , scaleRadiiFailureIsFatal            , &
-         &                                                                                presetUnphysicalSpins               , presetSpins                         , &
-         &                                                                                presetSpins3D                       , presetOrbits                        , &
+         &                                                                                presetUnphysicalAngularMomenta      , presetAngularMomenta                , &
+         &                                                                                presetAngularMomenta3D              , presetOrbits                        , &
          &                                                                                presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                                presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
          &                                                                                treeIndexToRootNodeIndex            , allowBranchJumps
@@ -725,7 +724,7 @@ contains
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
     !![
-    <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalAngularMomenta, presetAngularMomenta, presetAngularMomenta3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
     !!]
 
     ! Initialize statuses.
@@ -838,39 +837,39 @@ contains
          &                                {introspection:location}                                                                                                  &
          &                               )
     ! Check that angular momentum information is present if required.
-    if     (                                                                                                        &
-         &   self%presetSpins                                                                                       &
-         &  .and.                                                                                                   &
-         &   .not.                                                                                                  &
-         &        (                                                                                                 &
-         &          self%mergerTreeImporter_%          spinAvailable()                                              &
-         &         .or.                                                                                             &
-         &          self%mergerTreeImporter_%angularMomentaAvailable()                                              &
-         &        )                                                                                                 &
-         & )                                                                                                        &
-         & call Galacticus_Error_Report(                                                                            &
-         &                              "presetting spins requires that the spin or angularMomentum datasets        &
-         &                               be present in merger tree file; try setting"                            // &
-         &                              char(10)                                                                 // &
-         &                              " [presetSpins]=false"                                                   // &
-         &                                {introspection:location}                                                  &
+    if     (                                                                                                             &
+         &   self%presetAngularMomenta                                                                                   &
+         &  .and.                                                                                                        &
+         &   .not.                                                                                                       &
+         &        (                                                                                                      &
+         &          self%mergerTreeImporter_%          spinAvailable()                                                   &
+         &         .or.                                                                                                  &
+         &          self%mergerTreeImporter_%angularMomentaAvailable()                                                   &
+         &        )                                                                                                      &
+         & )                                                                                                             &
+         & call Galacticus_Error_Report(                                                                                 &
+         &                              "presetting angular momenta requires that the spin or angularMomentum datasets   &
+         &                               be present in merger tree file; try setting"                                 // &
+         &                              char(10)                                                                      // &
+         &                              " [presetAngularMomenta]=false"                                               // &
+         &                                {introspection:location}                                                       &
          &                             )
-    if     (                                                                                                        &
-         &   self%presetSpins3D                                                                                     &
-         &  .and.                                                                                                   &
-         &   .not.                                                                                                  &
-         &        (                                                                                                 &
-         &          self%mergerTreeImporter_%          spin3DAvailable()                                            &
-         &         .or.                                                                                             &
-         &          self%mergerTreeImporter_%angularMomenta3DAvailable()                                            &
-         &        )                                                                                                 &
-         & )                                                                                                        &
-         & call Galacticus_Error_Report(                                                                            &
-         &                              "presetting spin vectors requires that the spin or angularMomentum vector   &
-         &                               datasets be present in merger tree file; try setting"                   // &
-         &                              char(10)                                                                 // &
-         &                              " [presetSpins3D]=false"                                                 // &
-         &                                {introspection:location}                                                  &
+    if     (                                                                                                                    &
+         &   self%presetAngularMomenta3D                                                                                        &
+         &  .and.                                                                                                               &
+         &   .not.                                                                                                              &
+         &        (                                                                                                             &
+         &          self%mergerTreeImporter_%          spin3DAvailable()                                                        &
+         &         .or.                                                                                                         &
+         &          self%mergerTreeImporter_%angularMomenta3DAvailable()                                                        &
+         &        )                                                                                                             &
+         & )                                                                                                                    &
+         & call Galacticus_Error_Report(                                                                                        &
+         &                              "presetting angular momentum vectors requires that the spin or angularMomentum vector   &
+         &                               datasets be present in merger tree file; try setting"                               // &
+         &                              char(10)                                                                             // &
+         &                              " [presetAngularMomenta3D]=false"                                                    // &
+         &                                {introspection:location}                                                              &
          &                             )
     ! Create an OpenMP lock that will allow threads to coordinate access to split forest data.
     !$ call OMP_Init_Lock(self%splitForestLock)
@@ -880,23 +879,22 @@ contains
          &  .or.                                &
          &   size(self%presetNamedIntegers) > 0 &
          &  ) then
-       select type (defaultNBodyComponent)
-       class is (nodeComponentNBodyGeneric)
-          if (size(self%presetNamedReals   ) > 0) then
-             allocate(self%indexNamedReals   (size(self%presetNamedReals   )))
-             do i=1,size(self%presetNamedReals   )
-                self%indexNamedReals   (i)=defaultNBodyComponent%addRealProperty   (char(self%presetNamedReals   (i)))
-             end do
-          end if
-          if (size(self%presetNamedIntegers) > 0) then
-             allocate(self%indexNamedIntegers(size(self%presetNamedIntegers)))
-             do i=1,size(self%presetNamedIntegers)
-                self%indexNamedIntegers(i)=defaultNBodyComponent%addIntegerProperty(char(self%presetNamedIntegers(i)))
-             end do
-          end if
-       class default
-          call Galacticus_Error_Report('presetting of named datasets is supported only with the "generic" N-body component'//{introspection:location})
-       end select
+       if (size(self%presetNamedReals   ) > 0) then
+          allocate(self%indexNamedReals   (size(self%presetNamedReals   )))
+          do i=1,size(self%presetNamedReals   )
+             !![
+	     <addMetaProperty component="basic" name="'preset:'//char(self%presetNamedReals   (i))" type="float"       id="self%indexNamedReals  (i)" isCreator="yes"/>
+             !!]
+          end do
+       end if
+       if (size(self%presetNamedIntegers) > 0) then
+          allocate(self%indexNamedIntegers(size(self%presetNamedIntegers)))
+          do i=1,size(self%presetNamedIntegers)
+             !![
+	     <addMetaProperty component="basic" name="'preset:'//char(self%presetNamedIntegers(i))" type="longInteger" id="self%indexNamedIntegers(i)" isCreator="yes"/>
+             !!]
+          end do
+       end if
     end if
     return
   end function readConstructorInternal
@@ -1059,21 +1057,21 @@ contains
             &amp;                             int(treeNumberOffset)                                                                                               , &amp;
             &amp;                             nodes                                                                                                               , &amp;
             &amp;                             requireScaleRadii         = self%presetScaleRadii                                                                   , &amp;
-            &amp;                             requireAngularMomenta     =(self%presetSpins              .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
+            &amp;                             requireAngularMomenta     =(self%presetAngularMomenta     .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
             &amp;                             requireAngularMomenta3D   =                                                                                           &amp;
             &amp;                                                        (                                                                                          &amp;
-            &amp;                                                           self%presetSpins3D                                                                      &amp;
+            &amp;                                                           self%presetAngularMomenta3D                                                             &amp;
             &amp;                                                          .or.                                                                                     &amp;
             &amp;                                                           (                                                                                       &amp;
-            &amp;                                                             self%presetSpins                                                                      &amp;
+            &amp;                                                             self%presetAngularMomenta                                                             &amp;
             &amp;                                                            .and.                                                                                  &amp;
             &amp;                                                             self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodSummation          &amp;
             &amp;                                                           )                                                                                       &amp;
             &amp;                                                         )                                                                                         &amp;
             &amp;                                                        .and.                                                                                      &amp;
             &amp;                                                         self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &amp;
-            &amp;                             requireSpin               =(self%presetSpins              .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
-            &amp;                             requireSpin3D             =(self%presetSpins3D            .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
+            &amp;                             requireSpin               =(self%presetAngularMomenta     .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
+            &amp;                             requireSpin3D             =(self%presetAngularMomenta3D   .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
             &amp;                             requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &amp;
             &amp;                             nodeSubset                =nodeSubset                                                                                 &amp;
             &amp;                             {conditions}                                                                                                          &amp;
@@ -1111,11 +1109,11 @@ contains
              if (.not.self%mergerTreeImporter_%angularMomentaAvailable()) call Galacticus_Error_Report('scaling parent angular momentum for subhalo masses requires angular momenta availability'//{introspection:location})
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
-                   if (self%presetSpins  )                     &
+                   if (self%presetAngularMomenta  )            &
                         & nodes      (iNode)%angularMomentum   &
                         &      =nodes(iNode)%angularMomentum   &
                         &      /nodes(iNode)%nodeMass
-                   if (self%presetSpins3D)                     &
+                   if (self%presetAngularMomenta3D)            &
                         & nodes      (iNode)%angularMomentum3D &
                         &      =nodes(iNode)%angularMomentum3D &
                         &      /nodes(iNode)%nodeMass
@@ -1132,11 +1130,11 @@ contains
           if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodScale) then
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
-                   if (self%presetSpins)                       &
+                   if (self%presetAngularMomenta  )            &
                         & nodes      (iNode)%angularMomentum   &
                         &      =nodes(iNode)%angularMomentum   &
                         &      *nodes(iNode)%nodeMass
-                   if (self%presetSpins3D)                     &
+                   if (self%presetAngularMomenta3D)            &
                         & nodes      (iNode)%angularMomentum3D &
                         &      =nodes(iNode)%angularMomentum3D &
                         &      *nodes(iNode)%nodeMass
@@ -1146,9 +1144,9 @@ contains
           end if
           if     (                                                                              &
                &  (                                                                             &
-               &    self%presetSpins3D                                                          &
+               &    self%presetAngularMomenta3D                                                 &
                &   .or.                                                                         &
-               &    self%presetSpins                                                            &
+               &    self%presetAngularMomenta                                                   &
                &  )                                                                             &
                &  .and.                                                                         &
                &   .not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos()                &
@@ -1199,75 +1197,75 @@ contains
           ! Check that all required properties exist.
           if (self%presetPositions.or.self%presetOrbits) then
              ! Position and velocity methods are required.
-             if     (                                                                                                                                                &
-                  &  .not.(                                                                                                                                          &
-                  &         defaultPositionComponent%positionIsSettable()                                                                                            &
-                  &        .and.                                                                                                                                     &
-                  &         defaultPositionComponent%velocityIsSettable()                                                                                            &
-                  &       )                                                                                                                                          &
-                  & )                                                                                                                                                &
-                  & call Galacticus_Error_Report                                                                                                                     &
-                  &      (                                                                                                                                           &
-                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
-                  &       Galacticus_Component_List(                                                                                                                 &
-                  &                                 'position'                                                                                                     , &
-                  &                                  defaultPositionComponent        %     positionAttributeMatch(requireSettable=.true.)                            &
-                  &                                 .intersection.                                                                                                   &
-                  &                                  defaultPositionComponent        %     velocityAttributeMatch(requireSettable=.true.)                            &
-                  &                                )                                                                                                              // &
-                  &       char(10)                                                                                                                                // &
-                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
-                  &       {introspection:location}                                                                                                                   &
-                  & )
-          end if
-          if (self%presetMergerTimes) then
-             ! Time of merging property is required.
-             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ())                                                                                     &
-                  & call Galacticus_Error_Report                                                                                                                     &
-                  &      (                                                                                                                                           &
-                  &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
-                  &       Galacticus_Component_List(                                                                                                                 &
-                  &                                 'satellite'                                                                                                    , &
-                  &                                  defaultSatelliteComponent       %timeOfMergingAttributeMatch(requireSettable=.true.)                            &
-                  &                                 )                                                                                                             // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          if (self%presetScaleRadii) then
-             ! Scale radius property is required.
-             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ())                                                                                     &
-                  & call Galacticus_Error_Report                                                                                                                     &
-                  &      (                                                                                                                                           &
-                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
-                  &       Galacticus_Component_List(                                                                                                                 &
-                  &                                 'darkMatterProfile'                                                                                            , &
-                  &                                 defaultDarkMatterProfileComponent%        scaleAttributeMatch(requireSettable=.true.)                            &
-                  &                                )                                                                                                              // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          if (self%presetSpins      ) then
-             ! Spin property is required.
-             if (.not.defaultSpinComponent             %spinIsSettable       ())                                                                                          &
+             if     (                                                                                                                                                     &
+                  &  .not.(                                                                                                                                               &
+                  &         defaultPositionComponent%positionIsSettable()                                                                                                 &
+                  &        .and.                                                                                                                                          &
+                  &         defaultPositionComponent%velocityIsSettable()                                                                                                 &
+                  &       )                                                                                                                                               &
+                  & )                                                                                                                                                     &
                   & call Galacticus_Error_Report                                                                                                                          &
                   &      (                                                                                                                                                &
-                  &       'presetting spins requires a component that supports setting of spins.'                                                                      // &
+                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'     // &
                   &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'spin'                                                                                                              , &
-                  &                                 defaultSpinComponent             %         spinAttributeMatch(requireSettable=.true.)                                 &
+                  &                                 'position'                                                                                                          , &
+                  &                                  defaultPositionComponent        %             positionAttributeMatch(requireSettable=.true.)                         &
+                  &                                 .intersection.                                                                                                        &
+                  &                                  defaultPositionComponent        %             velocityAttributeMatch(requireSettable=.true.)                         &
+                  &                                )                                                                                                                   // &
+                  &       char(10)                                                                                                                                     // &
+                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'              // &
+                  &       {introspection:location}                                                                                                                        &
+                  & )
+          end if
+          if (self%presetMergerTimes     ) then
+             ! Time of merging property is required.
+             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable                ())                                                                                &
+                  & call Galacticus_Error_Report                                                                                                                          &
+                  &      (                                                                                                                                                &
+                  &       'presetting merging times requires a component that supports setting of merging times.'                                                      // &
+                  &       Galacticus_Component_List(                                                                                                                      &
+                  &                                 'satellite'                                                                                                         , &
+                  &                                  defaultSatelliteComponent       %        timeOfMergingAttributeMatch(requireSettable=.true.)                         &
+                  &                                 )                                                                                                                  // &
+                  &       {introspection:location}                                                                                                                        &
+                  &      )
+          end if
+          if (self%presetScaleRadii      ) then
+             ! Scale radius property is required.
+             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable                ())                                                                                &
+                  & call Galacticus_Error_Report                                                                                                                          &
+                  &      (                                                                                                                                                &
+                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                          // &
+                  &       Galacticus_Component_List(                                                                                                                      &
+                  &                                 'darkMatterProfile'                                                                                                 , &
+                  &                                 defaultDarkMatterProfileComponent%                scaleAttributeMatch(requireSettable=.true.)                         &
                   &                                )                                                                                                                   // &
                   &       {introspection:location}                                                                                                                        &
                   &      )
           end if
-          if (self%presetSpins3D    ) then
-             ! Spin property is required.
-             if (.not.defaultSpinComponent             %spinVectorIsSettable ())                                                                                          &
+          if (self%presetAngularMomenta  ) then
+             ! Angular momentum property is required.
+             if (.not.defaultSpinComponent             %angularMomentumIsSettable      ())                                                                                &
                   & call Galacticus_Error_Report                                                                                                                          &
                   &      (                                                                                                                                                &
-                  &       'presetting spin vectors requires a component that supports setting of spin vectors.'                                                        // &
+                  &       'presetting angular momenta requires a component that supports setting of angular momenta.'                                                  // &
+                  &       Galacticus_Component_List(                                                                                                                      &
+                  &                                 'spin'                                                                                                              , &
+                  &                                 defaultSpinComponent             %      angularMomentumAttributeMatch(requireSettable=.true.)                         &
+                  &                                )                                                                                                                   // &
+                  &       {introspection:location}                                                                                                                        &
+                  &      )
+          end if
+          if (self%presetAngularMomenta3D) then
+             ! Spin property is required.
+             if (.not.defaultSpinComponent             %angularMomentumVectorIsSettable())                                                                                &
+                  & call Galacticus_Error_Report                                                                                                                          &
+                  &      (                                                                                                                                                &
+                  &       'presetting angular momentum vectors requires a component that supports setting of angular momentum vectors.'                                // &
                   &       Galacticus_Component_List(                                                                                                                      &
                   &                                 'spinVector'                                                                                                        , &
-                  &                                 defaultSpinComponent             %     spinVectorAttributeMatch(requireSettable=.true.)                               &
+                  &                                 defaultSpinComponent             %angularMomentumVectorAttributeMatch(requireSettable=.true.)                         &
                   &                                )                                                                                                                   // &
                   &       {introspection:location}                                                                                                                        &
                   &      )
@@ -1280,7 +1278,7 @@ contains
                   &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                                 // &
                   &       Galacticus_Component_List(                                                                                                                      &
                   &                                 'satellite'                                                                                                         , &
-                  &                                 defaultSatelliteComponent        %  virialOrbitAttributeMatch(requireSettable=.true.)                                 &
+                  &                                 defaultSatelliteComponent        %          virialOrbitAttributeMatch(requireSettable=.true.)                         &
                   &                                )                                                                                                                   // &
                   &       char(10)                                                                                                                                     // &
                   &       'Alternatively, set [presetOrbits]=false to prevent attempts to set orbits)'                                                                 // &
@@ -1288,7 +1286,7 @@ contains
                   &      )
           end if
           ! Apply any tree initialization operators.
-          call self%nodeOperator_%nodeTreeInitialize(tree%baseNode)
+          call self%nodeOperator_%nodeTreeInitialize(tree%nodeBase)
           ! Assign named properties.
           if     (                                    &
                &   size(self%presetNamedReals   ) > 0 &
@@ -1299,11 +1297,11 @@ contains
           ! Assign scale radii.
           if     ( self%presetScaleRadii         ) call self%assignScaleRadii        (nodes,nodeList                    )
           ! Assign spin parameters.
-          if     (                    &
-               &   self%presetSpins   &
-               &  .or.                &
-               &   self%presetSpins3D &
-               & )                                 call self%assignSpinParameters    (nodes,nodeList                    )
+          if     (                             &
+               &   self%presetAngularMomenta   &
+               &  .or.                         &
+               &   self%presetAngularMomenta3D &
+               & )                                 call self%assignAngularMomenta    (nodes,nodeList                    )
           ! Assign isolated node indices to subhalos.
           call readAssignIsolatedNodeIndices                                         (nodes                             )
           ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
@@ -1802,8 +1800,8 @@ contains
                 nodeList(iIsolatedNode)%node%parent  => null()
                 ! Find a tree to attach this base node to. Begin with the original tree passed to us.
                 treeCurrent => tree
-                ! Check if its baseNode is already assigned.
-                do while (associated(treeCurrent%baseNode))
+                ! Check if its nodeBase is already assigned.
+                do while (associated(treeCurrent%nodeBase))
                    ! While it is, create the next tree (unless it already exists), then step to it.
                    if (.not.associated(treeCurrent%nextTree)) then
                       allocate(treeCurrent%nextTree)
@@ -1821,7 +1819,7 @@ contains
                 end do
                 ! Assign this node as the base node of the current tree.
                 treeCurrent   %firstTree        => tree
-                treeCurrent   %baseNode         => nodeList(iIsolatedNode)%node
+                treeCurrent   %nodeBase         => nodeList(iIsolatedNode)%node
                 if (self%treeIndexToRootNodeIndex) then
                    treeCurrent%index            =  nodes   (iNode        )%nodeIndex
                 else
@@ -2029,12 +2027,12 @@ contains
                   &  .and.                                                                   &
                   &     nodes(iNode)%scaleRadius                                             &
                   &   <                                                                      &
-                  &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
+                  &     self%darkMatterHaloScale_%radiusVirial(nodeList(iIsolatedNode)%node) &
                   &    /self%presetScaleRadiiConcentrationMinimum                            &
                   &  .and.                                                                   &
                   &     nodes(iNode)%scaleRadius                                             &
                   &   >                                                                      &
-                  &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
+                  &     self%darkMatterHaloScale_%radiusVirial(nodeList(iIsolatedNode)%node) &
                   &    /self%presetScaleRadiiConcentrationMaximum                            &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
@@ -2051,9 +2049,9 @@ contains
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
                      &                      rangeExpandUpward            =2.0d0                                              , &
-                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%radiusVirial(readNode)    &
                      &                                                    /self%presetScaleRadiiConcentrationMaximum         , &
-                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%radiusVirial(readNode)    &
                      &                                                    /self%presetScaleRadiiConcentrationMinimum         , &
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
@@ -2063,9 +2061,9 @@ contains
                 if (status == errorStatusSuccess) then
                    call darkMatterProfile%scaleSet(radiusScale)
                    ! Check for scale radii exceeding the virial radius.
-                   if (radiusScale        > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveScaleRadii   =.true.
+                   if (radiusScale        > self%darkMatterHaloScale_%radiusVirial(readNode)) excessiveScaleRadii   =.true.
                    ! Check for half-mass radii exceeding the virial radius.
-                   if (readRadiusHalfMass > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveHalfMassRadii=.true.
+                   if (readRadiusHalfMass > self%darkMatterHaloScale_%radiusVirial(readNode)) excessiveHalfMassRadii=.true.
                    useFallbackScaleMethod=.false.
                 else
                    if (self%scaleRadiiFailureIsFatal) then
@@ -2080,7 +2078,7 @@ contains
                     write (label,'(i16)') readNode%index()
                    message="      node index: "//trim(label)
                    call displayMessage(message,messageVerbosity)
-                   write (label,'(e12.6)') self%darkMatterHaloScale_%virialRadius(readNode)
+                   write (label,'(e12.6)') self%darkMatterHaloScale_%radiusVirial(readNode)
                    message="   virial radius: "//trim(label)
                    call displayMessage(message,messageVerbosity)
                    write (label,'(e12.6)') readRadiusHalfMass
@@ -2102,9 +2100,9 @@ contains
              radiusScale=max(                                                                                                         &
                   &          min(                                                                                                     &
                   &              self%darkMatterProfileScaleRadius_%radius      (readNode)                                          , &
-                  &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum  &
+                  &              self%darkMatterHaloScale_         %radiusVirial(readNode)/self%presetScaleRadiiConcentrationMinimum  &
                   &             )                                                                                                   , &
-                  &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum  &
+                  &              self%darkMatterHaloScale_         %radiusVirial(readNode)/self%presetScaleRadiiConcentrationMaximum  &
                   &         )
              call darkMatterProfile%scaleSet(radiusScale)
           end if
@@ -2123,9 +2121,9 @@ contains
     return
   end subroutine readAssignScaleRadii
 
-  subroutine readAssignSpinParameters(self,nodes,nodeList)
+  subroutine readAssignAngularMomenta(self,nodes,nodeList)
     !!{
-    Assign spin parameters to nodes.
+    Assign angular momenta to nodes.
     !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentSpin, treeNodeList
@@ -2135,11 +2133,11 @@ contains
     class           (nodeData                 )         , dimension(:), intent(inout) :: nodes
     type            (treeNodeList             )         , dimension(:), intent(inout) :: nodeList
     class           (nodeComponentBasic       ), pointer                              :: basic
-    class           (nodeComponentSpin        ), pointer                              :: spin_
+    class           (nodeComponentSpin        ), pointer                              :: spin
     integer                                                                           :: iNode
     integer         (c_size_t                 )                                       :: iIsolatedNode
-    double precision                                                                  :: spin
-    double precision                                    , dimension(3)                :: spin3D
+    double precision                                                                  :: angularMomentum
+    double precision                                    , dimension(3)                :: angularMomentum3D
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -2147,31 +2145,31 @@ contains
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Get basic and spin components.
           basic => nodeList(iIsolatedNode)%node%basic(                 )
-          spin_  => nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
-          if (self%presetSpins  ) then
-             if      (self%mergerTreeImporter_%          spinAvailable()) then
-                ! If spins are available directly, use them.
-                call spin_%spinSet(nodes(iNode)%spin)
-             else if (self%mergerTreeImporter_%angularMomentaAvailable()) then
-                spin  = spinNormalization()          &
-                     & *nodes(iNode)%angularMomentum
-                call spin_%spinSet(spin)
+          spin  => nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
+          if (self%presetAngularMomenta  ) then
+             if      (self%mergerTreeImporter_%angularMomentaAvailable()) then
+                ! If angular momenta are available directly, use them.
+                call spin%angularMomentumSet(nodes(iNode)%angularMomentum)
+             else if (self%mergerTreeImporter_%          spinAvailable()) then
+                angularMomentum=+nodes(iNode)%spin   &
+                     &          *spinNormalization()
+                call spin%angularMomentumSet(angularMomentum)
              else
-                call Galacticus_Error_Report('no method exists to set spins'//{introspection:location})
+                call Galacticus_Error_Report('no method exists to set angular momenta'//{introspection:location})
              end if
-             if (self%presetUnphysicalSpins.and.spin_%spin() <= 0.0d0) &
-                  & call spin_%spinSet(self%haloSpinDistribution_%sample(nodeList(iIsolatedNode)%node))
+             if (self%presetUnphysicalAngularMomenta.and.spin%angularMomentum() <= 0.0d0) &
+                  & call spin%angularMomentumSet(self%haloSpinDistribution_%sample(nodeList(iIsolatedNode)%node)*spinNormalization())
           end if
-          if (self%presetSpins3D) then
-             if      (self%mergerTreeImporter_%          spin3DAvailable()) then
-                ! If spins are available directly, use them.
-                call spin_%spinVectorSet(nodes(iNode)%spin3D)
-             else if (self%mergerTreeImporter_%angularMomenta3DAvailable()) then
-                spin3D= spinNormalization()            &
-                     & *nodes(iNode)%angularMomentum3D
-                call spin_%spinVectorSet(spin3D)
+          if (self%presetAngularMomenta3D) then
+             if      (self%mergerTreeImporter_%angularMomenta3DAvailable()) then
+                ! If angular momenta are available directly, use them.
+                call spin%angularMomentumVectorSet(nodes(iNode)%angularMomentum3D)
+             else if (self%mergerTreeImporter_%          spin3DAvailable()) then
+                angularMomentum3D=+nodes(iNode)%spin3D   &
+                     &            *spinNormalization()
+                call spin%angularMomentumVectorSet(angularMomentum3D)
              else
-                call Galacticus_Error_Report('no method exists to set vector spins'//{introspection:location})
+                call Galacticus_Error_Report('no method exists to set vector angular momenta'//{introspection:location})
              end if
           end if
        end if
@@ -2182,30 +2180,29 @@ contains
 
     double precision function spinNormalization()
       !!{
-      Normalization for conversion of angular momentum to spin.
+      Normalization for conversion of spin to angular momentum.
       !!}
       use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       implicit none
-      spinNormalization= sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node))) &
-           &            /gravitationalConstantGalacticus                                            &
-           &            /basic%mass()**2.5d0
+      spinNormalization=+gravitationalConstantGalacticus                                            &
+           &            *basic%mass()**2.5d0                                                        &
+           &            /sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node)))
       return
     end function spinNormalization
 
-  end subroutine readAssignSpinParameters
+  end subroutine readAssignAngularMomenta
 
   subroutine readAssignNamedProperties(self,nodes,nodeList)
     !!{
     Assign named properties to nodes.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentNBody     , nodeComponentNBodyGeneric, treeNodeList
+    use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead)                       , intent(inout) :: self
     class  (nodeData                 )         , dimension(:), intent(inout) :: nodes
     type   (treeNodeList             )         , dimension(:), intent(inout) :: nodeList
-    class  (nodeComponentNBody       ), pointer                              :: nBody
+    class  (nodeComponentBasic       ), pointer                              :: basic
     integer                                                                  :: iNode        , i
     integer(c_size_t                 )                                       :: iIsolatedNode
 
@@ -2213,25 +2210,19 @@ contains
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
-          ! Get N-body component.
-          nBody => nodeList(iIsolatedNode)%node%nBody(autoCreate=.true.)
           ! Assign the named properties.
-          select type (nBody)
-          class is (nodeComponentNBodyGeneric)
-             if (size(self%presetNamedReals   ) > 0) then
-                do i=1,size(self%presetNamedReals   )
-                   call nBody%setRealProperty   (self%indexNamedReals   (i),nodes(iNode)%reals   (i))
-                end do
-             end if
-             if (size(self%presetNamedIntegers) > 0) then
-                do i=1,size(self%presetNamedIntegers)
-                   call nBody%setIntegerProperty(self%indexNamedIntegers(i),nodes(iNode)%integers(i))
-                end do
-             end if
-          class default
-             call Galacticus_Error_Report('presetting of named datasets is supported only with the "generic" N-body component'//{introspection:location})
-          end select
-       end if
+          basic => nodeList(iIsolatedNode)%node%basic()
+          if (size(self%presetNamedReals   ) > 0) then
+             do i=1,size(self%presetNamedReals   )
+                call basic%floatRank0MetaPropertySet      (self%indexNamedReals   (i),nodes(iNode)%reals   (i))
+             end do
+          end if
+          if (size(self%presetNamedIntegers) > 0) then
+             do i=1,size(self%presetNamedIntegers)
+                call basic%longIntegerRank0MetaPropertySet(self%indexNamedIntegers(i),nodes(iNode)%integers(i))
+             end do
+          end if
+        end if
     end do
     return
   end subroutine readAssignNamedProperties
@@ -2574,7 +2565,7 @@ contains
                    ! Propagate to the virial radius.
                    radiusPericenter=orbit               %radiusPericenter(              )
                    radiusApocenter =orbit               %radiusApocenter (              )
-                   radiusVirial    =self%darkMatterHaloScale_%virialRadius    (orbitalPartner)
+                   radiusVirial    =self%darkMatterHaloScale_%radiusVirial    (orbitalPartner)
                    ! Check if the orbit intersects the virial radius.
                    if     (                                                                      &
                         &    radiusVirial >= radiusPericenter                                    &
@@ -4119,16 +4110,16 @@ contains
     use :: String_Handling , only : operator(//)
     implicit none
     class           (*                       ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), target  :: nodeSatellite               , nodeHost
+    type            (treeNode                ), intent(inout), target  :: nodeSatellite              , nodeHost
     type            (treeNode                )               , pointer :: nodeTarget
     class           (nodeComponentSatellite  )               , pointer :: satelliteSatellite
-    class           (nodeComponentBasic      )               , pointer :: basicSatellite              , basicHost       , &
+    class           (nodeComponentBasic      )               , pointer :: basicSatellite             , basicHost       , &
          &                                                                basicTarget
     class           (nodeComponentPosition   )               , pointer :: positionSatellite           , positionHost
-    logical                                   , parameter              :: acceptUnboundOrbits =.false.
-    double precision                          , dimension(3)           :: relativePosition            , relativeVelocity
-    double precision                                                   :: timeUntilMerging            , radiusPericenter, &
-         &                                                                radiusApocenter             , radiusVirial
+    logical                                   , parameter              :: acceptUnboundOrbits=.false.
+    double precision                          , dimension(3)           :: relativePosition           , relativeVelocity
+    double precision                                                   :: timeUntilMerging           , radiusPericenter, &
+         &                                                                radiusApocenter            , radiusVirial
     type            (keplerOrbit             )                         :: orbit
     type            (varying_string          )                         :: message
 
@@ -4161,7 +4152,7 @@ contains
              ! Propagate orbit to the virial radius.
              radiusPericenter     =  orbit               %radiusPericenter   (        )
              radiusApocenter      =  orbit               %radiusApocenter    (        )
-             radiusVirial         =  self%darkMatterHaloScale_%virialRadius       (nodeHost)
+             radiusVirial         =  self%darkMatterHaloScale_%radiusVirial       (nodeHost)
              ! Check if the orbit intersects the virial radius.
              if     (                                                                      &
                   &    radiusVirial >= radiusPericenter                                    &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,19 +22,20 @@
   algorithm.
   !!}
 
-  use :: Cosmology_Functions     , only : cosmologyFunctions  , cosmologyFunctionsClass
-  use :: Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
   use :: Root_Finder             , only : rootFinder
 
   !![
   <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016">
    <description>
-  Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016}. While
-  \cite{ludlow_mass-concentration-redshift_2016} used $\Delta = 200 \rho_\mathrm{crit}$ to define halos, their model actually
-  predicts the scale radius, $r_{-2}$, rather than the concentration. Therefore, here we report that the
-  \cite{ludlow_mass-concentration-redshift_2016} concentrations are defined using the model's own virial density contrast
-  definition --- this ensures that the predicted scale radii are applied directly to model halos.
+    Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016}. While
+    \cite{ludlow_mass-concentration-redshift_2016} used $\Delta = 200 \rho_\mathrm{crit}$ to define halos, their model actually
+    predicts the scale radius, $r_{-2}$, rather than the concentration. Therefore, here we report that the
+    \cite{ludlow_mass-concentration-redshift_2016} concentrations are defined using the model's own virial density contrast
+    definition --- this ensures that the predicted scale radii are applied directly to model halos.
    </description>
   </darkMatterProfileScaleRadius>
   !!]
@@ -48,6 +49,7 @@
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
+     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null()
      double precision                                             :: C                                      , f              , &
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
@@ -101,6 +103,7 @@ contains
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass            ), pointer       :: virialDensityContrast_
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
@@ -128,19 +131,21 @@ contains
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
     !!]
-    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
+    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="cosmologyParameters_"         />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
     <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="virialDensityContrast_"       />
     !!]
     return
   end function ludlow2016ConstructorParameters
 
-  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
+  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     !!}
@@ -153,8 +158,9 @@ contains
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass            ), intent(in   ), target :: virialDensityContrast_
     !![
-    <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
     ! Find the density contrast as used to define masses by Ludlow et al. (2016).
@@ -174,6 +180,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"         />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%virialDensityContrast_"       />
     !!]
     return
   end subroutine ludlow2016Destructor
@@ -267,8 +274,15 @@ contains
           end if
           massHaloCharacteristic                                           =  +self%darkMatterProfileDMO_%enclosedMass          (node,darkMatterProfile_%scale())
           ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic    =   massHaloCharacteristic
-          ludlow2016States(ludlow2016StateCount)%massLimit                 =  +self%f                                                                                                                   &
-               &                                                              *Dark_Matter_Profile_Mass_Definition(node,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basic%time()))
+          ludlow2016States(ludlow2016StateCount)%massLimit                 =  +self%f                                                                                                                                     &
+               &                                                              *Dark_Matter_Profile_Mass_Definition(                                                                                                       &
+               &                                                                                                                          node                                                                          , &
+               &                                                                                                                          ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basic%time()), &
+               &                                                                                                   cosmologyParameters_  =self%cosmologyParameters_                                                     , &
+               &                                                                                                   cosmologyFunctions_   =self%cosmologyFunctions_                                                      , &
+               &                                                                                                   darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                    , &
+               &                                                                                                   virialDensityContrast_=self%virialDensityContrast_                                                     &
+               &                                                                                                  )
           ! Find the earliest time in the branch. Also estimate the earliest and latest times between which the formation time will lie.
           if (iterationCount == 1) then
              timeBranchEarliest   =huge(0.0d0)
@@ -430,24 +444,45 @@ contains
              basicChild => nodeChild%basic()
              if (basicChild%time() < timeFormation) then
                 ! Find the mass of the primary progenitor.
-                massProgenitor=Dark_Matter_Profile_Mass_Definition(nodeChild,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicChild%time()))
+                massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                            &
+                     &                                                                    nodeChild                                                                          , &
+                     &                                                                    ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicChild%time()), &
+                     &                                             cosmologyParameters_  =ludlow2016States(ludlow2016StateCount)%self%cosmologyParameters_                   , &
+                     &                                             cosmologyFunctions_   =ludlow2016States(ludlow2016StateCount)%self%cosmologyFunctions_                    , &
+                     &                                             darkMatterProfileDMO_ =ludlow2016States(ludlow2016StateCount)%self%darkMatterProfileDMO_                  , &
+                     &                                             virialDensityContrast_=ludlow2016States(ludlow2016StateCount)%self%virialDensityContrast_                   &
+                     &                                            )
                 if (nodeChild%isPrimaryProgenitor()) then
                    ! Interpolate in mass for primary progenitors.
                    massSiblings =  massProgenitor
                    nodeSibling  => nodeChild%sibling
                    do while (associated(nodeSibling))
                       basicSibling =>   nodeSibling %basic  ()
-                      massSiblings =   +massSiblings                                                                                                                           &
-                           &           +Dark_Matter_Profile_Mass_Definition(nodeSibling,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicSibling%time()))
+                      massSiblings =   +massSiblings                                                                                                                                      &
+                           &           +Dark_Matter_Profile_Mass_Definition(                                                                                                              &
+                           &                                                                       nodeSibling                                                                          , &
+                           &                                                                       ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicSibling%time()), &
+                           &                                                cosmologyParameters_  =ludlow2016States(ludlow2016StateCount)%self%cosmologyParameters_                     , &
+                           &                                                cosmologyFunctions_   =ludlow2016States(ludlow2016StateCount)%self%cosmologyFunctions_                      , &
+                           &                                                darkMatterProfileDMO_ =ludlow2016States(ludlow2016StateCount)%self%darkMatterProfileDMO_                    , &
+                           &                                                virialDensityContrast_=ludlow2016States(ludlow2016StateCount)%self%virialDensityContrast_                     &
+                           &                                               )
                       nodeSibling  =>   nodeSibling %sibling
                    end do
-                   massAccretionRate=+(                                                                                                                                        &
-                        &              +Dark_Matter_Profile_Mass_Definition(nodeBranch ,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicBranch %time())) &
-                        &              -massSiblings                                                                                                                           &
-                        &             )                                                                                                                                        &
-                        &            /(                                                                                                                                        &
-                        &              +basicBranch%time()                                                                                                                     &
-                        &              -basicChild %time()                                                                                                                     &
+                   massAccretionRate=+(                                                                                                                                                   &
+                        &              +Dark_Matter_Profile_Mass_Definition(                                                                                                              &
+                        &                                                                          nodeBranch                                                                           , &
+                        &                                                                          ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicBranch %time()), &
+                        &                                                   cosmologyParameters_  =ludlow2016States(ludlow2016StateCount)%self%cosmologyParameters_                     , &
+                        &                                                   cosmologyFunctions_   =ludlow2016States(ludlow2016StateCount)%self%cosmologyFunctions_                      , &
+                        &                                                   darkMatterProfileDMO_ =ludlow2016States(ludlow2016StateCount)%self%darkMatterProfileDMO_                    , &
+                        &                                                   virialDensityContrast_=ludlow2016States(ludlow2016StateCount)%self%virialDensityContrast_                     &
+                        &                                                  )                                                                                                              &
+                        &              -massSiblings                                                                                                                                      &
+                        &             )                                                                                                                                                   &
+                        &            /(                                                                                                                                                   &
+                        &              +basicBranch%time()                                                                                                                                &
+                        &              -basicChild %time()                                                                                                                                &
                         &             )
                    massProgenitor   =+massProgenitor               &
                         &            +massAccretionRate            &
@@ -468,7 +503,14 @@ contains
              nodeChild => nodeChild%sibling
           end do
        else if (.not.associated(nodeBranch%firstChild).and.basicBranch%time() == timeFormation) then
-          massProgenitor=Dark_Matter_Profile_Mass_Definition(nodeBranch,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicBranch%time()))
+          massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                            &
+               &                                                                   nodeBranch                                                                          , &
+               &                                                                   ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basicBranch%time()), &
+               &                                             cosmologyParameters_  =ludlow2016States(ludlow2016StateCount)%self%cosmologyParameters_                   , &
+               &                                             cosmologyFunctions_   =ludlow2016States(ludlow2016StateCount)%self%cosmologyFunctions_                    , &
+               &                                             darkMatterProfileDMO_ =ludlow2016States(ludlow2016StateCount)%self%darkMatterProfileDMO_                  , &
+               &                                             virialDensityContrast_=ludlow2016States(ludlow2016StateCount)%self%virialDensityContrast_                   &
+               &)                                           
           if (massProgenitor >= ludlow2016States(ludlow2016StateCount)%massLimit) &
                & massBranch=+massBranch                                           &
                &            +massProgenitor

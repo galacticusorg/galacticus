@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,7 +145,7 @@ contains
     ! If sizes are to be scaled by mass, find the range of masses in the tree. If edges are set to time intervals, find minimum
     ! and maximum times in tree.
     if (scaleNodesByLogMassActual.or.edgeLengthsToTimesActual) then
-       basic           =>                          tree%baseNode%basic()
+       basic           =>                          tree%nodeBase%basic()
        nodeMassMinimum =                           basic        %mass ()
        nodeMassMaximum =                           basic        %mass ()
        timeMinimum     =                           basic        %time ()

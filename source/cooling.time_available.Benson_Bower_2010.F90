@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,7 @@
   
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
+  use :: Galactic_Structure           , only : galacticStructureClass
   use :: Cooling_Functions            , only : coolingFunctionClass
   use :: Cosmology_Functions          , only : cosmologyFunctionsClass
   use :: Chemical_States              , only : chemicalStateClass
@@ -49,6 +50,7 @@
      class  (coolingFunctionClass                   ), pointer :: coolingFunction_           => null()
      class  (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
      class  (chemicalStateClass                     ), pointer :: chemicalState_             => null()
+     class  (galacticStructureClass                 ), pointer :: galacticStructure_         => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
      integer                                                   :: energyRadiatedID
 
@@ -80,44 +82,47 @@ contains
     class(cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class(coolingFunctionClass               ), pointer       :: coolingFunction_
     class(chemicalStateClass                 ), pointer       :: chemicalState_
+    class(galacticStructureClass             ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
     <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
     <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
     <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
+    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-    self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_)
+    self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloTemperatureProfile_"/>
     <objectDestructor name="coolingFunction_"          />
     <objectDestructor name="cosmologyFunctions_"       />
     <objectDestructor name="chemicalState_"            />
+    <objectDestructor name="galacticStructure_"        />
     !!]
     return
   end function bensonBower2010ConstructorParameters
 
-  function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_) result(self)
+  function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_) result(self)
     !!{
     Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (coolingTimeAvailableBensonBower2010)                        :: self
     class(cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class(coolingFunctionClass               ), intent(in   ), target :: coolingFunction_
     class(hotHaloTemperatureProfileClass     ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(chemicalStateClass                 ), intent(in   ), target :: chemicalState_
+    class(galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
     !!]
 
     allocate(self%radiation)
     !![
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    <addMetaProperty component="hotHalo" name="energyRadiatedBensonBower2010" isEvolvable="yes" id="self%energyRadiatedID"/>
     !!]
-    self%energyRadiatedID=defaultHotHaloComponent%addMetaProperty(var_str('energyRadiatedBensonBower2010'),'hotHalo:energyRadiated',isEvolvable=.true.)  
     return
   end function bensonBower2010ConstructorInternal
 
@@ -134,6 +139,7 @@ contains
     <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     <objectDestructor name="self%chemicalState_"            />
     <objectDestructor name="self%radiation"                 />
+    <objectDestructor name="self%galacticStructure_"        />
     !!]
     return
   end subroutine bensonBower2010Destructor
@@ -142,18 +148,17 @@ contains
     !!{
     Returns the time available for cooling (in units of Gyr).
     !!}
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic                  , nodeComponentHotHalo
-    use :: Abundances_Structure              , only : abundances
-    use :: Chemical_Abundances_Structure     , only : chemicalAbundances                  , Chemicals_Property_Count
-    use :: Chemical_Reaction_Rates_Utilities , only : Chemicals_Mass_To_Density_Conversion
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : radiusLarge                         , massTypeGalactic
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                            , massSolar               , megaParsec
-    use :: Numerical_Constants_Atomic        , only : massHydrogenAtom
-    use :: Numerical_Constants_Physical      , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes      , only : hecto                               , centi
-    use :: Numerical_Constants_Units         , only : ergs
-    use :: Numerical_Constants_Math          , only : Pi
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
+    use :: Abundances_Structure             , only : abundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galactic_Structure_Options       , only : radiusLarge                         , massTypeGalactic
+    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar               , megaParsec
+    use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
+    use :: Numerical_Constants_Physical     , only : boltzmannsConstant
+    use :: Numerical_Constants_Prefixes     , only : hecto                               , centi
+    use :: Numerical_Constants_Units        , only : ergs
+    use :: Numerical_Constants_Math         , only : Pi
     implicit none
     class           (coolingTimeAvailableBensonBower2010), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -166,11 +171,11 @@ contains
     type            (abundances                         )                :: abundances_
     type            (chemicalAbundances                 )                :: chemicalDensities_     , chemicalMasses_
 
-    basic        =>  node   %basic        ()
-    hotHalo      =>  node   %hotHalo      ()
-    massNotional =  +hotHalo%mass         ()                                                      &
-         &          +hotHalo%outflowedMass()                                                      &
-         &          +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGalactic)
+    basic        =>  node                      %basic        (                                          )
+    hotHalo      =>  node                      %hotHalo      (                                          )
+    massNotional =  +hotHalo                   %mass         (                                          ) &
+         &          +hotHalo                   %outflowedMass(                                          ) &
+         &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
     if (massNotional <= 0.0d0) then
        bensonBower2010TimeAvailable=0.0d0
        return
@@ -229,11 +234,11 @@ contains
        ! Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and nₕ is the
        ! number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
        ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-       bensonBower2010TimeAvailable=+hotHalo%metaPropertyGet(self%energyRadiatedID) &
-            &                       /coolingFunction                                &
-            &                       *numberDensityHydrogen                          &
+       bensonBower2010TimeAvailable=+hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID) &
+            &                       /coolingFunction                                          &
+            &                       *numberDensityHydrogen                                    &
             &                       /countParticles
-    else if (hotHalo%metaPropertyGet(self%energyRadiatedID) == 0.0d0) then
+    else if (hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID) == 0.0d0) then
        bensonBower2010TimeAvailable=+0.0d0
     else
        bensonBower2010TimeAvailable=+huge(0.0d0)

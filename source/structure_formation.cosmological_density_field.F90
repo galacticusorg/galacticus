@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,16 +47,16 @@ module Cosmological_Density_Field
    <data>double precision                                         :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
    <data>logical                                                  :: collapseThresholdInitialized=.false.                                                 </data>
    <data>type            (treeNode                     ), pointer :: node                                                                                 </data>
-   <data>logical                                                  :: massPresent                              , nodePresent                               </data>
-   <data>logical                                                  :: dependenciesInitialized   =  .false.     , isMassDependent_                          </data>
+   <data>logical                                                  :: massPresent                                , nodePresent                             </data>
+   <data>logical                                                  :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
    <data>logical                                                  :: isNodeDependent_                                                                     </data>
-   <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                                                  </data>
-   <data>class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()                                                  </data>
-   <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                                                  </data>
+   <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_         => null()                                                </data>
+   <data>class           (linearGrowthClass            ), pointer :: linearGrowth_               => null()                                                </data>
+   <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_   => null()                                                </data>
    <data>
     <scope>module</scope>
     <threadprivate>yes</threadprivate>
-    <content>class(criticalOverdensityClass), pointer :: globalSelf</content>
+    <content>class(criticalOverdensityClass), pointer :: globalSelf => null()</content>
    </data>
    <method name="value" >
     <description>Return the critical overdensity at the given time and mass.</description>
@@ -240,6 +240,24 @@ module Cosmological_Density_Field
     <argument>type            (treeNode), intent(inout) :: node</argument>
     <argument>double precision          , intent(in   ) :: overdensity</argument>
     <pass>yes</pass>
+   </method>
+   <method name="overdensityIsSettable" >
+    <description>Return true if the overdensity is settable.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentOverdensityIsSettable=.true.
+    </code>
+   </method>
+   <method name="volumeFractionOccupied" >
+    <description>Return the fraction of the volume occupied by the regions described by this environment.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentVolumeFractionOccupied=1.0d0
+    </code>
    </method>
   </functionClass>
   !!]

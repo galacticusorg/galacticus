@@ -10,6 +10,9 @@ export SUFFIX ?=
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
 export BUILDPATH ?= ./work/buildMPI
 export SUFFIX ?=
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+export BUILDPATH ?= ./work/buildLib
+export SUFFIX ?=_lib
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
 export BUILDPATH ?= ./work/buildGProf
 export SUFFIX ?= _gprof
@@ -56,7 +59,7 @@ CONDORLINKER =
 #CONDORLINKER = condor_compile
 
 # Fortran compiler flags:
-FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
+FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -pthread
 # Fortran77 compiler flags:
 F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
@@ -76,6 +79,15 @@ export CFLAGS
 
 # C++ compiler flags:
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}
+
+# Detect library compile.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+FCFLAGS       += -fPIC
+FCFLAGS_NOOPT += -fPIC
+F77FLAGS      += -fPIC
+CFLAGS        += -fPIC
+CPPFLAGS      += -fPIC
+endif
 
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
@@ -233,6 +245,19 @@ $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
 	else \
 	 echo "FCFLAGS  += -DANNUNAVAIL" >  $(BUILDPATH)/Makefile_Config_ANN ; \
 	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
+	fi
+
+# Configuration for availability of qhull.
+-include $(BUILDPATH)/Makefile_Config_QHull
+$(BUILDPATH)/Makefile_Config_QHull: source/qhull_config.cpp
+	@mkdir -p $(BUILDPATH)
+	$(CPPCOMPILER) -c source/qhull_config.cpp -o $(BUILDPATH)/qhull_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DQHULLAVAIL"   >  $(BUILDPATH)/Makefile_Config_QHull ; \
+	 echo "CPPFLAGS += -DQHULLAVAIL"   >> $(BUILDPATH)/Makefile_Config_QHull ; \
+	else \
+	 echo "FCFLAGS  += -DQHULLUNAVAIL" >  $(BUILDPATH)/Makefile_Config_QHull ; \
+	 echo "CPPFLAGS += -DQHULLUNAVAIL" >> $(BUILDPATH)/Makefile_Config_QHull ; \
 	fi
 
 # Configuration for availability of libmatheval.
@@ -427,6 +452,23 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
 
+# Library.
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
+	./scripts/build/libraryInterfaces.pl
+$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
+$(BUILDPATH)/libgalacticus.p.Inc : | $(BUILDPATH)/libgalacticus.p.Inc.up
+	@true
+$(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
+	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
+	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
+libgalacticus.so: $(BUILDPATH)/libgalacticus.o
+	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
+	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
+	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o
+	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
+	$(FCCOMPILER) -shared `cat $(BUILDPATH)/libgalacticus.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.pl libgalacticus.o $(FCFLAGS)`
+
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
 
@@ -486,7 +528,7 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle
 $(BUILDPATH)/galacticus.git.patch:
-	git diff > $(BUILDPATH)/galacticus.git.patch || echo unknown > $(BUILDPATH)/galacticus.git.patch
+	git diff > $(BUILDPATH)/galacticus.git.patch 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.patch
 $(BUILDPATH)/galacticus.git.bundle:
 	git bundle create $(BUILDPATH)/galacticus.git.bundle HEAD ^origin > /dev/null 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.bundle
 

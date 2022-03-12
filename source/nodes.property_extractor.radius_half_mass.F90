@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,7 @@
 Contains a module which implements a half-stellar mass radius output analysis property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorHalfMassRadius">
@@ -32,7 +33,9 @@ Contains a module which implements a half-stellar mass radius output analysis pr
      A half-(stellar) mass property extractor output analysis class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                halfMassRadiusDestructor
      procedure :: extract     => halfMassRadiusExtract
      procedure :: type        => halfMassRadiusType
      procedure :: name        => halfMassRadiusName
@@ -45,6 +48,7 @@ Contains a module which implements a half-stellar mass radius output analysis pr
      Constructors for the ``halfMassRadius'' output analysis class.
      !!}
      module procedure halfMassRadiusConstructorParameters
+     module procedure halfMassRadiusConstructorInternal
   end interface nodePropertyExtractorHalfMassRadius
 
 contains
@@ -55,28 +59,60 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorHalfMassRadius)                :: self
-    type(inputParameters                    ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (nodePropertyExtractorHalfMassRadius)                :: self
+    type (inputParameters                    ), intent(inout) :: parameters
+    class(galacticStructureClass             ), pointer       :: galacticStructure_
 
-    ! Build the object.
-    self=nodePropertyExtractorHalfMassRadius()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorHalfMassRadius(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function halfMassRadiusConstructorParameters
+
+  function halfMassRadiusConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the ``halfMassRadius'' output analysis property extractor class.
+    !!}
+    implicit none
+    type (nodePropertyExtractorHalfMassRadius)                        :: self
+    class(galacticStructureClass             ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function halfMassRadiusConstructorInternal
+  
+  subroutine halfMassRadiusDestructor(self)
+    !!{
+    Destructor for the ``halfMassRadius'' output analysis property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine halfMassRadiusDestructor
 
   double precision function halfMassRadiusExtract(self,node,instance)
     !!{
     Implement a half-mass output analysis.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : massTypeStellar
+    use :: Galactic_Structure_Options, only : massTypeStellar
     implicit none
     class(nodePropertyExtractorHalfMassRadius), intent(inout)           :: self
     type (treeNode                           ), intent(inout), target   :: node
     type (multiCounter                       ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance
 
-    halfMassRadiusExtract=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0,massType=massTypeStellar)
+    halfMassRadiusExtract=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0,massType=massTypeStellar)
     return
   end function halfMassRadiusExtract
 

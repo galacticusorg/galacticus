@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -180,7 +180,7 @@ contains
     !![
     <objectDestructor name="self%coolingFunction_"/>
     !!]
-    call calculationResetEvent%detach(self,coldModeCalculationReset)
+    if (calculationResetEvent%isAttached(self,coldModeCalculationReset)) call calculationResetEvent%detach(self,coldModeCalculationReset)
     return
   end subroutine coldModeDestructor
 
@@ -359,10 +359,10 @@ contains
     ! Get the basic component.
     basic                => node%basic()
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperatureHot            =  self%darkMatterHaloScale_     %virialTemperature(node        )
+    temperatureHot            =  self%darkMatterHaloScale_     %temperatureVirial(node        )
     temperature               =  self%intergalacticMediumState_%temperature      (basic%time())
     numberDensityHydrogen     =  hydrogenByMassPrimordial*(self%cosmologyParameters_%omegaBaryon()/self%cosmologyParameters_%omegaMatter())*basic%mass()*massToDensityConversion&
          &/atomicMassHydrogen
@@ -432,8 +432,8 @@ contains
           ! Set the radiation field.
           call self%radiation%timeSet(basic%time())
           ! Compute factors required for stability analysis.
-          radiusShock          =self%darkMatterHaloScale_%virialRadius  (node)
-          velocityPreShock     =self%darkMatterHaloScale_%virialVelocity(node)
+          radiusShock          =self%darkMatterHaloScale_%radiusVirial  (node)
+          velocityPreShock     =self%darkMatterHaloScale_%velocityVirial(node)
           temperaturePostShock =                                            &
                &                 (3.0d0/16.0d0)                             &
                &                *atomicMassUnit                             &

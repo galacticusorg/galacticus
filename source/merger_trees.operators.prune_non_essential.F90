@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -163,7 +163,7 @@ contains
        else
           ! Entire tree can be pruned. Destroy all but this base node. (Leaving just
           ! the base node makes the tree inert - i.e. it can not do anything.)
-          node => treeCurrent%baseNode%firstChild
+          node => treeCurrent%nodeBase%firstChild
           do while (associated(node))
              nodePrevious => node%sibling
              call Merger_Tree_Prune_Clean_Branch(node)

@@ -12,15 +12,14 @@
   <evolveForestsWorkShare value="cyclic"/>
   
   <!-- Component selection -->
-  <componentBasic              value="standard"     />
-  <componentBlackHole          value="null"         />
-  <componentDarkMatterProfile  value="virialTheorem"/>
-  <componentDisk               value="null"         />
-  <componentHotHalo            value="null"         />
-  <componentSatellite          value="standard"     />
-  <componentSpheroid           value="null"         />
-  <componentMergingStatistics  value="standard"     />
-  <componentSpin               value="vitvitska"    />
+  <componentBasic              value="standard"/>
+  <componentBlackHole          value="null"    />
+  <componentDarkMatterProfile  value="scale"   />
+  <componentDisk               value="null"    />
+  <componentHotHalo            value="null"    />
+  <componentSatellite          value="standard"/>
+  <componentSpheroid           value="null"    />
+  <componentSpin               value="vector"  />
 
   <!-- Cosmological parameters matched to MDPL -->
   <cosmologyFunctions  value="matterLambda"/>
@@ -89,21 +88,30 @@
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO         value="NFW"       />
-  <darkMatterProfileScaleRadius value="concentration" >
-    <correctForConcentrationDefinition    value="true"              />
-    <darkMatterProfileConcentration value="diemerKravtsov2014" >
-      <alpha   value="1.12"/>
-      <beta    value="1.69"/>
-      <eta0    value="6.82"/>
-      <eta1    value="1.42"/>
-      <kappa   value="0.69"/>
-      <phi0    value="6.58"/>
-      <phi1    value="1.37"/>
-      <scatter value="0.00"/>
-    </darkMatterProfileConcentration>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  2.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="johnson2021">
+      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+      <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
+      <energyBoost      value="0.6773"/>
+      <massExponent     value="1.5552"/>
+      <unresolvedEnergy value="0.5500"/> 
+      <darkMatterProfileScaleRadius value="concentration" >
+	<correctForConcentrationDefinition    value="true"        />
+	<darkMatterProfileConcentration value="diemerKravtsov2014" >
+	  <alpha   value="1.12"/>
+	  <beta    value="1.69"/>
+	  <eta0    value="6.82"/>
+	  <eta1    value="1.42"/>
+	  <kappa   value="0.69"/>
+	  <phi0    value="6.58"/>
+	  <phi1    value="1.37"/>
+	  <scatter value="0.00"/>
+	</darkMatterProfileConcentration>
+      </darkMatterProfileScaleRadius>
+    </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
-  <darkMatterProfileMinimumConcentration value="  2.0"/>
-  <darkMatterProfileMaximumConcentration value="100.0"/>
 
   <!-- Concentration model -->
   <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="+0.5500"/>
@@ -115,13 +123,13 @@
     <alpha   value="1.7044657787810300"/>
     <lambda0 value="0.0420508166675498"/>
   </haloSpinDistribution>
-  <spinVitvitskaMassExponent value="0.104747924327567"/>
 
   <!-- Galactic structure -->
   <galacticStructureSolver value="null"/>
 
   <!-- Halo accretion options -->
   <accretionHalo           value="zero"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Satellite orbits -->
   <virialOrbit value="spinCorrelated">
@@ -149,6 +157,19 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.10475"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"   />
+    <nodeOperator value="nodeMajorMergerTime"              />
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+  </nodeOperator>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="MDPL2.hdf5"/>
@@ -158,6 +179,7 @@
     <redshifts value="0.0"/>
   </outputTimes>
   <outputAnalysis value="multi">
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="spinDistribution">
       <fileName                     value="/home/abenson/Galacticus/datasets/static/darkMatter/spinDistributionFunctions_MDPL2.hdf5"                     />
       <comment                      value="$9.96 &lt; \log_{10}(M_\mathrm{halo}/\mathrm{M}_\odot) \le 16.00$; $z=0.00$; MDPL2 halos"                     />

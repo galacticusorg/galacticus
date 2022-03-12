@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,6 +62,19 @@ module Node_Property_Extractors
     </code>
    </method>
   </functionClass>
+  !!]
+
+  ! Enumerations for galactic components.
+  !![
+  <enumeration>
+   <name>galacticComponent</name>
+   <description>Specifies the galactic component for various node property extractors.</description>
+   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="disk"    />
+   <entry label="spheroid"/>
+   <entry label="total"   />
+  </enumeration>
   !!]
 
 end module Node_Property_Extractors

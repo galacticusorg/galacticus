@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -697,7 +697,7 @@ contains
                &            )
           ! For main branch galaxies, accumulate their contribution to the density as a function of halo mass, so that we can later subtract this from the variance.
           if (node%isOnMainBranch()) then
-             basicRoot            => node     %hostTree%baseNode%basic()
+             basicRoot            => node     %hostTree%nodeBase%basic()
              haloMassBin          =  floor((log10(basicRoot%mass())-self%massHaloLogarithmicMinimum)*self%massHaloIntervalLogarithmicInverse)+1
              ! Accumulate weights to halo mass arrays.
              if (haloMassBin >= 1 .and. haloMassBin <= self%countBinsMassHalo) then

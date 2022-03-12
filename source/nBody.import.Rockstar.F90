@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -312,14 +312,15 @@ contains
     !!{
     Import data from a Rockstar file.
     !!}
-    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
-          &                             verbosityLevelStandard
-    use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
-          &                             rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash
-    use :: Memory_Management   , only : allocateArray         , deallocateArray
-    use :: String_Handling     , only : String_Split_Words    , String_Count_Words
+    use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
+    use :: Display                     , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
+          &                                     verbosityLevelStandard
+    use :: File_Utilities              , only : Count_Lines_in_File
+    use :: Hashes                      , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
+          &                                     rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash , genericHash
+    use :: Memory_Management           , only : allocateArray         , deallocateArray
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: String_Handling             , only : String_Split_Words    , String_Count_Words
     implicit none
     class           (nbodyImporterRockstar     ), intent(inout)                                 :: self
     type            (nBodyData                 ), intent(  out), dimension( :    ), allocatable :: simulations
@@ -377,6 +378,8 @@ contains
              columnMap=1
           else if (columnNames(36) == "Tidal_Force(35)") then
              columnMap=2
+          else if (columnNames(36) == "Mvir_all"       ) then
+             columnMap=3
           else
              call Galacticus_Error_Report('unrecognized column layout'//{introspection:location})
           end if
@@ -389,9 +392,20 @@ contains
                      &  .or.                                              &
                      &   self%readColumns(j) == rockstarColumnTidal_ID    &
                      & ) call Galacticus_Error_Report('tidal properties not available'//{introspection:location})
-                if (self%readColumns(j) > 34)                   &
+                if (self%readColumns(j) > 34)                               &
                      & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
                      &                           -2
+             end do
+          case (3)
+             do j=1,size(self%readColumns)
+                if     (                                                  &
+                     &   self%readColumns(j) == rockstarColumnTidal_Force &
+                     &  .or.                                              &
+                     &   self%readColumns(j) == rockstarColumnTidal_ID    &
+                     & ) call Galacticus_Error_Report('tidal properties not available'//{introspection:location})
+                if (self%readColumns(j) > 33)                               &
+                     & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
+                     &                           -3
              end do
           end select
        end if
@@ -424,6 +438,17 @@ contains
                      &                          columnsReal   (35   ), &
                      &                          columnsInteger(36   ), &
                      &                          columnsReal   (37:56)
+             case (3)
+                ! Older layout with "Mvir_all" in column 35.
+                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                     &                          columnsInteger( 1   ), &
+                     &                          columnsReal   ( 2   ), &
+                     &                          columnsInteger( 3: 8), &
+                     &                          columnsReal   ( 9:13), &
+                     &                          columnsInteger(14:14), &
+                     &                          columnsReal   (15:26), &
+                     &                          columnsInteger(27:33), &
+                     &                          columnsReal   (35:54)
              case default
                 call Galacticus_Error_Report('unknown column layout'//{introspection:location})
              end select
@@ -478,6 +503,7 @@ contains
     simulations(1)%attributesInteger=integerSizeTHash ()
     simulations(1)%attributesReal   =doubleHash       ()
     simulations(1)%attributesText   =varyingStringHash()
+    simulations(1)%attributesGeneric=genericHash      ()
     call simulations(1)%attributesReal%set('boxSize',boxSize)
     ! Add any additional properties.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
@@ -530,13 +556,15 @@ contains
              case (rockstarColumnRvir      )
                 columnName='radiusVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
-                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
              case (rockstarColumnSpin      )
                 columnName='spin'
              case (rockstarColumnrs        )
                 columnName='radiusScale'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
-                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
              case (rockstarColumnTU        )
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &

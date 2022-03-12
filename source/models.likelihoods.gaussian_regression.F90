@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,33 +83,33 @@
      !!}
      private
      class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
-     integer                                                                       :: accumulatedStateCount     , emulatorRebuildCount       , &
-          &                                                                           polynomialOrder           , polynomialCoefficientCount , &
-          &                                                                           reportCount               , simulationCount            , &
-          &                                                                           evaluationCount           , emulatorCheckCount         , &
-          &                                                                           emulatorFailCount         , dumpEmulatorCount
+     integer                                                                       :: accumulatedStateCount               , emulatorRebuildCount       , &
+          &                                                                           polynomialOrder                     , polynomialCoefficientCount , &
+          &                                                                           reportCount                         , simulationCount            , &
+          &                                                                           evaluationCount                     , emulatorCheckCount         , &
+          &                                                                           emulatorFailCount                   , dumpEmulatorCount
      integer         (c_size_t                      )                              :: regressionMatrixSize
-     double precision                                , allocatable, dimension(:  ) :: simulatorLikelihood       , polynomialCoefficient      , &
-          &                                                                           likelihoodSums            , coefficients               , &
-          &                                                                           stateOffset               , weight                     , &
-          &                                                                           likelihoodResiduals       , stateScales                , &
+     double precision                                , allocatable, dimension(:  ) :: simulatorLikelihood                 , polynomialCoefficient      , &
+          &                                                                           likelihoodSums                      , coefficients               , &
+          &                                                                           stateOffset                         , weight                     , &
+          &                                                                           likelihoodResiduals                 , stateScales                , &
           &                                                                           stateMeans
-     double precision                                , allocatable, dimension(:,:) :: simulationState           , stateSums                  , &
-          &                                                                           regressionMatrix          , statesCombined
-     logical                                                                       :: initialized               , regressionMatrixIsSingular , &
+     double precision                                , allocatable, dimension(:,:) :: simulationState                     , stateSums                  , &
+          &                                                                           regressionMatrix                    , statesCombined
+     logical                                                                       :: initialized                         , regressionMatrixIsSingular , &
           &                                                                           isGood
      type            (matrixLU                      ), allocatable                 :: regressionMatrixLU
-     double precision                                                              :: C0                        , C1                         , &
-          &                                                                           CR                        , sigmaBuffer                , &
-          &                                                                           logLikelihoodBuffer       , logLikelihoodErrorTolerance
-     logical                                                                       :: emulateOutliers           , dumpEmulator               , &
+     double precision                                                              :: C0                                  , C1                         , &
+          &                                                                           CR                                  , sigmaBuffer                , &
+          &                                                                           logLikelihoodBuffer                 , logLikelihoodErrorTolerance
+     logical                                                                       :: emulateOutliers                     , dumpEmulator               , &
           &                                                                           dummyEmulator
      type            (varying_string                 )                             :: dumpEmulatorFileRoot
      ! Workspaces used when fitting the semi-variogram.
-     double precision                                 , allocatable, dimension(:) :: separationsNormalized      , semiVariancesNormalized    , &
-          &                                                                          separationsBinned          , semiVariancesBinned        , &
+     double precision                                 , allocatable, dimension(:) :: separationsNormalized                , semiVariancesNormalized    , &
+          &                                                                          separationsBinned                    , semiVariancesBinned        , &
           &                                                                          separationsLimited
-     double precision                                                             :: separationNormalization    , semiVarianceNormalization
+     double precision                                                             :: separationNormalization              , semiVarianceNormalization
      integer                                                                      :: binCount
    contains
      final     ::                    gaussianRegressionDestructor

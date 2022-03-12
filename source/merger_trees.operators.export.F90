@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -236,7 +236,7 @@ contains
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (self%snapshotsRequired) then
           call allocateArray(snapshotTime,[snapshotCountIncrement])
-          node                        => treeCurrent%baseNode
+          node                        => treeCurrent%nodeBase
           basic                       => node       %basic   ()
           snapshotCount               =  1
           snapshotTime(snapshotCount) =  basic      %time    ()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,7 @@
   !!}
 
   use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
+  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalHeating">
@@ -34,6 +35,7 @@
      !!}
      private
      class(satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
+     class(galacticStructureClass        ), pointer :: galacticStructure_         => null()
    contains
      final     ::                          satelliteTidalHeatingRateDestructor
      procedure :: differentialEvolution => satelliteTidalHeatingRateDifferentialEvolution
@@ -58,27 +60,31 @@ contains
     type (nodeOperatorSatelliteTidalHeating)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
     class(satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
-    
+    class(galacticStructureClass           ), pointer       :: galacticStructure_
+
     !![
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
+    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteTidalHeating(satelliteTidalHeatingRate_)
+    self=nodeOperatorSatelliteTidalHeating(satelliteTidalHeatingRate_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalHeatingRate_"/>
+    <objectDestructor name="galacticStructure_"        />
     !!]
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
-  function satelliteTidalHeatingRateConstructorInternal(satelliteTidalHeatingRate_) result(self)
+  function satelliteTidalHeatingRateConstructorInternal(satelliteTidalHeatingRate_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteTidalHeating)                        :: self
     class(satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
+    class(galacticStructureClass           ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*satelliteTidalHeatingRate_"/>
+    <constructorAssign variables="*satelliteTidalHeatingRate_, *galacticStructure_"/>
     !!]
 
     return
@@ -93,6 +99,7 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalHeatingRate_"/>
+    <objectDestructor name="self%galacticStructure_"        />
     !!]
     return
   end subroutine satelliteTidalHeatingRateDestructor
@@ -102,12 +109,11 @@ contains
     Perform mass loss from a satellite due to tidal stripping.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite
-    use :: Galactic_Structure_Tidal_Tensors, only : Galactic_Structure_Tidal_Tensor
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Tensors                         , only : assignment(=)                  , operator(*)   , tensorRank2Dimension3Symmetric
-    use :: Vectors                         , only : Vector_Magnitude               , Vector_Product
+    use :: Tensors                         , only : assignment(=)         , operator(*)   , tensorRank2Dimension3Symmetric
+    use :: Vectors                         , only : Vector_Magnitude      , Vector_Product
     implicit none
     class           (nodeOperatorSatelliteTidalHeating), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout)          :: node
@@ -131,7 +137,7 @@ contains
     radius                    =  Vector_Magnitude                   (position)
     if (radius <= 0.0d0) return ! Do not compute rates at zero radius.
     ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
-    tidalTensor       =Galactic_Structure_Tidal_Tensor (nodeHost,position)             
+    tidalTensor               =  self%galacticStructure_%tidalTensor(nodeHost,position)             
     ! Compute the orbital period.
     angularFrequency=+Vector_Magnitude(Vector_Product(position,velocity)) &
          &           /radius**2                                           &

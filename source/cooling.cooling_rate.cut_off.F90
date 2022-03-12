@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -189,9 +189,9 @@ contains
     ! Test for halos where cooling should be cut off.
     select case (self%useFormationNode)
     case (.false.)
-       velocityVirial=self%darkMatterHaloScale_%virialVelocity(node              )
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node              )
     case (.true. )
-       velocityVirial=self%darkMatterHaloScale_%virialVelocity(node%formationNode)
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node%formationNode)
     end select
     basic => node%basic()
     if     (                                                                             &

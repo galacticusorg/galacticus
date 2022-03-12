@@ -3,7 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="standard"/>
 
   <galacticusOutputFileName value="testSuite/outputs/regressions/issue142.hdf5"/>
 
@@ -29,17 +29,17 @@
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Component selection -->
-  <componentBasic             value="standard"     />
-  <componentBlackHole         value="standard"         />
-  <componentDarkMatterProfile value="virialTheorem"/>
-  <componentDisk              value="standard"         />
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentDisk              value="standard"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
-  <componentHotHalo           value="standard"         />
-  <componentSatellite         value="orbiting"     />
-  <componentSpheroid          value="standard"   />
-  <componentSpin              value="vitvitska"    />
+  <componentHotHalo           value="standard" />
+  <componentSatellite         value="orbiting" />
+  <componentSpheroid          value="standard" />
+  <componentSpin              value="vector"   />
 
   <!-- Dark matter properties -->
   <darkMatterParticle value="CDM"/>
@@ -109,14 +109,6 @@
   </excursionSetBarrier>
   <excursionSetFirstCrossing value="linearBarrier"/>
 
-  <!-- Intergalactic medium evolution -->
-  <intergalacticMediumState value="instantReionization">
-    <reionizationRedshift           value="8.0e0"  />
-    <reionizationTemperature        value="1.5e4"  />
-    <presentDayTemperature          value="1.0e3"  />
-    <intergalacticMediumState value="recFast"/>
-  </intergalacticMediumState>
-  
   <!-- Merger tree building options --> 
   <mergerTreeConstructor value="build"    >
     <redshiftBase value="0.0"/>
@@ -154,45 +146,39 @@
   <darkMatterProfileScaleRadius value="concentrationLimiter">
     <concentrationMinimum value="  4.0"/>
     <concentrationMaximum value="200.0"/>
-    <darkMatterProfileScaleRadius value="ludlow2016"          >
-      <C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
-      <f                                  value="  0.07534"    />
-      <timeFormationSeekDelta             value="  0.00000"    />
-      <darkMatterProfileScaleRadius value="concentration" >
-	<correctForConcentrationDefinition    value="true"              />
-	<darkMatterProfileConcentration value="diemerJoyce2019" />
-	<!-- <alpha   value="1.12"/> -->
-	<!-- <beta    value="1.69"/> -->
-	<!-- <eta0    value="6.82"/> -->
-	<!-- <eta1    value="1.42"/> -->
-	<!-- <kappa   value="0.69"/> -->
-	<!-- <phi0    value="6.58"/> -->
-	<!-- <phi1    value="1.37"/> -->
-	<!-- <scatter value="0.00"/> -->
-	<!-- </darkMatterProfileConcentration> -->
+    <darkMatterProfileScaleRadius value="johnson2021">
+      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+      <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
+      <energyBoost      value="0.6773"/>
+      <massExponent     value="1.5552"/>
+      <unresolvedEnergy value="0.5500"/> 
+      <darkMatterProfileScaleRadius value="ludlow2016"          >
+	<C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
+	<f                                  value="  0.07534"    />
+	<timeFormationSeekDelta             value="  0.00000"    />
+	<darkMatterProfileScaleRadius value="concentration" >
+	  <correctForConcentrationDefinition    value="true"              />
+	  <darkMatterProfileConcentration value="diemerJoyce2019" />
+	  <!-- <alpha   value="1.12"/> -->
+	  <!-- <beta    value="1.69"/> -->
+	  <!-- <eta0    value="6.82"/> -->
+	  <!-- <eta1    value="1.42"/> -->
+	  <!-- <kappa   value="0.69"/> -->
+	  <!-- <phi0    value="6.58"/> -->
+	  <!-- <phi1    value="1.37"/> -->
+	  <!-- <scatter value="0.00"/> -->
+	  <!-- </darkMatterProfileConcentration> -->
+	</darkMatterProfileScaleRadius>
       </darkMatterProfileScaleRadius>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
 
-  <!-- Concentration model -->
-  <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="0.5500"/> <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
-  <darkMatterProfileScaleVirialTheoremMassExponent     value="1.5552"/>
-  <darkMatterProfileScaleVirialTheoremEnergyBoost      value="0.6773"/>
-  
   <!-- Dark matter halo spin -->
   <haloSpinDistribution value="bett2007"> <!-- Values from Benson (2017) -->
     <alpha   value="1.7091800"/>
     <lambda0 value="0.0420190"/>
   </haloSpinDistribution>
-  <spinVitvitskaMassExponent value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
-
-  <!-- Introduce baryonic physics -->
-  <!-- Halo accretion options -->
-  <accretionHalo value="simple">
-    <redshiftReionization value="10.5"/>
-    <velocitySuppressionReionization value="35.0"/>
-  </accretionHalo>
-
+ 
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistribution value="betaProfile"/>
   <hotHaloTemperatureProfile value="virial"/>
@@ -307,8 +293,18 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo angular momentum -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->
     <nodeOperator value="subsubhaloPromotion"   />
     <!-- Subhalo orbits -->
@@ -322,11 +318,6 @@
     <nodeOperator value="satelliteDestructionMassThreshold" >
       <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
       <massDestructionFractional value="0.0e0"/>
-    </nodeOperator>
-
-    <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
-      <factorReset value="2.0"/>
     </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
@@ -440,7 +431,6 @@
   <accretionHalo value="naozBarkana2007"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="subhalos_baryonic_LCDM.hdf5"/>
   <mergerTreeOutputter value="multi">
     <mergerTreeOutputter value="standard">
       <outputReferences value="false"/>
@@ -469,6 +459,7 @@
     </nodePropertyExtractor>
   </nodePropertyExtractor>
   <outputAnalysis value="multi">
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="subhaloMassFunction">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                            /> <!-- Boylan-Kolchin et al. (2010) -->

@@ -12,7 +12,7 @@ use PDL::IO::HDF5;
 system("mkdir -p outputs/");
 
 # Run the model.
-system("cd ..; Galacticus.exe testSuite/parameters/outputTreeContiguosity.xml");
+system("cd ..; ./Galacticus.exe testSuite/parameters/outputTreeContiguosity.xml");
 unless ( $? == 0 ) {
     print "FAIL: output tree contiguosity model failed to run\n";
     exit;

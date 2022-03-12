@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -97,30 +97,30 @@ contains
     implicit none
     class  (mergerTreeOperatorSelectWithinRange), intent(inout), target :: self
     type   (mergerTree                         ), intent(inout), target :: tree
-    type   (treeNode                           ), pointer               :: baseNode     , nodeNext
-    class  (nodeComponentBasic                 ), pointer               :: baseNodeBasic
+    type   (treeNode                           ), pointer               :: nodeBase     , nodeNext
+    class  (nodeComponentBasic                 ), pointer               :: basicNodeBase
     type   (mergerTree                         ), pointer               :: currentTree
 
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
        ! Get root node of the tree.
-       baseNode      => currentTree%baseNode
-       baseNodeBasic => baseNode   %basic   ()
+       nodeBase      => currentTree%nodeBase
+       basicNodeBase => nodeBase   %basic   ()
        if     (                                             &
-            &   baseNodeBasic%mass() < self%baseMassMinimum &
+            &   basicNodeBase%mass() < self%baseMassMinimum &
             &  .or.                                         &
-            &   baseNodeBasic%mass() > self%baseMassMaximum &
+            &   basicNodeBase%mass() > self%baseMassMaximum &
             & ) then
           ! Tree is outside range. Destroy all but the base node. (Leaving just the base node
           ! makes the tree inert - i.e. it can not do anything.)
-          baseNode => baseNode%firstChild
-          do while (associated(baseNode))
-             nodeNext => baseNode%sibling
-             call Merger_Tree_Prune_Clean_Branch(baseNode)
-             call baseNode%destroyBranch()
-             deallocate(baseNode)
-             baseNode => nodeNext
+          nodeBase => nodeBase%firstChild
+          do while (associated(nodeBase))
+             nodeNext => nodeBase%sibling
+             call Merger_Tree_Prune_Clean_Branch(nodeBase)
+             call nodeBase%destroyBranch()
+             deallocate(nodeBase)
+             nodeBase => nodeNext
           end do
        end if
        ! Move to the next tree.

@@ -50,7 +50,7 @@ my @simulations =
  },
  {
      label               => "SMDPL",
-     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the SMDPL simulation.",
+     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the SMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/smdpl/",
      hubbleConstant      => 0.6777,
@@ -60,17 +60,17 @@ my @simulations =
  },
  {
      label               => "MDPL2",
-     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the MDPL2 simulation.",
+     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the MDPL2 simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/mdpl2/",
      hubbleConstant      => 0.6777,
      massParticle        => 1.51e9,
-     snapshots           => "125 107 94 75 52 26",
+     snapshots           => "125 124 120 107 94 75 52 26",
      builder             => \&cosmoSimBuilder
  },
  {
      label               => "BigMDPL",
-     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the BigMDPL simulation.",
+     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the BigMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/bigmdpl/",
      hubbleConstant      => 0.6777,
@@ -80,7 +80,7 @@ my @simulations =
  },
  {
      label               => "HugeMDPL",
-     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the HugeMDPL simulation.",
+     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the HugeMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/hugemdpl/",
      hubbleConstant      => 0.6777,
@@ -90,7 +90,7 @@ my @simulations =
  },
  {
      label               => "Caterpillar",
-     description         => "Progneitor halo mass function for non-backsplash z=0 parent halos from the Caterpillar simulations.",
+     description         => "Progenitor halo mass function for non-backsplash z=0 parent halos from the Caterpillar simulations.",
      simulationReference => "Griffen et al.; 2016; ApJ; 818; 10",
      simulationURL       => "https://www.caterpillarproject.org/",
      hubbleConstant      => 0.6711,
@@ -144,6 +144,8 @@ sub cosmoSimBuilder {
     my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyAlwaysIsolated.xml");
     ## Set the snapshots to select.
     $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $simulation->{'snapshots'};
+    ## Remove hostedRootID selection.
+    splice(@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},4,1);
     ## Iterate over subvolumes.
     for(my $i=0;$i<10;++$i) {
 	for(my $j=0;$j<10;++$j) {
@@ -152,7 +154,7 @@ sub cosmoSimBuilder {
 		next
 		    if ( -e $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5" );
 		# Modify file names.
-		$parameters->{'nbodyImporter'}                              ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                               .$i."_".$j."_".$k.".dat" ;
+		$parameters->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                               .$i."_".$j."_".$k.".dat" ;
 		$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[5]->{'fileName'}->{'value'} = $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5";
 		# Write parmeter file.
 		my $parameterFileName = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".xml";
@@ -195,21 +197,21 @@ sub cosmoSimBuilder {
 		}
 	    }
 	}
-	## Compute the mass function.
+	## Compute the progenitor mass function.
 	unless ( -e $simulation->{'path'}."progenitorsMassFunctions.hdf5" ) {
 	    ## Modify parameters.
-	    @{$massFunctionParameters->{'nbodyImporter'     }->{'nbodyImporter'}} = @nbodyImporters;
-	    $massFunctionParameters  ->{'galacticusOutputFileName'}                                                              ->{'value'} = $simulation->{'path'                      }."progenitorMassFunctions.hdf5";
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[0]->{'values'                    }->{'value'} = $simulation->{'massParticle'              }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $simulation->{'massRatioProgenitorMinimum'}                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $simulation->{'massRatioProgenitorMaximum'}                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
-	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $simulation->{'snapshotsProgenitors'      }                               ;
+	    @{$massFunctionParameters->{'nbodyImporter'           }->{'nbodyImporter'}} = @nbodyImporters;
+	    $massFunctionParameters  ->{'galacticusOutputFileName'}                                                        ->{'value'} = $simulation->{'path'                      }."progenitorMassFunctions.hdf5";
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[0]->{'values'                    }->{'value'} = $simulation->{'massParticle'              }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $simulation->{'massRatioProgenitorMinimum'}                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $simulation->{'massRatioProgenitorMaximum'}                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $simulation->{'snapshotsProgenitors'      }                               ;
 	    ## Write the parameter file.
 	    my $parameterFileName = $simulation->{'path'}."progenitorMassFunctions.xml";
 	    open(my $outputFile,">",$parameterFileName);
@@ -244,8 +246,8 @@ sub caterpillarBuilder {
     $simulation->{'path'} .= "/"
 	unless ( $simulation->{'path'} =~ m/\/$/ );
     $simulation->{'path'} .= "Caterpillar/";
-    # Set snapshots to process for each resolution, corresponding to z ~ 0.0, 0.5, 1.0, 2.0, 4.0, 8.0.
-    my $snapshots = "319 232 189 145 111 70";
+    # Set snapshots to process for each resolution, corresponding to z ~ 0.0, 0.02, 0.1, 0.5, 1.0, 2.0, 4.0, 8.0.
+    my $snapshots = "319 314 295 232 189 145 111 70";
     # Read the parent halo file.
     (my $parentId, my $LX, my $zoomId, my $min2, my $mass, my $rvir, my $badFlag, my $badSubF) = rcols($simulation->{'path'}."parent_zoom_index.txt",1,3,5,6,10,11,12,13,{COLSEP => qr/\s*\|\s*/, LINES => "1:"});
     # Find the resolution levels available for each parent along with the highest resolution level achieved.
@@ -387,7 +389,7 @@ sub caterpillarBuilder {
 	# Set output file name.
 	my $outputFileName = $simulation->{'path'}."progenitorMassFunctions_LX".$resolution.".hdf5";
 	next
-	    if ( -e $outputFileName );
+	    if ( -e $simulation->{'path'}."progenitorMassFunctions_LX".$resolution.":MPI0000.hdf5" );
 	# Add an importer for each parent.
 	@{$massFunctionParameters->{'nbodyImporter'}->{'nbodyImporter'}} =
 	    map

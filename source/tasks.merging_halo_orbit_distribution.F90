@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,10 +45,11 @@
      class           (cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_       => null()
      class           (haloMassFunctionClass              ), pointer :: haloMassFunction_               => null()
      class           (cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_             => null()
-     double precision                                               :: velocityMinimum                          , velocityMaximum       , &
-          &                                                            massMinimum                              , massMaximum           , &
+     double precision                                               :: velocityMinimum                           , velocityMaximum       , &
+          &                                                            massMinimum                               , massMaximum           , &
           &                                                            time
-     integer                                                        :: countMassesPerDecade                     , countVelocitiesPerUnit
+     integer                                                        :: countMassesPerDecade                      , countVelocitiesPerUnit
+     logical                                                        :: nodeComponentsInitialized       =  .false.
    contains
      final     ::            mergingHaloOrbitDistributionDestructor
      procedure :: perform => mergingHaloOrbitDistributionPerform
@@ -104,6 +105,7 @@ contains
        call Node_Components_Initialize       (parameters    )
        call Node_Components_Thread_Initialize(parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>velocityMinimum</name>
@@ -226,8 +228,10 @@ contains
     <objectDestructor name="self%cosmologicalMassVariance_"      />
     <objectDestructor name="self%haloMassFunction_"              />
     !!]
-    call Node_Components_Uninitialize       ()
-    call Node_Components_Thread_Uninitialize()
+    if (self%nodeComponentsInitialized) then
+       call Node_Components_Uninitialize       ()
+       call Node_Components_Thread_Uninitialize()
+    end if
     return
   end subroutine mergingHaloOrbitDistributionDestructor
 
@@ -314,14 +318,14 @@ contains
        nodeHost           => treeNode      (                 )
        basicHost          => nodeHost%basic(autoCreate=.true.)
        nodeHost %hostTree => tree
-       tree     %baseNode => nodeHost
+       tree     %nodeBase => nodeHost
        call basicHost%massSet            (     massHost)
        call basicHost%timeSet            (self%time    )
        call basicHost%timeLastIsolatedSet(self%time    )
        call Galacticus_Calculations_Reset(     nodeHost)
        ! Compute the separation of the merging pairs (i.e. the virial radius of the primary halo), the density of the
        ! accretion flow at that separation, and the halo mass function.
-       separation      (iHost)=self%darkMatterHaloScale_%virialRadius(nodeHost                   )
+       separation      (iHost)=self%darkMatterHaloScale_%radiusVirial(nodeHost                   )
        density         (iHost)=self%accretionFlows_     %density     (nodeHost ,separation(iHost))
        haloMassFunction(iHost)=self%haloMassFunction_   %differential(self%time,massHost,nodeHost)
        ! Iterate over satellite masses.
@@ -362,8 +366,8 @@ contains
                 distributionFunction=self%virialOrbit_%velocityDistributionFunction(                                                                                  &
                      &                                                                                                                                nodeSatellite , &
                      &                                                                                                                                nodeHost      , &
-                     &                                                              velocityRadialVirial    *self%darkMatterHaloScale_%virialVelocity(nodeHost     ), &
-                     &                                                              velocityTangentialVirial*self%darkMatterHaloScale_%virialVelocity(nodeHost     )  &
+                     &                                                              velocityRadialVirial    *self%darkMatterHaloScale_%velocityVirial(nodeHost     ), &
+                     &                                                              velocityTangentialVirial*self%darkMatterHaloScale_%velocityVirial(nodeHost     )  &
                      &                                                             )
                 ! Accumulate the distribution function, marginal distribution, and moments.
                 velocityDistributionOrbits                  (iHost,iSatellite,iVelocityRadial,iVelocityTangential)= &

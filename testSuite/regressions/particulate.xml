@@ -98,6 +98,10 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Subhalo orbits -->
     <nodeOperator value="satelliteOrbit"                   />
     <nodeOperator value="satelliteDynamicalFriction"       />
@@ -144,7 +148,7 @@
     <timeSnapshot value="1.0"/>
     <radiusTruncateOverRadiusVirial value="1.0"/>
     <lengthSoftening value="1.0e-5"/>
-    <toleranceRelativeSmoothing value="1.0e-7"/>
+    <toleranceRelativeSmoothing value="2.0e-7"/>
     <selection value="all"/>
     <nonCosmological value="false"/>
     <chunkSize value="1024"/>

@@ -25,7 +25,8 @@ use Text::Template 'fill_in_string';
 	      \&Build_Generic_Rate_Functions    ,
 	      \&Build_Auto_Create_Rate_Functions,
 	      \&Build_Scale_Functions           ,
-	      \&Build_Inactive_Functions
+	      \&Build_Inactive_Functions        ,
+	      \&Build_Analytic_Functions
 	     ]
      }
     );
@@ -164,6 +165,7 @@ CODE
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offset = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (nodeAnalytics({$offsetNameAll})) call Galacticus_Error_Report('rates are gettable only for numerically-solved variables'//\{introspection:location\})
 if (rateComputeState == propertyTypeInactive) then
  if (nodeInactives({$offsetNameAll})) call Galacticus_Error_Report('rates are gettable only for active variables'//\{introspection:location\})
  offset={$offsetNameActive}
@@ -295,6 +297,7 @@ CODE
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offset = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (nodeAnalytics({$offsetNameAll})) call Galacticus_Error_Report('rates are only settable for numerically-solved variables'//\{introspection:location\})
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}
 else if (rateComputeState == propertyTypeActive  ) then
@@ -303,6 +306,8 @@ else if (rateComputeState == propertyTypeActive  ) then
 else if (rateComputeState == propertyTypeInactive) then
  if (.not.nodeInactives({$offsetNameAll})) return
  offset={$offsetNameInactive}
+else if (rateComputeState == propertyTypeNumerics) then
+ offset={$offsetNameActive}
 else
  return
 end if
@@ -677,7 +682,7 @@ nodeInactives({$offsetName})=.true.
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-nodeInactives({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data))=.true.
+nodeInactives({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1)=.true.
 CODE
 	}
     } else {
@@ -693,6 +698,83 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => $code::property->{'name'}."Inactive"
+	}
+	);  
+}
+
+sub Build_Analytic_Functions {
+    # Build functions to indicate variables which are to be solved analytically for non-virtual, evolvable properties.
+    my $build       = shift();
+    my $class       = shift();
+    my $member      = shift();
+    $code::property = shift();
+    # Skip this property if it is not evolvable, or is virtual.
+    return
+	if
+	(
+	    $code::property->{'attributes' }->{'isVirtual'  }
+	 ||
+	  ! $code::property->{'attributes' }->{'isEvolvable'}
+	);
+    # Build the function.
+    my $implementationTypeName = "nodeComponent".ucfirst($class->{'name'}).ucfirst($member->{'name'});
+    my $function =
+    {
+	type        => "void",
+	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Alytc",
+	description => "Indicate that the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is to be solved analytically during differential evolution.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $implementationTypeName,
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     }
+	    ]
+    };
+    # Add a count variable if necessary.
+    push(
+	@{$function->{'variables'}},
+	{
+	    intrinsic  => "integer",
+	    variables  => [ "count" ]
+	}				
+	)
+	if ( ! &isIntrinsic($code::property->{'data'}->{'type'}) );
+    # Build the function.
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: self
+CODE
+    $code::offsetName = &offsetName('all',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
+	if ( $code::property->{'data'}->{'rank'} == 0 ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (nodeAnalytics({$offsetName})) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+nodeAnalytics({$offsetName})=.true.
+CODE
+	} else {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (any(nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1)=.true.
+CODE
+	}
+    } else {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+count=self%{$property->{'name'}}Data%serializeCount()
+if (count > 0) then
+ if (any(nodeAnalytics({$offsetName}:{$offsetName}+count-1))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+ nodeAnalytics({$offsetName}:{$offsetName}+count-1)=.true.
+end if
+CODE
+    }
+    # Insert a type-binding for this function into the relevant type.
+    push(
+	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => $code::property->{'name'}."Analytic"
 	}
 	);  
 }

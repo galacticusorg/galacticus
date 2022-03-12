@@ -254,11 +254,17 @@
       </galacticDynamicsBarInstability>
     </nodeOperator>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandomWalk">
+    <nodeOperator value="haloAngularMomentumRandomWalk">
       <spinVarianceSpecific value="0.001"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
   </nodeOperator>
   
   <!-- Numerical tolerances -->

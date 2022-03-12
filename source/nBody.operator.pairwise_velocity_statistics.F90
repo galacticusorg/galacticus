@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -360,8 +360,8 @@ contains
           ! Get virial properties of the target halo.
           call basic%massSet(massVirial(i))
           call Galacticus_Calculations_Reset(node)
-          radiusVirial  =self%darkMatterHaloScale_%virialRadius  (node)
-          velocityVirial=self%darkMatterHaloScale_%virialVelocity(node)
+          radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (node)
+          velocityVirial=self%darkMatterHaloScale_%velocityVirial(node)
           ! Locate particles nearby.
           call neighborFinder%searchFixedRadius(position1(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
           ! Find weights of paired particles.

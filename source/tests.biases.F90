@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,6 @@ program Test_Biases
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
   use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                       , operator(==)                , &
@@ -54,17 +53,17 @@ program Test_Biases
   type            (treeNode                                                    ), pointer                             :: node
   class           (nodeComponentBasic                                          ), pointer                             :: basic
   class           (darkMatterHaloBiasClass                                     ), pointer                             :: darkMatterHaloBias_
-  type            (virialDensityContrastFixed                                  )                                      :: virialDensityContrast_
-  type            (cosmologyParametersSimple                                   )                                      :: cosmologyParametersSimple_
-  type            (cosmologyFunctionsMatterLambda                              )                                      :: cosmologyFunctionsMatterLambda_
-  type            (linearGrowthCollisionlessMatter                             )                                      :: linearGrowthCollisionlessMatter_
-  type            (cosmologicalMassVarianceFilteredPower                       )                                      :: cosmologicalMassVarianceFilteredPower_
-  type            (powerSpectrumWindowFunctionTopHat                           )                                      :: powerSpectrumWindowFunctionTopHat_
-  type            (powerSpectrumPrimordialPowerLaw                             )                                      :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionEisensteinHu1999                            )                                      :: transferFunctionEisensteinHu1999_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                                      :: powerSpectrumPrimordialTransferredSimple_
-  type            (darkMatterParticleCDM                                       )                                      :: darkMatterParticleCDM_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
+  type            (virialDensityContrastFixed                                  ), pointer                             :: virialDensityContrast_
+  type            (cosmologyParametersSimple                                   ), pointer                             :: cosmologyParametersSimple_
+  type            (cosmologyFunctionsMatterLambda                              ), pointer                             :: cosmologyFunctionsMatterLambda_
+  type            (linearGrowthCollisionlessMatter                             ), pointer                             :: linearGrowthCollisionlessMatter_
+  type            (cosmologicalMassVarianceFilteredPower                       ), pointer                             :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionTopHat                           ), pointer                             :: powerSpectrumWindowFunctionTopHat_
+  type            (powerSpectrumPrimordialPowerLaw                             ), pointer                             :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionEisensteinHu1999                            ), pointer                             :: transferFunctionEisensteinHu1999_
+  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (varying_string                                              )                                      :: parameterFile
   integer                                                                       , parameter                           :: countModels                                                  =3
   type            (varying_string                                              ), dimension(countModels)              :: modelName                                                      , modelLabel    , &
@@ -151,6 +150,17 @@ program Test_Biases
      ! Convert masses from h⁻¹M☉ to M☉.
      mass=mass/(HubbleConstant/100.0d0)
      ! Construct all required objects.
+     allocate(virialDensityContrast_                                       )
+     allocate(cosmologyParametersSimple_                                   )
+     allocate(cosmologyFunctionsMatterLambda_                              )
+     allocate(linearGrowthCollisionlessMatter_                             )
+     allocate(cosmologicalMassVarianceFilteredPower_                       )
+     allocate(powerSpectrumWindowFunctionTopHat_                           )
+     allocate(powerSpectrumPrimordialPowerLaw_                             )
+     allocate(transferFunctionEisensteinHu1999_                            )
+     allocate(powerSpectrumPrimordialTransferredSimple_                    )
+     allocate(darkMatterParticleCDM_                                       )
+     allocate(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_)
      !![
      <referenceConstruct object="darkMatterParticleCDM_"                                        >
       <constructor>
@@ -340,11 +350,21 @@ program Test_Biases
      deallocate(bias      )
      deallocate(biasTarget)
      !![
-     <objectDestructor name="darkMatterHaloBias_"/>
+     <objectDestructor name="darkMatterHaloBias_"                                          />
+     <objectDestructor name="virialDensityContrast_"                                       />
+     <objectDestructor name="cosmologyParametersSimple_"                                   />
+     <objectDestructor name="cosmologyFunctionsMatterLambda_"                              />
+     <objectDestructor name="linearGrowthCollisionlessMatter_"                             />
+     <objectDestructor name="cosmologicalMassVarianceFilteredPower_"                       />
+     <objectDestructor name="powerSpectrumWindowFunctionTopHat_"                           />
+     <objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
+     <objectDestructor name="transferFunctionEisensteinHu1999_"                            />
+     <objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
+     <objectDestructor name="darkMatterParticleCDM_"                                       />
+     <objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>
      !!]
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
-     call Galacticus_Function_Classes_Destroy()
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()

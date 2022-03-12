@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,8 +45,8 @@
      Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
      !!}
      private
-     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-     logical                                     :: useFormationHalo     , solveForInactiveProperties
+     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     logical                                     :: useFormationHalo               , solveForInactiveProperties
    contains
      final     ::             simpleDestructor
      procedure :: solve    => simpleSolve
@@ -143,10 +143,10 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,simpleSolveHook            )
-    call satelliteMergerEvent%detach(self,simpleSolveHook            )
-    call   nodePromotionEvent%detach(self,simpleSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,simpleSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,simpleSolveHook            )) call      postEvolveEvent%detach(self,simpleSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,simpleSolveHook            )) call satelliteMergerEvent%detach(self,simpleSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,simpleSolveHook            )) call   nodePromotionEvent%detach(self,simpleSolveHook            )
     return
   end subroutine simpleDestructor
 

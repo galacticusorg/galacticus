@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -173,10 +173,10 @@ program Tests_Merger_Tree_Branching
   excursionSetFirstCrossingFarahiMidpoint_                      =excursionSetFirstCrossingFarahiMidpoint                      (                                                                                                        &
        &                                                                                                                       timeStepFractional                     =0.01d0                                                        , &
        &                                                                                                                       fileName                               =var_str("auto")                                               , &
-       &                                                                                                                       varianceNumberPerUnitProbability       =1000                                                          , &
-       &                                                                                                                       varianceNumberPerUnit                  =  32                                                          , &
-       &                                                                                                                       varianceNumberPerDecade                =  64                                                          , &
-       &                                                                                                                       timeNumberPerDecade                    =  10                                                          , &
+       &                                                                                                                       varianceNumberPerUnitProbability       =100                                                           , &
+       &                                                                                                                       varianceNumberPerUnit                  = 16                                                           , &
+       &                                                                                                                       varianceNumberPerDecade                = 32                                                           , &
+       &                                                                                                                       timeNumberPerDecade                    = 10                                                           , &
        &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                               , &
        &                                                                                                                       excursionSetBarrier_                   =excursionSetBarrierCriticalOverdensity_                       , &
        &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                          &

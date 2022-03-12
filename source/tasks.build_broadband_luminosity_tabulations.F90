@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,8 +34,9 @@
      Implementation of a task which pre-builds tabulations needed for broadband luminosity calculations.
      !!}
      private
-     class(stellarPopulationBroadBandLuminositiesClass), pointer :: stellarPopulationBroadBandLuminosities_ => null()
-     class(stellarPopulationClass                     ), pointer :: stellarPopulation_                      => null()
+     class  (stellarPopulationBroadBandLuminositiesClass), pointer :: stellarPopulationBroadBandLuminosities_ => null()
+     class  (stellarPopulationClass                     ), pointer :: stellarPopulation_                      => null()
+     logical                                                       :: nodeComponentsInitialized               =  .false.
    contains
      final     ::                       buildBroadbandLuminosityTabulationsDestructor
      procedure :: perform            => buildBroadbandLuminosityTabulationsPerform
@@ -71,6 +72,7 @@ contains
        parametersRoot => parametersRoot%parent
     end do
     call Node_Components_Initialize(parametersRoot)
+    self%nodeComponentsInitialized=.true.
     !![
     <objectBuilder class="stellarPopulationBroadBandLuminosities" name="stellarPopulationBroadBandLuminosities_" source="parameters"/>
     <objectBuilder class="stellarPopulation"                      name="stellarPopulation_"                      source="parameters"/>
@@ -111,7 +113,7 @@ contains
     <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"/>
     <objectDestructor name="self%stellarPopulation_"                     />
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine buildBroadbandLuminosityTabulationsDestructor
 

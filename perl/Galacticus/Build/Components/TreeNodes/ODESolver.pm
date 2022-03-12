@@ -49,6 +49,10 @@ sub Tree_Node_ODE_Step_Initialize {
 	 {
 	     name  => "inactive",
 	     value => ".false."
+	 },
+	 {
+	     name  => "analytic",
+	     value => ".false."
 	 }
 	);
     foreach $code::quantity ( @quantities ) {
@@ -299,11 +303,13 @@ sub Tree_Node_ODE_Serialize_Scales {
 !$GLC attributes unused :: self
 select case (propertyType)
 case (propertyTypeAll     )
- array(1:nodeSerializationCount        )=     nodeScales(1:nodeSerializationCount)
+ array(1:nodeSerializationCount        )=pack(nodeScales(1:nodeSerializationCount),                                                   .not.nodeAnalytics(1:nodeSerializationCount))
 case (propertyTypeActive  )
- array(1:nodeSerializationCountActive  )=pack(nodeScales(1:nodeSerializationCount),.not.nodeInactives(1:nodeSerializationCount))
+ array(1:nodeSerializationCountActive  )=pack(nodeScales(1:nodeSerializationCount),.not.nodeInactives(1:nodeSerializationCount) .and. .not.nodeAnalytics(1:nodeSerializationCount))
 case (propertyTypeInactive)
- array(1:nodeSerializationCountInactive)=pack(nodeScales(1:nodeSerializationCount),     nodeInactives(1:nodeSerializationCount))
+ array(1:nodeSerializationCountInactive)=pack(nodeScales(1:nodeSerializationCount),     nodeInactives(1:nodeSerializationCount) .and. .not.nodeAnalytics(1:nodeSerializationCount))
+case (propertyTypeNumerics)
+ array(1:nodeSerializationCountActive  )=pack(nodeScales(1:nodeSerializationCount),                                                   .not.nodeAnalytics(1:nodeSerializationCount))
 end select
 CODE
     # Insert a type-binding for this function into the treeNode type.
@@ -349,11 +355,11 @@ sub Tree_Node_ODE_Serialize_Rates {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 select case (propertyType)
-case (propertyTypeAll     )
+case (propertyTypeAll                          )
  array(1:nodeSerializationCount        )=nodeRates(1:nodeSerializationCount        )
-case (propertyTypeActive  )
+case (propertyTypeActive  ,propertyTypeNumerics)
  array(1:nodeSerializationCountActive  )=nodeRates(1:nodeSerializationCountActive  )
-case (propertyTypeInactive)
+case (propertyTypeInactive                     )
  array(1:nodeSerializationCountInactive)=nodeRates(1:nodeSerializationCountInactive)
 end select
 CODE
@@ -400,11 +406,11 @@ sub Tree_Node_ODE_Deserialize_Rates {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 select case (propertyType)
-case (propertyTypeAll     )
+case (propertyTypeAll                          )
  nodeRatesActives(1:nodeSerializationCount        )=array(1:nodeSerializationCount        )
-case (propertyTypeActive  )
+case (propertyTypeActive  ,propertyTypeNumerics)
  nodeRatesActives(1:nodeSerializationCountActive  )=array(1:nodeSerializationCountActive  )
-case (propertyTypeInactive)
+case (propertyTypeInactive                     )
  nodeRatesActives(1:nodeSerializationCountInactive)=array(1:nodeSerializationCountInactive)
 end select
 CODE
@@ -568,21 +574,26 @@ if (.not.allocated(nodeScales)) then
    allocate  (nodeRates       (count))
    allocate  (nodeRatesActives(count))
    allocate  (nodeInactives   (count))
+   allocate  (nodeAnalytics   (count))
 else if (size(nodeScales) < count) then
    deallocate(nodeScales             )
    deallocate(nodeRates              )
    deallocate(nodeRatesActives       )
    deallocate(nodeInactives          )
+   deallocate(nodeAnalytics          )
    allocate  (nodeScales      (count))
    allocate  (nodeRates       (count))
    allocate  (nodeRatesActives(count))
    allocate  (nodeInactives   (count))
+   allocate  (nodeAnalytics   (count))
 end if
 nodeSerializationCount         =count
 select case (propertyType)
 case (propertyTypeInactive)
  nodeSerializationCountInactive=countSubset
 case (propertyTypeActive  )
+ nodeSerializationCountActive  =countSubset
+case (propertyTypeNumerics)
  nodeSerializationCountActive  =countSubset
 end select
 CODE

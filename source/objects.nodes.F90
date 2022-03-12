@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,8 @@ module Galacticus_Nodes
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
   use            :: Tensors                         , only : tensorNullR2D3Sym         , tensorRank2Dimension3Symmetric
   private
-  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
+  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
+       &    nodeEventBuildFromRaw       , propertyEvaluate          , propertyActive                , propertyInactive
   
   type, public :: treeNodeList
      !!{
@@ -67,10 +68,10 @@ module Galacticus_Nodes
      integer         (kind=kind_int8            )                  :: index
      type            (hdf5Object                )                  :: hdf5Group
      double precision                                              :: volumeWeight                    , initializedUntil
-     type            (treeNode                  ), pointer         :: baseNode               => null()
+     type            (treeNode                  ), pointer         :: nodeBase               => null()
      type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()
-     type            (treeEvent                 ), pointer, public :: event
+     type            (treeEvent                 ), pointer, public :: event                  => null()
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
      type            (doubleHash                )                  :: properties
    contains
@@ -140,7 +141,7 @@ module Galacticus_Nodes
      !!}
      type   (mergerTreeList), pointer         :: trees         => null()
      logical                                  :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer, public :: event
+     type   (universeEvent ), pointer, public :: event         => null()
      type   (genericHash   )                  :: attributes
      integer(kind_int8     )                  :: uniqueID
    contains
@@ -187,9 +188,22 @@ module Galacticus_Nodes
      end function universeEventTask
   end interface
 
+  ! Meta-property types.
+  type :: floatRank1MetaProperty
+     !!{
+     Type used to store float rank-1 meta-properties.
+     !!}
+     double precision, allocatable, dimension(:) :: values
+  end type floatRank1MetaProperty
+
+  type :: integerRank1MetaProperty
+     !!{
+     Type used to store integer rank-1 meta-properties.
+     !!}
+     integer, allocatable, dimension(:) :: values
+  end type integerRank1MetaProperty
+  
   ! Zero dimension arrays to be returned as defaults.
-  integer                                            , dimension(0) :: nullInteger1d
-  integer         (kind_int8)                        , dimension(0) :: nullLongInteger1d
   double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
@@ -206,11 +220,16 @@ module Galacticus_Nodes
   integer         (kind=kind_int8)                                  :: universeUniqueIdCount=0
 
   ! Enumeration for active/inactive properties.
-  integer, parameter, public :: propertyTypeAll     =0
-  integer, parameter, public :: propertyTypeActive  =1
-  integer, parameter, public :: propertyTypeInactive=2
-  integer, parameter, public :: propertyTypeNone    =3
+  integer, parameter, public :: propertyTypeAll       =0
+  integer, parameter, public :: propertyTypeActive    =1
+  integer, parameter, public :: propertyTypeInactive  =2
+  integer, parameter, public :: propertyTypeNumerics  =3
+  integer, parameter, public :: propertyTypeNone      =4
 
+  ! Enumeration for analytically/numerically-solved properties.
+  integer, parameter, public :: solutionTypeNumerical =0
+  integer, parameter, public :: solutionTypeAnalytical=1
+  
   ! State for rate computations.
   integer           , public :: rateComputeState    =propertyTypeActive
   !$omp threadprivate(rateComputeState)
@@ -422,9 +441,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID       =  eventID+1
     newEvent%ID   =  eventID
+    !$omp end critical (nodeEventIncrement)
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -1015,7 +1035,7 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
-  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable)
+  integer function Node_Component_Generic_Add_Float_Rank0_Meta_Property(self,label,name,isEvolvable,isCreator)
     !!{
     Add a meta-property to a node component.
     !!}
@@ -1023,14 +1043,82 @@ module Galacticus_Nodes
     class    (nodeComponent ), intent(inout)           :: self
     type     (varying_string), intent(in   )           :: label
     character(len=*         ), intent(in   )           :: name
-    logical                  , intent(in   ), optional :: isEvolvable
-    !$GLC attributes unused :: self, label, name, isEvolvable
+    logical                  , intent(in   ), optional :: isEvolvable, isCreator
+    !$GLC attributes unused :: self, label, name, isEvolvable, isCreator
 
-    Node_Component_Generic_Add_Meta_Property=-1
+    Node_Component_Generic_Add_Float_Rank0_Meta_Property=-1
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
-  end function Node_Component_Generic_Add_Meta_Property
+  end function Node_Component_Generic_Add_Float_Rank0_Meta_Property
 
+  integer function Node_Component_Generic_Add_Float_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a rank-1 meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Float_Rank1_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Float_Rank1_Meta_Property
+
+  integer function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a long integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property
+  
+  integer function Node_Component_Generic_Add_Integer_Rank0_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a long integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Rank0_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Rank0_Meta_Property
+  
+  integer function Node_Component_Generic_Add_Integer_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add an integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Rank1_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Rank1_Meta_Property
+  
+  !![
+  <metaPropertyDatabase/>
+  !!]
+  
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
     !!{
     Initialize a generic tree node component for an ODE solver step.
@@ -1466,9 +1554,9 @@ module Galacticus_Nodes
     select type (tree)
     type is (mergerTree)
        ! Destroy all nodes.
-       if (associated(tree%baseNode)) then
-          call tree%baseNode%destroyBranch()
-          deallocate(tree%baseNode)
+       if (associated(tree%nodeBase)) then
+          call tree%nodeBase%destroyBranch()
+          deallocate(tree%nodeBase)
        end if
        ! Destroy the HDF5 group associated with this tree.
        call tree%hdf5Group%destroy()
@@ -1502,7 +1590,7 @@ module Galacticus_Nodes
     Merger_Tree_Node_Get => null()
     treeCurrent => tree
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (node%index() == nodeIndex) then
              Merger_Tree_Node_Get => node
@@ -1525,9 +1613,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     eventNew%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1586,7 +1675,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time =  timeInfinity
     treeCurrent               => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild)) then
              basic                     =>                               node %basic()
@@ -1613,7 +1702,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time_Evolving =  timeInfinity
     treeCurrent                        => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild).and.(associated(node%parent).or..not.associated(node%firstSatellite))) then
              basic                              =>                                        node %basic()
@@ -1633,14 +1722,14 @@ module Galacticus_Nodes
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     type            (mergerTree        ), pointer               :: treeCurrent
-    class           (nodeComponentBasic), pointer               :: baseBasic
+    class           (nodeComponentBasic), pointer               :: basicBase
 
     Merger_Tree_Latest_Time =  -1.0d0
     treeCurrent             => self
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%baseNode)) then
-          baseBasic               =>                             treeCurrent%baseNode%basic()
-          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
+       if (associated(treeCurrent%nodeBase)) then
+          basicBase               =>                             treeCurrent%nodeBase%basic()
+          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,basicBase  %time          ())
        end if
        treeCurrent => treeCurrent%nextTree
     end do
@@ -1690,9 +1779,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     newEvent%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1713,13 +1803,15 @@ module Galacticus_Nodes
     class  (universe     ), intent(inout) :: self
     type   (universeEvent), intent(in   ) :: event
     type   (universeEvent), pointer       :: eventLast, eventNext, event_
-
+    integer(kind_int8    )                :: eventID
+    
     ! Destroy the event.
+    eventID   =  event%ID
     eventLast => null()
     event_    => self%event
     do while (associated(event_))
        ! Match the event.
-       if (event_%ID == event%ID) then
+       if (event_%ID == eventID) then
           if (associated(event_,self%event)) then
              self     %event => event_%next
              eventLast       => self  %event
@@ -1781,4 +1873,44 @@ module Galacticus_Nodes
     return
   end subroutine universePushTree
 
+  logical function propertyActive(propertyType)
+    !!{
+    Returns true if active property evaulate is underway.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+
+    propertyActive=propertyType == propertyTypeActive
+    return
+  end function propertyActive
+  
+  logical function propertyInactive(propertyType)
+    !!{
+    Returns true if inactive property evaulate is underway.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+
+    propertyInactive=propertyType == propertyTypeInactive
+    return
+  end function propertyInactive
+  
+  logical function propertyEvaluate(propertyType,propertyIsInactive)
+    !!{
+    Returns true if a property should be evaulated during the current stage of evolution.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+    logical, intent(in   ) :: propertyIsInactive
+
+    propertyEvaluate= (propertyType == propertyTypeAll                                   ) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeActive   .and. .not.propertyIsInactive) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeNumerics .and. .not.propertyIsInactive) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeInactive .and.      propertyIsInactive)
+    return
+  end function propertyEvaluate
+  
 end module Galacticus_Nodes

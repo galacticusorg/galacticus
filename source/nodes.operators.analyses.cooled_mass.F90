@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,7 +79,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily massCooled} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (nodeOperatorMassCooled)                        :: self
     class(coolingRateClass      ), intent(in   ), target :: coolingRate_
@@ -87,7 +86,9 @@ contains
     <constructorAssign variables="*coolingRate_"/>
     !!]
     
-    self%massCooledID=defaultHotHaloComponent%addMetaProperty(var_str('massCooled'),'hotHalo:massCooled',isEvolvable=.true.)  
+    !![
+    <addMetaProperty component="hotHalo" name="massCooled" id="self%massCooledID" isEvolvable="yes" isCreator="yes"/>
+    !!]
     return
   end function massCooledConstructorInternal
 
@@ -119,7 +120,7 @@ contains
     type is (nodeComponentHotHalo)
        ! Hot halo does not yet exist - nothing to do here.
     class default
-       call hotHalo%metaPropertyInactive(self%massCooledID)
+       call hotHalo%floatRank0MetaPropertyInactive(self%massCooledID)
     end select
     return
   end subroutine massCooledDifferentialEvolutionInactives
@@ -142,7 +143,7 @@ contains
        ! Hot halo does not yet exist - nothing to do here.
        class default
        basic => node%basic()
-       call hotHalo%metaPropertyScale(self%massCooledID,scaleMassRelative*basic%mass())
+       call hotHalo%floatRank0MetaPropertyScale(self%massCooledID,scaleMassRelative*basic%mass())
     end select
     return
   end subroutine massCooledDifferentialEvolutionScales
@@ -151,7 +152,7 @@ contains
     !!{
     Integrates the mass cooling out of the \gls{cgm}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo, propertyTypeActive
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, propertyActive
     implicit none
     class    (nodeOperatorMassCooled), intent(inout), target  :: self
     type     (treeNode              ), intent(inout)          :: node
@@ -162,7 +163,7 @@ contains
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     ! Return immediately if active variables are requested.
-    if (propertyType == propertyTypeActive) return
+    if (propertyActive(propertyType)) return
     ! Compute the cooling rate.
     hotHalo => node%hotHalo()
     ! Accumulate rates.
@@ -170,7 +171,7 @@ contains
     type is (nodeComponentHotHalo)
        ! Hot halo does not yet exist - nothing to do here.
     class default
-       call hotHalo%metaPropertyRate(self%massCooledID,self%coolingRate_%rate(node))
+       call hotHalo%floatRank0MetaPropertyRate(self%massCooledID,self%coolingRate_%rate(node))
     end select
     return
   end subroutine massCooledDifferentialEvolution

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -349,7 +349,7 @@ contains
        call basic%massSet            (self%massHaloLens)
        call basic%timeSet            (self%timeLens    )
        call basic%timeLastIsolatedSet(self%timeLens    )
-       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%virialRadius   (                                                     node              ) &
+       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%radiusVirial   (                                                     node              ) &
             &                            /self    %cosmologyFunctions_ %expansionFactor(                                                     self%timeLens     )
        self %correlationLensMaximum   =  +self%correlationFunctionTwoPoint_%correlation(self%radiusVirialComovingLens,self%timeLens) &
             &                            *self%darkMatterHaloBias_         %bias       (node                                       )

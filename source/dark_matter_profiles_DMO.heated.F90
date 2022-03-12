@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,7 +84,6 @@
      procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => heatedRotationNormalization
      procedure :: energy                            => heatedEnergy
-     procedure :: energyGrowthRate                  => heatedEnergyGrowthRate
      procedure :: kSpace                            => heatedKSpace
      procedure :: freefallRadius                    => heatedFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => heatedFreefallRadiusIncreaseRate
@@ -211,7 +210,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"      />
     <objectDestructor name="self%darkMatterProfileHeating_" />
     !!]
-    call calculationResetEvent%detach(self,heatedCalculationReset)
+    if (calculationResetEvent%isAttached(self,heatedCalculationReset)) call calculationResetEvent%detach(self,heatedCalculationReset)
     return
   end subroutine heatedDestructor
 
@@ -647,22 +646,6 @@ contains
     end if
     return
   end function heatedEnergy
-
-  double precision function heatedEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a heated halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOHeated), intent(inout)         :: self
-    type (treeNode                  ), intent(inout), target :: node
-
-   if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       heatedEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       heatedEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function heatedEnergyGrowthRate
 
   double precision function heatedKSpace(self,node,waveNumber)
     !!{

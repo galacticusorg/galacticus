@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,10 +39,10 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   !!}
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-  double precision                                , parameter     :: blackHoleSpinMaximum=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
+  double precision                                , parameter     :: spinMaximumBlackHole=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
 
   ! Keep the spin in range.
-  Node_Component_Black_Hole_Standard_Spin=min(max(self%spinData,0.0d0),blackHoleSpinMaximum)
+  Node_Component_Black_Hole_Standard_Spin=min(max(self%spinData,0.0d0),spinMaximumBlackHole)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 

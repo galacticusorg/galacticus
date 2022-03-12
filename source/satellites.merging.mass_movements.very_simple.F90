@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <mergerMassMovements name="mergerMassMovementsVerySimple">
@@ -36,9 +37,10 @@
      A merger mass movements class which uses a simple calculation.
      !!}
      private
-     double precision                 :: massRatioMajorMerger
-     integer         (kind=kind_int8) :: lastUniqueID
-     logical                          :: mergerIsMajor       , movementsCalculated
+     class           (galacticStructureClass), pointer :: galacticStructure_   => null()
+     double precision                                  :: massRatioMajorMerger
+     integer         (kind=kind_int8        )          :: lastUniqueID
+     logical                                           :: mergerIsMajor                 , movementsCalculated
    contains
      final     ::             verySimpleDestructor
      procedure :: autoHook => verySimpleAutoHook
@@ -63,6 +65,7 @@ contains
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
+    class           (galacticStructureClass       ), pointer       :: galacticStructure_
     double precision                                               :: massRatioMajorMerger
 
     !![
@@ -72,23 +75,26 @@ contains
       <description>The mass ratio above which mergers are considered to be ``major''.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=mergerMassMovementsVerySimple(massRatioMajorMerger)
+    self=mergerMassMovementsVerySimple(massRatioMajorMerger,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function verySimpleConstructorParameters
 
-  function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
+  function verySimpleConstructorInternal(massRatioMajorMerger,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily verySimple} merger mass movements.
     !!}
     implicit none
-    type            (mergerMassMovementsVerySimple)                :: self
-    double precision                               , intent(in   ) :: massRatioMajorMerger
+    type            (mergerMassMovementsVerySimple)                        :: self
+    class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
+    double precision                               , intent(in   )         :: massRatioMajorMerger
     !![
-    <constructorAssign variables="massRatioMajorMerger"/>
+    <constructorAssign variables="massRatioMajorMerger, *galacticStructure_"/>
     !!]
 
     self%lastUniqueID       =-huge(0_kind_int8)
@@ -118,9 +124,12 @@ contains
     implicit none
     type(mergerMassMovementsVerySimple), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,verySimpleCalculationReset)
-    call satelliteMergerEvent %detach(self,verySimpleGetHook         )
-   return
+    if (calculationResetEvent%isAttached(self,verySimpleCalculationReset)) call calculationResetEvent%detach(self,verySimpleCalculationReset)
+    if (satelliteMergerEvent %isAttached(self,verySimpleGetHook         )) call satelliteMergerEvent %detach(self,verySimpleGetHook         )
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
   end subroutine verySimpleDestructor
 
   subroutine verySimpleCalculationReset(self,node)
@@ -167,8 +176,7 @@ contains
     !!{
     Determine where stars and gas move as the result of a merger event using a very simple algorithm.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic
+    use :: Galactic_Structure_Options, only : massTypeGalactic
     implicit none
     class           (mergerMassMovementsVerySimple), intent(inout)         :: self
     type            (treeNode                     ), intent(inout), target :: node
@@ -190,8 +198,8 @@ contains
           self%mergerIsMajor=.false.
        else
           nodeHost           => node%mergesWith()
-          massSatellite      =  Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic)
-          massHost           =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)
+          massSatellite      =  self%galacticStructure_%massEnclosed(node    ,massType=massTypeGalactic)
+          massHost           =  self%galacticStructure_%massEnclosed(nodeHost,massType=massTypeGalactic)
           self%mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
        end if
     end if

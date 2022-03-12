@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -151,7 +151,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   call basic    %timeLastIsolatedSet      (time             )
   call satellite%tidalHeatingNormalizedSet(heatingSpecific  )
   ! Get the virial raidus.
-  radiusVirial=darkMatterHaloScale_%virialRadius(node)
+  radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   ! Compute scale radius.
   radiusScale =radiusVirial/concentration
   call dmProfile%scaleSet(radiusScale)

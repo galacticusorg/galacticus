@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,6 +39,7 @@ environment-dependent) mass function over environment.
      class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_ => null(), haloMassFunctionUnconditioned_ => null()
      class           (haloEnvironmentClass ), pointer :: haloEnvironment_             => null()
      double precision                                 :: factorMatching                        , timeMatching
+     logical                                          :: includeUnoccupiedVolume
    contains
      final     ::                 environmentAveragedDestructor
      procedure :: differential => environmentAveragedDifferential
@@ -61,19 +62,30 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (haloMassFunctionEnvironmentAveraged)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(haloMassFunctionClass              ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
-    class(haloEnvironmentClass               ), pointer       :: haloEnvironment_
-    class(cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    type   (haloMassFunctionEnvironmentAveraged)                :: self
+    type   (inputParameters                    ), intent(inout) :: parameters
+    class  (haloMassFunctionClass              ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
+    class  (haloEnvironmentClass               ), pointer       :: haloEnvironment_
+    class  (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    logical                                                     :: includeUnoccupiedVolume
 
     !![
+    <inputParameter>
+      <name>includeUnoccupiedVolume</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+	If true, account for any volume which is not included in the environment (e.g. regions which have collapsed on the scale
+	of the environment in a peak-background split environment), when averaging over environment. Otherwise, ignore this
+	unoccupied volume.
+      </description>
+    </inputParameter>
     <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
     <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
     <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
     !!]
-    self=haloMassFunctionEnvironmentAveraged(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
+    self=haloMassFunctionEnvironmentAveraged(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloMassFunctionConditioned_"  />
@@ -84,17 +96,18 @@ contains
     return
   end function environmentAveragedConstructorParameters
 
-  function environmentAveragedConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
+  function environmentAveragedConstructorInternal(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
     !!}
     implicit none
-    type (haloMassFunctionEnvironmentAveraged)                        :: self
-    class(haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunctionConditioned_,haloMassFunctionUnconditioned_
-    class(haloEnvironmentClass               ), target, intent(in   ) :: haloEnvironment_
-    class(cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
+    type   (haloMassFunctionEnvironmentAveraged)                        :: self
+    class  (haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunctionConditioned_,haloMassFunctionUnconditioned_
+    class  (haloEnvironmentClass               ), target, intent(in   ) :: haloEnvironment_
+    class  (cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
+    logical                                             , intent(in   ) :: includeUnoccupiedVolume
     !![
-    <constructorAssign variables="*haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
+    <constructorAssign variables="includeUnoccupiedVolume, *haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
     !!]
 
     self%timeMatching=-1.0d0
@@ -125,7 +138,7 @@ contains
     use :: Numerical_Integration, only : integrator
     use :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
+    class           (haloMassFunctionEnvironmentAveraged), intent(inout), target   :: self
     double precision                                     , intent(in   )           :: time                              , mass
     type            (treeNode                           ), intent(inout), optional :: node
     class           (nodeComponentBasic                 ), pointer                 :: basic
@@ -134,7 +147,8 @@ contains
     double precision                                     , parameter               :: toleranceBackground        =1.0d-3
     type            (mergerTree                         ), target                  :: tree
     double precision                                                               :: environmentOverdensityLower       , environmentOverdensityUpper, &
-         &                                                                            cdfTarget                         , massBackground
+         &                                                                            cdfTarget                         , massBackground             , &
+         &                                                                            massFunctionUnconditioned         , massFunctionConditioned
     type            (integrator                         )                          :: integrator_
     type            (rootFinder                         )                          :: finder
 
@@ -144,9 +158,19 @@ contains
        ! function. We include an empirical correction to ensure that the mass function transitions smoothly through the background
        ! mass.
        if (time /= self%timeMatching) then
-          self%factorMatching=+self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node) &
-               &              /self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
-          self%timeMatching  =+                                                 time
+          massFunctionUnconditioned=self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
+          massFunctionConditioned  =self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node)
+          if (massFunctionUnconditioned > 0.0d0 .and. exponent(massFunctionConditioned)+exponent(massFunctionUnconditioned) < maxExponent(0.0d0)) then
+             ! Unconditioned mass function is non-zero (and not too small), so we can calculate the matching factor precisely.
+             self%factorMatching=+massFunctionConditioned   &
+                  &              /massFunctionUnconditioned
+          else
+             ! Unconditioned mass function is zero (or very small). No well-defined matching factor therefore exists, but this
+             ! should be irrelevant as the mass function will be negligible in the high mass regime anyway. Therefore, we simply
+             ! set the matching factor to 1.
+             self%factorMatching=+1.0d0
+          end if
+          self%timeMatching=time
        end if
        environmentAveragedDifferential=+self%haloMassFunctionUnconditioned_%differential(time,mass,node) &
             &                          *self%factorMatching
@@ -154,9 +178,9 @@ contains
        ! Halo mass is less than the mass of the environment - we must average the mass function over environment.
        ! Create a work node.
        call tree%properties%initialize()
-       tree %baseNode          => treeNode               (                 )
-       tree %baseNode%hostTree => tree
-       basic                   => tree    %baseNode%basic(autoCreate=.true.)
+       tree %nodeBase          => treeNode               (                 )
+       tree %nodeBase%hostTree => tree
+       basic                   => tree    %nodeBase%basic(autoCreate=.true.)
        ! Set the properties of the work node.
        call basic%massSet(mass)
        call basic%timeSet(time)
@@ -182,18 +206,21 @@ contains
           environmentOverdensityLower=environmentOverdensityLower-rangeExpandStep
        end if
        ! Perform the averaging integral.
-       integrator_                    =integrator           (                                                &
-            &                                                                  environmentAveragedIntegrand, &
-            &                                                toleranceAbsolute=1.0d-100                    , &
-            &                                                toleranceRelative=1.0d-009                      &
-            &                                               )
-       environmentAveragedDifferential=integrator_%integrate(                                                &
-            &                                                                  environmentOverdensityLower , &
-            &                                                                  environmentOverdensityUpper   &
-            &                                               )
+       integrator_                    = integrator           (                                                &
+            &                                                                   environmentAveragedIntegrand, &
+            &                                                 toleranceAbsolute=1.0d-100                    , &
+            &                                                 toleranceRelative=1.0d-009                      &
+            &                                                )
+       environmentAveragedDifferential=+integrator_%integrate(                                                &
+            &                                                                   environmentOverdensityLower , &
+            &                                                                   environmentOverdensityUpper   &
+            &                                                )
+       if (self%includeUnoccupiedVolume)                                                         &
+            &    environmentAveragedDifferential=+environmentAveragedDifferential                &
+            &                                    *self%haloEnvironment_%volumeFractionOccupied()
        ! Clean up our work node.
-       call tree%baseNode%destroy()
-       deallocate(tree%baseNode)
+       call tree%nodeBase%destroy()
+       deallocate(tree%nodeBase)
     end if
     return
 
@@ -206,7 +233,7 @@ contains
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 
-      environmentAveragedRoot=self%haloEnvironment_ %cdf(environmentOverdensity)-cdfTarget
+      environmentAveragedRoot=self%haloEnvironment_%cdf(environmentOverdensity)-cdfTarget
       return
     end function environmentAveragedRoot
 
@@ -217,8 +244,8 @@ contains
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 
-      call self%haloEnvironment_%overdensityLinearSet(node=tree%baseNode,overdensity=environmentOverdensity)
-      environmentAveragedIntegrand=+self%haloMassFunctionConditioned_%differential(time                  ,mass,node=tree%baseNode) &
+      call self%haloEnvironment_%overdensityLinearSet(node=tree%nodeBase,overdensity=environmentOverdensity)
+      environmentAveragedIntegrand=+self%haloMassFunctionConditioned_%differential(time                  ,mass,node=tree%nodeBase) &
            &                       *self%haloEnvironment_            %pdf         (environmentOverdensity                        )
       return
     end function environmentAveragedIntegrand

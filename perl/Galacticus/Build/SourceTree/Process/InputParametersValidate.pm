@@ -21,16 +21,20 @@ sub Process_InputParametersValidate {
     my $tree = shift();
     # Get an XML parser.
     my $xml = new XML::Simple();
+    # Initialize state storables database.
+    my $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml");
     # Get the file name.
     my $fileName;
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
-    # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
-     # Walk the tree, looking for input parameter validation directives.
+    # Walk the tree, looking for input parameter validation directives.
     my $node  = $tree;
     my $depth = 0;
+    my $functionClassName;
     while ( $node ) {
+	# Look for function class definitions.
+	$functionClassName = $node->{'type'}
+	    if ( grep {$node->{'type'}."Class" eq $_} keys(%{$stateStorables->{'functionClasses'}}) );
 	# Look for inputParametersValidate directives and process them.
 	if ( $node->{'type'} eq "inputParametersValidate" && ! $node->{'directive'}->{'processed'} ) {	    
 	    # Record that this directive has been processed.
@@ -87,6 +91,14 @@ sub Process_InputParametersValidate {
 	    }
 	    # Add module usage.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
+	    # Add any extra allowed names.
+	    if ( exists($node->{'directive'}->{'extraAllowedNames'}) ) {
+		my @extraAllowedNames = split(" ",$node->{'directive'}->{'extraAllowedNames'});
+		$code .= "allocate(".$variableName."(".scalar(@extraAllowedNames)."))\n";
+		for(my $i=0;$i<scalar(@extraAllowedNames);++$i) {
+		    $code .= $variableName."(".($i+1).")='".$extraAllowedNames[$i]."'\n";
+		}
+	    }
 	    # Generate the validation code.
 	    my $result;
 	    if ( $node->{'parent'}->{'type'} eq "function" ) {
@@ -98,24 +110,9 @@ sub Process_InputParametersValidate {
 	    } else {
 		die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: parent is not a function');
 	    }
-	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";	    
-	    foreach ( @objectBuilders) {
-		# Handle multiple copies.
-		my $copyInstance  = "";
-		my $copyLoopOpen  = "";
-		my $copyLoopClose = "";
-		if ( exists($_->{'copy'}) ) {
-		    if ( $_->{'copy'} =~ m/^([a-zA-Z0-9_]+)=/ ) {
-			$copyInstance  = ",copyInstance=".$1;
-			$copyLoopOpen  = "      do ".$_->{'copy'}."\n";
-			$copyLoopClose = "      end do\n";
-		    } else {
-			$copyInstance = ",copyInstance=".$_->{'copy'};
-		    }
-		}
-		$code .= $copyLoopOpen."   if (associated(".$_->{'name'}.")) call ".$_->{'name'}."%allowedParameters(".$variableName.",'parameters')\n".$copyLoopClose;
-	    }
-	    $code .= "   call ".$source."%checkParameters(".$variableName.(exists($node->{'directive'}->{'multiParameters'}) ? ",".$multiNames : "").")\n";
+	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."',.false.)\n";
+	    # Perform the check.
+	    $code .= "   if (.not.".$functionClassName."DsblVldtn) call ".$source."%checkParameters(".$variableName.(exists($node->{'directive'}->{'multiParameters'}) ? ",".$multiNames : "").")\n";
 	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
 	    # Insert new code.
 	    my $codeNode =

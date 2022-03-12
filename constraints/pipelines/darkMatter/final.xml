@@ -14,8 +14,19 @@
     <gamma2 value="0.0587448775510245" />
     <gamma3 value="0.645617093475741" />
   </mergerTreeBranchingProbability>
-  <spinVitvitskaMassExponent value="0.92527794238468" />
   <virialOrbit value="spinCorrelated">
     <alpha value="0.155573112534425" />
   </virialOrbit>
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.10475"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"   />
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+  </nodeOperator>
 </parameters>

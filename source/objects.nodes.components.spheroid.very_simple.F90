@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,8 +25,6 @@ module Node_Component_Spheroid_Very_Simple
   !!{
   Implements a very simple spheroid component.
   !!}
-  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
@@ -34,7 +32,8 @@ module Node_Component_Spheroid_Very_Simple
   public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Post_Step          , &
        &    Node_Component_Spheroid_Very_Simple_Scale_Set                 , Node_Component_Spheroid_Very_Simple_Thread_Uninitialize, &
        &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve         , &
-       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Radius_Solver
+       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Radius_Solver      , &
+       &    Node_Component_Spheroid_Very_Simple_State_Store               , Node_Component_Spheroid_Very_Simple_State_Restore
 
   !![
   <component>
@@ -119,11 +118,9 @@ module Node_Component_Spheroid_Very_Simple
   !!]
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_
   class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
   class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
-  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfileDMO_,mergerMassMovements_,stellarPopulationProperties_)
+  !$omp threadprivate(mergerMassMovements_,stellarPopulationProperties_)
 
   ! Parameters controlling the physical implementation.
   double precision :: spheroidMassToleranceAbsolute      , spheroidVerySimpleMassScaleAbsolute
@@ -200,8 +197,6 @@ contains
        call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
        !![
-       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
-       <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
        <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
        <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
        !!]
@@ -223,11 +218,9 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
-       call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultSpheroidComponent,postEvolve     )) call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(defaultSpheroidComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
        !![
-       <objectDestructor name="darkMatterHaloScale_"         />
-       <objectDestructor name="darkMatterProfileDMO_"        />
        <objectDestructor name="stellarPopulationProperties_" />
        <objectDestructor name="mergerMassMovements_"         />
        !!]
@@ -311,7 +304,7 @@ contains
     integer                                 , intent(inout)          :: status
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                                 :: spheroidMass                  , fractionalError
+    double precision                                                 :: massSpheroid                  , fractionalError
     character       (len=20                )                         :: valueString
     type            (varying_string        ), save                   :: message
     !$omp threadprivate(message)
@@ -355,9 +348,9 @@ contains
           end if
           !$omp end critical (Very_Simple_Spheroid_Post_Evolve_Check)
           ! Get the total mass of the spheroid material
-          spheroidMass=+spheroid%massGas    () &
+          massSpheroid=+spheroid%massGas    () &
                &       +spheroid%massStellar()
-          if (spheroidMass == 0.0d0) then
+          if (massSpheroid == 0.0d0) then
              call spheroid%        massStellarSet(                  0.0d0)
              call spheroid%  abundancesStellarSet(         zeroAbundances)
              call spheroid%luminositiesStellarSet(zeroStellarLuminosities)
@@ -726,8 +719,8 @@ contains
     !!{
     Interface for the size solver algorithm.
     !!}
-    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
-    use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, &
+         &                          nodeComponentSpin
     implicit none
     type            (treeNode                                      ), intent(inout)          :: node
     logical                                                         , intent(  out)          :: componentActive
@@ -737,6 +730,7 @@ contains
     procedure       (Node_Component_Spheroid_Very_Simple_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentSpheroid                         )               , pointer :: spheroid
     class           (nodeComponentBasic                            )               , pointer :: basic
+    class           (nodeComponentSpin                             )               , pointer :: spin
 
     ! Determine if node has an active spheroid component supported by this module.
     componentActive =  .false.
@@ -745,8 +739,10 @@ contains
     class is (nodeComponentSpheroidVerySimple)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          basic                   => node             %basic()
-          specificAngularMomentum =  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)/basic%mass()
+          basic                   =>  node               %basic()
+          spin                    =>  node               %spin ()
+          specificAngularMomentum =  +spin%angularMomentum     () &
+               &                     /basic              %mass ()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Spheroid_Very_Simple_Radius
@@ -814,5 +810,51 @@ contains
     call spheroid%velocitySet(velocity)
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Spheroid_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentSpheroid -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="stellarPopulationProperties_ mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Spheroid_Very_Simple_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Spheroid_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentSpheroid -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="stellarPopulationProperties_ mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Spheroid_Very_Simple_State_Restore
 
 end module Node_Component_Spheroid_Very_Simple

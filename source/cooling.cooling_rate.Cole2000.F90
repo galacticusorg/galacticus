@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,7 @@
      Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
      !!}
      private
-     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_ => null()
+     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_     => null()
      class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
    contains
      final     ::         cole2000Destructor

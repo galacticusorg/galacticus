@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -560,7 +560,7 @@ contains
                                   message=message//displayGreen()
                                   message=message//"HELP: "
                                   message=message//displayReset()
-                                  message=message//      "consider increasing the integrationtolerance parameter from the currnet value of "
+                                  message=message//      "consider increasing the integrationtolerance parameter from the current value of "
                                   message=message//trim(adjustl(label))
                                   write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
                                   message=message//"      to "

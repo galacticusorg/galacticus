@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@
      proportion to specific angular momentum).
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::             linearDestructor
      procedure :: solve    => linearSolve
@@ -127,10 +127,10 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
-    call   preDerivativeEvent%detach(self,linearSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,linearSolveHook            )
-    call satelliteMergerEvent%detach(self,linearSolveHook            )
-    call   nodePromotionEvent%detach(self,linearSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,linearSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,linearSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,linearSolveHook            )) call      postEvolveEvent%detach(self,linearSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,linearSolveHook            )) call satelliteMergerEvent%detach(self,linearSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,linearSolveHook            )) call   nodePromotionEvent%detach(self,linearSolveHook            )
     return
   end subroutine linearDestructor
 
@@ -212,7 +212,7 @@ contains
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return
       ! Find the radius of the component, assuming radius scales linearly with angular momentum.
-      velocity=self%darkMatterHaloScale_%virialVelocity(node)
+      velocity=self%darkMatterHaloScale_%velocityVirial(node)
       radius  =specificAngularMomentum/velocity
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )

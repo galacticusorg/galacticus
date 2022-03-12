@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@ module Interfaces_FSPS
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
-  public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
+  public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate, Interface_FSPS_Version
 
   ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
   type(lockDescriptor) :: fspsLock
@@ -37,6 +37,18 @@ module Interfaces_FSPS
 
 contains
 
+  subroutine Interface_FSPS_Version(fspsVersion)
+    !!{
+    Set the version of FSPS being used.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    implicit none
+    type(varying_string), intent(  out) :: fspsVersion
+    
+    fspsVersion="3.2"
+    return
+  end subroutine Interface_FSPS_Version
+  
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !!{
     Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
@@ -60,7 +72,7 @@ contains
     !!]
 
     ! Specify source code path.
-    fspsVersion="3.2"
+    call Interface_FSPS_Version(fspsVersion)
     fspsPath=galacticusPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
     lockPath=galacticusPath(pathTypeDataDynamic)//"fsps" //fspsVersion
     call File_Lock(char(lockPath),fspsLock)
@@ -99,7 +111,7 @@ contains
        else
           call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile")
        end if
-       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS=-mcmodel=medium '//char(compilerOptions(languageFortran))//'; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',status)
+       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="-mcmodel=medium '//char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
     call File_Unlock(fspsLock)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -135,7 +135,7 @@ contains
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout), target :: self
     type            (treeNode                                    ), intent(inout), target :: node
     double precision                                              , intent(in   )         :: mass
-    class           (nodeComponentBasic                          ), pointer               :: baseBasic
+    class           (nodeComponentBasic                          ), pointer               :: basicBase
     double precision                                                                      :: baseRedshift               , baseTime, &
          &                                                                                   baseExpansionFactor        , baseMass, &
          &                                                                                   redshift                   , aTilde  , &
@@ -143,9 +143,9 @@ contains
     !$GLC attributes unused :: self
 
     ! Get properties of the base node.
-    baseBasic => node     %basic()
-    baseMass  =  baseBasic%mass ()
-    baseTime  =  baseBasic%time ()
+    basicBase => node     %basic()
+    baseMass  =  basicBase%mass ()
+    baseTime  =  basicBase%time ()
     ! Determine the base redshift.
     baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
     baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
@@ -192,7 +192,7 @@ contains
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     double precision                                              , intent(in   ) :: time
-    class           (nodeComponentBasic                          ), pointer       :: baseBasic
+    class           (nodeComponentBasic                          ), pointer       :: basicBase
     double precision                                                              :: baseRedshift       , baseTime                 , &
          &                                                                           baseExpansionFactor, baseMass                 , &
          &                                                                           redshift           , aTilde                   , &
@@ -201,9 +201,9 @@ contains
     !$GLC attributes unused :: self
 
     ! Get properties of the base node.
-    baseBasic => node     %basic()
-    baseMass  =  baseBasic%mass ()
-    baseTime  =  baseBasic%time ()
+    basicBase => node     %basic()
+    baseMass  =  basicBase%mass ()
+    baseTime  =  basicBase%time ()
     ! Determine the base redshift.
     baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
     baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)

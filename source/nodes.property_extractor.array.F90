@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,6 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  use :: Hashes, only : doubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
@@ -37,6 +39,7 @@
        <method method="names"              description="Return the name of the properties extracted."                       />
        <method method="descriptions"       description="Return a description of the properties extracted."                  />
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"           description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
      procedure(arrayDescriptions), deferred :: columnDescriptions
@@ -46,6 +49,7 @@
      procedure(arrayNames       ), deferred :: names
      procedure(arrayDescriptions), deferred :: descriptions
      procedure(arrayUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: metaData           => arrayMetaData
   end type nodePropertyExtractorArray
 
   abstract interface
@@ -120,3 +124,18 @@
        double precision                            , intent(in   ) :: time
      end function arraySize
   end interface
+
+contains
+  
+  subroutine arrayMetaData(self,indexProperty,metaData)
+    !!{
+    Interface for array property meta-data.
+    !!}
+    implicit none
+    class(  nodePropertyExtractorArray), intent(inout) :: self
+    integer                            , intent(in   ) :: indexProperty
+    type   (doubleHash                ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, indexProperty, metaData
+    
+    return
+  end subroutine arrayMetaData

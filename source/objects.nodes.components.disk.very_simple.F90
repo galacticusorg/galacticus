@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +39,8 @@ module Node_Component_Disk_Very_Simple
   public :: Node_Component_Disk_Very_Simple_Scale_Set   , Node_Component_Disk_Very_Simple_Thread_Uninitialize, &
        &    Node_Component_Disk_Very_Simple_Initialize  , Node_Component_Disk_Very_Simple_Pre_Evolve         , &
        &    Node_Component_Disk_Very_Simple_Rates       , Node_Component_Disk_Very_Simple_Analytic_Solver    , &
-       &    Node_Component_Disk_Very_Simple_Post_Step   , Node_Component_Disk_Very_Simple_Thread_Initialize
+       &    Node_Component_Disk_Very_Simple_Post_Step   , Node_Component_Disk_Very_Simple_Thread_Initialize  , &
+       &    Node_Component_Disk_Very_Simple_State_Store , Node_Component_Disk_Very_Simple_State_Restore
 
   !![
   <component>
@@ -247,8 +248,8 @@ contains
        <objectDestructor name="starFormationRateDisks_"     />
        <objectDestructor name="mergerMassMovements_"        />
        !!]
-       call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
@@ -310,7 +311,7 @@ contains
 
   !![
   <postStepTask>
-  <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
+    <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
   </postStepTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
@@ -329,7 +330,7 @@ contains
     integer                             , intent(inout)          :: status
     class           (nodeComponentDisk )               , pointer :: disk
     double precision                    , save                   :: fractionalErrorMaximum=0.0d0
-    double precision                                             :: diskMass                    , fractionalError
+    double precision                                             :: massDisk                    , fractionalError
     character       (len=20            )                         :: valueString
     type            (varying_string    ), save                   :: message
     !$omp threadprivate(message)
@@ -373,9 +374,9 @@ contains
           end if
           !$omp end critical (Very_Simple_Disk_Post_Evolve_Check)
           ! Get the total mass of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
              call disk%luminositiesStellarSet(zeroStellarLuminosities)
@@ -856,5 +857,51 @@ contains
     end select
     return
   end subroutine satelliteMerger
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Disk_Very_Simple_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Disk_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ darkMatterProfileDMO_ mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Disk_Very_Simple_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Disk_Very_Simple_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Disk_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ darkMatterProfileDMO_ mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Disk_Very_Simple_State_Restore
 
 end module Node_Component_Disk_Very_Simple

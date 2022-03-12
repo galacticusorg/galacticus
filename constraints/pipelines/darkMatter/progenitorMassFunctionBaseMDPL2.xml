@@ -19,8 +19,7 @@
   <componentHotHalo            value="null"      />
   <componentSatellite          value="verySimple"/>
   <componentSpheroid           value="null"      />
-  <componentMergingStatistics  value="standard"  />
-  <satelliteMergingTimescales value="zero"      />
+  <satelliteMergingTimescales  value="zero"      />
   <componentSpin               value="null"      />
 
   <!-- Cosmological parameters matched to MDPL -->
@@ -107,6 +106,15 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Compute subhalo hierarchy -->
+    <nodeOperator value="hierarchy"/>
+  </nodeOperator>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="MDPL2.hdf5"/>
@@ -126,6 +134,7 @@
   <outputAnalysis value="multi">
     <!-- Minimum mass ratio for likelihood is the ratio of the MDPL2 300 particle mass limit (2.23e9) to the minimum parent
          mass in the sample. -->
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_MDPL2.hdf5"/>
       <indexParent                  value="0"                                                                                        />

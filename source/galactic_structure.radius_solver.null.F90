@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,9 +55,11 @@ contains
     implicit none
     type(galacticStructureSolverNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=galacticStructureSolverNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 
@@ -85,10 +87,10 @@ contains
     implicit none
     type(galacticStructureSolverNull), intent(inout) :: self
 
-    call   preDerivativeEvent%detach(self,nullSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,nullSolveHook            )
-    call satelliteMergerEvent%detach(self,nullSolveHook            )
-    call   nodePromotionEvent%detach(self,nullSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,nullSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,nullSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,nullSolveHook            )) call      postEvolveEvent%detach(self,nullSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,nullSolveHook            )) call satelliteMergerEvent%detach(self,nullSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,nullSolveHook            )) call   nodePromotionEvent%detach(self,nullSolveHook            )
     return
   end subroutine nullDestructor
 

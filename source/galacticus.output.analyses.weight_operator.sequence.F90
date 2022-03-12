@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,6 +35,9 @@ Contains a module which implements a sequence output analysis weight operator cl
    <stateStore>
     <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
+   </allowedParameters>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence

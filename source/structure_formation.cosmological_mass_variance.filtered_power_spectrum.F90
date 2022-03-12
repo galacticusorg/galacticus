@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,16 +83,16 @@
      private
      class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null(), powerSpectrumPrimordialTransferredReference => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null() , powerSpectrumPrimordialTransferredReference => null()
      class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null(), powerSpectrumWindowFunctionTopHat_          => null()
-     logical                                                                              :: initialized                                  , nonMonotonicIsFatal
-     double precision                                                                     :: tolerance                                    , toleranceTopHat                                      , &
-          &                                                                                  sigma8Value                                  , sigmaNormalization                                   , &
-          &                                                                                  massMinimum                                  , massMaximum                                          , &
-          &                                                                                  timeMinimum                                  , timeMaximum                                          , &
-          &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse                          , &
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null() , powerSpectrumWindowFunctionTopHat_          => null()
+     logical                                                                              :: initialized                         =  .false., nonMonotonicIsFatal
+     double precision                                                                     :: tolerance                                     , toleranceTopHat                                      , &
+          &                                                                                  sigma8Value                                   , sigmaNormalization                                   , &
+          &                                                                                  massMinimum                                   , massMaximum                                          , &
+          &                                                                                  timeMinimum                                   , timeMaximum                                          , &
+          &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
           &                                                                                  wavenumberReference
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
@@ -100,8 +100,8 @@
      type            (lockDescriptor                         )                            :: fileLock
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_                               , &
-         &                                                                                   normalizationSigma8                          , truncateAtParticleHorizon
+     logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
+         &                                                                                   normalizationSigma8                   =.false., truncateAtParticleHorizon
    contains
      !![
      <methods>
@@ -261,7 +261,7 @@ contains
      <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
      <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
     </conditionalCall>
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="reference"/>
     !!]
     if (parameters%isPresent('wavenumberReference')) then
        !![

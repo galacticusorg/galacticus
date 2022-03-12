@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,11 +80,12 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily massHostMaximum} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type(nodeOperatorMassHostMaximum) :: self
     
-    self%massHostMaximumID=defaultBasicComponent%addMetaProperty(var_str('massHostMaximum'),'basic:massHostMaximum',isEvolvable=.false.)
+    !![
+    <addMetaProperty component="basic" name="massHostMaximum" id="self%massHostMaximumID" isEvolvable="no" isCreator="yes"/>
+    !!]
     return
   end function massHostMaximumConstructorInternal
 
@@ -126,13 +127,13 @@ contains
     if (.not.(node%isSatellite() .or. isMerging)) return
     basic     => node       %basic()
     basicHost => node%parent%basic()
-    call basic%metaPropertySet(                                                       &
-         &                                                   self%massHostMaximumID , &
-         &                     max(                                                   &
-         &                         basic    %metaPropertyGet(self%massHostMaximumID), &
-         &                         basicHost%mass           (                      )  &
-         &                        )                                                   &
-         &                    )  
+    call basic%floatRank0MetaPropertySet(                                                                 &
+         &                                                                       self%massHostMaximumID , &
+         &                               max(                                                             &
+         &                                   basic    %floatRank0MetaPropertyGet(self%massHostMaximumID), &
+         &                                   basicHost%mass                     (                      )  &
+         &                                  )                                                             &
+         &                              )
     return
   end subroutine massHostMaximumUpdate
 
@@ -182,13 +183,13 @@ contains
     do while (associated(nodeSatellite))
        basicSatellite => nodeSatellite       %basic()
        basicHost      => node         %parent%basic()
-       call basicSatellite%metaPropertySet(                                                            &
-            &                                                                 self%massHostMaximumID , &
-            &                              max(                                                        &
-            &                                  basicSatellite%metaPropertyGet(self%massHostMaximumID), &
-            &                                  basicHost     %mass           (                      )  &
-            &                                 )                                                        &
-            &                             )  
+       call basicSatellite%floatRank0MetaPropertySet(                                                                      &
+            &                                                                                     self%massHostMaximumID , &
+            &                                        max(                                                                  &
+            &                                            basicSatellite%floatRank0MetaPropertyGet(self%massHostMaximumID), &
+            &                                            basicHost     %mass                     (                      )  &
+            &                                           )                                                                  &
+            &                                       )  
        nodeSatellite => nodeSatellite%sibling
     end do
     return

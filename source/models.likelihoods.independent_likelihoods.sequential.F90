@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -114,6 +114,9 @@ contains
     self%evaluateCount                                  =0
     self%evaluateCountGlobal                            =0
     self%forceCount                                     =0
+    !![
+    <inputParametersValidate source="parameters" multiParameters="likelihoodMultiplier, likelihoodAccept"/>
+    !!]
     return
   end function independentLikelihoodsSequentialConstructorParameters
 

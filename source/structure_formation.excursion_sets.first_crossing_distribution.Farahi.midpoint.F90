@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,6 +58,9 @@ contains
     type(inputParameters                        ), intent(inout) :: parameters
 
     self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(parameters)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function farahiMidpointConstructorParameters
 
@@ -350,7 +353,8 @@ contains
     Tabulate the excursion set crossing rate.
     !!}
     use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent             , verbosityLevelWorking
+         &                           displayUnindent             , verbosityLevelWorking, displayMagenta      , displayReset  , &
+         &                           verbosityLevelWarn          , displayVerbosity
     use :: Error_Functions  , only : Error_Function_Complementary
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble                   , kind_quad
@@ -359,39 +363,42 @@ contains
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
-    double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
+    double precision                                         , intent(in   )                   :: time                                         , varianceProgenitor
     type            (treeNode                               ), intent(inout)                   :: node
     double precision                                         , parameter                       :: varianceMinimumDefault    =1.0d-2
     double precision                                         , parameter                       :: varianceTolerance         =1.0d-6
     double precision                                         , parameter                       :: massLarge                 =1.0d16
-    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
-         &                                                                                        varianceTableRateQuad            , varianceMidTableRateQuad , &
-         &                                                                                        barrierTableRateQuad             , barrierMidTableRateQuad
+    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingTableRateQuad                   , varianceTableRateBaseQuad, &
+         &                                                                                        varianceTableRateQuad                        , varianceMidTableRateQuad , &
+         &                                                                                        barrierTableRateQuad                         , barrierMidTableRateQuad
     double precision                                         , allocatable  , dimension(:,:  ) :: nonCrossingTableRate
     double precision                                         , allocatable  , dimension(:,:,:) :: firstCrossingTableRate
     double precision                                                                           :: barrierRateTest
     class           (excursionSetBarrierClass               ), pointer                         :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), pointer                         :: cosmologicalMassVariance_
+    real            (kind=kind_quad                         ), parameter                       :: nonCrossingFractionTiny   =1.0e-002_kind_quad
+    real            (kind=kind_quad                         ), parameter                       :: firstCrossingRateHuge     =1.0e+100_kind_quad
 #ifdef USEMPI
     integer                                                                                    :: taskCount
 #endif
     logical                                                                                    :: makeTable
-    integer         (c_size_t                               )                                  :: loopCount                        , loopCountTotal
-    integer                                                                                    :: i                                , iTime                    , &
-         &                                                                                        iVariance                        , j                        , &
-         &                                                                                        countNewLower                    , countNewUpper            , &
+    integer         (c_size_t                               )                                  :: loopCount                                    , loopCountTotal
+    integer                                                                                    :: i                                            , iTime                    , &
+         &                                                                                        iVariance                                    , j                        , &
+         &                                                                                        countNewLower                                , countNewUpper            , &
          &                                                                                        timeTableCountNew
-    double precision                                                                           :: timeProgenitor                   , varianceMinimumRate      , &
-         &                                                                                        massProgenitor                   , timeMinimumRate          , &
+    double precision                                                                           :: timeProgenitor                               , varianceMinimumRate      , &
+         &                                                                                        massProgenitor                               , timeMinimumRate          , &
          &                                                                                        timeMaximumRate
-    character       (len=9                                  )                                  :: label
+    character       (len=64                                 )                                  :: label
     type            (varying_string                         )                                  :: message
     type            (lockDescriptor                         )                                  :: fileLock
-    real            (kind=kind_quad                         )                                  :: crossingFraction                 , effectiveBarrierInitial  , &
-         &                                                                                        sigma1f                          , varianceTableStepRate    , &
-         &                                                                                        barrier                          , integralKernelRate       , &
-         &                                                                                        growthFactorEffective            , erfcArgumentNumerator    , &
-         &                                                                                        erfcArgumentDenominator          , erfcValue
+    real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial  , &
+         &                                                                                        sigma1f                                      , varianceTableStepRate    , &
+         &                                                                                        barrier                                      , integralKernelRate       , &
+         &                                                                                        growthFactorEffective                        , erfcArgumentNumerator    , &
+         &                                                                                        erfcArgumentDenominator                      , erfcValue                , &
+         &                                                                                        crossingFractionNew
     logical                                                                                    :: varianceMaximumChanged
 
     ! Determine if we need to make the table.
@@ -559,7 +566,7 @@ contains
           ! is initialized and covers the whole range we are intereseted in.
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective,message,label) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
@@ -637,6 +644,10 @@ contains
                         &                        /varianceTableStepRate                                                      &
                         &                        /integralKernelRate
                 end if
+                varianceTableStepRate=+varianceTableRateQuad     (1) &
+                     &                -varianceTableRateQuad     (0)
+                crossingFraction     =+firstCrossingTableRateQuad(1) &
+                     &                *varianceTableStepRate
                 do i=2,self%varianceTableCountRate
                    if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                       firstCrossingTableRateQuad(i)=0.0_kind_quad
@@ -658,7 +669,7 @@ contains
                             erfcArgumentNumerator=+effectiveBarrierInitial    &
                                  &                -barrierMidTableRateQuad(j) &
                                  &                +barrier
-                            if (erfcArgumentNumerator == 0.0_kind_quad) then
+                            if (erfcArgumentNumerator == 0.0_kind_quad .or. exponent(erfcArgumentNumerator)-exponent(erfcArgumentDenominator) > maxExponent(0.0_kind_quad)) then
                                erfcValue=1.0_kind_quad
                             else
                                erfcArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
@@ -673,26 +684,64 @@ contains
                             end if
                          end do
                          varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                         firstCrossingTableRateQuad(i)=max(                                                                              &
-                              &                            +0.0_kind_quad,                                                               &
-                              &                            +(                                                                            &
-                              &                              +Error_Function_Complementary(                                              &
-                              &                                                            +effectiveBarrierInitial                      &
-                              &                                                            /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
-                              &                                                           )                                              &
-                              &                              -sigma1f                                                                    &
-                              &                             )                                                                            &
-                              &                            /varianceTableStepRate                                                        &
-                              &                            /integralKernelRate                                                           &
-                              &                           )
-                         ! Remove unphysical values. Force the crossing rate at points close to maximum variance to zero if its value is one order of magnitude
-                         ! larger than the value at previous point.
-                         if     (                                                                                                                               &
-                              &   varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
-                              &  .and.                                                                                                                          &
-                              &   firstCrossingTableRateQuad(i) > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)                                                &
-                              & )                                                                                                                               &
+                         firstCrossingTableRateQuad(i)=+Error_Function_Complementary(                                              &
+                              &                                                      +effectiveBarrierInitial                      &
+                              &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
+                              &                                                     )                                              &
+                              &                        -sigma1f
+                         if     (                                                                                                                                   &
+                              &   firstCrossingTableRateQuad(i)                                                                        > 0.0d0                      &
+                              &  .and.                                                                                                                              &
+                              &   integralKernelRate                                                                                   > 0.0d0                      &
+                              &  .and.                                                                                                                              &
+                              &   exponent(firstCrossingTableRateQuad(i))-exponent(varianceTableStepRate)-exponent(integralKernelRate) < maxExponent(0.0_kind_quad) &
+                              & ) then
+                            firstCrossingTableRateQuad(i)=+firstCrossingTableRateQuad(i) &
+                                 &                        /varianceTableStepRate         &
+                                 &                        /integralKernelRate
+                         else
+                            firstCrossingTableRateQuad(i)=0.0d0
+                         end if
+                         ! Accumulate the crossing fraction for use in the following check.
+                         varianceTableStepRate=+varianceTableRateQuad     (i  ) &
+                              &                -varianceTableRateQuad     (i-1)
+                         crossingFractionNew  =+crossingFraction                &
+                              &                +firstCrossingTableRateQuad(i  ) &
+                              &                *varianceTableStepRate
+                         ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
+                         ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
+                         ! than the value at previous point.
+                         if     (                                                                                                                                    &
+                              &  (                                                                                                                                   &
+                              &    varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
+                              &   .or.                                                                                                                               &
+                              &    crossingFractionNew                                               > (1.0_kind_quad-nonCrossingFractionTiny)                       &
+                              &   )                                                                                                                                  &
+                              &  .and.                                                                                                                               &
+                              &  (                                                                                                                                   &
+                              &   firstCrossingTableRateQuad(i)                                      > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)                &
+                              &   .or.                                                                                                                               &
+                              &   firstCrossingTableRateQuad(i)                                      >                firstCrossingRateHuge                          &
+                              &   .or.                                                                                                                               &
+                              &   firstCrossingTableRateQuad(i)                                      <  0.0_kind_quad                                                &
+                              &   )                                                                                                                                  &
+                              & )                                                                                                                                    &
                               & firstCrossingTableRateQuad(i)=0.0_kind_quad
+                         if (abs(firstCrossingTableRateQuad(i)) > firstCrossingRateHuge .and. displayVerbosity() >= verbosityLevelWarn) then
+                            message=         displayMagenta()//"WARNING:"//displayReset()//" unphysical solution for crossing rate:"//char(10)
+                            write (label,'(e15.6," (",e15.6,")")') crossingFraction,crossingFractionNew
+                            message=message//"    crossing fraction = "//trim(label)//char(10)
+                            write (label,'(e15.6)') firstCrossingTableRateQuad(i)
+                            message=message//"  first crossing rate = "//trim(label)//char(10)
+                            write (label,'(i8)'   ) iTime
+                            message=message//"           index time = "//trim(label)//char(10)
+                            write (label,'(i8)'   ) iVariance
+                            message=message//"       index variance = "//trim(label)//char(10)
+                            write (label,'(i8)'   ) i
+                            message=message//"                index = "//trim(label)
+                            call displayMessage(message,verbosityLevelWarn)
+                         end if
+                         crossingFraction     =+crossingFractionNew
                       end if
                    end if
                 end do
@@ -705,11 +754,14 @@ contains
                         &                *varianceTableStepRate
                 end do
                 ! Compute the rate for trajectories which never cross the barrier.
-                self%nonCrossingTableRate(iVariance,iTime)=real(                                   &
-                     &                                          +(1.0_kind_quad-crossingFraction)  &
-                     &                                          /self%timeTableRate(iTime)         &
-                     &                                          /self%timeStepFractional         , &
-                     &                                          kind=kind_dble                     &
+                self%nonCrossingTableRate(iVariance,iTime)=real(                                     &
+                     &                                          +max(                                &
+                     &                                               1.0_kind_quad-crossingFraction, &
+                     &                                               0.0_kind_quad                   &
+                     &                                              )                                &
+                     &                                          /self%timeTableRate(iTime)           &
+                     &                                          /self%timeStepFractional           , &
+                     &                                          kind=kind_dble                       &
                      &                                         )
                 ! Store the compute crossing rate in our table.
                 self%firstCrossingTableRate(:,iVariance,iTime)=real(firstCrossingTableRateQuad,kind=kind_dble)

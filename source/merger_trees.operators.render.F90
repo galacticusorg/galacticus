@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -185,7 +185,7 @@ contains
        childIndex     (  iNode) =  node    %firstChild%index   ()
        time           (  iNode) =                                                basic%time()
        expansionFactor(  iNode) =  self    %cosmologyFunctions_ %expansionFactor(basic%time())
-       radiusVirial   (  iNode) =  self    %darkMatterHaloScale_%virialRadius   (node        )
+       radiusVirial   (  iNode) =  self    %darkMatterHaloScale_%radiusVirial   (node        )
        position_      (:,iNode) =  position                     %position       (            )
     end do
     ! Open an HDF5 file.
