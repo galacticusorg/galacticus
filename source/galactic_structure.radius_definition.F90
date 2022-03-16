@@ -56,6 +56,7 @@ module Galactic_Structure_Radii_Definitions
    <entry label="spheroidHalfMassRadius"/>
    <entry label="galacticMassFraction"  />
    <entry label="galacticLightFraction" />
+   <entry label="stellarMassFraction"   />
   </enumeration>
   !!]
 
@@ -119,6 +120,10 @@ contains
        if (extract(valueDefinition,1,20) == 'galacticMassFraction' ) then
           call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
           radiusDefinition(1)='galacticMassFraction'
+       end if
+       if (extract(valueDefinition,1,19) == 'stellarMassFraction'  ) then
+          call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
+          radiusDefinition(1)='stellarMassFraction'
        end if
        ! Parse the radius definition.
        select case (char(radiusDefinition(1)))
@@ -204,6 +209,12 @@ contains
           read (fractionLabel,*) specifiers(i)%fraction
           specifiers(i)%weightBy      =weightByLuminosity
           specifiers(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
+       case ('stellarMassFraction'   )
+          specifiers(i)%type=radiusTypeStellarMassFraction
+          fractionLabel=fractionDefinition(2)
+          read (fractionLabel,*) specifiers(i)%fraction
+          specifiers(i)%weightBy     =weightByMass
+          specifiers(i)%weightByIndex=weightIndexNull
        case default
           call Galacticus_Error_Report('unrecognized radius specifier "'//char(radiusDefinition(1))//'"'//{introspection:location})
        end select

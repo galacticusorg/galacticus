@@ -179,10 +179,10 @@ contains
     !!{
     Implement a {\normalfont \ttfamily densityProfile} property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic
+    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
-          &                                             radiusTypeVirialRadius
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
     double precision                                     , dimension(:,:), allocatable :: densityProfileExtract
@@ -228,6 +228,17 @@ contains
                &   node                                         ,  &
                &   massFractional=self%radii(i)%fraction        ,  &
                &   massType      =              massTypeGalactic,  &
+               &   componentType =              componentTypeAll,  &
+               &   weightBy      =self%radii(i)%weightBy        ,  &
+               &   weightIndex   =self%radii(i)%weightByIndex      &
+               &  )
+        case   (radiusTypeStellarMassFraction  )
+          radius=+radius                                           &
+               & *self%galacticStructure_%radiusEnclosingMass      &
+               &  (                                                &
+               &   node                                         ,  &
+               &   massFractional=self%radii(i)%fraction        ,  &
+               &   massType      =              massTypeStellar ,  &
                &   componentType =              componentTypeAll,  &
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
