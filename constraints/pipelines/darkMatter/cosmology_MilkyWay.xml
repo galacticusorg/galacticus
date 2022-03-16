@@ -31,7 +31,6 @@
       <nonMonotonicIsFatal value="false"/>
     </cosmologicalMassVariance>
   </cosmologicalMassVariance>
-  <transferFunction value="eisensteinHu1999"/>
   <powerSpectrumPrimordialTransferred value="simple"/>
 
   <!-- Structure formation options -->

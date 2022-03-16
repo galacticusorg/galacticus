@@ -106,6 +106,9 @@ my @tasks =
               "haloMassFunctionBase_MilkyWay_Halo881_z0.000.xml"       ,
               "haloMassFunctionBase_MilkyWay_Halo937_z0.000.xml"       ,
               "haloMassFunctionBase_MilkyWay_Halo9749_z0.000.xml"      ,
+              "haloMassFunctionBase_MilkyWay_WDM1_Halo416_z0.000.xml"  ,
+              "haloMassFunctionBase_MilkyWay_WDM5_Halo416_z0.000.xml"  ,
+              "haloMassFunctionBase_MilkyWay_WDM10_Halo416_z0.000.xml" ,
 	     ]                                                         ,
 	 suffix       =>
 	     [
@@ -173,6 +176,9 @@ my @tasks =
               "MilkyWay_Halo881_z0.000"                                ,
               "MilkyWay_Halo937_z0.000"                                ,
               "MilkyWay_Halo9749_z0.000"                               ,
+              "MilkyWay_WDM1_Halo416_z0.000"                           ,
+              "MilkyWay_WDM5_Halo416_z0.000"                           ,
+              "MilkyWay_WDM10_Halo416_z0.000"                          ,
 	     ]                                                         ,
 	 ppn          => 16                                            ,
 	 nodes        =>  2                                            ,

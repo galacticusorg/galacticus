@@ -46,6 +46,48 @@ my @simulations =
      plotModify          => \&zoomInsPlotModify
  },
  {
+     label               => "MilkyWay_WDM1",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 1keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#0ba0f7",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
+     label               => "MilkyWay_WDM5",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 5keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#0b65f7",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
+     label               => "MilkyWay_WDM10",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 10keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#0b23f7",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
      label               => "VSMDPL",
      description         => "Halo mass function for non-backsplash z=0 halos from the VSMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Dark matter particle properties -->
+  <darkMatterParticle value="WDMThermal">
+    <degreesOfFreedomEffective value=" 1.5"/>
+    <mass                      value="10.0"/>
+  </darkMatterParticle>
+
+  <!-- Transfer function options -->
+  <!-- Use the Bode et al. (2001) transfer function for thermal WDM -->
+  <transferFunction value="bode2001">
+    <epsilon value="0.359"/>
+    <eta     value="3.810"/>
+    <nu      value="1.100"/>
+    <!-- Bode2001 transfer function works by modifying a CDM transfer function - so feed it a CDM transfer function here -->
+    <transferFunction value="eisensteinHu1999">
+      <!-- Feed this transfer function a CDM particle - otherwise it will see the WDM particle defined above and complain that it
+	   can not compute WDM transfer functions -->
+      <darkMatterParticle value="CDM" />
+      <neutrinoNumberEffective value="3.046"/>
+      <neutrinoMassSummed      value="0.000"/>
+    </transferFunction>
+  </transferFunction>
+
+</parameters>
