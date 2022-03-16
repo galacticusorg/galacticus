@@ -121,7 +121,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (virialDensityContrastFixed)                        :: self
     double precision                            , intent(in   )         :: densityContrastValue, turnAroundOverVirialRadius
@@ -132,7 +132,7 @@ contains
     <constructorAssign variables="densityContrastValue, densityType, turnAroundOverVirialRadius, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
-    if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('invalid densityType'//{introspection:location})
+    if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Error_Report('invalid densityType'//{introspection:location})
     return
   end function fixedConstructorInternal
 

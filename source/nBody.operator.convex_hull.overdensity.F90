@@ -115,8 +115,7 @@ contains
     !!{
     Compute the overdensity of the points.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Display           , only : displayIndent          , displayUnindent, verbosityLevelStandard
+    use :: Display, only : displayIndent, displayUnindent, verbosityLevelStandard
     implicit none
     class           (nbodyOperatorConvexHullOverdensity), intent(inout)               :: self
     type            (nBodyData                         ), intent(inout), dimension(:) :: simulations

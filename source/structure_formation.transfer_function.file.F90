@@ -264,7 +264,7 @@ contains
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
@@ -293,7 +293,7 @@ contains
     call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
+    if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
     ! Check that parameters match if any are present.
     parametersObject=fileObject%openGroup('parameters')
     allocate(cosmologyParametersSimple :: cosmologyParametersFile)
@@ -406,7 +406,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is
     suppressed by a factor of two relative to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
     class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
@@ -419,7 +419,7 @@ contains
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+          call Error_Report('not supported by this implementation'//{introspection:location})
        end if
     end if
     return
@@ -430,7 +430,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is
     suppressed by a factor of four relative to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
@@ -443,7 +443,7 @@ contains
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+          call Error_Report('not supported by this implementation'//{introspection:location})
        end if
     end if
     return
@@ -455,7 +455,7 @@ contains
     reduced by {\normalfont \ttfamily fraction} relative to a \gls{cdm} transfer function.
     !!}
     use :: Numerical_Constants_Math, only : Pi
-    use :: Galacticus_Error        , only : Galacticus_Error_Report, errorStatusFail
+    use :: Error                   , only : Error_Report, errorStatusFail
     implicit none
     class           (transferFunctionFile), intent(inout), target   :: self
     double precision                      , intent(in   )           :: fraction
@@ -504,7 +504,7 @@ contains
           if (present(status)) then
              status=errorStatusFail
           else
-             call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+             call Error_Report('not supported by this implementation'//{introspection:location})
           end if
        end if
     else
@@ -512,7 +512,7 @@ contains
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+          call Error_Report('not supported by this implementation'//{introspection:location})
        end if
     end if
     return

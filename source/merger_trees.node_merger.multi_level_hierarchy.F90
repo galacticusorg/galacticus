@@ -64,10 +64,10 @@ contains
     !!{
     Processes a node merging event, utilizing a multi level substructure hierarchy.
     !!}
-    use :: Display            , only : displayGreen           , displayReset
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Display            , only : displayGreen  , displayReset
+    use :: Error              , only : Error_Report
     use :: Galacticus_Nodes   , only : treeNode
-    use :: ISO_Varying_String , only : varying_string         , operator(//), assignment(=)
+    use :: ISO_Varying_String , only : varying_string, operator(//), assignment(=)
     use :: String_Handling    , only : operator(//)
     implicit none
     class(mergerTreeNodeMergerMultiLevelHierarchy), intent(inout)          :: self
@@ -87,7 +87,7 @@ contains
        message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
        message=message//displayGreen()//'HELP:'//displayReset()//' to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
        message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     do while (.not.associated(nodeChild%sibling,node))
        nodeChild => nodeChild%sibling

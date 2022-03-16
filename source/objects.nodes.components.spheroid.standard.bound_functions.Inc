@@ -25,7 +25,7 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
   !!{
   Return the half-mass radius of the standard spheroid.
   !!}
-  use :: Galacticus_Error                     , only : Galacticus_Error_Report
+  use :: Error                                , only : Error_Report
   use :: Mass_Distributions                   , only : massDistributionSpherical
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
@@ -36,7 +36,7 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
      Node_Component_Spheroid_Standard_Half_Mass_Radius=self%radius()*spheroidMassDistribution%radiusHalfMass()
   class default
      Node_Component_Spheroid_Standard_Half_Mass_Radius=0.0d0
-     call Galacticus_Error_Report('mass distribution should be spherical'//{introspection:location})
+     call Error_Report('mass distribution should be spherical'//{introspection:location})
   end select
   return
 end function Node_Component_Spheroid_Standard_Half_Mass_Radius

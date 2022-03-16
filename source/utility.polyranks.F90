@@ -68,7 +68,7 @@ contains
     !!{
     Constructor for poly-ranked arrays.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (polyRank{Type¦label})                               :: self
     {Type¦intrinsic}                      , dimension(..), intent(in   ) :: array
@@ -98,7 +98,7 @@ contains
     rank (7)
        self%data   =reshape(array,shape(self%data))
     rank default
-       call Galacticus_Error_Report('unsupported rank'//{introspection:location})
+       call Error_Report('unsupported rank'//{introspection:location})
     end select
     return
   end function {Type¦label}Constructor
@@ -107,7 +107,7 @@ contains
     !!{
     Assign to an array.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (polyRank{Type¦label}), intent(in   )                :: self
     {Type¦intrinsic}                      , dimension(..), intent(  out) :: array
@@ -119,7 +119,7 @@ contains
     integer         (c_size_t            ), dimension( 6)                :: shape6
     integer         (c_size_t            ), dimension( 7)                :: shape7
 
-    if (rank(array) /= size(self%shape_)) call Galacticus_Error_Report('rank mismatch'//{introspection:location})
+    if (rank(array) /= size(self%shape_)) call Error_Report('rank mismatch'//{introspection:location})
     select rank (array)
     rank (0)
        array=        self%data(1)
@@ -145,7 +145,7 @@ contains
        shape7=self%shape_
        array=reshape(self%data   ,shape7)
     rank default
-       call Galacticus_Error_Report('unsupported rank'//{introspection:location})
+       call Error_Report('unsupported rank'//{introspection:location})
     end select
     return
   end subroutine {Type¦label}Assign

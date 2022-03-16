@@ -30,7 +30,7 @@ program Test_Recombination_Computed
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeComputed
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed
   use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
-  use :: Galacticus_Error                            , only : errorStatusSuccess
+  use :: Error                            , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(atomicCrossSectionIonizationPhotoVerner        ), pointer :: atomicCrossSectionIonizationPhoto_

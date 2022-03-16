@@ -85,7 +85,7 @@ module Cosmological_Density_Field
     <argument>double precision          , intent(in   ), optional         :: time      , expansionFactor</argument>
     <argument>logical                   , intent(in   ), optional         :: collapsing                 </argument>
     <argument>type            (treeNode), intent(inout), optional, target :: node                       </argument>
-    <modules>Root_Finder Galacticus_Error</modules>
+    <modules>Root_Finder Error</modules>
     <code>
      double precision            , parameter :: massGuess        =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
           &amp;                                 toleranceRelative=1.0d-06, massTiny         =1.0d-30

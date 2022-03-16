@@ -272,10 +272,10 @@ contains
     !!{
     Store various properties in global arrays.
     !!}
-    use            :: Galactic_Structure_Options, only : componentTypeDisk      , componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
+    use            :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
           &                                              massTypeStellar
-    use            :: Galacticus_Error          , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes          , only : mergerTree             , nodeComponentBasic  , nodeComponentDisk    , nodeComponentSpheroid, &
+    use            :: Error                     , only : Error_Report
+    use            :: Galacticus_Nodes          , only : mergerTree       , nodeComponentBasic  , nodeComponentDisk    , nodeComponentSpheroid, &
           &                                              treeNode
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
@@ -347,7 +347,7 @@ contains
             &                                                   +  basic                  %mass                     (                                                                 ) &
             &                                                   *  tree                   %volumeWeight
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine historyStore
@@ -356,11 +356,11 @@ contains
     !!{
     Store the global history data to the \glc\ output file.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: Error                           , only : Error_Report
+    use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar, megaParsec
     implicit none
     class           (*         ), intent(inout)               :: self
     double precision            , allocatable  , dimension(:) :: rateStarFormationDisk , rateStarFormationSpheroid, &
@@ -372,7 +372,7 @@ contains
     select type (self)
     class is (mergerTreeEvolveTimestepHistory)
       !$ call hdf5Access%set()
-       historyGroup=galacticusOutputFile%openGroup('globalHistory','Global (volume averaged) history for this model.')
+       historyGroup=outputFile%openGroup('globalHistory','Global (volume averaged) history for this model.')
        if (.not.historyGroup%hasDataset('time')) then
           ! Write non-cumulative datasets on the first write.
           call historyGroup  %writeDataset  (self%time                       ,"time"             ,"Time [Gyr]"                       ,datasetReturned=historyDataset)
@@ -429,7 +429,7 @@ contains
        call historyGroup  %close         (                                                                                                                                            )
        !$ call hdf5Access %unset         (                                                                                                                                            )
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine historyWrite

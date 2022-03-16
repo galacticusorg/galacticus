@@ -170,8 +170,8 @@ contains
     !!{
     Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
     !!}
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report
-    use            :: Galacticus_Paths              , only : galacticusPath         , pathTypeDataStatic
+    use            :: Error                         , only : Error_Report
+    use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
     use            :: HDF5_Access                   , only : hdf5Access
     use            :: IO_HDF5                       , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
@@ -198,10 +198,10 @@ contains
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(galacticusPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
+    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
-       if (.not.lines%hasDataset(char(self%lineNames(i)))) call Galacticus_Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
+       if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
     call emissionLinesFile%readDataset('metallicity'                  ,self%metallicity                 )
     call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )

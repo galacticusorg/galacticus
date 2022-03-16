@@ -60,7 +60,7 @@ contains
     Constructor for the {\normalfont \ttfamily distributed} radiative transfer source class which takes a parameter set as
     input.
     !!}
-    use :: Input_Parameters, only : inputParameters, inputParameter
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiativeTransferSourceDistributed)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -165,14 +165,14 @@ contains
     !!{
     Return the spectrum of the distributed source.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (radiativeTransferSourceDistributed), intent(inout)           :: self
     double precision                                    , intent(in   )           :: wavelength
     integer                                             , intent(in   ), optional :: sourceType
 
     if (present(sourceType)) then
-       if (sourceType /= 0 .and. sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+       if (sourceType /= 0 .and. sourceType /= 1) call Error_Report('sourceType is out of range'//{introspection:location})
     end if
     distributedSpectrum=self%radiativeTransferSpectrum_%spectrum(wavelength)
     return
@@ -182,14 +182,14 @@ contains
     !!{
     Return the luminosity of the distributed source.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (radiativeTransferSourceDistributed), intent(inout)           :: self
     double precision                                    , intent(in   )           :: wavelengthMinimum, wavelengthMaximum
     integer                                             , intent(in   ), optional :: sourceType
 
     if (present(sourceType)) then
-       if (sourceType /= 0 .and. sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+       if (sourceType /= 0 .and. sourceType /= 1) call Error_Report('sourceType is out of range'//{introspection:location})
     end if
     distributedLuminosity=self%radiativeTransferSpectrum_%luminosity(wavelengthMinimum,wavelengthMaximum)
     return
@@ -211,13 +211,13 @@ contains
     !!{
     Return the name of the source type.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (varying_string                    )                :: distributedSourceTypeName
     class  (radiativeTransferSourceDistributed), intent(inout) :: self
     integer                                    , intent(in   ) :: sourceType
 
-    if (sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    if (sourceType /= 1) call Error_Report('sourceType is out of range'//{introspection:location})
     distributedSourceTypeName=self%label
     return
   end function distributedSourceTypeName

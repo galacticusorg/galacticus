@@ -114,10 +114,10 @@ contains
     !!{
     Read merger tree masses from file.
     !!}
-    use :: FoX_DOM         , only : destroy                , getDocumentElement   , node           , parseFile
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Array_Read         , XML_Array_Read_Static, XML_Path_Exists
-    use :: File_Utilities  , only : File_Name_Expand
+    use :: FoX_DOM       , only : destroy         , getDocumentElement   , node           , parseFile
+    use :: Error         , only : Error_Report
+    use :: IO_XML        , only : XML_Array_Read  , XML_Array_Read_Static, XML_Path_Exists
+    use :: File_Utilities, only : File_Name_Expand
     implicit none
     class           (mergerTreeBuildMassesReadXML), intent(inout)                            :: self
     double precision                              , intent(  out), allocatable, dimension(:) :: mass, weight
@@ -126,7 +126,7 @@ contains
 
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
+    if (ioErr /= 0) call Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
     rootNode => getDocumentElement(doc)
     ! Read all tree masses.
     call XML_Array_Read(doc,"treeRootMass",mass)

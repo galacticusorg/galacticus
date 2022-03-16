@@ -72,7 +72,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (accretionHaloBertschinger    )                        :: self
     double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization

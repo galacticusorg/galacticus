@@ -148,10 +148,10 @@ contains
     !!{
     Merge data from multiple importers.
     !!}
-    use :: Display         , only : displayIndent          , displayUnindent         , verbosityLevelStandard
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Hashes          , only : doubleHash             , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash     , rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
+    use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Error  , only : Error_Report
+    use :: Hashes , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
@@ -187,7 +187,7 @@ contains
              countObjectsMerged   =  +countObjectsMerged               &
                   &                  +size(propertyRealRank1   ,dim=2)
           else
-             call Galacticus_Error_Report('no properties are available in the simulations'//{introspection:location})
+             call Error_Report('no properties are available in the simulations'//{introspection:location})
           end if
        end do
        importer_ => importer_%next

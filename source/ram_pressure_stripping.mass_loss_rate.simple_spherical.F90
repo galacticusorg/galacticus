@@ -137,10 +137,9 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeSpheroid          , coordinateSystemSpherical, massTypeAll, massTypeGaseous
-    use :: Galacticus_Nodes                , only : nodeComponentSpheroid          , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : componentTypeSpheroid, coordinateSystemSpherical      , massTypeAll, massTypeGaseous
+    use :: Galacticus_Nodes                , only : nodeComponentSpheroid, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleSpherical), intent(inout) :: self
@@ -175,7 +174,7 @@ contains
        radiusHalfMass=0.0d0
        velocity      =0.0d0
        massGas       =0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Compute the densities at the half mass radius.
     densityGas=self%galacticStructure_%density     (                                            &

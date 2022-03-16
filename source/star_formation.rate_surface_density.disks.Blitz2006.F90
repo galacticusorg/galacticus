@@ -167,10 +167,10 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes    , only : giga                   , hecto     , kilo, mega
+    use :: Numerical_Constants_Prefixes    , only : giga              , hecto     , kilo, mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                        :: self
     class           (galacticStructureClass                       ), intent(in   ), target :: galacticStructure_
@@ -185,7 +185,7 @@ contains
     self%lastUniqueID   =-1_kind_int8
     self%factorsComputed=.false.
     ! Validate
-    if (pressureExponent < 0.0d0) call Galacticus_Error_Report('pressureExponent < 0 violates assumptions'//{introspection:location})
+    if (pressureExponent < 0.0d0) call Error_Report('pressureExponent < 0 violates assumptions'//{introspection:location})
     ! Convert parameters to internal units.
     self%surfaceDensityCritical             =self%surfaceDensityCritical*(mega**2)                                                    ! Convert to M☉/Mpc².
     self%starFormationFrequencyNormalization=self%starFormationFrequencyNormalization*giga                                            ! Convert to Gyr⁻¹.

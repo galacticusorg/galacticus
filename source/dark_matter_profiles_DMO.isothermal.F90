@@ -215,7 +215,6 @@ contains
     units of Mpc).
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeInfinite, structureErrorCodeSuccess
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), target   :: node

@@ -83,7 +83,7 @@ contains
        call idFile%close      (                                     )
        !$ call hdf5Access%unset()
     else
-       call Galacticus_Error_Report('either "idSelection" of "idSelectionFileName" must be provided'//{introspection:location})
+       call Error_Report('either "idSelection" of "idSelectionFileName" must be provided'//{introspection:location})
     end if
     self=nbodyOperatorFilterID(idSelection)
     !![
@@ -112,9 +112,8 @@ contains
     !!{
     Filter particles outside of a cuboid region.
     !!}
-    use :: Arrays_Search   , only : searchArray
-    use :: Display         , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Arrays_Search, only : searchArray
+    use :: Display      , only : displayIndent, displayMessage  , displayUnindent, verbosityLevelStandard
     implicit none
     class           (nbodyOperatorFilterID), intent(inout)                 :: self
     type            (nBodyData            ), intent(inout), dimension(  :) :: simulations

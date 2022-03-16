@@ -152,7 +152,7 @@ contains
     Import data from a IRATE file.
     !!}
     use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
           &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
     use :: HDF5_Access     , only : hdf5Access

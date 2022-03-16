@@ -116,7 +116,7 @@ contains
     !!{
     Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout), target :: self
     type            (treeNode                                    ), intent(inout), target :: node
@@ -124,7 +124,7 @@ contains
     !$GLC attributes unused :: self, node, mass
 
     diemer2020Time=0.0d0
-    call Galacticus_Error_Report('"time" method is not supported'//{introspection:location})
+    call Error_Report('"time" method is not supported'//{introspection:location})
     return
   end function diemer2020Time
 
@@ -132,7 +132,7 @@ contains
     !!{
     Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout), target :: self
     type            (treeNode                                    ), intent(inout), target :: node
@@ -140,7 +140,7 @@ contains
     !$GLC attributes unused :: self, node, time
 
     diemer2020Mass=0.0d0
-    call Galacticus_Error_Report('"mass" method is not supported'//{introspection:location})
+    call Error_Report('"mass" method is not supported'//{introspection:location})
     return
   end function diemer2020Mass
 

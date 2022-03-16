@@ -34,9 +34,9 @@ program Test_Biases
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+  use :: Calculations_Resets                 , only : Calculations_Reset
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
-  use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
+  use :: Input_Paths                         , only : inputPath                               , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                       , operator(==)                , &
           &                                           varying_string
   use :: Input_Parameters                    , only : inputParameters
@@ -103,13 +103,13 @@ program Test_Biases
   call Unit_Tests_Begin_Group("Bias algorithms")
   do iModel=1,countModels
      allocate(parameters)
-     parameterFile=galacticusPath(pathTypeExec)//'testSuite/parameters/haloBias_'//modelDensityContrast(iModel)//'.xml'
+     parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/haloBias_'//modelDensityContrast(iModel)//'.xml'
      parameters   =inputParameters(parameterFile)
      call nodeClassHierarchyInitialize     (parameters)
      call Node_Components_Initialize       (parameters)
      call Node_Components_Thread_Initialize(parameters)
      ! Read the Colossus target data (and parameters used) from file.
-     countMasses=Count_Lines_in_File(galacticusPath(pathTypeExec)//'testSuite/data/haloBiasesColossus/'//char(modelLabel(iModel))//'.txt','#')
+     countMasses=Count_Lines_in_File(inputPath(pathTypeExec)//'testSuite/data/haloBiasesColossus/'//char(modelLabel(iModel))//'.txt','#')
      i=0
      allocate(mass      (countMasses))
      allocate(redshift  (countMasses))
@@ -336,7 +336,7 @@ program Test_Biases
         call basic%massSet            (&
              &                                                                                      mass    (i) &
              &                        )
-        call Galacticus_Calculations_Reset(node)
+        call Calculations_Reset(node)
         bias(i)=darkMatterHaloBias_%bias(node)
      end do
      ! Assert the result.

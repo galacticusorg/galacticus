@@ -188,8 +188,8 @@ contains
     !!}
     use            :: Dark_Matter_Halo_Spins , only : Dark_Matter_Halo_Angular_Momentum_Scale
     use            :: Display                , only : displayIndent                          , displayUnindent
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report                , errorStatusSuccess
-    use            :: Galacticus_HDF5        , only : galacticusOutputFile
+    use            :: Error                  , only : Error_Report                           , errorStatusSuccess
+    use            :: Output_HDF5            , only : outputFile
     use            :: Galacticus_Nodes       , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
     use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
     use            :: IO_HDF5                , only : hdf5Object
@@ -224,10 +224,10 @@ contains
     allocate(spinDistribution(spinCount))
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
-       outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       containerGroup=outputFile    %openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
+       outputsGroup  =containerGroup%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Iterate over output redshifts.
     do iOutput=1,self%outputTimes_%count()
@@ -248,7 +248,7 @@ contains
              class is (haloSpinDistributionNbodyErrors)
                 spinDistribution(iSpin)=haloSpinDistribution_%distributionAveraged(node,self%haloMassMinimum)
              class default
-                call Galacticus_Error_Report('halo spin distribution class does not support averaging over halo mass'//{introspection:location})
+                call Error_Report('halo spin distribution class does not support averaging over halo mass'//{introspection:location})
              end select
           end if
        end do

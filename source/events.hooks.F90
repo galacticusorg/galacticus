@@ -265,8 +265,8 @@ contains
     !!{
     Attach an object to an event hook.
     !!}
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
+    use    :: Error  , only : Error_Report
+    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
     class     (eventHookUnspecified), intent(inout)                         :: self
     class     (*                   ), intent(in   ), target                 :: object_
@@ -281,7 +281,7 @@ contains
     !!]
 
     ! Lock the object.
-    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{introspection:location})
     call self%lock()
     ! Allocate the next entry in our list of hooks.
     if (associated(self%first_)) then
@@ -325,7 +325,7 @@ contains
     !!{
     Resolve dependencies between hooked function calls.
     !!}
-    use :: Galacticus_Error   , only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Error              , only : Error_Report    , errorStatusSuccess
     use :: Sorting_Topological, only : Sort_Topological
     implicit none
     class    (eventHook ), intent(inout)                           :: self
@@ -374,7 +374,7 @@ contains
                    ! Regular expression dependency.
                    matches=dependency_%regEx_%matches(hook__%label)
                 class default
-                   call Galacticus_Error_Report('unknown dependency'//{introspection:location})
+                   call Error_Report('unknown dependency'//{introspection:location})
                 end select
                 if (matches) then                   
                    dependencyCount=dependencyCount+1
@@ -392,7 +392,7 @@ contains
                    case (dependencyDirectionAfter)
                       dependentIndices(dependencyCount,:)=[i,j]
                    case default
-                      call Galacticus_Error_Report('unknown dependency direction'//{introspection:location})
+                      call Error_Report('unknown dependency direction'//{introspection:location})
                    end select
                 end if
                 hook__ => hook__%next
@@ -404,7 +404,7 @@ contains
     ! Generate an ordering which satisfies all dependencies.
     allocate(order(self%count_))
     call Sort_Topological(self%count_,dependencyCount,dependentIndices(1:dependencyCount,:),order,countOrdered,status)
-    if (status /= errorStatusSuccess) call Galacticus_Error_Report('unable to resolve hooked function dependencies'//{introspection:location})
+    if (status /= errorStatusSuccess) call Error_Report('unable to resolve hooked function dependencies'//{introspection:location})
     ! Build an array of pointers to our hooks with this ordering.
     allocate(hooksUnordered(self%count_))
     allocate(hooksOrdered  (self%count_))
@@ -437,7 +437,7 @@ contains
     !!{
     Return true if an object is attached to an event hook.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)          :: self
     class    (*                   ), intent(in   ), target  :: object_
@@ -445,7 +445,7 @@ contains
     class    (hook                )               , pointer :: hook_
 
     ! Lock the object.
-    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{introspection:location})
     call self%lock(writeLock=.false.)
     if (associated(self%first_)) then
        hook_ => self%first_
@@ -470,7 +470,7 @@ contains
     !!{
     Attach an object to an event hook.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)          :: self
     class    (*                   ), intent(in   ), target  :: object_
@@ -478,7 +478,7 @@ contains
     class    (hook                )               , pointer :: hook_    , hookPrevious_
 
     ! Lock the object.
-    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{introspection:location})
     call self%lock()
     if (associated(self%first_)) then
        hookPrevious_ => null()
@@ -502,7 +502,7 @@ contains
           hook_         => hook_%next
        end do
     end if
-    call Galacticus_Error_Report('object/function not attached to this event'//{introspection:location})
+    call Error_Report('object/function not attached to this event'//{introspection:location})
     call self%unlock()
     return
   end subroutine eventHookUnspecifiedDetach
@@ -511,11 +511,11 @@ contains
     !!{
     Return a count of the number of hooks into this event.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(eventHook), intent(inout):: self
 
-    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{introspection:location})
     call self%lock(writeLock=.false.)
     eventHookCount=self%count_
     call self%unlock(writeLock=.false.)
@@ -526,12 +526,12 @@ contains
     !!{
     Return a pointer to the first hook into this event.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(hook     ), pointer       :: eventHookFirst
     class(eventHook), intent(inout) :: self
 
-    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{introspection:location})
     eventHookFirst => self%first_
     return
   end function eventHookFirst

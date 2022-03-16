@@ -223,7 +223,7 @@ contains
     !!{
     Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     !!}
-    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use            :: HDF5_Access        , only : hdf5Access
     use            :: IO_HDF5            , only : hdf5Object
@@ -412,16 +412,16 @@ contains
     !!{
     Output the provided node.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Multi_Counters                , only : multiCounter
-    use :: Node_Property_Extractors      , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
-         &                                        nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                        nodePropertyExtractorArray   , nodePropertyExtractorList
-    use :: Poly_Ranks                    , only : polyRankInteger              , polyRankDouble           , assignment(=)
+    use :: Calculations_Resets     , only : Calculations_Reset
+    use :: Multi_Counters          , only : multiCounter
+    use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
+         &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
+         &                                  nodePropertyExtractorArray, nodePropertyExtractorList
+    use :: Poly_Ranks              , only : polyRankInteger           , polyRankDouble           , assignment(=)
     !![
     <include directive="mergerTreeOutputTask" type="moduleUse">
     !!]
-    include 'galacticus.output.merger_tree.tasks.modules.inc'
+    include 'output.merger_tree.tasks.modules.inc'
     !![
     </include>
     !!]
@@ -443,7 +443,7 @@ contains
 
     ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
     ! calculations would not be automatically reset because the node unique ID will not have changed).
-    call Galacticus_Calculations_Reset (node)
+    call Calculations_Reset (node)
     ! Test whether this node passes all output filters.
     nodePassesFilter=self%galacticFilter_%passes(node)
     if (.not.nodePassesFilter) return
@@ -473,7 +473,7 @@ contains
        <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
         <functionArgs>node,integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance</functionArgs>
        !!]
-       include 'galacticus.output.merger_tree.tasks.inc'
+       include 'output.merger_tree.tasks.inc'
        !![
        </include>
        !!]
@@ -587,7 +587,7 @@ contains
                 end if
                 self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row=doubleProperties(i)
              case default
-                call Galacticus_Error_Report('unsupported rank for output property'//{introspection:location})
+                call Error_Report('unsupported rank for output property'//{introspection:location})
              end select
           end do
           deallocate(doubleProperties)
@@ -614,14 +614,14 @@ contains
                 end if
                 self%integerProperty (integerProperty +i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
              case default
-                call Galacticus_Error_Report('unsupported rank for output property'//{introspection:location})
+                call Error_Report('unsupported rank for output property'//{introspection:location})
              end select
           end do
           deallocate(integerProperties)
           integerProperty                                                           =+integerProperty                                                    &
                &                                                                    +extractor_     %elementCount(elementTypeInteger,     time         )
        class default
-          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
+          call Error_Report('unsupported property extractor class'//{introspection:location})
        end select
        ! If buffer is full, extend it.
        if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
@@ -841,7 +841,7 @@ contains
     !!{
     Count up the number of properties that will be output.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Galacticus_Nodes        , only : treeNode
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
@@ -849,7 +849,7 @@ contains
     !![
     <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     !!]
-    include 'galacticus.output.merger_tree.property_count.modules.inc'
+    include 'output.merger_tree.property_count.modules.inc'
     !![
     </include>
     !!]
@@ -864,7 +864,7 @@ contains
     <include directive="mergerTreeOutputPropertyCount" type="functionCall" functionType="void">
      <functionArgs>node,self%integerPropertyCount,self%doublePropertyCount,time</functionArgs>
     !!]
-    include 'galacticus.output.merger_tree.property_count.inc'
+    include 'output.merger_tree.property_count.inc'
     !![
     </include>
     !!]
@@ -898,7 +898,7 @@ contains
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
        self% doublePropertyCount=self% doublePropertyCount+extractor_%elementCount(elementTypeDouble ,time)
     class default
-       call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
+       call Error_Report('unsupported property extractor class'//{introspection:location})
     end select
     return
   end subroutine standardPropertiesCount
@@ -927,7 +927,7 @@ contains
     !!{
     Set names for the properties.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Galacticus_Nodes        , only : treeNode
     use :: Hashes                  , only : doubleHash
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
@@ -936,7 +936,7 @@ contains
     !![
     <include directive="mergerTreeOutputNames" type="moduleUse">
     !!]
-    include 'galacticus.output.merger_tree.names.modules.inc'
+    include 'output.merger_tree.names.modules.inc'
     !![
     </include>
     !!]
@@ -968,7 +968,7 @@ contains
     <include directive="mergerTreeOutputNames" type="functionCall" functionType="void">
      <functionArgs>node,integerProperty,self%integerProperty,doubleProperty,self%doubleProperty,time</functionArgs>
     !!]
-    include 'galacticus.output.merger_tree.names.inc'
+    include 'output.merger_tree.names.inc'
     !![
     </include>
     !!]
@@ -1074,7 +1074,7 @@ contains
           deallocate(descriptionsTmp)
        end if
     class default
-       call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
+       call Error_Report('unsupported property extractor class'//{introspection:location})
     end select
     return
   end subroutine standardPropertyNamesEstablish
@@ -1083,7 +1083,7 @@ contains
     !!{
     Create a group in which to store this output.
     !!}
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Output_HDF5                     , only : outputFile
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : Memory_Usage_Record
@@ -1120,7 +1120,7 @@ contains
     end if
     ! Make the enclosing group if it has not been created.
     if (.not.self%outputsGroupOpened) then
-       self%outputsGroup=galacticusOutputFile%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
+       self%outputsGroup=outputFile%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
        self%outputsGroupOpened=.true.
     end if
     !$ call hdf5Access%unset()

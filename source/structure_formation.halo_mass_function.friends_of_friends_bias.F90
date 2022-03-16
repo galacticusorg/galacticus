@@ -164,8 +164,8 @@ contains
     !!{
     Return the differential halo mass function at the given time and mass.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes        , only : nodeComponentBasic     , treeNode
+    use :: Error                   , only : Error_Report
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloMassFunctionFofBias), intent(inout), target   :: self
@@ -298,7 +298,7 @@ contains
             &            /0.5d0
        massHaloInfinitePrevious=massHaloInfinite
     end do
-    if (iterationCount >= iterationCountMaximum) call Galacticus_Error_Report('failed to converge after maximum iterations'//{introspection:location})
+    if (iterationCount >= iterationCountMaximum) call Error_Report('failed to converge after maximum iterations'//{introspection:location})
     ! Compute the Jacobian of the transform. We currently ignore
     ! d/dm(densityProfileLogarithmicSlope) as we have no straightforward way to evaluate
     ! this. It should be a relatively minor correction as this term is likely small for

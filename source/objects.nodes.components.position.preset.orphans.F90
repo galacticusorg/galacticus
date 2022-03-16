@@ -199,9 +199,9 @@ contains
   end function Node_Component_Position_Preset_Orphans_Velocity_Orphan
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Position_Preset_Orphans_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Position_Preset_Orphans_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -222,9 +222,9 @@ contains
   end subroutine Node_Component_Position_Preset_Orphans_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Position_Preset_Orphans_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Position_Preset_Orphans_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

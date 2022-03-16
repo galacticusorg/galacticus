@@ -274,7 +274,7 @@ contains
     !!}
     use :: Abundances_Structure                 , only : Abundances_Property_Count           , abundances
     use :: Chemical_Abundances_Structure        , only : Chemicals_Property_Count
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report
+    use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent             , nodeComponentHotHaloStandard
     use :: ISO_Varying_String                   , only : var_str                             , varying_string                 , char
     use :: Input_Parameters                     , only : inputParameter                      , inputParameters
@@ -361,7 +361,7 @@ contains
        case ("formationNode")
           hotHaloCoolingFromNode=formationNode
        case default
-          call Galacticus_Error_Report('hotHaloCoolingFromNode must be one of "currentNode" or "formationNode"'//{introspection:location})
+          call Error_Report('hotHaloCoolingFromNode must be one of "currentNode" or "formationNode"'//{introspection:location})
        end select
 
        ! Determine whether excess heating of the halo will drive an outflow.
@@ -448,7 +448,7 @@ contains
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
          &                          dependencyRegEx                      , dependencyDirectionAfter
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter                       , inputParameters
     use :: Radiation_Fields, only : radiationFieldIntergalacticBackground
@@ -493,7 +493,7 @@ contains
           class is (radiationFieldIntergalacticBackground)
              ! This is as expected.
           class default
-             call Galacticus_Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
+             call Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
           end select
           allocate(radiationFieldList_%next)
           radiationFieldList_%next%radiationField_ => radiationIntergalacticBackground
@@ -758,8 +758,8 @@ contains
     !!{
     An incoming pipe for sources of heating to the hot halo.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: hotHalo
     double precision                      , intent(in   )                    :: rate
@@ -769,7 +769,7 @@ contains
     double precision                                                         :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate
 
      ! Trap cases where an attempt is made to remove energy via this input function.
-     if (rate < 0.0d0) call Galacticus_Error_Report('attempt to remove energy via heat source pipe to hot halo'//{introspection:location})
+     if (rate < 0.0d0) call Error_Report('attempt to remove energy via heat source pipe to hot halo'//{introspection:location})
 
      ! Get the node associated with this hot halo component.
      node => hotHalo%host()
@@ -811,10 +811,10 @@ contains
     !!{
     Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
     !!}
-    use :: Abundances_Structure                 , only : abundances             , max                 , operator(*)
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
+    use :: Abundances_Structure                 , only : abundances   , max                 , operator(*)
+    use :: Error                                , only : Error_Report
+    use :: Galacticus_Nodes                     , only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode  , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     implicit none
     type            (treeNode                ), intent(inout)          , target  :: node
     double precision                          , intent(in   )                    :: massRate
@@ -847,7 +847,7 @@ contains
              nodeCooling => node%formationNode
           case default
              nodeCooling => null()
-             call Galacticus_Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
+             call Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
           end select
           infallRadius              =coolingInfallRadius_%radius(node)
           angularMomentumCoolingRate=massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(nodeCooling,infallRadius)
@@ -1264,7 +1264,6 @@ contains
     use :: Abundances_Structure                 , only : abundances                           , max
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                     , only : interruptTask                        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                     , starveSatellitesOutflowed
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
@@ -1374,8 +1373,8 @@ contains
     !!{
     Account for a sink of gaseous material in the standard hot halo hot gas.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloStandard
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                      , intent(in   )                    :: setValue
@@ -1385,7 +1384,7 @@ contains
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Trap cases where an attempt is made to add gas via this sink function.
-       if (setValue > 0.0d0) call Galacticus_Error_Report('attempt to add mass via sink in hot halo'//{introspection:location})
+       if (setValue > 0.0d0) call Error_Report('attempt to add mass via sink in hot halo'//{introspection:location})
        ! Proportionally adjust the rates of all components of the hot gas reservoir.
        call Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate(self,setValue,interrupt,interruptProcedure)
     end select
@@ -1555,7 +1554,7 @@ contains
     use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
           &                                              treeNode                            , defaultHotHaloComponent
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report 
+    use :: Error                                , only : Error_Report 
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites       , starveSatellitesOutflowed
     implicit none
     type            (treeNode            ), intent(inout) :: node
@@ -1607,7 +1606,7 @@ contains
        massTotalNonZero=+massAccreted+massUnaccreted > 0.0d0
        !! Find the fraction of mass that would be successfully accreted.
        if (massAccretedHot > 0.0d0) then
-          if (.not.massTotalNonZero) call Galacticus_Error_Report('mass of hot-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
+          if (.not.massTotalNonZero) call Error_Report('mass of hot-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
           fractionAccreted=+  massAccretedHot &
                &           /(                 &
                &             +massAccreted    & 
@@ -1632,7 +1631,7 @@ contains
        massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeHot)
        !! Find the mass fraction of metals that would be successfully accreted.
        if (massMetalsAccreted > zeroAbundances) then
-          if (.not.massTotalNonZero) call Galacticus_Error_Report('mass of hot-mode metals accreted is non-zero, but total mass is zero'//{introspection:location})
+          if (.not.massTotalNonZero) call Error_Report('mass of hot-mode metals accreted is non-zero, but total mass is zero'//{introspection:location})
           fractionMetalsAccreted=+  massMetalsAccreted &
                &                 /(                    &
                &                   +massAccreted       &
@@ -1651,7 +1650,7 @@ contains
        massChemicalsAccreted=accretionHalo_%accretedMassChemicals(nodeParent,accretionModeHot)
        !! Find the mass fraction of chemicals that would be successfully accreted.
        if (massChemicalsAccreted > zeroChemicalAbundances) then
-          if (.not.massTotalNonZero) call Galacticus_Error_Report('mass of hot-mode chemicals accreted is non-zero, but total mass is zero'//{introspection:location})
+          if (.not.massTotalNonZero) call Error_Report('mass of hot-mode chemicals accreted is non-zero, but total mass is zero'//{introspection:location})
           fractionChemicalsAccreted=+  massChemicalsAccreted &
                &                    /(                       &
                &                      +massAccreted          &
@@ -2092,9 +2091,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Formation
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Hot_Halo_Standard_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -2115,9 +2114,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Hot_Halo_Standard_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

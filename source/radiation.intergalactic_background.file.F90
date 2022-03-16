@@ -138,11 +138,11 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
     !!}
-    use :: Array_Utilities  , only : Array_Is_Monotonic            , Array_Reverse     , directionIncreasing
-    use :: FoX_DOM          , only : destroy                       , node              , extractDataContent
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList       , XML_Parse
+    use :: Array_Utilities  , only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
+    use :: FoX_DOM          , only : destroy                          , extractDataContent   , node
+    use :: Error            , only : Error_Report
+    use :: IO_XML           , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
+          &                          XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
     use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                              :: self
@@ -160,11 +160,11 @@ contains
 
     !$omp critical (FoX_DOM_Access)
     doc => XML_Parse(char(fileName),iostat=status)
-    if (status /= 0) call Galacticus_Error_Report('Unable to find or parse data file'//{introspection:location})
+    if (status /= 0) call Error_Report('Unable to find or parse data file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(datum,fileFormatVersion)
-    if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Get a list of all spectra.
     call XML_Get_Elements_By_Tag_Name(doc,"spectra",spectraList)
     ! Get the wavelengths.
@@ -185,7 +185,7 @@ contains
        self%spectraTimes(iSpectrum)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%spectraTimes(iSpectrum)))
     end do
     ! Check if the times are monotonically ordered.
-    if (.not.Array_Is_Monotonic(self%spectraTimes)) call Galacticus_Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
+    if (.not.Array_Is_Monotonic(self%spectraTimes)) call Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
     timesIncreasing=Array_Is_Monotonic(self%spectraTimes,direction=directionIncreasing)
     ! Reverse times if necessary.
     if (.not.timesIncreasing) self%spectraTimes=Array_Reverse(self%spectraTimes)
@@ -200,7 +200,7 @@ contains
        ! Get the data.
        spectrum => spectraList(iSpectrum-1)%element
        ! Check that we have the correct number of data.
-       if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Galacticus_Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
+       if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
        ! Extract the data.
        call XML_Array_Read_Static(spectrum,"datum",self%spectra(:,jSpectrum))
     end do

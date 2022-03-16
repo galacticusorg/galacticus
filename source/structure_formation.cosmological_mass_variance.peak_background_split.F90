@@ -140,13 +140,13 @@ contains
     !!{
     Return the normalization of the power spectrum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     !$GLC attributes unused :: self
 
     variancePeakBackgroundSplitPowerNormalization=0.0d0
-    call Galacticus_Error_Report('power spectrum normalization is not well-defined in peak-background split model'//{introspection:location})
+    call Error_Report('power spectrum normalization is not well-defined in peak-background split model'//{introspection:location})
     return
   end function variancePeakBackgroundSplitPowerNormalization
 

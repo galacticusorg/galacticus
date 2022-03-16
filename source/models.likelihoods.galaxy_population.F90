@@ -143,7 +143,7 @@ contains
     use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
           &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
-    use :: Galacticus_Error              , only : Galacticus_Error_Report        , errorStatusSuccess
+    use :: Error                         , only : errorStatusSuccess
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf

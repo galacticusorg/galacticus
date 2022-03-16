@@ -92,10 +92,10 @@ contains
     !!{
     Internal constructor for the ``file'' merger tree processing time estimator class.
     !!}
-    use :: FoX_DOM           , only : node                   , parseFile
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
-    use :: ISO_Varying_String, only : varying_string         , char
+    use :: FoX_DOM           , only : node                 , parseFile
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String, only : varying_string       , char
     implicit none
     type   (metaTreeProcessingTimeFile)                :: self
     type   (varying_string            ), intent(in   ) :: fileName
@@ -105,7 +105,7 @@ contains
     ! Parse the fit file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(fileName),iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('Unable to find or parse tree timing file'//{introspection:location})
+    if (ioStatus /= 0) call Error_Report('Unable to find or parse tree timing file'//{introspection:location})
     fit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
     call XML_Array_Read_Static(fit,"coefficient",self%fitCoefficient)
     !$omp end critical (FoX_DOM_Access)

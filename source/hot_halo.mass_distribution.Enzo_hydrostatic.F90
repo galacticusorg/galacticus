@@ -106,7 +106,6 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self
     class(hotHaloTemperatureProfileClass        ), intent(in   ), target :: hotHaloTemperatureProfile_

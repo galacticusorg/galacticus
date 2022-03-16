@@ -167,8 +167,8 @@ contains
          &                                   inException
     use :: FoX_WXML                 , only : xml_AddCharacters      , xml_Close          , xml_EndElement    , xml_NewElement  , &
           &                                  xml_OpenFile           , xmlf_t
-    use :: Galacticus_Error         , only : Galacticus_Error_Report
-    use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic, pathTypeDataStatic
+    use :: Error                    , only : Error_Report
+    use :: Input_Paths              , only : inputPath              , pathTypeDataDynamic, pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
     use :: IO_XML                   , only : XML_Array_Read         , XML_Parse
     use :: ISO_Varying_String       , only : assignment(=)          , char               , operator(//)      , operator(==)    , &
@@ -304,10 +304,10 @@ contains
        filterDescription="Emission line continuum filter; wavelength:resolution = "//trim(label)
     else
        ! Construct a file name for the filter.
-       filterFileName=char(galacticusPath(pathTypeDataStatic))//'filters/'//filterName//'.xml'
+       filterFileName=char(inputPath(pathTypeDataStatic))//'filters/'//filterName//'.xml'
        if (.not.File_Exists(filterFileName)) then
-          filterFileName=char(galacticusPath(pathTypeDataDynamic))//'filters/'//filterName//'.xml'
-          if (.not.File_Exists(filterFileName)) call Galacticus_Error_Report('filter file for filter "'//filterName//'" can not be found'//{introspection:location})
+          filterFileName=char(inputPath(pathTypeDataDynamic))//'filters/'//filterName//'.xml'
+          if (.not.File_Exists(filterFileName)) call Error_Report('filter file for filter "'//filterName//'" can not be found'//{introspection:location})
        end if
        ! Parse the XML file.
        !$omp critical (FoX_DOM_Access)
@@ -322,13 +322,13 @@ contains
           parseSuccess=.false.
           errorMessage=errorMessage//char(10)//'I/O error [code='//ioErr//']'
        end if
-       if (.not.parseSuccess)                                                                 &
-            & call Galacticus_Error_Report(                                                   &
-            &                              'unable to read or parse filter response file: '// &
-            &                              char(filterFileName)                            // &
-            &                                   errorMessage                               // &
-            &                              {introspection:location}                           &
-            &                             )
+       if (.not.parseSuccess)                                                      &
+            & call Error_Report(                                                   &
+            &                   'unable to read or parse filter response file: '// &
+            &                   char(filterFileName)                            // &
+            &                        errorMessage                               // &
+            &                   {introspection:location}                           &
+            &                  )
        ! Extract wavelengths and filter response.
        call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
        filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
@@ -342,8 +342,8 @@ contains
     filterResponses(filterIndex)%         vegaOffsetAvailable=.false.
     call lock%unsetWrite(haveReadLock=.true.)
     ! Write out the filter file if necessary.
-    call Directory_Make(galacticusPath(pathTypeDataDynamic)//'filters')
-    filterFileName=galacticusPath(pathTypeDataDynamic)//'filters/'//filterName//'.xml'
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'filters')
+    filterFileName=inputPath(pathTypeDataDynamic)//'filters/'//filterName//'.xml'
     if (filtersConstructedOutput .and. filterConstructed .and. .not.File_Exists(filterFileName)) then
        call xml_OpenFile     (char(filterFileName),filterDoc)
        call xml_NewElement   (filterDoc,"filter"     )
@@ -387,7 +387,7 @@ contains
     !!{
     Output accumulated filter data to file.
     !!}
-    use :: Galacticus_HDF5          , only : galacticusOutputFile
+    use :: Output_HDF5              , only : outputFile
     use :: HDF5_Access              , only : hdf5Access
     use :: IO_HDF5                  , only : hdf5Object
     use :: Numerical_Constants_Units, only : angstromsPerMeter
@@ -396,7 +396,7 @@ contains
 
     if (.not.allocated(filterResponses)) return
     !$ call hdf5Access%set()
-    filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
+    filtersGroup=outputFile%openGroup('Filters','Properties of filters used.')
     call filtersGroup%writeDataset(filterResponses%name               ,'name'               ,'Filter name.'                                               )
     call filtersGroup%writeDataset(filterResponses%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
     call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
@@ -471,8 +471,8 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: FoX_DOM                , only : node                   , destroy
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use            :: Galacticus_Paths       , only : galacticusPath         , pathTypeDataStatic
+    use            :: Error                  , only : Error_Report
+    use            :: Input_Paths            , only : inputPath              , pathTypeDataStatic
     use            :: IO_XML                 , only : XML_Array_Read         , XML_Parse
     use            :: ISO_Varying_String     , only : var_str                , char              , operator(//)
     use            :: Numerical_Integration  , only : GSL_Integ_Gauss15      , integrator
@@ -504,8 +504,8 @@ contains
           !$omp critical (loadVegaSpectrum)
           if (.not.vegaLoaded) then
              !$omp critical (FoX_DOM_Access)
-             doc => XML_Parse(char(galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/vega/A0V_Castelli.xml'),iostat=ioErr)
-             if (ioErr /= 0) call Galacticus_Error_Report('failed to read Vega spectrum'//{introspection:location})
+             doc => XML_Parse(char(inputPath(pathTypeDataStatic)//'stellarAstrophysics/vega/A0V_Castelli.xml'),iostat=ioErr)
+             if (ioErr /= 0) call Error_Report('failed to read Vega spectrum'//{introspection:location})
              call XML_Array_Read(doc,"datum",wavelengthVega,spectrumVega)
              call destroy(doc)
              !$omp end critical (FoX_DOM_Access)

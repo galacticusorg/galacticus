@@ -136,7 +136,7 @@ contains
     Perform all tasks.
     !!}
     use :: Display         , only : displayIndent     , displayUnindent
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     implicit none
     class  (taskMulti    ), intent(inout), target   :: self
     integer               , intent(  out), optional :: status

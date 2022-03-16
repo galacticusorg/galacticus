@@ -394,7 +394,7 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Chemical_Abundances_Structure   , only : chemicalAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , treeNode
     use :: Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, massSolar         , meanAtomicMassPrimordial, megaParsec
     use :: Numerical_Constants_Atomic      , only : atomicMassHydrogen      , atomicMassUnit
@@ -523,11 +523,11 @@ contains
           coldModeColdModeFraction=     +self%coldFractionStored
        case default
           coldModeColdModeFraction=1.0d0
-          call Galacticus_Error_Report('unknown accretion mode - this should not happen'//{introspection:location})
+          call Error_Report('unknown accretion mode - this should not happen'//{introspection:location})
        end select
     case default
        coldModeColdModeFraction=1.0d0
-       call Galacticus_Error_Report('unknown accretion mode - this should not happen'//{introspection:location})
+       call Error_Report('unknown accretion mode - this should not happen'//{introspection:location})
     end select
     return
   end function coldModeColdModeFraction

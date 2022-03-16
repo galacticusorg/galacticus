@@ -335,7 +335,6 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   structureErrorCodeSuccess
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode), intent(inout)           :: node
@@ -353,9 +352,9 @@ contains
   end function Dark_Matter_Profile_Potential_Task
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Dark_Matter_Profile_Structure_Tasks_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Dark_Matter_Profile_Structure_Tasks_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -376,9 +375,9 @@ contains
   end subroutine Dark_Matter_Profile_Structure_Tasks_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Dark_Matter_Profile_Structure_Tasks_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Dark_Matter_Profile_Structure_Tasks_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

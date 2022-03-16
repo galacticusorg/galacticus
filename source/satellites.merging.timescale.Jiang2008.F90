@@ -69,9 +69,9 @@ contains
     !!{
     Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultBasicComponent
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter       , inputParameters
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -80,7 +80,7 @@ contains
     class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: scatter              , timescaleMultiplier
 
-    if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
+    if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !![
     <inputParameter>
       <name>timescaleMultiplier</name>
@@ -144,7 +144,7 @@ contains
     !!{
     Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
     use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
@@ -181,7 +181,7 @@ contains
        return
     case (errorCodeSuccess          )
     case default
-       call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
+       call Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Get velocity scale.
     velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)

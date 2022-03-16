@@ -200,7 +200,7 @@ contains
     !!{
     Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Radiation_Fields, only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
@@ -224,7 +224,7 @@ contains
        if (destructionTerm /= 0.0d0) then
           self%densityAtomicHydrogenAnion=creationTerm/destructionTerm
        else
-          if (creationTerm > 0.0d0) call Galacticus_Error_Report('hydrogen anion equilibrium density is infinite'//{introspection:location})
+          if (creationTerm > 0.0d0) call Error_Report('hydrogen anion equilibrium density is infinite'//{introspection:location})
           self%densityAtomicHydrogenAnion=0.0d0
        end if
     else if (self%atomicHydrogenAnionIndex > 0) then

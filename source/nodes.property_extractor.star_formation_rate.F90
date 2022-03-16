@@ -110,7 +110,7 @@ contains
     !!{
     Internal constructor for the ``starFormationRate'' property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationRate)                        :: self
     class(starFormationRateDisksClass           ), intent(in   ), target :: starFormationRateDisks_
@@ -129,7 +129,7 @@ contains
        self%name_       ="spheroidStarFormationRate"
        self%description_="Spheroid star formation rate [M☉ Gyr⁻¹]."
     else
-       call Galacticus_Error_Report('No star formation rate specified.'//{introspection:location})
+       call Error_Report('No star formation rate specified.'//{introspection:location})
     end if
     return
   end function starFormationRateConstructorInternal

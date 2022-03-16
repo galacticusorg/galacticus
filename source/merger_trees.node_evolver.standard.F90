@@ -239,9 +239,9 @@ contains
      !!{
      Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
      !!}
-     use :: Galacticus_Error     , only : Galacticus_Error_Report
-     use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2    , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
-          &                               GSL_ODEIV2_Step_RKF45  , GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
+     use :: Error                , only : Error_Report
+     use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2  , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
+          &                               GSL_ODEIV2_Step_RKF45, GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
      implicit none
      type            (mergerTreeNodeEvolverStandard)                        :: self
      integer                                        , intent(in   )         :: odeLatentIntegratorType            , odeLatentIntegratorOrder, &
@@ -279,7 +279,7 @@ contains
         self%odeAlgorithm=GSL_ODEIV2_step_MSBDFActive
         self%useJacobian             =.true.
      case default
-        call Galacticus_Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
+        call Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
      end select
      ! Construct non-Jacobian ODE solver object.
      select case (odeAlgorithmNonJacobian)
@@ -296,7 +296,7 @@ contains
      case (standardODEAlgorithmMultistepAdams         )
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_msAdams
      case default
-        call Galacticus_Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
+        call Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
      end select
      ! Initialize
      self%propertyCountPrevious=-1
@@ -338,18 +338,18 @@ contains
     !!{
     Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
     !!}
-    use            :: Display                       , only : displayIndent                , displayMessage                                  , displayUnindent                                , displayMagenta    , &
-         &                                                   displayReset
-    use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Error              , only : Galacticus_Error_Report      , Galacticus_Warn                                 , errorStatusFail                                , errorStatusSuccess, &
-          &                                                  errorStatusXCPU
-    use            :: Galacticus_Nodes              , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
-          &                                                  propertyTypeAll              , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
-          &                                                  treeNode                     , propertyTypeNumerics
-    use, intrinsic :: ISO_C_Binding                 , only : c_funloc                     , c_funptr                                        , c_null_funptr
-    use            :: Memory_Management             , only : Memory_Usage_Record
-    use            :: Numerical_Integration2        , only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
-    use            :: ODE_Solver_Error_Codes        , only : odeSolverInterrupt
+    use            :: Display               , only : displayIndent                , displayMessage                                  , displayUnindent                                , displayMagenta    , &
+         &                                           displayReset
+    use            :: Calculations_Resets   , only : Calculations_Reset
+    use            :: Error                 , only : Error_Report                 , Warn                                            , errorStatusFail                                , errorStatusSuccess, &
+          &                                          errorStatusXCPU
+    use            :: Galacticus_Nodes      , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
+          &                                          propertyTypeAll              , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
+          &                                          treeNode                     , propertyTypeNumerics
+    use, intrinsic :: ISO_C_Binding         , only : c_funloc                     , c_funptr                                        , c_null_funptr
+    use            :: Memory_Management     , only : Memory_Usage_Record
+    use            :: Numerical_Integration2, only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
+    use            :: ODE_Solver_Error_Codes, only : odeSolverInterrupt
     !![
     <include directive="preEvolveTask"      type="moduleUse">
     !!]
@@ -425,7 +425,7 @@ contains
     ! by the calling function (which will therefore be called by various event hook triggers).
     self%galacticStructureSolver_ => galacticStructureSolver__
     ! Ensure calculations are reset for this new step.
-    call Galacticus_Calculations_Reset(node)
+    call Calculations_Reset(node)
     ! Attempt to find analytic solutions.
     solvedAnalytically=.false.
     !![
@@ -555,7 +555,7 @@ contains
           ! Check for zero property scales which will cause floating point overflow in the ODE solver.
           if (any(self%propertyScalesActive(1:self%propertyCountActive) == 0.0d0)) then
              message=displayMagenta()//'WARNING:'//displayReset()//' Zero entry in ODE system scales for node'
-             call Galacticus_Warn          (message)
+             call Warn         (message)
              call displayIndent(message)
              lengthMaximum=0
              do i=1,self%propertyCountActive
@@ -676,7 +676,7 @@ contains
                          status=errorStatusXCPU
                          return
                       else
-                         call Galacticus_Error_Report   ('maximum wall time exceeded'//{introspection:location})
+                         call Error_Report  ('maximum wall time exceeded'//{introspection:location})
                       end if
                    end if
                 end if
@@ -694,7 +694,7 @@ contains
                    status=errorStatusFail
                    return
                 else
-                   call Galacticus_Error_Report   ('ODE integration failed '//{introspection:location})
+                   call Error_Report  ('ODE integration failed '//{introspection:location})
                 end if
              end if
           end if
@@ -808,7 +808,7 @@ contains
     !!{
     Function which evaluates the set of ODEs for the evolution of a specific node.
     !!}
-    use :: Galacticus_Error      , only : errorStatusXCPU
+    use :: Error                 , only : errorStatusXCPU
     use :: Galacticus_Nodes      , only : interruptTask  , nodeComponentBasic
     use :: Interface_GSL         , only : GSL_Success
     use :: ODE_Solver_Error_Codes, only : interruptedAtX , odeSolverInterrupt
@@ -963,7 +963,7 @@ contains
     !!{
     Call routines to set alls derivatives for {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Calculations_Resets, only : Calculations_Reset
     !![
     <include directive="rateComputeTask" type="moduleUse">
     !!]
@@ -982,7 +982,7 @@ contains
     interrupt         =  .false.
     functionInterrupt => null()
     ! Call component routines to indicate that derivative calculation is commencing.
-    call Galacticus_Calculations_Reset(node)
+    call Calculations_Reset(node)
     ! Trigger an event to perform any pre-derivative calculations.
     !![
     <eventHook name="preDerivative">
@@ -1304,7 +1304,7 @@ contains
     !!{
     Promote a recently promoted subhalo to its new parent.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)          :: self
     type (treeNode), intent(inout), pointer :: node, nodePromotion
@@ -1314,7 +1314,7 @@ contains
     class is (mergerTreeNodeEvolverStandard)
        call self%promote(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine standardNodeSubhaloPromotion

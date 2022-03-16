@@ -61,8 +61,8 @@ contains
     use :: Display           , only : displayMessage         , verbosityLevelWorking
     use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock      , File_Unlock, &
           &                           lockDescriptor
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath              , pathTypeDataDynamic
     use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)   , replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
@@ -82,7 +82,7 @@ contains
     ! Set path and version
     cambVersion    ="1.3.2"
     forutilsVersion="1.0"
-    cambPath       =galacticusPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
+    cambPath       =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
        call Directory_Make(     cambPath                                       )
@@ -90,24 +90,24 @@ contains
        ! Unpack the code.
        if (.not.File_Exists(cambPath//"Makefile")) then
           ! Download CAMB if necessary.
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) then
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) then
              call displayMessage("downloading CAMB code....",verbosityLevelWorking)
-             call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(galacticusPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status)
-             if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
+             call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status)
+             if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz",status);
-          if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz",status);
+          if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
           ! Download the "forutils" package if necessary.
           if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
              if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
                 call displayMessage("downloading forutils code....",verbosityLevelWorking)
                 call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",char(cambPath)//"../forutils_"//char(forutilsVersion)//".tar.gz",status)
-                if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download forutils"//{introspection:location})
+                if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Error_Report("unable to download forutils"//{introspection:location})
              end if
              call displayMessage("unpacking forutils code....",verbosityLevelWorking)
              call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
-             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Galacticus_Error_Report('failed to unpack forutils code'//{introspection:location})
+             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Error_Report('failed to unpack forutils code'//{introspection:location})
           end if
        end if       
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
@@ -115,7 +115,7 @@ contains
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
-       if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
+       if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Error_Report("failed to build CAMB code"//{introspection:location})
        call File_Unlock(fileLock)
     end if
     return
@@ -128,8 +128,8 @@ contains
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
           &                                                       File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
-    use               :: Galacticus_Error                , only : Galacticus_Error_Report
-    use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
+    use               :: Error                           , only : Error_Report
+    use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
@@ -205,10 +205,10 @@ contains
          &      String_C_To_Fortran(cambSourceDigest)
     call descriptor%destroy()
     ! Build the file name.
-    fileName_=char(galacticusPath(pathTypeDataDynamic))                       // &
-         &                       'largeScaleStructure/transfer_function_CAMB_'// &
-         &                       Hash_MD5(uniqueLabel)                        // &
-         &                       '.hdf5'
+    fileName_=char(inputPath(pathTypeDataDynamic))                       // &
+         &                  'largeScaleStructure/transfer_function_CAMB_'// &
+         &                  Hash_MD5(uniqueLabel)                        // &
+         &                  '.hdf5'
     if (present(fileName)) fileName=fileName_
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
@@ -266,7 +266,7 @@ contains
              redshiftLabel=extract(datasetNames(i),18,len(datasetNames(i)))
              read (redshiftLabel,*) redshiftsCombined(size(redshifts)+i)
           else
-             call Galacticus_Error_Report('unknown dataset'//{introspection:location})
+             call Error_Report('unknown dataset'//{introspection:location})
           end if
        end do
        allocate(redshiftRanksCombined (size(redshiftsCombined)))
@@ -299,7 +299,7 @@ contains
        if (allocated(wavenumbers)) wavenumberCAMB=max(wavenumberCAMB,wavenumbers(size(wavenumbers)))
        ! Construct input file for CAMB.
        call Get_Environment_Variable('HOSTNAME',hostName)
-       workPath     =galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/'
+       workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
        parameterFile=workPath//'transfer_function_parameters'//'_'//trim(hostName)//'_'//GetPID()
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
        parameterFile=parameterFile//'.txt'
@@ -428,7 +428,7 @@ contains
                    read (cambTransferLine,*) wavenumbers(i),transferFunctions(i,cambSpeciesDarkMatter,j),transferFunctions(i,cambSpeciesBaryons,j)
                 end if
              else
-                call Galacticus_Error_Report('unable to read CAMB transfer function file'//{introspection:location})
+                call Error_Report('unable to read CAMB transfer function file'//{introspection:location})
              end if
           end do
           close(cambTransferFile)

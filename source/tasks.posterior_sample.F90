@@ -130,7 +130,7 @@ contains
     Perform the posterior sampling.
     !!}
     use :: Display         , only : displayIndent     , displayUnindent
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     implicit none
     class  (taskPosteriorSample), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status

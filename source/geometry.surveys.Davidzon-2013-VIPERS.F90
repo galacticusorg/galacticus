@@ -128,7 +128,7 @@ contains
     !!}
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     type            (surveyGeometryDavidzon2013VIPERS)                        :: self
     integer                                           , intent(in   )         :: redshiftBin
@@ -150,7 +150,7 @@ contains
        redshiftMinimum=0.80d0
        redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('0≤redshiftBin≤3 is required'//{introspection:location})
+       call Error_Report('0≤redshiftBin≤3 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -209,7 +209,7 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -229,7 +229,7 @@ contains
        davidzon2013VIPERSDistanceMaximum=3.20688538211015d0+logarithmicMass*(0.0273132827274515d0)
     case default
        davidzon2013VIPERSDistanceMaximum=0.0d0
-       call Galacticus_Error_Report('invalid redshift bin'//{introspection:location})
+       call Error_Report('invalid redshift bin'//{introspection:location})
     end select
     ! Limit the maximum distance.
     davidzon2013VIPERSDistanceMaximum=min(10.0d0**davidzon2013VIPERSDistanceMaximum,self%binDistanceMaximum)
@@ -240,7 +240,6 @@ contains
     !!{
     Compute the maximum volume within which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
@@ -264,13 +263,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
     !$GLC attributes unused :: self
 
-    davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/VIPERS/"
+    davidzon2013VIPERSMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/VIPERS/"
     return
   end function davidzon2013VIPERSMangleDirectory
 

@@ -91,7 +91,7 @@ contains
     !!{
     Internal constructor for the ``ratio'' output analysis property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type     (nodePropertyExtractorRatio)                        :: self
     class    (nodePropertyExtractorClass), intent(inout), target :: propertyNumerator_, propertyDenominator_
@@ -106,14 +106,14 @@ contains
     class is (nodePropertyExtractorScalar)
        self%unitsInSI_=+propertyNumerator_  %unitsInSI()
     class default
-       call Galacticus_Error_Report('numerator property must be a scalar'  //{introspection:location})
+       call Error_Report('numerator property must be a scalar'  //{introspection:location})
     end select
     select type (propertyDenominator_)
     class is (nodePropertyExtractorScalar)
        self%unitsInSI_=+self%unitsInSI_                  &
             &          /propertyDenominator_%unitsInSI()
     class default
-       call Galacticus_Error_Report('denominator property must be a scalar'//{introspection:location})
+       call Error_Report('denominator property must be a scalar'//{introspection:location})
     end select
     return
   end function ratioConstructorInternal
@@ -136,7 +136,7 @@ contains
     !!{
     Implement a ratio output analysis.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorRatio), intent(inout)           :: self
     type            (treeNode                  ), intent(inout), target   :: node
@@ -158,7 +158,7 @@ contains
     end select
     if (denominator == 0.0d0) then
        ratioExtract=+0.0d0
-       if (numerator /= 0.0d0) call Galacticus_Error_Report('denominator is zero'//{introspection:location})
+       if (numerator /= 0.0d0) call Error_Report('denominator is zero'//{introspection:location})
     else
        ratioExtract=+numerator   &
             &       /denominator

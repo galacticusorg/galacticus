@@ -232,7 +232,7 @@ contains
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
     use :: Galactic_Structure_Options, only : componentTypeAll                  , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
           &                                   massTypeAll                       , weightByLuminosity                  , weightByMass
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : optimizeForDensitySummation       , reductionSummation                  , treeNode
     !![
     <include directive="densityTask" type="moduleUse">
@@ -266,7 +266,7 @@ contains
     case (coordinateSystemCartesian)
        positionSpherical_=Coordinates_Cartesian_To_Spherical  (position)
     case default
-       call Galacticus_Error_Report('unknown coordinate system type'//{introspection:location})
+       call Error_Report('unknown coordinate system type'//{introspection:location})
     end select
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Call routines to supply the densities for all components.
@@ -354,7 +354,7 @@ contains
     !!}
     use :: Display                   , only : displayMessage         , verbosityLevelWarn
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: ISO_Varying_String        , only : assignment(=)          , operator(//)      , varying_string
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -370,12 +370,12 @@ contains
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Determine what mass to use.
     if (present(mass)) then
-       if (present(massFractional)) call Galacticus_Error_Report('only one mass or massFractional can be specified'//{introspection:location})
+       if (present(massFractional)) call Error_Report('only one mass or massFractional can be specified'//{introspection:location})
        massTarget=mass
     else if (present(massFractional)) then
        massTarget=massFractional*self%massEnclosed(node,componentType=componentType_,massType=massType_,weightBy=weightBy_,weightIndex=weightIndex_)
     else
-       call Galacticus_Error_Report('either mass or massFractional must be specified'//{introspection:location})
+       call Error_Report('either mass or massFractional must be specified'//{introspection:location})
     end if
     if (massTarget <= 0.0d0) then
        standardRadiusEnclosingMass=0.0d0
@@ -391,7 +391,7 @@ contains
          &  .or.                                     &
          &   massType_      == massTypeDark          &
          & ) then
-       if (.not.associated(self%darkMatterProfile_)) call Galacticus_Error_Report('object is not expecting dark matter requests'//{introspection:location})       
+       if (.not.associated(self%darkMatterProfile_)) call Error_Report('object is not expecting dark matter requests'//{introspection:location})       
        standardRadiusEnclosingMass=self%darkMatterProfile_%radiusEnclosingMass(node_,massTarget)
     else
        ! Solve for the radius.
@@ -624,7 +624,7 @@ contains
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
     use :: Galactic_Structure_Options, only : componentTypeAll                    , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
           &                                   massTypeAll                         , weightByMass                        , weightIndexNull
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation         , reductionsummation       , &
           &                                   treeNode
     implicit none
@@ -649,7 +649,7 @@ contains
     case (coordinateSystemCartesian)
        positionCylindrical_=Coordinates_Cartesian_To_Cylindrical(position)
     case default
-       call Galacticus_Error_Report('unknown coordinate system type'//{introspection:location})
+       call Error_Report('unknown coordinate system type'//{introspection:location})
     end select
     ! Call routines to supply the densities for all components.
     surfaceDensityComponent_ => surfaceDensityComponent
@@ -953,7 +953,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll       , massTypeAll, weightByLuminosity, weightByMass, &
          &                                    radiusLarge
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     implicit none
     class           (galacticStructureStandard), intent(inout)             :: self
     double precision                           , intent(in   ), optional   :: radius
@@ -990,7 +990,7 @@ contains
        weightBy_      =weightBy
        select case (weightBy_)
        case (weightByLuminosity)
-          if (.not.present(weightIndex)) call Galacticus_Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
+          if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
           weightIndex_=weightIndex
        end select
     else

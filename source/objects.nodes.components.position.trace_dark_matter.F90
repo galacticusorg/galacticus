@@ -118,7 +118,7 @@ contains
     !!{
     Initialize the position of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
@@ -130,7 +130,7 @@ contains
     class is (nodeComponentPositionTraceDarkMatter)
        call Node_Component_Position_Trace_Dark_Matter_Assign(position,checkSatelliteStatus=.true.)
     class default
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end subroutine Node_Component_Position_Trace_Dark_Matter_Initialize
@@ -147,7 +147,7 @@ contains
     !!{
     Initialize the position of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, nodeComponentPositionTraceDarkMatter, treeNode
     implicit none
     type (treeNode             ), intent(inout) :: node
@@ -159,7 +159,7 @@ contains
     class is (nodeComponentPositionTraceDarkMatter)
        call Node_Component_Position_Trace_Dark_Matter_Assign(position,checkSatelliteStatus=.false.)
     class default
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end subroutine Node_Component_Position_Trace_Dark_Matter_Update
@@ -182,9 +182,9 @@ contains
   end subroutine Node_Component_Position_Trace_Dark_Matter_Assign
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Position_Trace_Dark_Matter_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Position_Trace_Dark_Matter_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -205,9 +205,9 @@ contains
   end subroutine Node_Component_Position_Trace_Dark_Matter_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Position_Trace_Dark_Matter_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Position_Trace_Dark_Matter_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

@@ -315,7 +315,7 @@ contains
     !!}
     use :: Black_Hole_Fundamentals     , only : Black_Hole_ISCO_Radius , Black_Hole_ISCO_Specific_Energy, Black_Hole_Rotational_Energy_Spin_Down, Black_Hole_Static_Radius, &
           &                                     orbitPrograde
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Table_Labels                , only : extrapolationTypeFix
@@ -333,9 +333,9 @@ contains
 
     ! Validate arguments.
     if (efficiencyRadiationType == adafRadiativeEfficiencyTypeFixed .and. .not.present(efficiencyRadiation)) &
-         & call Galacticus_Error_Report('radiation efficiency must be provided'//{introspection:location})
+         & call Error_Report('radiation efficiency must be provided'//{introspection:location})
     if (viscosityOption         == adafViscosityFixed               .and. .not.present(viscosityAlpha     )) &
-         & call Galacticus_Error_Report('viscosity parameter must be provided'//{introspection:location})
+         & call Error_Report('viscosity parameter must be provided'//{introspection:location})
     ! Make assignments.
     !![
     <constructorAssign variables="energyOption, fieldEnhancementOption, efficiencyRadiationType, viscosityOption, efficiencyJetMaximum, efficiencyRadiation, adiabaticIndex, viscosityAlpha"/>
@@ -410,7 +410,7 @@ contains
           adafEnergy=Black_Hole_ISCO_Specific_Energy(spinBlackHole,orbitPrograde)
        case default
           adafEnergy=0.0d0
-          call Galacticus_Error_Report('unknown energy type'//{introspection:location})
+          call Error_Report('unknown energy type'//{introspection:location})
        end select
        ! Compute jet launch radii.
        radiusISCO  =Black_Hole_ISCO_Radius  (spinBlackHole)
@@ -464,7 +464,7 @@ contains
     !!{
     Computes the radiative efficiency for an ADAF.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (accretionDisksADAF    ), intent(inout) :: self
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
@@ -477,7 +477,7 @@ contains
        adafEfficiencyRadiative=self%thinDisk%efficiencyRadiative(blackHole,accretionRateMass)
     case default
        adafEfficiencyRadiative=0.0d0
-       call Galacticus_Error_Report('unknown radiative efficiency type'//{introspection:location})
+       call Error_Report('unknown radiative efficiency type'//{introspection:location})
     end select
     return
   end function adafEfficiencyRadiative
@@ -1257,7 +1257,7 @@ contains
     !!{
     Returns the default adiabatic index in an ADAF give the field enhancement option.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer, intent(in   ) :: fieldEnhancementOption
 
@@ -1268,7 +1268,7 @@ contains
        adafAdiabaticIndexDefault=1.333d0
     case default
        adafAdiabaticIndexDefault=0.000d0
-      call Galacticus_Error_Report('unknown field enhancement option'//{introspection:location})
+      call Error_Report('unknown field enhancement option'//{introspection:location})
     end select
     return
   end function adafAdiabaticIndexDefault

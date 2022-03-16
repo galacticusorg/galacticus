@@ -126,7 +126,7 @@ contains
     Internal constructor for the \cite{muzzin_evolution_2013} mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     type            (surveyGeometryMuzzin2013ULTRAVISTA)                        :: self
     integer                                             , intent(in   )         :: redshiftBin
@@ -160,7 +160,7 @@ contains
        redshiftMinimum=3.00d0
        redshiftMaximum=4.00d0
     case default
-       call Galacticus_Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
+       call Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -220,7 +220,6 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -256,7 +255,6 @@ contains
     !!{
     Compute the maximum volume within which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   )           :: mass
@@ -280,13 +278,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     type (varying_string                    )                :: muzzin2013ULTRAVISTAMangleDirectory
     !$GLC attributes unused :: self
 
-    muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/ULTRAVISTA/"
+    muzzin2013ULTRAVISTAMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/ULTRAVISTA/"
     return
   end function muzzin2013ULTRAVISTAMangleDirectory
 

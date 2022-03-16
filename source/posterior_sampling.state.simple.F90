@@ -168,13 +168,13 @@ contains
     !!{
     Return the mean over state history.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleMean
 
     simpleMean=0.0d0
-    call Galacticus_Error_Report('the "simple" state class does not store history'//{introspection:location})
+    call Error_Report('the "simple" state class does not store history'//{introspection:location})
     return
   end function simpleMean
 
@@ -182,13 +182,13 @@ contains
     !!{
     Return the mean over state history.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleVariance
 
     simpleVariance=0.0d0
-    call Galacticus_Error_Report('the "simple" state class does not store history'//{introspection:location})
+    call Error_Report('the "simple" state class does not store history'//{introspection:location})
     return
   end function simpleVariance
 
@@ -225,7 +225,7 @@ contains
     !!{
     Restore the state object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)               :: self
     double precision                            , intent(in   ), dimension(:) :: stateVector

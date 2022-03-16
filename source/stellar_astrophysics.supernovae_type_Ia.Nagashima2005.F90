@@ -82,8 +82,8 @@ contains
     !!}
     use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
     use :: FoX_dom          , only : destroy                       , node
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Galacticus_Paths , only : galacticusPath                , pathTypeDataStatic
+    use :: Error            , only : Error_Report
+    use :: Input_Paths      , only : inputPath                     , pathTypeDataStatic
     use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                        , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
          &                           XML_Parse                     , extractDataContent                => extractDataContentTS
     use :: Memory_Management, only : allocateArray
@@ -107,18 +107,18 @@ contains
     ! Read in Type Ia yields.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
-    doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse yields file'//{introspection:location})
+    doc => XML_Parse(char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
+    if (ioErr /= 0) call Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
     call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)
     ! Loop through isotopes and compute the net metal yield.
     do iIsotope=0,size(isotopesList)-1
        isotope  => isotopesList(iIsotope)%element
-       if (XML_Count_Elements_By_Tag_Name(isotope,"yield") /= 1) call Galacticus_Error_Report('isotope must have precisely one yield'//{introspection:location})
+       if (XML_Count_Elements_By_Tag_Name(isotope,"yield") /= 1) call Error_Report('isotope must have precisely one yield'//{introspection:location})
        yield => XML_Get_First_Element_By_Tag_Name(isotope,"yield")
        call extractDataContent(yield,isotopeYield)
        self%totalYield=self%totalYield+isotopeYield
-       if (XML_Count_Elements_By_Tag_Name(isotope,"atomicNumber") /= 1) call Galacticus_Error_Report('isotope must have precisely one atomic number'//{introspection:location})
+       if (XML_Count_Elements_By_Tag_Name(isotope,"atomicNumber") /= 1) call Error_Report('isotope must have precisely one atomic number'//{introspection:location})
        atom => XML_Get_First_Element_By_Tag_Name(isotope,"atomicNumber")
        call extractDataContent(atom,atomicNumber)
        atomicIndex=Atom_Lookup(atomicNumber=atomicNumber)

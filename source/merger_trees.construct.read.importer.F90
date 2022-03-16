@@ -301,12 +301,12 @@ contains
     !!{
     Test whether two {\normalfont \ttfamily importerUnits} objects are equal.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(importerUnits), intent(in   ) :: units1
     type (importerUnits), intent(in   ) :: units2
 
-    if (.not.(units1%status.and.units2%status)) call Galacticus_Error_Report('units not defined'//{introspection:location})
+    if (.not.(units1%status.and.units2%status)) call Error_Report('units not defined'//{introspection:location})
     importerUnitsAreEqual= units1%unitsInSI           ==  units2%unitsInSI           &
          &                .and.                                                      &
          &                 units1%scaleFactorExponent ==  units2%scaleFactorExponent &
@@ -333,7 +333,7 @@ contains
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsLittleH
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     double precision                          , intent(in   ) :: values                    , times
     type            (importerUnits           ), intent(in   ) :: units
@@ -342,7 +342,7 @@ contains
     class           (cosmologyFunctionsClass ), intent(inout) :: cosmologyFunctions_
     double precision                                          :: importerUnitConvertScalar
 
-    if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
+    if (.not.units%status) call Error_Report('units are not defined'//{introspection:location})
     importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
        importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctions_%expansionFactor(times)**units%scaleFactorExponent
@@ -356,7 +356,7 @@ contains
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsLittleH
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     double precision                          , intent(in   ), dimension(           :) :: values               , times
     type            (importerUnits           ), intent(in   )                          :: units
@@ -366,7 +366,7 @@ contains
     double precision                                         , dimension(size(values)) :: importerUnitConvert1D
     integer                                                                            :: i
 
-    if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
+    if (.not.units%status) call Error_Report('units are not defined'//{introspection:location})
     importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
        do i=1,size(values)
@@ -382,7 +382,7 @@ contains
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParametersClass, hubbleUnitsLittleH
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     double precision                          , intent(in   ), dimension(                 :,                 :) :: values
     double precision                          , intent(in   ), dimension(                                    :) :: times
@@ -393,7 +393,7 @@ contains
     double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: importerUnitConvert2D
     integer                                                                                                     :: i
 
-    if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
+    if (.not.units%status) call Error_Report('units are not defined'//{introspection:location})
     importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
        do i=1,size(values,dim=2)

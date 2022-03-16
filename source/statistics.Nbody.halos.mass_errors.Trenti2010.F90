@@ -110,7 +110,7 @@ contains
     comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
     normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                                  :: self
     double precision                              , intent(in   )                   :: massParticle
@@ -128,9 +128,9 @@ contains
     ! Set correlation properties.
     if (present(correlationNormalization).or.present(correlationMassExponent).or.present(correlationRedshiftExponent)) then
        if (.not.(present(correlationNormalization).and.present(correlationMassExponent).and.present(correlationRedshiftExponent))) &
-            & call Galacticus_Error_Report('all parameters of correlation model must be provided'//{introspection:location})
+            & call Error_Report('all parameters of correlation model must be provided'//{introspection:location})
        if (.not.present(cosmologyFunctions_)) &
-            & call Galacticus_Error_Report('cosmology functions must be provided for correlation model'//{introspection:location})
+            & call Error_Report('cosmology functions must be provided for correlation model'//{introspection:location})
        self%correlationNormalization    =  correlationNormalization
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent

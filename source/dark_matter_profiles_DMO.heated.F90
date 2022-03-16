@@ -157,7 +157,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOHeated   )                        :: self
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
@@ -172,7 +172,7 @@ contains
     !!]
 
     ! Validate.
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct the object.
     self%genericLastUniqueID=-1_kind_int8
     self%lastUniqueID       =-1_kind_int8

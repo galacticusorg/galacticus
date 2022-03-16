@@ -64,7 +64,7 @@ contains
     !!{
     Compute the convex hull volume of the points.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Display           , only : displayIndent, displayUnindent, verbosityLevelStandard
     use :: Points_Convex_Hull, only : convexHull
     implicit none
@@ -81,7 +81,7 @@ contains
           call simulations(i)%attributesReal%set           (keyCH        ='convexHullVolume',value         =hull%volume())
           call simulations(i)%analysis      %writeAttribute(attributeName='convexHullVolume',attributeValue=hull%volume())
        class default
-          call Galacticus_Error_Report('incorrect class'//{introspection:location})
+          call Error_Report('incorrect class'//{introspection:location})
        end select
        nullify(hull)
     end do

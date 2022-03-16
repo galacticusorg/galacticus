@@ -160,7 +160,7 @@ contains
     !!{
     Constructor for ``GelmanRubin'' convergence class.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: MPI_Utilities    , only : mpiSelf
     use :: Memory_Management, only : allocateArray
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
@@ -180,7 +180,7 @@ contains
     self%chainMask           =.true.
     self%stepCount           =testCount
     ! Validate.
-    if (mpiSelf%count()-self%outlierCountMaximum < 3) call Galacticus_Error_Report('maximum number of outliers is too large'//{introspection:location})
+    if (mpiSelf%count()-self%outlierCountMaximum < 3) call Error_Report('maximum number of outliers is too large'//{introspection:location})
     ! Open log file.
     if (mpiSelf%isMaster()) open(newUnit=self%logFileUnit,file=char(logFileName),form='formatted',status='unknown')
     return

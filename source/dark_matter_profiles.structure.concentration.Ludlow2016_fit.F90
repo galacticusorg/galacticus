@@ -168,7 +168,7 @@ contains
     Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     \cite{ludlow_mass-concentration-redshift_2016} fitting function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self
@@ -184,7 +184,7 @@ contains
     peakHeight      =  +criticalOverdensitySphericalCollapse    &
          &             /self%cosmologicalMassVariance_%rootVariance   (basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
     expansionFactor =   self%cosmologyFunctions_      %expansionFactor(basic%time()                                           )
-    if (expansionFactor < 0.1d0) call Galacticus_Error_Report('redshift out of range of fitting function'//{introspection:location})
+    if (expansionFactor < 0.1d0) call Error_Report('redshift out of range of fitting function'//{introspection:location})
     c0                        =+3.395d0*expansionFactor**0.215d0
     beta                      =+0.307d0/expansionFactor**0.540d0
     gamma1                    =+0.628d0*expansionFactor**0.047d0

@@ -236,7 +236,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
@@ -282,7 +282,7 @@ contains
             &                                  /coolingFunctionCumulative
     else
        summationCoolingFunctionDensityLogSlope=0.0d0
-       if (coolingFunctionGradient /= 0.0d0) call Galacticus_Error_Report('cooling function is zero but has non-zero gradient with density - logarithmic slope is undefined'//{introspection:location})
+       if (coolingFunctionGradient /= 0.0d0) call Error_Report('cooling function is zero but has non-zero gradient with density - logarithmic slope is undefined'//{introspection:location})
     end if
     return
   end function summationCoolingFunctionDensityLogSlope
@@ -294,7 +294,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
@@ -340,7 +340,7 @@ contains
             &                                      /coolingFunctionCumulative
     else
        summationCoolingFunctionTemperatureLogSlope=0.0d0
-       if (coolingFunctionGradient /= 0.0d0) call Galacticus_Error_Report('cooling function is zero but has non-zero gradient with temperature - logarithmic slope is undefined'//{introspection:location})
+       if (coolingFunctionGradient /= 0.0d0) call Error_Report('cooling function is zero but has non-zero gradient with temperature - logarithmic slope is undefined'//{introspection:location})
     end if
     return
   end function summationCoolingFunctionTemperatureLogSlope

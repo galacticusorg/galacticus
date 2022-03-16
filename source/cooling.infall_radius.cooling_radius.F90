@@ -78,7 +78,6 @@ contains
     !!{
     Internal constructor for the cooling radius infall radii class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (coolingInfallRadiusCoolingRadius)                        :: self
     class(coolingRadiusClass              ), intent(in   ), target :: coolingRadius_

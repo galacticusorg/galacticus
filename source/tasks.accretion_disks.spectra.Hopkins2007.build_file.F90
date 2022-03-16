@@ -61,7 +61,7 @@ contains
     !!}
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
     use :: Display               , only : displayIndent                  , displayUnindent
-    use :: Galacticus_Error      , only : errorStatusSuccess
+    use :: Error      , only : errorStatusSuccess
     implicit none
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status

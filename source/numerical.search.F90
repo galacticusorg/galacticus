@@ -148,7 +148,7 @@ contains
     \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     within which the two values must match.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use :: Error               , only : Error_Report, errorStatusFail, errorStatusSuccess
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     integer         (c_size_t)                                        :: searchArrayClosest
@@ -189,7 +189,7 @@ contains
           if (present(status)) then
              status=errorStatusFail
           else
-             call Galacticus_Error_Report('no match found within specified tolerance'//{introspection:location})
+             call Error_Report('no match found within specified tolerance'//{introspection:location})
           end if
        end if
     end if

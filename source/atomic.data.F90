@@ -192,14 +192,14 @@ contains
     !!{
     Ensure that the module is initialized by reading in data.
     !!}
-    use :: FoX_dom           , only : destroy                , getElementsByTagname             , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS, &
-         &                            xmlNodeList            , XML_Parse
+    use :: FoX_dom           , only : destroy              , getElementsByTagname             , node
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath            , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS, &
+         &                            xmlNodeList          , XML_Parse
     use :: ISO_Varying_String, only : char
-    use :: Memory_Management , only : Memory_Usage_Record    , allocateArray
-    use :: String_Handling   , only : String_Lower_Case      , char
+    use :: Memory_Management , only : Memory_Usage_Record  , allocateArray
+    use :: String_Handling   , only : String_Lower_Case    , char
     implicit none
     type            (Node       )              , pointer     :: abundanceTypeElement, doc              , &
          &                                                      atom                , element
@@ -217,8 +217,8 @@ contains
 
        ! Read in the atomic data.
        !$omp critical (FoX_DOM_Access)
-       doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//"abundances/Atomic_Data.xml",iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
+       doc => XML_Parse(char(inputPath(pathTypeDataStatic))//"abundances/Atomic_Data.xml",iostat=ioErr)
+       if (ioErr /= 0) call Error_Report('Unable to parse data file'//{introspection:location})
 
        ! Get list of all element elements.
        call XML_Get_Elements_By_Tag_Name(doc,"element",elementList)
@@ -255,8 +255,8 @@ contains
        do iAbundancePattern=1,abundancePatternCount
 
           ! Parse the abundance pattern file.
-          doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
+          doc => XML_Parse(char(inputPath(pathTypeDataStatic))//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
+          if (ioErr /= 0) call Error_Report('Unable to parse data file'//{introspection:location})
 
           ! Get list of all element elements.
           call XML_Get_Elements_By_Tag_Name(doc,"element",elementList)
@@ -291,7 +291,7 @@ contains
                      &*atoms(iAtom)%atomicMass/totalMass
              end do
           else
-             call Galacticus_Error_Report("unrecognized abundance type"//{introspection:location})
+             call Error_Report("unrecognized abundance type"//{introspection:location})
           end if
 
           ! Compute the normalization for unit metal mass in this abundance pattern.
@@ -318,8 +318,8 @@ contains
     !!{
     Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : String_Lower_Case
+    use :: Error          , only : Error_Report
+    use :: String_Handling, only : String_Lower_Case
     implicit none
     integer          , intent(in   ), optional :: atomicNumber
     character(len=* ), intent(in   ), optional :: name         , shortLabel
@@ -358,7 +358,7 @@ contains
 
     ! Element was not found, report an error.
     Atom_Lookup=-1
-    call Galacticus_Error_Report('could not find this element'//{introspection:location})
+    call Error_Report('could not find this element'//{introspection:location})
     return
   end function Atom_Lookup
 
@@ -366,8 +366,8 @@ contains
     !!{
     Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : String_Lower_Case
+    use :: Error          , only : Error_Report
+    use :: String_Handling, only : String_Lower_Case
     implicit none
     integer           , intent(in   ), optional :: abundanceIndex
     character(len=*  ), intent(in   ), optional :: abundanceName
@@ -396,7 +396,7 @@ contains
 
     ! Abundance pattern was not found, report an error.
     Abundance_Pattern_Lookup=-1
-    call Galacticus_Error_Report('could not find this abundance pattern'//{introspection:location})
+    call Error_Report('could not find this abundance pattern'//{introspection:location})
     return
   end function Abundance_Pattern_Lookup
 

@@ -89,7 +89,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (haloMassFunctionRodriguezPuebla2016)                             :: self
     class           (cosmologyParametersClass           ), target     , intent(in   ) :: cosmologyParameters_

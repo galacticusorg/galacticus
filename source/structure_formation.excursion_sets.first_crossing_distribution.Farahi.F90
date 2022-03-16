@@ -322,15 +322,15 @@ contains
   end function farahiConstructorInternal
 
   subroutine farahiFileNameInitialize(self)
-    use :: File_Utilities  , only : Directory_Make, File_Name_Expand   , File_Path
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+    use :: File_Utilities, only : Directory_Make, File_Name_Expand   , File_Path
+    use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
 
     if (self%fileNameInitialized) return
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") &
-         & self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+         & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
     ! Expand file name.
     self%fileName=File_Name_Expand(char(self%fileName))
     ! Ensure directory exists.

@@ -353,8 +353,8 @@ contains
           &                                                    verbosityLevelWorking
     use            :: File_Utilities                  , only : Directory_Make                   , File_Exists         , File_Lock    , File_Path      , &
           &                                                    File_Unlock                      , lockDescriptor
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
+    use            :: Error                           , only : Error_Report
+    use            :: Input_Paths                     , only : inputPath                        , pathTypeDataDynamic
     use            :: HDF5_Access                     , only : hdf5Access
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -390,7 +390,7 @@ contains
     if (.not.property%computed) then
        ! Check for previously computed data.
        makeFile=.false.
-       fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+       fileName=char(inputPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
        call Directory_Make(File_Path(fileName))
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lock,lockIsShared=.false.)

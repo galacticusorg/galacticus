@@ -146,8 +146,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     !!}
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Kind_Numbers, only : kind_int8
+    use :: Error       , only : Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
     double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &

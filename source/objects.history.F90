@@ -165,9 +165,9 @@ contains
     !!{
     Create a history object.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
-    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
+    use :: Numerical_Ranges , only : Make_Range         , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
     class           (history), intent(inout)           :: history_
     integer                  , intent(in   )           :: historyCount   , timesCount
@@ -176,14 +176,14 @@ contains
     integer                                            :: rangeTypeActual
 
     if (allocated(history_%time)) then
-       call Galacticus_Error_Report('this history appears to have been created already'//{introspection:location})
+       call Error_Report('this history appears to have been created already'//{introspection:location})
     else
        allocate(history_%time  (timesCount             ))
        allocate(history_%data  (timesCount,historyCount))
        if (timesCount > 0) then
           call Memory_Usage_Record(sizeof(history_%time)+sizeof(history_%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
-             if (.not.present(timeEnd)) call Galacticus_Error_Report('an end time must be given if a begin time is given'//{introspection:location})
+             if (.not.present(timeEnd)) call Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
                 rangeTypeActual=rangeType
              else
@@ -234,9 +234,9 @@ contains
     !!{
     Create a history object.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
-    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
+    use :: Numerical_Ranges , only : Make_Range         , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
     class           (longIntegerHistory), intent(inout)           :: history_
     integer                             , intent(in   )           :: historyCount   , timesCount
@@ -245,14 +245,14 @@ contains
     integer                                                       :: rangeTypeActual
 
     if (allocated(history_%time)) then
-       call Galacticus_Error_Report('this history appears to have been created already'//{introspection:location})
+       call Error_Report('this history appears to have been created already'//{introspection:location})
     else
        allocate(history_%time  (timesCount             ))
        allocate(history_%data  (timesCount,historyCount))
        if (timesCount > 0) then
           call Memory_Usage_Record(sizeof(history_%time)+sizeof(history_%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
-             if (.not.present(timeEnd)) call Galacticus_Error_Report('an end time must be given if a begin time is given'//{introspection:location})
+             if (.not.present(timeEnd)) call Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
                 rangeTypeActual=rangeType
              else
@@ -303,14 +303,14 @@ contains
     !!{
     Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
     implicit none
     class(history), intent(inout) :: self
     type (node   ), pointer       :: historyDefinition
     !$GLC attributes unused :: self, historyDefinition
 
-    call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
+    call Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
   end subroutine History_Builder
 
@@ -318,14 +318,14 @@ contains
     !!{
     Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (node              ), pointer       :: historyDefinition
     !$GLC attributes unused :: self, historyDefinition
 
-    call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
+    call Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
   end subroutine History_Long_Integer_Builder
 
@@ -586,7 +586,7 @@ contains
     !!{
     Add two history objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (history)                          :: History_Add
     class(history), intent(in   )           :: history1
@@ -600,7 +600,7 @@ contains
        type is (history)
           History_Add=history1
           if (present(history2)) then
-             if (any(shape(History_Add%data) /= shape(history2%data))) call Galacticus_Error_Report('mismatch in history object shape'//{introspection:location})
+             if (any(shape(History_Add%data) /= shape(history2%data))) call Error_Report('mismatch in history object shape'//{introspection:location})
              History_Add%data=History_Add%data+history2%data
           end if
        end select
@@ -612,7 +612,7 @@ contains
     !!{
     Subtract two history objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (history)                          :: History_Subtract
     class(history), intent(in   )           :: history1
@@ -626,7 +626,7 @@ contains
        type is (history)
           History_Subtract=history1
           if (present(history2)) then
-             if (any(shape(history1%data) /= shape(history2%data))) call Galacticus_Error_Report('mismatch in history object shape'//{introspection:location})
+             if (any(shape(history1%data) /= shape(history2%data))) call Error_Report('mismatch in history object shape'//{introspection:location})
              History_Subtract%data= history1%data-history2%data
           else
              History_Subtract%data=-history1%data
@@ -655,7 +655,7 @@ contains
     !!{
     Pack history from an array into a history structure.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (history)              , intent(inout) :: self
     double precision         , dimension(:), intent(in   ) :: historyArray
@@ -664,7 +664,7 @@ contains
     if (allocated(self%data)) then
        self%data=reshape(historyArray,shape(self%data))
     else if (size(historyArray) > 0) then
-       call Galacticus_Error_Report('attempt to deserialize into non-existant history'//{introspection:location})
+       call Error_Report('attempt to deserialize into non-existant history'//{introspection:location})
     end if
     return
   end subroutine History_Deserialize
@@ -689,9 +689,9 @@ contains
     time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     removal can be slow this allows for some optimization).
     !!}
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
+    use            :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class           (history), intent(inout)           :: history_
     double precision         , intent(in   )           :: currentTime
@@ -712,7 +712,7 @@ contains
 
     ! Decide on the minimum number of points that we will remove.
     if (present(minimumPointsToRemove)) then
-       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
+       if (minimumPointsToRemove < 1) call Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
        minimumPointsToRemoveActual=minimumPointsToRemove
     else
        minimumPointsToRemoveActual=1
@@ -804,9 +804,9 @@ contains
     time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     removal can be slow this allows for some optimization).
     !!}
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
+    use            :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class           (longIntegerHistory), intent(inout)           :: history_
     double precision                    , intent(in   )           :: currentTime
@@ -827,7 +827,7 @@ contains
 
     ! Decide on the minimum number of points that we will remove.
     if (present(minimumPointsToRemove)) then
-       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
+       if (minimumPointsToRemove < 1) call Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
        minimumPointsToRemoveActual=minimumPointsToRemove
     else
        minimumPointsToRemoveActual=1
@@ -916,8 +916,8 @@ contains
     !!{
     Append a history to a long integer history.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     type            (longIntegerHistory), intent(in   )                 :: append
@@ -930,8 +930,8 @@ contains
        self%data=append%data
     else
        ! A history already exists. Validate the provided append history.
-       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
+       if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
        call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
        call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
@@ -951,8 +951,8 @@ contains
     !!{
     Append a history to a long integer history.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     double precision                    , intent(in   )                 :: time
@@ -968,8 +968,8 @@ contains
        self%data(1,:)=append
     else
        ! A history already exists. Validate the provided append history.
-       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
+       if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
        call allocateArray(timeTmp,[size(self%time)+1                      ])
        call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
@@ -989,8 +989,8 @@ contains
     !!{
     Append a history to a long integer history.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history), intent(inout)                 :: self
     type            (history), intent(in   )                 :: append
@@ -1003,8 +1003,8 @@ contains
        self%data=append%data
     else
        ! A history already exists. Validate the provided append hsitory.
-       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
+       if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do do the append.
        call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
        call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
@@ -1024,8 +1024,8 @@ contains
     !!{
     Append a history to a long integer history.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history), intent(inout)                 :: self
     double precision         , intent(in   )                 :: time
@@ -1041,8 +1041,8 @@ contains
        self%data(1,:)=append
     else
        ! A history already exists. Validate the provided append data.
-       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
-       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
+       if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
        call allocateArray(timeTmp,[size(self%time)+1                      ])
        call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
@@ -1064,7 +1064,7 @@ contains
      designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
      the times in {\normalfont \ttfamily history\_} and added to the rates in {\normalfont \ttfamily history\_}.
      !!}
-     use            :: Galacticus_Error       , only : Galacticus_Error_Report
+     use            :: Error                  , only : Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
      use            :: Numerical_Interpolation, only : interpolator
      implicit none
@@ -1096,9 +1096,9 @@ contains
            return
         end if
         ! addHistory must have at least two points to permit interpolation.
-        if (addHistoryPointCount  < 2) call Galacticus_Error_Report('history to add must have at least two points'//{introspection:location})
+        if (addHistoryPointCount  < 2) call Error_Report('history to add must have at least two points'//{introspection:location})
         ! The two objects must contain the same number of histories.
-        if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
+        if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Error_Report('two objects contain differing numbers of histories'//{introspection:location})
         ! Loop over each entry in history_.
         interpolationPoint=1
         interpolator_     =interpolator(addHistory%time)
@@ -1133,7 +1133,7 @@ contains
      in {\normalfont \ttfamily history\_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history\_}.
      !!}
      use            :: Arrays_Search   , only : searchArray
-     use            :: Galacticus_Error, only : Galacticus_Error_Report
+     use            :: Error           , only : Error_Report
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
      use            :: Numerical_Ranges, only : rangeTypeUndefined
      implicit none
@@ -1177,12 +1177,12 @@ contains
         end if
 
         ! The two objects must contain the same number of histories.
-        if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
+        if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Error_Report('two objects contain differing numbers of histories'//{introspection:location})
 
         ! Determine if we need to extend the time range in history_.
         addCount=size(addHistory%time)
         if (addHistory%time(1) < history_%time(1) .or. addHistory%time(addCount) > history_%time(size(history_%time))) then
-           if (.not.autoExtend_) call Galacticus_Error_Report("history needs to be extended, but is not permitted"//{introspection:location})
+           if (.not.autoExtend_) call Error_Report("history needs to be extended, but is not permitted"//{introspection:location})
            if (history_%rangeType == rangeTypeUndefined) then
               ! The history has no defined range type, so pass the time array of the history being addd to use as a template for new times.
               call history_%extend(times=addHistory%time)
@@ -1274,9 +1274,9 @@ contains
      !!{
      Extends a history to encompass the given time range.
      !!}
-     use :: Galacticus_Error  , only : Galacticus_Error_Report
-     use :: ISO_Varying_String, only : assignment(=)          , operator(//)        , varying_string
-     use :: Numerical_Ranges  , only : rangeTypeLinear        , rangeTypeLogarithmic, rangeTypeUndefined
+     use :: Error             , only : Error_Report
+     use :: ISO_Varying_String, only : assignment(=)  , operator(//)        , varying_string
+     use :: Numerical_Ranges  , only : rangeTypeLinear, rangeTypeLogarithmic, rangeTypeUndefined
      use :: String_Handling   , only : operator(//)
      implicit none
      class           (history       )                             , intent(inout)           :: history_
@@ -1301,7 +1301,7 @@ contains
            timeRangeActual(1)=times(1          )
            timeRangeActual(2)=times(size(times))
         else
-           call Galacticus_Error_Report('either timeRange or times must be specified'//{introspection:location})
+           call Error_Report('either timeRange or times must be specified'//{introspection:location})
         end if
      end if
 
@@ -1326,7 +1326,7 @@ contains
               message=message//history_%rangeType//char(10)
            end if
            message=message//' -> known types are: '//char(10)//' --> linear      : '//rangeTypeLinear//char(10)//' --> logarithmic : '//rangeTypeLogarithmic
-           call Galacticus_Error_Report(message//{introspection:location})
+           call Error_Report(message//{introspection:location})
         end select
         if (timeRangeActual(1) < timeBegin) then
            select case (history_%rangeType)
@@ -1338,7 +1338,7 @@ contains
               timeBegin=timeBegin*exp(-dble(addCountStart)*timeDelta)
            case default
               addCountStart=0
-              call Galacticus_Error_Report('unknown range type'//{introspection:location})
+              call Error_Report('unknown range type'//{introspection:location})
            end select
            timeBeginIndex=timeBeginIndex+addCountStart
            timeEndIndex  =timeEndIndex  +addCountStart
@@ -1355,7 +1355,7 @@ contains
               timeEnd  =timeEnd  *exp(+dble(addCountEnd)*timeDelta)
            case default
               addCountEnd=0
-              call Galacticus_Error_Report('unknown range type'//{introspection:location})
+              call Error_Report('unknown range type'//{introspection:location})
            end select
         else
            addCountEnd=0

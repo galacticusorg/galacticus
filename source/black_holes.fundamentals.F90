@@ -80,7 +80,7 @@ contains
     Returns the radius (in gravitational units and for a prograde or retorgrade orbit) of the innermost stable
     circular orbit for a black hole with spin {\normalfont \ttfamily spinBlackHole}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision      , intent(in   )           :: spinBlackHole
     integer               , intent(in   ), optional :: orbit
@@ -112,7 +112,7 @@ contains
           Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor+sqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
        case default
           Black_Hole_ISCO_Radius_Spin=0.0d0
-          call Galacticus_Error_Report('unrecognized orbit parameter'//{introspection:location})
+          call Error_Report('unrecognized orbit parameter'//{introspection:location})
        end select
        orbitPrevious        =orbitActual
        spinBlackHolePrevious=spinBlackHole
@@ -305,7 +305,7 @@ contains
     !!{
     Returns the frame-dragging angular velocity in the Kerr metric.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
@@ -329,7 +329,7 @@ contains
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
     case default
        radiusDimensionless=0.0d0
-       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
+       call Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
@@ -354,7 +354,7 @@ contains
     !!{
     Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
@@ -378,7 +378,7 @@ contains
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
     case default
        radiusDimensionless=0.0d0
-       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
+       call Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
@@ -403,7 +403,7 @@ contains
     !!{
     Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
@@ -427,7 +427,7 @@ contains
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
     case default
        radiusDimensionless=0.0d0
-       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
+       call Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
@@ -453,7 +453,7 @@ contains
     Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
     The radius is in units of the gravitational radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
@@ -479,7 +479,7 @@ contains
        Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
     case default
        Black_Hole_Horizon_Radius_Node=0.0d0
-       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
+       call Error_Report('unrecognized units'//{introspection:location})
     end select
     return
   end function Black_Hole_Horizon_Radius_Node
@@ -500,7 +500,7 @@ contains
     !!{
     Return the radius of the static limit for a Kerr metric for the black hole in {\normalfont \ttfamily blackHole} and angle {\normalfont \ttfamily theta}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
@@ -530,7 +530,7 @@ contains
        Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
     case default
        Black_Hole_Static_Radius_Node=0.0d0
-       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
+       call Error_Report('unrecognized units'//{introspection:location})
     end select
     return
   end function Black_Hole_Static_Radius_Node

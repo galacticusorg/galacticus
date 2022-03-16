@@ -179,7 +179,7 @@ contains
     !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
     use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (nodePropertyExtractorSED     )                              :: self
@@ -200,7 +200,7 @@ contains
          &   component /= componentTypeDisk                                                                                &
          &  .and.                                                                                                          &
          &   component /= componentTypeSpheroid                                                                            &
-         & ) call Galacticus_Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
+         & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
     call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
     call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)
     self%metallicityBoundaries       =self%starFormationHistory_%metallicityBoundaries()
@@ -247,7 +247,7 @@ contains
     !!{
     Return the number of array alements in the {\normalfont \ttfamily sed} property extractors.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer         (c_size_t                )                              :: sedSize
     class           (nodePropertyExtractorSED), intent(inout)               :: self
@@ -275,7 +275,7 @@ contains
        case default
           expansionFactor=1.0d0
           sedSize        =0_c_size_t
-          call Galacticus_Error_Report('unknown frame'//{introspection:location})
+          call Error_Report('unknown frame'//{introspection:location})
        end select
        sedSize      =count(selection)
        indexTemplate=self%indexTemplateTime(time)
@@ -403,7 +403,7 @@ contains
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                          , dimension(:) , allocatable :: sedWavelengths
     class           (nodePropertyExtractorSED), intent(inout)              :: self
@@ -422,7 +422,7 @@ contains
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
     case default
        expansionFactor=0.0d0
-       call Galacticus_Error_Report('unknown frame'//{introspection:location})
+       call Error_Report('unknown frame'//{introspection:location})
     end select
     do i=1,size(sedWavelengths)
        if (indexTemplate > 0) then
@@ -454,7 +454,6 @@ contains
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
     double precision                          , intent(in   )                            :: time
@@ -545,7 +544,7 @@ contains
     use :: Numerical_Comparison, only : Values_Agree
     use :: File_Utilities      , only : File_Exists       , File_Lock            , File_Unlock, lockDescriptor
     use :: String_Handling     , only : operator(//)
-    use :: Galacticus_Paths    , only : galacticusPath    , pathTypeDataDynamic
+    use :: Input_Paths         , only : inputPath         , pathTypeDataDynamic
     implicit none
     class    (nodePropertyExtractorSED), intent(inout) :: self
     type     (treeNode                ), intent(inout) :: node
@@ -569,7 +568,7 @@ contains
     if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
     if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
        ! Construct the file name.
-       fileName=galacticusPath(pathTypeDataDynamic)                    // &
+       fileName=inputPath(pathTypeDataDynamic)                         // &
             &        'stellarPopulations/'                             // &
             &        self%objectType             (                    )// &
             &        '_'                                               // &
@@ -617,7 +616,7 @@ contains
     use    :: Abundances_Structure , only : abundances             , metallicityTypeLinearByMassSolar, adjustElementsReset
     use    :: Display              , only : displayIndent          , displayUnindent                 , displayCounter     , displayCounterClear, &
          &                                  verbosityLevelWorking
-    use    :: Galacticus_Error     , only : Galacticus_Error_Report
+    use    :: Error                , only : Error_Report
     use    :: Histories            , only : history
     use    :: Numerical_Integration, only : integrator
     use    :: Multi_Counters       , only : multiCounter
@@ -660,7 +659,7 @@ contains
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
     case default
        expansionFactor=0.0d0
-       call Galacticus_Error_Report('unknown frame'//{introspection:location})
+       call Error_Report('unknown frame'//{introspection:location})
     end select
     if (self%resolution < 0.0d0) then
        allocate(jWavelength(size(sedLuminosityMean,dim=1)))
@@ -729,7 +728,7 @@ contains
           iWavelength =0_c_size_t
           iTime       =0_c_size_t
           iMetallicity=0_c_size_t
-          call Galacticus_Error_Report('unable to increment counter'//{introspection:location})
+          call Error_Report('unable to increment counter'//{introspection:location})
        end if
        call stateLock%unset()
        if (parallelize_) then

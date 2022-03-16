@@ -81,7 +81,6 @@ contains
     Internal constructor for the \cite{hearin_dark_2013} conditional mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
     type (surveyGeometryHearin2014SDSS)                        :: self
     class(cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_

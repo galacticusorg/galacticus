@@ -79,7 +79,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily filterBox} N-body operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (nbodyOperatorFilterBox)                              :: self
     double precision                        , intent(in   ), dimension(3) :: boundLow, boundHigh
@@ -88,7 +88,7 @@ contains
     !!]
     
     if (any(boundLow >= boundHigh))                                                          &
-         & call Galacticus_Error_Report('filter will exclude all'//{introspection:location})
+         & call Error_Report('filter will exclude all'//{introspection:location})
     return
   end function filterBoxConstructorInternal
 
@@ -96,8 +96,7 @@ contains
     !!{
     Filter particles outside of a cuboid region.
     !!}
-    use :: Display         , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Display, only : displayIndent, displayMessage  , displayUnindent, verbosityLevelStandard
     implicit none
     class           (nbodyOperatorFilterBox), intent(inout)                 :: self
     type            (nBodyData             ), intent(inout), dimension(  :) :: simulations

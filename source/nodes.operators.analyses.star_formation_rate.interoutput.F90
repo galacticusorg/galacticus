@@ -243,7 +243,7 @@ contains
     !!{
     Combine integrals of star formation rate when galaxies merge.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
@@ -279,7 +279,7 @@ contains
             &                                     )
     case (destinationMergerSpheroid)
     case default
-       call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Zero rates in the secondary,
     call        disk    %floatRank0MetaPropertySet(                                                                                                             &
@@ -315,7 +315,7 @@ contains
     case (destinationMergerUnmoved)
        ! Do nothing.
     case default
-       call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     return
   end subroutine starFormationRateInterOutputGalaxiesMerge

@@ -128,7 +128,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterHaloMassAccretionHistoryWechsler2002)                          :: self
     class           (cosmologyFunctionsClass                       ), intent(in   ), target   :: cosmologyFunctions_
@@ -140,7 +140,7 @@ contains
     <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, formationRedshiftCompute, formationRedshift"/>
     !!]
 
-    if (.not.formationRedshiftCompute.and..not.present(formationRedshift)) call Galacticus_Error_Report('formation redshift must be provided'//{introspection:location})
+    if (.not.formationRedshiftCompute.and..not.present(formationRedshift)) call Error_Report('formation redshift must be provided'//{introspection:location})
     return
   end function wechsler2002ConstructorInternal
 

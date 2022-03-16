@@ -62,14 +62,14 @@ contains
     !!{
     Compute the magnification probability density function for a null lensing case.
     !!}
-    use Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (gravitationalLensingNull), intent(inout) :: self
     double precision                          , intent(in   ) :: magnification, redshift, &
          &                                                       scaleSource
 
     nullMagnificationPDF=0.0d0
-    call Galacticus_Error_Report('the PDF is a Dirac delta function, so is not implemented'//{introspection:location})
+    call Error_Report('the PDF is a Dirac delta function, so is not implemented'//{introspection:location})
     return
   end function nullMagnificationPDF
 

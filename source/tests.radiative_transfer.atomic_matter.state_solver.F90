@@ -34,7 +34,7 @@ program Test_Radiative_Transfer_State_Solver
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeFixed           , atomicRecombinationRateRadiativeVerner1996
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingFixed    , atomicRecombinationRateRadiativeCoolingHummer
   use :: Display                                     , only : displayVerbositySet                             , verbosityLevelStandard
-  use :: Galacticus_Error                            , only : errorStatusSuccess
+  use :: Error                            , only : errorStatusSuccess
   use :: Galacticus_Nodes                            , only : nodeClassHierarchyInitialize
   use :: Functions_Global_Utilities                  , only : Functions_Global_Set
   use :: Node_Components                             , only : Node_Components_Initialize                      , Node_Components_Uninitialize

@@ -505,25 +505,25 @@ $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCritical
 	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
 
 # Rules for version routines.
-$(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .git/refs/heads/master)
-	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
+$(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
+	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/output.version.revision.inc; fi
+	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/output.version.revision.inc; fi
+	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/output.version.revision.inc
 
 # Rules for build information routines.
-$(BUILDPATH)/galacticus.output.build.environment.inc:
-	@echo PREPROCESSOR=\"$(PREPROCESSOR)\" > $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCCOMPILER=\"$(FCCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CCOMPILER=\"$(CCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCFLAGS=\"$(FCFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCFLAGS_NOOPT=\"$(FCFLAGS_NOOPT)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CFLAGS=\"$(CFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CPPFLAGS=\"$(CPPFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo LIBS=\"$(LIBS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
+$(BUILDPATH)/output.build.environment.inc:
+	@echo PREPROCESSOR=\"$(PREPROCESSOR)\" > $(BUILDPATH)/output.build.environment.inc
+	@echo FCCOMPILER=\"$(FCCOMPILER)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CCOMPILER=\"$(CCOMPILER)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo FCFLAGS=\"$(FCFLAGS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo FCFLAGS_NOOPT=\"$(FCFLAGS_NOOPT)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CFLAGS=\"$(CFLAGS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CPPFLAGS=\"$(CPPFLAGS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo LIBS=\"$(LIBS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
 
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle

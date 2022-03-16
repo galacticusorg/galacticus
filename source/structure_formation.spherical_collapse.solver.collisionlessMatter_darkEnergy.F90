@@ -108,8 +108,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
@@ -120,25 +120,25 @@ contains
     <constructorAssign variables="energyFixedAt, *cosmologyFunctions_, *linearGrowth_"/>
     !!]
 
-    self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileNameCriticalOverdensity  =inputPath(pathTypeDataDynamic)                   // &
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'CriticalOverdensity_'                           // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                             '.hdf5'
-    self%fileNameVirialDensityContrast=galacticusPath(pathTypeDataDynamic)              // &
+    self%fileNameVirialDensityContrast=inputPath(pathTypeDataDynamic)                   // &
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'VirialDensityContrast_'                         // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                             '.hdf5'
-    self%fileNameRadiusTurnaround     =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileNameRadiusTurnaround     =inputPath(pathTypeDataDynamic)                   // &
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'TurnaroundRadius_'                              // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                             '.hdf5'
-    if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Galacticus_Error_Report('invalid energyFixedAt'//{introspection:location})
+    if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Error_Report('invalid energyFixedAt'//{introspection:location})
     return
   end function cllsnlssMttrDarkEnergyConstructorInternal
 
@@ -146,12 +146,12 @@ contains
     !!{
     Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
     !!}
-    use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
-          &                         verbosityLevelWorking
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Linear_Growth   , only : normalizeMatterDominated
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use :: Tables          , only : table1DLogarithmicLinear
+    use :: Display      , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                      verbosityLevelWorking
+    use :: Error        , only : Error_Report
+    use :: Linear_Growth, only : normalizeMatterDominated
+    use :: Root_Finder  , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables       , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
     double precision                                                            , intent(in   ) :: time
@@ -179,7 +179,7 @@ contains
     character       (len=13                                       )                             :: label
 
     ! Validate.
-    if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity .and. .not.associated(self%linearGrowth_)) call Galacticus_Error_Report('linearGrowth object was not provided'//{introspection:location})
+    if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity .and. .not.associated(self%linearGrowth_)) call Error_Report('linearGrowth object was not provided'//{introspection:location})
     ! Find minimum and maximum times to tabulate.
     if (allocated(sphericalCollapse_)) then
        ! Use currently tabulated range as the starting point.
@@ -258,7 +258,7 @@ contains
           cllsnlssMttCsmlgclCnstntTime                  =sphericalCollapse_                       %x                     (                iTime          )
           ! Check dark energy equation of state is within acceptable range.
           if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
-               & call Galacticus_Error_Report('ω<-⅓ required'//{introspection:location})
+               & call Error_Report('ω<-⅓ required'//{introspection:location})
           ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finderAmplitudeConstructed) then
              finderAmplitudePerturbation=rootFinder(                                                       &
@@ -328,7 +328,7 @@ contains
              case (cllsnlssMttrDarkEnergyFixedAtVirialization)
                 timeEnergyFixed=cllsnlssMttCsmlgclCnstntTime
              case default
-                call Galacticus_Error_Report('unrecognized epoch'//{introspection:location})
+                call Error_Report('unrecognized epoch'//{introspection:location})
              end select
              a=1.0d0-(1.0d0+3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed             ))*q/2.0d0
              b=      (1.0d0+3.0d0*cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime))*q/y
@@ -509,13 +509,13 @@ contains
     !!{
     Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
     class           (table2DLinLinLin                             ), intent(inout) :: linearNonlinearMap_
     !$GLC attributes unused :: self, time, linearNonlinearMap_
 
-    call Galacticus_Error_Report('linear-nonlinear mapping is not supported by this class'//{introspection:location})
+    call Error_Report('linear-nonlinear mapping is not supported by this class'//{introspection:location})
     return
   end subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap

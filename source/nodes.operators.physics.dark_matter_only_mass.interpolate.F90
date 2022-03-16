@@ -242,9 +242,9 @@ contains
     !!{
     Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic
-    use :: ISO_Varying_String, only : var_str                , varying_string, operator(//)
+    use :: ISO_Varying_String, only : var_str           , varying_string, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class    (nodeOperatorDMOInterpolate), intent(inout) :: self
@@ -265,7 +265,7 @@ contains
        message=message//"    node is at time: "//label//" Gyr"//char(10)
        write (label,'(f12.6)') basicParent%time()
        message=message//"  parent is at time: "//label//" Gyr"
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     ! Adjust the mass, target, and accretion rate to that of the parent node.
     call basic%massSet                  (                            basicParent%mass                     (                           ))

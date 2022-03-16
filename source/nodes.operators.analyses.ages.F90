@@ -245,9 +245,9 @@ contains
     !!{
     Combine integrals of star formation rate when galaxies merge.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Error                           , only : Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk, destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     class  (nodeOperatorAgesStellarMassWeighted), intent(inout) :: self
     type   (treeNode                           ), intent(inout) :: node
@@ -301,7 +301,7 @@ contains
     case (destinationMergerUnmoved)
        ! Do nothing.
     case default
-       call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Move the star formation rates from secondary to primary.
     select case (destinationStarsSatellite)
@@ -328,7 +328,7 @@ contains
             &                                      +spheroid    %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
             &                                     )
     case default
-       call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Zero rates in the secondary,
     call    disk        %floatRank0MetaPropertySet(                              self%timeStellarMassFormedDiskID     , &

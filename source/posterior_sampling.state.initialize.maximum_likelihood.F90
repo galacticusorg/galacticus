@@ -96,7 +96,7 @@ contains
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Display                     , only : displayMessage
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateClass

@@ -153,7 +153,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                      , dimension(3)  :: isotropicVelocityTangentialVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self
@@ -181,7 +181,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                      , dimension(3)  :: isotropicAngularMomentumVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self

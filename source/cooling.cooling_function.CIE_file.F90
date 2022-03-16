@@ -324,7 +324,7 @@ contains
     !!}
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use            :: Galacticus_Error             , only : Galacticus_Error_Report
+    use            :: Error                        , only : Error_Report
     use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
@@ -347,7 +347,7 @@ contains
 
     ! Abort if cumulative power is not available.
     cieFileCoolingFunctionFractionInBand=0.0d0
-    if (.not.allocated(self%powerEmittedFractionalCumulative)) call Galacticus_Error_Report('cumulative power data is not available'//{introspection:location})
+    if (.not.allocated(self%powerEmittedFractionalCumulative)) call Error_Report('cumulative power data is not available'//{introspection:location})
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
@@ -541,7 +541,7 @@ contains
     !!}
     use :: Display           , only : displayIndent                     , displayUnindent     , verbosityLevelWorking
     use :: File_Utilities    , only : File_Name_Expand
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : varying_string
@@ -561,7 +561,7 @@ contains
     call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
-    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Read datasets.
     call coolingFunctionFile%readDataset('temperature',self%temperatures        )
     call coolingFunctionFile%readDataset('metallicity',self%metallicities       )
@@ -594,28 +594,28 @@ contains
          &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Read optional datasets.
     if (coolingFunctionFile%hasDataset('energyContinuum')) then
        call coolingFunctionFile%readDataset('energyContinuum'                 ,self%energyContinuum                 )
@@ -648,14 +648,14 @@ contains
             &  .or.                                                         &
             &  self%extrapolateTemperatureHigh == extrapolationTypePowerLaw &
             & )                                                             &
-            & call Galacticus_Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
+            & call Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
     end if
     if     (                                                             &
          &  self%extrapolateMetallicityLow  == extrapolationTypePowerLaw &
          &   .or.                                                        &
          &  self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
          & )                                                             &
-         & call Galacticus_Error_Report('power law extrapolation not allowed in metallicity'//{introspection:location})
+         & call Error_Report('power law extrapolation not allowed in metallicity'//{introspection:location})
     ! Build interpolators.
     self       %interpolatorMetallicity=interpolator(self%metallicities  )
     self       %interpolatorTemperature=interpolator(self%temperatures   )

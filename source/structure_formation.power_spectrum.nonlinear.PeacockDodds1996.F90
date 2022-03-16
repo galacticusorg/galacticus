@@ -117,7 +117,7 @@ contains
     !!{
     Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
@@ -201,7 +201,7 @@ contains
        fNLLastIteration=fNL
        iterationCount  =iterationCount+1
     end do
-    if (.not.converged) call Galacticus_Error_Report('nonlinear power spectrum calculation failed to converge'//{introspection:location})
+    if (.not.converged) call Error_Report('nonlinear power spectrum calculation failed to converge'//{introspection:location})
     ! Store evaluations.
     self%timePrevious         =time
     self%waveNumberPrevious(1)=self%waveNumberPrevious(2)

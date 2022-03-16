@@ -122,7 +122,7 @@ contains
     Builds the tabulation.
     !!}
     use :: Display                       , only : displayIndent      , displayUnindent
-    use :: Galacticus_Error              , only : errorStatusSuccess
+    use :: Error              , only : errorStatusSuccess
     use :: Abundances_Structure          , only : abundances         , metallicityTypeLinearByMassSolar
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none

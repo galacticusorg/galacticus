@@ -163,11 +163,10 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeDisk              , coordinateSystemCylindrical, massTypeAll, massTypeGaseous
-    use :: Galacticus_Nodes                , only : nodeComponentDisk              , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Galactic_Structure_Options      , only : componentTypeDisk, coordinateSystemCylindrical    , massTypeAll, massTypeGaseous
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear         , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleCylindrical), intent(inout) :: self
@@ -202,7 +201,7 @@ contains
        radiusHalfMass=0.0d0
        velocity      =0.
        massGas       =0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Compute the surface densities at the half mass radius.
     surfaceDensityGas   =  self%galacticStructure_%surfaceDensity(                                              &

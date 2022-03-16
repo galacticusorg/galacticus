@@ -35,9 +35,9 @@ program Test_Concentrations
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+  use :: Calculations_Resets                 , only : Calculations_Reset
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
-  use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
+  use :: Input_Paths                         , only : inputPath                               , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                                  , operator(==)                               , &
           &                                           varying_string
   use :: Input_Parameters                    , only : inputParameters
@@ -112,13 +112,13 @@ program Test_Concentrations
   call Unit_Tests_Begin_Group("Concentration algorithms")
   do iModel=1,countModels
      allocate(parameters)
-     parameterFile=galacticusPath(pathTypeExec)//'testSuite/parameters/concentrations_'//modelDensityContrast(iModel)//'.xml'
+     parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/concentrations_'//modelDensityContrast(iModel)//'.xml'
      parameters   =inputParameters(parameterFile)
      call nodeClassHierarchyInitialize     (parameters)
      call Node_Components_Initialize       (parameters)
      call Node_Components_Thread_Initialize(parameters)
      ! Read the Colossus target data (and parameters used) from file.
-     countMasses=Count_Lines_in_File(galacticusPath(pathTypeExec)//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'.txt','#')
+     countMasses=Count_Lines_in_File(inputPath(pathTypeExec)//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'.txt','#')
      i=0
      allocate(mass(               countMasses))
      allocate(concentration      (countMasses))
@@ -393,7 +393,7 @@ program Test_Concentrations
      ! Iterate over masses evaluating concentration.
      do i=1,countMasses
         call basic%massSet(mass(i))
-        call Galacticus_Calculations_Reset(node)
+        call Calculations_Reset(node)
         concentration(i)=darkMatterProfileConcentration_%concentration(node)
      end do
      ! Assert the result.

@@ -195,7 +195,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     character(len=*                                         ), intent(in   )         :: fitType
@@ -234,7 +234,7 @@ contains
        self%densityContrastMethod=duttonMaccio2014DensityContrastMethodCritical200
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
     case default
-       call Galacticus_Error_Report('unrecognized fit type [available types are: nfwVirial, nfwCritical200, einastoCritical200]'//{introspection:location})
+       call Error_Report('unrecognized fit type [available types are: nfwVirial, nfwCritical200, einastoCritical200]'//{introspection:location})
     end select
     call self%definitions()
     return
@@ -245,7 +245,6 @@ contains
     Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
     parameters.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     double precision                                                , intent(in   )         :: a1                  , a2, &

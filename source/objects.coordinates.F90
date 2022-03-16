@@ -150,13 +150,13 @@ contains
     !!{
     Set generic coordinate object from Cartesian point. Simply quits with an error.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (coordinate)              , intent(  out) :: self
     double precision            , dimension(3), intent(in   ) :: x
     !$GLC attributes unused :: self, x
 
-    call Galacticus_Error_Report('no transformation from cartesian coordinates defined'//{introspection:location})
+    call Error_Report('no transformation from cartesian coordinates defined'//{introspection:location})
     return
   end subroutine Coordinates_Null_From
 
@@ -164,14 +164,14 @@ contains
     !!{
     Convert generic coordinate object to Cartesian point. Simply quits with an error.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (coordinate), intent(in   ) :: self
     double precision            , dimension(3)  :: Coordinates_Null_To
     !$GLC attributes unused :: self
 
     Coordinates_Null_To=0.0d0
-    call Galacticus_Error_Report('no transformation to cartesian coordinates defined'//{introspection:location})
+    call Error_Report('no transformation to cartesian coordinates defined'//{introspection:location})
     return
   end function Coordinates_Null_To
 

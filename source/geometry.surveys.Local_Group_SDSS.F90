@@ -87,7 +87,6 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLocalGroupSDSS), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity

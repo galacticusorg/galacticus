@@ -140,7 +140,7 @@ contains
     !!]
 
     
-    if (present(radiusEnvironment).and.present(massEnvironment)) call Galacticus_Error_Report('only one of radiusEnvironment and massEnvironment may be specified'//{introspection:location})
+    if (present(radiusEnvironment).and.present(massEnvironment)) call Error_Report('only one of radiusEnvironment and massEnvironment may be specified'//{introspection:location})
     if (present(radiusEnvironment)) then
        self%massEnvironment=+4.0d0                                                                   &
             &               *Pi                                                                      &
@@ -156,7 +156,7 @@ contains
             &                   /Pi                                                                   &
             &                  )**(1.0d0/3.0d0)
     else
-       call Galacticus_Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
+       call Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
     end if
     return
   end function fixedHEConstructorInternal
@@ -282,7 +282,7 @@ contains
     !$GLC attributes unused :: self, overdensity
     
     fixedHEPDF=0.0d0
-    call Galacticus_Error_Report('PDF is a delta-function'//{introspection:location})
+    call Error_Report('PDF is a delta-function'//{introspection:location})
     return
   end function fixedHEPDF
 
@@ -307,14 +307,14 @@ contains
     !!{
     Set the overdensity of the environmental overdensity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentFixed), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
     double precision                      , intent(in   ) :: overdensity
     !$GLC attributes unused :: self, node, overdensity
 
-    call Galacticus_Error_Report('can not set overdensity'//{introspection:location})
+    call Error_Report('can not set overdensity'//{introspection:location})
     return
   end subroutine fixedHEOverdensityLinearSet
 

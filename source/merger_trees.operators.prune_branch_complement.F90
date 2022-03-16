@@ -78,7 +78,6 @@ contains
     !!{
     Internal constructor for the prune-non-essential merger tree operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (mergerTreeOperatorPruneBranchComplement)                :: self
     integer(kind_int8                              ), intent(in   ) :: branchNodeID

@@ -447,8 +447,8 @@ sub Process_FunctionClass {
 		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		if ( $hasCustomDescriptor ) {
 		    # The class has its own descriptor function, so we should never arrive at this point in the code.
-		    $descriptorCode .= " call Galacticus_Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $descriptorModules{'Galacticus_Error'} = 1;
+		    $descriptorCode .= " call Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		    $descriptorModules{'Error'} = 1;
 		} else{
 		    # Build an auto-descriptor function.
 		    if ( $declarationMatches && $supported == 1 ) {
@@ -555,11 +555,11 @@ sub Process_FunctionClass {
 			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
 			}
 		    } elsif ( ! $declarationMatches     ) {
-			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-			$descriptorModules{'Galacticus_Error'} = 1;
+			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+			$descriptorModules{'Error'} = 1;
 		    } elsif (   $supported         != 1 ) {
-			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-			$descriptorModules{'Galacticus_Error'} = 1;
+			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+			$descriptorModules{'Error'} = 1;
 		    }
 		}
 	    }
@@ -967,7 +967,7 @@ CODE
 					$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
 					$assignments          .= "   destination%".$name." => s\n";
 					$assignments          .= "  class default\n";
-					$assignments          .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+					$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 					$assignments          .= "  end select\n";
 					$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
 					$assignments          .= " else\n";
@@ -1047,7 +1047,7 @@ CODE
 						$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
 						$assignments          .= "   destination%".$name." => s\n";
 						$assignments          .= "  class default\n";
-						$assignments          .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+						$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 						$assignments          .= "  end select\n";
 						$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
 						$assignments          .= "else\n";
@@ -1207,7 +1207,7 @@ CODE
 				$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
 				$assignments          .= "   destination%".$name." => s\n";
 				$assignments          .= "  class default\n";
-				$assignments          .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+				$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 				$assignments          .= "  end select\n";
 				$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
 				$assignments          .= " else\n";
@@ -1278,7 +1278,7 @@ CODE
 				    $assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
 				    $assignments          .= "   destination%".$name." => s\n";
 				    $assignments          .= "  class default\n";
-				    $assignments          .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+				    $assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 				    $assignments          .= "  end select\n";
 				    $assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
 				    $assignments          .= "else\n";
@@ -1369,7 +1369,7 @@ CODE
 					$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
 					$assignments          .= "   destination%".$name." => s\n";
 					$assignments          .= "  class default\n";
-					$assignments          .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+					$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 					$assignments          .= "  end select\n";
 					$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
 					$assignments          .= " else\n";
@@ -1411,7 +1411,7 @@ CODE
 						$assignments          .= "  ".$declaration->{'intrinsic'}." is (".$declaration->{'type'}.")\n";
 						$assignments          .= "   destination%".$name." => s\n";
 						$assignments          .= "  class default\n";
-						$assignments          .= "   call Galacticus_Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+						$assignments          .= "   call Error_Report('copiedSelf has incorrect type'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 						$assignments          .= "  end select\n";
 						$assignments          .= "  call self%".$name."\%copiedSelf\%referenceCountIncrement()\n";
 						$assignments          .= "else\n";
@@ -1499,10 +1499,10 @@ CODE
 		$deepCopyCode .= $assignments
 		    if ( defined($assignments) );
 		$deepCopyCode .= "class default\n";
-		$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$deepCopyCode .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		$deepCopyCode .= "end select\n";
 		# Specify required modules.
-		$deepCopyModules{'Galacticus_Error'} = 1;
+		$deepCopyModules{'Error'} = 1;
 	    }
             $deepCopyCode         .= "end select\n";
 	    $deepCopyResetCode    .= "end select\n";
@@ -2296,8 +2296,8 @@ CODE
 		    if ( scalar(@staticVariables) > 0 );
 		if ( $hasCustomStateStore   ) {
 		    # The class has its own state store function, so we should never arrive at this point in the code.
-		    $stateStoreCode .= " call Galacticus_Error_Report('custom state store function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $stateStoreModules{'Galacticus_Error'} = 1;
+		    $stateStoreCode .= " call Error_Report('custom state store function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		    $stateStoreModules{'Error'} = 1;
 		} else {
 		    foreach ( @staticVariables ) {
 			$labelUsed       = 1;
@@ -2319,8 +2319,8 @@ CODE
 		}
 		if ( $hasCustomStateRestore ) {
 		    # The class has its own state store function, so we should never arrive at this point in the code.
-		    $stateRestoreCode .= " call Galacticus_Error_Report('custom state restore function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $stateRestoreModules{'Galacticus_Error'} = 1;
+		    $stateRestoreCode .= " call Error_Report('custom state restore function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		    $stateRestoreModules{'Error'} = 1;
 		} else {
 		    foreach ( @staticVariables ) {
 			$stateRestoreCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
@@ -2650,7 +2650,7 @@ CODE
 	    $modulePostContains->{'content'} .= "      Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $modulePostContains->{'content'} .= "      !!}\n";
 	    $modulePostContains->{'content'} .= "      use :: Input_Parameters  , only : inputParameter         , inputParameters\n";
-	    $modulePostContains->{'content'} .= "      use :: Galacticus_Error  , only : Galacticus_Error_Report\n";
+	    $modulePostContains->{'content'} .= "      use :: Error  , only : Error_Report\n";
 	    $modulePostContains->{'content'} .= "      use :: ISO_Varying_String, only : varying_string         , char           , trim, operator(//), operator(==), assignment(=)\n";
 	    $modulePostContains->{'content'} .= "      implicit none\n";
 	    $modulePostContains->{'content'} .= "      class    (".$directive->{'name'}."Class), pointer :: self\n";
@@ -2750,7 +2750,7 @@ CODE
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$modulePostContains->{'content'} .= "         message=message//char(10)//'   -> ".$name."'\n";
 	    }
-	    $modulePostContains->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+	    $modulePostContains->{'content'} .= "         call Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
             $modulePostContains->{'content'} .= "      end select\n";
             $modulePostContains->{'content'} .= "      end if\n"
                 if ( exists($directive->{'default'}) );
@@ -3181,7 +3181,7 @@ CODE
 			}
 		    }
 		} else {
-		    $modulePostContains->{'content'} .= "      use Galacticus_Error\n";
+		    $modulePostContains->{'content'} .= "      use Error\n";
 		}
 		$modulePostContains->{'content'} .= "      implicit none\n";
 		$modulePostContains->{'content'} .= $argumentCode;
@@ -3192,7 +3192,7 @@ CODE
 		    $code =~ s/\n/\n      /g;
 		    $modulePostContains->{'content'} .= $code."\n";
 		} else {
-		    $modulePostContains->{'content'} .= "      call Galacticus_Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    $modulePostContains->{'content'} .= "      call Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    if ( $category eq "function" ) {
 			# Avoid warnings about unset function values.
 			$modulePostContains->{'content'} .= "      ".$directive->{'name'}.ucfirst($methodName).$extension."=";
@@ -3578,7 +3578,7 @@ do while (associated(item_))
         {$objectIntrinsic} is ({$objectType})
          itemNew_%{$object} => s
         class default
-         call Galacticus_Error_Report('copiedSelf has incorrect type'//{$location})
+         call Error_Report('copiedSelf has incorrect type'//{$location})
         end select
         call item_%{$object}%copiedSelf%referenceCountIncrement()
        else

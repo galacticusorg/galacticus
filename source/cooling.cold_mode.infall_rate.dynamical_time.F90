@@ -88,7 +88,7 @@ contains
     !!{
     Internal constructor for the dynamical time cooling time class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
@@ -99,11 +99,11 @@ contains
     !!]
 
     ! Check that the properties we need are gettable.
-    if (.not.defaultHotHaloComponent%massColdIsGettable())                                  &
-         & call Galacticus_Error_Report(                                                    &
-         &                              'hot halo component must have gettable cold mass'// &
-         &                              {introspection:location}                            &
-         &                             )
+    if (.not.defaultHotHaloComponent%massColdIsGettable())                       &
+         & call Error_Report(                                                    &
+         &                   'hot halo component must have gettable cold mass'// &
+         &                   {introspection:location}                            &
+         &                  )
     return
   end function dynamicalTimeConstructorInternal
 

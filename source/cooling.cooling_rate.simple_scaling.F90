@@ -128,8 +128,8 @@ contains
     Internal constructor for the simple caling cooling rate class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent    , defaultHotHaloComponent
+    use :: Error           , only : Component_List          , Error_Report
+    use :: Galacticus_Nodes, only : defaultBasicComponent   , defaultHotHaloComponent
     implicit none
     type            (coolingRateSimpleScaling)                        :: self
     double precision                          , intent(in   )         :: timeScale          , exponentRedshift, &
@@ -141,31 +141,31 @@ contains
     <constructorAssign variables="timeScale, exponentRedshift, massCutOff, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
     !!]
     ! Check that the properties we need are gettable.
-    if (.not.defaultHotHaloComponent%massIsGettable())                                                                                  &
-         & call Galacticus_Error_Report(                                                                                                &
-         &                              'Hot halo component must have gettable mass.'//                                                 &
-         &                              Galacticus_Component_List(                                                                      &
-         &                                                        'hotHalo'                                                          ,  &
-         &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)   &
-         &                                                       )                                                                   // &
-         &                              {introspection:location}                                                                        &
-         &                             )
-    if     (                                                                                                                            &
-         &  .not.(                                                                                                                      &
-         &         defaultBasicComponent%massIsGettable()                                                                               &
-         &        .and.                                                                                                                 &
-         &         defaultBasicComponent%timeIsGettable()                                                                               &
-         &       )                                                                                                                      &
-         & ) call Galacticus_Error_Report(                                                                                              &
-         &                                'Basic component must have gettable mass and time.'//                                         &
-         &                                Galacticus_Component_List(                                                                    &
-         &                                                          'basic'                                                          ,  &
-         &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)   &
-         &                                                          .intersection.                                                      &
-         &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)   &
-         &                                                         )                                                                 // &
-         &                               {introspection:location}                                                                       &
-         &                               )
+    if (.not.defaultHotHaloComponent%massIsGettable())                                                            &
+         & call Error_Report(                                                                                     &
+         &                   'Hot halo component must have gettable mass.'                                     // &
+         &                   Component_List(                                                                      &
+         &                                  'hotHalo'                                                          ,  &
+         &                                   defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)   &
+         &                                 )                                                                   // &
+         &                   {introspection:location}                                                             &
+         &                  )
+    if     (                                                                                                      &
+         &  .not.(                                                                                                &
+         &         defaultBasicComponent%massIsGettable()                                                         &
+         &        .and.                                                                                           &
+         &         defaultBasicComponent%timeIsGettable()                                                         &
+         &       )                                                                                                &
+         & ) call Error_Report(                                                                                   &
+         &                     'Basic component must have gettable mass and time.'//                              &
+         &                     Component_List(                                                                    &
+         &                                    'basic'                                                          ,  &
+         &                                     defaultBasicComponent%massAttributeMatch(requireGettable=.true.)   &
+         &                                    .intersection.                                                      &
+         &                                     defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)   &
+         &                                   )                                                                 // &
+         &                     {introspection:location}                                                           &
+         &                    )
     ! Initialize stored solutions.
     self%expansionFactorPrevious=-1.0d0
     self%massBasicPrevious      =-1.0d0

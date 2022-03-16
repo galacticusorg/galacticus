@@ -89,8 +89,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
@@ -147,7 +146,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily exponentially truncated} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                        :: self
     class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
@@ -160,7 +159,7 @@ contains
     !!]
 
     ! Validate.
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID                                           =-1_kind_int8
     self%genericLastUniqueID                                    =-1_kind_int8
     self%kappaPrevious                                          =-huge(0.0d0)
@@ -317,7 +316,6 @@ contains
     Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

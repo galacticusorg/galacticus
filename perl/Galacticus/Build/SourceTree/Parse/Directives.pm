@@ -27,6 +27,7 @@ sub Parse_Directives {
 	    my @newNodes;
 	    # Read the code block, accumulating directives as we go.
 	    my $rawCode;
+	    my $rawOpener;
 	    my $rawDirective;
 	    my $strippedDirective;
 	    my $inDirective      = 0;
@@ -66,6 +67,8 @@ sub Parse_Directives {
 		    $strippedDirective .= $strippedLine;
 		} elsif ( $line !~ m/^\s*!!(\[|\])/ ) {
 		    $rawCode           .= $line;
+		} elsif ( $line =~ m/^\s*!!\[/ ) {
+		    $rawOpener          = $line;
 		}
 		# Process code and directive blocks as necessary.
 		if ( ( $inDirective == 1 || eof($code) ) && $rawCode      ) {
@@ -119,7 +122,8 @@ sub Parse_Directives {
 			line       => $node     ->{'line'        },
 			processed  => 0
 		    };
-		    $rawDirective = "!![\n".$rawDirective."!!]\n";
+		    (my $rawCloser = $rawOpener) =~ s/\[/\]/;
+		    $rawDirective = $rawOpener.$rawDirective.$rawCloser;
 		    $newNode->{'firstChild'} =
 		    {
 			type       => "code"           ,

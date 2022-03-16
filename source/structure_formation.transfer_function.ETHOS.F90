@@ -72,7 +72,7 @@ contains
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
     type            (transferFunctionETHOSDM )                :: self
@@ -87,7 +87,7 @@ contains
          &                                                       redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <inputParameter>
@@ -163,7 +163,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily ETHOS} transfer function class.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     type            (transferFunctionETHOSDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
@@ -499,9 +499,9 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rootFinder        , rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive    
+    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (transferFunctionETHOSDM), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
@@ -542,9 +542,9 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rootFinder        , rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive    
+    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (transferFunctionETHOSDM), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status

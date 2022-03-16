@@ -127,7 +127,7 @@ contains
     !!{
     Output collected meta-data on tree evolution.
     !!}
-    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -141,8 +141,8 @@ contains
     
     if (all(self%timestepCount == 0)) return
     !$ call hdf5Access%set  ()
-    metaDataGroup    =galacticusOutputFile%openGroup('metaData'       ,'Galacticus meta data.'     )
-    profilerDataGroup=metaDataGroup       %openGroup('evolverProfiler','Meta-data on tree evolver.')
+    metaDataGroup    =outputFile   %openGroup('metaData'       ,'Galacticus meta data.'     )
+    profilerDataGroup=metaDataGroup%openGroup('evolverProfiler','Meta-data on tree evolver.')
     if (profilerDataGroup%hasDataset('timeStepCount')) then
        call profilerDataGroup%readDataset('timeStepCount',timeStepCountPrevious)
        self%timeStepCount=self%timeStepCount+timeStepCountPrevious

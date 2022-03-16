@@ -39,8 +39,8 @@ contains
     !!{
     Apply a point to a mesh.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_double_complex
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_double_complex
     implicit none
     complex(c_double_complex), intent(inout), dimension(:,:,:) :: mesh
     double precision                  , intent(in   ) :: boxLength
@@ -110,7 +110,7 @@ contains
           end do
        end do
     case default
-       call Galacticus_Error_Report('unrecognized cloud type'//{introspection:location})
+       call Error_Report('unrecognized cloud type'//{introspection:location})
     end select
 
     return

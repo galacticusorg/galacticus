@@ -120,7 +120,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} virial orbits class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (virialOrbitFixed          )                        :: self
     class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrastDefinition_
@@ -161,7 +161,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Display                             , only : displayIndent                      , displayVerbositySet, verbosityLevelStandard
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     use :: ISO_Varying_String                  , only : varying_string
     implicit none
@@ -228,7 +228,7 @@ contains
        message=message//"    orbit pericenter = "//label//" Mpc"//char(10)
        write (label,'(e12.6)') fixedOrbit%radiusApocenter()
        message=message//"     orbit apocenter = "//label//" Mpc"
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     return
   end function fixedOrbit
@@ -279,7 +279,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
@@ -287,7 +287,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     fixedVelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function fixedVelocityTangentialVectorMean
 
@@ -330,7 +330,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
@@ -338,7 +338,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     fixedAngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function fixedAngularMomentumVectorMean
 

@@ -235,12 +235,12 @@ contains
     !!{
     Tabulate the halo spin distribution.
     !!}
-    use :: Dark_Matter_Halo_Spins        , only : Dark_Matter_Halo_Angular_Momentum_Scale
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
-    use :: Memory_Management             , only : allocateArray                          , deallocateArray
-    use :: Numerical_Integration         , only : integrator
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Calculations_Resets   , only : Calculations_Reset
+    use :: Error                 , only : Error_Report
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
+    use :: Memory_Management     , only : allocateArray                          , deallocateArray
+    use :: Numerical_Integration , only : integrator
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
@@ -267,17 +267,17 @@ contains
          &                                                                        massSpinAverage
 
     ! Validate optional parameter combinations.
-    if     (          (present(massRequired).or. present(spinRequired))                                                                      &
-         &  .and.                                                                                                                            &
-         &       .not.(present(massRequired).and.present(spinRequired))                                                                      &
-         & ) call Galacticus_Error_Report('both massRequired and spinRequired must be provided if either is provided'//{introspection:location})
-    if     (          (present(massFixed   ).or. present(spinFixed   ))                                                                      &
-         &  .and.                                                                                                                            &
-         &       .not.(present(massFixed   ).and.present(spinFixed   ))                                                                      &
-         & ) call Galacticus_Error_Report('both massFixed and spinFixed  must be provided if either is provided'//{introspection:location})
-    if     (                                                                                                                                 &
-         &             present(massRequired).and.present(massFixed   )                                                                       &
-         & ) call Galacticus_Error_Report('either required or fixed points must be specified - not both'//{introspection:location})
+    if     (          (present(massRequired).or. present(spinRequired))                                                               &
+         &  .and.                                                                                                                     &
+         &       .not.(present(massRequired).and.present(spinRequired))                                                               &
+         & ) call Error_Report('both massRequired and spinRequired must be provided if either is provided'//{introspection:location})
+    if     (          (present(massFixed   ).or. present(spinFixed   ))                                                               &
+         &  .and.                                                                                                                     &
+         &       .not.(present(massFixed   ).and.present(spinFixed   ))                                                               &
+         & ) call Error_Report('both massFixed and spinFixed  must be provided if either is provided'//{introspection:location})
+    if     (                                                                                                                          &
+         &             present(massRequired).and.present(massFixed   )                                                                &
+         & ) call Error_Report('either required or fixed points must be specified - not both'//{introspection:location})
     fixedPoint=present(massFixed)
     ! Determine if the tabulation needs to be rebuilt.
     if (allocated(self%distributionTable)) then
@@ -357,7 +357,7 @@ contains
        ! Estimate the mass error.
        call nodeBasic%massSet (massMeasured)
        call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
-       call Galacticus_Calculations_Reset(node)
+       call Calculations_Reset(node)
        massError=  +self%nbodyHaloMassError_%errorFractional(node) &
             &      *massMeasured
        ! Determine the correction to fractional error in potential energy if a maximum number of particles was used for estimation of potential energy.
@@ -369,7 +369,7 @@ contains
           ! Reduced sample of halo particles used in estimating potential energy - compute correction factor.
           call nodeBasic%massSet(massEnergyEstimateMaximum)
           call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
           energyEstimateErrorCorrection=+self%nbodyHaloMassError_%errorFractional(node) &
                &                        /(                                              &
                &                          +massError                                    &
@@ -377,7 +377,7 @@ contains
                &                         )
           call nodeBasic%massSet(massMeasured             )
           call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
        end if
        ! Integrate over a range of masses corresponding to a fixed number of mass errors around the measured mass.
        massMinimum=max(                                &
@@ -428,7 +428,7 @@ contains
       ! Set the mass and compute the mass error.
       call nodeBasic%massSet(massIntrinsic)
       call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
-      call Galacticus_Calculations_Reset(node)
+      call Calculations_Reset(node)
       massError   =+self%nbodyHaloMassError_%errorFractional(node) &
            &       *massIntrinsic
       ! Evaluate the integrand. Normalization of the distribution function is neglected here since we are average over mass this
@@ -451,8 +451,8 @@ contains
       !!{
       Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
       !!}
-      use :: Display                 , only : displayMagenta         , displayReset
-      use :: Galacticus_Error        , only : Galacticus_Error_Report, Galacticus_Warn, errorStatusFail, errorStatusSuccess
+      use :: Display                 , only : displayMagenta , displayReset
+      use :: Error                   , only : Error_Report   , Warn        , errorStatusFail, errorStatusSuccess
       use :: Input_Parameters        , only : inputParameters
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -502,7 +502,7 @@ contains
          ! Evaluate an estimate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
          ! integration.
          call nodeSpin%angularMomentumSet(spinMeasured*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
-         call Galacticus_Calculations_Reset(node)
+         call Calculations_Reset(node)
          scaleAbsolute=self%distributionIntrinsic%distribution(node)
          ! Evaluate the integral over the spin distribution. We integrate from ±ασ around the measured spin, with σ being the larger
          ! of the expected spin-independent and spin-dependent errors, and α a parameter typically set to 10.
@@ -544,18 +544,18 @@ contains
                write (labelSpin,'(i4)'  ) iSpin
                descriptor=inputParameters()
                call self%distributionIntrinsic%descriptor(descriptor)
-               call Galacticus_Warn(                                                                                            &
-                    &               displayMagenta()//'WARNING:'//displayReset()//' failed to reach required tolerance ['    // &
-                    &               trim(label    )                                                                          // &
-                    &               '] in massSpinIntegral [iMass,iSpin='                                                    // &
-                    &               trim(labelMass)                                                                          // &
-                    &               ','                                                                                      // &
-                    &               trim(labelSpin)                                                                          // &
-                    &               '] - report on intrinsic spin distribution follows - reattempting with reduced tolerance'// &
-                    &               char(10)                                                                                 // &
-                    &               descriptor%serializeToString()                                                              &
-                 &              )
-               if (tolerance >= 1.0d0) call Galacticus_Error_Report('integral failed to reach any tolerance'//{introspection:location})
+               call Warn(                                                                                               &
+                    &       displayMagenta()//'WARNING:'//displayReset()//' failed to reach required tolerance ['    // &
+                    &       trim(label    )                                                                          // &
+                    &       '] in massSpinIntegral [iMass,iSpin='                                                    // &
+                    &       trim(labelMass)                                                                          // &
+                    &       ','                                                                                      // &
+                    &       trim(labelSpin)                                                                          // &
+                    &       '] - report on intrinsic spin distribution follows - reattempting with reduced tolerance'// &
+                    &       char(10)                                                                                 // &
+                    &       descriptor%serializeToString()                                                              &
+                 &      )
+               if (tolerance >= 1.0d0) call Error_Report('integral failed to reach any tolerance'//{introspection:location})
             end if
          end do
       end if
@@ -574,7 +574,7 @@ contains
       spinIntrinsic=exp(logSpinIntrinsic)
       ! Set the intrinsic spin.
       call nodeSpin%angularMomentumSet(spinIntrinsic*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
-      call Galacticus_Calculations_Reset(node)
+      call Calculations_Reset(node)
       ! Compute the integrand.
       spinIntegral=+self%distributionIntrinsic%distribution(node         ) & ! Weight by the intrinsic spin distribution.
            &       *spinIntrinsic                                          & ! Multiply by spin since our integration variable is log(spin).
@@ -799,14 +799,14 @@ contains
     !!{
     Sample from the halo spin distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(haloSpinDistributionNbodyErrors), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
     !$GLC attributes unused :: self, node
 
     nbodyErrorsSample=0.0d0
-    call Galacticus_Error_Report('sampling from distribution is not implemented'//{introspection:location})
+    call Error_Report('sampling from distribution is not implemented'//{introspection:location})
     return
   end function nbodyErrorsSample
 
@@ -891,8 +891,8 @@ contains
     !!{
     Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Galacticus_Nodes   , only : nodeComponentBasic, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -914,7 +914,7 @@ contains
        massHigh=    10.0d0**((dble(iMass)-0.5d0)*self%massDelta+log10(self%massMinimum))
        if (massHigh > massLow) then
           call nodeBasic%massSet(mass)
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
           weight                         =self%haloMassFunction_%integrated(nodeBasic%time(),massLow,massHigh)
           nbodyErrorsDistributionAveraged=nbodyErrorsDistributionAveraged+self%distribution(node)*weight
           weightTotal                    =weightTotal                    +                        weight
@@ -923,7 +923,7 @@ contains
     ! Normalize by the total weight.
     if (weightTotal > 0.0d0) nbodyErrorsDistributionAveraged=nbodyErrorsDistributionAveraged/weightTotal
     call nodeBasic%massSet(massOriginal)
-    call Galacticus_Calculations_Reset(node)
+    call Calculations_Reset(node)
     return
   end function nbodyErrorsDistributionAveraged
   

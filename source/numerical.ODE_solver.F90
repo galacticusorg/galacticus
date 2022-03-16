@@ -310,8 +310,8 @@ contains
     !!{
     Constructor for {\normalfont \ttfamily odeSolver} obejcts.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_funloc               , c_null_funptr
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_funloc    , c_null_funptr
     implicit none
     type            (odeSolver                  )                                        :: self
     integer         (c_size_t                   ), intent(in   )                         :: dim
@@ -342,7 +342,7 @@ contains
 
     ! Validate.
     if (toleranceAbsolute_ <= 0.0d0 .and. toleranceRelative_ <= 0.0d0) &
-         & call Galacticus_Error_Report('at least one of absolute and relative tolerance must be greater than zero'//{introspection:location})
+         & call Error_Report('at least one of absolute and relative tolerance must be greater than zero'//{introspection:location})
     ! Get the stepper type.
     self   %stepperType=stepperType_
     allocate(self%gsl_odeiv2_step_type)
@@ -390,11 +390,11 @@ contains
     !!{
     Solve the ODE system.
     !!}
-    use            :: Galacticus_Error      , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding         , only : c_funloc               , c_null_funptr     , c_null_ptr
-    use            :: ISO_Varying_String    , only : operator(//)           , var_str
-    use            :: Interface_GSL         , only : GSL_Failure            , GSL_Success
-    use            :: ODE_Solver_Error_Codes, only : interruptedAtX         , odeSolverInterrupt
+    use            :: Error                 , only : Error_Report
+    use, intrinsic :: ISO_C_Binding         , only : c_funloc      , c_null_funptr     , c_null_ptr
+    use            :: ISO_Varying_String    , only : operator(//)  , var_str
+    use            :: Interface_GSL         , only : GSL_Failure   , GSL_Success
+    use            :: ODE_Solver_Error_Codes, only : interruptedAtX, odeSolverInterrupt
     use            :: String_Handling       , only : operator(//)
     implicit none
     class           (odeSolver ), intent(inout), target                        :: self
@@ -445,10 +445,10 @@ contains
     evolveForward=x1 > x0
     ! Reset the driver.
     status_   =GSL_ODEIV2_Driver_Reset       (self%gsl_odeiv2_driver       )
-    if    (status_ /= GSL_Success) call Galacticus_Error_Report('failed to reset ODE driver'    //{introspection:location})
+    if    (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'    //{introspection:location})
     if (xStep_ /= 0.0d0) then
        status_=GSL_ODEIV2_Driver_Reset_hStart(self%gsl_odeiv2_driver,xStep_)
-       if (status_ /= GSL_Success) call Galacticus_Error_Report('failed to reset ODE step size'//{introspection:location})
+       if (status_ /= GSL_Success) call Error_Report('failed to reset ODE step size'//{introspection:location})
     end if
     ! Initialize integrator.
     if (present(z)) then
@@ -497,7 +497,7 @@ contains
              active=active-1
              return
           end if
-          call Galacticus_Error_Report(var_str('ODE integration failed with status ')//status_//' [generic failure] => most likely a stepsize underflow'//{introspection:location})
+          call Error_Report(var_str('ODE integration failed with status ')//status_//' [generic failure] => most likely a stepsize underflow'//{introspection:location})
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1_=interruptedAtX
@@ -507,7 +507,7 @@ contains
              x=x0
              if (present(z)) z=z0
              status_=GSL_ODEIV2_Driver_Reset(self%gsl_odeiv2_driver)
-             if (status_ /= GSL_Success) call Galacticus_Error_Report('failed to reset ODE driver'//{introspection:location})
+             if (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'//{introspection:location})
           end if
        case default
           ! If ODE status was requested, then return it instead of aborting.
@@ -518,7 +518,7 @@ contains
              active=active-1
              return
           end if
-          call Galacticus_Error_Report(var_str('ODE integration failed with status ')//status//{introspection:location})
+          call Error_Report(var_str('ODE integration failed with status ')//status//{introspection:location})
        end select
     end do
     ! Return the new value of x.
@@ -534,8 +534,8 @@ contains
       !!{
       Wrapper function which performs integration of latent variables.
       !!}
-      use :: Display         , only : displayMessage
-      use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
+      use :: Display, only : displayMessage
+      use :: Error  , only : Error_Report  , errorStatusSuccess
       implicit none
       double precision, intent(in   )       :: x
       double precision, dimension(self%dim) :: y
@@ -554,7 +554,7 @@ contains
          if (self%integratorErrorTolerant) then
             call displayMessage('integration of latent variables failed - ignoring'                          )
          else
-            call Galacticus_Error_Report   ('integration of latent variables failed'           //{introspection:location})
+            call Error_Report  ('integration of latent variables failed'           //{introspection:location})
          end if
       end if
       return

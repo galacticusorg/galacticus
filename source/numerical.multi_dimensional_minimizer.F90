@@ -269,9 +269,9 @@ contains
     !!{
     Set the initial state for a {\normalfont \ttfamily multiDMinimizer} object.
     !!}
-    use :: Linear_Algebra  , only : vector
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Linear_Algebra, only : vector
+    use :: Error         , only : Error_Report
+    use :: Interface_GSL , only : GSL_Success
     implicit none
     class           (multiDMinimizer), intent(inout), target       :: self
     double precision                 , intent(in   ), dimension(:) :: x
@@ -282,7 +282,7 @@ contains
     self_ => self
     vector_=vector(x)
     status =GSL_MultiMin_FDFMinimizer_Set(self%minimizer_,self%minimizerFDFFunction,vector_%gslObject(),stepSize,tolerance)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to set minimizer'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('failed to set minimizer'//{introspection:location})
     self_ => null()
     return
   end subroutine multiDMinimizerSet
@@ -291,8 +291,8 @@ contains
     !!{
     Iterate a multidimensional minimizer.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class  (multiDMinimizer), intent(inout), target   :: self
     integer(c_int          ), intent(  out), optional :: status
@@ -301,7 +301,7 @@ contains
     self_ => self
     status_=gsl_multimin_fdfminimizer_iterate(self%minimizer_)
     if (present(status)) status=status_
-    if (status /= GSL_Success .and. .not.present(status)) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})
+    if (status /= GSL_Success .and. .not.present(status)) call Error_Report('failed to iterate minimizer'//{introspection:location})
     self_ => null()
     return
   end subroutine multiDMinimizerIterate

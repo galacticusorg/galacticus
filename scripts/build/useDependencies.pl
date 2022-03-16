@@ -176,7 +176,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
     push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."input_parameters.mod")
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
     # Add dependence on error reporting module if necessary.
-    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."galacticus_error.mod")
+    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."error.mod")
 	if (
 	    (grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes" && ! exists($_->{'errorValue'})} @{$directives->{'enumeration'}})
 	    ||

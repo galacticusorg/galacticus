@@ -128,7 +128,7 @@ contains
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     implicit none
     type            (transferFunctionEisensteinHu1999)                        :: self
     double precision                                  , intent(in   )         :: neutrinoNumberEffective     , neutrinoMassSummed
@@ -150,7 +150,7 @@ contains
        class is (darkMatterParticleCDM)
           ! Cold dark matter particle - this is as expected.
        class default
-       call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
@@ -549,7 +549,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function. Not supported in this implementation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
@@ -559,7 +559,7 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       call Error_Report('not supported by this implementation'//{introspection:location})
     end if
     return
   end function eisensteinHu1999HalfModeMass
@@ -569,7 +569,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
     to a \gls{cdm} transfer function. Not supported in this implementation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
@@ -579,7 +579,7 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       call Error_Report('not supported by this implementation'//{introspection:location})
     end if
     return
   end function eisensteinHu1999QuarterModeMass

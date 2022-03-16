@@ -60,7 +60,7 @@ contains
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent             , displayMessage, displayUnindent
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: Interfaces_CLASS, only : Interface_CLASS_Initialize
     implicit none
     class  (taskBuildToolCLASS), intent(inout), target   :: self

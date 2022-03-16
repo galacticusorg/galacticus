@@ -119,7 +119,7 @@ module Intergalactic_Medium_State
     <description>Return the electron scattering optical depth from the present day back to the given {\normalfont \ttfamily time} in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <modules>Galacticus_Error</modules>
+    <modules>Error</modules>
     <argument>double precision, intent(in   )           :: time</argument>
     <argument>logical         , intent(in   ), optional :: assumeFullyIonized</argument>
     <code>
@@ -127,11 +127,11 @@ module Intergalactic_Medium_State
      ! Ensure that the table is initialized.
      call intergalacticMediumStateElectronScatteringTabulate(self,time)
      ! Check for invalid input.
-     if (time &gt; self%electronScatteringTableTimeMaximum)                                &amp;
-        &amp; call Galacticus_Error_Report(                                             &amp;
-        &amp;                              'time exceeds present age of the universe'// &amp;
-        &amp;                              {introspection:location}                     &amp;
-        &amp;                             )
+     if (time &gt; self%electronScatteringTableTimeMaximum)                  &amp;
+        &amp; call Error_Report(                                             &amp;
+        &amp;                   'time exceeds present age of the universe'// &amp;
+        &amp;                   {introspection:location}                     &amp;
+        &amp;                  )
      assumeFullyIonizedActual=.false.
      if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
      if (assumeFullyIonizedActual) then
@@ -145,14 +145,14 @@ module Intergalactic_Medium_State
     <description>Return the cosmological time at which the given electron scattering {\normalfont \ttfamily opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <modules>Galacticus_Error</modules>
+    <modules>Error</modules>
     <argument>double precision, intent(in   )           :: opticalDepth</argument>
     <argument>logical         , intent(in   ), optional :: assumeFullyIonized</argument>
     <code>
      logical                                            :: assumeFullyIonizedActual
      double precision                                   :: time
      ! Check for invalid input.
-     if (opticalDepth &lt; 0.0d0) call Galacticus_Error_Report('optical depth must be non-negative'//{introspection:location})
+     if (opticalDepth &lt; 0.0d0) call Error_Report('optical depth must be non-negative'//{introspection:location})
      ! Determine which optical depth to use.
      assumeFullyIonizedActual=.false.
      if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized

@@ -140,8 +140,8 @@ contains
     Compute and output the halo mass function.
     !!}
     use :: Display              , only : displayIndent                    , displayUnindent
-    use :: Galacticus_Error     , only : errorStatusSuccess
-    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: Error                , only : errorStatusSuccess
+    use :: Output_HDF5          , only : outputFile
     use :: HDF5_Access          , only : hdf5Access
     use :: NBody_Simulation_Data, only : nBodyData
     use :: Node_Components      , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -163,7 +163,7 @@ contains
        if (.not.self%storeBackToImported.or..not.simulations(i)%analysis%isOpen()) then
           if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
           write (label,'(a,i4.4)') 'simulation',i
-          simulations(i)%analysis=galacticusOutputFile%openGroup(label)
+          simulations(i)%analysis=outputFile%openGroup(label)
           call simulations(i)%analysis%writeAttribute(simulations(i)%label,'label')
        end if
     end do

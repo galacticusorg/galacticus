@@ -127,9 +127,9 @@ contains
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
-    use :: Display          , only : displayMessage         , displayMagenta, displayReset
+    use :: Display          , only : displayMessage  , displayMagenta, displayReset
     use :: File_Utilities   , only : File_Name_Expand
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
@@ -183,7 +183,7 @@ contains
           if (massOriginal(i) < massRangeMinimum) cycle
           massCountReduced=massCountReduced+1
        end do
-       if (massCountReduced == 0) call Galacticus_Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
+       if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
        call allocateArray(self%mass        ,[massCountReduced])
        call allocateArray(self%massFunction,[massCountReduced])
        call allocateArray(self%countHalos  ,[massCountReduced])
@@ -215,7 +215,7 @@ contains
           if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
           massCountReduced=massCountReduced+1
        end do
-       if (massCountReduced == 0) call Galacticus_Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
+       if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
        call allocateArray(self%mass            ,[massCountReduced                 ])
        call allocateArray(self%massFunction    ,[massCountReduced                 ])
        call allocateArray(self%covarianceMatrix,[massCountReduced,massCountReduced])
@@ -284,7 +284,6 @@ contains
     !!{
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
-    use :: Galacticus_Error                 , only : Galacticus_Error_Report
     use :: Halo_Mass_Functions              , only : haloMassFunctionClass           , haloMassFunctionEnvironmentAveraged, haloMassFunctionErrorConvolved, haloMassFunctionShethTormen, &
          &                                           haloMassFunctionBhattacharya2011
     use :: Linear_Algebra                   , only : assignment(=)                   , operator(*)

@@ -175,7 +175,7 @@ contains
     !!{
     Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
     !!}
-    use :: Galacticus_Paths , only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
@@ -201,7 +201,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    call file%openFile(char(galacticusPath(pathTypeDataStatic))//fileName,readOnly=.true.)
+    call file%openFile(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )
@@ -247,7 +247,7 @@ contains
     Return the log-likelihood for the projected correlation function likelihood function.
     !!}
     use :: Conditional_Mass_Functions       , only : conditionalMassFunctionBehroozi2010
-    use :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use :: Error                            , only : Error_Report
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     use :: Linear_Algebra                   , only : assignment(=)                      , operator(*)
     use :: Models_Likelihoods_Constants     , only : logImpossible
@@ -278,7 +278,7 @@ contains
     end if
     ! Construct the conditional mass function object.
     stateVector=simulationState%get()
-    if (size(stateVector) /= 11) call Galacticus_Error_Report('11 parameters are required for this likelihood function'//{introspection:location})
+    if (size(stateVector) /= 11) call Error_Report('11 parameters are required for this likelihood function'//{introspection:location})
     do i=1,size(stateVector)
        stateVector(i)=modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
     end do

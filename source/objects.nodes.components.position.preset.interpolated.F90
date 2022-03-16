@@ -193,7 +193,7 @@ contains
     !!{
     Trigger interpoltion recalculation after an evolution step.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentPositionPresetInterpolated, treeNode
     implicit none
     class(*       ), intent(inout)          :: self
@@ -203,7 +203,7 @@ contains
     class is (nodeComponentPositionPresetInterpolated)
        call computeInterpolation(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine postEvolve
@@ -228,7 +228,7 @@ contains
     relative physical position of the halo and the center of the host halo.
     !!}
     use, intrinsic :: ISO_C_Binding                                   , only : c_size_t
-    use            :: Galacticus_Error                                , only : Galacticus_Error_Report    
+    use            :: Error                                           , only : Error_Report    
     use            :: Galacticus_Nodes                                , only : nodeComponentBasic       , nodeComponentPosition  , treeNode                          , nodeEvent                   , &
          &                                                                     nodeEventSubhaloPromotion, nodeEventBranchJump    , nodeEventSubhaloPromotionIntertree, nodeEventBranchJumpIntertree, &
          &                                                                     defaultPositionComponent
@@ -349,9 +349,9 @@ contains
                 nodeJump => event%node
                 exit
              type is (nodeEventSubhaloPromotionInterTree)
-                call Galacticus_Error_Report('inter-tree subhalo promotions are not supported'//{introspection:location})
+                call Error_Report('inter-tree subhalo promotions are not supported'//{introspection:location})
              type is (nodeEventBranchJumpInterTree)
-                call Galacticus_Error_Report('inter-tree branch jumps are not supported'      //{introspection:location})
+                call Error_Report('inter-tree branch jumps are not supported'      //{introspection:location})
              end select
              event => event%next
           end do
@@ -495,7 +495,7 @@ contains
        basic           => node    %basic          ()
        position        => node    %position       ()
        positionHistory =  position%positionHistory()
-       if (.not.positionHistory%exists()) call Galacticus_Error_Report('position history does not exist'//{introspection:location})
+       if (.not.positionHistory%exists()) call Error_Report('position history does not exist'//{introspection:location})
        ! Find the interval in the position history which spans the current epoch.
        interpolator_   =interpolator          (positionHistory%time  )
        i               =interpolator_  %locate(basic          %time())
@@ -685,9 +685,9 @@ contains
   end subroutine rateCompute
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>nodeComponentPositionPresetInterpolatedStateStore</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine nodeComponentPositionPresetInterpolatedStateStore(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -709,9 +709,9 @@ contains
   end subroutine nodeComponentPositionPresetInterpolatedStateStore
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>nodeComponentPositionPresetInterpolatedStateRestore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine nodeComponentPositionPresetInterpolatedStateRestore(stateFile,gslStateFile,stateOperationID)
     !!{

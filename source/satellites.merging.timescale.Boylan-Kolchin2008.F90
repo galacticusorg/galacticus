@@ -128,7 +128,7 @@ contains
     !!{
     Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
@@ -178,7 +178,7 @@ contains
             & /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     case default
        orbitalCircularity=0.0d0
-       call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
+       call Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Compute mass ratio (mass in host [not including satellite if the node is already a satellite] divided by mass in satellite).
     basic     =>  node     %basic()

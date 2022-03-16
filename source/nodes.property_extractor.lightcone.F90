@@ -226,7 +226,7 @@ contains
     !!{
     Implement a lightcone output extractor.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : degreesToRadians
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -240,7 +240,7 @@ contains
     double precision                                                             :: velocityBeta
     !$GLC attributes unused :: time
 
-    if (.not.present(instance).and..not.self%atCrossing) call Galacticus_Error_Report('instance is required'//{introspection:location})
+    if (.not.present(instance).and..not.self%atCrossing) call Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
     if (self%atCrossing) then
        lightconeExtract(1:3)=self%geometryLightcone_%positionLightconeCrossing(node                                   )
@@ -297,8 +297,8 @@ contains
     !!{
     Implement adding of instances to a lightcone property extractor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : operator(//)
+    use :: Error          , only : Error_Report
+    use :: String_Handling, only : operator(//)
     implicit none
     class    (nodePropertyExtractorLightcone), intent(inout) :: self
     type     (treeNode                      ), intent(inout) :: node
@@ -318,7 +318,7 @@ contains
              label="false"
           end if
           message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
        call instance%append(replicationCount)
        self%instanceIndex=instance%count()

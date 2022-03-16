@@ -64,8 +64,8 @@ contains
     !!{
     Compute the massTotal of the points.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Display         , only : displayIndent          , displayUnindent, verbosityLevelStandard
+    use :: Error  , only : Error_Report
+    use :: Display, only : displayIndent, displayUnindent, verbosityLevelStandard
     implicit none
     class           (nbodyOperatorMassTotal), intent(inout)               :: self
     type            (nBodyData             ), intent(inout), dimension(:) :: simulations
@@ -86,7 +86,7 @@ contains
           nullify(idParticle)
        else
           massTotal=0.0d0
-          call Galacticus_Error_Report('particle masses are not known'//{introspection:location})
+          call Error_Report('particle masses are not known'//{introspection:location})
        end if
        call simulations(i)%attributesReal%set           (keyCH        ='massTotal',value         =massTotal)
        call simulations(i)%analysis      %writeAttribute(attributeName='massTotal',attributeValue=massTotal)

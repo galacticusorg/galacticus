@@ -428,12 +428,12 @@ contains
   </analyticSolverTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Analytic_Solver(node,timeStart,timeEnd,solved)
-    use :: Abundances_Structure          , only : abundances             , max                , operator(*)
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentBasic     , nodeComponentDisk  , nodeComponentHotHalo, nodeComponentSatellite, &
+    use :: Abundances_Structure          , only : abundances        , max                , operator(*)
+    use :: Error                         , only : Error_Report
+    use :: Galacticus_Nodes              , only : nodeComponentBasic, nodeComponentDisk  , nodeComponentHotHalo, nodeComponentSatellite, &
           &                                       treeNode
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : max                    , stellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : max               , stellarLuminosities
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     double precision                        , intent(in   )            :: timeStart              , timeEnd
@@ -464,7 +464,7 @@ contains
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
           ! Luminosities can not be computed analytically.
-          if (diskVerySimpleTrackLuminosities) call Galacticus_Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
+          if (diskVerySimpleTrackLuminosities) call Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
           ! Calculate analytic solution.
           timeStep          =timeEnd-timeStart
           massGasInitial          =disk%massGas          ()
@@ -749,7 +749,7 @@ contains
     Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
@@ -800,10 +800,10 @@ contains
                &                                 +disk        %abundancesGas() &
                &                                )
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        call    disk%massGasSet                  (                                        &
             &                                                             0.0d0          &
@@ -840,10 +840,10 @@ contains
                &                                   +disk        %luminositiesStellar() &
                &                                  )
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        call    disk%         massStellarSet(                       &
             &                                                0.0d0 &
@@ -859,9 +859,9 @@ contains
   end subroutine satelliteMerger
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Disk_Very_Simple_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -882,9 +882,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Disk_Very_Simple_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

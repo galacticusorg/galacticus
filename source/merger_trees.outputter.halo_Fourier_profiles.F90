@@ -190,7 +190,7 @@ contains
     !!{
     Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     !!}
-    use    :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use    :: Output_HDF5                     , only : outputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
     !$ use :: HDF5_Access                     , only : hdf5Access
     use    :: ISO_Varying_String              , only : var_str
@@ -216,7 +216,7 @@ contains
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()
     if (.not.self%outputGroup%isOpen()) then
-       self%outputGroup=galacticusOutputFile%openGroup("haloFourierProfiles","Halo model data.")
+       self%outputGroup=outputFile%openGroup("haloFourierProfiles","Halo model data.")
        call self   %outputGroup%writeDataset  (self%wavenumber ,'wavenumber','Wavenumber at which Fourier transform of density profile is tabulated [Mpc⁻¹].',datasetReturned=dataset)
        call dataset            %writeAttribute(1.0d0/megaParsec,'unitsInSI'                                                                                                          )
        call dataset            %close         (                                                                                                                                      )
@@ -256,13 +256,13 @@ contains
     !!{
     Perform no output.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
     type   (treeNode                              ), intent(inout) :: node
     integer(c_size_t                              ), intent(in   ) :: indexOutput
     !$GLC attributes unused :: self, node, indexOutput
 
-    call Galacticus_Error_Report('output of single nodes is not supported'//{introspection:location})
+    call Error_Report('output of single nodes is not supported'//{introspection:location})
     return
   end subroutine haloFourierProfilesOutputNode

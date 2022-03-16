@@ -79,6 +79,7 @@ sub Build_Meta_Rate_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	push(@{$function->{'modules'}},"Error");
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: interrupt, interruptProcedure, self
 CODE
@@ -88,7 +89,7 @@ CODE
 	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.{$className}FloatRank0MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}FloatRank0MetaPropertyLabels(metaPropertyID)),'float',0)
-if (nodeAnalytics({$offsetNameAll}(metaPropertyID))) call Galacticus_Error_Report('attempt to set rate of analytically-solved meta-property'//\{introspection:location\})
+if (nodeAnalytics({$offsetNameAll}(metaPropertyID))) call Error_Report('attempt to set rate of analytically-solved meta-property'//\{introspection:location\})
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}(metaPropertyID)
 else if (rateComputeState == propertyTypeActive  ) then
@@ -245,10 +246,11 @@ sub Build_Meta_Analytic_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'modules'} = [ "Error" ];
 	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
-if (nodeAnalytics({$offsetName}(metaPropertyID))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+if (nodeAnalytics({$offsetName}(metaPropertyID))) call Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
 nodeAnalytics({$offsetName}(metaPropertyID))=.true.
 CODE
     }

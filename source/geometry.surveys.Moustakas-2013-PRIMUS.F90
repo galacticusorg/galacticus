@@ -127,7 +127,7 @@ contains
     !!}
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     type   (surveyGeometryMoustakas2013PRIMUS)                        :: self
     integer                                   , intent(in   )         :: redshiftBin
@@ -160,7 +160,7 @@ contains
        self%redshiftMinimum=0.80d0
        self%redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
+       call Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -220,7 +220,7 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -229,7 +229,7 @@ contains
     !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+    if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
     ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -261,7 +261,7 @@ contains
             &                                           )
     case default
        redshift=0.0d0
-       call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
+       call Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     end select
     ! Convert from redshift to comoving distance.
     moustakas2013PRIMUSDistanceMaximum                                                                                             &
@@ -278,15 +278,15 @@ contains
     !!{
     Compute the maximum volume within which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
     integer                                            , intent(in   ), optional :: field
 
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
-    if (field < 1 .or. field > 5) call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
+    if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
+    if (field < 1 .or. field > 5) call Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     ! Compute the volume.
     moustakas2013PRIMUSVolumeMaximum                             &
          & =max(                                                 &
@@ -305,13 +305,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
     !$GLC attributes unused :: self
 
-    moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/PRIMUS/"
+    moustakas2013PRIMUSMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/PRIMUS/"
     return
   end function moustakas2013PRIMUSMangleDirectory
 

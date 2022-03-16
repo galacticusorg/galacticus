@@ -189,9 +189,9 @@ contains
   end function angularMomentumGrowthRateGet
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Halo_Angular_Momentum_Vector_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -212,9 +212,9 @@ contains
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Halo_Angular_Momentum_Vector_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

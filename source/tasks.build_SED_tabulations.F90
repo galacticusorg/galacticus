@@ -141,13 +141,13 @@ contains
     Builds the tabulation.
     !!}
     use :: Display                   , only : displayIndent                    , displayUnindent
-    use :: Galacticus_Error          , only : errorStatusSuccess               , Galacticus_Error_Report
+    use :: Error                     , only : Error_Report                     , errorStatusSuccess
     use :: Histories                 , only : history
-    use :: Galacticus_Nodes          , only : treeNode                         , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
-         &                                    mergerTree
-    use :: Poly_Ranks                , only : polyRankDouble                   , assignment(=)
+    use :: Galacticus_Nodes          , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
+          &                                   treeNode
+    use :: Poly_Ranks                , only : assignment(=)                    , polyRankDouble
     use :: Multi_Counters            , only : multiCounter
-    use :: Node_Property_Extractors  , only : nodePropertyExtractorSED         , nodePropertyExtractorMulti
+    use :: Node_Property_Extractors  , only : nodePropertyExtractorMulti       , nodePropertyExtractorSED
     use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
     use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Locks                     , only : ompLock
@@ -212,7 +212,7 @@ contains
        call basic   %timeSet            (time)
        call basic   %timeLastIsolatedSet(time)
        call instance%reset              (    )
-       if (.not.instance%increment()) call Galacticus_Error_Report('failed to increment instance'//{introspection:location})
+       if (.not.instance%increment()) call Error_Report('failed to increment instance'//{introspection:location})
 #ifdef USEMPI
        if (mod(i,mpiSelf%count()) == mpiSelf%rank()) then
 #endif

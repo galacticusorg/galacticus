@@ -191,7 +191,6 @@ contains
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014  )                         :: self

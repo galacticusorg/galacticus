@@ -52,8 +52,8 @@ contains
     !!{
     Constructor for the rate-limiting stellar feedback class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarFeedbackOutflowsRateLimit)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -109,7 +109,7 @@ contains
     Limits the outflow rate from another stellar feedback class such that the outflow timescale never falls below a given
     fraction of the dynamical time.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
@@ -136,7 +136,7 @@ contains
        radius  =0.0d0
        velocity=0.0d0
        massGas =0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Compute the total outflow rate.
     rateOutflowTotal=+rateOutflowEjective  &
@@ -145,7 +145,7 @@ contains
     if (velocity <= 0.0d0 .or. radius <= 0.0d0) then
        ! Velocity and/or radius is zero, so dynamical timescale is undefined. This is acceptable only if the ouflow rate is zero.
        timescaleDynamical=1.0d0
-       if (rateOutflowTotal > 0.0d0) call Galacticus_Error_Report('outflow in unphysical component'//{introspection:location})
+       if (rateOutflowTotal > 0.0d0) call Error_Report('outflow in unphysical component'//{introspection:location})
     else
        timescaleDynamical=+Mpc_per_km_per_s_To_Gyr &
             &             *radius                  &

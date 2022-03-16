@@ -314,10 +314,10 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
     !!}
-    use :: File_Utilities  , only : File_Exists
-    use :: FoX_dom         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: File_Utilities, only : File_Exists
+    use :: FoX_dom       , only : node
+    use :: Error         , only : Error_Report
+    use :: IO_XML        , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorFileChar
     character(len=*          )              , intent(in   )           :: fileName
@@ -328,15 +328,15 @@ contains
     integer                                                           :: errorStatus
 
     ! Check that the file exists.
-    if (.not.File_Exists(fileName)) call Galacticus_Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Parse(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Galacticus_Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
+          call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
        else
-          call Galacticus_Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
+          call Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
        end if
     end if
     !$omp end critical (FoX_DOM_Access)
@@ -370,19 +370,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use :: Display           , only : displayMessage                   , displayGreen   , displayReset
+    use :: Display           , only : displayGreen       , displayMessage, displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
+    use :: FoX_dom           , only : getOwnerDocument   , node          , setLiveNodeLists
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=)      , char          , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
     use :: Display           , only : displayMessage
-    use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
-    use :: String_Handling   , only : String_Strip
     use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
     implicit none
@@ -535,10 +530,10 @@ contains
     !!{
     Build a tree representation of the input parameter file.
     !!}
-    use :: FoX_dom           , only : ELEMENT_NODE           , getNodeName  , getNodeType     , hasAttribute  , &
-         &                            DOMException           , inException  , getAttributeNode, getTextContent
-    use :: ISO_Varying_String, only : operator(==)           , assignment(=)
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: FoX_dom           , only : DOMException , ELEMENT_NODE  , getAttributeNode, getNodeName, &
+          &                           getNodeType  , getTextContent, hasAttribute    , inException
+    use :: ISO_Varying_String, only : assignment(=), operator(==)
+    use :: Error             , only : Error_Report
     implicit none
     class(inputParameters), intent(inout) :: self
     type (inputParameter ), pointer       :: currentParameter, referencedParameter
@@ -569,9 +564,9 @@ contains
                 identifierNode          => getAttributeNode(referencedParameter    %content,   'id'     )
                 identifierReferenceNode => getAttributeNode(currentParameter       %content,   'idRef'  )
                 identifier              =  getTextContent  (identifierNode                 ,ex=exception)
-                if (inException(exception)) call Galacticus_Error_Report('unable to parse identifier'//{introspection:location})
+                if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
                 identifierReference     =  getTextContent  (identifierReferenceNode        ,ex=exception)
-                if (inException(exception)) call Galacticus_Error_Report('unable to parse identifier'//{introspection:location})
+                if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
                 if (identifier == identifierReference) currentParameter%referenced => referencedParameter
              end if
              ! Walk to next node.
@@ -753,8 +748,8 @@ contains
     !!{
     Return a pointer to the object associated with this parameter.
     !!}
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    use    :: Error  , only : Error_Report
+    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
     class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
@@ -769,7 +764,7 @@ contains
        !$ end if
        inputParameterObjectGet => self%objects(instance)%object
     else
-       call Galacticus_Error_Report('object not allocated for this parameter'//{introspection:location})
+       call Error_Report('object not allocated for this parameter'//{introspection:location})
     end if
     !$omp end critical (inputParameterObjects)
     return
@@ -884,15 +879,11 @@ contains
     !!{
     Get the value of a parameter.
     !!}
-    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException            , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: FoX_dom           , only : DOMException                      , getAttributeNode, getNodeName, hasAttribute, &
+          &                           inException                       , node
     use :: ISO_Varying_String, only : assignment(=)
-    use :: IO_XML            , only : getTextContent          => getTextContentTS
-    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException            , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
+    use :: IO_XML            , only : getTextContent => getTextContentTS
+    use :: Error             , only : Error_Report
     implicit none
     type   (varying_string)                :: inputParameterGet
     class  (inputParameter), intent(inout) :: self
@@ -905,26 +896,26 @@ contains
     if (hasValueAttribute) then
        valueElement      => getAttributeNode(self%content,"value"     )
        inputParameterGet =  getTextContent  (valueElement,ex=exception)
-       if (inException(exception)) call Galacticus_Error_Report(                                 &
-            &                                                   'unable to parse parameter [' // &
-            &                                                    getNodeName   (self%content) // &
-            &                                                   ']'                           // &
-            &                                                    {introspection:location}        &
-            &                                                  )
+       if (inException(exception)) call Error_Report(                                 &
+            &                                        'unable to parse parameter [' // &
+            &                                         getNodeName   (self%content) // &
+            &                                        ']'                           // &
+            &                                         {introspection:location}        &
+            &                                       )
     else
-       call Galacticus_Error_Report('no parameter value present'//{introspection:location})
+       call Error_Report('no parameter value present'//{introspection:location})
     end if
     !$omp end critical (FoX_DOM_Access)
     return
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
-    use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
-          &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
-    use :: FoX_dom            , only : destroy                        , getNodeName         , node           , hasAttribute    , &
-         &                             getAttributeNode               , extractDataContent  , inException    , DOMException
-    use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char           , operator(==)
+    use :: Error              , only : Error_Report
+    use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
+          &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
+    use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
+          &                            getNodeName                , hasAttribute    , inException                    , node
+    use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: Hashes             , only : integerHash
     use :: String_Handling    , only : String_Levenshtein_Distance
@@ -972,7 +963,7 @@ contains
                 call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
                 isException=inException(exception)
                 if (isException .or. errorStatus /= 0) &
-                     & call Galacticus_Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
+                     & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
              end if
              ! Check for a match with allowed parameter names.
              allowedParametersCount=0
@@ -1117,13 +1108,13 @@ contains
     !!{
     Validate a parameter name.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class    (inputParameters), intent(in   ) :: self
     character(len=*          ), intent(in   ) :: parameterName
     !$GLC attributes unused :: self
 
-    if (trim(parameterName) == "value") call Galacticus_Error_Report('"value" is not a valid parameter name'//{introspection:location})
+    if (trim(parameterName) == "value") call Error_Report('"value" is not a valid parameter name'//{introspection:location})
     return
   end subroutine inputParametersValidateName
 
@@ -1131,10 +1122,10 @@ contains
     !!{
     Return the node containing the parameter.
     !!}
-    use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
-          &                         node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Path_Exists
+    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
+          &                node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Path_Exists
     implicit none
     type     (inputParameter ), pointer                 :: inputParametersNode
     class    (inputParameters), intent(in   )           :: self
@@ -1180,7 +1171,7 @@ contains
        inputParametersNode => inputParametersNode%sibling
     end do
     !$omp end critical (FoX_DOM_Access)
-    if (.not.associated(inputParametersNode)) call Galacticus_Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
+    if (.not.associated(inputParametersNode)) call Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
     if (associated(inputParametersNode%referenced)) inputParametersNode => inputParametersNode%referenced
     return
   end function inputParametersNode
@@ -1239,10 +1230,10 @@ contains
     !!{
     Return true if the specified parameter is present.
     !!}
-    use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
-          &                         node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Path_Exists
+    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
+          &                node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Path_Exists
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1288,7 +1279,7 @@ contains
        inputParametersCopiesCount=0
     else
        inputParametersCopiesCount=0
-       call Galacticus_Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
+       call Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
     end if
     return
   end function inputParametersCopiesCount
@@ -1297,7 +1288,7 @@ contains
     !!{
     Return a count of the number of values in a parameter.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: String_Handling   , only : String_Count_Words
     implicit none
@@ -1317,7 +1308,7 @@ contains
           inputParametersCount=0
        else
           inputParametersCount=0
-          call Galacticus_Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
+          call Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
        end if
     end if
     return
@@ -1328,9 +1319,9 @@ contains
     Return sub-parameters of the specified parameter.
     !!}
     use :: FoX_dom           , only : node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)
+    use :: ISO_Varying_String, only : assignment(=), char, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
@@ -1348,7 +1339,7 @@ contains
 
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
-          call Galacticus_Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
+          call Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
        else
           inputParametersSubParameters=inputParameters()
        end if
@@ -1374,9 +1365,9 @@ contains
     !!{
     Return the value of the parameter specified by name.
     !!}
-    use :: FoX_dom         , only : hasAttribute           , node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5_Access     , only : hdf5Access
+    use :: FoX_dom    , only : hasAttribute, node
+    use :: Error      , only : Error_Report
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class           (inputParameters), intent(inout)           :: self
     character       (len=*          ), intent(in   )           :: parameterName
@@ -1404,7 +1395,7 @@ contains
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
     else
-       call Galacticus_Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
+       call Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
     end if
     return
   end subroutine inputParametersValueName{Type¦label}
@@ -1413,22 +1404,14 @@ contains
     !!{
     Return the value of the specified parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
           &                           inException                      , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)                       , operator(==)                              , &
           &                           trim
     use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
-          &                           inException                      , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
-          &                           trim
-    use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
     implicit none
     class           (inputParameters           ), intent(inout), target      :: self
     type            (inputParameter            ), intent(inout), target      :: parameterNode
@@ -1472,7 +1455,7 @@ contains
        if (present(errorStatus)) then
           errorStatus=inputParameterErrorStatusAmbiguousValue
        else
-          call Galacticus_Error_Report('ambiguous value attribute and element'//{introspection:location})
+          call Error_Report('ambiguous value attribute and element'//{introspection:location})
        end if
     else if (hasValueAttribute .or. hasValueElement) then
        !$omp critical (FoX_DOM_Access)
@@ -1486,12 +1469,12 @@ contains
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
           else
-             call Galacticus_Error_Report(                                       &
-                  &                       'empty value in parameter ['        // &
-                  &                        getNodeName(parameterNode%content) // &
-                  &                       ']'                                 // &
-                  &                       {introspection:location}               &
-                  &                      )
+             call Error_Report(                                       &
+                  &            'empty value in parameter ['        // &
+                  &             getNodeName(parameterNode%content) // &
+                  &            ']'                                 // &
+                  &            {introspection:location}               &
+                  &           )
           end if
        else
           ! Evaluate if an expression.
@@ -1548,7 +1531,7 @@ contains
                 valueElement => getAttributeNode                 (parameterNode%content,"value"                          )
                 !$omp end critical (FoX_DOM_Access)
 #else
-                call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+                call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
 #endif
              end if
           end if
@@ -1568,13 +1551,13 @@ contains
                 attributeName=getNodeName   (parameterNode%content)
                 content      =getTextContent(valueElement         )
                 !$omp end critical (FoX_DOM_Access) 
-                call Galacticus_Error_Report(                                &
-                     &                       'unable to parse parameter ['// &
-                     &                        attributeName               // &
-                     &                       ']='                         // &
-                     &                        content                     // &
-                     &                        {introspection:location}       &
-                     &                      )
+                call Error_Report(                                &
+                     &            'unable to parse parameter ['// &
+                     &             attributeName               // &
+                     &            ']='                         // &
+                     &             content                     // &
+                     &             {introspection:location}       &
+                     &           )
              end if
           else
              ! Convert type as necessary.

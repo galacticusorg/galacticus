@@ -225,7 +225,7 @@ contains
     !!{
     Compute the velocity of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (accretionFlowsDiemerKravtsov2014), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -233,6 +233,6 @@ contains
     !$GLC attributes unused :: self, node, radius
     
     diemerKravtsov2014Velocity=0.0d0
-    call Galacticus_Error_Report('velocity is unsupported'//{introspection:location})
+    call Error_Report('velocity is unsupported'//{introspection:location})
     return
   end function diemerKravtsov2014Velocity

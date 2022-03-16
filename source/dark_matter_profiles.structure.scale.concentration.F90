@@ -188,9 +188,9 @@ contains
     !!{
     Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Numerical_Comparison          , only : Values_Differ
-    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Calculations_Resets , only : Calculations_Reset
+    use :: Numerical_Comparison, only : Values_Differ
+    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileScaleRadiusConcentration), intent(inout), target        :: self
     type            (treeNode                                 ), intent(inout), target        :: node
@@ -275,7 +275,7 @@ contains
           end if
           ! Update the work node properties and computed concentration.
           call concentrationState_(concentrationStateCount)%basic%massSet(massDefinition)
-          call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+          call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
           ! Find the concentration.
           if (self%useMeanConcentration) then
              ! We are simply using the mean concentration-mass relation here.
@@ -314,7 +314,7 @@ contains
     !!{
     Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Calculations_Resets, only : Calculations_Reset
     implicit none
     double precision, intent(in   ) :: massDefinitionTrial
     double precision                :: radiusOuterDefinition, concentrationDefinition, &
@@ -323,7 +323,7 @@ contains
 
     ! Set the mass of the worker node.
     call concentrationState_(concentrationStateCount)%basic%massSet(massDefinitionTrial)
-    call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+    call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
     ! Get outer radius for this trial definition mass.
     radiusOuterDefinition=concentrationState_(concentrationStateCount)%self%darkMatterHaloScaleDefinition%radiusVirial(concentrationState_(concentrationStateCount)%nodeWork)
     ! Get concentration for this a trial definition mass.
@@ -341,7 +341,7 @@ contains
     ! Get core radius.
     radiusCore=radiusOuterDefinition/concentrationDefinition
     call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleSet(radiusCore)
-    call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+    call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
     ! Find the non-alt density.
     densityOuter=+concentrationState_(concentrationStateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          concentrationState_(concentrationStateCount)%basic%time()) &
          &       *concentrationState_(concentrationStateCount)%self%virialDensityContrast_%densityContrast     (concentrationState_(concentrationStateCount)%basic%mass(),concentrationState_(concentrationStateCount)%basic%time())

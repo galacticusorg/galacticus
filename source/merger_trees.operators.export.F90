@@ -114,7 +114,7 @@ contains
     !!{
     Internal constructor for the export merger tree operator class.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatIsValid, mergerTreeFormatIrate
     implicit none
     type     (mergerTreeOperatorExport   )                        :: self
@@ -128,7 +128,7 @@ contains
     !!]
 
     ! Validate the export format.
-    if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportFormat is invalid'//{introspection:location})
+    if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Error_Report('exportFormat is invalid'//{introspection:location})
     ! Construct the object.
     self%snapshotsRequired=(exportFormat == mergerTreeFormatIrate)
     return

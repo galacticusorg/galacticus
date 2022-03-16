@@ -352,9 +352,9 @@ contains
     !!{
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
-         &                           displayUnindent             , verbosityLevelWorking, displayMagenta      , displayReset  , &
-         &                           verbosityLevelWarn          , displayVerbosity
+    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMagenta  , &
+          &                          displayMessage              , displayReset         , displayUnindent     , displayVerbosity, &
+          &                          verbosityLevelWarn          , verbosityLevelWorking
     use :: Error_Functions  , only : Error_Function_Complementary
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble                   , kind_quad

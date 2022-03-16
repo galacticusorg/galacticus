@@ -64,10 +64,9 @@ contains
     !!{
     Initialize pointers into the base parameters object.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusSuccess
-    use :: ISO_Varying_String, only : char                   , operator(//)      , var_str
+    use :: ISO_Varying_String, only : char              , operator(//)      , var_str
     use :: Kind_Numbers      , only : kind_int8
-    use :: String_Handling   , only : String_Count_Words     , String_Join       , String_Split_Words, operator(//)
+    use :: String_Handling   , only : String_Count_Words, String_Join       , String_Split_Words, operator(//)
     implicit none
     class    (posteriorSampleLikelihoodBaseParameters), intent(inout)                 :: self
     type     (modelParameterList                     ), intent(in   ), dimension(:  ) :: modelParametersActive_, modelParametersInactive_
@@ -151,13 +150,13 @@ contains
   end subroutine baseParametersInitialize
 
    subroutine baseParametersUpdate(self,simulationState,modelParametersActive_,modelParametersInactive_,stateVector)
-     use :: Display           , only : displayIndent          , displayMessage    , displayUnindent   , displayVerbositySet, &
+     use :: Display           , only : displayIndent         , displayMessage    , displayUnindent   , displayVerbositySet, &
           &                            verbosityLevelStandard
-     use :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusSuccess
+     use :: Error             , only : Error_Report          , errorStatusSuccess
      use :: Model_Parameters  , only : modelParameterDerived
      use :: ISO_Varying_String, only : operator(//)
      use :: Kind_Numbers      , only : kind_int8
-     use :: String_Handling   , only : String_Count_Words     , String_Join       , String_Split_Words, operator(//)
+     use :: String_Handling   , only : String_Count_Words    , String_Join       , String_Split_Words, operator(//)
      implicit none
      class           (posteriorSampleLikelihoodBaseParameters), intent(inout)               :: self
      class           (posteriorSampleStateClass              ), intent(inout)               :: simulationState
@@ -188,15 +187,15 @@ contains
           ! Overwrite only the indexed parameter in the list.
           parameterText =self%modelParametersActive_(i)%parameter_%get()
           parameterCount=String_Count_Words(char(parameterText))
-          if (self%modelParametersActive_(i)%indexElement > parameterCount)                                      &
-               & call Galacticus_Error_Report(                                                                   &
-               &                              var_str('attempt to access non-existant element {')             // &
-               &                                     (self%modelParametersActive_(i)%indexElement          -1)// &
-               &                                      '} of parameter "'                                      // &
-               &                              char   (     modelParametersActive_(i)%modelParameter_%name()  )// &
-               &                                      '"'                                                     // &
-               &                              {introspection:location}                                        &
-               &                             )
+          if (self%modelParametersActive_(i)%indexElement > parameterCount)                           &
+               & call Error_Report(                                                                   &
+               &                   var_str('attempt to access non-existant element {')             // &
+               &                          (self%modelParametersActive_(i)%indexElement          -1)// &
+               &                           '} of parameter "'                                      // &
+               &                   char   (     modelParametersActive_(i)%modelParameter_%name()  )// &
+               &                           '"'                                                     // &
+               &                   {introspection:location}                                           &
+               &                  )
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(parameterText))
           write (valueText,'(e24.16)') modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
@@ -269,7 +268,7 @@ contains
                    valueDerived=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                    call Evaluator_Destroy_(evaluator)
 #else
-                   call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+                   call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
 #endif
                    if (self%modelParametersInactive_(i)%indexElement == 0) then
                       ! Simply overwrite the parameter.
@@ -289,7 +288,7 @@ contains
                    dependenciesResolved=.false.
                 end if
                 class default
-                call Galacticus_Error_Report('support for this parameter type is not implemented'//{introspection:location})
+                call Error_Report('support for this parameter type is not implemented'//{introspection:location})
              end select
           end do
           if (.not.dependenciesUpdated) then
@@ -302,7 +301,7 @@ contains
                 end select
              end do
              call displayUnindent('unresolved parameters')
-             call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
+             call Error_Report('can not resolve parameter dependencies'//{introspection:location})
           end if
           firstIteration=.false.
        end do
