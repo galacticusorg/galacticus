@@ -122,7 +122,7 @@ contains
     use :: IO_HDF5                                 , only : hdf5Object
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
     use :: Memory_Management                       , only : allocateArray
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorHalfMassRadius        , nodePropertyExtractorMassStellar
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorRadiusHalfMassStellar , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical        , only : megaParsec
     use :: Numerical_Constants_Prefixes            , only : kilo                                       , milli
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
@@ -143,7 +143,7 @@ contains
     class           (gravitationalLensingClass                      ), target     , intent(in   )  :: gravitationalLensing_
     type            (cosmologyParametersSimple                      ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
-    type            (nodePropertyExtractorHalfMassRadius            ), pointer                     :: nodePropertyExtractor_
+    type            (nodePropertyExtractorRadiusHalfMassStellar     ), pointer                     :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar               ), pointer                     :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -251,12 +251,12 @@ contains
     ! Create a half-mass radius property extractor.
     allocate(nodePropertyExtractor_        )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorHalfMassRadius     (                                                                                                                                                                      )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorRadiusHalfMassStellar       (                                                                                                                                                             )"/>
     !!]
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_        )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar        (                                                                                                                                                                      )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar                 (                                                                                                                                                             )"/>
     !!]
     ! Create multiply, log10, cosmological angular distance, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMultiply_         )

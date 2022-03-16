@@ -206,7 +206,7 @@ contains
     use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage, directionRadial                , &
           &                                             radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius               , radiusTypeGalacticLightFraction, &
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius   , radiusTypeSpheroidRadius       , &
-          &                                             radiusTypeVirialRadius
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid              , treeNode
     use :: Numerical_Integration               , only : integrator
     implicit none
@@ -274,6 +274,17 @@ contains
                &                                                                         node                          ,  &
                &                                                          massFractional=self%radii(i)%fraction        ,  &
                &                                                          massType      =              massTypeGalactic,  &
+               &                                                          componentType =              componentTypeAll,  &
+               &                                                          weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                          weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                         )
+          radius                       =    radius*radiusFromFraction
+          velocityDispersionRadiusOuter=max(radius,radiusFromFraction)*outerRadiusMultiplier
+       case   (radiusTypeStellarMassFraction  )
+          radiusFromFraction=+self%galacticStructure_%radiusEnclosingMass(                                                &
+               &                                                                         node                          ,  &
+               &                                                          massFractional=self%radii(i)%fraction        ,  &
+               &                                                          massType      =              massTypeStellar ,  &
                &                                                          componentType =              componentTypeAll,  &
                &                                                          weightBy      =self%radii(i)%weightBy        ,  &
                &                                                          weightIndex   =self%radii(i)%weightByIndex      &
