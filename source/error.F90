@@ -224,7 +224,7 @@ contains
     call Signal(15,Signal_Handler_SIGINT )
     call Signal(24,Signal_Handler_SIGXCPU)
     !$omp critical(gslErrorHandler)
-    standardGslErrorHandler=gslSetErrorHandler(GSL_Error_Handler)
+    standardGslErrorHandler=gslSetErrorHandler(errorHandlerGSL)
     !$omp end critical(gslErrorHandler)
     return
   end subroutine Error_Handler_Register
@@ -576,7 +576,7 @@ contains
     return
   end subroutine Signal_Handler_SIGXCPU
 
-  subroutine GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
+  subroutine errorHandlerGSL(reason,file,line,errorNumber) bind(c)
     !!{
     Handle errors from the GSL library, by flushing all data and then aborting.
     !!}
@@ -647,7 +647,7 @@ contains
        errorStatusGSL=errorNumber
     end if
     return
-  end subroutine GSL_Error_Handler
+  end subroutine errorHandlerGSL
 
   subroutine GSL_Error_Handler_Abort_On()
     !!{
