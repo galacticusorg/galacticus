@@ -98,7 +98,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (nodePropertyExtractorSatelliteOrbitalExtrema)                        :: self
     logical                                              , intent(in   )         :: extractPericenter , extractApocenter
@@ -116,7 +116,7 @@ contains
        self%offsetApocenter =self%elementCount_+1
        self%elementCount_   =self%elementCount_+2
     end if
-    if (self%elementCount_ == 0) call Galacticus_Error_Report('no properties selected for extraction'//{introspection:location})
+    if (self%elementCount_ == 0) call Error_Report('no properties selected for extraction'//{introspection:location})
     return
   end function satelliteOrbitalExtremaConstructorInternal
 

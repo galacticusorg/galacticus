@@ -124,7 +124,7 @@ contains
     Root function used in finding equivalent circular orbits.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeInfinite, structureErrorCodeSuccess
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     implicit none
     double precision, intent(in   ) :: radius
     double precision, parameter     :: potentialInfinite=huge(1.0d0)
@@ -142,7 +142,7 @@ contains
        Equivalent_Circular_Orbit_Solver=-potentialInfinite
     case default
        Equivalent_Circular_Orbit_Solver=0.0d0
-       call Galacticus_Error_Report('dark matter potential evaluation failed'//{introspection:location})
+       call Error_Report('dark matter potential evaluation failed'//{introspection:location})
     end select
     return
   end function Equivalent_Circular_Orbit_Solver
@@ -152,7 +152,7 @@ contains
     Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
     !!}
     use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , treeNode
     use :: Kepler_Orbits               , only : keplerOrbit
     use :: Numerical_Constants_Physical, only : speedLight
@@ -270,7 +270,7 @@ contains
              ! value.
              velocity=speedLight/kilo
           case default
-             call Galacticus_Error_Report('dark matter potential evaluation failed'//{introspection:location})
+             call Error_Report('dark matter potential evaluation failed'//{introspection:location})
           end select
        end if
        ! Store values and record that they are computed.

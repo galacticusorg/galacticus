@@ -44,8 +44,8 @@ contains
     !!{
     Determine which downloaders are available.
     !!}
-    use :: Galacticus_Error, only : errorStatusSuccess
-    use :: System_Command  , only : System_Command_Do
+    use :: Error         , only : errorStatusSuccess
+    use :: System_Command, only : System_Command_Do
     implicit none
     integer :: status
 
@@ -67,7 +67,7 @@ contains
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
-    use :: ISO_Varying_String, only : varying_string, char
+    use :: ISO_Varying_String, only : char, varying_string
     implicit none
     type   (varying_string), intent(in   )           :: url   , outputFileName
     integer                , intent(  out), optional :: status
@@ -80,8 +80,8 @@ contains
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
-    use :: System_Command  , only : System_Command_Do
+    use :: Error         , only : Error_Report     , errorStatusFail, errorStatusSuccess
+    use :: System_Command, only : System_Command_Do
     implicit none
     character(len=*), intent(in   )           :: url    , outputFileName
     integer         , intent(  out), optional :: status
@@ -94,12 +94,12 @@ contains
     else if (downloadUsingCurl) then
        call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
     else if (.not.present(status)) then
-       call Galacticus_Error_Report('no downloader available'//{introspection:location})
+       call Error_Report('no downloader available'//{introspection:location})
     end if
     if (present(status)) then
        status=status_
     else if (status_ /= 0) then
-       call Galacticus_Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
+       call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
     end if
     return
   end subroutine downloadChar

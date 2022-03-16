@@ -149,7 +149,7 @@ contains
     !!{
     Compute the density of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (accretionFlowsLam2013), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
@@ -157,7 +157,7 @@ contains
     !$GLC attributes unused :: self, node, radius
     
     lam2013Density=0.0d0
-    call Galacticus_Error_Report('density is unsupported'//{introspection:location})
+    call Error_Report('density is unsupported'//{introspection:location})
     return
   end function lam2013Density
 

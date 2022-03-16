@@ -163,13 +163,13 @@ contains
     !!{
     Return the minimum possible value of a peak-background split distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !$GLC attributes unused :: self
 
     peakBackgroundMinimum=0.0d0
-    call Galacticus_Error_Report('no minimum exists'//{introspection:location})
+    call Error_Report('no minimum exists'//{introspection:location})
     return
   end function peakBackgroundMinimum
 
@@ -177,13 +177,13 @@ contains
     !!{
     Return the maximum possible value of a peak-background split distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !$GLC attributes unused :: self
 
     peakBackgroundMaximum=0.0d0
-    call Galacticus_Error_Report('no maximum exists'//{introspection:location})
+    call Error_Report('no maximum exists'//{introspection:location})
     return
   end function peakBackgroundMaximum
 
@@ -249,13 +249,13 @@ contains
     !!{
     Return the inverse of a normal distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout), target :: self
     double precision                                      , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
-         & call Galacticus_Error_Report(                             &
+         & call Error_Report(                             &
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )

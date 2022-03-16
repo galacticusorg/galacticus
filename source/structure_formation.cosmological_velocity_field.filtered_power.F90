@@ -275,9 +275,9 @@ contains
     \citep[][eqns.~28 \& 29]{sheth_linear_2001}. We evaluate the integrals together (instead of separately) as at small radii
     they cancel to high order---evaluating them separately leads to inaccurate estimates of the velocity dispersion.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Warn, errorStatusSuccess
+    use :: Error                   , only : Warn      , errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator     , GSL_Integ_Gauss15
+    use :: Numerical_Integration   , only : integrator, GSL_Integ_Gauss15
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
     double precision                                        , intent(in   ) :: mass1                    , mass2             , &
@@ -317,7 +317,7 @@ contains
          &                                        *self%linearGrowth_      %logarithmicDerivativeExpansionFactor(time)     &
          &                                        *self%cosmologyFunctions_%expansionFactor                     (time)
     if (status /= errorStatusSuccess .and. .not.warningIssued) then
-       call Galacticus_Warn('integration failure in halo-halo velocity dispersion calculation'//{introspection:location})
+       call Warn('integration failure in halo-halo velocity dispersion calculation'//{introspection:location})
        warningIssued=.true.
     end if
     return

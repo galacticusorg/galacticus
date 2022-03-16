@@ -193,7 +193,7 @@ contains
     !!{
     Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                        :: self
     double precision                                                  , intent(in   )         :: gamma1                   , gamma2            , &
@@ -207,7 +207,7 @@ contains
     !!]
 
     ! Validate inputs.
-    if (gamma1 == 1.0d0) call Galacticus_Error_Report('γ₁=1 leads to divergent integrals'//{introspection:location})
+    if (gamma1 == 1.0d0) call Error_Report('γ₁=1 leads to divergent integrals'//{introspection:location})
     ! Initialize.
     self%subresolutionHypergeometricInitialized=.false.
     self%upperBoundHypergeometricInitialized   =.false.
@@ -455,7 +455,6 @@ contains
     !!{
     Used to find the mass of a merger tree branching event.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ) :: logMassMaximum
     double precision                :: integral
@@ -659,8 +658,8 @@ contains
     haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     {\normalfont \ttfamily massResolution}.
     !!}
-    use            :: Display                 , only : displayMessage         , verbosityLevelWarn, displayMagenta, displayReset
-    use            :: Galacticus_Error        , only : Galacticus_Error_Report
+    use            :: Display                 , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
+    use            :: Error                   , only : Error_Report
     use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use, intrinsic :: ISO_C_Binding           , only : c_int
     use            :: Interface_GSL           , only : GSL_Success
@@ -773,7 +772,7 @@ contains
                          cycle
                       else
                          parkinsonColeHellyProbabilityBound=0.0d0
-                         call Galacticus_Error_Report('hypergeometric function evaluation failed'//{introspection:location})
+                         call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
                       end if
                    end if
                    probabilityIntegrandLower=+sqrtTwoOverPi                                            &
@@ -803,7 +802,7 @@ contains
                          cycle
                       else
                          parkinsonColeHellyProbabilityBound=0.0d0
-                         call Galacticus_Error_Report('hypergeometric function evaluation failed'//{introspection:location})
+                         call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
                       end if
                    end if
                    probabilityIntegrandUpper=+sqrtTwoOverPi                                                &
@@ -857,7 +856,7 @@ contains
                 end if
              case default
                 parkinsonColeHellyProbabilityBound=-1.0d0
-                call Galacticus_Error_Report('unknown bound type'//{introspection:location})
+                call Error_Report('unknown bound type'//{introspection:location})
              end select
              if (statusUpper == GSL_Success .and. statusLower == GSL_Success) exit
           end do
@@ -949,7 +948,6 @@ contains
     !!{
     Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     use :: Table_Labels            , only : extrapolationTypeAbort
@@ -1014,7 +1012,6 @@ contains
     !!{
     Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     use :: Table_Labels            , only : extrapolationTypeAbort

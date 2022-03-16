@@ -239,14 +239,14 @@ contains
     !!{
     Compute properties of mergingHaloOrbitDistributioning halos.
     !!}
-    use :: Display                       , only : displayIndent                , displayUnindent     , displayCounter, displayCounterClear, &
-         &                                        verbosityLevelWorking
-    use :: Galacticus_Nodes              , only : treeNode                     , nodeComponentBasic  , mergerTree
-    use :: Galacticus_HDF5               , only : galacticusOutputFile
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: HDF5_Access                   , only : hdf5Access
-    use :: IO_HDF5                       , only : hdf5Object
-    use :: Numerical_Ranges              , only : Make_Range                   , rangeTypeLogarithmic, rangeTypeLinear
+    use :: Display            , only : displayIndent        , displayUnindent     , displayCounter, displayCounterClear, &
+         &                             verbosityLevelWorking
+    use :: Galacticus_Nodes   , only : treeNode             , nodeComponentBasic  , mergerTree
+    use :: Output_HDF5        , only : outputFile
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: HDF5_Access        , only : hdf5Access
+    use :: IO_HDF5            , only : hdf5Object
+    use :: Numerical_Ranges   , only : Make_Range           , rangeTypeLogarithmic, rangeTypeLinear
     implicit none
     class           (taskMergingHaloOrbitDistribution), intent(inout)     , target      :: self
     integer                                           , intent(  out)     , optional    :: status
@@ -322,7 +322,7 @@ contains
        call basicHost%massSet            (     massHost)
        call basicHost%timeSet            (self%time    )
        call basicHost%timeLastIsolatedSet(self%time    )
-       call Galacticus_Calculations_Reset(     nodeHost)
+       call Calculations_Reset           (     nodeHost)
        ! Compute the separation of the merging pairs (i.e. the virial radius of the primary halo), the density of the
        ! accretion flow at that separation, and the halo mass function.
        separation      (iHost)=self%darkMatterHaloScale_%radiusVirial(nodeHost                   )
@@ -340,7 +340,7 @@ contains
           call basicSatellite%massSet            (     massSatellite)
           call basicSatellite%timeSet            (self%time         )
           call basicSatellite%timeLastIsolatedSet(self%time         )
-          call Galacticus_Calculations_Reset     (     nodeSatellite)
+          call Calculations_Reset                (     nodeSatellite)
           ! Compute critical overdensity and its growth rate for the host halo.
           overdensityCritical                 =+self%criticalOverdensity_     %value                              (time=basicHost%time(),mass=basicHost%mass(),node=nodeHost)
           overdensityCriticalGrowthRate       =+self%criticalOverdensity_     %gradientTime                       (time=basicHost%time(),mass=basicHost%mass(),node=nodeHost)
@@ -439,7 +439,7 @@ contains
     deallocate(tree)
     ! Write output.
     !$ call hdf5Access%set()
-    output=galacticusOutputFile%openGroup('mergingHaloOrbitDistribution')
+    output=outputFile%openGroup('mergingHaloOrbitDistribution')
     call output%writeAttribute(self%cosmologyFunctions_%matterDensityEpochal                (self%time),'densityMean'                         )
     call output%writeDataset  (                         velocity                                       ,'velocity'                            )
     call output%writeDataset  (                         mass                                           ,'mass'                                )

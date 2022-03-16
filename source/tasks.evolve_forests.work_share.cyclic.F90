@@ -92,7 +92,7 @@ contains
     !!{
     Return the number of the next forest to process.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer(c_size_t                    )                :: cyclicForestNumber
     class  (evolveForestsWorkShareCyclic), intent(inout) :: self
@@ -110,7 +110,7 @@ contains
                &              +1_c_size_t
        end do
     else
-       if (self%utilizeOpenMPThreads .neqv. utilizeOpenMPThreads) call Galacticus_Error_Report('"cyclic" work share can not support transitions between utilizing/not utilizing OpenMP threads'//{introspection:location})
+       if (self%utilizeOpenMPThreads .neqv. utilizeOpenMPThreads) call Error_Report('"cyclic" work share can not support transitions between utilizing/not utilizing OpenMP threads'//{introspection:location})
     end if
     !$ call OMP_Unset_Lock(self%lock)
     self%treeNumber_(self%workerID(utilizeOpenMPThreads))=+self%treeNumber_(self%workerID   (utilizeOpenMPThreads)) &

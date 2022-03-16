@@ -120,11 +120,11 @@ contains
     !!{
     Constructor for ``betaProfile'' convergence class.
     !!}
-    use :: Display                 , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
+    use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
-    use :: Numerical_Comparison    , only : Values_Agree           , Values_Differ
+    use :: Numerical_Comparison    , only : Values_Agree       , Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionBetaProfile)                          :: self
@@ -149,18 +149,18 @@ contains
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
        if (present(coreRadius          )) then
-          if (Values_Differ(coreRadius          ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('coreRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'                  //{introspection:location})
+          if (Values_Differ(coreRadius          ,1.0d0,absTol=1.0d-6)) call Error_Report('coreRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'                  //{introspection:location})
        end if
        if (present(densityNormalization)) then
-          if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('densityNormalization should be unity for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
+          if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Error_Report('densityNormalization should be unity for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
        end if
-       if (present(mass                ))                              call Galacticus_Error_Report('mass cannot be specified for a dimensionless profile'                                                              //{introspection:location})
-       if (present(outerRadius         ))                              call Galacticus_Error_Report('outer radius cannot be specified for a dimensionless profile'                                                      //{introspection:location})
+       if (present(mass                ))                              call Error_Report('mass cannot be specified for a dimensionless profile'                                                              //{introspection:location})
+       if (present(outerRadius         ))                              call Error_Report('outer radius cannot be specified for a dimensionless profile'                                                      //{introspection:location})
        self%coreRadius          =1.0d0
        self%densityNormalization=1.0d0
     else
        ! Set core radius.
-       if (.not.present(coreRadius)) call Galacticus_Error_Report('core radius must be specified for dimensionful profiles'//{introspection:location})
+       if (.not.present(coreRadius)) call Error_Report('core radius must be specified for dimensionful profiles'//{introspection:location})
        self%coreRadius=coreRadius
        ! Determine density normalization.
        if      (                                   &
@@ -189,7 +189,7 @@ contains
                 self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
              end if
           else
-             call Galacticus_Error_Report('unphysical outer radius'//{introspection:location})
+             call Error_Report('unphysical outer radius'//{introspection:location})
           end if
           ! Assert that the mass within the outer radius equals that specified.
           if (displayVerbosity() >= verbosityLevelDebug) then
@@ -206,7 +206,7 @@ contains
                 write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(outerRadius)
                 call displayMessage(message)
                 call displayUnindent('done')
-                call Galacticus_Error_Report('profile normalization failed'//{introspection:location})
+                call Error_Report('profile normalization failed'//{introspection:location})
              end if
           end if
        end if
@@ -506,7 +506,7 @@ contains
       !!{
       Special case of radial moment for $\beta=2/3$ $\beta$-profile.
       !!}
-      use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: Error, only : Error_Report
       implicit none
       integer         , intent(in   ) :: moment
       double precision, intent(in   ) :: x
@@ -553,7 +553,7 @@ contains
             radialMomentTwoThirds=self%momentRadial3Previous
          else
             radialMomentTwoThirds=0.0d0
-            call Galacticus_Error_Report('unsupported moment'//{introspection:location})
+            call Error_Report('unsupported moment'//{introspection:location})
          end if
       end if
       return

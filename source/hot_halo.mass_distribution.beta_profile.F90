@@ -78,9 +78,9 @@ contains
     parameter set.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -92,22 +92,22 @@ contains
        !$omp critical(betaProfileInitialized)
        if (.not.initialized) then
           ! Check that required propert is gettable.
-          if     (                                                                                                       &
-               &  .not.(                                                                                                 &
-               &         defaultHotHaloComponent%       massIsGettable()                                                 &
-               &        .and.                                                                                            &
-               &         defaultHotHaloComponent%outerRadiusIsGettable()                                                 &
-               &       )                                                                                                 &
-               & ) call Galacticus_Error_Report                                                                          &
-               & (                                                                                                       &
-               &  'This method requires that the "mass" property of the hot halo is gettable.'//                         &
-               &  Galacticus_Component_List(                                                                             &
-               &                            'hotHalo'                                                                 ,  &
-               &                             defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
-               &                            .intersection.                                                               &
-               &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
-               &                           )                                                                          // &
-               &  {introspection:location}                                                                               &
+          if     (                                                                                            &
+               &  .not.(                                                                                      &
+               &         defaultHotHaloComponent%       massIsGettable()                                      &
+               &        .and.                                                                                 &
+               &         defaultHotHaloComponent%outerRadiusIsGettable()                                      &
+               &       )                                                                                      &
+               & ) call Error_Report                                                                          &
+               & (                                                                                            &
+               &  'This method requires that the "mass" property of the hot halo is gettable.'//              &
+               &  Component_List(                                                                             &
+               &                 'hotHalo'                                                                 ,  &
+               &                  defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
+               &                 .intersection.                                                               &
+               &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
+               &                )                                                                          // &
+               &  {introspection:location}                                                                    &
                & )
           initialized=.true.
        end if

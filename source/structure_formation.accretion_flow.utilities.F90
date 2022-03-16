@@ -50,9 +50,9 @@ contains
     Build a {\normalfont \ttfamily accretionFlowsClass} object from a given parameter set. This is a globally-callable function
     to allow us to subvert the class/module hierarchy.
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use :: Input_Parameters                  , only : inputParameter         , inputParameters
-    use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass    , accretionFlows
+    use :: Error                             , only : Error_Report
+    use :: Input_Parameters                  , only : inputParameter, inputParameters
+    use :: Spherical_Collapse_Accretion_Flows, only : accretionFlows, accretionFlowsClass
     implicit none
     type (inputParameters), intent(inout), target  :: parameters
     class(*              ), intent(  out), pointer :: accretionFlows_
@@ -71,7 +71,7 @@ contains
        !!]
        call accretionFlows__%autoHook()
     class default
-       call Galacticus_Error_Report('accretionFlow must be of the "accretionFlowsClass" class'//{introspection:location})
+       call Error_Report('accretionFlow must be of the "accretionFlowsClass" class'//{introspection:location})
     end select
     accretionFlows_ => accretionFlows__
     return
@@ -91,7 +91,7 @@ contains
     !!{
     Perform the accretionFlow for a {\normalfont \ttfamily accretionFlowsClass} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Error                             , only : Error_Report
     use :: Galacticus_Nodes                  , only : treeNode
     use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass
     implicit none
@@ -104,7 +104,7 @@ contains
        accretionFlowsDensity=accretionFlows_%density(node,radius)
     class default
        accretionFlowsDensity=0.0d0
-       call Galacticus_Error_Report('accretionFlow must be of the "accretionFlowsClass" class'//{introspection:location})
+       call Error_Report('accretionFlow must be of the "accretionFlowsClass" class'//{introspection:location})
     end select
     return
   end function accretionFlowsDensity
@@ -120,10 +120,10 @@ contains
     !!{
     Destruct a {\normalfont \ttfamily accretionFlowsClass} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Error                             , only : Error_Report
     use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass
     use :: Function_Classes
-    use iso_varying_string
+    use :: iso_varying_string
     implicit none
     class(*), intent(inout), pointer :: accretionFlows_
 
@@ -134,7 +134,7 @@ contains
        <objectDestructor name="accretionFlows__"/>
        !!]
     class default
-       call Galacticus_Error_Report('accretionFlow must be of the "accretionFlowsClass" class'//{introspection:location})
+       call Error_Report('accretionFlow must be of the "accretionFlowsClass" class'//{introspection:location})
     end select
     return
   end subroutine accretionFlowsDestruct
@@ -150,7 +150,7 @@ contains
     !!{
     Perform a deep copy of galactic structure objects.
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Error                             , only : Error_Report
     use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass
     implicit none
     class(*), intent(inout) :: self
@@ -159,7 +159,7 @@ contains
     class is (accretionFlowsClass)
        call self%deepCopyReset()
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine accretionFlowsDeepCopyReset
@@ -175,7 +175,7 @@ contains
     !!{
     Finalize a deep copy of galactic structure objects.
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Error                             , only : Error_Report
     use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass
     implicit none
     class(*), intent(inout) :: self
@@ -184,7 +184,7 @@ contains
     class is (accretionFlowsClass)
        call self%deepCopyFinalize()
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine accretionFlowsDeepCopyFinalize
@@ -200,7 +200,7 @@ contains
     !!{
     Perform a deep copy of galactic structure objects.
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
+    use :: Error                             , only : Error_Report
     use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass
     implicit none
     class(*), intent(inout) :: self, destination
@@ -211,10 +211,10 @@ contains
        class is (accretionFlowsClass)
           call self%deepCopy(destination)
        class default
-          call Galacticus_Error_Report("unexpected class"//{introspection:location})
+          call Error_Report("unexpected class"//{introspection:location})
        end select
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine accretionFlowsDeepCopy

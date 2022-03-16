@@ -145,13 +145,13 @@ contains
     !!{
     Return the inverse of a uniform distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (distributionFunction1DLogUniform), intent(inout), target :: self
     double precision                                  , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
-         & call Galacticus_Error_Report(                             &
+         & call Error_Report(                             &
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )

@@ -132,14 +132,14 @@ contains
     !!{
     Output simulation data to an IRATE-format file.
     !!}
-    use :: Display                         , only : displayIndent          , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Display                         , only : displayIndent, displayUnindent, verbosityLevelStandard
+    use :: Error                           , only : Error_Report
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar              , megaparsec
-    use :: Numerical_Constants_Prefixes    , only : kilo                   , hecto
+    use :: Numerical_Constants_Astronomical, only : massSolar    , megaparsec
+    use :: Numerical_Constants_Prefixes    , only : kilo         , hecto
     implicit none
     class           (nbodyOperatorExportIRATE), intent(inout)                 :: self
     type            (nBodyData               ), intent(inout), dimension(:  ) :: simulations
@@ -155,7 +155,7 @@ contains
     type            (varying_string          )                                :: datasetDescription, unitName
 
     call displayIndent('export simulation to IRATE file',verbosityLevelStandard)
-    if (size(simulations) /= 1) call Galacticus_Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
+    if (size(simulations) /= 1) call Error_Report('precisely 1 simulation should be supplied'//{introspection:location})
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     position    => null()
     velocity    => null()

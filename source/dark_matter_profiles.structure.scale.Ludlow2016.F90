@@ -94,8 +94,8 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -107,7 +107,7 @@ contains
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
-    if (.not.parameters%isPresent('darkMatterProfileScaleRadius')) call Galacticus_Error_Report('a fallback scale radius method must be specified'//{introspection:location})
+    if (.not.parameters%isPresent('darkMatterProfileScaleRadius')) call Error_Report('a fallback scale radius method must be specified'//{introspection:location})
     !![
     <inputParameter>
       <name>C</name>
@@ -149,7 +149,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                        :: self
     double precision                                        , intent(in   )         :: C                            , f, &
@@ -191,9 +190,9 @@ contains
     \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+    use :: Calculations_Resets                 , only : Calculations_Reset
     use :: Display                             , only : displayGreen                       , displayReset
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
+    use :: Error                               , only : Error_Report                       , errorStatusSuccess
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use :: Merger_Tree_Walkers                 , only : mergerTreeWalkerIsolatedNodesBranch
     use :: Numerical_Comparison                , only : Values_Agree
@@ -256,7 +255,7 @@ contains
        radiusScalePrevious2nd  =  -huge(0.0d0)
        timeFormationPrevious   =  -huge(0.0d0)
        call darkMatterProfile_%scaleSet(radiusScalePrevious)
-       call Galacticus_Calculations_Reset(node)
+       call Calculations_Reset(node)
        ! Begin iteratively seeking a solution for the scale radius.
        iterationCount       =0
        timeFormationLatest  =0.0d0
@@ -334,15 +333,15 @@ contains
              else
                 timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
              end if
-             if (status /= errorStatusSuccess)                                                                                                                                   &
-                  & call Galacticus_Error_Report(                                                                                                                                &
-                  &                              'solving for formation time failed'//char        (10)                                                                        // &
-                  &                              displayGreen()//' HELP:'           //displayReset(  )                                                                        // &
-                  &                              ' if you are using <darkMatterProfileScaleRadius value="concentration"> as the fall back method for setting scale radii,'    // &
-                  &                              ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'// &
-                  &                              ' can lead to poor convergence here'                                                                                         // &
-                  &                              {introspection:location}                                                                                                        &
-                  &                             )
+             if (status /= errorStatusSuccess)                                                                                                                        &
+                  & call Error_Report(                                                                                                                                &
+                  &                   'solving for formation time failed'//char        (10)                                                                        // &
+                  &                   displayGreen()//' HELP:'           //displayReset(  )                                                                        // &
+                  &                   ' if you are using <darkMatterProfileScaleRadius value="concentration"> as the fall back method for setting scale radii,'    // &
+                  &                   ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'// &
+                  &                   ' can lead to poor convergence here'                                                                                         // &
+                  &                   {introspection:location}                                                                                                        &
+                  &                  )
              ! If requested, check for possible earlier formation times by simply stepping through trial times and finding the
              ! earliest at which the required mass threshold is reached. This is used for cases where the cumulative mass history
              ! is not monotonic.
@@ -377,7 +376,7 @@ contains
           if (Values_Agree(radiusScale,radiusScalePrevious,relTol=1.0d-3)) exit
           ! Convergence was not attained - record current results and perform another iteration.
           call darkMatterProfile_%scaleSet(radiusScale)
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
           radiusScalePrevious2nd=radiusScalePrevious
           radiusScalePrevious   =radiusScale
           timeFormationPrevious =timeFormation

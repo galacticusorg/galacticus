@@ -102,7 +102,7 @@ contains
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Display                     , only : displayMessage
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
@@ -164,7 +164,7 @@ contains
     call simulationState%update(stateVectorMapped,.false.,.false.)
     ! Check that all chains reached the same state.
     stateCounts=mpiSelf%gather(stateCount)
-    if (any(stateCounts /= stateCount)) call Galacticus_Error_Report('number of steps differs between chains'//{introspection:location})
+    if (any(stateCounts /= stateCount)) call Error_Report('number of steps differs between chains'//{introspection:location})
     ! Check for out of range state.
     do i=1,simulationState%dimension()
        if (modelParameters_(i)%modelParameter_%logPrior(stateVector(i)) <= logImpossible) then

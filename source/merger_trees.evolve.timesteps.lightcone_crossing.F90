@@ -182,7 +182,7 @@ contains
     !!{
     Process a lightconeCrossing node which has undergone a merger with its host node.
     !!}
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use mpi_utilities
     implicit none
@@ -198,7 +198,7 @@ contains
        ! The tree was changed, so mark that it is not deadlocked.
        deadlockStatus=deadlockStatusIsNotDeadlocked
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine lightconeCrossingProcess

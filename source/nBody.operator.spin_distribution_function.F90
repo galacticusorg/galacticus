@@ -159,7 +159,8 @@ contains
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
-          &                              displayUnindent        , verbosityLevelStandard
+         &                               displayUnindent        , verbosityLevelStandard
+    use    :: Error             , only : Error_Report
     use    :: IO_HDF5           , only : hdf5Object
     use    :: HDF5_Access       , only : hdf5Access
     use    :: ISO_Varying_String, only : var_str
@@ -207,13 +208,13 @@ contains
        if (simulations(iSimulation)%propertiesReal%exists('massVirial')) then
           mass => simulations(iSimulation)%propertiesReal%value('massVirial')
        else
-          call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'  //{introspection:location})
+          call Error_Report('halo virial masses are required, but are not available in the simulation'  //{introspection:location})
        end if
        ! Get the spin data.
        if (simulations(iSimulation)%propertiesReal%exists('spin')) then
           spin => simulations(iSimulation)%propertiesReal%value('spin')
        else
-          call Galacticus_Error_Report('halo spin parameters are required, but are not available in the simulation'//{introspection:location})
+          call Error_Report('halo spin parameters are required, but are not available in the simulation'//{introspection:location})
        end if
        ! Accumulate counts.
 #ifdef USEMPI

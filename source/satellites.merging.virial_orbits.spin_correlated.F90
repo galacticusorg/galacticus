@@ -127,7 +127,7 @@ contains
     !!}
     use :: Coordinates             , only : assignment(=)                          , coordinateCartesian
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Galacticus_Nodes        , only : nodeComponentSpin                      , treeNode
     use :: Numerical_Constants_Math, only : Pi
     use :: Vectors                 , only : Vector_Magnitude                       , Vector_Product
@@ -154,7 +154,7 @@ contains
     do while (.not.retain)
        ! Abort if too many trials have occurred.
        trial=trial+1
-       if (trial > trialMaximum) call Galacticus_Error_Report('unable to find acceptable orbit'//{introspection:location})
+       if (trial > trialMaximum) call Error_Report('unable to find acceptable orbit'//{introspection:location})
        ! Sample from an isotropic distribution.
        call spinCorrelatedOrbit%phiSet    (     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()       )
        call spinCorrelatedOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator_%uniformSample()-1.0d0))
@@ -214,7 +214,7 @@ contains
     Return the mean of the vector tangential velocity.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
-    use :: Galacticus_Nodes      , only : nodeComponentSpin       , treeNode
+    use :: Galacticus_Nodes      , only : nodeComponentSpin                      , treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedVelocityTangentialVectorMean
     class           (virialOrbitSpinCorrelated), intent(inout) :: self
@@ -247,7 +247,7 @@ contains
     Return the mean of the vector angular momentum.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
-    use :: Galacticus_Nodes      , only : nodeComponentSpin       , treeNode
+    use :: Galacticus_Nodes      , only : nodeComponentSpin                      , treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedAngularMomentumVectorMean
     class           (virialOrbitSpinCorrelated), intent(inout) :: self

@@ -141,7 +141,7 @@ contains
     !!{
     Update the maximum host mass of this node in response to a change in host.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -150,7 +150,7 @@ contains
     class is (nodeOperatorMassHostMaximum)
       call self%update(node,isMerging=.false.)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine massHostMaximumSatelliteHostChange

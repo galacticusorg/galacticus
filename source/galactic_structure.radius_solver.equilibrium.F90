@@ -182,7 +182,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -191,7 +191,7 @@ contains
     type is (galacticStructureSolverEquilibrium)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolveHook
@@ -200,8 +200,8 @@ contains
     !!{
     Hookable wrapper around the solver for pre-derivative events.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : propertyTypeInactive   , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : propertyTypeInactive, treeNode
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -211,7 +211,7 @@ contains
     type is (galacticStructureSolverEquilibrium)
        if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolvePreDeriativeHook
@@ -220,8 +220,8 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Display         , only : displayMessage
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Display, only : displayMessage
+    use :: Error  , only : Error_Report
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -244,7 +244,7 @@ contains
        equilibriumFitMeasure    =2.0d0*self%solutionTolerance
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
-          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
+          if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
           equilibriumHaloNode => node%formationNode
        else
           equilibriumHaloNode => node
@@ -268,7 +268,7 @@ contains
        if (equilibriumFitMeasure > self%solutionTolerance) then
           call displayMessage('dumping node for which radii are currently being sought')
           call node%serializeASCII()
-          call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
+          call Error_Report('failed to find converged solution'//{introspection:location})
        end if
     end if
     ! Unset structure reversion flag.
@@ -283,7 +283,7 @@ contains
       !!}
       use :: Display                         , only : displayVerbosity               , displayVerbositySet, verbosityLevelStandard
       use :: Galactic_Structure_Options      , only : massTypeBaryonic
-      use :: Galacticus_Error                , only : Galacticus_Error_Report
+      use :: Error                           , only : Error_Report
       use :: ISO_Varying_String              , only : varying_string
       use :: Memory_Management               , only : allocateArray                  , deallocateArray
       use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -429,7 +429,7 @@ contains
             message=message//'   -> dark matter contribution: '//label//char(10)
             write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
             message=message//'   -> baryonic contribution:    '//label
-            call Galacticus_Error_Report(message//{introspection:location})
+            call Error_Report(message//{introspection:location})
          end if
       end if
       ! Set the component size to new radius and velocity.

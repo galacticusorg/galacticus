@@ -345,8 +345,8 @@ contains
     Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
     !!}
     use :: File_Utilities       , only : Directory_Make              , File_Exists
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
+    use :: Error                , only : Error_Report
+    use :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access          , only : hdf5Access
     use :: IO_HDF5              , only : hdf5Object
     use :: Numerical_Comparison , only : Values_Differ
@@ -389,10 +389,10 @@ contains
           ! Determine the parameters, A_kappa and omega_kappa, of the convergence distribution (eq. 8
           ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
           ! Check if a precomputed file exists.
-          if (File_Exists(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
+          if (File_Exists(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
              ! Read the results from file.
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
+             call parametersFile%openFile(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
              call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
              call parametersFile%readDataset(             "NKappa",tableNKappa             )
              call parametersFile%readDataset(             "AKappa",tableAKappa             )
@@ -449,12 +449,12 @@ contains
                 tableConvergenceVariance(i)=convergencePdfMoment2/convergencePdfMoment0
                 ! Check that the ratio of first to second moments equals -2.
                 if (Values_Differ(convergencePdfMoment1/convergencePdfMoment2,-2.0d0,absTol=2.0d-3)) &
-                     & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
+                     & call Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
              end do
              ! Store the results to file.
-             call Directory_Make(galacticusPath(pathTypeDataDynamic)//'largeScaleStructure')
+             call Directory_Make(inputPath(pathTypeDataDynamic)//'largeScaleStructure')
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
+             call parametersFile%openFile(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
              call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )

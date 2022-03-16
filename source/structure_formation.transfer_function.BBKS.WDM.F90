@@ -98,7 +98,7 @@ contains
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     implicit none
     type            (transferFunctionBBKSWDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
@@ -116,7 +116,7 @@ contains
        degreesOfFreedomEffectiveDecoupling=particle%degreesOfFreedomEffectiveDecoupling()
     class default
        degreesOfFreedomEffectiveDecoupling=0.0d0
-       call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
@@ -202,7 +202,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionBBKSWDM), intent(inout), target   :: self

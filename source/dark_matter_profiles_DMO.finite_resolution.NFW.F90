@@ -209,7 +209,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily finiteResolutionNFW} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOFiniteResolutionNFW)                        :: self
     class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
@@ -221,7 +221,7 @@ contains
     <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterHaloScale_, *cosmologyFunctions_"/>
     !!]
     
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID                                  =-1_kind_int8
     self%genericLastUniqueID                           =-1_kind_int8
     self%lengthResolutionPrevious                      =-huge(0.0d0)
@@ -1363,7 +1363,7 @@ contains
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1371,12 +1371,12 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName                       =galacticusPath(pathTypeDataDynamic)              // &
-         &                          'darkMatter/'                                    // &
-         &                          self%objectType      (                          )// &
-         &                          'VelocityDispersion_'                            // &
-         &                          self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                          '.hdf5'
+    fileName=inputPath(pathTypeDataDynamic)                   // &
+         &   'darkMatter/'                                    // &
+         &   self%objectType      (                          )// &
+         &   'VelocityDispersion_'                            // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
@@ -1398,7 +1398,7 @@ contains
     use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1406,7 +1406,7 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
+    fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
          &   self%objectType      (                          )// &
          &   'VelocityDispersion_'                            // &
@@ -1453,7 +1453,7 @@ contains
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1461,12 +1461,12 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName                       =galacticusPath(pathTypeDataDynamic)              // &
-         &                          'darkMatter/'                                    // &
-         &                          self%objectType      (                          )// &
-         &                          'Density_'                                       // &
-         &                          self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                          '.hdf5'
+    fileName=inputPath(pathTypeDataDynamic)                   // &
+         &   'darkMatter/'                                    // &
+         &   self%objectType      (                          )// &
+         &   'Density_'                                       // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
@@ -1488,7 +1488,7 @@ contains
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1496,7 +1496,7 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
+    fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
          &   self%objectType      (                          )// &
          &   'Density_'                                       // &
@@ -1543,7 +1543,7 @@ contains
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1551,12 +1551,12 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName                       =galacticusPath(pathTypeDataDynamic)              // &
-         &                          'darkMatter/'                                    // &
-         &                          self%objectType      (                          )// &
-         &                          'Mass_'                                          // &
-         &                          self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                          '.hdf5'
+    fileName=inputPath(pathTypeDataDynamic)                   // &
+         &   'darkMatter/'                                    // &
+         &   self%objectType      (                          )// &
+         &   'Mass_'                                          // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
@@ -1578,7 +1578,7 @@ contains
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1586,7 +1586,7 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
+    fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
          &   self%objectType      (                          )// &
          &   'Mass_'                                          // &
@@ -1633,7 +1633,7 @@ contains
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1641,12 +1641,12 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName                       =galacticusPath(pathTypeDataDynamic)              // &
-         &                          'darkMatter/'                                    // &
-         &                          self%objectType      (                          )// &
-         &                          'Energy_'                                        // &
-         &                          self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                          '.hdf5'
+    fileName=inputPath(pathTypeDataDynamic)                   // &
+         &   'darkMatter/'                                    // &
+         &   self%objectType      (                          )// &
+         &   'Energy_'                                        // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
@@ -1668,7 +1668,7 @@ contains
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -1676,7 +1676,7 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName=galacticusPath(pathTypeDataDynamic)              // &
+    fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
          &   self%objectType      (                          )// &
          &   'Energy_'                                        // &

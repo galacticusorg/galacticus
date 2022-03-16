@@ -42,7 +42,7 @@ sub Tree_Node_Creation {
 	description => "Initialize a {\\normalfont \\ttfamily treeNode} object.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	     ],
 	variables   =>
 	    [
@@ -85,7 +85,7 @@ if (present(index)) call self%indexSet(index)
 ! Assign a unique ID.
 !$omp critical(UniqueID_Assign)
 uniqueIDCount=uniqueIDCount+1
-if (uniqueIDCount <= 0) call Galacticus_Error_Report('ran out of unique ID numbers'//\{introspection:location\})
+if (uniqueIDCount <= 0) call Error_Report('ran out of unique ID numbers'//\{introspection:location\})
 self%uniqueIdValue=uniqueIDCount
 !$omp end critical(UniqueID_Assign)
 ! Assign a timestep.
@@ -228,7 +228,11 @@ sub Tree_Node_Finalization {
 	type        => "void",
 	name        => "treeNodeDestroy",
 	description => "Destroy a {\\normalfont \\ttfamily treeNode} object.",
-	variables   =>
+	modules     =>
+	    [
+	     "Error"
+  	    ],
+ 	variables   =>
 	    [
 	     {
 		 intrinsic  => "class",
@@ -279,7 +283,7 @@ do while (associated(thisEvent))
             pairEvent => pairEvent%next
          end if
       end do 
-      if (.not.pairMatched) call Galacticus_Error_Report('unable to find paired event'//\{introspection:location\})
+      if (.not.pairMatched) call Error_Report('unable to find paired event'//\{introspection:location\})
    end if
    nextEvent => thisEvent%next
    deallocate(thisEvent)
@@ -312,7 +316,7 @@ sub Tree_Node_Class_Creation {
 	    [
 	     "ISO_Varying_String",
 	     "Display",
-	     "Galacticus_Error",
+	     "Error",
 	     "String_Handling"
   	    ],
 	variables   =>
@@ -357,7 +361,7 @@ else
       message=message//'please select a non-null {$class->{'name'}} component - available options are:'
       message=message//{$nonNullComponents}
       call displayMessage(message,verbosityLevelSilent)
-      call Galacticus_Error_Report('refusing to create null instance'//\{introspection:location\})
+      call Error_Report('refusing to create null instance'//\{introspection:location\})
    class default
       allocate(self%component{ucfirst($class->{'name'})}(1),source=default{ucfirst($class->{'name'})}Component)
    end select

@@ -204,7 +204,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Root_Finder     , only : rangeExpandMultiplicative        , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
    implicit none
@@ -263,24 +263,24 @@ contains
          &                               )
     ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
     ! a treeNode to process, it should have been initialized by now.
-    if     (                                                                                                                 &
-         &  .not.(                                                                                                           &
-         &         defaultDarkMatterProfileComponent%scaleIsGettable()                                                       &
-         &        .and.                                                                                                      &
-         &         defaultDarkMatterProfileComponent%shapeIsGettable()                                                       &
-         &       )                                                                                                           &
+    if     (                                                                                                            &
+         &  .not.(                                                                                                      &
+         &         defaultDarkMatterProfileComponent%scaleIsGettable()                                                  &
+         &        .and.                                                                                                 &
+         &         defaultDarkMatterProfileComponent%shapeIsGettable()                                                  &
+         &       )                                                                                                      &
          & ) then
-       call Galacticus_Error_Report                                                                                               &
-            &        (                                                                                                            &
-            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '          //  &
-            &         '"scale" and "shape" properties.'                                                                       //  &
-            &         Galacticus_Component_List(                                                                                  &
-            &                                   'darkMatterProfile'                                                             , &
-            &                                    defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)    &
-            &                                   .intersection.                                                                    &
-            &                                    defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)    &
-            &                                  )                                                                              //  &
-            &         {introspection:location}                                                                                    &
+       call Error_Report                                                                                                &
+            &        (                                                                                                  &
+            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//  &
+            &         '"scale" and "shape" properties.'                                                             //  &
+            &         Component_List(                                                                                   &
+            &                        'darkMatterProfile'                                                              , &
+            &                         defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)     &
+            &                        .intersection.                                                                     &
+            &                         defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)     &
+            &                       )                                                                               //  &
+            &         {introspection:location}                                                                          &
             &        )
     end if
     ! Initialize the tabulations.
@@ -1115,13 +1115,13 @@ contains
     Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
     dimensionless wavenumber.
     !!}
-    use            :: Display              , only : displayCounter         , displayCounterClear  , displayIndent       , displayUnindent, &
-          &                                         verbosityLevelInfo     , verbosityLevelWorking
-    use            :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
+    use            :: Display              , only : displayCounter    , displayCounterClear  , displayIndent       , displayUnindent, &
+          &                                         verbosityLevelInfo, verbosityLevelWorking
+    use            :: Error                , only : Error_Report      , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding        , only : c_size_t
-    use            :: Memory_Management    , only : allocateArray          , deallocateArray
+    use            :: Memory_Management    , only : allocateArray     , deallocateArray
     use            :: Numerical_Integration, only : integrator
-    use            :: Numerical_Ranges     , only : Make_Range             , rangeTypeLinear      , rangeTypeLogarithmic
+    use            :: Numerical_Ranges     , only : Make_Range        , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                             , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
@@ -1223,7 +1223,7 @@ contains
                          write (label,'(e12.6)') self%fourierProfileTable(iWavenumber-1,iConcentration,iAlpha)
                          message=message//"   value at previous tabulated point was "//trim(adjustl(label))
                       end if
-                      call Galacticus_Error_Report(message//{introspection:location})
+                      call Error_Report(message//{introspection:location})
                    end if
                 end if
              end do

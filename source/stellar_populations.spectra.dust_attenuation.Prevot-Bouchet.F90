@@ -48,8 +48,8 @@ contains
     !!{
     Constructor for the ``prevotBouchet'' stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarSpectraDustAttenuationPrevotBouchet)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -74,8 +74,8 @@ contains
     !!{
     Constructor for the ``prevotBouchet'' stellar spectra dust attenuation class. Data read directly from Table~3 of \cite{bouchet_visible_1985}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : extrapolationTypeExtrapolate
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none
     type            (stellarSpectraDustAttenuationPrevotBouchet)                               :: self
     double precision                                            , intent(in   )                :: Rv

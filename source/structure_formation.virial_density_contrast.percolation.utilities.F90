@@ -131,7 +131,7 @@ contains
     !!{
     Perform a deep copy of percolation virial density contrast objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*), intent(inout) :: self
     
@@ -144,7 +144,7 @@ contains
        if (associated(self%darkMatterProfileConcentration_)) call self%darkMatterProfileConcentration_%deepCopyReset()
        if (associated(self%darkMatterProfileShape_        )) call self%darkMatterProfileShape_        %deepCopyReset()
     class default
-       call Galacticus_Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
+       call Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
     end select
     return
   end subroutine percolationObjectsDeepCopyReset
@@ -160,7 +160,7 @@ contains
     !!{
     Finalize a deep copy of percolation virial density contrast objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*), intent(inout) :: self
     
@@ -173,7 +173,7 @@ contains
        if (associated(self%darkMatterProfileConcentration_)) call self%darkMatterProfileConcentration_%deepCopyFinalize()
        if (associated(self%darkMatterProfileShape_        )) call self%darkMatterProfileShape_        %deepCopyFinalize()
     class default
-       call Galacticus_Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
+       call Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
     end select
     return
   end subroutine percolationObjectsDeepCopyFinalize
@@ -189,13 +189,21 @@ contains
     !!{
     Perform a deep copy of percolation virial density contrast objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
 #ifdef OBJECTDEBUG
-      use :: MPI_Utilities     , only : mpiSelf
-      use :: Function_Classes  , only : debugReporting
-      use :: Display           , only : displayMessage, verbosityLevelSilent
-      use :: ISO_Varying_String, only : operator(//)  , var_str
-      use :: String_Handling   , only : operator(//)
+    use :: MPI_Utilities     , only : mpiSelf
+#endif
+#ifdef OBJECTDEBUG
+    use :: Function_Classes  , only : debugReporting
+#endif
+#ifdef OBJECTDEBUG
+    use :: Display           , only : displayMessage, verbosityLevelSilent
+#endif
+#ifdef OBJECTDEBUG
+    use :: ISO_Varying_String, only : operator(//)  , var_str
+#endif
+#ifdef OBJECTDEBUG
+    use :: String_Handling   , only : operator(//)
 #endif
     implicit none
     class(*), intent(inout) :: self, destination
@@ -216,7 +224,7 @@ contains
                 class is (darkMatterProfileDMOClass)
                    destination%darkMatterProfileDMO_ => s
                 class default
-                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
                 end select
                 call self%darkMatterProfileDMO_%copiedSelf%referenceCountIncrement()
              else
@@ -235,7 +243,7 @@ contains
                 class is (cosmologyParametersClass)
                    destination%cosmologyParameters_ => s
                 class default
-                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
                 end select
                 call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
              else
@@ -254,7 +262,7 @@ contains
                 class is (cosmologyFunctionsClass)
                    destination%cosmologyFunctions_ => s
                    class default
-                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
                 end select
                 call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
              else
@@ -273,7 +281,7 @@ contains
                 class is (darkMatterHaloScaleClass)
                    destination%darkMatterHaloScale_ => s
                 class default
-                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
                 end select
                 call self%darkMatterHaloScale_%copiedSelf%referenceCountIncrement()
              else
@@ -292,7 +300,7 @@ contains
                    class is (darkMatterProfileConcentrationClass)
                    destination%darkMatterProfileConcentration_ => s
                    class default
-                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
                 end select
                 call self%darkMatterProfileConcentration_%copiedSelf%referenceCountIncrement()
              else
@@ -311,7 +319,7 @@ contains
                    class is (darkMatterProfileShapeClass)
                    destination%darkMatterProfileShape_ => s
                    class default
-                   call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
                 end select
                 call self%darkMatterProfileShape_%copiedSelf%referenceCountIncrement()
              else
@@ -325,10 +333,10 @@ contains
 #endif
           end if
        class default
-          call Galacticus_Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})
+          call Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})
        end select
     class default
-       call Galacticus_Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
+       call Error_Report("self must be of 'percolationObjects' class"//{introspection:location})
     end select
     return
   end subroutine percolationObjectsDeepCopy
@@ -347,12 +355,12 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
-    use :: Numerical_Constants_Math      , only : Pi
-    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
-    use :: Virial_Density_Contrast       , only : virialDensityContrastClass
+    use :: Calculations_Resets     , only : Calculations_Reset
+    use :: Error                   , only : Error_Report
+    use :: Galacticus_Nodes        , only : nodeComponentBasic        , treeNode
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Root_Finder             , only : rangeExpandMultiplicative , rootFinder
+    use :: Virial_Density_Contrast , only : virialDensityContrastClass
     implicit none
     double precision                                     , intent(in   )               :: mass                                      , time, &
          &                                                                                linkingLength
@@ -400,7 +408,7 @@ contains
        darkMatterHaloScale_                      => percolationObjects_%darkMatterHaloScale_
        darkMatterProfileConcentration_           => percolationObjects_%darkMatterProfileConcentration_
     class default
-       call Galacticus_Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
+       call Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
     end select
     ! Build a scale radius object.
     allocate(state(stateCount)%darkMatterProfileScaleRadius_)
@@ -423,7 +431,7 @@ contains
        </referenceConstruct>
        !!]
     class default
-       call Galacticus_Error_Report('virialDensityContrast_ must be of "virialDensityContrastClass" class'//{introspection:location})
+       call Error_Report('virialDensityContrast_ must be of "virialDensityContrastClass" class'//{introspection:location})
     end select
     ! Compute the bounding density, based on percolation theory (eq. 5 of More et al.).
     state(stateCount)%densityMatterMean=cosmologyFunctions_%matterDensityEpochal(time)
@@ -437,7 +445,7 @@ contains
     call workBasic%massSet            (mass)
     call workBasic%timeSet            (time)
     call workBasic%timeLastIsolatedSet(time)
-    call Galacticus_Calculations_Reset(state(stateCount)%workNode)
+    call Calculations_Reset(state(stateCount)%workNode)
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/state(stateCount)%boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
@@ -476,8 +484,8 @@ contains
     !!{
     Root function used to find the radius of a halo giving the correct bounding density.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Numerical_Constants_Math      , only : Pi
+    use :: Calculations_Resets     , only : Calculations_Reset
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: haloRadiusTrial
     double precision                :: scaleRadius    , densityHaloRadius
@@ -495,7 +503,7 @@ contains
     if (state(stateCount)%workDarkMatterProfile%shapeIsSettable()) then
        call state(stateCount)%workDarkMatterProfile%shapeSet(state(stateCount)%darkMatterProfileShape_%shape(state(stateCount)%workNode))
     end if
-    call Galacticus_Calculations_Reset(state(stateCount)%workNode)
+    call Calculations_Reset(state(stateCount)%workNode)
     ! Compute density at the halo radius.
     densityHaloRadius=state(stateCount)%darkMatterProfileDMO_%density(state(stateCount)%workNode,haloRadiusTrial)
     ! Find difference from target density.

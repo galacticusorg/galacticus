@@ -299,7 +299,7 @@ sub Implementation_Builder {
 	description => "Build a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component from a supplied XML definition.",
 	modules     =>
 	    [
-	     "Galacticus_Error",
+	     "Error, only : Error_Report",
 	     "FoX_DOM, only : node, nodeList, getLength, extractDataContent, getElementsByTagName, item",
 	     "Memory_Management",
 	     "ISO_Varying_String"
@@ -364,7 +364,7 @@ propertyList => getElementsByTagName(componentDefinition,'{$property->{'name'}}'
 CODE
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (getLength(propertyList) > 1) call Galacticus_Error_Report('scalar property must have precisely one value'//\{introspection:location\})
+if (getLength(propertyList) > 1) call Error_Report('scalar property must have precisely one value'//\{introspection:location\})
 if (getLength(propertyList) == 1) then
   property => item(propertyList,0)
 CODE
@@ -380,7 +380,7 @@ CODE
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -410,7 +410,7 @@ CODE
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -444,11 +444,11 @@ if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
 CODE
 	    if      ( $metaPropertyType->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (getLength(propertyList) > 1) call Galacticus_Error_Report('meta-property must have precisely one value'//\{introspection:location\})
+  if (getLength(propertyList) > 1) call Error_Report('meta-property must have precisely one value'//\{introspection:location\})
 CODE
 		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -461,7 +461,7 @@ CODE
 	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
 		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

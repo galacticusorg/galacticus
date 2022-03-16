@@ -219,8 +219,8 @@ sub interfacesPointerGet {
     push(@ext::functionClassSymbols,map {$_->{'name'}} @{$ext::functionClass->{'implementations'}});
     my $function = fill_in_string(<<'CODE', PACKAGE => 'ext');
 function {$functionClass->{'name'}}GetPtr({$functionClass->{'name'}}_,classID)
-  use, intrinsic :: ISO_C_Binding               , only : c_ptr                          , c_int, c_f_pointer
-  use            :: Galacticus_Error            , only : Galacticus_Error_Report
+  use, intrinsic :: ISO_C_Binding               , only : c_ptr                             , c_int, c_f_pointer
+  use            :: Error                       , only : Error_Report
   use            :: {$functionClass->{'module'}}, only : {join(", ",@functionClassSymbols)}
   implicit none
   class({$functionClass->{'name'}}Class), pointer :: {$functionClass->{'name'}}GetPtr
@@ -240,7 +240,7 @@ CODE
     $function .= fill_in_string(<<'CODE', PACKAGE => 'ext');
   case default
      {$functionClass->{'name'}}GetPtr => null()
-     call Galacticus_Error_Report('unknown classID'//\{introspection:location\})
+     call Error_Report('unknown classID'//\{introspection:location\})
   end select
   return
 end function {$functionClass->{'name'}}GetPtr

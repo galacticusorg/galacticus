@@ -129,7 +129,7 @@ contains
     Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple},
     {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
@@ -198,7 +198,7 @@ contains
        if (present(lockType)) lockType =  lockTypeSimple
     case default
        standardTimeEvolveTo            =  huge(0.0d0)
-       call Galacticus_Error_Report('unknown smallest timestep'//{introspection:location})
+       call Error_Report('unknown smallest timestep'//{introspection:location})
     end select
     return
   end function standardTimeEvolveTo

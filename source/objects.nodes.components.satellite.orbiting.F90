@@ -158,7 +158,7 @@ contains
     !!{
     Initializes the orbiting satellite methods module.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
     use :: ISO_Varying_String, only : char                     , var_str                       , varying_string
     use :: Input_Parameters  , only : inputParameter           , inputParameters
@@ -198,11 +198,11 @@ contains
        select case (satelliteBoundMassInitializeType)
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
           if (satelliteMaximumRadiusOverVirialRadius <= 0.0d0) then
-             call Galacticus_Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
+             call Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
           end if
        case (satelliteBoundMassInitializeTypeDensityContrast)
           if (satelliteDensityContrast               <= 0.0d0) then
-             call Galacticus_Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
+             call Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
           end if
        case default
           ! Do nothing.
@@ -223,7 +223,7 @@ contains
     !!{
     Initializes the tree node orbiting satellite module.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
@@ -240,7 +240,7 @@ contains
        <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters_"/>
        !!]
        ! Check that the virial orbit class supports setting of angular coordinates.
-       if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
+       if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
@@ -516,7 +516,7 @@ contains
     Set the initial bound mass of the satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: satellite
@@ -547,16 +547,16 @@ contains
                &                                           )
           call satellite%boundMassSet(massSatellite)
        case default
-          call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
+          call Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
        end select
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Satellite_Orbiting_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Satellite_Orbiting_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -577,9 +577,9 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Satellite_Orbiting_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Satellite_Orbiting_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

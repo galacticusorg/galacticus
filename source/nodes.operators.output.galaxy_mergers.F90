@@ -141,7 +141,7 @@ contains
     !!{
     Act on a merger between galaxies.
     !!}
-    use    :: Galacticus_HDF5 , only : galacticusOutputFile
+    use    :: Output_HDF5     , only : outputFile
     use    :: Galacticus_Nodes, only : nodeComponentBasic
     !$ use :: HDF5_Access     , only : hdf5Access
     implicit none
@@ -155,7 +155,7 @@ contains
     basicHost => nodeHost%basic     ()
     if (.not.(self%galacticFilterSatellite_%passes(node).and.self%galacticFilterCentral_%passes(nodeHost))) return
     !$ call hdf5Access%set  ()
-    if (.not.self%mergersGroup%isOpen()) self%mergersGroup=galacticusOutputFile%openGroup(char(self%mergersGroupName),"Satellite mergers data.")
+    if (.not.self%mergersGroup%isOpen()) self%mergersGroup=outputFile%openGroup(char(self%mergersGroupName),"Satellite mergers data.")
     call self%mergersGroup%writeDataset([node              %index()],"indexSatellite","Index of the satellite."               ,appendTo=.true.)
     call self%mergersGroup%writeDataset([nodeHost          %index()],"indexCentral"  ,"Index of the central."                 ,appendTo=.true.)
     call self%mergersGroup%writeDataset([node     %hostTree%index  ],"indexTree"     ,"Index of the tree."                    ,appendTo=.true.)

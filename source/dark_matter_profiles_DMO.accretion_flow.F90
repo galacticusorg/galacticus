@@ -141,7 +141,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily accretionFlow} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOAccretionFlow)                        :: self
     class           (*                                ), intent(in   ), target :: accretionFlows_
@@ -554,7 +553,7 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Functions_Global, only : accretionFlowsDeepCopy_
     implicit none
     class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
@@ -570,7 +569,7 @@ contains
                 class is (cosmologyParametersClass)
                 destination%cosmologyParameters_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
           else
@@ -587,7 +586,7 @@ contains
                 class is (cosmologyFunctionsClass)
                 destination%cosmologyFunctions_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
           else
@@ -604,7 +603,7 @@ contains
                 class is (criticalOverdensityClass)
                 destination%criticalOverdensity_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%criticalOverdensity_%copiedSelf%referenceCountIncrement()
           else
@@ -621,7 +620,7 @@ contains
                 class is (cosmologicalMassVarianceClass)
                 destination%cosmologicalMassVariance_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%cosmologicalMassVariance_%copiedSelf%referenceCountIncrement()
           else
@@ -638,7 +637,7 @@ contains
                 class is (darkMatterHaloScaleClass)
                 destination%darkMatterHaloScale_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%darkMatterHaloScale_%copiedSelf%referenceCountIncrement()
           else
@@ -655,7 +654,7 @@ contains
                 class is (darkMatterProfileDMOClass)
                 destination%darkMatterProfileDMO_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%darkMatterProfileDMO_%copiedSelf%referenceCountIncrement()
           else
@@ -671,7 +670,7 @@ contains
           call accretionFlowsDeepCopy_(self%accretionFlows_,destination%accretionFlows_)
        end if
     class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+       call Error_Report('destination and source types do not match'//{introspection:location})
     end select
     return
   end subroutine accretionFlowDeepCopy

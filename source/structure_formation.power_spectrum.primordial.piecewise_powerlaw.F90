@@ -142,7 +142,7 @@ contains
     !!{
     Internal constructor for the ``power-law'' primordial power spectrum class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (powerSpectrumPrimordialPiecewisePowerLaw)                              :: self
     double precision                                          , intent(in   ), dimension(:) :: index_ , wavenumberReference, &
@@ -153,10 +153,10 @@ contains
     !!]
 
     ! Validate.
-    if (size(index_) <                            2) call Galacticus_Error_Report("'index' must have at least two elements"                        //{introspection:location})
-    if (size(index_) /= size(running            )  ) call Galacticus_Error_Report("'running' must have same size as 'index'"                       //{introspection:location})
-    if (size(index_) /= size(runningRunning     )  ) call Galacticus_Error_Report("'runningRunning' must have same size as 'index'"                //{introspection:location})
-    if (size(index_) /= size(wavenumberReference)+1) call Galacticus_Error_Report("'wavenumberReference' must have one fewer elements than 'index'"//{introspection:location})
+    if (size(index_) <                            2) call Error_Report("'index' must have at least two elements"                        //{introspection:location})
+    if (size(index_) /= size(running            )  ) call Error_Report("'running' must have same size as 'index'"                       //{introspection:location})
+    if (size(index_) /= size(runningRunning     )  ) call Error_Report("'runningRunning' must have same size as 'index'"                //{introspection:location})
+    if (size(index_) /= size(wavenumberReference)+1) call Error_Report("'wavenumberReference' must have one fewer elements than 'index'"//{introspection:location})
     ! Compute normalizations.
     allocate(self%normalization(size(self%index_)))
     self%normalization(1:2)=1.0d0

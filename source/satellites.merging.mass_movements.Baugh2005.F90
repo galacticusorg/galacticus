@@ -151,7 +151,7 @@ contains
     !!{
     Attach to the calculation reset event.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerMassMovementsBaugh2005), intent(inout) :: self
 
@@ -180,7 +180,7 @@ contains
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -190,7 +190,7 @@ contains
        self%movementsCalculated=.false.
        self%lastUniqueID       =node%uniqueID()
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine baugh2005CalculationReset
@@ -199,7 +199,7 @@ contains
     !!{
     Hookable wrapper around the get function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -211,7 +211,7 @@ contains
     type is (mergerMassMovementsBaugh2005)
        call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine baugh2005GetHook

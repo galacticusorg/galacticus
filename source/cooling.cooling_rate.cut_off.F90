@@ -143,7 +143,7 @@ contains
     !!{
     Internal constructor for the cut off cooling rate class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (coolingRateCutOff       )                        :: self
     double precision                          , intent(in   )         :: velocityCutOff      , timeCutOff
@@ -156,7 +156,7 @@ contains
     <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_"/>
     !!]
     ! Validate "whenCutOff" argument.
-    if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Galacticus_Error_Report('[whenCutOff] is invalid'//{introspection:location})
+    if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Error_Report('[whenCutOff] is invalid'//{introspection:location})
     return
   end function cutOffConstructorInternal
 

@@ -162,7 +162,7 @@ contains
     Import data from a Gadget HDF5 file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
          &                                          doubleHash              , varyingStringHash       , integerSizeTHash  , genericHash
     use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
@@ -191,7 +191,7 @@ contains
     call self%file%openFile(char(self%fileName),objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
-    if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('particle group does not exist'//{introspection:location})
+    if (.not.self%file%hasGroup(particleGroupName)) call Error_Report('particle group does not exist'//{introspection:location})
     ! Read values from header.
     header=self%file%openGroup('Header')
     call header%readAttribute      ('Redshift' ,redshift        )

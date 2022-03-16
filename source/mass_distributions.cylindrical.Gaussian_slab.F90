@@ -95,7 +95,7 @@ contains
     !!{
     Internal constructor for ``gaussianSlab'' mass distribution class.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -112,17 +112,17 @@ contains
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
        if (present(scaleHeight   )) then
-          if (Values_Differ(scaleHeight   ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('scale height should be unity for a dimensionless profile (or simply do not specify a scale height)'//{introspection:location})
+          if (Values_Differ(scaleHeight   ,1.0d0,absTol=1.0d-6)) call Error_Report('scale height should be unity for a dimensionless profile (or simply do not specify a scale height)'//{introspection:location})
        end if
        if (present(densityCentral)) then
-          if (Values_Differ(densityCentral,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('central density should be unity for a dimensionless profile (or simply do not specify a density)'  //{introspection:location})
+          if (Values_Differ(densityCentral,1.0d0,absTol=1.0d-6)) call Error_Report('central density should be unity for a dimensionless profile (or simply do not specify a density)'  //{introspection:location})
        end if
        self%scaleHeight   =1.0d0
        self%densityCentral=1.0d0
     else
        ! Set properties radius.
-       if (.not.present(scaleHeight   )) call Galacticus_Error_Report('scale height must be specified for dimensionful profiles'   //{introspection:location})
-       if (.not.present(densityCentral)) call Galacticus_Error_Report('central density must be specified for dimensionful profiles'//{introspection:location})
+       if (.not.present(scaleHeight   )) call Error_Report('scale height must be specified for dimensionful profiles'   //{introspection:location})
+       if (.not.present(densityCentral)) call Error_Report('central density must be specified for dimensionful profiles'//{introspection:location})
        self%scaleHeight   =scaleHeight
        self%densityCentral=densityCentral
     end if
@@ -133,8 +133,8 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
     !!}
-    use :: Coordinates     , only : assignment(=)          , coordinateCylindrical
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
+    use :: Error      , only : Error_Report
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
     class           (coordinate                  ), intent(in   ) :: coordinates
@@ -142,7 +142,7 @@ contains
     double precision                                              :: z
 
     ! If disk is razor thin, density is undefined.
-    if (self%scaleHeight <= 0.0d0) call Galacticus_Error_Report('density undefined for razor-thin slab'//{introspection:location})
+    if (self%scaleHeight <= 0.0d0) call Error_Report('density undefined for razor-thin slab'//{introspection:location})
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.
@@ -198,7 +198,7 @@ contains
     !!{
     Compute radial moments of the Gaussian slab mass distribution surface density profile.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionGaussianSlab), intent(inout)           :: self
     double precision                              , intent(in   )           :: moment
@@ -211,7 +211,7 @@ contains
     if (present(isInfinite)) then
        isInfinite=.true.
     else
-       call Galacticus_Error_Report('moment is infinite'//{introspection:location})
+       call Error_Report('moment is infinite'//{introspection:location})
     end if
     return
   end function gaussianSlabSurfaceDensityRadialMoment
@@ -220,12 +220,12 @@ contains
     !!{
     Return the half-mass radius for an infinite extent Gaussian slab mass distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(massDistributionGaussianSlab), intent(inout) :: self
     !$GLC attributes unused :: self
 
     gaussianSlabRadiusHalfMass=0.0d0
-    call Galacticus_Error_Report('half mass radius is undefined'//{introspection:location})
+    call Error_Report('half mass radius is undefined'//{introspection:location})
     return
   end function gaussianSlabRadiusHalfMass

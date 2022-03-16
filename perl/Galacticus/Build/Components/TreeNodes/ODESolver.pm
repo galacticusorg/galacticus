@@ -473,7 +473,8 @@ sub Tree_Node_ODE_Name_From_Index {
 	description => "Return the name of a property given its index within an array.",
 	modules     =>
 	    [
-	     "ISO_Varying_String"
+	     "ISO_Varying_String",
+	     "Error"
 	    ],
 	variables   =>
 	    [
@@ -512,7 +513,7 @@ end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (name == 'unknown') call Galacticus_Error_Report('property index out of range'//\{introspection:location\})
+if (name == 'unknown') call Error_Report('property index out of range'//\{introspection:location\})
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

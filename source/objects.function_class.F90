@@ -118,12 +118,12 @@ contains
     !!{
     Push a text-location onto the debug location stack.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     character(len=*), intent(in   ) :: location
 
     debugLocStackSize=debugLocStackSize+1
-    if (debugLocStackSize > debugStackSizeMaximum) call Galacticus_Error_Report('debug stack is not large enough'//{introspection:location})
+    if (debugLocStackSize > debugStackSizeMaximum) call Error_Report('debug stack is not large enough'//{introspection:location})
     debugLocStack(debugLocStackSize)=trim(location)
     return
   end subroutine debugStackPushStr
@@ -132,14 +132,14 @@ contains
     !!{
     Push a numeric-location onto the debug location stack.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer  (c_size_t), intent(in   ) :: location
     character(len=24  )                :: locationStr
 
     debugLocStackSize=debugLocStackSize+1
-    if (debugLocStackSize > debugStackSizeMaximum) call Galacticus_Error_Report('debug stack is not large enough'//{introspection:location})
+    if (debugLocStackSize > debugStackSizeMaximum) call Error_Report('debug stack is not large enough'//{introspection:location})
     write (locationStr,'(i24)') location
     debugLocStack(debugLocStackSize)=trim(adjustl(locationStr))
     return
@@ -149,11 +149,11 @@ contains
     !!{
     Pop a location off the debug stack.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
 
     debugLocStackSize=debugLocStackSize-1
-    if (debugLocStackSize < 0) call Galacticus_Error_Report('pop from empty debug stack'//{introspection:location})
+    if (debugLocStackSize < 0) call Error_Report('pop from empty debug stack'//{introspection:location})
     return
   end subroutine debugStackPop
 

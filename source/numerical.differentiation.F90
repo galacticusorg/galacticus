@@ -99,7 +99,7 @@ contains
     Compute a numerical derivative of the function at {\normalfont \ttfamily x}. The initial stepsize is {\normalfont \ttfamily
     h}. If present, the absolute error estimate is returned in {\normalfont \ttfamily errorAbsolute}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Error, only : Error_Report, errorStatusSuccess
     implicit none
     class           (differentiator), intent(in   )           :: self
     double precision                , intent(in   )           :: x             , h
@@ -108,7 +108,7 @@ contains
     integer         (c_int         )                          :: status
 
     status=gsl_deriv_central(self%f,x,h,differentiatorDerivative,errorAbsolute_)
-    if (status /= errorStatusSuccess) call Galacticus_Error_Report('failed to compute numerical derivative'//{introspection:location})
+    if (status /= errorStatusSuccess) call Error_Report('failed to compute numerical derivative'//{introspection:location})
     if (present(errorAbsolute)) errorAbsolute=errorAbsolute_
     return
   end function differentiatorDerivative

@@ -35,15 +35,15 @@ contains
     Compute the power spectrum from a set of points in a periodic cube.
     !!}
     use            :: Display                 , only : displayMessage
-    use            :: FFTW3                   , only : FFTW_ESTIMATE          , FFTW_FORWARD        , FFTW_Wavenumber, fftw_destroy_plan, &
-          &                                            fftw_execute_dft       , fftw_plan_dft_3d
-    use            :: Galacticus_Error        , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding           , only : c_double_complex       , c_ptr
+    use            :: FFTW3                   , only : FFTW_ESTIMATE     , FFTW_FORWARD        , FFTW_Wavenumber, fftw_destroy_plan, &
+          &                                            fftw_execute_dft  , fftw_plan_dft_3d
+    use            :: Error                   , only : Error_Report
+    use, intrinsic :: ISO_C_Binding           , only : c_double_complex  , c_ptr
     use            :: ISO_Varying_String      , only : varying_string
-    use            :: Memory_Management       , only : allocateArray          , deallocateArray
-    use            :: Meshes                  , only : Meshes_Apply_Point     , cloudTypePoint
+    use            :: Memory_Management       , only : allocateArray     , deallocateArray
+    use            :: Meshes                  , only : Meshes_Apply_Point, cloudTypePoint
     use            :: Numerical_Constants_Math, only : Pi
-    use            :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
+    use            :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
     use            :: String_Handling         , only : operator(//)
     implicit none
     double precision                  , intent(in   ), dimension(:,:  )              :: dataPosition
@@ -66,7 +66,7 @@ contains
     type            (varying_string  )                                               :: message
 
 #ifdef FFTW3UNAVAIL
-    call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+    call Error_Report('FFTW3 library is required but was not found'//{introspection:location})
 #endif
     ! Allocate arrays.
     if (allocated(wavenumber   )) call deallocateArray(wavenumber   )

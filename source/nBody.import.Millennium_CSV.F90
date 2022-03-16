@@ -112,7 +112,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyImporterMillenniumCSV)                        :: self
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
@@ -147,6 +146,7 @@ contains
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
           &                             verbosityLevelStandard
+    use :: Error               , only : Error_Report
     use :: File_Utilities      , only : Count_Lines_in_File
     use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash, &
          &                              doubleHash            , integerSizeTHash        , varyingStringHash , genericHash
@@ -244,13 +244,13 @@ contains
                    columns     (j)%index =countReal
                 end select
              end do
-             if (.not.gotID       ) call Galacticus_Error_Report('particle ID is missing'//{introspection:location})
-             if (.not.gotPositionX) call Galacticus_Error_Report('x position is missing' //{introspection:location})
-             if (.not.gotPositionY) call Galacticus_Error_Report('y position is missing' //{introspection:location})
-             if (.not.gotPositionZ) call Galacticus_Error_Report('z position is missing' //{introspection:location})
-             if (.not.gotVelocityX) call Galacticus_Error_Report('x velocity is missing' //{introspection:location})
-             if (.not.gotVelocityY) call Galacticus_Error_Report('y velocity is missing' //{introspection:location})
-             if (.not.gotVelocityZ) call Galacticus_Error_Report('z velocity is missing' //{introspection:location})
+             if (.not.gotID       ) call Error_Report('particle ID is missing'//{introspection:location})
+             if (.not.gotPositionX) call Error_Report('x position is missing' //{introspection:location})
+             if (.not.gotPositionY) call Error_Report('y position is missing' //{introspection:location})
+             if (.not.gotPositionZ) call Error_Report('z position is missing' //{introspection:location})
+             if (.not.gotVelocityX) call Error_Report('x velocity is missing' //{introspection:location})
+             if (.not.gotVelocityY) call Error_Report('y velocity is missing' //{introspection:location})
+             if (.not.gotVelocityZ) call Error_Report('z velocity is missing' //{introspection:location})
              deallocate(propertiesReal   )
              deallocate(propertiesInteger)
              allocate(propertiesReal   (countReal   ))

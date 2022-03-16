@@ -181,9 +181,8 @@ contains
     !!{
     Constructor for ``sedFit'' posterior sampling likelihood class.
     !!}
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
-    use :: ISO_Varying_String , only : var_str                , varying_string
-    use :: Instruments_Filters, only : Filter_Get_Index       , Filter_Vega_Offset, Filter_Wavelength_Effective
+    use :: ISO_Varying_String , only : var_str         , varying_string
+    use :: Instruments_Filters, only : Filter_Get_Index, Filter_Vega_Offset, Filter_Wavelength_Effective
     use :: Memory_Management  , only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
@@ -253,7 +252,7 @@ contains
     Return the log-likelihood for the SED fitting likelihood function.
     !!}
     use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
-    use            :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use            :: Error                            , only : Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
     use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Models_Likelihoods_Constants     , only : logImpossible
@@ -401,7 +400,7 @@ contains
        burstIndexOffset=6
     case default
        burstIndexOffset=-1
-       call Galacticus_Error_Report('unknown dust type'//{introspection:location})
+       call Error_Report('unknown dust type'//{introspection:location})
     end select
     ! Extract bursts.
     do i=1,self%burstCount

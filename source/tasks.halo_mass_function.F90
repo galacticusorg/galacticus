@@ -210,7 +210,7 @@ contains
     if (parameters%isPresent('massDefinitions',requireValue=.false.)) then
        parametersMassDefinitions=parameters%subParameters('massDefinitions',requireValue=.false.)
        if (parametersMassDefinitions%copiesCount('virialDensityContrast') /= parametersMassDefinitions%count('labels')) &
-            & call Galacticus_Error_Report('number of labels must match number of virial density contrasts'//{introspection:location})
+            & call Error_Report('number of labels must match number of virial density contrasts'//{introspection:location})
        allocate(virialDensityContrasts(parametersMassDefinitions%copiesCount('virialDensityContrast')))
        allocate(labels                (parametersMassDefinitions%copiesCount('virialDensityContrast')))
        !![
@@ -432,20 +432,20 @@ contains
     !!}
     use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use            :: Display                             , only : displayIndent                      , displayUnindent
-    use            :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Error                    , only : errorStatusSuccess
-    use            :: Galacticus_HDF5                     , only : galacticusOutputFile
+    use            :: Calculations_Resets                 , only : Calculations_Reset
+    use            :: Error                               , only : errorStatusSuccess
+    use            :: Output_HDF5                         , only : outputFile
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: IO_HDF5                             , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                       , only : c_size_t
     use            :: Memory_Management                   , only : allocateArray
     use            :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
-    use            :: Numerical_Constants_Astronomical    , only : massSolar                          , megaParsec                         , gigaYear
+    use            :: Numerical_Constants_Astronomical    , only : gigaYear                           , massSolar                          , megaParsec
     use            :: Numerical_Constants_Math            , only : Pi
     use            :: Numerical_Constants_Prefixes        , only : kilo
     use            :: Numerical_Integration               , only : GSL_Integ_Gauss15                  , integrator
     use            :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
-    use            :: String_Handling                     , only : operator(//)                       , String_Upper_Case_First
+    use            :: String_Handling                     , only : String_Upper_Case_First            , operator(//)
     implicit none
     class           (taskHaloMassFunction                   ), intent(inout), target                 :: self
     integer                                                  , intent(  out), optional               :: status
@@ -579,7 +579,7 @@ contains
     massHaloMinimum            =self%haloMassMinimum
     massHaloMaximum            =self%haloMassMaximum
     if (self%massesRelativeToHalfModeMass) then
-       if (statusHalfModeMassReference /= errorStatusSuccess) call Galacticus_Error_Report('half-mode mass is not defined'//{introspection:location})
+       if (statusHalfModeMassReference /= errorStatusSuccess) call Error_Report('half-mode mass is not defined'//{introspection:location})
        massHaloMinimum=massHaloMinimum*massHalfModeReference
        massHaloMaximum=massHaloMaximum*massHalfModeReference
     end if
@@ -655,7 +655,7 @@ contains
        !$omp do
        do iMass=1,massCount
           ! Reset calculations.
-          call Galacticus_Calculations_Reset(tree%nodeBase)
+          call Calculations_Reset(tree%nodeBase)
           ! Set the mass in the node.
           call basic                %massSet (massHalo                            (iMass        ))
           ! Set the node scale radius.
@@ -743,9 +743,9 @@ contains
     !$omp end parallel
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
+       containerGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
        outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Store half- and quarter-mode masses if possible.
@@ -755,7 +755,7 @@ contains
          &   statusQuarterModeMass == errorStatusSuccess &
          & ) then
        if (self%outputGroup == ".") then
-          powerSpectrumGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
+          powerSpectrumGroup=outputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        else
           powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        end if
@@ -771,7 +771,7 @@ contains
     end if
     ! Store sigma8.
     if (self%outputGroup == ".") then
-       powerSpectrumGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
+       powerSpectrumGroup=outputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
     else
        powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
     end if
@@ -779,9 +779,9 @@ contains
     call powerSpectrumGroup%close         (                                                )
     ! Store other usual information.
     if (self%outputGroup == ".") then
-       cosmologyGroup=galacticusOutputFile%openGroup('cosmology','Group containing data relating to cosmology.')
+       cosmologyGroup=outputFile    %openGroup('cosmology','Group containing data relating to cosmology.')
     else
-       cosmologyGroup=containerGroup      %openGroup('cosmology','Group containing data relating to cosmology.')
+       cosmologyGroup=containerGroup%openGroup('cosmology','Group containing data relating to cosmology.')
     end if
     call cosmologyGroup%writeAttribute(self%cosmologyParameters_%densityCritical(),'densityCritical')
     call cosmologyGroup%close()

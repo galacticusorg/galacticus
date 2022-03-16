@@ -128,7 +128,7 @@ contains
     Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
     collapsing status.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactorIn , timeIn
@@ -138,14 +138,14 @@ contains
     !$GLC attributes unused :: self
 
     ! Check that we have a uniquely specified epoch.
-    if (present(expansionFactorIn)) call Galacticus_Error_Report('time can not be determined from expansion factor'      //{introspection:location})
+    if (present(expansionFactorIn)) call Error_Report('time can not be determined from expansion factor'      //{introspection:location})
     if (.not.(present(timeIn).or. present(expansionFactorIn))) &
-         & call Galacticus_Error_Report('one of "time" or "expansionFactor" should be specified'                         //{introspection:location})
+         & call Error_Report('one of "time" or "expansionFactor" should be specified'                         //{introspection:location})
     if (      present(timeIn).and.present(collapsingIn     ) ) &
-         & call Galacticus_Error_Report('collapsing status of universe cannot be specified when epoch is defined by time'//{introspection:location})
+         & call Error_Report('collapsing status of universe cannot be specified when epoch is defined by time'//{introspection:location})
     if (                          present(collapsingOut    ) ) then
        collapsingOut=.false.
-       call Galacticus_Error_Report('collapsing status of universe is undefined'//{introspection:location})
+       call Error_Report('collapsing status of universe is undefined'//{introspection:location})
     end if
     ! If we have a time, check that it is a valid, and compute outputs as required.
     if (present(timeIn)) then
@@ -157,9 +157,9 @@ contains
     if (present(expansionFactorIn)) then
        ! Validate.
        if ( expansionFactorIn /= 1.0d0) &
-            & call Galacticus_Error_Report('expansion factor must be unity'//{introspection:location})
+            & call Error_Report('expansion factor must be unity'//{introspection:location})
        ! Set outputs.
-       if (present(timeOut           )) call Galacticus_Error_Report('time can not be determined from expansion factor'//{introspection:location})
+       if (present(timeOut           )) call Error_Report('time can not be determined from expansion factor'//{introspection:location})
        if (present(expansionFactorOut)) expansionFactorOut=expansionFactorIn
     end if
     return
@@ -169,7 +169,7 @@ contains
     !!{
     Return the cosmological time at a given expansion factor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   )           :: expansionFactor
@@ -177,7 +177,7 @@ contains
     !$GLC attributes unused :: self, expansionFactor, collapsingPhase
 
     staticUniverseCosmicTime=0.0d0
-    call Galacticus_Error_Report('time can not be determined from expansion factor'//{introspection:location})
+    call Error_Report('time can not be determined from expansion factor'//{introspection:location})
     return
   end function staticUniverseCosmicTime
 
@@ -252,7 +252,7 @@ contains
     !!{
     Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
@@ -260,7 +260,7 @@ contains
     !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseOmegaMatterEpochal=0.0d0
-    call Galacticus_Error_Report('Omega_Matter is undefined in static universe'//{introspection:location})
+    call Error_Report('Omega_Matter is undefined in static universe'//{introspection:location})
     return
   end function staticUniverseOmegaMatterEpochal
 
@@ -282,7 +282,7 @@ contains
     !!{
     Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
@@ -290,7 +290,7 @@ contains
     !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseOmegaMatterRateOfChange=0.0d0
-    call Galacticus_Error_Report('Omega_Matter is undefined in static universe'//{introspection:location})
+    call Error_Report('Omega_Matter is undefined in static universe'//{introspection:location})
     return
   end function staticUniverseOmegaMatterRateOfChange
 
@@ -298,7 +298,7 @@ contains
     !!{
     Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
@@ -306,7 +306,7 @@ contains
     !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseOmegaDarkEnergyEpochal=0.0d0
-    call Galacticus_Error_Report('Omega_DarkEnergy is undefined in static universe'//{introspection:location})
+    call Error_Report('Omega_DarkEnergy is undefined in static universe'//{introspection:location})
     return
   end function staticUniverseOmegaDarkEnergyEpochal
 
@@ -314,7 +314,6 @@ contains
     !!{
     Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor      , time
@@ -326,7 +325,7 @@ contains
   end function staticUniverseTemperatureCMBEpochal
 
   subroutine staticUniverseDensityScalingEarlyTime(self,dominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   )           :: dominateFactor
@@ -337,19 +336,19 @@ contains
     densityPower           =0.0d0
     expansionFactorDominant=0.0d0
     if (present(OmegaDominant)) OmegaDominant=0.0d0
-    call Galacticus_Error_Report('early times are undefined in static universe'//{introspection:location})
+    call Error_Report('early times are undefined in static universe'//{introspection:location})
     return
   end subroutine staticUniverseDensityScalingEarlyTime
 
   double precision function staticUniverseDominationEpochMatter(self,dominateFactor)
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: dominateFactor
     !$GLC attributes unused :: self, dominateFactor
 
     staticUniverseDominationEpochMatter=0.0d0
-    call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
+    call Error_Report('epochs are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseDominationEpochMatter
 
@@ -357,14 +356,14 @@ contains
     !!{
     Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
     !$GLC attributes unused :: self, requestType
 
     staticUniverseEqualityEpochMatterDarkEnergy=0.0d0
-    call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
+    call Error_Report('epochs are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseEqualityEpochMatterDarkEnergy
 
@@ -372,14 +371,14 @@ contains
     !!{
     Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
     !$GLC attributes unused :: self, requestType
 
     staticUniverseEqualityEpochMatterCurvature=0.0d0
-    call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
+    call Error_Report('epochs are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseEqualityEpochMatterCurvature
 
@@ -387,14 +386,14 @@ contains
     !!{
     Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
     !$GLC attributes unused :: self, requestType
 
     staticUniverseEqualityEpochMatterRadiation=0.0d0
-    call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
+    call Error_Report('epochs are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseEqualityEpochMatterRadiation
 
@@ -402,14 +401,14 @@ contains
     !!{
     Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: comovingDistance
     !$GLC attributes unused :: self, comovingDistance
 
     staticUniverseTimeAtDistanceComoving=0.0d0
-    call Galacticus_Error_Report('absolute times are undefined in static universe'//{introspection:location})
+    call Error_Report('absolute times are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseTimeAtDistanceComoving
 
@@ -417,14 +416,14 @@ contains
     !!{
     Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
     staticUniverseDistanceComoving=0.0d0
-    call Galacticus_Error_Report('absolute times are undefined in static universe'//{introspection:location})
+    call Error_Report('absolute times are undefined in static universe'//{introspection:location})
     return
   end function staticUniverseDistanceComoving
 
@@ -432,7 +431,7 @@ contains
     !!{
     Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -446,7 +445,7 @@ contains
     !!{
     Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -461,7 +460,7 @@ contains
     Convert bewteen different measures of distance.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                           , intent(in   )           :: output
@@ -484,16 +483,16 @@ contains
        comovingDistance  =10.0d0**((distanceModulusKCorrected-25.0d0)/5.0d0)
        gotComovingDistance=.true.
     end if
-    if (present(redshift)) call Galacticus_Error_Report('zero redshift is undefined in static universe'//{introspection:location})
+    if (present(redshift)) call Error_Report('zero redshift is undefined in static universe'//{introspection:location})
     if (.not.gotComovingDistance) &
-         & call Galacticus_Error_Report('no distance measure provided'//{introspection:location})
+         & call Error_Report('no distance measure provided'//{introspection:location})
     ! Convert to required distance measure.
     select case (output)
     case (distanceTypeComoving)
        staticUniverseDistanceComovingConvert=comovingDistance
     case default
        staticUniverseDistanceComovingConvert=-1.0d0
-       call Galacticus_Error_Report('unrecognized output option'//{introspection:location})
+       call Error_Report('unrecognized output option'//{introspection:location})
     end select
     return
   end function staticUniverseDistanceComovingConvert

@@ -90,7 +90,6 @@ contains
     !!{
     Internal constructor for the information content merger tree operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeOperatorInformationContent)                :: informationContentConstructorInternal
     type(varying_string                      ), intent(in   ) :: outputGroupName
@@ -176,10 +175,10 @@ contains
     !!{
     Outputs tree information content function.
     !!}
-    use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: HDF5           , only : hsize_t
-    use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: Output_HDF5, only : outputFile
+    use :: HDF5       , only : hsize_t
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class  (mergerTreeOperatorInformationContent), intent(inout) :: self
     integer(hsize_t                             ), parameter     :: chunkSize              =1024_hsize_t
@@ -190,7 +189,7 @@ contains
     if (allocated(self%treeIndex)) then
        !$ call hdf5Access%set()
        ! Output information content information.
-       informationContentGroup   =galacticusOutputFile   %openGroup     (char(self%outputGroupName),'Cladistic information content of trees.'                                       )
+       informationContentGroup   =outputFile             %openGroup     (char(self%outputGroupName),'Cladistic information content of trees.'                                       )
        preexisting               =informationContentGroup%hasDataset    (                           'treeIndex'                                                                     )
        call                       informationContentGroup%writeDataset  (self%treeIndex            ,'treeIndex'                                 ,appendTo=.true.,chunkSize=chunkSize)
        call                       informationContentGroup%writeDataset  (self%informationContent   ,'informationContent',datasetReturned=dataset,appendTo=.true.,chunkSize=chunkSize)

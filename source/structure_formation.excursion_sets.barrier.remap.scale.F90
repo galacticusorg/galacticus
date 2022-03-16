@@ -97,7 +97,7 @@ contains
     !!{
     Internal constructor for the critical overdensity excursion set class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (excursionSetBarrierRemapScale)                        :: self
     class           (excursionSetBarrierClass     ), intent(in   ), target :: excursionSetBarrier_
@@ -107,7 +107,7 @@ contains
     <constructorAssign variables="factor, applyTo, *excursionSetBarrier_"/>
     !!]
 
-    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('applyTo is invalid'//{introspection:location})
+    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Error_Report('applyTo is invalid'//{introspection:location})
     self%applyToText=enumerationExcursionSetRemapDecode(applyTo,includePrefix=.false.)
     return
   end function remapScaleConstructorInternal

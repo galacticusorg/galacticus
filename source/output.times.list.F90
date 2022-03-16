@@ -192,8 +192,8 @@ contains
     !!{
     Returns the index of the output given the corresponding time.
     !!}
-    use :: Arrays_Search       , only : searchArray           , searchArrayClosest
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Arrays_Search       , only : searchArray  , searchArrayClosest
+    use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     integer         (c_size_t       )                          :: listIndex
@@ -206,7 +206,7 @@ contains
     else
        listIndex=searchArray            (self%times,time)
        if (Values_Differ(time,self%times(listIndex),relTol=1.0d-6)) &
-            & call Galacticus_Error_Report('time does not correspond to an output'//{introspection:location})
+            & call Error_Report('time does not correspond to an output'//{introspection:location})
     end if
     return
   end function listIndex

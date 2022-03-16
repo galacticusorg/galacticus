@@ -60,7 +60,7 @@ contains
     Update the database.
     !!}
     use :: Display                 , only : displayIndent     , displayUnindent
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error        , only : errorStatusSuccess
     use :: Interface_Local_Group_DB, only : localGroupDB
     implicit none
     class  (taskLocalGroupDatabase), intent(inout), target   :: self

@@ -53,8 +53,8 @@ contains
     Constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder class which takes a
     parameter list as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
     type   (inputParameters                                   ), intent(inout)               :: parameters
@@ -66,7 +66,7 @@ contains
 
     countPostprocessors    =max(parameters%copiesCount('stellarPopulationSpectraPostprocessor',zeroIfNotPresent=.true.),1)
     countPostprocessorNames=max(parameters%      count('names'                                ,zeroIfNotPresent=.true.),1)
-    if (countPostprocessors /= countPostprocessorNames) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
+    if (countPostprocessors /= countPostprocessorNames) call Error_Report('number of names must match number of postprocessors'//{introspection:location})
     allocate(names         (countPostprocessors))
     allocate(postprocessors(countPostprocessors))
     !![
@@ -100,7 +100,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
     type   (varying_string                                    ), intent(in   ), dimension(:) :: names
@@ -110,7 +110,7 @@ contains
     <constructorAssign variables="names, postprocessors"/>
     !!]
 
-    if (size(names) /= size(postprocessors)) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
+    if (size(names) /= size(postprocessors)) call Error_Report('number of names must match number of postprocessors'//{introspection:location})
     do i=1,size(postprocessors)
        !![
        <referenceCountIncrement owner="self%postprocessors(i)" object="stellarPopulationSpectraPostprocessor_"/>
@@ -147,7 +147,7 @@ contains
     !!{
     Return a stellar population spectra postprocessor by lookup via name.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (stellarPopulationSpectraPostprocessorClass        ), pointer       :: postprocessor
     class  (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
@@ -158,6 +158,6 @@ contains
     do i=1,size(self%names)
        if (self%names(i) == descriptor) postprocessor => self%postprocessors(i)%stellarPopulationSpectraPostprocessor_
     end do
-    if (.not.associated(postprocessor)) call Galacticus_Error_Report('unable to located postprocessor "'//descriptor//'"'//{introspection:location})
+    if (.not.associated(postprocessor)) call Error_Report('unable to located postprocessor "'//descriptor//'"'//{introspection:location})
     return
   end function lookupBuild

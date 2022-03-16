@@ -26,7 +26,7 @@ module Hashes
   Implements ``hashes'' (i.e. associative arrays).
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: ISO_Varying_String, only : varying_string, var_str
+  use            :: ISO_Varying_String, only : var_str , varying_string
   implicit none
 
   !![
@@ -202,9 +202,9 @@ contains
     Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
     !!}
     use            :: Arrays_Search     , only : searchArray
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : char                   , assignment(=)
+    use            :: ISO_Varying_String, only : assignment(=), char
     implicit none
     type   (varying_string  ), intent(in   ) :: key
     class  ({Type¦label}Hash), intent(inout) :: self
@@ -223,7 +223,7 @@ contains
        self%  keyPrevious=''
        self%indexPrevious=-1
     else
-       call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
+       call Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
     return
   end subroutine {Type¦label}DeleteVarStr
@@ -259,7 +259,7 @@ contains
     !!{
     Returns an array of all values in {\normalfont \ttfamily self}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
 #if {Type¦match¦^(generic|rank\d+[a-zA-Z]+)$¦0¦1}
     {Type¦intrinsic}                  {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
@@ -273,7 +273,7 @@ contains
     class           ({Type¦label}Hash)                                            , intent(in   ) :: self
     !$GLC attributes unused :: self, values
 
-    call Galacticus_Error_Report('values method is not supported for generic hashes'//{introspection:location})
+    call Error_Report('values method is not supported for generic hashes'//{introspection:location})
 #endif
     return
   end subroutine {Type¦label}Values
@@ -312,9 +312,9 @@ contains
     Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self}.
     !!}
     use            :: Arrays_Search     , only : searchArray
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : char                   , operator(==)
+    use            :: ISO_Varying_String, only : char        , operator(==)
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueVarStr
     class           ({Type¦label}Hash), intent(in   )   :: self
@@ -328,7 +328,7 @@ contains
        {Type¦label}ValueVarStr {Type¦assignment} self%hashValues(iKey)%object
     else
        {Type¦label}ValueVarStr {Type¦assignment} {Type¦null}
-       call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
+       call Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
     return
   end function {Type¦label}ValueVarStr
@@ -356,7 +356,7 @@ contains
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : operator(==), assignment(=), char
+    use            :: ISO_Varying_String, only : assignment(=), char, operator(==)
     implicit none
     {Type¦intrinsic}                       {Type¦argumentAttributes}, intent(in   )               :: Value
     type            (varying_string       )                         , intent(in   )               :: Key

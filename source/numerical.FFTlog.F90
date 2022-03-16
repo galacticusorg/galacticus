@@ -90,7 +90,7 @@ contains
     !!{
     Perform a discrete FFT on logarithmically spaced data.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision, intent(in   ), dimension(:                          ) :: r, f
     double precision, intent(inout), dimension(:                          ) :: k
@@ -112,11 +112,11 @@ contains
     krCentral=1.0d0
     ! Call the FFTLog initialization function.
     call fhti(size(r),mu,bias,deltaLogR,krCentral,krOption,workSpace,errorCode)
-    if (.not.errorCode) call Galacticus_Error_Report('FFTLog initialization failed'//{introspection:location})
+    if (.not.errorCode) call Error_Report('FFTLog initialization failed'//{introspection:location})
     ! Compute central points.
     kCentralLogarithmic=log(krCentral)-rCentralLogarithmic
     ! Perform the FFT.
-    if (direction /= -1 .and. direction /= 1) call Galacticus_Error_Report('direction must be -1 or +1'//{introspection:location})
+    if (direction /= -1 .and. direction /= 1) call Error_Report('direction must be -1 or +1'//{introspection:location})
     ft=f
     normalization=exp(2.0d0*rCentralLogarithmic)
     call fftl(size(r),ft,normalization,direction,workSpace)

@@ -354,9 +354,9 @@ contains
     !!{
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: Memory_Management, only : allocateArray
-    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
+    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     double precision                                 , intent(in   ), dimension(:) :: parentRedshifts                 , progenitorRedshifts
@@ -379,7 +379,7 @@ contains
     self%timeCount                       =size(parentRedshifts)
     self%primaryProgenitorStatisticsValid=self%haloMassError_%errorZeroAlways()
     if (size(progenitorRedshifts) /= self%timeCount) &
-         & call Galacticus_Error_Report('mismatch in sizes of parent and progenitor redshift arrays'//{introspection:location})
+         & call Error_Report('mismatch in sizes of parent and progenitor redshift arrays'//{introspection:location})
     ! Allocate arrays.
     call allocateArray(self%parentRedshifts    ,[self%timeCount        ])
     call allocateArray(self%progenitorRedshifts,[self%timeCount        ])
@@ -601,7 +601,7 @@ contains
     !!{
     Compute conditional mass function on {\normalfont \ttfamily tree}.
     !!}
-    use    :: Galacticus_Error    , only : Galacticus_Error_Report
+    use    :: Error               , only : Error_Report
     use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
     use    :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
     use    :: Numerical_Comparison, only : Values_Agree
@@ -1099,7 +1099,7 @@ contains
     !!{
     Computes the weight that a given halo contributes to a 2D array of bins.
     !!}
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -1122,7 +1122,7 @@ contains
     type            (integrator                     )                                   :: integrator_
 
     ! Validate moment.
-    if (moment < 0 .or. moment > 2) call Galacticus_Error_Report('moment must be 0, 1, or 2'//{introspection:location})
+    if (moment < 0 .or. moment > 2) call Error_Report('moment must be 0, 1, or 2'//{introspection:location})
     ! Construct nodes and find the mass errors and their correlation. Given the correlation coefficient, C₁₂, between the mass
     ! errors, σ₁ and σ₂, then once M₁ is fixed, M₂ is shifted by C₁₂ (σ₂/σ₁) (M₁-<M₁>), and has remaining variance (1-C₁₂²)σ₂²
     node1  => treeNode       (                 )
@@ -1145,7 +1145,7 @@ contains
     ! Handle zero errors.
     if (massError1 <= 0.0d0 .or. massError2 <= 0.0d0) then
        ! We currently do not handle cases where only one error is zero.
-       if (massError1 > 0.0d0 .or. massError2 > 0.0d0) call Galacticus_Error_Report('both mass errors must be zero or both must be non-zero'//{introspection:location})
+       if (massError1 > 0.0d0 .or. massError2 > 0.0d0) call Error_Report('both mass errors must be zero or both must be non-zero'//{introspection:location})
        ! Find the bin contributed to.
        i      =int(                                                      &
             &      +(+log(      mass1)-massLogarithmicMinimumBins1     ) &
@@ -1251,7 +1251,7 @@ contains
       !!{
       Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
       !!}
-      use :: Galacticus_Error        , only : Galacticus_Error_Report
+      use :: Error                   , only : Error_Report
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: mass1Primed
@@ -1425,7 +1425,7 @@ contains
               &                              )
       case default
          conditionalMFBinWeights2DIntegrand=0.0d0
-         call Galacticus_Error_Report('moment not supported'//{introspection:location})
+         call Error_Report('moment not supported'//{introspection:location})
       end select
       conditionalMFBinWeights2DIntegrand=+conditionalMFBinWeights2DIntegrand &
            &                             *exp(                               &
@@ -1453,7 +1453,7 @@ contains
     !!{
     Outputs conditional mass function.
     !!}
-    use    :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use    :: Output_HDF5                     , only : outputFile
     use    :: HDF5_Access                     , only : hdf5Access
     use    :: IO_HDF5                         , only : hdf5Object
     use    :: Memory_Management               , only : allocateArray       , deallocateArray
@@ -1502,9 +1502,9 @@ contains
     ! Output the data.
     !$ call hdf5Access%set()
     ! Check if our output group already exists.
-    if (galacticusOutputFile%hasGroup(char(self%outputGroupName))) then
+    if (outputFile%hasGroup(char(self%outputGroupName))) then
        ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
-       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       conditionalMassFunctionGroup=outputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call allocateArray(normalization               ,shape(self%normalization               ))
        call allocateArray(normalizationError          ,shape(self%normalizationError          ))
        call allocateArray(conditionalMassFunctionError,shape(self%conditionalMassFunctionError))
@@ -1582,7 +1582,7 @@ contains
        end if
     else
        ! Our group does not already exist. Simply write the data.
-       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       conditionalMassFunctionGroup=outputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
        call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
        call massDataset                 %close         (                                                                                                                                                     )
@@ -1707,7 +1707,7 @@ contains
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunctionError             ,"subhaloMassFunctionError"             ,"Unevolved subhalo mass function errors []"                 )
     end if
     call    conditionalMassFunctionGroup%close         (                                                                                                                                               )
-    call    galacticusOutputFile        %flush         (                                                                                                                                               )
+    call    outputFile                  %flush         (                                                                                                                                               )
     !$ call hdf5Access%unset()
     return
   end subroutine conditionalMFFinalize

@@ -174,7 +174,6 @@ contains
     !!{
     Internal constructor for the ``fakhouri2010'' merger tree branching probability class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                        :: self
     double precision                                            , intent(in   )         :: alpha                    , beta , &

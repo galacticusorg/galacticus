@@ -150,14 +150,14 @@ contains
     !!{
     Return the inverse of a Cauchy distribution.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DCauchy), intent(inout), target :: self
     double precision                              , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
-         & call Galacticus_Error_Report(                             &
+         & call Error_Report(                             &
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )

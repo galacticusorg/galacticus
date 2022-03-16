@@ -24,8 +24,8 @@
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters           , only : cosmologyParametersClass
   use :: Cosmological_Velocity_Field    , only : cosmologicalVelocityFieldClass
-  use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass              , criticalOverdensityClass, criticalOverdensityPeakBackgroundSplit, haloEnvironmentNormal, &
-       &                                         cosmologicalMassVariancePeakBackgroundSplit
+  use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass      , cosmologicalMassVariancePeakBackgroundSplit, criticalOverdensityClass, criticalOverdensityPeakBackgroundSplit, &
+          &                                      haloEnvironmentNormal
   use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
   use :: Halo_Mass_Functions            , only : haloMassFunctionShethTormen
   use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
@@ -247,9 +247,9 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily lossCone} virial orbits class.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
-    use :: Numerical_Ranges  , only : Make_Range    , rangeTypeLinear
+    use :: Numerical_Ranges  , only : Make_Range  , rangeTypeLinear
     implicit none
     type            (virialOrbitLossCone                )                        :: self
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -285,12 +285,12 @@ contains
     self%velocity            =Make_Range(self%velocityMinimum,self%velocityMaximum,countVelocities,rangeTypeLinear)
     self%interpolatorVelocity=interpolator(self%velocity)
     ! Build a file name for storing the tabulated solution.
-    self%fileName=galacticusPath(pathTypeDataDynamic)                                   // &
-         &                             'darkMatterHalos/'                               // &
-         &                             self%objectType      (                          )// &
-         &                             '_'                                              // &
-         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                             '.hdf5'
+    self%fileName=inputPath(pathTypeDataDynamic)                   // &
+         &        'darkMatterHalos/'                               // &
+         &        self%objectType      (                          )// &
+         &        '_'                                              // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &        '.hdf5'
     self%fileRead=.false.
     return
   end function lossConeConstructorInternal
@@ -561,7 +561,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                     , dimension(3)  :: lossConeVelocityTangentialVectorMean
     class           (virialOrbitLossCone), intent(inout) :: self
@@ -569,7 +569,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     lossConeVelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function lossConeVelocityTangentialVectorMean
 
@@ -603,7 +603,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                     , dimension(3)  :: lossConeAngularMomentumVectorMean
     class           (virialOrbitLossCone), intent(inout) :: self
@@ -611,7 +611,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     lossConeAngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function lossConeAngularMomentumVectorMean
 
@@ -681,11 +681,11 @@ contains
     !!}
     use :: Cosmological_Density_Field          , only : haloEnvironmentNormal
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Display                             , only : displayIndent                      , displayUnindent     , displayCounter, displayCounterClear, &
-         &                                              verbosityLevelWorking
-    use :: Galacticus_Error                    , only : errorStatusSuccess
-    use :: Galacticus_Nodes                    , only : treeNode                           , nodeComponentBasic  , mergerTree
-    use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+    use :: Display                             , only : displayCounter                     , displayCounterClear , displayIndent, displayUnindent, &
+          &                                             verbosityLevelWorking
+    use :: Error                               , only : errorStatusSuccess
+    use :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic  , treeNode
+    use :: Calculations_Resets                 , only : Calculations_Reset
     use :: Numerical_Constants_Math            , only : Pi
     use :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
     use :: Table_Labels                        , only : extrapolationTypeFix
@@ -920,7 +920,7 @@ contains
        call basicHost%massSet            (     massHost)
        call basicHost%timeSet            (self%time    )
        call basicHost%timeLastIsolatedSet(self%time    )
-       call Galacticus_Calculations_Reset(     nodeHost)
+       call Calculations_Reset           (     nodeHost)
        ! Compute host virial properties.
        radiusVirialHost  =darkMatterHaloScale_%radiusVirial  (nodeHost)
        velocityVirialHost=darkMatterHaloScale_%velocityVirial(nodeHost)
@@ -944,7 +944,7 @@ contains
           call basicSatellite%massSet            (     massSatellite)
           call basicSatellite%timeSet            (self%time         )
           call basicSatellite%timeLastIsolatedSet(self%time         )
-          call Galacticus_Calculations_Reset     (     nodeSatellite)
+          call Calculations_Reset                (     nodeSatellite)
           ! Tabulate the 1-D linear theory relative velocity of host-satellite halo pairs as a function of radius.
           !$omp single
           if (allocated(radius)) then
@@ -1269,8 +1269,8 @@ contains
   contains
 
     double precision function integrandEnvironment(overdensity)
-      use :: Cosmology_Parameters          , only : hubbleUnitsLittleH
-      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+      use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+      use :: Calculations_Resets , only : Calculations_Reset
       implicit none
       double precision, intent(in   ) :: overdensity
       double precision, parameter     :: radiusReferenceExternal=10.0d0 ! Reference radius (in units of Mpc/h) in the Sheth & Diaferio (2001) model for the environmental dependence of velocity dispersion.
@@ -1280,7 +1280,7 @@ contains
            &                             overdensityNonlinear
       
       call haloEnvironment_%overdensityLinearSet(nodeHost_,overdensity)
-      call Galacticus_Calculations_Reset        (nodeHost_            )
+      call Calculations_Reset                   (nodeHost_            )
       radiusReference     =+radiusReferenceExternal                                       &
            &               /cosmologyParameters_%hubbleConstant      (hubbleUnitsLittleH)
       massRadius          =+haloEnvironment_    %environmentMass     (                  )
@@ -1311,14 +1311,14 @@ contains
       !!{
       The normalizing integrand for the environmental dependence of velocity dispersion.
       !!}
-      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+      use :: Calculations_Resets, only : Calculations_Reset
       implicit none
       double precision, intent(in   ) :: overdensity
       double precision                :: mergerRate          , massFunction, &
            &                             overdensityNonlinear
 
       call haloEnvironment_%overdensityLinearSet(nodeHost_,overdensity)
-      call Galacticus_Calculations_Reset        (nodeHost_            )
+      call Calculations_Reset                   (nodeHost_            )
       overdensityNonlinear             =+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                                   )
       massFunction                     =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                                   )
       mergerRate                       =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time,mass=massHost_),massBranch=0.5d0*massHost_)
@@ -1407,7 +1407,7 @@ contains
     !!{
     Attempt to restore a table from file.
     !!}
-    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
@@ -1461,8 +1461,8 @@ contains
     !!{
     Store the tabulated solution to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock , File_Unlock, File_Path, &
-         &                            lockDescriptor
+    use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
+          &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char

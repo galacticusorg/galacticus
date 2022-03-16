@@ -91,7 +91,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Error           , only : Component_List           , Error_Report
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
     type     (accretionDiskSpectraFile)                :: fileConstructorInternal
@@ -104,15 +104,15 @@ contains
             &        .and.                                                                                                             &
             &         defaultBlackHoleComponent%      accretionRateIsGettable()                                                        &
             &       )                                                                                                                  &
-            & ) call Galacticus_Error_Report                                                                                           &
+            & ) call Error_Report                                                                                                      &
             & (                                                                                                                        &
             &  'This method requires that the "radiativeEfficiency", and "accretionRate" properties of the black hole are gettable.'// &
-            &  Galacticus_Component_List(                                                                                              &
-            &                            'blackHole'                                                                                ,  &
-            &                             defaultBlackHoleComponent%radiativeEfficiencyAttributeMatch(requireGettable=.true.)          &
-            &                            .intersection.                                                                                &
-            &                             defaultBlackHoleComponent%      accretionRateAttributeMatch(requireGettable=.true.)          &
-            &                           )                                                                                           // &
+            &  Component_List(                                                                                                         &
+            &                 'blackHole'                                                                                           ,  &
+            &                  defaultBlackHoleComponent%radiativeEfficiencyAttributeMatch(requireGettable=.true.)                     &
+            &                 .intersection.                                                                                           &
+            &                  defaultBlackHoleComponent%      accretionRateAttributeMatch(requireGettable=.true.)                     &
+            &                )                                                                                                      // &
             &  {introspection:location}                                                                                                &
             & )
     ! Load the file.
@@ -143,9 +143,9 @@ contains
     !!{
     Load a file of AGN spectra.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : hdf5Object
+    use :: Error      , only : Error_Report
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
     character(len=*                   ), intent(in   ) :: fileName
@@ -157,7 +157,7 @@ contains
     call spectraFile%openFile(fileName,readOnly=.true.)
     ! Check file format.
     call spectraFile%readAttribute('fileFormat',fileFormatFile,allowPseudoScalar=.true.)
-    if (fileFormatFile /= fileFormatCurrent) call Galacticus_Error_Report('file format mismatch'//{introspection:location})
+    if (fileFormatFile /= fileFormatCurrent) call Error_Report('file format mismatch'//{introspection:location})
     ! Read datasets.
     call spectraFile%readDataset('wavelength'          ,self%wavelength)
     call spectraFile%readDataset('bolometricLuminosity',self%luminosity)

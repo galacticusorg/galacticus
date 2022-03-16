@@ -64,14 +64,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily allNodes} merger tree walker class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerAllNodes)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
-    call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
+    call Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function allNodesParameters
 
@@ -192,7 +192,7 @@ contains
     !!{
     Step back to the previously visited node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
@@ -204,7 +204,7 @@ contains
        self%treePrevious => null()
        self%nodePrevious => null()
     else
-       call Galacticus_Error_Report('no previous node is available'//{introspection:location})
+       call Error_Report('no previous node is available'//{introspection:location})
     end if
     return
   end subroutine allNodesPrevious

@@ -176,7 +176,7 @@ contains
     use :: Display                         , only : displayIndent          , displayMessage                 , displayUnindent
     use :: Galactic_Structure_Options      , only : componentTypeDarkHalo  , componentTypeSpheroid          , coordinateSystemCylindrical, massTypeDark, &
           &                                         massTypeGalactic       , massTypeStellar
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole , nodeComponentSpheroid          , treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
@@ -418,7 +418,7 @@ contains
           write (message,'(a,e12.6)') '   a_{df} = ',dynamicalFrictionAcceleration
           call displayMessage(trim(message))
           call displayUnindent('done')
-          call Galacticus_Error_Report('rotation curve gradient is zero'//{introspection:location})
+          call Error_Report('rotation curve gradient is zero'//{introspection:location})
        end if
        rateScatteringDynamicalFriction=+2.0d0                         &
             &                          *dynamicalFrictionAcceleration &

@@ -197,7 +197,7 @@ contains
     Initializes the tree node standard disk methods module.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : defaultDiskComponent     , nodeComponentDiskStandard
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
@@ -260,7 +260,7 @@ contains
     !!}
     use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                          satelliteMergerEvent
-    use :: Galacticus_Error                 , only : Galacticus_Error_Report
+    use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
     use :: Mass_Distributions               , only : massDistributionCylindrical
@@ -289,7 +289,7 @@ contains
         </default>
        </objectBuilder>
        !!]
-       if (.not.diskMassDistribution%isDimensionless()) call Galacticus_Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       if (.not.diskMassDistribution%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
        select type (diskMassDistribution)
@@ -311,7 +311,7 @@ contains
                   &  )
           end if
        class default
-          call Galacticus_Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
+          call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
@@ -440,7 +440,7 @@ contains
     !!}
     use :: Abundances_Structure          , only : abs                    , zeroAbundances
     use :: Display                       , only : displayMessage         , verbosityLevelWarn
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Galacticus_Nodes              , only : defaultDiskComponent   , nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
           &                                       treeNode               , nodeComponentBasic
     use :: ISO_Varying_String            , only : assignment(=)          , operator(//)       , varying_string
@@ -610,7 +610,7 @@ contains
                 write (valueString,'(e12.6)') +spin %angularMomentum() &
                      &                        /basic%mass           ()
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           end if
           status=GSL_Failure
@@ -792,7 +792,7 @@ contains
     Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
     use :: Histories                       , only : history
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
@@ -852,7 +852,7 @@ contains
                &                                            +disk        %abundancesGas      ()                         &
                &                                           )
        case default
-          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
@@ -921,7 +921,7 @@ contains
           call historyNode %destroy                (            recordMemory=.false.)
           call historyHost %destroy                (            recordMemory=.false.)
        case default
-          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        call disk%        massStellarSet(                  0.0d0)
        call disk%  abundancesStellarSet(         zeroAbundances)
@@ -1191,9 +1191,9 @@ contains
   end subroutine Node_Component_Disk_Standard_Star_Formation_History_Flush
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Disk_Standard_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Disk_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1225,9 +1225,9 @@ contains
   end subroutine Node_Component_Disk_Standard_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Disk_Standard_State_Retrieve</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

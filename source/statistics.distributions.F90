@@ -62,7 +62,7 @@ module Statistics_Distributions
      <pass>yes</pass>
      <argument>class(randomNumberGeneratorClass), intent(inout), optional :: randomNumberGenerator_</argument>
      <description>Return a random deviate from the distribution.</description>
-     <modules>Galacticus_Error</modules>
+     <modules>Error</modules>
      <code>
       double precision :: uniformRandom
       ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
@@ -70,7 +70,7 @@ module Statistics_Distributions
       if (present(randomNumberGenerator_)) then
          uniformRandom=     randomNumberGenerator_%uniformSample()
       else
-         if (.not.associated(self%randomNumberGenerator_)) call Galacticus_Error_Report('no random number generator supplied'//{introspection:location})
+         if (.not.associated(self%randomNumberGenerator_)) call Error_Report('no random number generator supplied'//{introspection:location})
          uniformRandom=self%randomNumberGenerator_%uniformSample()
       end if
       distributionFunction1DSample=self%inverse(uniformRandom)

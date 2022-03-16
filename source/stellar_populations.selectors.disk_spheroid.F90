@@ -108,8 +108,8 @@ contains
     !!{
     Return a diskSpheroid stellar population.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponent          , nodeComponentDisk, nodeComponentSpheroid
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (stellarPopulationClass               ), pointer       :: diskSpheroidSelect
     class           (stellarPopulationSelectorDiskSpheroid), intent(inout) :: self
@@ -124,7 +124,7 @@ contains
     class is (nodeComponentSpheroid)
        diskSpheroidSelect => self%stellarPopulationSpheroid_
     class default
-       call Galacticus_Error_Report('only disk and spheroid components are supported by this class'//{introspection:location})
+       call Error_Report('only disk and spheroid components are supported by this class'//{introspection:location})
     end select
     return
   end function diskSpheroidSelect

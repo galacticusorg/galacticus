@@ -101,7 +101,7 @@ contains
     Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
     shape class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (darkMatterProfileShapeKlypin2015)                        :: self
     integer                                  , intent(in   )         :: sample
@@ -111,7 +111,7 @@ contains
     <constructorAssign variables="sample, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
-    if (.not.enumerationKlypin2015SampleIsValid(sample)) call Galacticus_Error_Report('invalid sample'//{introspection:location})
+    if (.not.enumerationKlypin2015SampleIsValid(sample)) call Error_Report('invalid sample'//{introspection:location})
     return
   end function klypin2015ConstructorInternal
 
@@ -134,8 +134,8 @@ contains
     Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
     \cite{klypin_multidark_2014} algorithm.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -154,7 +154,7 @@ contains
        klypin2015Shape=0.115d0+0.0140d0*nu**2
     case default
        klypin2015Shape=0.0d0
-       call Galacticus_Error_Report('unknown sample'//{introspection:location})
+       call Error_Report('unknown sample'//{introspection:location})
     end select
     return
   end function klypin2015Shape

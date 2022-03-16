@@ -92,7 +92,7 @@ contains
     !!{
     Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (coolingTimeAvailableWhiteFrenk1991)                        :: self
     double precision                                    , intent(in   )         :: ageFactor
@@ -105,7 +105,7 @@ contains
          &   ageFactor < 0.0d0 &
          &  .or.               &
          &   ageFactor > 1.0d0 &
-         & ) call Galacticus_Error_Report('0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required'//{introspection:location})
+         & ) call Error_Report('0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required'//{introspection:location})
     return
   end function whiteFrenk1991ConstructorInternal
 

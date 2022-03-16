@@ -193,14 +193,14 @@ contains
     largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
     compressive ones.)
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Error                           , only : Error_Report             , errorStatusSuccess
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic            , treeNode
-    use :: Linear_Algebra                  , only : vector                   , matrix                        , assignment(=)
-    use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec                    , gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBasic       , nodeComponentSatellite         , treeNode
+    use :: Linear_Algebra                  , only : assignment(=)            , matrix                         , vector
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
+    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative  , rangeExpandSignExpectPositive
     use :: Tensors                         , only : assignment(=)            , tensorRank2Dimension3Symmetric
     use :: Vectors                         , only : Vector_Magnitude         , Vector_Product
     implicit none
@@ -302,7 +302,7 @@ contains
           self%radiusTidalPrevious=0.0d0
        else
           ! Find the tidal radius, using the previous result as an initial guess.
-          call Galacticus_Error_Report('unable to find tidal radius'//{introspection:location})
+          call Error_Report('unable to find tidal radius'//{introspection:location})
        end if
        king1962Radius=self%radiusTidalPrevious
     else
@@ -322,7 +322,7 @@ contains
     !!{
     Root function used to find the tidal radius within a subhalo.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus , gigaYear, megaParsec  
+    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision, intent(in   ) :: radius

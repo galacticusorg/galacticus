@@ -66,7 +66,7 @@ contains
     !!{
     Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class    (nodeOperatorDMOUninterpolated), intent(inout) :: self
@@ -79,7 +79,7 @@ contains
     basic       => node      %basic ()
     basicParent => nodeParent%basic ()
     ! Ensure the two halos exist at the same time.
-    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
+    if (basic%time() /= basicParent%time()) call Error_Report('node has not been evolved to its parent'//{introspection:location})
     ! Adjust the mass to that of the parent node.
     call basic%massSet(basicParent%mass())
     return

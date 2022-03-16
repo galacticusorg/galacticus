@@ -170,7 +170,7 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                , intent(in   )           :: mass
@@ -183,7 +183,7 @@ contains
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one argument can be specified'//{introspection:location})
+          call Error_Report('only one argument can be specified'//{introspection:location})
        else
           timeActual=time
        end if
@@ -196,7 +196,7 @@ contains
           end if
           timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
-          call Galacticus_Error_Report('at least one argument must be given'//{introspection:location})
+          call Error_Report('at least one argument must be given'//{introspection:location})
        end if
     end if
     ! Remake the table if necessary.
@@ -210,7 +210,7 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                                , intent(in   )           :: mass
@@ -223,7 +223,7 @@ contains
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('only one argument can be specified'//{introspection:location})
+          call Error_Report('only one argument can be specified'//{introspection:location})
        else
           timeActual=time
        end if
@@ -236,7 +236,7 @@ contains
           end if
           timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
-          call Galacticus_Error_Report('at least one argument must be given'//{introspection:location})
+          call Error_Report('at least one argument must be given'//{introspection:location})
        end if
     end if
     ! Remake the table if necessary.

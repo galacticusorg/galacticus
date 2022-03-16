@@ -107,7 +107,6 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLocalGroupDES), intent(inout)           :: self
     double precision                             , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -140,13 +139,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     type (varying_string             )                :: localGroupDESMangleDirectory
     !$GLC attributes unused :: self
 
-    localGroupDESMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/darkEnergySurvey/"
+    localGroupDESMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/darkEnergySurvey/"
     return
   end function localGroupDESMangleDirectory
 

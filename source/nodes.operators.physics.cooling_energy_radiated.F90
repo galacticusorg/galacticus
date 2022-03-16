@@ -350,9 +350,9 @@ contains
     !!{
     Respond to mass ejection from the hot halo component.    
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentHotHalo
-    use :: Galactic_Structure_Options, only : radiusLarge            , massTypeGalactic
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Galactic_Structure_Options, only : radiusLarge       , massTypeGalactic
     implicit none
     class           (*                   ), intent(inout) :: self
     class           (nodeComponentHotHalo), intent(inout) :: hotHalo
@@ -372,7 +372,7 @@ contains
     if (massNotional > 0.0d0) &
          & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine coolingEnergyRadiatedHotHaloMassEjection

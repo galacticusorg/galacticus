@@ -454,9 +454,9 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Node_Merger
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Hot_Halo_VS_Delayed_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -477,9 +477,9 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Hot_Halo_VS_Delayed_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

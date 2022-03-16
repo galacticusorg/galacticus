@@ -88,7 +88,7 @@ sub Tree_Node_Map_Double0 {
 	description => "Map a rank-0, double function over components of the node.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	     ],
 	variables   =>
 	    [
@@ -146,7 +146,7 @@ sub Tree_Node_Map_Double0 {
 	    # Insert test for optimized case.
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$firstOptimization ? "" : "else "}if (present(optimizeFor).and.optimizeFor == optimizeFor{ucfirst($boundFunction->{'name'}).ucfirst($reduction)}) then
-    if (reduction /= reduction{ucfirst($reduction)}) call Galacticus_Error_Report('reduction mismatch'//\{introspection:location\})
+    if (reduction /= reduction{ucfirst($reduction)}) call Error_Report('reduction mismatch'//\{introspection:location\})
     treeNodeMapDouble0={$reductionIdentity->{$reduction}}
 CODE
             # Iterate over classes.
@@ -184,7 +184,7 @@ case (reductionProduct  )
   treeNodeMapDouble0=1.0d0
 case default
   treeNodeMapDouble0=1.0d0
-  call Galacticus_Error_Report('unknown reduction'//\{introspection:location\})
+  call Error_Report('unknown reduction'//\{introspection:location\})
 end select
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -228,7 +228,7 @@ sub Tree_Node_Map_Double1 {
 	description => "Map a rank-0, double function over components of the node.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	     ],
 	variables   =>
 	    [
@@ -287,7 +287,7 @@ sub Tree_Node_Map_Double1 {
 	    # Insert test for optimized case.
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$firstOptimization ? "" : "else "}if (present(optimizeFor).and.optimizeFor == optimizeFor{ucfirst($boundFunction->{'name'}).ucfirst($reduction)}) then
-    if (reduction /= reduction{ucfirst($reduction)}) call Galacticus_Error_Report('reduction mismatch'//\{introspection:location\})
+    if (reduction /= reduction{ucfirst($reduction)}) call Error_Report('reduction mismatch'//\{introspection:location\})
     double1Result={$reductionIdentity->{$reduction}}
 CODE
             # Iterate over classes.
@@ -325,7 +325,7 @@ case (reductionProduct  )
   double1Result=1.0d0
 case default
   double1Result=1.0d0
-  call Galacticus_Error_Report('unknown reduction'//\{introspection:location\})
+  call Error_Report('unknown reduction'//\{introspection:location\})
 end select
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -397,7 +397,7 @@ sub Tree_Node_Map_TensorR2D3 {
 	description => "Map a rank-2, dimension-3 tensor function over components of the node.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	     ],
 	variables   =>
 	    [
@@ -453,7 +453,7 @@ sub Tree_Node_Map_TensorR2D3 {
 	    # Insert test for optimized case.
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$firstOptimization ? "" : "else "}if (present(optimizeFor).and.optimizeFor == optimizeFor{ucfirst($boundFunction->{'name'}).ucfirst($reduction)}) then
-    if (reduction /= reduction{ucfirst($reduction)}) call Galacticus_Error_Report('reduction mismatch'//\{introspection:location\})
+    if (reduction /= reduction{ucfirst($reduction)}) call Error_Report('reduction mismatch'//\{introspection:location\})
     tensorResult={$reductionIdentity->{$reduction}}
 CODE
             # Iterate over classes.
@@ -489,7 +489,7 @@ case (reductionSummation)
   tensorResult=tensorNullR2D3Sym
 case default
   tensorResult=tensorNullR2D3Sym
-  call Galacticus_Error_Report('unknown reduction'//\{introspection:location\})
+  call Error_Report('unknown reduction'//\{introspection:location\})
 end select
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {

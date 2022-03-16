@@ -215,7 +215,6 @@ contains
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCartesian3D
     use :: Display                                , only : displayCounter                                , displayCounterClear  , displayIndent, displayUnindent, &
           &                                                verbosityLevelStandard                        , verbosityLevelWorking
-    use :: Galacticus_Error                       , only : Galacticus_Error_Report
     use :: MPI_Utilities                          , only : mpiBarrier                                    , mpiSelf
     use :: Timers                                 , only : timer
     implicit none
@@ -509,7 +508,7 @@ contains
     !!}
     use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
           &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: MPI_Utilities   , only : mpiBarrier        , mpiSelf
     use :: Timers          , only : timer
     implicit none

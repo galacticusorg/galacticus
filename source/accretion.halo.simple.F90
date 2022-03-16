@@ -122,8 +122,8 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionHaloSimple          )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -146,7 +146,7 @@ contains
     <objectBuilder class="chemicalState"            name="chemicalState_"            source="parameters"/>
     !!]
     if (parameters%isPresent("opticalDepthReionization")) then
-       if (parameters%isPresent("redshiftReionization")) call Galacticus_Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
+       if (parameters%isPresent("redshiftReionization")) call Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
        !![
        <inputParameter>
          <name>opticalDepthReionization</name>
@@ -205,7 +205,6 @@ contains
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes             , only : defaultBasicComponent
     implicit none
     type            (accretionHaloSimple          ), target                :: self

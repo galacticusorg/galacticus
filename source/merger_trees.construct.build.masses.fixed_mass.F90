@@ -61,8 +61,8 @@ contains
     Constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class which takes a parameter set as
     input.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Input_Parameters , only : inputParameter         , inputParameters
+    use :: Error            , only : Error_Report
+    use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                            :: self
@@ -79,39 +79,39 @@ contains
 
     fixedHalosCount=-1
     if (parameters%isPresent('massTree' )) then
-       if     (                                                                  &
-            &   fixedHalosCount /= -1                                            &
-            &  .and.                                                             &
-            &   fixedHalosCount /= parameters%count('massTree'  )                &
-            & )                                                                  &
-            & call Galacticus_Error_Report(                                      &
-            &                              'parameter cardinality mismatch'//    &
-            &                              {introspection:location}              &
-            &                             )
+       if     (                                                       &
+            &   fixedHalosCount /= -1                                 &
+            &  .and.                                                  &
+            &   fixedHalosCount /= parameters%count('massTree'  )     &
+            & )                                                       &
+            & call Error_Report(                                      &
+            &                   'parameter cardinality mismatch'//    &
+            &                   {introspection:location}              &
+            &                  )
        if (fixedHalosCount == -1) fixedHalosCount=parameters%count('massTree' )
     end if
     if (parameters%isPresent('treeCount')) then
-       if     (                                                                  &
-            &   fixedHalosCount /= -1                                            &
-            &  .and.                                                             &
-            &   fixedHalosCount /= parameters%count('treeCount' )                &
-            & )                                                                  &
-            & call Galacticus_Error_Report(                                      &
-            &                              'parameter cardinality mismatch'//    &
-            &                              {introspection:location}              &
-            &                             )
+       if     (                                                       &
+            &   fixedHalosCount /= -1                                 &
+            &  .and.                                                  &
+            &   fixedHalosCount /= parameters%count('treeCount' )     &
+            & )                                                       &
+            & call Error_Report(                                      &
+            &                   'parameter cardinality mismatch'//    &
+            &                   {introspection:location}              &
+            &                  )
        if (fixedHalosCount == -1) fixedHalosCount=parameters%count('treeCount')
     end if
     if (parameters%isPresent('radiusTree')) then
-       if     (                                                                  &
-            &   fixedHalosCount /= -1                                            &
-            &  .and.                                                             &
-            &   fixedHalosCount /= parameters%count('radiusTree')                &
-            & )                                                                  &
-            & call Galacticus_Error_Report(                                      &
-            &                              'parameter cardinality mismatch'//    &
-            &                              {introspection:location}              &
-            &                             )
+       if     (                                                       &
+            &   fixedHalosCount /= -1                                 &
+            &  .and.                                                  &
+            &   fixedHalosCount /= parameters%count('radiusTree')     &
+            & )                                                       &
+            & call Error_Report(                                      &
+            &                   'parameter cardinality mismatch'//    &
+            &                   {introspection:location}              &
+            &                  )
        if (fixedHalosCount == -1) fixedHalosCount=parameters%count('radiusTree')
     end if
     if (fixedHalosCount == -1) fixedHalosCount=1
@@ -203,11 +203,11 @@ contains
     !!{
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode  , mergerTree
-    use :: Memory_Management             , only : allocateArray
-    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
-    use :: Sorting                       , only : sort
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Galacticus_Nodes   , only : nodeComponentBasic           , treeNode  , mergerTree
+    use :: Memory_Management  , only : allocateArray
+    use :: Root_Finder        , only : rangeExpandMultiplicative    , rootFinder
+    use :: Sorting            , only : sort
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
@@ -247,7 +247,7 @@ contains
     do i=1,size(self%treeCount)
        if (self%radiusTree(i) > 0.0d0) then
           ! Set the halo mass.
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
           ! Convert masses to virial masses.        
           self%massTree(i)=finder%find(rootGuess=self%massTree(i))
        end if
@@ -294,7 +294,7 @@ contains
       call basic              %massSet           (massTree)
       call self %nodeOperator_%nodeTreeInitialize(node    )
       call self %nodeOperator_%nodeInitialize    (node    )
-      call Galacticus_Calculations_Reset(node)
+      call Calculations_Reset(node)
       massEnclosed=+  self%galacticStructure_  %massEnclosed(                             &
            &                                                          node              , &
            &                                                          self%radiusTree(i), &

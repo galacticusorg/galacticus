@@ -73,7 +73,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
     double precision                                        , intent(in   )         :: C                            , f, &

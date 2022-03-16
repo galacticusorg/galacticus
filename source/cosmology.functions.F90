@@ -238,7 +238,7 @@ module Cosmology_Functions
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time           , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
-    <modules>Galacticus_Error</modules>
+    <modules>Error</modules>
     <code>
     if (present(time)) then
        cosmologyFunctionsEpochTime=time
@@ -246,7 +246,7 @@ module Cosmology_Functions
        cosmologyFunctionsEpochTime=self%cosmicTime(expansionFactor,collapsingPhase)
     else
        cosmologyFunctionsEpochTime=-1.0d0
-       call Galacticus_Error_Report('either "time" or "expansionFactor" must be given'//{introspection:location})
+       call Error_Report('either "time" or "expansionFactor" must be given'//{introspection:location})
     end if
     </code>
    </method>

@@ -252,9 +252,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     class  (abundances ), intent(inout)              :: self
     type   (node       ), intent(in   ), pointer     :: abundancesDefinition
@@ -264,7 +264,7 @@ contains
 
     ! Get the metallicity.
     call XML_Get_Elements_By_Tag_Name(abundancesDefinition,'metals',abundanceList)
-    if (size(abundanceList) >  1) call Galacticus_Error_Report('multiple metallicity values specified'//{introspection:location})
+    if (size(abundanceList) >  1) call Error_Report('multiple metallicity values specified'//{introspection:location})
     if (size(abundanceList) == 1) then
        abundance => abundanceList(0)%element
        call extractDataContent(abundance,self%metallicityValue)
@@ -272,7 +272,7 @@ contains
     if (elementsCount > 0) then
        do i=1,elementsCount
           call XML_Get_Elements_By_Tag_Name(abundancesDefinition,trim(elementsToTrack(i)),abundanceList)
-          if (size(abundanceList) >  1) call Galacticus_Error_Report('multiple '//trim(elementsToTrack(i))//' values specified'//{introspection:location})
+          if (size(abundanceList) >  1) call Error_Report('multiple '//trim(elementsToTrack(i))//' values specified'//{introspection:location})
           if (size(abundanceList) == 1) then
              abundance => abundanceList(0)%element
              call extractDataContent(abundance,self%elementalValue(i))
@@ -520,8 +520,8 @@ contains
     !!{
     Return a name for the specified entry in the abundances structure.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , varying_string
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=), varying_string
     implicit none
     type   (varying_string)                :: Abundances_Names
     integer                , intent(in   ) :: index
@@ -533,11 +533,11 @@ contains
        if (index <= elementsCount+1) then
           Abundances_Names=trim(elementsToTrack(index-1))
        else
-          call Galacticus_Error_Report('index out of range'//{introspection:location})
+          call Error_Report('index out of range'//{introspection:location})
        end if
     case default
        Abundances_Names=""
-       call Galacticus_Error_Report('index out of range'//{introspection:location})
+       call Error_Report('index out of range'//{introspection:location})
     end select
     return
   end function Abundances_Names
@@ -564,7 +564,7 @@ contains
     !!{
     Return the atomic index for the specified entry in the abundances structure.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer, intent(in   ) :: index
 
@@ -576,11 +576,11 @@ contains
           Abundances_Atomic_Index=elementsIndices(index-1)
        else
           Abundances_Atomic_Index=-1
-          call Galacticus_Error_Report('index out of range'//{introspection:location})
+          call Error_Report('index out of range'//{introspection:location})
        end if
     case default
        Abundances_Atomic_Index=-1
-       call Galacticus_Error_Report('index out of range'//{introspection:location})
+       call Error_Report('index out of range'//{introspection:location})
     end select
     return
   end function Abundances_Atomic_Index
@@ -640,7 +640,7 @@ contains
     !!{
     Return the metallicity of the {\normalfont \ttfamily self} structure.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class  (abundances), intent(in   )           :: self
@@ -669,7 +669,7 @@ contains
        ! Convert to metallicity by mass relative to Solar.
        Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
     case default
-       call Galacticus_Error_Report('metallicity type not supported'//{introspection:location})
+       call Error_Report('metallicity type not supported'//{introspection:location})
     end select
     return
   end function Abundances_Get_Metallicity
@@ -678,8 +678,8 @@ contains
     !!{
     Set the metallicity of the {\normalfont \ttfamily self} structure to {\normalfont \ttfamily metallicity}.
     !!}
-    use :: Atomic_Data                     , only : Atomic_Abundance       , normalizationMetals
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Atomic_Data                     , only : Atomic_Abundance, normalizationMetals
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class           (abundances), intent(inout)           :: self
@@ -712,7 +712,7 @@ contains
        case (metallicityTypeLogarithmicByMassSolar)
           self%metallicityValue=(10.0d0**self%metallicityValue)*metallicitySolar
        case default
-          call Galacticus_Error_Report('type not supported'//{introspection:location})
+          call Error_Report('type not supported'//{introspection:location})
        end select
     end if
 
@@ -724,7 +724,7 @@ contains
        case (adjustElementsReset)
           ! Ensure that we have an abundanceIndex specified.
           if (self%metallicityValue /= 0.0d0 .and. .not.present(abundanceIndex)) &
-               & call Galacticus_Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
+               & call Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
           ! Ensure elemental values array exists.
           call Abundances_Allocate_Elemental_Values(self)
           if (self%metallicityValue == 0.0d0) then
@@ -737,7 +737,7 @@ contains
           end if
        case (adjustElementsUpdate)
           ! Ensure that we have an abundanceIndex specified.
-          if (.not.present(abundanceIndex)) call Galacticus_Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
+          if (.not.present(abundanceIndex)) call Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
           ! Ensure elemental values array exists.
           call Abundances_Allocate_Elemental_Values(self)
           do iElement=1,elementsCount

@@ -112,8 +112,8 @@ contains
     !!{
     Output the structure of {\normalfont \ttfamily tree}.
     !!}
-    use    :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use    :: Galacticus_HDF5                   , only : galacticusOutputFile
+    use    :: Error                             , only : Error_Report
+    use    :: Output_HDF5                       , only : outputFile
     use    :: Galacticus_Nodes                  , only : nodeComponentBasic
     !$ use :: HDF5_Access                       , only : hdf5Access
     use    :: Kind_Numbers                      , only : kind_int8
@@ -142,7 +142,7 @@ contains
     type            (hdf5Object                       )                              :: treeGroup            , dataset
 
     !$ call hdf5Access%set  ()
-    if (.not.self%outputGroup%isOpen()) self%outputGroup=galacticusOutputFile%openGroup("mergerTreeStructures","Pre-evolution structures of merger trees.")
+    if (.not.self%outputGroup%isOpen()) self%outputGroup=outputFile%openGroup("mergerTreeStructures","Pre-evolution structures of merger trees.")
     !$ call hdf5Access%unset()
     treeCurrent => tree
     do while (associated(treeCurrent))
@@ -162,7 +162,7 @@ contains
        select type (extractor_ => self%nodePropertyExtractor_)
        type  is (nodePropertyExtractorNull         )
           ! Null extractor - pointless.
-          call Galacticus_Error_Report('null extractor is pointless'//{introspection:location})
+          call Error_Report('null extractor is pointless'//{introspection:location})
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor.
           countPropertiesDouble=1
@@ -180,7 +180,7 @@ contains
           countPropertiesDouble =extractor_%elementCount(elementTypeDouble ,basic%time())
           countPropertiesInteger=extractor_%elementCount(elementTypeInteger,basic%time())
        class default
-          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
+          call Error_Report('unsupported property extractor class'//{introspection:location})
        end select
        ! Allocate storage for the properties.
        allocate(propertiesDouble (countNodes,countPropertiesDouble ))
@@ -230,7 +230,7 @@ contains
           class is (nodePropertyExtractorTuple        )
              ! Tuple property extractor.
              if     ( countPropertiesDouble  /= extractor_%elementCount(                   basic%time())) &
-                  & call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
+                  & call Error_Report('unsupported change in number of properties'//{introspection:location})
              propertiesDouble (countNodes,:)=extractor_%extract       (node,basic%time())
          class is (nodePropertyExtractorIntegerScalar)
              ! Integer scalar property extractor.
@@ -238,7 +238,7 @@ contains
           class is (nodePropertyExtractorIntegerTuple )
              ! Integer tuple property extractor.
              if     ( countPropertiesInteger /= extractor_%elementCount(                   basic%time())) &
-                  & call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
+                  & call Error_Report('unsupported change in number of properties'//{introspection:location})
              propertiesInteger(countNodes,:)=extractor_%extract       (node,basic%time())
           class is (nodePropertyExtractorMulti        )
              ! Multi property extractor.
@@ -246,14 +246,14 @@ contains
                   &   countPropertiesDouble  /= extractor_%elementCount(elementTypeDouble ,basic%time())  &
                   &  .or.                                                                                 &
                   &   countPropertiesInteger /= extractor_%elementCount(elementTypeInteger,basic%time())  &
-                  & ) call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
+                  & ) call Error_Report('unsupported change in number of properties'//{introspection:location})
              doubleProperties =extractor_%extractDouble (node,basic%time())
              do i=1,size(doubleProperties )
                 select case (doubleProperties (i)%rank())
                 case (0)
                    propertiesDouble (countNodes,i)=doubleProperties (i)
                 case default
-                   call Galacticus_Error_Report('non-scalar properties are not supported'//{introspection:location})
+                   call Error_Report('non-scalar properties are not supported'//{introspection:location})
                 end select
              end do
              integerProperties=extractor_%extractInteger(node,basic%time())
@@ -262,7 +262,7 @@ contains
                 case (0)
                    propertiesInteger(countNodes,i)=integerProperties(i)
                 case default
-                   call Galacticus_Error_Report('non-scalar properties are not supported'//{introspection:location})
+                   call Error_Report('non-scalar properties are not supported'//{introspection:location})
                 end select
              end do
           end select

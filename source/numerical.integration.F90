@@ -146,7 +146,7 @@ contains
     !!{
     Constructor for {\normalfont \ttfamily integrator} objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (integrator       )                          :: self
     procedure       (integrandTemplate)                          :: integrand
@@ -167,7 +167,7 @@ contains
          &   toleranceAbsolute_ <= 0.0d0 &
          &  .and.                        &
          &   toleranceRelative_ <= 0.0d0 &
-         & ) call Galacticus_Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
+         & ) call Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
     allocate(self%integrationWorkspace)
     allocate(self%integrandFunction   )
     self%integrand            =>                                 integrand
@@ -204,7 +204,7 @@ contains
     !!{
     Reset tolerance for {\normalfont \ttfamily integrator} objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (integrator)                          :: self
     double precision            , intent(in   ), optional :: toleranceAbsolute, toleranceRelative
@@ -218,7 +218,7 @@ contains
          &   toleranceAbsolute_ <= 0.0d0 &
          &  .and.                        &
          &   toleranceRelative_ <= 0.0d0 &
-         & ) call Galacticus_Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
+         & ) call Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
     self%toleranceAbsolute=toleranceAbsolute_
     self%toleranceRelative=toleranceRelative_    
     return
@@ -229,7 +229,7 @@ contains
     Perform a numerical integration.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_funptr
-    use            :: Galacticus_Error, only : errorStatusSuccess
+    use            :: Error, only : errorStatusSuccess
     use            :: Interface_GSL   , only : gslSetErrorHandler
     implicit none
     class           (integrator       ), intent(inout)           :: self

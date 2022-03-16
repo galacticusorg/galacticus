@@ -146,10 +146,9 @@ contains
     !!}
     use :: Error_Functions                 , only : Error_Function
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
     implicit none

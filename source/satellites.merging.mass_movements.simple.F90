@@ -136,7 +136,7 @@ contains
     !!{
     Attach to the calculation reset event.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerMassMovementsSimple), intent(inout) :: self
 
@@ -165,7 +165,7 @@ contains
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -175,7 +175,7 @@ contains
        self%movementsCalculated=.false.
        self%lastUniqueID       =node%uniqueID()
        class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleCalculationReset
@@ -184,7 +184,7 @@ contains
     !!{
     Hookable wrapper around the get function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -196,7 +196,7 @@ contains
     type is (mergerMassMovementsSimple)
        call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleGetHook
@@ -205,7 +205,7 @@ contains
     !!{
     Determine where stars and gas move as the result of a merger event using a simple algorithm.
     !!}
-    use :: Galactic_Structure_Options, only : massTypeGalactic, componentTypeDisk, componentTypeSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeGalactic
     implicit none
     class           (mergerMassMovementsSimple), intent(inout)         :: self
     type            (treeNode                 ), intent(inout), target :: node

@@ -109,14 +109,14 @@ contains
     !!{
     Return the log-prior on this parameter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
     !$GLC attributes unused :: self, x
 
     inactiveLogPrior=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactiveLogPrior
 
@@ -124,13 +124,13 @@ contains
     !!{
     Sample from the of this parameter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !$GLC attributes unused :: self
 
     inactivePriorSample=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactivePriorSample
 
@@ -138,14 +138,14 @@ contains
     !!{
     Invert the prior, returning the parameter value given the cumulative probability.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: f
     !$GLC attributes unused :: self, f
 
     inactivePriorInvert=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactivePriorInvert
 
@@ -153,13 +153,13 @@ contains
     !!{
     Return the minimum value for which the prior is non-zero.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !$GLC attributes unused :: self
 
     inactivePriorMinimum=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactivePriorMinimum
 
@@ -167,13 +167,13 @@ contains
     !!{
     Return the maximum value for which the prior is non-zero.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !$GLC attributes unused :: self
 
     inactivePriorMaximum=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactivePriorMaximum
 
@@ -181,13 +181,13 @@ contains
     !!{
     Return a random perturbation to this parameter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
     !$GLC attributes unused :: self
 
     inactiveRandomPerturbation=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactiveRandomPerturbation
 
@@ -195,14 +195,14 @@ contains
     !!{
     Map this parameter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
     !$GLC attributes unused :: self, x
 
     inactiveMap=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactiveMap
 
@@ -210,14 +210,14 @@ contains
     !!{
     Unmap this parameter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
     !$GLC attributes unused :: self, x
 
     inactiveUnmap=0.0d0
-    call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
+    call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactiveUnmap
 

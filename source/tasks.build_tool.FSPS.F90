@@ -60,7 +60,7 @@ contains
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: Interfaces_FSPS , only : Interface_FSPS_Initialize
     implicit none
     class  (taskBuildToolFSPS), intent(inout), target   :: self

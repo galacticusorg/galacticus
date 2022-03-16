@@ -29,21 +29,21 @@ program Galacticus
   use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
   use    :: Events_Hooks              , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities, only : Functions_Global_Set
-  use    :: Galacticus_Banner         , only : Galacticus_Banner_Show
-  use    :: Galacticus_Error          , only : Galacticus_Error_Handler_Register        , Galacticus_Error_Report
-  use    :: Galacticus_Error_Wait     , only : Galacticus_Error_Wait_Set_From_Parameters
-  use    :: Galacticus_Output_Open    , only : Galacticus_Output_Close_File             , Galacticus_Output_Open_File
-  use    :: ISO_Varying_String        , only : assignment(=)                            , varying_string
-  use    :: Input_Parameters          , only : inputParameter                           , inputParameters
+  use    :: Display_Banner            , only : Display_Banner_Show
+  use    :: Error                     , only : Error_Handler_Register           , Error_Report
+  use    :: Error_Wait                , only : Error_Wait_Set_From_Parameters
+  use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File
+  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string
+  use    :: Input_Parameters          , only : inputParameter                   , inputParameters
 #ifdef USEMPI
-  use    :: MPI                       , only : MPI_Comm_World                           , MPI_Thread_Multiple        , MPI_Thread_Single
+  use    :: MPI                       , only : MPI_Comm_World                   , MPI_Thread_Multiple  , MPI_Thread_Single
 #endif
 #ifdef USEMPI
-  use    :: MPI_Utilities             , only : mpiFinalize                              , mpiInitialize
+  use    :: MPI_Utilities             , only : mpiFinalize                      , mpiInitialize
 #endif
-  !$ use :: OMP_Lib                   , only : OMP_Get_Max_Threads                      , OMP_Set_Nested
+  !$ use :: OMP_Lib                   , only : OMP_Get_Max_Threads              , OMP_Set_Nested
   use    :: System_Limits             , only : System_Limits_Set
-  use    :: Tasks                     , only : task                                     , taskClass
+  use    :: Tasks                     , only : task                             , taskClass
   implicit none
 #ifdef USEMPI
   integer                                         :: status
@@ -63,10 +63,10 @@ program Galacticus
   !$ end if
 #endif
   ! Register error handlers.
-  call Galacticus_Error_Handler_Register()
+  call Error_Handler_Register()
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)
-  if (len_trim(parameterFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Galacticus.exe <parameterFile>")
+  if (len_trim(parameterFileCharacter) == 0) call Error_Report(message="Usage: Galacticus.exe <parameterFile>")
   parameterFile=parameterFileCharacter
   ! Open the parameter file.
   parameters=inputParameters(parameterFile)
@@ -77,30 +77,30 @@ program Galacticus
   ! Establish global functions.
   call Functions_Global_Set()
   ! Set verbosity.
-  call displayVerbositySetFromParameters        (parameters)
+  call displayVerbositySetFromParameters(parameters)
   ! Set error wait times.
-  call Galacticus_Error_Wait_Set_From_Parameters(parameters)
+  call Error_Wait_Set_From_Parameters   (parameters)
   ! Set resource limits.
-  call System_Limits_Set                        (parameters)
+  call System_Limits_Set                (parameters)
   ! Show the Galacticus banner.
-  call Galacticus_Banner_Show()
+  call Display_Banner_Show()
   ! Validate parameter file.
   call parameters%checkParameters()
   ! Perform task.
   !![
   <objectBuilder class="task" name="task_" source="parameters"/>
   !!]
-  if (task_%requiresOutputFile()) call Galacticus_Output_Open_File (parameters)
+  if (task_%requiresOutputFile()) call Output_HDF5_Open_File (parameters)
   call task_     %perform()
   call parameters%destroy()
-  if (task_%requiresOutputFile()) call Galacticus_Output_Close_File(          )
+  if (task_%requiresOutputFile()) call Output_HDF5_Close_File(          )
   !![
   <objectDestructor name="task_"/>
   !!]
   ! Finalize MPI.
 #ifdef USEMPI
   call MPI_Barrier(MPI_Comm_World,status)
-  if (status /= 0) call Galacticus_Error_Report('MPI barrier failed'//{introspection:location})
+  if (status /= 0) call Error_Report('MPI barrier failed'//{introspection:location})
   call mpiFinalize()
 #endif
   ! All done, finish.

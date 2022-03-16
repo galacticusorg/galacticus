@@ -97,7 +97,7 @@ contains
     !!{
     Internal constructor for the power-law stellar feedback class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (stellarFeedbackOutflowsPowerLaw)                :: self
     double precision                                 , intent(in   ) :: velocityCharacteristic_, exponent
@@ -108,7 +108,7 @@ contains
 
     if (velocityCharacteristic_ < 0.0d0) then
        write (label,'(e13.6)') velocityCharacteristic_
-       call Galacticus_Error_Report('characteristic velocity must be non-negative ['//trim(adjustl(label))//' < 0]'//{introspection:location})
+       call Error_Report('characteristic velocity must be non-negative ['//trim(adjustl(label))//' < 0]'//{introspection:location})
     end if
     return
   end function powerLawConstructorInternal
@@ -123,7 +123,7 @@ contains
     $V$ is whatever characteristic value returned by the disk/spheroid component. This scaling is functionally similar to
     that adopted by \cite{cole_hierarchical_2000}, except that they specifically used the circular velocity at half-mass radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk                     , nodeComponentSpheroid
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
@@ -142,7 +142,7 @@ contains
        velocity=component%velocity()
     class default
        velocity=0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Check for zero velocity.
     if (velocity <= 0.0d0) then

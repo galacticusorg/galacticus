@@ -126,7 +126,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type            (galacticStructureSolverFixed)                        :: self
     double precision                              , intent(in   )         :: factor
@@ -138,7 +139,7 @@ contains
     <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
-    if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Galacticus_Error_Report('invalid radiusFixed'//{introspection:location})
+    if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Error_Report('invalid radiusFixed'//{introspection:location})
     return
   end function fixedConstructorInternal
 
@@ -184,7 +185,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -193,7 +194,7 @@ contains
     type is (galacticStructureSolverFixed)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine fixedSolveHook
@@ -202,7 +203,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -213,7 +214,7 @@ contains
     type is (galacticStructureSolverFixed)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine fixedSolvePreDeriativeHook

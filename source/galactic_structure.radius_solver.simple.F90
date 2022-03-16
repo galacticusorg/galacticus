@@ -154,7 +154,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -163,7 +163,7 @@ contains
     type is (galacticStructureSolverSimple)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleSolveHook
@@ -172,7 +172,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : propertyTypeInactive
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -184,7 +184,7 @@ contains
     type is (galacticStructureSolverSimple)
        if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleSolvePreDeriativeHook
@@ -193,7 +193,7 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     !![
     <include directive="radiusSolverTask" type="moduleUse">
     !!]
@@ -230,7 +230,7 @@ contains
     if (node%isPhysicallyPlausible) then
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
-          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
+          if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
           haloNode => node%formationNode
        else
           haloNode => node

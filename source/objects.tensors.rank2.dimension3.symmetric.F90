@@ -75,9 +75,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     type     (node       )               , pointer     :: element
     type     (xmlNodeList), dimension(:) , allocatable :: elementList
@@ -87,8 +87,8 @@ contains
     ! Get the elements
     do i=1,6
        call XML_Get_Elements_By_Tag_Name(tensorDefinition,elementNames(i),elementList)
-       if (size(elementList) > 1) call Galacticus_Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
-       if (size(elementList) < 1) call Galacticus_Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
+       if (size(elementList) > 1) call Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
+       if (size(elementList) < 1) call Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
        element => elementList(0)%element
        select case (elementNames(i))
        case ( 'x00' )
@@ -448,7 +448,7 @@ contains
     !!{
     Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
 
     ! Test for symmetry
@@ -458,7 +458,7 @@ contains
          &   matrix(1,3) /= matrix(3,1) &
          &  .or.                        &
          &   matrix(2,3) /= matrix(3,2) &
-         & ) call Galacticus_Error_Report('supplied matrix is not symmetric'//{introspection:location})
+         & ) call Error_Report('supplied matrix is not symmetric'//{introspection:location})
     ! Set the values of the tensor object.
     self%x00=matrix(1,1)
     self%x01=matrix(1,2)

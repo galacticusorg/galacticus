@@ -230,7 +230,7 @@ contains
     !!}
     use :: Numerical_Comparison , only : Values_Agree
     use :: Numerical_Integration, only : integrator
-    use :: Root_Finder          , only : rootFinder  , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use :: Root_Finder          , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (powerSpectrumNonlinearSmith2003), intent(inout), target :: self
     double precision                                 , intent(in   )         :: time
@@ -289,7 +289,7 @@ contains
           self%f2=self%cosmologyFunctions_%omegaMatterEpochal(time=time)**(-0.1432d0)
           self%f3=self%cosmologyFunctions_%omegaMatterEpochal(time=time)**(+0.0725d0)
        else
-          call Galacticus_Error_Report('no fitting functions available for this cosmology'//{introspection:location})
+          call Error_Report('no fitting functions available for this cosmology'//{introspection:location})
        end if
        ! Evaluate fitting function coefficients - using the fits from Smith et al. (2003; eqns C9 through C16).
        self%alpha=         +1.3884d0+0.3700d0*self%effectiveIndex-0.1452d0*self%effectiveIndex**2

@@ -26,7 +26,7 @@ program Test_Sort_Topological
   Tests of topological sorting functions.
   !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard
-  use :: Galacticus_Error   , only : errorStatusFail    , errorStatusSuccess
+  use :: Error   , only : errorStatusFail    , errorStatusSuccess
   use :: Sorting_Topological, only : Sort_Topological
   use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

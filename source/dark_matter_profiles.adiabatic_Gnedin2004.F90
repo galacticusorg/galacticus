@@ -242,7 +242,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                                  :: self
     double precision                                      , intent(in   )                   :: A                    , omega
@@ -259,7 +259,7 @@ contains
     !!]
     
     ! Validate.
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct the object.
     self%lastUniqueID       =-1_kind_int8
     self%genericLastUniqueID=-1_kind_int8
@@ -278,12 +278,12 @@ contains
     ! Handle recursive construction.
     self%isRecursive=recursiveConstruct_
     if (recursiveConstruct_) then
-       if (.not.present(recursiveSelf)) call Galacticus_Error_Report('recursiveSelf not present'//{introspection:location})
+       if (.not.present(recursiveSelf)) call Error_Report('recursiveSelf not present'//{introspection:location})
        select type (recursiveSelf)
        class is (darkMatterProfileAdiabaticGnedin2004)
           self%recursiveSelf => recursiveSelf
        class default
-          call Galacticus_Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
+          call Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
        end select
     end if
     self%parentDeferred=.false.
@@ -1090,9 +1090,9 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-     use :: Functions_Global, only : galacticStructureDeepCopy_
-   implicit none
+    use :: Error           , only : Error_Report
+    use :: Functions_Global, only : galacticStructureDeepCopy_
+    implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     class(darkMatterProfileClass              ), intent(inout) :: destination
 
@@ -1147,7 +1147,7 @@ contains
                 class is (cosmologyParametersClass)
                 destination%cosmologyParameters_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
           else
@@ -1164,7 +1164,7 @@ contains
                 class is (darkMatterProfileDMOClass)
                 destination%darkMatterProfileDMO_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%darkMatterProfileDMO_%copiedSelf%referenceCountIncrement()
           else
@@ -1186,7 +1186,7 @@ contains
                 class is (darkMatterHaloScaleClass)
                 destination%darkMatterHaloScale_ => s
                 class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%darkMatterHaloScale_%copiedSelf%referenceCountIncrement()
           else
@@ -1198,7 +1198,7 @@ contains
        end if
        call destination%finder%deepCopyActions()
     class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+       call Error_Report('destination and source types do not match'//{introspection:location})
     end select
     return
   end subroutine adiabaticGnedin2004DeepCopy
@@ -1222,7 +1222,7 @@ contains
     !!{
     Find the deep-copied parent of a recursive child.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
@@ -1230,7 +1230,7 @@ contains
        if (associated(self%recursiveSelf%recursiveSelf)) then
           self%recursiveSelf => self%recursiveSelf%recursiveSelf
        else
-         call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+         call Error_Report("recursive child's parent was not copied"//{introspection:location})
        end if
        self%parentDeferred=.false.
     end if

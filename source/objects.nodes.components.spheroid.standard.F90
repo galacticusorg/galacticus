@@ -200,7 +200,6 @@ contains
     Initializes the tree node standard spheroid methods module.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : defaultSpheroidComponent , nodeComponentSpheroidStandard
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
@@ -256,7 +255,7 @@ contains
     !!}
     use :: Events_Hooks                         , only : dependencyDirectionAfter         , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                              satelliteMergerEvent
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report
+    use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter                   , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSymmetrySpherical
@@ -289,9 +288,9 @@ contains
        </objectBuilder>
        !!]
        if (.not.spheroidMassDistribution%isDimensionless()                                     ) &
-            & call Galacticus_Error_Report('spheroid mass distribution must be dimensionless'        //{introspection:location})
+            & call Error_Report('spheroid mass distribution must be dimensionless'        //{introspection:location})
        if (.not.spheroidMassDistribution%symmetry       () == massDistributionSymmetrySpherical) &
-            & call Galacticus_Error_Report('spheroid mass distribution must be spherically symmetric'//{introspection:location})
+            & call Error_Report('spheroid mass distribution must be spherically symmetric'//{introspection:location})
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
        ! distribution (assuming a flat rotation curve).
@@ -416,7 +415,6 @@ contains
     !!}
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
     use :: Display                       , only : displayMessage          , verbosityLevelWarn
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     use :: ISO_Varying_String            , only : assignment(=)           , operator(//)         , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
@@ -556,8 +554,8 @@ contains
     Account for a sink of gaseous material in the standard spheroid.
     !!}
     use :: Abundances_Structure, only : operator(*)
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes    , only : interruptTask          , nodeComponentSpheroid
+    use :: Error               , only : Error_Report
+    use :: Galacticus_Nodes    , only : interruptTask, nodeComponentSpheroid
     implicit none
     class           (nodeComponentSpheroid), intent(inout)                    :: self
     logical                                , intent(inout), optional          :: interrupt
@@ -567,10 +565,10 @@ contains
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Trap cases where an attempt is made to add gas via this sink function.
-    if (rate > 0.0d0) call Galacticus_Error_Report(                                                      &
-         &                                         'attempt to add mass via sink in standard spheroid'// &
-         &                                         {introspection:location}                              &
-         &                                        )
+    if (rate > 0.0d0) call Error_Report(                                                      &
+         &                              'attempt to add mass via sink in standard spheroid'// &
+         &                              {introspection:location}                              &
+         &                             )
     ! Return if no adjustment is being made.
     if (rate == 0.0d0) return
     ! Get the gas mass present.
@@ -591,9 +589,9 @@ contains
     Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
     units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
     !!}
-    use :: Abundances_Structure, only : abundances             , operator(*)
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes    , only : interruptTask          , nodeComponentHotHalo, nodeComponentSpheroid, treeNode
+    use :: Abundances_Structure, only : abundances   , operator(*)
+    use :: Error               , only : Error_Report
+    use :: Galacticus_Nodes    , only : interruptTask, nodeComponentHotHalo, nodeComponentSpheroid, treeNode
     implicit none
     class           (nodeComponentSpheroid        ), intent(inout)                    :: self
     logical                                        , intent(inout), optional          :: interrupt
@@ -608,10 +606,10 @@ contains
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Trap cases where an attempt is made to remove energy via this input function.
-    if (rate < 0.0d0) call Galacticus_Error_Report(                                                                 &
-         &                                         'attempt to remove energy via input pipe in standard spheroid'// &
-         &                                         {introspection:location}                                         &
-         &                                        )
+    if (rate < 0.0d0) call Error_Report(                                                                 &
+         &                              'attempt to remove energy via input pipe in standard spheroid'// &
+         &                              {introspection:location}                                         &
+         &                             )
 
     ! Return if no adjustment is being made.
     if (rate == 0.0d0) return
@@ -645,9 +643,9 @@ contains
     !!{
     Adjust the rates for the star formation history.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes , only : interruptTask          , nodeComponentSpheroid, nodeComponentSpheroidStandard
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Galacticus_Nodes , only : interruptTask, nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class    (nodeComponentSpheroid), intent(inout)                    :: self
     type     (history              ), intent(in   )                    :: rate
@@ -658,11 +656,11 @@ contains
     ! Get the star formation history in the spheroid.
     starFormationHistory=self%starFormationHistory()
     ! Ensure that the history already exists.
-    if (.not.starFormationHistory%exists())                                                        &
-         & call Galacticus_Error_Report(                                                           &
-         &                              'no star formation history has been created in spheroid'// &
-         &                              {introspection:location}                                   &
-         &                             )
+    if (.not.starFormationHistory%exists())                                             &
+         & call Error_Report(                                                           &
+         &                   'no star formation history has been created in spheroid'// &
+         &                   {introspection:location}                                   &
+         &                  )
     ! Check if the star formation history in the spheroid spans a sufficient range to accept the input rates.
     if     (                                                                                             &
          &       rate%time(              1) < starFormationHistory%time(                              1) &
@@ -688,9 +686,9 @@ contains
     !!{
     Adjust the rates for the stellar properties history.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes , only : interruptTask          , nodeComponentSpheroid, nodeComponentSpheroidStandard
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Galacticus_Nodes , only : interruptTask, nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class    (nodeComponentSpheroid), intent(inout)                    :: self
     type     (history              ), intent(in   )                    :: rate
@@ -701,11 +699,11 @@ contains
     ! Get the star formation history in the spheroid.
     stellarPropertiesHistory=self%stellarPropertiesHistory()
     ! Ensure that the history already exists.
-    if (.not.stellarPropertiesHistory%exists())                                                    &
-         & call Galacticus_Error_Report(                                                           &
-         &                              'no star formation history has been created in spheroid'// &
-         &                              {introspection:location}                                   &
-         &                             )
+    if (.not.stellarPropertiesHistory%exists())                                         &
+         & call Error_Report(                                                           &
+         &                   'no star formation history has been created in spheroid'// &
+         &                   {introspection:location}                                   &
+         &                  )
     ! Check if the star formation history in the spheroid spans a sufficient range to accept the input rates.
     if     (                                                                                                     &
          &       rate%time(              1) < stellarPropertiesHistory%time(                                  1) &
@@ -854,7 +852,7 @@ contains
     Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidStandard, treeNode
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
@@ -956,7 +954,7 @@ contains
        case (destinationMergerUnmoved)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
 
        ! Move stellar material within the host if necessary.
@@ -1055,7 +1053,7 @@ contains
        case (destinationMergerUnmoved)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        ! If the entire host disk/spheroid (gas plus stars) was moved to the spheroid/disk, ensure that the
        ! corresponding angular momentum is precisely zero.
@@ -1094,7 +1092,7 @@ contains
                   &                               +spheroid    %  abundancesGas()  &
                   &                              )
           case default
-             call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
           end select
           call spheroid%      massGasSet(0.0d0         )
           call spheroid%abundancesGasSet(zeroAbundances)
@@ -1158,7 +1156,7 @@ contains
              call history_       %destroy                (                recordMemory=.false.)
              call historySpheroid%destroy                (                recordMemory=.false.)
           case default
-             call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
           end select
           call spheroid%        massStellarSet(0.0d0                  )
           call spheroid%  abundancesStellarSet(zeroAbundances         )
@@ -1507,9 +1505,9 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Flush
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1541,9 +1539,9 @@ contains
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Spheroid_Standard_State_Retrieve</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

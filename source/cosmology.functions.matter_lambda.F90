@@ -330,7 +330,7 @@ contains
     Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
     collapsing status.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactorIn , timeIn
@@ -341,19 +341,19 @@ contains
 
     ! Check that we have a uniquely specified epoch.
     if (      present(timeIn).and.present(expansionFactorIn) ) &
-         & call Galacticus_Error_Report('either "time" or "expansionFactor" should be specified, not both'               //{introspection:location})
+         & call Error_Report('either "time" or "expansionFactor" should be specified, not both'               //{introspection:location})
     if (.not.(present(timeIn).or. present(expansionFactorIn))) &
-         & call Galacticus_Error_Report('one of "time" or "expansionFactor" should be specified'                         //{introspection:location})
+         & call Error_Report('one of "time" or "expansionFactor" should be specified'                         //{introspection:location})
     if (      present(timeIn).and.present(collapsingIn     ) ) &
-         & call Galacticus_Error_Report('collapsing status of universe cannot be specified when epoch is defined by time'//{introspection:location})
+         & call Error_Report('collapsing status of universe cannot be specified when epoch is defined by time'//{introspection:location})
     ! If we have a time, check that it is a valid, and compute outputs as required.
     if (present(timeIn)) then
        ! Validate.
        if (self%enableRangeChecks) then
-          if (                              timeIn < 0.0d0           )                                 &
-               & call Galacticus_Error_Report('time preceeds the Big Bang' //{introspection:location})
-          if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                                 &
-               & call Galacticus_Error_Report('time exceeds the Big Crunch'//{introspection:location})
+          if (                              timeIn < 0.0d0           )                      &
+               & call Error_Report('time preceeds the Big Bang' //{introspection:location})
+          if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                      &
+               & call Error_Report('time exceeds the Big Crunch'//{introspection:location})
        end if
        ! Set outputs.
        if (present(timeOut           )) timeOut           =                           timeIn
@@ -367,16 +367,16 @@ contains
        ! Validate.
        if (self%enableRangeChecks) then
           if (                              expansionFactorIn <                       0.0d0) &
-               & call Galacticus_Error_Report('expansion factor preceeds the Big Bang'    //{introspection:location})
+               & call Error_Report('expansion factor preceeds the Big Bang'    //{introspection:location})
           if (self%collapsingUniverse .and. expansionFactorIn > self%expansionFactorMaximum) &
-               & call Galacticus_Error_Report('expansion factor exceeds maximum expansion'//{introspection:location})
+               & call Error_Report('expansion factor exceeds maximum expansion'//{introspection:location})
        end if
        ! Determine collapse status.
        collapsingActual=.false.
        if (present(collapsingIn)) collapsingActual=collapsingIn
        ! Validate collapse status.
        if (collapsingActual .and. .not.self%collapsingUniverse) &
-            & call Galacticus_Error_Report('epoch during collapsing phase specified, but universe does not collapse'//{introspection:location})
+            & call Error_Report('epoch during collapsing phase specified, but universe does not collapse'//{introspection:location})
        ! Set outputs.
        if (present(timeOut           )) timeOut           =self%cosmicTime(expansionFactorIn,collapsingActual)
        if (present(expansionFactorOut)) expansionFactorOut=expansionFactorIn
@@ -389,7 +389,6 @@ contains
     !!{
     Return the cosmological matter density in units of the critical density at the present day.
     !!}
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   )           :: expansionFactor
@@ -467,7 +466,7 @@ contains
     !!{
     Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -482,7 +481,7 @@ contains
     ! Check if the time differs from the previous time.
     if (time /= self%timePrevious) then
        ! Quit on invalid input.
-       if (time < 0.0d0) call Galacticus_Error_Report('cosmological time must be positive'//{introspection:location})
+       if (time < 0.0d0) call Error_Report('cosmological time must be positive'//{introspection:location})
        ! Check if we need to recompute our table.
        if (self%ageTableInitialized) then
           remakeTable=(time < self%ageTableTime(1).or.time > self%ageTableTime(self%ageTableNumberPoints))
@@ -496,7 +495,7 @@ contains
           message="cosmological time ["//trim(adjustl(label))//" Gyr] exceeds that at the Big Crunch ["
           write (label,'(e12.6)') self%timeMaximum
           message=message//trim(adjustl(label))//" Gyr]"
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
        ! Find the effective time to which to interpolate.
        if (self%collapsingUniverse) then
@@ -566,7 +565,7 @@ contains
     Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -616,7 +615,6 @@ contains
     !!{
     Returns the rate of change of the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -651,7 +649,6 @@ contains
     Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -679,7 +676,7 @@ contains
     !!{
     Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -691,7 +688,7 @@ contains
     if (present(time)) then
        if (present(expansionFactor)) then
           expansionFactorActual=-1.0d0
-          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
+          call Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
        else
           expansionFactorActual=self%expansionFactor(time)
        end if
@@ -700,7 +697,7 @@ contains
           expansionFactorActual=expansionFactor
        else
           expansionFactorActual=-1.0d0
-          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
+          call Error_Report('either a time or expansion factor must be specified'//{introspection:location})
        end if
     end if
     matterLambdaMatterDensityEpochal=self%cosmologyParameters_%omegaMatter()*self%cosmologyParameters_%densityCritical()/expansionFactorActual**3
@@ -711,7 +708,6 @@ contains
     !!{
     Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -740,7 +736,6 @@ contains
     Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -767,7 +762,6 @@ contains
     !!{
     Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -1047,7 +1041,7 @@ contains
     !!{
     Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: comovingDistance
@@ -1055,7 +1049,7 @@ contains
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
-    if (comovingDistance < 0.0d0) call Galacticus_Error_Report('comoving distance must be positive'//{introspection:location})
+    if (comovingDistance < 0.0d0) call Error_Report('comoving distance must be positive'//{introspection:location})
     ! Check if we need to recompute our table.
     remakeTable=.true.
     do while (remakeTable)
@@ -1078,7 +1072,7 @@ contains
     !!{
     Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1091,7 +1085,7 @@ contains
     if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) then
        write (timeLabel   ,'(e12.6)') time
        write (timeNowLabel,'(e12.6)') self%cosmicTime(1.0d0)
-       call Galacticus_Error_Report('cosmological time ['//trim(timeLabel)//'] must be in the past [≤'//trim(timeNowLabel)//']'//{introspection:location})
+       call Error_Report('cosmological time ['//trim(timeLabel)//'] must be in the past [≤'//trim(timeNowLabel)//']'//{introspection:location})
     end if
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
@@ -1102,7 +1096,7 @@ contains
     if (remakeTable) call self%distanceTabulate(time)
     ! Quit on invalid input.
     if (self%collapsingUniverse.and.time>self%timeMaximum) &
-         & call Galacticus_Error_Report('cosmological time exceeds that at the Big Crunch'//{introspection:location})
+         & call Error_Report('cosmological time exceeds that at the Big Crunch'//{introspection:location})
     ! Interpolate to get the comoving distance.
     matterLambdaDistanceComoving=self%interpolatorDistance%interpolate(time)
     return
@@ -1112,7 +1106,6 @@ contains
     !!{
     Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1126,7 +1119,6 @@ contains
     !!{
     Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1141,7 +1133,7 @@ contains
     Convert between different measures of distance.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     integer                                         , intent(in   )           :: output
@@ -1179,14 +1171,14 @@ contains
        gotComovingDistance=.true.
     end if
     if (.not.gotComovingDistance) &
-         & call Galacticus_Error_Report('no distance measure provided'//{introspection:location})
+         & call Error_Report('no distance measure provided'//{introspection:location})
     ! Convert to required distance measure.
     select case (output)
     case (distanceTypeComoving)
        matterLambdaDistanceComovingConvert=comovingDistance
     case default
        matterLambdaDistanceComovingConvert=-1.0d0
-       call Galacticus_Error_Report('unrecognized output option'//{introspection:location})
+       call Error_Report('unrecognized output option'//{introspection:location})
     end select
     return
   end function matterLambdaDistanceComovingConvert

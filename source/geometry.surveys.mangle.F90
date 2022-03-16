@@ -119,9 +119,9 @@ contains
     !!{
     Return the survey solid angle computed from \gls{mangle} polygons.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Geometry_Mangle , only : geometryMangleSolidAngle
-    use :: String_Handling , only : operator(//)
+    use :: Error          , only : Error_Report
+    use :: Geometry_Mangle, only : geometryMangleSolidAngle
+    use :: String_Handling, only : operator(//)
     implicit none
     class  (surveyGeometryMangle), intent(inout)               :: self
     integer                      , intent(in   ), optional     :: field
@@ -131,7 +131,7 @@ contains
 
     ! Validate field.
     if (.not.present(field)) then
-       if (self%fieldCount() > 1) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+       if (self%fieldCount() > 1) call Error_Report('field must be specified'//{introspection:location})
        fieldActual=1
     else
        fieldActual=field
@@ -139,7 +139,7 @@ contains
     if (fieldActual < 1 .or. fieldActual > self%fieldCount()) then
        message='1 ≤ field ≤ '
        message=message//self%fieldCount()//' required'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     ! Read solid angles for the fields.
     if (.not.self%solidAnglesInitialized) then
@@ -159,8 +159,8 @@ contains
     !!{
     Provides window functions for \gls{mangle}-based survey geometries.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_double_complex
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_double_complex
     implicit none
     class           (surveyGeometryMangle), intent(inout)                                           :: self
     double precision                      , intent(in   )                                           :: mass1,mass2
@@ -169,7 +169,7 @@ contains
     complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     !$GLC attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
 
-    call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
+    call Error_Report('window function construction is not supported'//{introspection:location})
     return
   end subroutine mangleWindowFunctions
 
@@ -177,9 +177,9 @@ contains
     !!{
     Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Geometry_Mangle , only : geometryMangleAngularPower
-    use :: String_Handling , only : operator(//)
+    use :: Error          , only : Error_Report
+    use :: Geometry_Mangle, only : geometryMangleAngularPower
+    use :: String_Handling, only : operator(//)
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
     integer                               , intent(in   )               :: i          , j, &
@@ -195,7 +195,7 @@ contains
          & ) then
        message='1 ≤ field ≤ '
        message=message//self%fieldCount()//' required'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     ! Read angular power spectra.
     if (.not.self%angularPowerInitialized) then
@@ -235,8 +235,8 @@ contains
     !!{
     Return true if a point is included in the survey geometry.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Vectors         , only : Vector_Magnitude
+    use :: Error  , only : Error_Report
+    use :: Vectors, only : Vector_Magnitude
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
     double precision                      , intent(in   ), dimension(3) :: point
@@ -248,7 +248,7 @@ contains
     if (.not.self%windowInitialized) then
        !$omp critical(manglePointIncludedInitialize)
        if (.not.self%windowInitialized) then
-          if (self%fieldCount() > 1) call Galacticus_Error_Report('only single field surveys are supported'//{introspection:location})
+          if (self%fieldCount() > 1) call Error_Report('only single field surveys are supported'//{introspection:location})
           call self%mangleFiles(mangleFiles)
           call self%mangleWindow%read(char(mangleFiles(1)))
           self%windowInitialized=.true.

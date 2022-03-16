@@ -82,7 +82,7 @@ contains
     !!}
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass , &
           &                                       weightIndexNull
-    use :: Galacticus_Error              , only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Error                         , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent     , defaultSpheroidComponent, treeNode
     use :: ISO_Varying_String            , only : char                             , extract                  , operator(==)            , assignment(=), &
          &                                        operator(//)
@@ -135,67 +135,67 @@ contains
        case ('darkMatterScaleRadius' )
           specifiers(i)%type=radiusTypeDarkMatterScaleRadius
           radiusScaleRequired=.true.
-          if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                                   &
-               & call Galacticus_Error_Report                                                                                      &
-               &      (                                                                                                            &
-               &       'dark matter profile scale radius is not gettable.'//                                                       &
-               &        Galacticus_Component_List(                                                                                 &
-               &                                  'darkMatterProfile'                                                           ,  &
-               &                                   defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                             // &
-               &       {introspection:location}                                                                                    &
+          if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                        &
+               & call Error_Report                                                                                      &
+               &      (                                                                                                 &
+               &       'dark matter profile scale radius is not gettable.'//                                            &
+               &        Component_List(                                                                                 &
+               &                       'darkMatterProfile'                                                           ,  &
+               &                        defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
                &      )
        case ('diskRadius'            )
           specifiers(i)%type=radiusTypeDiskRadius
           diskRequired                 =.true.
-          if (.not.defaultDiskComponent             %radiusIsGettable        ())                                                   &
-               & call Galacticus_Error_Report                                                                                      &
-               &(                                                                                                                  &
-               &                              'disk radius is not gettable.'//                                                     &
-               &        Galacticus_Component_List(                                                                                 &
-               &                                  'disk'                                                                        ,  &
-               &                                   defaultDiskComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                             // &
-               &       {introspection:location}                                                                                    &
+          if (.not.defaultDiskComponent             %radiusIsGettable        ())                                        &
+               & call Error_Report                                                                                      &
+               &(                                                                                                       &
+               &                              'disk radius is not gettable.'//                                          &
+               &        Component_List(                                                                                 &
+               &                       'disk'                                                                        ,  &
+               &                        defaultDiskComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
                &                             )
        case ('spheroidRadius'        )
           specifiers(i)%type=radiusTypeSpheroidRadius
           spheroidRequired             =.true.
-          if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                                   &
-               & call Galacticus_Error_Report                                                                                      &
-               &(                                                                                                                  &
-               &                              'spheroid radius is not gettable.'//                                                 &
-               &        Galacticus_Component_List(                                                                                 &
-               &                                  'spheroid'                                                                    ,  &
-               &                                   defaultSpheroidComponent%        radiusAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                             // &
-               &       {introspection:location}                                                                                    &
+          if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                        &
+               & call Error_Report                                                                                      &
+               &(                                                                                                       &
+               &                              'spheroid radius is not gettable.'//                                      &
+               &        Component_List(                                                                                 &
+               &                       'spheroid'                                                                    ,  &
+               &                        defaultSpheroidComponent%        radiusAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
                &                             )
        case ('diskHalfMassRadius'    )
           specifiers(i)%type=radiusTypeDiskHalfMassRadius
           diskRequired                 =.true.
-          if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                                   &
-               & call Galacticus_Error_Report                                                                                      &
-               &(                                                                                                                  &
-               &                              'disk half-mass radius is not gettable.'//                                           &
-               &        Galacticus_Component_List(                                                                                 &
-               &                                  'disk'                                                                        ,  &
-               &                                   defaultDiskComponent    %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                             // &
-               &       {introspection:location}                                                                                    &
+          if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                        &
+               & call Error_Report                                                                                      &
+               &(                                                                                                       &
+               &                              'disk half-mass radius is not gettable.'//                                &
+               &        Component_List(                                                                                 &
+               &                       'disk'                                                                        ,  &
+               &                        defaultDiskComponent    %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
                &                             )
        case ('spheroidHalfMassRadius')
           specifiers(i)%type=radiusTypeSpheroidHalfMassRadius
           spheroidRequired   =.true.
-          if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                                   &
-               & call Galacticus_Error_Report                                                                                      &
-               &(                                                                                                                  &
-               &                              'spheroid half-mass radius is not gettable.'//                                       &
-               &        Galacticus_Component_List(                                                                                 &
-               &                                  'spheroid'                                                                    ,  &
-               &                                   defaultSpheroidComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                             // &
-               &       {introspection:location}                                                                                    &
+          if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                        &
+               & call Error_Report                                                                                      &
+               &(                                                                                                       &
+               &                              'spheroid half-mass radius is not gettable.'//                            &
+               &        Component_List(                                                                                 &
+               &                       'spheroid'                                                                    ,  &
+               &                        defaultSpheroidComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
+               &                       )                                                                             // &
+               &       {introspection:location}                                                                         &
                &                             )
        case ('galacticMassFraction'  )
           specifiers(i)%type=radiusTypeGalacticMassFraction
@@ -216,7 +216,7 @@ contains
           specifiers(i)%weightBy     =weightByMass
           specifiers(i)%weightByIndex=weightIndexNull
        case default
-          call Galacticus_Error_Report('unrecognized radius specifier "'//char(radiusDefinition(1))//'"'//{introspection:location})
+          call Error_Report('unrecognized radius specifier "'//char(radiusDefinition(1))//'"'//{introspection:location})
        end select
        specifiers(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
        specifiers(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
@@ -255,7 +255,7 @@ contains
              message=message//char(10)//' --> lineOfSight'
              message=message//char(10)//' --> lineOfSightInteriorAverage'
              message=message//char(10)//' --> lambdaR'
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end select
        end if
        ! Get the numerical radius.

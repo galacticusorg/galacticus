@@ -222,7 +222,7 @@ contains
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
@@ -247,7 +247,7 @@ contains
     call fileObject%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
+    if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
     ! Check that parameters match if any are present.
     parametersObject=fileObject%openGroup('parameters')
     allocate(cosmologyParametersSimple :: cosmologyParametersFile)

@@ -263,8 +263,8 @@ contains
     Generate a mock galaxy catalog using a simple halo model approach.
     !!}
     use :: Display                          , only : displayIndent                    , displayUnindent
-    use :: Galacticus_Error                 , only : errorStatusSuccess
-    use :: Galacticus_HDF5                  , only : galacticusOutputFile
+    use :: Error                            , only : errorStatusSuccess
+    use :: Output_HDF5                      , only : outputFile
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     use :: IO_HDF5                          , only : hdf5Object
     use :: Node_Components                  , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -295,7 +295,7 @@ contains
          &                                self%halfIntegral                 , &
          &                                self%correlationProjectedBinned     &
          &                               )
-    outputGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
+    outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.')
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )
     call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",commentText="Projected correlation [Mpc].")
     call outputGroup%close       (                                                                                                 )

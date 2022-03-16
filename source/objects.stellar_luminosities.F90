@@ -171,14 +171,14 @@ contains
     Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
     !!}
     use            :: Array_Utilities    , only : Array_Reverse
-    use            :: Cosmology_Functions, only : cosmologyFunctions     , cosmologyFunctionsClass
-    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use            :: Error              , only : Error_Report
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use            :: ISO_Varying_String , only : assignment(=)          , char                       , operator(//)      , operator(/=), &
-          &                                       operator(==)           , var_str
+    use            :: ISO_Varying_String , only : assignment(=)     , char                       , operator(//)      , operator(/=), &
+          &                                       operator(==)      , var_str
     use            :: Input_Parameters   , only : inputParameters
-    use            :: Instruments_Filters, only : Filter_Get_Index       , Filter_Wavelength_Effective, Filter_Vega_Offset
-    use            :: Sorting            , only : sortByIndex            , sortIndex
+    use            :: Instruments_Filters, only : Filter_Get_Index  , Filter_Wavelength_Effective, Filter_Vega_Offset
+    use            :: Sorting            , only : sortByIndex       , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
     type            (inputParameters                                  ), intent(inout)             :: parameters_
@@ -215,7 +215,7 @@ contains
     case ("present")
        luminosityOutputOption=luminosityOutputOptionPresent
     case default
-       call Galacticus_Error_Report("unrecognized luminosityOutputOption"//{introspection:location})
+       call Error_Report("unrecognized luminosityOutputOption"//{introspection:location})
     end select
     
     ! Get required objects.
@@ -228,12 +228,12 @@ contains
     luminosityCount=parameters_%count('luminosityRedshift',zeroIfNotPresent=.true.)
     luminosityCountUnmapped=luminosityCount
     if (parameters_%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) &
-         & call Galacticus_Error_Report(var_str('luminosityFilter [')//parameters_%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
+         & call Error_Report(var_str('luminosityFilter [')//parameters_%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
     if (parameters_%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) &
-         & call Galacticus_Error_Report(var_str('luminosityType [')//parameters_%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
+         & call Error_Report(var_str('luminosityType [')//parameters_%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
     if (parameters_%isPresent('luminosityBandRedshift')) then
        if (parameters_%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) &
-            & call Galacticus_Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
+            & call Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
     end if
 
     if (luminosityCount > 0) then
@@ -304,7 +304,7 @@ contains
        ! Read postprocessing set information.
        if (parameters_%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
           if (parameters_%count('luminosityPostprocessSet') /= luminosityCount) &
-               & call Galacticus_Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
+               & call Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
           !![
           <inputParameter>
             <name>luminosityPostprocessSet</name>
@@ -354,7 +354,7 @@ contains
           if (iLuminosity > 1) then
              do jLuminosity=1,iLuminosity-1
                 if (luminosityName(iLuminosity) == luminosityName(jLuminosity)) &
-                     & call Galacticus_Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
+                     & call Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
              end do
           end if
           ! Assign an index for this luminosity.
@@ -375,7 +375,7 @@ contains
           case ("observed")
              ! Do nothing, we already have the correct redshift.
           case default
-             call Galacticus_Error_Report('unrecognized filter type - must be "rest" or "observed"'//{introspection:location})
+             call Error_Report('unrecognized filter type - must be "rest" or "observed"'//{introspection:location})
           end select
           ! Find the index for the postprocessing chain to be applied to this filter.
           luminosityPostprocessor(iLuminosity)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessorBuilder_%build(luminosityPostprocessSet(iLuminosity))
@@ -453,9 +453,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
@@ -584,7 +584,7 @@ contains
     !!{
     Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: index
@@ -595,7 +595,7 @@ contains
           Stellar_Luminosities_Luminosity=self%luminosityValue(index)
        else
           Stellar_Luminosities_Luminosity=0.0d0
-          call Galacticus_Error_Report('index out of range'//{introspection:location})
+          call Error_Report('index out of range'//{introspection:location})
        end if
     else
        Stellar_Luminosities_Luminosity=0.0d0
@@ -809,7 +809,7 @@ contains
     !!{
     Return a name for the specified entry in the stellar luminosities structure.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : trim
     implicit none
     type   (varying_string)                :: Stellar_Luminosities_Name
@@ -819,7 +819,7 @@ contains
     if (index > 0 .and. index <= luminosityCount) then
        Stellar_Luminosities_Name=trim(luminosityName(index))
     else
-       call Galacticus_Error_Report('index out of range'//{introspection:location})
+       call Error_Report('index out of range'//{introspection:location})
     end if
     return
   end function Stellar_Luminosities_Name
@@ -992,7 +992,7 @@ contains
     !!{
     Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer         , intent(in   )           :: luminosityIndex
     double precision, intent(in   )           :: time
@@ -1015,7 +1015,7 @@ contains
        Stellar_Luminosities_Is_Output=(abs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
     case default
        Stellar_Luminosities_Is_Output=.false.
-       call Galacticus_Error_Report('unknown luminosity output option'//{introspection:location})
+       call Error_Report('unknown luminosity output option'//{introspection:location})
     end select
     return
   end function Stellar_Luminosities_Is_Output
@@ -1066,7 +1066,7 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its name.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     type   (varying_string), intent(in   ) :: name
@@ -1079,7 +1079,7 @@ contains
           return
        end if
     end do
-    call Galacticus_Error_Report('unmatched name'//{introspection:location})
+    call Error_Report('unmatched name'//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Name
 
@@ -1087,8 +1087,8 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its properties.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)          , operator(//), operator(==), varying_string
+    use :: Error               , only : Error_Report
+    use :: ISO_Varying_String  , only : assignment(=), operator(//), operator(==), varying_string
     use :: Numerical_Comparison, only : Values_Agree
     use :: String_Handling     , only : operator(//)
     implicit none
@@ -1146,7 +1146,7 @@ contains
           message=message//" : "//luminosityPostprocessSet(i)
        end if
     end do
-    call Galacticus_Error_Report(message//{introspection:location})
+    call Error_Report(message//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Properties
 
@@ -1760,9 +1760,9 @@ contains
   end subroutine Stellar_Luminosities_Parameter_Map_Double
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Stellar_Luminosities_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1818,9 +1818,9 @@ contains
   end subroutine Stellar_Luminosities_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Stellar_Luminosities_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

@@ -244,8 +244,8 @@ contains
     !!{
     Return the temperature of the cosmic microwave background.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Radiation_Fields, only : radiationFieldClass    , radiationFieldCosmicMicrowaveBackground, radiationFieldList, radiationFieldSummation
+    use :: Error           , only : Error_Report
+    use :: Radiation_Fields, only : radiationFieldClass, radiationFieldCosmicMicrowaveBackground, radiationFieldList, radiationFieldSummation
     implicit none
     class(radiationFieldClass), intent(inout) :: radiation
     type (radiationFieldList ), pointer       :: radiationField_
@@ -265,7 +265,7 @@ contains
        end do
     class default
        cmbComptonTemperature=0.0d0
-       call Galacticus_Error_Report('unable to find cosmic microwave background radiation field'//{introspection:location})
+       call Error_Report('unable to find cosmic microwave background radiation field'//{introspection:location})
     end select
     return
   end function cmbComptonTemperature

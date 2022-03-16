@@ -147,7 +147,7 @@ contains
     !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
-    use :: Tables                , only : table1DLogarithmicLinear
+    use :: Tables               , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout) :: self
     double precision                                 , intent(in   ) :: time
@@ -302,7 +302,7 @@ contains
     !!{
     Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor

@@ -119,9 +119,9 @@ contains
     !!{
     Determine the mean position and velocity of N-body particles.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Linear_Algebra   , only : vector                 , matrix         , assignment(=), operator(*)
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Linear_Algebra   , only : vector       , matrix         , assignment(=), operator(*)
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class          (nbodyOperatorAngularMomentum), intent(inout)                   :: self
     type           (nBodyData                   ), intent(inout), dimension(:    ) :: simulations
@@ -143,9 +143,9 @@ contains
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%propertiesIntegerRank1%exists('isBound')) then
              selfBoundStatus => simulations(iSimulation)%propertiesIntegerRank1%value('isBound')
-             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
           else
-             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+             call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
           position => simulations(iSimulation)%propertiesRealRank1%value('position')
@@ -159,15 +159,15 @@ contains
        ! Get the mean position/velocity.
        if (simulations(iSimulation)%propertiesRealRank1%exists('positionMean')) then
           positionMean => simulations(iSimulation)%propertiesRealRank1%value('positionMean')
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('mean position not available - apply a meanPosition operator first'//{introspection:location})
+          call Error_Report('mean position not available - apply a meanPosition operator first'//{introspection:location})
        end if
        if (simulations(iSimulation)%propertiesRealRank1%exists('velocityMean')) then
           velocityMean => simulations(iSimulation)%propertiesRealRank1%value('velocityMean')
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('mean velocity not available - apply a meanVelocity operator first'//{introspection:location})
+          call Error_Report('mean velocity not available - apply a meanVelocity operator first'//{introspection:location})
        end if
        ! Compute mean angular momentum.
        position => simulations(iSimulation)%propertiesRealRank1%value('position')

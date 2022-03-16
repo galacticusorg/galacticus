@@ -104,9 +104,9 @@ contains
     !!{
     Compute and output the comoving distances to each output.
     !!}
-    use            :: Display         , only : displayIndent       , displayUnindent
-    use            :: Galacticus_Error, only : errorStatusSuccess
-    use            :: Galacticus_HDF5 , only : galacticusOutputFile
+    use            :: Display         , only : displayIndent     , displayUnindent
+    use            :: Error           , only : errorStatusSuccess
+    use            :: Output_HDF5     , only : outputFile
     use            :: IO_HDF5         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: String_Handling , only : operator(//)
@@ -119,7 +119,7 @@ contains
 
     call displayIndent('Begin task: comoving distances')
     ! Open the group for output time information.
-    outputsGroup  =galacticusOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')
+    outputsGroup  =outputFile%openGroup('Outputs','Group containing datasets relating to output times.')
     ! Iterate over output times and output data.
     do output=1,self%outputTimes_%count()
        groupName  ='Output'

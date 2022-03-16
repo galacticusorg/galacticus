@@ -25,21 +25,21 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   !!{
   Test calculations for tidal track dark matter profiles.
   !!}
-  use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-  use :: Cosmology_Functions           , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters          , only : cosmologyParametersSimple
-  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Virial_Density_Contrast       , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO      , only : darkMatterProfileDMOPenarrubia2010                            , darkMatterProfileDMONFW
-  use :: Display                       , only : displayMessage                                                , displayVerbositySet              , verbosityLevelStandard
-  use :: Events_Hooks                  , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities    , only : Functions_Global_Set
-  use :: Galacticus_Nodes              , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-          &                                     treeNode                                                      , nodeComponentSatellite
-  use :: Input_Parameters              , only : inputParameters
-  use :: Node_Components               , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                    , only : Assert                                                        , Skip                             , Unit_Tests_Begin_Group             , Unit_Tests_End_Group          , &
-          &                                     Unit_Tests_Finish
+  use :: Calculations_Resets       , only : Calculations_Reset
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOPenarrubia2010                            , darkMatterProfileDMONFW
+  use :: Display                   , only : displayMessage                                                , displayVerbositySet              , verbosityLevelStandard
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                 treeNode                                                      , nodeComponentSatellite
+  use :: Input_Parameters          , only : inputParameters
+  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                , only : Assert                                                        , Skip                             , Unit_Tests_Begin_Group             , Unit_Tests_End_Group          , &
+          &                                 Unit_Tests_Finish
   implicit none
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )            :: darkMatterHaloScale_
   type            (cosmologyParametersSimple                                     )            :: cosmologyParameters_
@@ -140,7 +140,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   radiusScale  =+radiusVirial &
        &        /concentration
   call darkMatterProfile_%scaleSet(radiusScale)
-  call Galacticus_Calculations_Reset(node_)
+  call Calculations_Reset(node_)
   ! Store the initial values of rmax and Vmax.
   radiusMaximumInitial  =darkMatterProfileNFW_%radiusCircularVelocityMaximum(node_)
   velocityMaximumInitial=darkMatterProfileNFW_%      circularVelocityMaximum(node_)
@@ -151,7 +151,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call Unit_Tests_End_Group  (                                )
   call Unit_Tests_Begin_Group("Stripped profile (95%) tidal track")
   call satellite_%boundMassSet(0.95d0*massVirial)
-  call Galacticus_Calculations_Reset(node_)
+  call Calculations_Reset(node_)
   fractionMassBound        =+satellite_%boundMass() &
        &                    /basic_    %     mass()
   velocityMaximumTidalTrack=velocityMaximumInitial*2.0d0**muVelocity*fractionMassBound**etaVelocity/(1.0d0+fractionMassBound)**muVelocity
@@ -161,7 +161,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Begin_Group("Stripped profile (30%) tidal track")
   call satellite_%boundMassSet(0.30d0*massVirial)
-  call Galacticus_Calculations_Reset(node_)
+  call Calculations_Reset(node_)
   fractionMassBound        =+satellite_%boundMass() &
        &                    /basic_    %     mass()
   velocityMaximumTidalTrack=velocityMaximumInitial*2.0d0**muVelocity*fractionMassBound**etaVelocity/(1.0d0+fractionMassBound)**muVelocity

@@ -196,21 +196,22 @@ contains
     !!{
     Compute pairwise velocity statistics in bins of separation.
     !!}
-    use    :: Arrays_Search                 , only : searchArray
-    use    :: Display                       , only : displayCounter                   , displayCounterClear                , displayIndent, displayMessage, &
-          &                                          displayUnindent                  , verbosityLevelStandard
-    use    :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use    :: Galacticus_Nodes              , only : nodeComponentBasic               , treeNode
-    use    :: HDF5_Access                   , only : hdf5Access
-    use    :: ISO_Varying_String            , only : var_str
+    use    :: Arrays_Search      , only : searchArray
+    use    :: Display            , only : displayCounter                   , displayCounterClear                , displayIndent, displayMessage, &
+          &                               displayUnindent                  , verbosityLevelStandard
+    use    :: Calculations_Resets, only : Calculations_Reset
+    use    :: Galacticus_Nodes   , only : nodeComponentBasic               , treeNode
+    use    :: Error              , only : Error_Report
+    use    :: HDF5_Access        , only : hdf5Access
+    use    :: ISO_Varying_String , only : var_str
 #ifdef USEMPI
-    use    :: MPI_Utilities                 , only : mpiSelf
+    use    :: MPI_Utilities      , only : mpiSelf
 #endif
-    use    :: Memory_Management             , only : deallocateArray
-    use    :: Nearest_Neighbors             , only : nearestNeighbors
-    use    :: Node_Components               , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use    :: Numerical_Ranges              , only : Make_Range                       , rangeTypeLogarithmic
-    !$ use :: OMP_Lib                       , only : OMP_Get_Thread_Num
+    use    :: Memory_Management  , only : deallocateArray
+    use    :: Nearest_Neighbors  , only : nearestNeighbors
+    use    :: Node_Components    , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use    :: Numerical_Ranges   , only : Make_Range                       , rangeTypeLogarithmic
+    !$ use :: OMP_Lib            , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorPairwiseVelocityStatistics), intent(inout)                 :: self
     type            (nBodyData                              ), intent(inout), dimension(:  ) :: simulations
@@ -290,7 +291,7 @@ contains
        if (simulations(jSimulation)%propertiesReal%exists('massVirial')) then
           massVirial => simulations(jSimulation)%propertiesReal%value('massVirial')
        else
-          call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
+          call Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
        end if
        ! Generate bootstrap weights.
        allocate(weight1(bootstrapSampleCount,size(position1,dim=2)))
@@ -359,7 +360,7 @@ contains
 #endif
           ! Get virial properties of the target halo.
           call basic%massSet(massVirial(i))
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
           radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (node)
           velocityVirial=self%darkMatterHaloScale_%velocityVirial(node)
           ! Locate particles nearby.

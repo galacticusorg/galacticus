@@ -82,7 +82,7 @@ contains
     !!{
     Evaluate the result of an exponentiation operation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (fastExponentiator), intent(inout) :: self
     double precision                   , intent(in   ) :: x
@@ -95,7 +95,7 @@ contains
        ! Argument is outside of range - either abort or compute using intrinsic exponentiation function.
        if (self%abortOutsideRange) then
           fastExponentiatorExponentiate=0.0d0
-          call Galacticus_Error_Report('argument is outside range'//{introspection:location})
+          call Error_Report('argument is outside range'//{introspection:location})
        else
           fastExponentiatorExponentiate=x**self%exponent
        end if

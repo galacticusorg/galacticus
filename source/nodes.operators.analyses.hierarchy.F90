@@ -241,7 +241,7 @@ contains
     !!{
     Handle cases where a satellite switches host node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class  (*                 ), intent(inout)          :: self
@@ -268,7 +268,7 @@ contains
           nodeSatellite => nodeSatellite%sibling
        end do
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine satelliteHostChange
@@ -277,8 +277,8 @@ contains
     !!{
     Reset the mass-when-first-isolated property of the merging statistics component in the event of the subhalo promotion.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(*                 ), intent(inout)          :: self
     type (treeNode          ), intent(inout), pointer :: node , nodePromotion
@@ -290,7 +290,7 @@ contains
        basicParent => nodePromotion%basic()
        call basic%floatRank0MetaPropertySet(self%massWhenFirstIsolatedID,basicParent%mass())
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine nodeSubhaloPromotion

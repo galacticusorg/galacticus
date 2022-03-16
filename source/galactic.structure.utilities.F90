@@ -51,9 +51,9 @@ contains
     Build a {\normalfont \ttfamily galacticStructure} object from a given parameter set. This is a globally-callable function
     to allow us to subvert the class/module hierarchy.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Input_Parameters  , only : inputParameter         , inputParameters
-    use :: Galactic_Structure, only : galacticStructureClass , galacticStructure
+    use :: Error             , only : Error_Report
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass, galacticStructure
     implicit none
     type (inputParameters), intent(inout)          :: parameters
     class(*              ), intent(  out), pointer :: galacticStructure_
@@ -66,7 +66,7 @@ contains
        !!]
        call galacticStructure__%autoHook()
     class default
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     galacticStructure_ => galacticStructure__
     return
@@ -87,7 +87,7 @@ contains
     !!{
     Compute the mass enclosed for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     use :: Galacticus_Nodes  , only : treeNode
     implicit none
@@ -102,7 +102,7 @@ contains
        galacticStructureMassEnclosed=galacticStructure_%massEnclosed(node,radius,componentType,massType,weightBy,weightIndex)
     class default
        galacticStructureMassEnclosed=0.0d0
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end function galacticStructureMassEnclosed
@@ -122,7 +122,7 @@ contains
     !!{
     Compute the rotation velocity for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     use :: Galacticus_Nodes  , only : treeNode
     implicit none
@@ -136,7 +136,7 @@ contains
        galacticStructureVelocityRotation=galacticStructure_%velocityRotation(node,radius,componentType,massType)
     class default
        galacticStructureVelocityRotation=0.0d0
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end function galacticStructureVelocityRotation
@@ -156,7 +156,7 @@ contains
     !!{
     Compute the rotation velocity gradient for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     use :: Galacticus_Nodes  , only : treeNode
     implicit none
@@ -170,7 +170,7 @@ contains
        galacticStructureVelocityRotationGradient=galacticStructure_%velocityRotationGradient(node,radius,componentType,massType)
     class default
        galacticStructureVelocityRotationGradient=0.0d0
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end function galacticStructureVelocityRotationGradient
@@ -186,7 +186,7 @@ contains
     !!{
     Destruct a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     class(*), intent(inout), pointer :: galacticStructure_
@@ -198,7 +198,7 @@ contains
        <objectDestructor name="galacticStructure__"/>
        !!]
     class default
-       call Galacticus_Error_Report('unexpected class'//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end subroutine galacticStructureDestruct
@@ -218,8 +218,8 @@ contains
     !!{
     Perform a deep copy of galactic structure objects.
     !!}
-    use, intrinsic :: ISO_C_Binding     , only : c_ptr                  , c_size_t
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding     , only : c_ptr                 , c_size_t
+    use            :: Error             , only : Error_Report
     use            :: Galactic_Structure, only : galacticStructureClass
     implicit none
     class  (*       ), intent(inout) :: self
@@ -231,7 +231,7 @@ contains
     class is (galacticStructureClass)
        call self%stateRestore(stateFile,gslStateFile,stateOperationID)
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine galacticStructureStateRestore
@@ -252,7 +252,7 @@ contains
     Perform a deep copy of galactic structure objects.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_ptr                  , c_size_t
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Error             , only : Error_Report
     use            :: Galactic_Structure, only : galacticStructureClass
     implicit none
     class  (*       ), intent(inout) :: self
@@ -264,7 +264,7 @@ contains
     class is (galacticStructureClass)
        call self%stateStore(stateFile,gslStateFile,stateOperationID)
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine galacticStructureStateStore
@@ -280,7 +280,7 @@ contains
     !!{
     Perform a deep copy of galactic structure objects.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     class(*), intent(inout) :: self
@@ -289,7 +289,7 @@ contains
     class is (galacticStructureClass)
        call self%deepCopyReset()
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine galacticStructureDeepCopyReset
@@ -305,7 +305,7 @@ contains
     !!{
     Finalize a deep copy of galactic structure objects.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     class(*), intent(inout) :: self
@@ -314,7 +314,7 @@ contains
     class is (galacticStructureClass)
        call self%deepCopyFinalize()
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine galacticStructureDeepCopyFinalize
@@ -330,7 +330,7 @@ contains
     !!{
     Perform a deep copy of galactic structure objects.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     class(*), intent(inout) :: self, destination
@@ -341,10 +341,10 @@ contains
        class is (galacticStructureClass)
           call self%deepCopy(destination)
        class default
-          call Galacticus_Error_Report("unexpected class"//{introspection:location})
+          call Error_Report("unexpected class"//{introspection:location})
        end select
     class default
-       call Galacticus_Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class"//{introspection:location})
     end select
     return
   end subroutine galacticStructureDeepCopy

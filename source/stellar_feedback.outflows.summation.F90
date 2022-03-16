@@ -61,8 +61,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily summation} stellar feedback class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (stellarFeedbackOutflowsSummation), target        :: self
     type   (inputParameters                 ), intent(inout) :: parameters
@@ -92,7 +92,7 @@ contains
     !!{
     Internal constructor for the ``summation'' stellar feedback class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (stellarFeedbackOutflowsSummation)                         :: self
     type (stellarFeedbackOutflowsList     ), target , intent(in   ) :: stellarFeedbackOutflowss

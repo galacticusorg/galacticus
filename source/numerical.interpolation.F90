@@ -216,8 +216,8 @@ contains
     !!{
     Constructor for {\normalfont \ttfamily interpolator} obejcts.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : extrapolationTypeAbort
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : extrapolationTypeAbort
     implicit none
     type            (interpolator)                                         :: self
     double precision              , intent(in   ), dimension(: )           :: x
@@ -229,10 +229,10 @@ contains
     !!]
     
     ! Validate data.
-    if    (size(x) <                       1 ) call Galacticus_Error_Report('"x" must contain at least 1 datapoint'  //{introspection:location})
+    if    (size(x) <       1 ) call Error_Report('"x" must contain at least 1 datapoint'  //{introspection:location})
     if (present(y)) then
-       if (size(x) ==      1 ) call Galacticus_Error_Report('"x" must contain at least 2 datapoints' //{introspection:location})
-       if (size(x) /= size(y)) call Galacticus_Error_Report('"x" and "y" arrays must be of same size'//{introspection:location})
+       if (size(x) ==      1 ) call Error_Report('"x" must contain at least 2 datapoints' //{introspection:location})
+       if (size(x) /= size(y)) call Error_Report('"x" and "y" arrays must be of same size'//{introspection:location})
     end if
     ! Store extrapolation.
     if (present(extrapolationType)) then
@@ -242,7 +242,7 @@ contains
        rank (1)
           self%extrapolationType=extrapolationType
        rank default
-          call Galacticus_Error_Report('"extrapolationType must be a scalar or rank-1"'//{introspection:location})
+          call Error_Report('"extrapolationType must be a scalar or rank-1"'//{introspection:location})
        end select
     else
        self%extrapolationType=extrapolationTypeAbort
@@ -317,8 +317,8 @@ contains
     !!{
     Allocate GSL objects.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class(interpolator), intent(inout) :: self
 
@@ -338,7 +338,7 @@ contains
     else if (self%interpolationType /= gsl_interp_linear) then
        ! For linear interpolation only we can handle having no y-array (since the GSL linear interpolator makes no use of this
        ! during initialization). In this case we defer initialization until needed.
-       call Galacticus_Error_Report('a y-array must be provided (except for linear interpolators)'//{introspection:location})
+       call Error_Report('a y-array must be provided (except for linear interpolators)'//{introspection:location})
     end if
     return
   end subroutine interpolatorGSLAllocate
@@ -383,15 +383,15 @@ contains
     !!{
     Initialize GSL interpoltor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class           (interpolator), intent(inout)               :: self
     double precision              , intent(in   ), dimension(:) :: ya
     integer         (c_int       )                              :: status
 
     status=gsl_interp_init(self%gsl_interp,self%x,ya,self%countArray)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to initialize interpolator'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('failed to initialize interpolator'//{introspection:location})
     self%initialized=.true.
     return
   end subroutine interpolatorGSLInitialize
@@ -400,11 +400,11 @@ contains
     !!{
     Assert that the data is interpolatable.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(interpolator), intent(inout) :: self
 
-    if (.not.self%interpolatable) call Galacticus_Error_Report('data is not interpolatable'//{introspection:location})
+    if (.not.self%interpolatable) call Error_Report('data is not interpolatable'//{introspection:location})
     return
   end subroutine interpolatorAssertInterpolatable
   
@@ -445,7 +445,7 @@ contains
     !!{
     Interpolate a function to {\normalfont \ttfamily x}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (interpolator  ), intent(inout) :: self
     double precision                , intent(in   ) :: x
@@ -454,7 +454,7 @@ contains
        interpolatorInterpolateNoYa=self%interpolate(x,self%y)
     else
        interpolatorInterpolateNoYa=0.0d0
-       call Galacticus_Error_Report("no y() array specified"//{introspection:location})       
+       call Error_Report("no y() array specified"//{introspection:location})       
     end if
     return
   end function interpolatorInterpolateNoYa
@@ -463,10 +463,10 @@ contains
     !!{
     Interpolate a function to {\normalfont \ttfamily x}.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Interface_GSL     , only : GSL_Success            , GSL_EDom
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
-    use :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
+    use :: Error             , only : Error_Report
+    use :: Interface_GSL     , only : GSL_Success           , GSL_EDom
+    use :: ISO_Varying_String, only : assignment(=)         , operator(//)                , varying_string
+    use :: Table_Labels      , only : extrapolationTypeAbort, extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
     class           (interpolator  ), intent(inout)               :: self
     double precision                , intent(in   )               :: x
@@ -510,7 +510,7 @@ contains
           case default
              message='interpolation failed for unknown reason'
           end select
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
        interpolatorInterpolate=ya(basePoint)+gradient*(x-self%x(basePoint))
     else
@@ -542,7 +542,7 @@ contains
           case default
              message='interpolation failed for unknown reason'
           end select
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
     end if
     return
@@ -552,7 +552,7 @@ contains
     !!{
     Interpolate the derivative of the function to {\normalfont \ttfamily x}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (interpolator  ), intent(inout) :: self
     double precision                , intent(in   ) :: x
@@ -561,7 +561,7 @@ contains
        interpolatorDerivativeNoYa=self%derivative(x,self%y)
     else
        interpolatorDerivativeNoYa=0.0d0
-       call Galacticus_Error_Report("no y() array specified"//{introspection:location})       
+       call Error_Report("no y() array specified"//{introspection:location})       
     end if
     return
   end function interpolatorDerivativeNoYa
@@ -570,7 +570,7 @@ contains
     !!{
     Interpolate the derivative of the function to {\normalfont \ttfamily x}.
     !!}
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Interface_GSL     , only : GSL_EDom
     use            :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
@@ -612,7 +612,7 @@ contains
        case default
           message='interpolation failed for unknown reason'
        end select
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     return
   end function interpolatorDerivative
@@ -621,7 +621,6 @@ contains
     !!{
     Locate the element in the table for interpolation of {\normalfont \ttfamily x}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         (c_size_t    )                          :: i
     class           (interpolator), intent(inout)           :: self

@@ -231,7 +231,7 @@ contains
     Return wetzel2010 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     type            (keplerOrbit               )                        :: wetzel2010Orbit
@@ -378,14 +378,14 @@ contains
     !!{
     Return the mean magnitude of the tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
     !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTangentialMagnitudeMean=0.0d0
-    call Galacticus_Error_Report('mean tangential velocity is not defined for this class'//{introspection:location})
+    call Error_Report('mean tangential velocity is not defined for this class'//{introspection:location})
     return
   end function wetzel2010VelocityTangentialMagnitudeMean
 
@@ -393,7 +393,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
@@ -401,7 +401,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function wetzel2010VelocityTangentialVectorMean
 
@@ -444,7 +444,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
@@ -452,7 +452,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     wetzel2010AngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function wetzel2010AngularMomentumVectorMean
 
@@ -460,14 +460,14 @@ contains
     !!{
     Return the root mean squared total velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
     !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTotalRootMeanSquared=0.0d0
-    call Galacticus_Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})
+    call Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})
     return
   end function wetzel2010VelocityTotalRootMeanSquared
 
@@ -477,7 +477,7 @@ contains
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host

@@ -79,9 +79,9 @@ contains
     Constructor for the {\normalfont \ttfamily standard} merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultDiskComponent     , defaultSpheroidComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Error           , only : Error_Report            , Component_List
+    use :: Galacticus_Nodes, only : defaultDiskComponent    , defaultSpheroidComponent
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type (mergerProgenitorPropertiesStandard)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
@@ -96,16 +96,16 @@ contains
          &        defaultDiskComponent    % halfMassRadiusIsGettable().and.                                                                                            &
          &        defaultDiskComponent    %angularMomentumIsGettable()                                                                                                 &
          &  )                                                                                                                                                          &
-         & ) call Galacticus_Error_Report                                                                                                                              &
+         & ) call Error_Report                                                                                                                                         &
          &        (                                                                                                                                                    &
          &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the disk component.'    // &
-         &         Galacticus_Component_List(                                                                                                                          &
-         &                                   'disk'                                                                                                                 ,  &
-         &                                   defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultDiskComponent    %angularMomentumAttributeMatch(requireGettable=.true.)                                            &
-         &                                  )                                                                                                                       // &
+         &         Component_List(                                                                                                                                     &
+         &                        'disk'                                                                                                                            ,  &
+         &                        defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultDiskComponent    %angularMomentumAttributeMatch(requireGettable=.true.)                                                       &
+         &                       )                                                                                                                                  // &
          &         {introspection:location}                                                                                                                            &
          &        )
     if     (                                                                                                                                                           &
@@ -116,16 +116,16 @@ contains
          &        defaultSpheroidComponent% halfMassRadiusIsGettable().and.                                                                                            &
          &        defaultSpheroidComponent%angularMomentumIsGettable()                                                                                                 &
          &  )                                                                                                                                                          &
-         & ) call Galacticus_Error_Report                                                                                                                              &
+         & ) call Error_Report                                                                                                                                         &
          &        (                                                                                                                                                    &
          &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the spheroid component.'// &
-         &         Galacticus_Component_List(                                                                                                                          &
-         &                                   'spheroid'                                                                                                             ,  &
-         &                                   defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultSpheroidComponent%angularMomentumAttributeMatch(requireGettable=.true.)                                            &
-         &                                  )                                                                                                                       // &
+         &         Component_List(                                                                                                                                     &
+         &                        'spheroid'                                                                                                                        ,  &
+         &                        defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultSpheroidComponent%angularMomentumAttributeMatch(requireGettable=.true.)                                                       &
+         &                       )                                                                                                                                  // &
          &         {introspection:location}                                                                                                                            &
          &        )
     !![
@@ -175,7 +175,7 @@ contains
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
     use :: Galactic_Structure_Options      , only : massTypeGalactic
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk              , nodeComponentSpheroid    , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk          , destinationMergerSpheroid, destinationMergerUnmoved
@@ -273,7 +273,7 @@ contains
        massGasSpheroidRemnant=spheroidHost%massGas()
        massSpheroidRemnant   =spheroidHost%massGas()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (destinationStarsHost)
     case (destinationMergerSpheroid)
@@ -291,7 +291,7 @@ contains
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (destinationGasSatellite)
     case (destinationMergerSpheroid)
@@ -311,7 +311,7 @@ contains
        massGasSpheroidRemnant=massGasSpheroidRemnant+spheroidSatellite%massGas()
        massSpheroidRemnant   =massSpheroidRemnant   +spheroidSatellite%massGas()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (destinationStarsSatellite)
     case (destinationMergerSpheroid)
@@ -329,7 +329,7 @@ contains
        factorAngularMomentum=factorAngularMomentum+spheroidSatellite%massStellar()*factorDarkMatterSpheroidSatellite
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidSatellite%massStellar()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     ! Compute the angular momentum factor.
     if (massSpheroidSatellite+massSpheroidHost > massComponentMinimum) then

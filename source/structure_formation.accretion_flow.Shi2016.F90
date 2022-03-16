@@ -165,11 +165,11 @@ contains
 
     ! Validate cosmology.
     if (.not.Values_Agree(self%cosmologyParameters_%OmegaCurvature           (),+0.0d0,absTol=1.0d-3))                      &
-         & call Galacticus_Error_Report('this class is applicable only for flat Ω+Λ=1 universes'//{introspection:location})
+         & call Error_Report('this class is applicable only for flat Ω+Λ=1 universes'//{introspection:location})
     if (.not.Values_Agree(self%cosmologyFunctions_ %equationOfStateDarkEnergy(),-1.0d0,absTol=1.0d-3))                      &
-         & call Galacticus_Error_Report('this class is applicable only for flat Ω+Λ=1 universes'//{introspection:location})
+         & call Error_Report('this class is applicable only for flat Ω+Λ=1 universes'//{introspection:location})
     if (.not.Values_Agree(self%cosmologyFunctions_ %exponentDarkEnergy       (),+0.0d0,absTol=1.0d-3))                      &
-         & call Galacticus_Error_Report('this class is applicable only for flat Ω+Λ=1 universes'//{introspection:location})
+         & call Error_Report('this class is applicable only for flat Ω+Λ=1 universes'//{introspection:location})
     ! Set previous state to unphysical values.
     self%timePreviousPhysical       =-huge(0.0d0)
     self%massPreviousPhysical       =-huge(0.0d0)
@@ -198,7 +198,7 @@ contains
     !!{
     Compute the density of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionFlowsShi2016), intent(inout) :: self
@@ -213,7 +213,7 @@ contains
        shi2016Density =  self%cosmologyFunctions_       %matterDensityEpochal(basic%time())
     else if (radius < self%radiusMinimumPhysical) then
        shi2016Density = 0.0d0
-       call Galacticus_Error_Report('radius is less than minimum tabulated for accretion flow'//{introspection:location})
+       call Error_Report('radius is less than minimum tabulated for accretion flow'//{introspection:location})
     else
        shi2016Density = self%interpolatorDensityPhysical%interpolate         (      radius)
     end if
@@ -224,7 +224,7 @@ contains
     !!{
     Compute the velocity of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionFlowsShi2016), intent(inout) :: self
@@ -240,7 +240,7 @@ contains
             &             *radius
     else if (radius < self%radiusMinimumPhysical) then
        shi2016Velocity =   0.0d0
-      call Galacticus_Error_Report('radius is less than minimum tabulated for accretion flow'//{introspection:location})
+      call Error_Report('radius is less than minimum tabulated for accretion flow'//{introspection:location})
     else
        shi2016Velocity =   self%interpolatorVelocityPhysical%interpolate           (      radius)
     end if
@@ -257,7 +257,7 @@ contains
     use :: Display                         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
           &                                         verbosityLevelWorking
     use :: Elliptic_Integrals              , only : Elliptic_Integral_K      , Elliptic_Integral_Pi
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: ISO_Varying_String              , only : var_str
     use :: Numerical_Comparison            , only : Values_Differ
@@ -557,7 +557,7 @@ contains
           write (label,'(e8.2)') changeRelativeMaximum
           call displayUnindent(var_str('done [fractional change = ')//trim(adjustl(label))//']',verbosity=verbosityLevelWorking)
        end do
-       if (.not.multistreamConverged) call Galacticus_Error_Report('failed to reach convergence in the multistream region'//{introspection:location})
+       if (.not.multistreamConverged) call Error_Report('failed to reach convergence in the multistream region'//{introspection:location})
     end if
     ! Determine if the dimensionful solution needs to be updated.
     if (basic%mass() == self%massPreviousPhysical .and. growthIndex == self%growthIndexPrevious) return
@@ -675,7 +675,7 @@ contains
             &                 relTol=1.0d-6                                                                                                 &
             &                )                                                                                                              &
             & )                                                                                                                             &
-            & call Galacticus_Error_Report('numerical and analytic solutions disagree in single stream region'//{introspection:location})
+            & call Error_Report('numerical and analytic solutions disagree in single stream region'//{introspection:location})
     end do
     return
   end subroutine shi2016Solve

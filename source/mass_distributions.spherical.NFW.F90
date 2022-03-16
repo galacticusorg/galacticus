@@ -116,7 +116,7 @@ contains
     !!{
     Internal constructor for ``nfw'' mass distribution class.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionNFW)                          :: self
@@ -137,7 +137,7 @@ contains
          &  ) then
        self%scaleLength=virialRadius/concentration
     else
-       call Galacticus_Error_Report('no means to determine scale length'//{introspection:location})
+       call Error_Report('no means to determine scale length'//{introspection:location})
     end if
     ! Determine density normalization.
     if      (                                   &
@@ -151,7 +151,7 @@ contains
        r=virialRadius/self%scaleLength
        self%densityNormalization=mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+r)-r/(1.0d0+r))
     else
-       call Galacticus_Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
+       call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
     if      (present(dimensionless     )) then

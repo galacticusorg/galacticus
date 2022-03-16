@@ -28,9 +28,9 @@ module Memory_Management
   Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   arrays with automatic error checking and deallocation at program termination and memory usage reporting.
   !!}
-  use            :: Galacticus_Error, only : Galacticus_Error_Report
-  use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_int    , c_long
-  use            :: Kind_Numbers    , only : kind_int8              , kind_quad
+  use            :: Error        , only : Error_Report
+  use, intrinsic :: ISO_C_Binding, only : c_double_complex, c_int    , c_long
+  use            :: Kind_Numbers , only : kind_int8       , kind_quad
   implicit none
   private
   public :: Memory_Usage_Report,Code_Memory_Usage,allocateArray,deallocateArray,Memory_Usage_Record

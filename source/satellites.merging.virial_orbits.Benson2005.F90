@@ -155,7 +155,7 @@ contains
     Return benson2005 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     type            (keplerOrbit          )                        :: benson2005Orbit
@@ -221,7 +221,7 @@ contains
             &               *velocityTangentialInternal                          &
             &               *exp(-a (2)*((velocityTangentialInternal-a (9))**2)) &
             &               *exp(-b1   *( velocityRadialInternal    -b2   )**2)
-       if (distributionFunction > pMax) call Galacticus_Error_Report('distribution function exceeds expected peak value'//{introspection:location})
+       if (distributionFunction > pMax) call Error_Report('distribution function exceeds expected peak value'//{introspection:location})
        uniformRandom=pMax*node%hostTree%randomNumberGenerator_%uniformSample()
        if (uniformRandom <= distributionFunction) then
           foundOrbit=.true.
@@ -285,7 +285,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                       , dimension(3)  :: benson2005VelocityTangentialVectorMean
     class           (virialOrbitBenson2005), intent(inout) :: self
@@ -293,7 +293,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     benson2005VelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function benson2005VelocityTangentialVectorMean
 
@@ -327,7 +327,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                       , dimension(3)  :: benson2005AngularMomentumVectorMean
     class           (virialOrbitBenson2005), intent(inout) :: self
@@ -335,7 +335,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     benson2005AngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function benson2005AngularMomentumVectorMean
 

@@ -119,8 +119,8 @@ contains
     !!{
     Internal constructor for the ``power-law'' primordial power spectrum class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Warn
-    use :: Display         , only : displayBlue    , displayYellow, displayGreen, displayReset
+    use :: Error  , only : Warn
+    use :: Display, only : displayBlue, displayYellow, displayGreen, displayReset
     implicit none
     type            (powerSpectrumPrimordialPowerLaw)                :: self
     double precision                                 , intent(in   ) :: index_                , wavenumberReference, &
@@ -130,21 +130,21 @@ contains
     <constructorAssign variables="index_, wavenumberReference, running, runningRunning, runningSmallScalesOnly"/>
     !!]
 
-    if     (                                                                                                                                                                                                          &
-         &   (                                                                                                                                                                                                        &
-         &     running        > 0.0d0                                                                                                                                                                                 &
-         &    .or.                                                                                                                                                                                                    &
-         &     runningRunning > 0.0d0                                                                                                                                                                                 &
-         &   )                                                                                                                                                                                                        &
-         &  .and.                                                                                                                                                                                                     &
-         &   .not.runningSmallScalesOnly                                                                                                                                                                              &
-         & )                                                                                                                                                                                                          &
-         & call Galacticus_Warn(                                                                                                                                                                                      &
-         &                      'primordial power spectra with positive running can lead to divergent σ(M) integrals - if this happens consider setting:'                                                //char(10)// &
-         &                      '    <'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>' //char(10)// &
-         &                      '      <'//displayBlue()//'runningSmallScalesOnly'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/>'   //char(10)// &
-         &                      '    </'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>'             &
-         &)
+    if     (                                                                                                                                                                                               &
+         &   (                                                                                                                                                                                             &
+         &     running        > 0.0d0                                                                                                                                                                      &
+         &    .or.                                                                                                                                                                                         &
+         &     runningRunning > 0.0d0                                                                                                                                                                      &
+         &   )                                                                                                                                                                                             &
+         &  .and.                                                                                                                                                                                          &
+         &   .not.runningSmallScalesOnly                                                                                                                                                                   &
+         & )                                                                                                                                                                                               &
+         & call Warn(                                                                                                                                                                                      &
+         &           'primordial power spectra with positive running can lead to divergent σ(M) integrals - if this happens consider setting:'                                                //char(10)// &
+         &           '    <'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>' //char(10)// &
+         &           '      <'//displayBlue()//'runningSmallScalesOnly'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/>'   //char(10)// &
+         &           '    </'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>'             &
+         &          )
     return
   end function powerLawConstructorInternal
 

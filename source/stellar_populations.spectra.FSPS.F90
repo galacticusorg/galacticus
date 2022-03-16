@@ -87,7 +87,7 @@ contains
     !!{
     Internal constructor for the FSPS stellar spectra class.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath             , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string        , operator(//)
     use :: Interfaces_FSPS   , only : Interface_FSPS_Version
     implicit none
@@ -100,7 +100,7 @@ contains
     !!]
 
     call Interface_FSPS_Version(fspsVersion)
-    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v'//fspsVersion//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
+    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(inputPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v'//fspsVersion//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
     return
   end function fspsConstructorInternal
 

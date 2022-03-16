@@ -139,7 +139,7 @@ contains
     !!{
     Compute the velocity of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (accretionFlowsCorrelationFunction), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
@@ -147,6 +147,6 @@ contains
     !$GLC attributes unused :: self, node, radius
     
     correlationFunctionVelocity=0.0d0
-    call Galacticus_Error_Report('velocity is currently unsupported'//{introspection:location})
+    call Error_Report('velocity is currently unsupported'//{introspection:location})
     return
   end function correlationFunctionVelocity
