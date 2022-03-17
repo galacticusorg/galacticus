@@ -191,23 +191,7 @@ foreach my $simulation ( @simulations ) {
 	foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 	    my $redshift      = 1.0/$expansionFactor-1.0;
 	    my $redshiftLabel = sprintf("z%5.3f",$redshift);
-    
-	    my $parameters = $xml->XMLin($outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
-	    $parameters->{'outputFileName'}->{'value'} = "/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline.4/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
-	    $parameters->{'haloMassFunctionParameters'}->{'a'            }->{'value'} = 0.82708790844954094;
-	    $parameters->{'haloMassFunctionParameters'}->{'b'            }->{'value'} = 1.7199906684586954E-004;
-	    $parameters->{'haloMassFunctionParameters'}->{'c'            }->{'value'} = -2.9075259886015061;
-	    $parameters->{'haloMassFunctionParameters'}->{'d'            }->{'value'} = 1.9942484921746402;
-	    $parameters->{'haloMassFunctionParameters'}->{'p'            }->{'value'} = 0.45989788756150141;
-	    $parameters->{'haloMassFunctionParameters'}->{'q'            }->{'value'} = 1.3059119345941366;
-	    $parameters->{'haloMassFunctionParameters'}->{'normalization'}->{'value'} = 0.30889429317881800;
-	    $parameters->{'haloMassFunctionParameters'}->{'cW'           }->{'value'} = 2.1593973153805543;
-	    $parameters->{'haloMassFunctionParameters'}->{'beta'         }->{'value'} = 9.1004921410628903;
-	    open(my $out,">",$outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
-	    print $out $xml->XMLout($parameters, RootName => "parameters");
-	    close($out);
 
-	    
 	    # Generate a job.
 	    my $job;
 	    $job->{'command'   } =
@@ -240,7 +224,7 @@ foreach my $simulation ( @simulations ) {
 	    $expansionFactors[$i] =     $expansionFactor    ;
 	    my $redshift          = 1.0/$expansionFactor-1.0;
 	    my $redshiftLabel     = sprintf("z%5.3f",$redshift);
-
+	    
 	    # Read the resulting halo mass function.
 	    my $model                                                                                = new PDL::IO::HDF5($outputDirectory."/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5");
 	    my $outputs                                                                              = $model           ->group  ('Outputs'                       )       ;
@@ -308,6 +292,7 @@ for(my $i=0;$i<=$iMax;++$i) {
 	    my $massHaloMinimum = $simulation->{'massParticle'}*$countParticlesMinimum;
 	    my $xLimit          = pdl [ $massHaloMinimum, $massHaloMinimum ];
 	    my $yLimit          = pdl [ 1.0e-9          , 1.0e2            ];
+	    (my $title          = $simulation->{'label'}) =~ s/_/ /g;
 	    &GnuPlot::PrettyPlots::Prepare_Dataset(
 		\$plot                                                             ,
 		$xLimit                                                            ,
@@ -316,7 +301,7 @@ for(my $i=0;$i<=$iMax;++$i) {
 		weight       => [1,1]                                              ,
 		linePattern  => 3                                                  ,
 		color        => [$simulation->{'colorDark'},$simulation->{'color'}],
-		title        => $simulation->{'label'}
+		title        => $title
 		);
  	    # Iterate over realizations.
 	    my $massTarget;
@@ -415,13 +400,13 @@ for(my $i=0;$i<=$iMax;++$i) {
 	    unless ( -e $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".pdf" ) {
 		# If a custom plot modifier function is defined, call it.
 		my $plotOptions;
-		$plotOptions->{'title'   } = $simulation->{'label'};
-		$plotOptions->{'xMinimum'} = 8.0e+06;
-		$plotOptions->{'xMaximum'} = 1.0e+16;
-		$plotOptions->{'yMinimum'} = 1.0e-09;
-		$plotOptions->{'yMaximum'} = 1.0e+02;
-		$plotOptions->{'xKey'    } = 0.475;
-		$plotOptions->{'yKey'    } = 0.450;
+		($plotOptions->{'title'   } = $simulation->{'label'}) =~ s/_/ /g;
+		$plotOptions ->{'xMinimum'} = 8.0e+06;
+		$plotOptions ->{'xMaximum'} = 1.0e+16;
+		$plotOptions ->{'yMinimum'} = 1.0e-09;
+		$plotOptions ->{'yMaximum'} = 1.0e+02;
+		$plotOptions ->{'xKey'    } = 0.475;
+		$plotOptions ->{'yKey'    } = 0.450;
 		&{$simulation->{'plotModify'}}($simulation,$plotOptions,$realization)
 		    if ( exists($simulation->{'plotModify'}) );
 		## Halo mass function.
