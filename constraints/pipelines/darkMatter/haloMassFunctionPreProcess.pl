@@ -37,87 +37,87 @@ die('simulationDataPath is required but is not present')
 # Define simulations to process.
 my @simulations =
 (
- # {
- #     label               => "VSMDPL",
- #     subpath             => "CosmoSim",
- #     description         => "Halo mass function for non-backsplash z=0 halos from the VSMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/vsmdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 6.2e6,
- #     subvolumes          => 10,
- #     expansionFactors    => [ 1.00000, 0.67110, 0.50250, 0.33000, 0.24750 ]
- # },
- # {
- #     label               => "SMDPL",
- #     subpath             => "CosmoSim",
- #     description         => "Halo mass function for non-backsplash z=0 halos from the SMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/smdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 9.63e7,
- #     subvolumes          => 10,
- #     expansionFactors    => [ 1.00000, 0.66430, 0.50000, 0.33100, 0.24800 ]
- # },
- # {
- #     label               => "MDPL2",
- #     subpath             => "CosmoSim",
- #     description         => "Halo mass function for non-backsplash z=0 halos from the MDPL2 simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/mdpl2/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 1.51e9,
- #     subvolumes          => 10,
- #     expansionFactors    => [ 1.00000, 0.67120, 0.50320, 0.33030, 0.24230 ]
- # },
- # {
- #     label               => "BigMDPL",
- #     subpath             => "CosmoSim",
- #     description         => "Halo mass function for non-backsplash z=0 halos from the BigMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/bigmdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 2.359e10,
- #     subvolumes          => 10,
- #     expansionFactors    => [ 1.00000, 0.67040, 0.50000, 0.31800, 0.25700 ]
- # },
- # {
- #     label               => "HugeMDPL",
- #     subpath             => "CosmoSim",
- #     description         => "Halo mass function for non-backsplash z=0 halos from the HugeMDPL simulation.",
- #     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
- #     simulationURL       => "https://www.cosmosim.org/cms/simulations/hugemdpl/",
- #     hubbleConstant      => 0.6777,
- #     massParticle        => 7.9e10,
- #     subvolumes          => 10,
- #     expansionFactors    => [ 1.00000, 0.67120, 0.50320, 0.33030, 0.24770 ]
- # },
- # {
- #     label                   => "MilkyWay",
- #     subpath                 => "ZoomIns",
- #     realizations            => [ "Halo014", "Halo247", "Halo327", "Halo414", "Halo460", "Halo530", "Halo569", "Halo628", "Halo749", "Halo8247", "Halo852", "Halo925", "Halo939", "Halo9829", "Halo023", "Halo268", "Halo349", "Halo415", "Halo469", "Halo558", "Halo570", "Halo641", "Halo797", "Halo825", "Halo878", "Halo926", "Halo967", "Halo990", "Halo119", "Halo288", "Halo374", "Halo416", "Halo490", "Halo567", "Halo573", "Halo675", "Halo800", "Halo829", "Halo881", "Halo937", "Halo9749" ],
- #     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way zoom-in simulations.",
- #     simulationReference     => "Nadler et al.",
- #     simulationURL           => "https://www",
- #     hubbleConstant          => 0.7,
- #     massParticle            => 2.81981e5,
- #     subvolumes              => 1,
- #     expansionFactors        => [ 1.0000 ],
- #     processIdentify         => \&zoomInsProcessIdentify,
- #     processExtract          => \&zoomInsProcessExtract,
- #     postprocessExtract      =>
- # 	 [
- # 	  \&zoomInsPostprocessSelectInSphere    ,
- # 	  \&zoomInsPostprocessExtractSelectedIDs,
- # 	  \&zoomInsPostprocessSelectInICs       ,
- # 	  \&zoomInsPostprocessAnalyze           ,
- # 	  \&zoomInsPostprocessSetVolume
- # 	 ],
- #     postprocessMassFunction =>
- # 	 [
- # 	  \&zoomInsPostProcessMassFunction
- # 	 ]
- # },
+ {
+     label               => "VSMDPL",
+     subpath             => "CosmoSim",
+     description         => "Halo mass function for non-backsplash z=0 halos from the VSMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/vsmdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 6.2e6,
+     subvolumes          => 10,
+     expansionFactors    => [ 1.00000, 0.67110, 0.50250, 0.33000, 0.24750 ]
+ },
+ {
+     label               => "SMDPL",
+     subpath             => "CosmoSim",
+     description         => "Halo mass function for non-backsplash z=0 halos from the SMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/smdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 9.63e7,
+     subvolumes          => 10,
+     expansionFactors    => [ 1.00000, 0.66430, 0.50000, 0.33100, 0.24800 ]
+ },
+ {
+     label               => "MDPL2",
+     subpath             => "CosmoSim",
+     description         => "Halo mass function for non-backsplash z=0 halos from the MDPL2 simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/mdpl2/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 1.51e9,
+     subvolumes          => 10,
+     expansionFactors    => [ 1.00000, 0.67120, 0.50320, 0.33030, 0.24230 ]
+ },
+ {
+     label               => "BigMDPL",
+     subpath             => "CosmoSim",
+     description         => "Halo mass function for non-backsplash z=0 halos from the BigMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/bigmdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 2.359e10,
+     subvolumes          => 10,
+     expansionFactors    => [ 1.00000, 0.67040, 0.50000, 0.31800, 0.25700 ]
+ },
+ {
+     label               => "HugeMDPL",
+     subpath             => "CosmoSim",
+     description         => "Halo mass function for non-backsplash z=0 halos from the HugeMDPL simulation.",
+     simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
+     simulationURL       => "https://www.cosmosim.org/cms/simulations/hugemdpl/",
+     hubbleConstant      => 0.6777,
+     massParticle        => 7.9e10,
+     subvolumes          => 10,
+     expansionFactors    => [ 1.00000, 0.67120, 0.50320, 0.33030, 0.24770 ]
+ },
+ {
+     label                   => "MilkyWay",
+     subpath                 => "ZoomIns",
+     realizations            => [ "Halo014", "Halo247", "Halo327", "Halo414", "Halo460", "Halo530", "Halo569", "Halo628", "Halo749", "Halo8247", "Halo852", "Halo925", "Halo939", "Halo9829", "Halo023", "Halo268", "Halo349", "Halo415", "Halo469", "Halo558", "Halo570", "Halo641", "Halo797", "Halo825", "Halo878", "Halo926", "Halo967", "Halo990", "Halo119", "Halo288", "Halo374", "Halo416", "Halo490", "Halo567", "Halo573", "Halo675", "Halo800", "Halo829", "Halo881", "Halo937", "Halo9749" ],
+     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way zoom-in simulations.",
+     simulationReference     => "Nadler et al.",
+     simulationURL           => "https://www",
+     hubbleConstant          => 0.7,
+     massParticle            => 2.81981e5,
+     subvolumes              => 1,
+     expansionFactors        => [ 1.0000 ],
+     processIdentify         => \&zoomInsProcessIdentify,
+     processExtract          => \&zoomInsProcessExtract,
+     postprocessExtract      =>
+ 	 [
+ 	  \&zoomInsPostprocessSelectInSphere    ,
+ 	  \&zoomInsPostprocessExtractSelectedIDs,
+ 	  \&zoomInsPostprocessSelectInICs       ,
+ 	  \&zoomInsPostprocessAnalyze           ,
+ 	  \&zoomInsPostprocessSetVolume
+ 	 ],
+     postprocessMassFunction =>
+ 	 [
+ 	  \&zoomInsPostProcessMassFunction
+ 	 ]
+ },
  {
      label                   => "MilkyWay_WDM1",
      subpath                 => "ZoomIns",
