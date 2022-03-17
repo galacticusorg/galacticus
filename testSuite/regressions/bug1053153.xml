@@ -17,7 +17,7 @@
     <presetAngularMomenta value="false"/>
     <presetScaleRadii value="true"/>
   </mergerTreeConstructor>
-  <galacticusOutputFileName value="testSuite/outputs/bug1053153.hdf5"/>
+  <outputFileName value="testSuite/outputs/bug1053153.hdf5"/>
   <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolver>

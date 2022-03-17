@@ -69,7 +69,7 @@
     <presetScaleRadii value="false"/>
     <presetSubhaloMasses value="false"/>
   </mergerTreeConstructor>
-  <galacticusOutputFileName value="testSuite/outputs/regressions/coincidentMergerAndBranchJump.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/coincidentMergerAndBranchJump.hdf5"/>
   <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
     <timestepHostAbsolute value="1.0"/>

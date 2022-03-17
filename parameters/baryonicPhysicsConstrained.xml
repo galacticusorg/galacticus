@@ -13,7 +13,7 @@
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="projects/search/data/maximumLikelihoodModel//galacticus.hdf5"/>
+  <outputFileName value="projects/search/data/maximumLikelihoodModel//galacticus.hdf5"/>
   
   <!-- Component selection -->
   <componentBasic value="standard"/>

@@ -374,7 +374,7 @@
                          "/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
-  <galacticusOutputFileName value="testSuite/outputs/regressions/ludlowScaleSetBeforeTreeInitialization.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/ludlowScaleSetBeforeTreeInitialization.hdf5"/>
   <!-- Merger trees -->
   <outputTimes value="list">
     <redshifts>

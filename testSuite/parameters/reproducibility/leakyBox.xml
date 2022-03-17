@@ -125,6 +125,6 @@
   </mergerTreeOutputter>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/reproducibility/leakyBox.hdf5"/>
+  <outputFileName value="testSuite/outputs/reproducibility/leakyBox.hdf5"/>
 
 </parameters>

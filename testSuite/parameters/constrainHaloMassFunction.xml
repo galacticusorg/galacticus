@@ -10,7 +10,7 @@
     <haloMassMaximum value="8.91236460596131e15"/>
     <pointsPerDecade value="10"/>
   </task>
-  <galacticusOutputFileName value="testSuite/outputs/constrainHaloMassFunction.hdf5"/>
+  <outputFileName value="testSuite/outputs/constrainHaloMassFunction.hdf5"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>

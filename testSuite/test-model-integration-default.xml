@@ -276,6 +276,6 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
-  <galacticusOutputFileName value="testSuite/outputs/test-model-integration/default/galacticus.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-model-integration/default/galacticus.hdf5"/>
 
 </parameters>

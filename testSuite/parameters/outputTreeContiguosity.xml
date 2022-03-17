@@ -293,7 +293,7 @@
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="testSuite/outputs/outputTreeContiguosity.hdf5"/>
+  <outputFileName value="testSuite/outputs/outputTreeContiguosity.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>

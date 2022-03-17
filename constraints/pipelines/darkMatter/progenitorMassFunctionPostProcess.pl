@@ -125,7 +125,7 @@ foreach my $simulation ( @simulations ) {
 	# Read the parameter file.
 	my $parameters = $xml->XMLin($outputDirectory."/progenitorMassFunctionBase".$simulation->{'label'}.".xml");
 	# Modify parameters.
-	$parameters->{'galacticusOutputFileName'}->{'value'} =  $outputDirectory."/progenitorMassFunction".$simulation->{'label'}.$parameterSet->{'label'}.".hdf5";
+	$parameters->{'outputFileName'}->{'value'} =  $outputDirectory."/progenitorMassFunction".$simulation->{'label'}.$parameterSet->{'label'}.".hdf5";
 	if      ( $parameters->{'mergerTreeBuildMasses'}->{'value'} eq "sampledDistributionUniform" ) {
 	    $parameters->{'mergerTreeBuildMasses'}->{'treesPerDecade'  }->{'value'} *= $treeBoostFactor;
 	} elsif ( $parameters->{'mergerTreeBuildMasses'}->{'value'} eq "replicate"                  ) {

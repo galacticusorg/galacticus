@@ -11,7 +11,7 @@
   </task>
   <!-- Output control -->
   <verbosityLevel value="standard"/>
-  <galacticusOutputFileName value="testSuite/outputs/test-splitForests/unsplit.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-splitForests/unsplit.hdf5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>

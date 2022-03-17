@@ -80,7 +80,7 @@ foreach my $simulation ( @simulations ) {
     # Read the parameter file.
     my $parameters = $xml->XMLin($outputDirectory."/spinConcentrationBase".$simulation->{'label'}.".xml");
     # Modify parameters.
-    $parameters->{'galacticusOutputFileName'}->{'value'} =  $outputDirectory."/spinConcentration".$simulation->{'label'}.".hdf5";
+    $parameters->{'outputFileName'}->{'value'} =  $outputDirectory."/spinConcentration".$simulation->{'label'}.".hdf5";
     # Write the parameters.
     open(my $parameterFile,">".$outputDirectory."/spinConcentrationBase".$simulation->{'label'}.".xml");
     print $parameterFile $xml->XMLout($parameters, RootName => "parameters");

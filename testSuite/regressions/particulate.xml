@@ -155,7 +155,7 @@
   </mergerTreeOperator>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="testSuite/outputs/particulate.hdf5"/>
+  <outputFileName value="testSuite/outputs/particulate.hdf5"/>
   <hdf5UseLatestFormat value="true"/>
   <hdf5ChunkSize value="2"/>
   <mergerTreeOutputter value="standard">

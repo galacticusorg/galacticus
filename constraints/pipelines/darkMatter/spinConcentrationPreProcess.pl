@@ -215,7 +215,7 @@ sub cosmoSimBuilder {
     unless ( -e $simulation->{'path'}."spinDistributionFunctions:MPI0000.hdf5" ) {
 	## Modify parameters.
 	@{$spinDistributionFunctionParameters->{'nbodyImporter'     }->{'nbodyImporter'}} = @spinNbodyImporters;
-	$spinDistributionFunctionParameters  ->{'galacticusOutputFileName'}                                                       ->{'value'} =                  $simulation->{'path'                              }."spinDistributionFunctions.hdf5";
+	$spinDistributionFunctionParameters  ->{'outputFileName'}                                                       ->{'value'} =                  $simulation->{'path'                              }."spinDistributionFunctions.hdf5";
 	$spinDistributionFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[0]->{'values'             }->{'value'} = sprintf("%12.6e",$simulation->{'massParticle'                      })." ".
 	                                                                                                                            sprintf("%12.6e",$simulation->{'redshift'                          })." ".
 	                                                                                                                            sprintf("%12.6e",$simulation->{'timeRecent'                        })." ".
@@ -259,7 +259,7 @@ sub cosmoSimBuilder {
 	unless ( -e $simulation->{'path'}."concentrationDistributionFunction".$suffix.":MPI0000.hdf5" ) {
 	    ## Modify parameters.
 	    @{$concentrationDistributionFunctionParameters->{'nbodyImporter'     }->{'nbodyImporter'}} = @concentrationNbodyImporters;
-	    $concentrationDistributionFunctionParameters  ->{'galacticusOutputFileName'}                                                       ->{'value'} =                  $simulation->{'path'               }."concentrationDistributionFunctions".$suffix.".hdf5";
+	    $concentrationDistributionFunctionParameters  ->{'outputFileName'}                                                       ->{'value'} =                  $simulation->{'path'               }."concentrationDistributionFunctions".$suffix.".hdf5";
 	    $concentrationDistributionFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[0]->{'values'             }->{'value'} = sprintf("%12.6e",$simulation->{'massParticle'       })." ".
 	                                                                                                                                         sprintf("%12.6e",$simulation->{'redshift'           })." ".
 	                                                                                                                                         sprintf("%12.6e",$simulation->{'timeRecent'         })." ".

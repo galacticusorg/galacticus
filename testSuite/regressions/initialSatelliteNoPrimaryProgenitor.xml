@@ -155,7 +155,7 @@
     <outputReferences value="false"/>
   </mergerTreeOutputter>
   <stellarPopulationProperties value="instantaneous"/>
-  <galacticusOutputFileName value="testSuite/outputs/regressions/initialSatelliteNoPrimaryProgenitor.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/initialSatelliteNoPrimaryProgenitor.hdf5"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>

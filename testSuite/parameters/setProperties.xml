@@ -5,7 +5,7 @@
   <version>0.9.4</version>
 
   <!-- Set output file name -->
-  <galacticusOutputFileName value="testSuite/outputs/test-set-properties.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-set-properties.hdf5"/>
 
   <!-- Limit halo mass -->
   <mergerTreeBuildMasses value="sampledDistributionUniform">

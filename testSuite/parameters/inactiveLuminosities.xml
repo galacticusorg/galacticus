@@ -285,6 +285,6 @@
   <luminosityType value="observed observed"/>
   <luminosityRedshift value="all all"/>
   <luminosityPostprocessSet value="default default"/>
-  <galacticusOutputFileName value="testSuite/outputs/inactiveLuminosities/inactiveLuminosities.hdf5"/>
+  <outputFileName value="testSuite/outputs/inactiveLuminosities/inactiveLuminosities.hdf5"/>
 
 </parameters>

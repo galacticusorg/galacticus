@@ -135,10 +135,10 @@ foreach my $task ( @tasks ) {
     foreach my $base ( @bases ) {
 	++$i;
 	my $suffix = exists($task->{'suffix'}) ? $task->{'suffix'}->[$i] : "";
-	$base->{'galacticusOutputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
+	$base->{'outputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
     }
     if ( defined($config) ) {
-	$config->{'galacticusOutputFileName' }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
+	$config->{'outputFileName' }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
 	$config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
 	my $i = -1;
 	# Set base file names in the config file.

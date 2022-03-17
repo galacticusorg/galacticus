@@ -277,7 +277,7 @@
   </nodeOperator>
 
   <!-- Output -->
-  <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>

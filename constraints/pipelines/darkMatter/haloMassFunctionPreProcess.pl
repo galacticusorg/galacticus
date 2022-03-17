@@ -155,7 +155,7 @@ foreach my $simulation ( @simulations ) {
     unless ( -e $simulation->{'path'}."haloMassFunction_z0.000.hdf5" ) {
 	## Modify parameters.
 	@{$massFunctionParameters->{'nbodyImporter'     }->{'nbodyImporter'}} = @nbodyImporters;
-	$massFunctionParameters  ->{'galacticusOutputFileName'}->{'value'}  = $simulation->{'path'}."haloMassFunction_z0.000.hdf5";
+	$massFunctionParameters  ->{'outputFileName'}->{'value'}  = $simulation->{'path'}."haloMassFunction_z0.000.hdf5";
 $massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'values'             }->{'value'} = $simulation->{'massParticle'       };
 	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'description'        }->{'value'} = $simulation->{'description'        };
 	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'simulationReference'}->{'value'} = $simulation->{'simulationReference'};

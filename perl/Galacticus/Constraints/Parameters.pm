@@ -591,7 +591,7 @@ sub step {
 # 	    &{$options{'parametersModifier'}}($currentParameters)
 # 		if ( exists($options{'parametersModifier'}) );
 # 	    # Specify the output file name.
-# 	    $currentParameters->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
+# 	    $currentParameters->{'outputFileName'}->{'value'} = $galacticusFileName;
 # 	    # Write the modified parameters to file.
 # 	    &Output($currentParameters,$modelDirectory."parameters.xml");
 # 	    # Construct the tasks to perform.

@@ -279,7 +279,7 @@
   </mergerTreeEvolveTimestep>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="darkMatterOnlySubHalos.hdf5"/>
+  <outputFileName value="darkMatterOnlySubHalos.hdf5"/>
   <mergerTreeOutputter value="multi">
     <mergerTreeOutputter value="standard">
       <outputReferences value="false"/>

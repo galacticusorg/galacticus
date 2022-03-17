@@ -66,7 +66,7 @@ foreach my $model ( @models ) {
     # Get the parameters.
     my $parameters = &Galacticus::Constraints::Parameters::parameterVectorApply($config,$model,$maximumPosteriorParameters,\%options);
     # Set an output file name.
-    $parameters->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
+    $parameters->{'outputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
     # Write the modified parameters to file.
     &Galacticus::Constraints::Parameters::parametersOutput($parameters,$maximumLikelihoodDirectory."/parameters.xml");    
     # Finish if we're not to run the model.

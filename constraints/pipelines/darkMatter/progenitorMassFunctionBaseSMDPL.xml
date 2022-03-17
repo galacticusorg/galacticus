@@ -113,7 +113,7 @@
   <hotHaloMassDistribution value="null"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName  value="SMDPL.hdf5"/>
+  <outputFileName  value="SMDPL.hdf5"/>
   <mergerTreeOutputter value="analyzer">
   </mergerTreeOutputter>
   <outputTimes value="list">

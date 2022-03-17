@@ -171,7 +171,7 @@
   </nodeOperator>
 
   <!-- Output options -->
-  <galacticusOutputFileName  value="BigMDPL.hdf5"/>
+  <outputFileName  value="BigMDPL.hdf5"/>
   <mergerTreeOutputter value="analyzer">
   </mergerTreeOutputter>
   <outputTimes value="list">

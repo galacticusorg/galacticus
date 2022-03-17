@@ -11,7 +11,7 @@
     <initializeNodeClassHierarchy value="true"/>
   </task>
 
-  <galacticusOutputFileName value="galacticus.hdf5"/>
+  <outputFileName value="galacticus.hdf5"/>
   
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>

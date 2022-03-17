@@ -140,7 +140,7 @@ sub Construct_Models {
 			$parameters = $xml->XMLin($launchScript->{'baseParameters'});
 		    }
 		    # Set the output file name.
-		    $parameters->{'galacticusOutputFileName'}->{'value'} 
+		    $parameters->{'outputFileName'}->{'value'} 
 		        = &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
 		           ($galacticusOutputFile,$launchScript);
 		    # Set the random seed.
@@ -148,7 +148,7 @@ sub Construct_Models {
 			unless ( exists($parameters->{'randomSeed'}) );
 		    # Set a state restore file.
 		    if ( $launchScript->{'useStateFile'} eq "yes" ) {
-			(my $stateFile = $parameters->{'galacticusOutputFileName'}->{'value'}) =~ s/\.hdf5//;
+			(my $stateFile = $parameters->{'outputFileName'}->{'value'}) =~ s/\.hdf5//;
 			$parameters->{'stateFileRoot'}->{'value'} = $stateFile;
 		    }
 		    # Transfer parameters for this model to the active parameter set.

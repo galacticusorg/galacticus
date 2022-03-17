@@ -267,7 +267,7 @@
   </mergerTreeEvolver>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="testSuite/benchmark-outputs/quickTest.hdf5"/>
+  <outputFileName value="testSuite/benchmark-outputs/quickTest.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
