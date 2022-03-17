@@ -163,8 +163,8 @@ contains
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
     character       (len=255                 )                                  :: hostName                                , cambTransferLine
-    type            (varying_string          )                                  :: command                                 , parameterFile           , &
-         &                                                                         cambPath                                , cambVersion
+    type            (varying_string          )                                  :: cambPath                                , cambVersion             , &
+         &                                                                         parameterFile
     double precision                                                            :: wavenumberCAMB
     integer                                                                     :: status                                  , cambParameterFile       , &
          &                                                                         i                                       , cambTransferFile        , &
@@ -434,11 +434,7 @@ contains
           close(cambTransferFile)
        end do
        ! Remove temporary files.
-       command="rm -f "                    // &
-            &   parameterFile         //" "// &
-            &  "camb_params.ini"      //" "
-       call File_Remove(parameterFile    )
-       call File_Remove("camb_params.ini")
+       call File_Remove(parameterFile)
        do i=1,countRedshiftsUnique
           call File_Remove('camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
           call File_Remove('camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
