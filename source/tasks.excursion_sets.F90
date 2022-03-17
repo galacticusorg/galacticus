@@ -248,14 +248,14 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use :: Display                 , only : displayIndent       , displayUnindent
-    use :: Galacticus_Error        , only : errorStatusSuccess
-    use :: Galacticus_HDF5         , only : galacticusOutputFile
+    use :: Display                 , only : displayIndent     , displayUnindent
+    use :: Error                   , only : errorStatusSuccess
+    use :: Output_HDF5             , only : outputFile
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
-    use :: Memory_Management       , only : allocateArray       , deallocateArray
+    use :: Memory_Management       , only : allocateArray     , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range          , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
     implicit none
     class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
@@ -324,7 +324,7 @@ contains
     call self%excursionSetFirstCrossing_%coordinatedMPI(.false.)
 #endif
     ! Write results to the output file.
-    outputGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing data relating to the excursion set problem.')
+    outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing data relating to the excursion set problem.')
     call outputGroup%writeDataset(mass                    ,'mass'                    ,'The mass of the halo [M☉]'                       )
     call outputGroup%writeDataset(time                    ,'time'                    ,'The cosmic time [Gyr]'                           )
     call outputGroup%writeDataset(wavenumber              ,'wavenumber'              ,'The wavenumber associated with this mass [Mpc⁻¹]')

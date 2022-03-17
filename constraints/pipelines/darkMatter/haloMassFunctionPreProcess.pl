@@ -378,7 +378,7 @@ foreach my $simulation ( @simulations ) {
 		my $massFunctionParameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionCompute.xml");
 		## Modify parameters.
 		@{$massFunctionParameters->{'nbodyImporter'           }->{'nbodyImporter'}}                                          = @nbodyImporters;
-		$massFunctionParameters  ->{'galacticusOutputFileName'}                                                  ->{'value'} = $pathName."haloMassFunction_".$redshiftLabel.".hdf5";
+		$massFunctionParameters  ->{'outputFileName'}                                                  ->{'value'} = $pathName."haloMassFunction_".$redshiftLabel.".hdf5";
 		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[0]->{'values'             }->{'value'} = $simulation->{'massParticle'       };
 		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'description'        }->{'value'} = $simulation->{'description'        };
 		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'simulationReference'}->{'value'} = $simulation->{'simulationReference'};
@@ -638,7 +638,7 @@ sub zoomInsPostprocessAnalyze {
     foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 	my $redshift            =  1.0/$expansionFactor-1.0;
 	my $redshiftLabel       = sprintf("z%5.3f",$redshift);
-	$parameters->{'galacticusOutputFileName'}                                                         ->{'value'} =                $pathName                   ."environment_"      .$redshiftLabel.".hdf5"     ;
+	$parameters->{'outputFileName'}                                                         ->{'value'} =                $pathName                   ."environment_"      .$redshiftLabel.".hdf5"     ;
 	$parameters->{'nbodyImporter'           }->{'nbodyImporter'}->[0]                   ->{'fileName'}->{'value'} =                $pathName                   ."selectedParticles_".$redshiftLabel."_ICs.hdf5" ;
 	$parameters->{'nbodyImporter'           }->{'nbodyImporter'}->[1]                   ->{'fileName'}->{'value'} =                $pathName                   ."ic/ic_gadget_dist"                             ;
 	$parameters->{'nbodyOperator'           }->{'nbodyOperator'}->[0]                   ->{'values'  }->{'value'} = sprintf("%.3f",$simulation->{'redshiftICs'}                                                );

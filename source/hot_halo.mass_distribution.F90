@@ -373,9 +373,9 @@ module Hot_Halo_Mass_Distributions
   end function hotHaloMassDistributionDensity
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>hotHaloMassDistributionDefaultStateStore</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine hotHaloMassDistributionDefaultStateStore(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -396,9 +396,9 @@ module Hot_Halo_Mass_Distributions
   end subroutine hotHaloMassDistributionDefaultStateStore
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>hotHaloMassDistributionDefaultStateRestore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine hotHaloMassDistributionDefaultStateRestore(stateFile,gslStateFile,stateOperationID)
     !!{

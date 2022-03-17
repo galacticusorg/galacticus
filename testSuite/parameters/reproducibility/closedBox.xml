@@ -110,6 +110,6 @@
   </mergerTreeOutputter>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>
+  <outputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>
 
 </parameters>

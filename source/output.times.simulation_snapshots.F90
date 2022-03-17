@@ -71,6 +71,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily simulationSnapshots} output times class.
     !!}
+    use :: Error         , only : Error_Report
     use :: File_Utilities, only : File_Name_Expand
     use :: FoX_DOM       , only : destroy         , node                             , parseFile
     use :: IO_XML        , only : XML_Array_Read  , XML_Get_First_Element_By_Tag_Name
@@ -87,7 +88,7 @@ contains
     
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('unable to find or parse the simulation definition file'//{introspection:location})
+    if (ioStatus /= 0) call Error_Report('unable to find or parse the simulation definition file'//{introspection:location})
     snapshots => XML_Get_First_Element_By_Tag_Name(doc,'snapshots')
     call XML_Array_Read(snapshots,'snapshot',self%redshifts)
     call destroy(doc)

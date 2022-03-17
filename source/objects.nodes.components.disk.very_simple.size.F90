@@ -114,7 +114,7 @@ contains
     !!{
     Initializes the tree node very simple size disk module.
     !!}
-    use :: Galacticus_Error                         , only : Galacticus_Error_Report
+    use :: Error                                    , only : Error_Report
     use :: Galacticus_Nodes                         , only : defaultDiskComponent
     use :: Input_Parameters                         , only : inputParameter             , inputParameters
     use :: Mass_Distributions                       , only : massDistributionCylindrical
@@ -132,7 +132,7 @@ contains
         </default>
        </objectBuilder>
        !!]
-       if (.not.diskMassDistribution%isDimensionless()) call Galacticus_Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       if (.not.diskMassDistribution%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize
@@ -305,9 +305,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Disk_Very_Simple_Size_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -329,9 +329,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Disk_Very_Simple_Size_State_Retrieve</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

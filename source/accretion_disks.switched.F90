@@ -100,8 +100,7 @@ contains
     !!{
     Constructor for the switched accretion disk class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionDisksSwitched)                :: self
     type            (inputParameters       ), intent(inout) :: parameters

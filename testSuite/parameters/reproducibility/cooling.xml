@@ -102,7 +102,7 @@
   </mergerTreeOutputter>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
+  <outputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">

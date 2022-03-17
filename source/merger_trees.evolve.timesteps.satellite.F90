@@ -211,7 +211,7 @@ contains
     Process a satellite node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
@@ -237,7 +237,7 @@ contains
     class is (mergerTreeEvolveTimestepSatellite)
        call self%nodeOperator_%galaxiesMerge(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     !![
     <eventHook name="satelliteMerger">

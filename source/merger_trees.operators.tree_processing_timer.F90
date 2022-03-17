@@ -306,7 +306,7 @@ contains
     !!{
     Outputs collected meta-data on tree processing times.
     !!}
-    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: HDF5                            , only : hsize_t
@@ -319,9 +319,9 @@ contains
 
     if (self%countTrees > 0) then
        !$ call hdf5Access%set()
-       metaDataGroup  =galacticusOutputFile%openGroup ('metaData'  ,'Galacticus meta data.'    )
-       timingDataGroup=metaDataGroup       %openGroup ('treeTiming','Meta-data on tree timing.')
-       preExists      =timingDataGroup     %hasDataset('treeID'                                )
+       metaDataGroup  =outputFile     %openGroup ('metaData'  ,'Galacticus meta data.'    )
+       timingDataGroup=metaDataGroup  %openGroup ('treeTiming','Meta-data on tree timing.')
+       preExists      =timingDataGroup%hasDataset('treeID'                                )
        call timingDataGroup       %writeDataset  (self%treeIDs         (1:self%countTrees),"treeID"         ,"Tree ID"                    ,chunkSize=chunkSize                                ,appendTo=.true.)
        call timingDataGroup       %writeDataset  (self%masses          (1:self%countTrees),"treeMass"       ,"Tree mass [M⊙]"             ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &

@@ -136,6 +136,6 @@
   </mergerTreeOutputter>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/barInstability.hdf5"/>
+  <outputFileName value="testSuite/outputs/barInstability.hdf5"/>
 
 </parameters>

@@ -119,7 +119,7 @@ contains
     !!{
     Implement a filter on descendent node properties.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -143,6 +143,6 @@ contains
        end if
        nodeDescendent => nodeDescendent%parent
     end do
-    call Galacticus_Error_Report('failed to find descendent node'//{introspection:location})
+    call Error_Report('failed to find descendent node'//{introspection:location})
     return
   end function descendentNodePasses

@@ -28,7 +28,7 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
   use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeSpheroid, massTypeAll    , massTypeBaryonic, &
           &                                 massTypeGalactic       , massTypeGaseous      , massTypeStellar, radiusLarge     , &
           &                                 weightByMass
-  use :: Galacticus_Error          , only : Galacticus_Error_Report
+  use :: Error                     , only : Error_Report
   implicit none
   class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
   integer                                          , intent(in   ) :: componentType, massType, weightBy, weightIndex
@@ -50,14 +50,14 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
         Node_Component_Spheroid_Very_Simple_Enclosed_Mass=               self%massStellar()
      end select
   case default
-     call Galacticus_Error_Report('this component does not track luminosity'//{introspection:location})
+     call Error_Report('this component does not track luminosity'//{introspection:location})
   end select
   ! Return if no mass.
   if (Node_Component_Spheroid_Very_Simple_Enclosed_Mass <=       0.0d0) return
   ! Return if the total mass was requested.
   if (radius                                            >= radiusLarge) return
   ! Otherwise we have an error.
-  call Galacticus_Error_Report('this component does not specify a mass profile'//{introspection:location})
+  call Error_Report('this component does not specify a mass profile'//{introspection:location})
   return
 end function Node_Component_Spheroid_Very_Simple_Enclosed_Mass
 

@@ -281,7 +281,7 @@ contains
     !!}
     use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity           , &
          &                                                displayGreen                , displayReset
-    use    :: Galacticus_Error                   , only : Galacticus_Error_Report     , errorStatusSuccess
+    use    :: Error                              , only : Error_Report                , errorStatusSuccess
     use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic       , nodeEvent                  , &
           &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
     use    :: Merger_Tree_Timesteps              , only : timestepTask
@@ -352,7 +352,7 @@ contains
                    vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
                    vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
                    vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
-                   call Galacticus_Error_Report(vMessage//{introspection:location})
+                   call Error_Report(vMessage//{introspection:location})
                 end if
              else
                 ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
@@ -374,7 +374,7 @@ contains
                       vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
                       vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
                       vMessage=vMessage//                                          '       precisely at the output times you request'
-                      call Galacticus_Error_Report(vMessage//{introspection:location})
+                      call Error_Report(vMessage//{introspection:location})
                    end if
                    event => event%next
                 end do
@@ -734,7 +734,7 @@ contains
                 call displayUnindent("report done")
                 call self%deadlockOutputTree(timeEnd)
                 if (.not.deadlockReporting) then
-                   call Galacticus_Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
+                   call Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
                 else
                    return
                 end if
@@ -766,7 +766,7 @@ contains
     !!}
     use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
-    use :: Galacticus_Error      , only : Galacticus_Error_Report
+    use :: Error                 , only : Error_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite, nodeEvent      , nodeEventBranchJumpInterTree, &
           &                               nodeEventSubhaloPromotionInterTree, treeEvent             , treeNode
     use :: Merger_Tree_Timesteps , only : timestepTask
@@ -1002,7 +1002,7 @@ contains
           ! on the time limits.
           message=message//' Gyr)'
           if (.not.report) time=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true.)
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'

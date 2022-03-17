@@ -231,7 +231,7 @@ contains
     !!{
     Return the environment of the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
@@ -308,14 +308,14 @@ contains
     !!{
     Return the CDF of the environmental overdensity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: overdensity
     !$GLC attributes unused :: self
 
-    if (overdensity <= -1.0d0) call Galacticus_Error_Report('δ≤-1 is inconsistent with log-normal density field'//{introspection:location})
+    if (overdensity <= -1.0d0) call Error_Report('δ≤-1 is inconsistent with log-normal density field'//{introspection:location})
     call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)
     return
   end subroutine logNormalOverdensityLinearSet

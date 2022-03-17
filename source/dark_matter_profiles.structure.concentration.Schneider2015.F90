@@ -85,8 +85,8 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileConcentrationSchneider2015)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
@@ -97,7 +97,7 @@ contains
     class           (cosmologyFunctionsClass                    ), pointer       :: referenceCosmologyFunctions      , cosmologyFunctions_
     double precision                                                             :: massFractionFormation
 
-    if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
+    if (.not.parameters%isPresent('reference',requireValue=.false.)) call Error_Report('parameters must contain a "reference" section'//{introspection:location})
     referenceParameters=parameters%subParameters('reference',requireValue=.false.)
     ! Check and read parameters.
     !![

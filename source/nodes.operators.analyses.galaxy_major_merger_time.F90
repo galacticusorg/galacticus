@@ -132,7 +132,7 @@ contains
     !!{
     Record times of galaxy-galaxy major mergers.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (*                 ), intent(inout)              :: self
@@ -164,7 +164,7 @@ contains
        call basicHost%floatRank1MetaPropertySet(self%galaxyMajorMergerTimeID,majorMergerTimesNew)
     end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine satelliteMerger

@@ -181,7 +181,7 @@ contains
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -191,7 +191,7 @@ contains
        self%propertiesCalculated=.false.
        self%lastUniqueID       =node%uniqueID()
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine cole2000CalculationReset
@@ -200,7 +200,7 @@ contains
     !!{
     Hookable wrapper around the get function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (*       ), intent(inout)         :: self
     type            (treeNode), intent(inout), target :: node
@@ -211,7 +211,7 @@ contains
     type is (mergerRemnantSizeCole2000)
        call self%get(node,radius,velocityCircular,angularMomentumSpecific)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine cole2000GetHook
@@ -222,7 +222,7 @@ contains
     !!}
     use :: Display                         , only : displayMessage
     use :: Galactic_Structure_Options      , only : massTypeDark
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: String_Handling                 , only : operator(//)
@@ -339,7 +339,7 @@ contains
           if (errorCondition) then
              call node    %serializeASCII()
              call nodeHost%serializeASCII()
-             call Galacticus_Error_Report('error condition detected'//{introspection:location})
+             call Error_Report('error condition detected'//{introspection:location})
           end if
           ! Check if host has finite mass.
           if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then

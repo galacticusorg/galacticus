@@ -250,6 +250,6 @@
   <outputTimes value="list">
     <redshifts value="0.0 0.5 1.0"/>
   </outputTimes>
-  <galacticusOutputFileName value="testSuite/outputs/interoutputStarFormationRate.hdf5"/>  
+  <outputFileName value="testSuite/outputs/interoutputStarFormationRate.hdf5"/>  
 
 </parameters>

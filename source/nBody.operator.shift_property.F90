@@ -96,6 +96,7 @@ contains
     !!{
     Select particles matching a list of integer properties. 
     !!}
+    use :: Error  , only : Error_Report
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
     implicit none
     class  (nbodyOperatorShiftProperty), intent(inout)               :: self
@@ -111,7 +112,7 @@ contains
                &             +self%shiftBy
           nullify(propertyInteger)
        else
-          call Galacticus_Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
+          call Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
        end if
     end do
     call displayUnindent('done',verbosityLevelStandard)

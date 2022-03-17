@@ -83,7 +83,7 @@ contains
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
     type            (transferFunctionBode2001)                :: self
@@ -96,7 +96,7 @@ contains
          &                                                       nu                  , redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <inputParameter>
@@ -148,7 +148,7 @@ contains
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     implicit none
     type            (transferFunctionBode2001)                           :: self
     class           (transferFunctionClass   ), target   , intent(in   ) :: transferFunctionCDM
@@ -181,7 +181,7 @@ contains
             &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
             &           /(particle%mass                     ()/            massReference)**1.15d0
     class default
-       call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     return
   end function bode2001ConstructorInternal
@@ -275,7 +275,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionBode2001), intent(inout), target   :: self
@@ -301,7 +301,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionBode2001), intent(inout), target   :: self
@@ -327,7 +327,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is reduced by {\normalfont \ttfamily fraction} relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionBode2001), intent(inout), target   :: self

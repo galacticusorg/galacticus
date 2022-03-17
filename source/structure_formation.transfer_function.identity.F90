@@ -138,7 +138,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function. Not supported in this implementation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionIdentity), intent(inout), target   :: self
     integer                          , intent(  out), optional :: status
@@ -148,7 +148,7 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       call Error_Report('not supported by this implementation'//{introspection:location})
     end if
     return
   end function identityHalfModeMass
@@ -158,7 +158,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
     to a \gls{cdm} transfer function. Not supported in this implementation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionIdentity), intent(inout), target   :: self
     integer                          , intent(  out), optional :: status
@@ -168,7 +168,7 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       call Error_Report('not supported by this implementation'//{introspection:location})
     end if
     return
   end function identityQuarterModeMass

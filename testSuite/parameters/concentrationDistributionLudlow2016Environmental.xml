@@ -116,7 +116,7 @@
   </mergerTreeNodeEvolver>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="testSuite/outputs/concentrationDistributionLudlow2016Environmental.hdf5"/>
+  <outputFileName value="testSuite/outputs/concentrationDistributionLudlow2016Environmental.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>

@@ -129,7 +129,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncated)                        :: self
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
@@ -141,7 +141,7 @@ contains
     !!]
 
     ! Validate.
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID       =-1_kind_int8
     self%genericLastUniqueID=-1_kind_int8
     return

@@ -10,7 +10,7 @@
     <initializeNodeClassHierarchy value="false"/>
   </task>
 
-  <galacticusOutputFileName value="galacticus.hdf5"/>
+  <outputFileName value="galacticus.hdf5"/>
 
   <posteriorSampleLikelihood value="galaxyPopulation">
     <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"      />

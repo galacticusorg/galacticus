@@ -166,7 +166,7 @@ contains
     Constructor for ``massFunction'' posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
-    use :: Galacticus_Paths , only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
@@ -193,7 +193,7 @@ contains
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
-    call massFunctionFile%openFile(char(galacticusPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
+    call massFunctionFile%openFile(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )
@@ -273,7 +273,7 @@ contains
     Return the log-likelihood for the mass function likelihood function.
     !!}
     use :: Conditional_Mass_Functions    , only : conditionalMassFunctionBehroozi2010
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Linear_Algebra                , only : assignment(=)                              , operator(*)
     use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessSurfaceBrightness
     use :: Models_Likelihoods_Constants  , only : logImpossible
@@ -316,7 +316,7 @@ contains
          &  .or.                                                              &
          &   (     self%modelSurfaceBrightness .and. size(stateVector) /= 14) &
          & )                                                                  &
-         & call Galacticus_Error_Report('11 or 14 parameters are required for this likelihood function'//{introspection:location})
+         & call Error_Report('11 or 14 parameters are required for this likelihood function'//{introspection:location})
     do i=1,size(stateVector)
        stateVector(i)=modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
     end do
@@ -395,8 +395,8 @@ contains
       !!{
       Integral over time.
       !!}
-      use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
-      use :: String_Handling , only : operator(//)
+      use :: Error          , only : Error_Report, errorStatusSuccess
+      use :: String_Handling, only : operator(//)
       implicit none
       double precision                , intent(in   ) :: timePrime
       type            (integrator    )                :: integrator_
@@ -458,7 +458,7 @@ contains
             write (label,'(e12.6)') stateVector(i)
             message=message//char(10)//" state ["//i//"] = "//trim(label)
          end do
-         call Galacticus_Error_Report(message//{introspection:location})
+         call Error_Report(message//{introspection:location})
       end if
       return
     end function likelihoodMassFunctionTimeIntegrand

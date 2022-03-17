@@ -40,7 +40,7 @@ contains
     !!{
     Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
     !!}
-    use :: ISO_Varying_String, only : varying_string, char
+    use :: ISO_Varying_String, only : char, varying_string
     implicit none
     type   (varying_string), intent(in   )           :: command
     integer                , intent(  out), optional :: iStatus
@@ -53,7 +53,7 @@ contains
     !!{
     Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     character(len=*), intent(in   )           :: command
     integer         , intent(  out), optional :: iStatus
@@ -63,7 +63,7 @@ contains
     if (present(iStatus)) then
        iStatus=iStatusActual
     else
-       if (iStatusActual /= 0) call Galacticus_Error_Report('failed to execute system command:'//char(10)//' --> '//command//{introspection:location})
+       if (iStatusActual /= 0) call Error_Report('failed to execute system command:'//char(10)//' --> '//command//{introspection:location})
     end if
     return
   end subroutine System_Command_Char

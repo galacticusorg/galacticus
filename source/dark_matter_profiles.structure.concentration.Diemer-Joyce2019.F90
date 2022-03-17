@@ -185,7 +185,6 @@ contains
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none

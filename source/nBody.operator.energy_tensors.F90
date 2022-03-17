@@ -121,7 +121,7 @@ contains
     !!}
     use    :: Display                         , only : displayCounter                 , displayCounterClear   , displayIndent, displayMessage, &
          &                                             displayUnindent                , verbosityLevelStandard
-    use    :: Galacticus_Error                , only : Galacticus_Error_Report
+    use    :: Error                           , only : Error_Report
     use    :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use    :: Linear_Algebra                  , only : matrix                         , vector                , operator(*)  , assignment(=)
 #ifdef USEMPI
@@ -167,9 +167,9 @@ contains
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%propertiesIntegerRank1%exists('isBound')) then
              selfBoundStatus => simulations(iSimulation)%propertiesIntegerRank1%value('isBound')
-             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
           else
-             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+             call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
           position => simulations(iSimulation)%propertiesRealRank1%value('position')
@@ -186,21 +186,21 @@ contains
        ! Get mean position and velocity, and the angular velocity vector of the rotating frame in which the angular momentum of the system is zero.
        if (simulations(iSimulation)%propertiesRealRank1%exists('positionMean')) then
           positionMean => simulations(iSimulation)%propertiesRealRank1%value('positionMean')          
-          if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
+          if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('mean position not available - apply a "positionMean" operator first'//{introspection:location})
+          call Error_Report('mean position not available - apply a "positionMean" operator first'//{introspection:location})
        end if
        if (simulations(iSimulation)%propertiesRealRank1%exists('velocityMean')) then
           velocityMean => simulations(iSimulation)%propertiesRealRank1%value('velocityMean')          
-          if (size(velocityMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of velocityMean samples must equal number of requested bootstrap samples'//{introspection:location})
+          if (size(velocityMean,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of velocityMean samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('mean velocity not available - apply a "positionMean" operator first'//{introspection:location})
+          call Error_Report('mean velocity not available - apply a "positionMean" operator first'//{introspection:location})
        end if
        if (simulations(iSimulation)%propertiesRealRank1%exists('angularVelocityVector')) then
           angularVelocityVector => simulations(iSimulation)%propertiesRealRank1%value('angularVelocityVector')          
-          if (size(angularVelocityVector,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of angularVelocityVector samples must equal number of requested bootstrap samples'//{introspection:location})
+          if (size(angularVelocityVector,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of angularVelocityVector samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('mean angularVelocityVector not available - apply a "angularMomentum" operator first'//{introspection:location})
+          call Error_Report('mean angularVelocityVector not available - apply a "angularMomentum" operator first'//{introspection:location})
        end if
        ! Get position and velocity.
        position => simulations(iSimulation)%propertiesRealRank1%value('position')

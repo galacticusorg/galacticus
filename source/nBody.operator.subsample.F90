@@ -81,7 +81,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily subsample} N-body operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (nbodyOperatorSubsample    )                        :: self
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
@@ -90,7 +90,7 @@ contains
     <constructorAssign variables="rate, *randomNumberGenerator_"/>
     !!]
 
-    if (rate <= 0.0d0 .or. rate > 1.0d0) call Galacticus_Error_Report('range must be in the interval [0,1)'//{introspection:location})
+    if (rate <= 0.0d0 .or. rate > 1.0d0) call Error_Report('range must be in the interval [0,1)'//{introspection:location})
     return
   end function subsampleConstructorInternal
 
@@ -111,9 +111,9 @@ contains
     !!{
     Identify and flag particles which have been always isolated.
     !!}
-    use :: Display              , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
+    use :: Display              , only : displayIndent      , displayMessage  , displayUnindent, verbosityLevelStandard
+    use :: Error                , only : Error_Report
+    use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal
     implicit none
     class           (nbodyOperatorSubsample), intent(inout)                 :: self
     type            (nBodyData             ), intent(inout), dimension(  :) :: simulations
@@ -145,7 +145,7 @@ contains
           propertyRealRank1    => simulations(i)%propertiesRealRank1   %value(1)
           countOriginal        =  size(propertyRealRank1   ,dim=2)
        end if
-       if (countOriginal <= 0_c_size_t) call Galacticus_Error_Report('no properties available to subsample'//{introspection:location})
+       if (countOriginal <= 0_c_size_t) call Error_Report('no properties available to subsample'//{introspection:location})
        allocate(mask(countOriginal))
        do k=1,size(mask)
           mask(k)=self%randomNumberGenerator_%uniformSample() < self%rate

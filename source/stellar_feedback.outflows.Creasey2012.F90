@@ -68,7 +68,7 @@ contains
     !!{
     Constructor for the \cite{creasey_how_2012} stellar feedback class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (stellarFeedbackOutflowsCreasey2012       )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
@@ -177,7 +177,7 @@ contains
        massGas    =0.0d0
        massStellar=0.0d0
        radiusScale=0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Return immediately for a null component.
     if (massGas <= 0.0d0 .or. massStellar <= 0.0d0 .or. radiusScale <= 0.0d0) then
@@ -206,8 +206,8 @@ contains
       !!{
       Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
       !!}
-      use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
-      use :: Numerical_Constants_Prefixes        , only : mega
+      use :: Galactic_Structure_Options  , only : componentTypeDisk, coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+      use :: Numerical_Constants_Prefixes, only : mega
       implicit none
       double precision, intent(in   ) :: radius
       double precision                :: fractionGas      , densitySurfaceRateStarFormation, &

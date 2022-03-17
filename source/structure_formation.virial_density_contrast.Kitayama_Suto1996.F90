@@ -84,7 +84,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (virialDensityContrastKitayamaSuto1996)                        :: self
     class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_

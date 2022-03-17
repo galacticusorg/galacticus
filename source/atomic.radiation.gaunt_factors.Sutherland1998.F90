@@ -171,7 +171,7 @@ contains
     \cite{sutherland_accurate_1998}.
     !!}
     use            :: Arrays_Search               , only : searchArray
-    use            :: Galacticus_Error            , only : Galacticus_Error_Report
+    use            :: Error                       , only : Error_Report
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: Numerical_Constants_Physical, only : boltzmannsConstant
     use            :: Numerical_Constants_Units   , only : electronVolt
@@ -188,7 +188,7 @@ contains
        return
     end if
     ! Validate input.
-    if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
+    if (electronNumber > atomicNumber) call Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
     if (self%atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        sutherland1998Total=0.0d0

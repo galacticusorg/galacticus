@@ -135,8 +135,8 @@ contains
     Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     node} using the algorithm of \cite{zhao_accurate_2009}.
     !!}
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
+    use :: Error                , only : Error_Report
+    use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
@@ -158,7 +158,7 @@ contains
     baseMass  =  basicBase%mass ()
     baseTime  =  basicBase%time ()
     ! Trap cases where the mass occurs in the future.
-    if (mass > baseMass) call Galacticus_Error_Report('specified mass is in the future'//{introspection:location})
+    if (mass > baseMass) call Error_Report('specified mass is in the future'//{introspection:location})
     ! Calculate quantities which remain fixed through the ODE.
     ! Get sigma(M) and its logarithmic derivative.
     call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved)
@@ -233,7 +233,7 @@ contains
     Compute the mass accretion rate at the given {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont
     \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -241,6 +241,6 @@ contains
     !$GLC attributes unused :: self, node, time
 
     zhao2009MassAccretionRate=0.0d0
-    call Galacticus_Error_Report('mass accretion rate is not implemented'//{introspection:location})
+    call Error_Report('mass accretion rate is not implemented'//{introspection:location})
     return
   end function zhao2009MassAccretionRate

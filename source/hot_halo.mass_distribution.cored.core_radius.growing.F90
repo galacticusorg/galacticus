@@ -110,7 +110,7 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                        :: self
@@ -122,15 +122,15 @@ contains
     !!]
 
     ! Ensure that the dark matter profile supports the scale property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                           &
-         & call Galacticus_Error_Report                                                                                     &
-         &      (                                                                                                           &
-         &       'method requires a dark matter profile component that provides a gettable "scale" property.'//             &
-         &       Galacticus_Component_List(                                                                                 &
-         &                                 'darkMatterProfile'                                                           ,  &
-         &                                  defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                              // &
-         &       {introspection:location}                                                                                   &
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                &
+         & call Error_Report                                                                                     &
+         &      (                                                                                                &
+         &       'method requires a dark matter profile component that provides a gettable "scale" property.'//  &
+         &       Component_List(                                                                                 &
+         &                      'darkMatterProfile'                                                           ,  &
+         &                       defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
+         &                     )                                                                              // &
+         &       {introspection:location}                                                                        &
          &      )
     ! Initialize memoized values and table status.
     self%hotGasFractionSaved                   =-huge(0.0d0)

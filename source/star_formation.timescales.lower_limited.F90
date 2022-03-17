@@ -108,9 +108,9 @@ contains
     multiple of the dynamical time.
     !!}
     use :: Array_Utilities                 , only : operator(.intersection.)
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponent           , nodeComponentDisk, nodeComponentSpheroid, defaultDiskComponent, &
-         &                                          defaultSpheroidComponent
+    use :: Error                           , only : Error_Report
+    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, nodeComponent, nodeComponentDisk, &
+          &                                         nodeComponentSpheroid
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (starFormationTimescaleLowerLimited), intent(inout) :: self
@@ -121,40 +121,38 @@ contains
     select type (component)
     class is (nodeComponentDisk    )
        if (.not.self%diskSupported) then
-          call Galacticus_Error_Report                                                                                        &
-               &        (                                                                                                     &
-               &         'disk component must have gettable radius and velocity properties.'    //                            &
-               &         Galacticus_Component_List(                                                                           &
-               &                                   'disk'                                                                  ,  &
-               &                                    defaultDiskComponent    %velocityAttributeMatch(requireGettable=.true.)   &
-               &                                   .intersection.                                                             &
-               &                                    defaultDiskComponent    %  radiusAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                        // &
-               &         {introspection:location}                                                                             &
-               &        )
+          call Error_Report(                                                                                          &
+               &            'disk component must have gettable radius and velocity properties.'                    // &
+               &            Component_List(                                                                           &
+               &                           'disk'                                                                  ,  &
+               &                            defaultDiskComponent    %velocityAttributeMatch(requireGettable=.true.)   &
+               &                           .intersection.                                                             &
+               &                            defaultDiskComponent    %  radiusAttributeMatch(requireGettable=.true.)   &
+               &                          )                                                                        // &
+               &            {introspection:location}                                                                  &
+               &           )
        end if
        velocity=component%velocity()
        radius  =component%radius  ()
     class is (nodeComponentSpheroid)
        if (.not.self%spheroidSupported) then
-          call Galacticus_Error_Report                                                                                        &
-               &        (                                                                                                     &
-               &         'spheroid component must have gettable radius and velocity properties.'//                            &
-               &         Galacticus_Component_List(                                                                           &
-               &                                   'spheroid'                                                              ,  &
-               &                                    defaultSpheroidComponent%velocityAttributeMatch(requireGettable=.true.)   &
-               &                                   .intersection.                                                             &
-               &                                    defaultSpheroidComponent%  radiusAttributeMatch(requireGettable=.true.)   &
-               &                                  )                                                                        // &
-               &         {introspection:location}                                                                             &
-               &        )
+          call Error_Report(                                                                                          &
+               &            'spheroid component must have gettable radius and velocity properties.'                // &
+               &            Component_List(                                                                           &
+               &                           'spheroid'                                                              ,  &
+               &                            defaultSpheroidComponent%velocityAttributeMatch(requireGettable=.true.)   &
+               &                           .intersection.                                                             &
+               &                            defaultSpheroidComponent%  radiusAttributeMatch(requireGettable=.true.)   &
+               &                          )                                                                        // &
+               &            {introspection:location}                                                                  &
+               &           )
        end if
        velocity=component%velocity()
        radius  =component%radius  ()
     class default
        velocity=0.0d0
        radius  =0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Check for zero velocity.
     if (velocity <= 0.0d0) then

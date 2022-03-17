@@ -62,7 +62,7 @@ contains
     Constructor for the velocity maximum scaling fraction stellar feedback class which takes a parameter set as
     input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (stellarFeedbackOutflowsVlctyMxSclng)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters

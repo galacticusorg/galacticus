@@ -127,6 +127,6 @@
   </nodePropertyExtractor>
   
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/stellarMassWeightedAgesSimple.hdf5"/>
+  <outputFileName value="testSuite/outputs/stellarMassWeightedAgesSimple.hdf5"/>
 
 </parameters>

@@ -203,10 +203,10 @@ contains
     !!{
     Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
     !!}
-    use :: Abundances_Structure                 , only : abundances             , operator(*)
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloColdMode      , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
+    use :: Abundances_Structure                 , only : abundances   , operator(*)
+    use :: Error                                , only : Error_Report
+    use :: Galacticus_Nodes                     , only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloColdMode      , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode  , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
     type            (treeNode                    ), intent(inout)          , target  :: node
@@ -238,7 +238,7 @@ contains
              nodeCoolingFrom => node%formationNode
           case default
              nodeCoolingFrom => null()
-             call Galacticus_Error_Report('unknown cooling node'//{introspection:location})
+             call Error_Report('unknown cooling node'//{introspection:location})
           end select
           ! Compute the infall rate of angular momentum.
           angularMomentumCoolingRate=massRate*hotHalo%angularMomentumCold()/hotHalo%massCold()
@@ -361,7 +361,7 @@ contains
     !!}
     use :: Abundances_Structure                             , only : abundances              , max                      , operator(*)
     use :: Galactic_Structure_Options                       , only : componentTypeColdHalo   , coordinateSystemSpherical, massTypeGaseous
-    use :: Galacticus_Error                                 , only : Galacticus_Error_Report
+    use :: Error                                            , only : Error_Report
     use :: Galacticus_Nodes                                 , only : interruptTask           , nodeComponentBasic       , nodeComponentHotHaloColdMode, nodeComponentHotHaloStandard, &
           &                                                          treeNode
     use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloOutflowReturnRate, starveSatellites
@@ -430,7 +430,7 @@ contains
           end if
        end if
     class default
-       call Galacticus_Error_Report('this function should not be called for non-coldMode class hot halo components'//{introspection:location})
+       call Error_Report('this function should not be called for non-coldMode class hot halo components'//{introspection:location})
     end select
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Outflow_Return
@@ -820,9 +820,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Formation
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Hot_Halo_Cold_Mode_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -843,9 +843,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Hot_Halo_Cold_Mode_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

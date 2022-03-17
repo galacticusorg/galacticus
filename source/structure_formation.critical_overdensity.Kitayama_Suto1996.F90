@@ -66,8 +66,8 @@ contains
     Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
     which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
@@ -97,8 +97,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
     !!}
-    use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
+    use :: Error                , only : Error_Report
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                        :: self
     class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_
@@ -115,7 +115,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
    return
   end function kitayamaSuto1996ConstructorInternal

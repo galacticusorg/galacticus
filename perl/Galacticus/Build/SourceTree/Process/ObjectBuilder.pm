@@ -128,7 +128,7 @@ sub Process_ObjectBuilder {
 		    $builderCode               .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
 		    $builderCode               .= "      parametersCurrent => parametersCurrent%parent\n";
 		    $builderCode               .= "   end do\n";
-		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 	    } else {	    
 		$builderCode .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
@@ -162,7 +162,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "            call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
 	    $builderCode .= $debugMessage;
 	    $builderCode .= "         class default\n";
-	    $builderCode .= "            call Galacticus_Error_Report('parameter-stored object is not of [$node->{'directive'}->{'class'}] class'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+	    $builderCode .= "            call Error_Report('parameter-stored object is not of [$node->{'directive'}->{'class'}] class'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $builderCode .= "         end select\n";
 	    $builderCode .= "      else\n";
 	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node. Increment reference counter here as this is a newly constructed object.\n";
@@ -271,7 +271,7 @@ sub Process_ObjectBuilder {
 		    type      => "moduleUse",
 		    moduleUse =>
 		    {
-			Galacticus_Error =>
+			Error =>
 			{
 			    intrinsic => 0,
 			    all       => 1
@@ -389,7 +389,7 @@ sub Process_ObjectBuilder {
 		$destructorCode .= "      if (mpiSelf\%isMaster()) call displayMessage(var_str('objectDestructor: negative reference counter (should abort, but will nullify for debugging) ".$node->{'directive'}->{'name'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		$destructorCode .= "      nullify(".$node->{'directive'}->{'name'}.")\n";		
 	    } else {
-		$destructorCode .= "      call Galacticus_Error_Report('negative reference counter in object \"".$node->{'directive'}->{'name'}."\"'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$destructorCode .= "      call Error_Report('negative reference counter in object \"".$node->{'directive'}->{'name'}."\"'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    }
             $destructorCode .= "   else\n";
             $destructorCode .= "      ! Nullify the pointer.\n";
@@ -426,7 +426,7 @@ sub Process_ObjectBuilder {
 		type      => "moduleUse",
 		moduleUse =>
 		{
-		    Galacticus_Error =>
+		    Error =>
 		    {
 			intrinsic => 0,
 			all       => 1

@@ -46,8 +46,8 @@ contains
     !!{
     Return the name of the compiler to use for a given language.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : varying_string         , char, var_str
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char        , var_str, varying_string
     implicit none
     type   (varying_string)                :: compiler
     integer                , intent(in   ) :: language
@@ -65,7 +65,7 @@ contains
        compilerEnvironmentVariable=var_str('CPPCOMPILER')
        compiler                   =var_str('g++'        )
     case default
-       call Galacticus_Error_Report('unknown language'//{introspection:location})
+       call Error_Report('unknown language'//{introspection:location})
     end select
     call Get_Environment_Variable(char(compilerEnvironmentVariable),length=compilerLength,status=status)
     if (status == 0) compiler=compilerRetrieve(char(compilerEnvironmentVariable),compilerLength)
@@ -76,8 +76,8 @@ contains
     !!{
     Return compiler options to use for a given language.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : varying_string         , char, var_str
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char        , var_str, varying_string
     implicit none
     type   (varying_string)                :: compilerOptions
     integer                , intent(in   ) :: language
@@ -93,7 +93,7 @@ contains
     case (languageCPlusPlus)
        compilerEnvironmentVariable=var_str('GALACTICUS_CPPFLAGS')
     case default
-       call Galacticus_Error_Report('unknown language'//{introspection:location})
+       call Error_Report('unknown language'//{introspection:location})
     end select
     call Get_Environment_Variable(char(compilerEnvironmentVariable),length=compilerLength,status=status)
     if (status == 0) compilerOptions=compilerRetrieve(char(compilerEnvironmentVariable),compilerLength)
@@ -104,7 +104,7 @@ contains
     !!{
     Retrieve the compiler command from an environment variable.
     !!}
-    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    use :: ISO_Varying_String, only : assignment(=), varying_string
     implicit none
     type     (varying_string    )                :: compilerRetrieve
     integer                      , intent(in   ) :: compilerLength

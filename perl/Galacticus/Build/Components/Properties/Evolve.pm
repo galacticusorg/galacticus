@@ -118,7 +118,7 @@ sub Build_Rate_Get_Functions {
 	description => "Get the rate of change of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	    ],
 	variables   =>
 	    [
@@ -165,13 +165,13 @@ CODE
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offset = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (nodeAnalytics({$offsetNameAll})) call Galacticus_Error_Report('rates are gettable only for numerically-solved variables'//\{introspection:location\})
+if (nodeAnalytics({$offsetNameAll})) call Error_Report('rates are gettable only for numerically-solved variables'//\{introspection:location\})
 if (rateComputeState == propertyTypeInactive) then
- if (nodeInactives({$offsetNameAll})) call Galacticus_Error_Report('rates are gettable only for active variables'//\{introspection:location\})
+ if (nodeInactives({$offsetNameAll})) call Error_Report('rates are gettable only for active variables'//\{introspection:location\})
  offset={$offsetNameActive}
 else
  offset=0
- call Galacticus_Error_Report('rates are gettable only during inactive variable integration'//\{introspection:location\})
+ call Error_Report('rates are gettable only during inactive variable integration'//\{introspection:location\})
 end if
 CODE
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
@@ -236,6 +236,10 @@ sub Build_Rate_Functions {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Rate".$suffix,
 	description => "Accumulate".($intrinsicRate ? " directly (i.e. circumventing any deferred function binding)" : "")." to the rate of change of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	modules     =>
+	    [
+	     "Error"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -297,7 +301,7 @@ CODE
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offset = fill_in_string(<<'CODE', PACKAGE => 'code');
-if (nodeAnalytics({$offsetNameAll})) call Galacticus_Error_Report('rates are only settable for numerically-solved variables'//\{introspection:location\})
+if (nodeAnalytics({$offsetNameAll})) call Error_Report('rates are only settable for numerically-solved variables'//\{introspection:location\})
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}
 else if (rateComputeState == propertyTypeActive  ) then
@@ -374,6 +378,10 @@ sub Build_Generic_Rate_Functions {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::property->{'name'})."RateGeneric",
 	description => "Set the rate of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class via a generic {\\normalfont \\ttfamily nodeComponent}.",
+	modules     =>
+	    [
+	     "Error"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -409,7 +417,7 @@ sub Build_Generic_Rate_Functions {
 	    ]
     };
     # Add error reporting module if required.
-    push(@{$function->{'modules'}},"Galacticus_Error")
+    push(@{$function->{'modules'}},"Error")
 	if ( $code::property->{'attributes'}->{'createIfNeeded'} );
     # Build the function.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -440,7 +448,7 @@ CODE
 	    }
 	}
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
+  if (.not.(present(interrupt).and.present(interruptProcedure))) call Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
   interrupt          =  .true.
   interruptProcedure => {$class->{'name'}}CreateByInterrupt
   return
@@ -491,7 +499,7 @@ sub Build_Auto_Create_Rate_Functions {
 	description => "Accept a rate set for the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class. Trigger an interrupt to create the component.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	    ],
 	variables   =>
 	    [
@@ -538,7 +546,7 @@ CODE
 	}
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
+if (.not.(present(interrupt).and.present(interruptProcedure))) call Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
 interrupt=.true.
 interruptProcedure => {$class->{'name'}}CreateByInterrupt
 CODE
@@ -723,6 +731,10 @@ sub Build_Analytic_Functions {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Alytc",
 	description => "Indicate that the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is to be solved analytically during differential evolution.",
+	modules     =>
+	    [
+	     "Error"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -750,12 +762,12 @@ CODE
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (nodeAnalytics({$offsetName})) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+if (nodeAnalytics({$offsetName})) call Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
 nodeAnalytics({$offsetName})=.true.
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (any(nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+if (any(nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1))) call Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
 nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1)=.true.
 CODE
 	}
@@ -763,7 +775,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 count=self%{$property->{'name'}}Data%serializeCount()
 if (count > 0) then
- if (any(nodeAnalytics({$offsetName}:{$offsetName}+count-1))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+ if (any(nodeAnalytics({$offsetName}:{$offsetName}+count-1))) call Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
  nodeAnalytics({$offsetName}:{$offsetName}+count-1)=.true.
 end if
 CODE

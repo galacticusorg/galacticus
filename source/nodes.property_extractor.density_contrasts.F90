@@ -226,6 +226,7 @@ contains
     Implement a last isolated redshift output analysis.
     !!}
     use :: Cosmology_Functions       , only : densityCosmologicalMean, densityCosmologicalCritical
+    use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeAll
     implicit none
     double precision                                        , dimension(:,:), allocatable :: densityContrastsExtract
@@ -254,7 +255,7 @@ contains
        densityReference=+densityReference                                                          &
             &           /self%cosmologyFunctions_%OmegaMatterEpochal(densityContrastsBasic%time())
     case default
-       call Galacticus_Error_Report('unknown cosmological density'//{introspection:location})
+       call Error_Report('unknown cosmological density'//{introspection:location})
     end select
     ! If dark matter only is used, multiply the reference density by the dark matter fraction.
     if (self%darkMatterOnly) densityReference=+ densityReference                                                                 &

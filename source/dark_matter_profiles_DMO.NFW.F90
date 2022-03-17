@@ -182,7 +182,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type   (darkMatterProfileDMONFW )                        :: self
@@ -207,15 +207,15 @@ contains
     self%nfwTableInitialized               =.false.
     self%lastUniqueID                      =-1
     ! Ensure that the dark matter profile component supports a "scale" property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                          &
-         & call Galacticus_Error_Report                                                                                    &
-         &      (                                                                                                          &
-         &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'  //  &
-         &       Galacticus_Component_List(                                                                                &
-         &                                 'darkMatterProfile'                                                          ,  &
-         &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                             // &
-         &      {introspection:location}                                                                                   &
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                        &
+         & call Error_Report                                                                                             &
+         &      (                                                                                                        &
+         &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//  &
+         &       Component_List(                                                                                         &
+         &                      'darkMatterProfile'                                                                   ,  &
+         &                      defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)            &
+         &                     )                                                                                      // &
+         &      {introspection:location}                                                                                 &
          &      )
     ! Initialize the tabulations.
     call self%tabulate              ()

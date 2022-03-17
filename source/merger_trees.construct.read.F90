@@ -685,11 +685,11 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     !!}
-    use    :: Display                    , only : displayMagenta         , displayReset
+    use    :: Display                    , only : displayMagenta  , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
-    use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
+    use    :: Error                      , only : Error_Report    , Warn
     use    :: Memory_Management          , only : allocateArray
-    use    :: Numerical_Constants_Boolean, only : booleanFalse           , booleanTrue
+    use    :: Numerical_Constants_Boolean, only : booleanFalse    , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
     implicit none
     type            (mergerTreeConstructorRead          )                              :: self
@@ -755,7 +755,7 @@ contains
              message=message//" (subhalo presence in the current trees was not specified)"
           end if
        end if
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     ! Warn about lack of branch jumps and subhalo promotions if split forests are being used.
     if (self%forestSizeMaximum > 0_c_size_t .and. .not.(self%allowBranchJumps .and. self%allowSubhaloPromotions)) then
@@ -764,7 +764,7 @@ contains
        if (.not.self%allowSubhaloPromotions.and..not.self%allowBranchJumps) message=message//' and'
        if (.not.self%allowSubhaloPromotions                               ) message=message//' subhalo promotions'
        message=message//' are not allowed - this can result in inconsistent treatment between split and unsplit forest processing'
-       call Galacticus_Warn(message)
+       call Warn(message)
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowSubhaloPromotions.and..not.self%allowBranchJumps) then
@@ -782,7 +782,7 @@ contains
        message=message//' ---   -----'//char(10)
        message=message//' |c|   | 3 |'//char(10)
        message=message//' ---   -----'//{introspection:location}//char(10)
-       call Galacticus_Warn(message)
+       call Warn(message)
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowBranchJumps.and..not.self%presetMergerTimes) then
@@ -800,17 +800,17 @@ contains
        message=message//' ---     ---   ---'//char(10)
        message=message//' |2|     |3|<==|a|'//char(10)
        message=message//' ---     ---   ---'//{introspection:location}//char(10)
-       call Galacticus_Warn(message)
+       call Warn(message)
     end if
     ! Perform sanity checks if subhalos are not included.
     if (self%mergerTreeImporter_%treesHaveSubhalos() == booleanFalse) then
-       if (self%presetMergerTimes   ) call Galacticus_Error_Report('cannot preset merger times as no subhalos are present; try setting [presetMergerTimes]=false'      //{introspection:location})
-       if (self%presetMergerNodes   ) call Galacticus_Error_Report('cannot preset merger nodes as no subhalos are present; try setting [presetMergerNodes]=false'      //{introspection:location})
-       if (self%presetSubhaloMasses ) call Galacticus_Error_Report('cannot preset subhalo masses as no subhalos are present; try setting [presetSubhaloMasses]=false'  //{introspection:location})
-       if (self%presetSubhaloIndices) call Galacticus_Error_Report('cannot preset subhalo indices as no subhalos are present; try setting [presetSubhaloIndices]=false'//{introspection:location})
+       if (self%presetMergerTimes   ) call Error_Report('cannot preset merger times as no subhalos are present; try setting [presetMergerTimes]=false'      //{introspection:location})
+       if (self%presetMergerNodes   ) call Error_Report('cannot preset merger nodes as no subhalos are present; try setting [presetMergerNodes]=false'      //{introspection:location})
+       if (self%presetSubhaloMasses ) call Error_Report('cannot preset subhalo masses as no subhalos are present; try setting [presetSubhaloMasses]=false'  //{introspection:location})
+       if (self%presetSubhaloIndices) call Error_Report('cannot preset subhalo indices as no subhalos are present; try setting [presetSubhaloIndices]=false'//{introspection:location})
     end if
     ! Determine if subhalo masses have been included in halo masses.
-    if (self%mergerTreeImporter_%treesAreSelfContained() == booleanFalse) call Galacticus_Error_Report('only self-contained trees are supported'//{introspection:location})
+    if (self%mergerTreeImporter_%treesAreSelfContained() == booleanFalse) call Error_Report('only self-contained trees are supported'//{introspection:location})
     ! Check that position information is present if required.
     if     (                                                                                      &
          &   (                                                                                    &
@@ -821,56 +821,56 @@ contains
          &  .and.                                                                                 &
          &   .not.self%mergerTreeImporter_%positionsAvailable(positions=.true.,velocities=.true.) &
          & )                                                                                      &
-         & call Galacticus_Error_Report(                                                          &
-         &                              "presetting positions requires that both position and     &
-         &                               velocity datasets be present in merger tree file"   //   &
-         &                              {introspection:location}                                  &
-         &                             )
+         & call Error_Report(                                                                     &
+         &                   "presetting positions requires that both position and                &
+         &                    velocity datasets be present in merger tree file"   //              &
+         &                   {introspection:location}                                             &
+         &                  )
     ! Check that half-mass radius information is present if required.
-    if     (                                                                                                                                                        &
-         &   self%presetScaleRadii                                                                                                                                  &
-         &  .and.                                                                                                                                                   &
-         &   .not.self%mergerTreeImporter_%scaleRadiiAvailable()                                                                                                    &
-         & )  call Galacticus_Error_Report(                                                                                                                         &
-         &                                "presetting scale radii requires that at least one of readRadiusHalfMass or scaleRadius datasets be present in merger"//  &
-         &                                "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                      //  &
-         &                                {introspection:location}                                                                                                  &
-         &                               )
+    if     (                                                                                                                                              &
+         &   self%presetScaleRadii                                                                                                                        &
+         &  .and.                                                                                                                                         &
+         &   .not.self%mergerTreeImporter_%scaleRadiiAvailable()                                                                                          &
+         & )  call Error_Report(                                                                                                                          &
+         &                      "presetting scale radii requires that at least one of readRadiusHalfMass or scaleRadius datasets be present in merger"//  &
+         &                      "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                      //  &
+         &                      {introspection:location}                                                                                                  &
+         &                     )
     ! Check that angular momentum information is present if required.
-    if     (                                                                                                             &
-         &   self%presetAngularMomenta                                                                                   &
-         &  .and.                                                                                                        &
-         &   .not.                                                                                                       &
-         &        (                                                                                                      &
-         &          self%mergerTreeImporter_%          spinAvailable()                                                   &
-         &         .or.                                                                                                  &
-         &          self%mergerTreeImporter_%angularMomentaAvailable()                                                   &
-         &        )                                                                                                      &
-         & )                                                                                                             &
-         & call Galacticus_Error_Report(                                                                                 &
-         &                              "presetting angular momenta requires that the spin or angularMomentum datasets   &
-         &                               be present in merger tree file; try setting"                                 // &
-         &                              char(10)                                                                      // &
-         &                              " [presetAngularMomenta]=false"                                               // &
-         &                                {introspection:location}                                                       &
-         &                             )
-    if     (                                                                                                                    &
-         &   self%presetAngularMomenta3D                                                                                        &
-         &  .and.                                                                                                               &
-         &   .not.                                                                                                              &
-         &        (                                                                                                             &
-         &          self%mergerTreeImporter_%          spin3DAvailable()                                                        &
-         &         .or.                                                                                                         &
-         &          self%mergerTreeImporter_%angularMomenta3DAvailable()                                                        &
-         &        )                                                                                                             &
-         & )                                                                                                                    &
-         & call Galacticus_Error_Report(                                                                                        &
-         &                              "presetting angular momentum vectors requires that the spin or angularMomentum vector   &
-         &                               datasets be present in merger tree file; try setting"                               // &
-         &                              char(10)                                                                             // &
-         &                              " [presetAngularMomenta3D]=false"                                                    // &
-         &                                {introspection:location}                                                              &
-         &                             )
+    if     (                                                                                                  &
+         &   self%presetAngularMomenta                                                                        &
+         &  .and.                                                                                             &
+         &   .not.                                                                                            &
+         &        (                                                                                           &
+         &          self%mergerTreeImporter_%          spinAvailable()                                        &
+         &         .or.                                                                                       &
+         &          self%mergerTreeImporter_%angularMomentaAvailable()                                        &
+         &        )                                                                                           &
+         & )                                                                                                  &
+         & call Error_Report(                                                                                 &
+         &                   "presetting angular momenta requires that the spin or angularMomentum datasets   &
+         &                    be present in merger tree file; try setting"                                 // &
+         &                   char(10)                                                                      // &
+         &                   " [presetAngularMomenta]=false"                                               // &
+         &                     {introspection:location}                                                       &
+         &                  )
+    if     (                                                                                                         &
+         &   self%presetAngularMomenta3D                                                                             &
+         &  .and.                                                                                                    &
+         &   .not.                                                                                                   &
+         &        (                                                                                                  &
+         &          self%mergerTreeImporter_%          spin3DAvailable()                                             &
+         &         .or.                                                                                              &
+         &          self%mergerTreeImporter_%angularMomenta3DAvailable()                                             &
+         &        )                                                                                                  &
+         & )                                                                                                         &
+         & call Error_Report(                                                                                        &
+         &                   "presetting angular momentum vectors requires that the spin or angularMomentum vector   &
+         &                    datasets be present in merger tree file; try setting"                               // &
+         &                   char(10)                                                                             // &
+         &                   " [presetAngularMomenta3D]=false"                                                    // &
+         &                     {introspection:location}                                                              &
+         &                  )
     ! Create an OpenMP lock that will allow threads to coordinate access to split forest data.
     !$ call OMP_Init_Lock(self%splitForestLock)
     ! Create named datasets if necessary.
@@ -934,8 +934,8 @@ contains
     use    :: Array_Utilities           , only : operator(.intersection.)
     use    :: Arrays_Search             , only : searchArrayClosest
     use    :: File_Utilities            , only : File_Name_Expand
-    use    :: Functions_Global          , only : Galacticus_State_Retrieve_       , Galacticus_State_Store_
-    use    :: Galacticus_Error          , only : Galacticus_Component_List        , Galacticus_Error_Report
+    use    :: Functions_Global          , only : State_Retrieve_                  , State_Store_
+    use    :: Error                     , only : Component_List                   , Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
           &                                      mergerTree                       , treeNodeList
     use    :: Memory_Management         , only : Memory_Usage_Record              , allocateArray           , deallocateArray
@@ -971,7 +971,7 @@ contains
     ! Snapshot the state of the next tree to read.
     treeStateStoreSequence=treeNumber
     ! Retrieve stored internal state if possible.
-    call Galacticus_State_Retrieve_()
+    call State_Retrieve_()
     ! Recover the state of the next tree to read.
     treeNumberInternal=treeStateStoreSequence
     ! Determine if we have any split forests to return.
@@ -1012,7 +1012,7 @@ contains
        ! Store internal state.
        message='Storing state for tree #'
        message=message//treeStateStoreSequence
-       call Galacticus_State_Store_(message)
+       call State_Store_(message)
        ! Check if the size of this forest exceeds the maximum allowed.
        if     (                                                                                    &
             &   .not.returnSplitForest                                                             &
@@ -1022,12 +1022,12 @@ contains
             &   0                                                         < self%forestSizeMaximum &
             & ) then
 #ifdef USEMPI
-          call Galacticus_Error_Report('split forest processing is not supported under MPI'                        //{introspection:location})
+          call Error_Report('split forest processing is not supported under MPI'                        //{introspection:location})
 #else
-          call Galacticus_Error_Report('split forest processing is currently broken until MPI support is completed'//{introspection:location})
+          call Error_Report('split forest processing is currently broken until MPI support is completed'//{introspection:location})
 #endif
           ! Check if the importer supports reading subsets of halos from a forest.
-          if (.not.self%mergerTreeImporter_%canReadSubsets()) call Galacticus_Error_Report('forest exceeds maximum allowed size but importer cannot read subsets of halos'//{introspection:location})
+          if (.not.self%mergerTreeImporter_%canReadSubsets()) call Error_Report('forest exceeds maximum allowed size but importer cannot read subsets of halos'//{introspection:location})
           ! Import nodes, and keep only the minimally required data to map the tree structure.
           call self%mergerTreeImporter_%import(int(treeNumberOffset),nodes,structureOnly=.true.)
           ! Find initial root node affinities of all nodes.
@@ -1106,7 +1106,7 @@ contains
           ! If necessary, add masses and angular momenta of subhalos to host halos.
           if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodScale) then
              ! This method requires angular momenta to be available.
-             if (.not.self%mergerTreeImporter_%angularMomentaAvailable()) call Galacticus_Error_Report('scaling parent angular momentum for subhalo masses requires angular momenta availability'//{introspection:location})
+             if (.not.self%mergerTreeImporter_%angularMomentaAvailable()) call Error_Report('scaling parent angular momentum for subhalo masses requires angular momenta availability'//{introspection:location})
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
                    if (self%presetAngularMomenta  )            &
@@ -1154,11 +1154,11 @@ contains
                &   self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodSummation &
                & ) then
              ! This method requires 3D angular momenta to be available.
-             if (.not.self%mergerTreeImporter_%angularMomenta3DAvailable())                                                                             &
-                  & call Galacticus_Error_Report(                                                                                                       &
-                  &                              'adding subhalo angular momenta to parent angular momentum requires 3D angular momenta availability'// &
-                  &                              {introspection:location}                                                                               &
-                  &                             )
+             if (.not.self%mergerTreeImporter_%angularMomenta3DAvailable())                                                                  &
+                  & call Error_Report(                                                                                                       &
+                  &                   'adding subhalo angular momenta to parent angular momentum requires 3D angular momenta availability'// &
+                  &                   {introspection:location}                                                                               &
+                  &                  )
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) then
                    ! Find relative position and velocity.
@@ -1197,92 +1197,92 @@ contains
           ! Check that all required properties exist.
           if (self%presetPositions.or.self%presetOrbits) then
              ! Position and velocity methods are required.
-             if     (                                                                                                                                                     &
-                  &  .not.(                                                                                                                                               &
-                  &         defaultPositionComponent%positionIsSettable()                                                                                                 &
-                  &        .and.                                                                                                                                          &
-                  &         defaultPositionComponent%velocityIsSettable()                                                                                                 &
-                  &       )                                                                                                                                               &
-                  & )                                                                                                                                                     &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'     // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'position'                                                                                                          , &
-                  &                                  defaultPositionComponent        %             positionAttributeMatch(requireSettable=.true.)                         &
-                  &                                 .intersection.                                                                                                        &
-                  &                                  defaultPositionComponent        %             velocityAttributeMatch(requireSettable=.true.)                         &
-                  &                                )                                                                                                                   // &
-                  &       char(10)                                                                                                                                     // &
-                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'              // &
-                  &       {introspection:location}                                                                                                                        &
+             if     (                                                                                                                                                &
+                  &  .not.(                                                                                                                                          &
+                  &         defaultPositionComponent%positionIsSettable()                                                                                            &
+                  &        .and.                                                                                                                                     &
+                  &         defaultPositionComponent%velocityIsSettable()                                                                                            &
+                  &       )                                                                                                                                          &
+                  & )                                                                                                                                                &
+                  & call Error_Report                                                                                                                                &
+                  &      (                                                                                                                                           &
+                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
+                  &       Component_List(                                                                                                                            &
+                  &                      'position'                                                                                                                , &
+                  &                       defaultPositionComponent        %             positionAttributeMatch(requireSettable=.true.)                               &
+                  &                      .intersection.                                                                                                              &
+                  &                       defaultPositionComponent        %             velocityAttributeMatch(requireSettable=.true.)                               &
+                  &                     )                                                                                                                         // &
+                  &       char(10)                                                                                                                                // &
+                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
+                  &       {introspection:location}                                                                                                                   &
                   & )
           end if
           if (self%presetMergerTimes     ) then
              ! Time of merging property is required.
-             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable                ())                                                                                &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting merging times requires a component that supports setting of merging times.'                                                      // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'satellite'                                                                                                         , &
-                  &                                  defaultSatelliteComponent       %        timeOfMergingAttributeMatch(requireSettable=.true.)                         &
-                  &                                 )                                                                                                                  // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable                ())                                                                           &
+                  & call Error_Report                                                                                                                                &
+                  &      (                                                                                                                                           &
+                  &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
+                  &       Component_List(                                                                                                                            &
+                  &                      'satellite'                                                                                                               , &
+                  &                       defaultSatelliteComponent       %        timeOfMergingAttributeMatch(requireSettable=.true.)                               &
+                  &                      )                                                                                                                        // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetScaleRadii      ) then
              ! Scale radius property is required.
-             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable                ())                                                                                &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                          // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'darkMatterProfile'                                                                                                 , &
-                  &                                 defaultDarkMatterProfileComponent%                scaleAttributeMatch(requireSettable=.true.)                         &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable                ())                                                                           &
+                  & call Error_Report                                                                                                                                &
+                  &      (                                                                                                                                           &
+                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
+                  &       Component_List(                                                                                                                            &
+                  &                      'darkMatterProfile'                                                                                                       , &
+                  &                      defaultDarkMatterProfileComponent%                scaleAttributeMatch(requireSettable=.true.)                               &
+                  &                     )                                                                                                                         // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetAngularMomenta  ) then
              ! Angular momentum property is required.
-             if (.not.defaultSpinComponent             %angularMomentumIsSettable      ())                                                                                &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting angular momenta requires a component that supports setting of angular momenta.'                                                  // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'spin'                                                                                                              , &
-                  &                                 defaultSpinComponent             %      angularMomentumAttributeMatch(requireSettable=.true.)                         &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultSpinComponent             %angularMomentumIsSettable      ())                                                                           &
+                  & call Error_Report                                                                                                                                &
+                  &      (                                                                                                                                           &
+                  &       'presetting angular momenta requires a component that supports setting of angular momenta.'                                             // &
+                  &       Component_List(                                                                                                                            &
+                  &                      'spin'                                                                                                                    , &
+                  &                      defaultSpinComponent             %      angularMomentumAttributeMatch(requireSettable=.true.)                               &
+                  &                     )                                                                                                                         // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetAngularMomenta3D) then
              ! Spin property is required.
-             if (.not.defaultSpinComponent             %angularMomentumVectorIsSettable())                                                                                &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting angular momentum vectors requires a component that supports setting of angular momentum vectors.'                                // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'spinVector'                                                                                                        , &
-                  &                                 defaultSpinComponent             %angularMomentumVectorAttributeMatch(requireSettable=.true.)                         &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultSpinComponent             %angularMomentumVectorIsSettable())                                                                           &
+                  & call Error_Report                                                                                                                                &
+                  &      (                                                                                                                                           &
+                  &       'presetting angular momentum vectors requires a component that supports setting of angular momentum vectors.'                           // &
+                  &       Component_List(                                                                                                                            &
+                  &                      'spinVector'                                                                                                              , &
+                  &                      defaultSpinComponent             %angularMomentumVectorAttributeMatch(requireSettable=.true.)                               &
+                  &                     )                                                                                                                         // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetOrbits     ) then
              ! Orbit property is required.
-             if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                                 // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'satellite'                                                                                                         , &
-                  &                                 defaultSatelliteComponent        %          virialOrbitAttributeMatch(requireSettable=.true.)                         &
-                  &                                )                                                                                                                   // &
-                  &       char(10)                                                                                                                                     // &
-                  &       'Alternatively, set [presetOrbits]=false to prevent attempts to set orbits)'                                                                 // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                     &
+                  & call Error_Report                                                                                                                                &
+                  &      (                                                                                                                                           &
+                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                            // &
+                  &       Component_List(                                                                                                                            &
+                  &                      'satellite'                                                                                                               , &
+                  &                      defaultSatelliteComponent        %          virialOrbitAttributeMatch(requireSettable=.true.)                               &
+                  &                     )                                                                                                                         // &
+                  &       char(10)                                                                                                                                // &
+                  &       'Alternatively, set [presetOrbits]=false to prevent attempts to set orbits)'                                                            // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           ! Apply any tree initialization operators.
@@ -1364,7 +1364,7 @@ contains
           ! Destroy sorted node indices.
           call self%destroyNodeIndices()
        class default
-          call Galacticus_Error_Report('nodes arrays is of wrong class'//{introspection:location})
+          call Error_Report('nodes arrays is of wrong class'//{introspection:location})
        end select
        ! Deallocate nodes.
        call Memory_Usage_Record(sizeof(nodes),addRemove=-1)
@@ -1380,7 +1380,7 @@ contains
     !!{
     Create a sorted list of node indices with an index into the original array.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Warn
+    use :: Error          , only : Warn
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
@@ -1406,7 +1406,7 @@ contains
        if (self%nodeIndicesSorted(iNode) == self%nodeIndicesSorted(iNode-1)) then
           message="WARNING: duplicate node index found in merger tree - this is not allowed ["
           message=message//self%nodeIndicesSorted(iNode)//']'
-          call Galacticus_Warn(message)
+          call Warn(message)
        end if
     end do
     return
@@ -1465,8 +1465,8 @@ contains
     !!{
     Builds pointers from each node to its descendent node.
     !!}
-    use :: Display                   , only : displayMessage         , verbosityLevelInfo
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Display                   , only : displayMessage, verbosityLevelInfo
+    use :: Error                     , only : Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -1482,7 +1482,7 @@ contains
           if (nodes(nodeLocation)%nodeIndex /= nodes(iNode)%descendentIndex) then
              message='failed to find descendent node: '
              message=message//nodes(iNode)%descendentIndex//' of '//nodes(iNode)%nodeIndex
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
           nodes(iNode)%descendent => nodes(nodeLocation)
        else
@@ -1494,7 +1494,7 @@ contains
              message='failed to find host node: '
              message=message//nodes(iNode)%hostIndex//' of '//nodes(iNode)%nodeIndex
              if (self%missingHostsAreFatal) then
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              else
                 message=message//" - resetting this node to be an isolated node"
                 call displayMessage(message,verbosity=verbosityLevelInfo)
@@ -1506,7 +1506,7 @@ contains
              nodes(iNode)%host    => nodes(nodeLocation)
           end if
        else
-          call Galacticus_Error_Report('negative values are not allowed for hostIndex - if node is self-hosting [i.e. not a subhalo] set hostIndex=nodeIndex'//{introspection:location})
+          call Error_Report('negative values are not allowed for hostIndex - if node is self-hosting [i.e. not a subhalo] set hostIndex=nodeIndex'//{introspection:location})
        end if
     end do
     return
@@ -1516,7 +1516,7 @@ contains
     !!{
     Ensure that any node which was once a subhalo remains a subhalo.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -1581,7 +1581,7 @@ contains
     end do
     if (failed) then
        message=message//']'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     return
   end subroutine readEnforceSubhaloStatus
@@ -1662,7 +1662,7 @@ contains
     !!{
     Build pointers to node parents.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -1680,7 +1680,7 @@ contains
                 if (associated(parentNode,parentNode%host)) then
                    message='node ['
                    message=message//parentNode%nodeIndex//'] flagged as subhalo is self-hosting - exiting to avoid infinite loop'
-                   call Galacticus_Error_Report(message//{introspection:location})
+                   call Error_Report(message//{introspection:location})
                 end if
                 parentNode => parentNode%host
              end do
@@ -1698,7 +1698,7 @@ contains
           if (nodes(iNode)%nodeIndex == nodes(iNode)%parent%nodeIndex) then
              message='node ['
              message=message//nodes(iNode)%nodeIndex//'] is its own parent - exiting to avoid infinite loop'
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
        end if
     end do
@@ -1769,8 +1769,8 @@ contains
     !!{
     Create parent pointer links between isolated nodes and assign times and masses to those nodes.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : mergerTree             , nodeComponentBasic, treeNodeList
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : mergerTree  , nodeComponentBasic, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -1841,7 +1841,7 @@ contains
                 end do
                 nodeList(iIsolatedNode)%node%parent => parentNode%node
              else
-                call Galacticus_Error_Report('initial satellite has no parent defined'//{introspection:location})
+                call Error_Report('initial satellite has no parent defined'//{introspection:location})
              end if
           end if
           ! Assign mass and time. For the case of satellites we also assign the time at
@@ -1851,13 +1851,13 @@ contains
              write (label,'(e12.6)') nodes(iNode)%nodeMass
              message='non-positive mass ['//label//'] found for node '
              message=message//nodeList(iIsolatedNode)%node%index()
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
           if (nodes(iNode)%nodeTime <= 0.0d0) then
              write (label,'(e12.6)') nodes(iNode)%nodeTime
              message='non-positive time ['//label//'] found for node '
              message=message//nodeList(iIsolatedNode)%node%index()
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
           basic => nodeList(iIsolatedNode)%node%basic(autoCreate=.true.)
           call        basic%massSet            (nodes(iNode)%nodeMass)
@@ -1971,7 +1971,7 @@ contains
     !!}
     use :: Display                   , only : displayIndent            , displayMessage                , displayUnindent              , displayVerbosity, &
           &                                   verbosityLevelWarn
-    use :: Galacticus_Error          , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Error                     , only : Error_Report             , errorStatusSuccess
     use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeComponentDarkMatterProfile, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative , rangeExpandSignExpectPositive, rootFinder
@@ -2086,7 +2086,7 @@ contains
                    call displayMessage(message,messageVerbosity)
                    call displayUnindent("",messageVerbosity)
                    if (self%scaleRadiiFailureIsFatal) then
-                      call Galacticus_Error_Report('problem with half-mass radii - see report above - aborting'//{introspection:location})
+                      call Error_Report('problem with half-mass radii - see report above - aborting'//{introspection:location})
                    else
                      useFallbackScaleMethod=.true.
                    end if
@@ -2116,7 +2116,7 @@ contains
     end if
 
     ! Exit on excessive half mass radii.
-    if (excessiveHalfMassRadii) call Galacticus_Error_Report('some half mass radii exceed corresponding virial radii'//{introspection:location})
+    if (excessiveHalfMassRadii) call Error_Report('some half mass radii exceed corresponding virial radii'//{introspection:location})
 
     return
   end subroutine readAssignScaleRadii
@@ -2125,8 +2125,8 @@ contains
     !!{
     Assign angular momenta to nodes.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentSpin, treeNodeList
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentSpin, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
@@ -2155,7 +2155,7 @@ contains
                      &          *spinNormalization()
                 call spin%angularMomentumSet(angularMomentum)
              else
-                call Galacticus_Error_Report('no method exists to set angular momenta'//{introspection:location})
+                call Error_Report('no method exists to set angular momenta'//{introspection:location})
              end if
              if (self%presetUnphysicalAngularMomenta.and.spin%angularMomentum() <= 0.0d0) &
                   & call spin%angularMomentumSet(self%haloSpinDistribution_%sample(nodeList(iIsolatedNode)%node)*spinNormalization())
@@ -2169,7 +2169,7 @@ contains
                      &            *spinNormalization()
                 call spin%angularMomentumVectorSet(angularMomentum3D)
              else
-                call Galacticus_Error_Report('no method exists to set vector angular momenta'//{introspection:location})
+                call Error_Report('no method exists to set vector angular momenta'//{introspection:location})
              end if
           end if
        end if
@@ -2290,7 +2290,7 @@ contains
     !!{
     Scan for and record mergers between nodes.
     !!}
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , nodeComponentPosition, nodeComponentSatellite, treeNode, &
           &                                     treeNodeList
     use :: Kepler_Orbits               , only : keplerOrbit
@@ -2557,7 +2557,7 @@ contains
                    else
                       message='merging halos ['
                       message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
-                      call Galacticus_Error_Report(message//{introspection:location})
+                      call Error_Report(message//{introspection:location})
                    end if
                 else
                    ! Create the orbit.
@@ -2590,7 +2590,7 @@ contains
                       message=message//satelliteNode%index()//char(10)
                       message=message//' -> set [presetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
                       message=message//'    (this may lead to other problems)'
-                      call Galacticus_Error_Report(message//{introspection:location})
+                      call Error_Report(message//{introspection:location})
                    end if
                 end if
              end if
@@ -2623,7 +2623,7 @@ contains
     !!{
     Assign pointers to merge targets.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -2646,7 +2646,7 @@ contains
                 message='subhalo-subhalo ['
                 message=message//nodes(iNode)%nodeIndex//":"//nodes(jNode)%nodeIndex
                 message=message//'] merger in which subhalo has no isolated node progenitor - this should not happen'
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              else
                 ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
                 nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
@@ -2896,7 +2896,7 @@ contains
     !!{
     Build and attached bound mass histories to subhalos.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : defaultSatelliteComponent, nodeComponentPosition, nodeComponentSatellite, treeNodeList
     use :: Histories                 , only : history                  , longIntegerHistory
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -2923,10 +2923,10 @@ contains
     if (self%presetSubhaloMasses.or.self%presetPositions.or.self%presetSubhaloIndices) then
        ! Check that preset subhalo masses are supported.
        if (self%presetSubhaloMasses .and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
-            & call Galacticus_Error_Report('presetting subhalo masses requires a component that supports setting of node bound mass histories'//{introspection:location})
+            & call Error_Report('presetting subhalo masses requires a component that supports setting of node bound mass histories'//{introspection:location})
        ! Check that preset subhalo masses are supported.
        if (self%presetSubhaloIndices.and..not.defaultSatelliteComponent%nodeIndexHistoryIsSettable()) &
-            & call Galacticus_Error_Report('presetting subhalo indices requires a component that supports setting of node index histories'//{introspection:location})
+            & call Error_Report('presetting subhalo indices requires a component that supports setting of node index histories'//{introspection:location})
        ! Get the default cosmology functions object.
        historyBuildNodeLoop: do iNode=1,size(nodes)
           historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable) then
@@ -2953,7 +2953,7 @@ contains
                       if (historyCount > historyCountMaximum) then
                          message='history array length exceeded for node ['
                          message=message//nodes(iNode)%nodeIndex//'] - this should not happen'
-                         call Galacticus_Error_Report(message//{introspection:location})
+                         call Error_Report(message//{introspection:location})
                       end if
                       ! Store the history.
                       historyTime(historyCount)=node%nodeTime
@@ -3014,7 +3014,7 @@ contains
                    if (historyCount+self%mergerTreeImporter_%subhaloTraceCount(node) > size(historyTime)) then
                       message='history arrays are too small to hold data for node '
                       message=message//nodeList(iIsolatedNode)%node%index()//': ['//historyCount//'+'//self%mergerTreeImporter_%subhaloTraceCount(node)//']='//(historyCount+self%mergerTreeImporter_%subhaloTraceCount(node))//'>'//size(historyTime)
-                      call Galacticus_Error_Report(message//{introspection:location})
+                      call Error_Report(message//{introspection:location})
                    end if
                    ! Read subhalo position trace data.
                    call self%mergerTreeImporter_%subhaloTrace                                                           &
@@ -3243,7 +3243,7 @@ contains
     Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).
     !!}
     use :: Display                   , only : displayIndent          , displayMessage       , displayUnindent, verbosityLevelWarn
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentPosition, treeNode       , treeNodeList
     use :: Kepler_Orbits             , only : keplerOrbit
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -3360,7 +3360,7 @@ contains
        ! Clean up any temporary progenitor.
        if (parentIsCloned) deallocate(primaryProgenitor)
     else
-       call Galacticus_Error_Report('no descendents found'//{introspection:location})
+       call Error_Report('no descendents found'//{introspection:location})
     end if
     return
   end subroutine readTimeUntilMergingSubresolution
@@ -3897,7 +3897,7 @@ contains
     Assign events to nodes if they jump between trees in a forest.
     !!}
     use :: Display                   , only : displayIndent          , displayMessage     , displayUnindent             , verbosityLevelInfo
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeEvent          , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                   treeNode               , treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -3968,7 +3968,7 @@ contains
                    case (pushTypeBranchJump      )
                       allocate(nodeEventBranchJumpInterTree       :: newEvent)
                    case default
-                      call Galacticus_Error_Report('unknown push type'//{introspection:location})
+                      call Error_Report('unknown push type'//{introspection:location})
                    end select
                    iIsolatedNode=nodes(iNode)%isolatedNodeIndex
                    if (self%splitForestIsPrimary(self%pullListIndex(node,iPull))) then
@@ -4003,7 +4003,7 @@ contains
                       type is (nodeEventBranchJumpInterTree      )
                          newEvent%mergeTimeSet => null()
                          class default
-                         call Galacticus_Error_Report('unknown event type'//{introspection:location})
+                         call Error_Report('unknown event type'//{introspection:location})
                       end select
                       call nodeNew%attachEvent(newEvent)
                    else
@@ -4038,7 +4038,7 @@ contains
                          newEvent%mergeTimeSet => readInterTreeMergeTimeSet
                          newEvent%creator      => self
                       class default
-                         call Galacticus_Error_Report('unknown event type'//{introspection:location})
+                         call Error_Report('unknown event type'//{introspection:location})
                       end select
                       call nodeList(iIsolatedNode)%node%firstChild%attachEvent(newEvent)
                    end if
@@ -4055,7 +4055,7 @@ contains
                       newEvent%pairedNodeID       =self%splitForestPushTo      (self%pullListIndex(node,iPull))
                       newEvent%isPrimary          =self%splitForestIsPrimary   (self%pullListIndex(node,iPull))
                    class default
-                      call Galacticus_Error_Report('unknown event type'//{introspection:location})
+                      call Error_Report('unknown event type'//{introspection:location})
                    end select
                    self%splitForestPullDone(self%pullListIndex(node,iPull))=.true.
                    write (label,'(f12.8)') self%splitForestPushTime(self%pullListIndex(node,iPull))
@@ -4104,8 +4104,8 @@ contains
     !!{
     Set the merging time for a node undergoing and inter-tree transfer.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentPosition, nodeComponentSatellite, treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     use :: String_Handling , only : operator(//)
     implicit none
@@ -4176,7 +4176,7 @@ contains
                 message=message//nodeSatellite%index()//char(10)
                 message=message//' -> set [presetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
                 message=message//'    (this may lead to other problems)'
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           end if
        else if (self%presetMergerNodes) then
@@ -4186,7 +4186,7 @@ contains
           nodeHost     %firstMergee   => nodeSatellite
        end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine readInterTreeMergeTimeSet

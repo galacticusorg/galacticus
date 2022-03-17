@@ -138,7 +138,6 @@ contains
     !!{
     Compute conditional mass function on {\normalfont \ttfamily tree}.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
     use :: Numerical_Comparison, only : Values_Agree

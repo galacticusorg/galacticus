@@ -103,7 +103,7 @@ sub Process_Enumerations {
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
-		$function .= "    use Galacticus_Error\n"
+		$function .= "    use :: Error, only : Error_Report\n"
 		    unless ( $onError );
 		$function .= "    implicit none\n\n";
 		$function .= "    character(len=*), intent(in   )           :: name\n";
@@ -134,7 +134,7 @@ sub Process_Enumerations {
 			$function .= "      ".$encodeFunctionName."Char=".$onError."\n";
 		    } else {
 			$function .= "      ".$encodeFunctionName."Char=-1\n";
-			$function .= "      call Galacticus_Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+			$function .= "      call Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    }
 		    $function .= "      end select\n";
 		}
@@ -164,7 +164,7 @@ sub Process_Enumerations {
 		$function .= "    Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
 		$function .= "    !!}\n";
 		$function .= "    use ISO_Varying_String\n";
-		$function .= "    use Galacticus_Error\n";
+		$function .= "    use Error\n";
 		$function .= "    implicit none\n\n";
 		$function .= "    type   (varying_string)                          :: ".$decodeFunctionName."\n";
 		$function .= "    integer                , intent(in   )           :: enumerationValue\n";
@@ -190,7 +190,7 @@ sub Process_Enumerations {
 			$function .= "'\n";
 		    }
 		    $function .= "    case default\n";
-		    $function .= "      call Galacticus_Error_Report('invalid enumeration value'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    $function .= "      call Error_Report('invalid enumeration value'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    $function .= "    end select\n";
 		}
 		$function .= "    end if\n";

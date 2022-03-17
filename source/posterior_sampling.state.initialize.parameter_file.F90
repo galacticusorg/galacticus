@@ -165,7 +165,7 @@ contains
                 subParameters_=parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
                 parameters_   =subParameters_
              else
-                call Galacticus_Error_Report('parameter "'//char(parameterNames(j))//'" not found in "'//char(modelParameters_(i)%modelParameter_%name())//'"'//{introspection:location})
+                call Error_Report('parameter "'//char(parameterNames(j))//'" not found in "'//char(modelParameters_(i)%modelParameter_%name())//'"'//{introspection:location})
              end if
           end if
        end do

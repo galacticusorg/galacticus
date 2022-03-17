@@ -83,7 +83,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (evolveForestsWorkShareStride)                        :: self
     integer(c_size_t                    ), intent(in   )         :: stride                 , offset
@@ -92,7 +92,7 @@ contains
     <constructorAssign variables="stride, offset, *evolveForestsWorkShare_"/>
     !!]
 
-    if (offset < 0_c_size_t .or. offset >= stride) call Galacticus_Error_Report('0 ≤ [offset] < [stride]'//{introspection:location})
+    if (offset < 0_c_size_t .or. offset >= stride) call Error_Report('0 ≤ [offset] < [stride]'//{introspection:location})
     return
   end function strideConstructorInternal
 

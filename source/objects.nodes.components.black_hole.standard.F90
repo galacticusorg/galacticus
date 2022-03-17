@@ -962,8 +962,8 @@ contains
     !!{
     Outputs properties of merging black holes.
     !!}
-    use :: Galacticus_HDF5 , only : galacticusOutputFile
-    use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
+    use :: Output_HDF5     , only : outputFile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : hdf5Object
     implicit none
@@ -983,7 +983,7 @@ contains
 
     ! Open the group to which black hole mergers should be written.
     !$ call hdf5Access%set()
-    mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
+    mergersGroup=outputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
     call    mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
     call    mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
@@ -1003,7 +1003,7 @@ contains
     !!{
     Output properties for all black holes in {\normalfont \ttfamily node}.
     !!}
-    use            :: Galacticus_HDF5   , only : galacticusOutputFile
+    use            :: Output_HDF5       , only : outputFile
     use            :: Galacticus_Nodes  , only : nodeComponentBlackHole, treeNode
     use            :: HDF5_Access       , only : hdf5Access
     use            :: IO_HDF5           , only : hdf5Object
@@ -1035,7 +1035,7 @@ contains
        blackHoleCount=node%blackHoleCount()
        ! Open the output group.
        !$ call hdf5Access%set()
-       blackHolesGroup=galacticusOutputFile%openGroup("blackHole","Black hole data.")
+       blackHolesGroup=outputFile%openGroup("blackHole","Black hole data.")
        groupName="Output"
        groupName=groupName//iOutput
        outputGroup=blackHolesGroup%openGroup(char(groupName),"Properties of black holes for all trees at each output.")
@@ -1202,9 +1202,9 @@ contains
   end function Node_Component_Black_Hole_Standard_Seed_Mass
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Black_Hole_Standard_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1225,9 +1225,9 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Black_Hole_Standard_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Black_Hole_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

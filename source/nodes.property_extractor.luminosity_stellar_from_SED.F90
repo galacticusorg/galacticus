@@ -78,6 +78,7 @@ contains
     !!{
     Constructor for the ``luminosityStellarFromSED'' output analysis property extractor class which takes a parameter set as input.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorLuminosityStellarFromSED)                             :: self
@@ -98,7 +99,7 @@ contains
     class is (nodePropertyExtractorSED)
        self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,nodePropertyExtractor_)
     class default
-       call Galacticus_Error_Report('an "SED" nodePropertyExtractor is required'//{introspection:location})
+       call Error_Report('an "SED" nodePropertyExtractor is required'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>

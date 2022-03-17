@@ -82,10 +82,10 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
     !!}
-    use :: FoX_dom                         , only : destroy                       , node              , parseFile
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Paths                , only : galacticusPath                , pathTypeDataStatic
-    use :: IO_XML                          , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Get_First_Element_By_Tag_Name
+    use :: FoX_dom                         , only : destroy       , node                          , parseFile
+    use :: Error                           , only : Error_Report
+    use :: Input_Paths                     , only : inputPath     , pathTypeDataStatic
+    use :: IO_XML                          , only : XML_Array_Read, XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Units       , only : ergs
@@ -102,8 +102,8 @@ contains
     ! Read in pair instability supernova energies.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
-    doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse supernovae file'//{introspection:location})
+    doc => parseFile(char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
+    if (ioErr /= 0) call Error_Report('Unable to parse supernovae file'//{introspection:location})
     ! Get the mass and energy elements.
     massElement   => XML_Get_First_Element_By_Tag_Name(doc,"heliumCoreMass" )
     energyElement => XML_Get_First_Element_By_Tag_Name(doc,"supernovaEnergy")

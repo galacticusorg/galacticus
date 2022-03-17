@@ -4,7 +4,7 @@
   <version>0.9.4</version>
 
   <!-- Output control -->
-  <galacticusOutputFileName value="haloMassFunction_VSMDPL_z2.030.hdf5"/>
+  <outputFileName value="haloMassFunction_VSMDPL_z2.030.hdf5"/>
   <outputTimes value="list">
     <redshifts value="2.030"/>
   </outputTimes>

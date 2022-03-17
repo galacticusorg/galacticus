@@ -150,8 +150,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter         , inputParameters
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error           , only : Error_Report
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -182,11 +182,11 @@ contains
        nullify(powerSpectrumWindowFunctionTopHat_)
     end if
     if (parameters%isPresent('wavenumberReference')) then
-       if (parameters%isPresent('sigma_8')) call Galacticus_Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
-       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
+       if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
+       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Error_Report('parameters must contain a "reference" section'//{introspection:location})
        referenceParameters=parameters%subParameters('reference',requireValue=.false.)
-       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Galacticus_Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
-       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Galacticus_Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
+       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
+       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
        !![
        <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
        <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />
@@ -289,8 +289,8 @@ contains
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
     use :: File_Utilities                 , only : Directory_Make                   , File_Path
-    use :: Galacticus_Error               , only : Galacticus_Error_Report
-    use :: Galacticus_Paths               , only : galacticusPath                   , pathTypeDataDynamic
+    use :: Error                          , only : Error_Report
+    use :: Input_Paths                    , only : inputPath                        , pathTypeDataDynamic
     use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
@@ -320,13 +320,13 @@ contains
        end select
     end if
     if (present(sigma8)) then
-       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Galacticus_Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
        self%sigma8Value                                 =  sigma8
        self%normalizationSigma8                         =  .true.
        self%cosmologicalMassVarianceReference           => null()
        self%powerSpectrumPrimordialTransferredReference => null()
     else
-       if (.not.present(wavenumberReference).or..not.present(cosmologicalMassVarianceReference).or..not.present(powerSpectrumPrimordialTransferredReference)) call Galacticus_Error_Report('sigma8 is not specified, must specify matched power spectrum'    //{introspection:location})
+       if (.not.present(wavenumberReference).or..not.present(cosmologicalMassVarianceReference).or..not.present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is not specified, must specify matched power spectrum'    //{introspection:location})
        self%sigma8Value                                 =  -1.0d0 
        self%normalizationSigma8                         =  .false.
        self%wavenumberReference                         =  wavenumberReference
@@ -337,7 +337,7 @@ contains
     end if
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
-    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
          &                      'largeScaleStructure/'                           // &
          &                      self%objectType      (                          )// &
          &                      '_'                                              // &
@@ -611,10 +611,10 @@ contains
     Tabulate the cosmological mass variance.
     !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
-    use :: Display                 , only : displayIndent            , displayMessage                   , displayUnindent, verbosityLevelWorking, &
-         &                                  displayMagenta           , displayReset
+    use :: Display                 , only : displayIndent            , displayMagenta                   , displayMessage, displayReset, &
+          &                                 displayUnindent          , verbosityLevelWorking
     use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
-    use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
+    use :: Error                   , only : Error_Report             , Warn
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
     use :: Tables                  , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
@@ -836,10 +836,10 @@ contains
                 write (label,'(e12.6)') self%times(k)
                 message=message//" at time t="//label//"Gyr."//char(10)
                 if (self%nonMonotonicIsFatal) then
-                   call Galacticus_Error_Report(message//{introspection:location})
+                   call Error_Report(message//{introspection:location})
                 else
                    message=message//"         If problems occur consider not attempting to model structure below this mass scale."
-                   call Galacticus_Warn(message)
+                   call Warn        (message                          )
                 end if
              end if
           end do
@@ -922,7 +922,7 @@ contains
                ! placed at small wavenumber.
                integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
                integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
-               if (integrandHigh <= 0.0d0) call Galacticus_Error_Report('no power above BAO scale - unexpected'//{introspection:location})
+               if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
             end if
             rootVariance =+(                                                            &
                  &          +integrandLow                                               &
@@ -1000,7 +1000,7 @@ contains
     !!{
     Compute interoplants in time.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
@@ -1015,7 +1015,7 @@ contains
        i=size(self%times)-1
        h=1.0d0
     else if (i < 1) then
-       call Galacticus_Error_Report('interpolant out of range'//{introspection:location})
+       call Error_Report('interpolant out of range'//{introspection:location})
     end if
     return
   end subroutine filteredPowerInterpolantsTime
@@ -1103,10 +1103,10 @@ contains
     !!{
     Write tabulated data on mass variance to file.
     !!}
-    use :: Display, only : displayMessage, verbosityLevelWorking
-    use :: HDF5   , only : hsize_t
+    use :: Display    , only : displayMessage, verbosityLevelWorking
+    use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp

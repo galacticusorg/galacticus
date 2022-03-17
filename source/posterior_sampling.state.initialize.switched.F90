@@ -117,7 +117,7 @@ contains
     !!{
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
     implicit none
@@ -156,7 +156,7 @@ contains
              end if
           end do
        end if
-       if (.not.matched) call Galacticus_Error_Report('parameter "'//modelParameters_(i)%modelParameter_%name()//'" is not listed so would not be initialized'//{introspection:location})
+       if (.not.matched) call Error_Report('parameter "'//modelParameters_(i)%modelParameter_%name()//'" is not listed so would not be initialized'//{introspection:location})
     end do
     ! Iterate over both initializors.
     allocate(stateVector(size(modelParameters_)))
@@ -187,7 +187,7 @@ contains
                 exit
              end if
           end do
-          if (.not.matched) call Galacticus_Error_Report('named parameter "'//modelParameterNames(i)//'" does not appear in active parameters'//{introspection:location})
+          if (.not.matched) call Error_Report('named parameter "'//modelParameterNames(i)//'" does not appear in active parameters'//{introspection:location})
           allocate(modelParameters__(i)%modelParameter_,mold=modelParameters_(j)%modelParameter_)
           !![
           <deepCopyReset variables="modelParameters_(j)%modelParameter_"/>

@@ -143,7 +143,7 @@ contains
     !!{
     Constructor for ``gaussianEllipsoid'' convergence class.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Linear_Algebra      , only : vector
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -166,7 +166,7 @@ contains
     ! If dimensionless, then maximum mass should be 1.0.
     if (self%dimensionless) then
        if (present(mass)) then
-          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
+          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
        end if
        self%mass=1.0d0
     end if
@@ -181,8 +181,8 @@ contains
     !!{
     (Re)initialize properties of a Gaussian ellipsoid mass distribution.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : assignment(=)          , matrixRotation, vector
+    use :: Error                   , only : Error_Report
+    use :: Linear_Algebra          , only : assignment(=), matrixRotation, vector
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -195,18 +195,18 @@ contains
 
     ! If dimensionless, then maximum scale length should be 1.0.
     if (self%dimensionless) then
-       if (Values_Differ(maxval(scaleLength),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('maximum scaleRadius should be unity for a dimensionless profile'                   //{introspection:location})
+       if (Values_Differ(maxval(scaleLength),1.0d0,absTol=1.0d-6)) call Error_Report('maximum scaleRadius should be unity for a dimensionless profile'                   //{introspection:location})
     end if
     ! Assign scalelengths.
     self%scaleLength=scaleLength
     ! Assert that axis vectors are unit vectors and are orthogonal.
     if (present(axes)) then
        do i=1,3
-          if (Values_Differ(axes(i)%magnitude(),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be unit vectors'//{introspection:location})
+          if (Values_Differ(axes(i)%magnitude(),1.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be unit vectors'//{introspection:location})
        end do
-       if (Values_Differ(axes(1).dot.axes(2),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
-       if (Values_Differ(axes(1).dot.axes(3),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
-       if (Values_Differ(axes(2).dot.axes(3),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(1).dot.axes(2),0.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(1).dot.axes(3),0.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(2).dot.axes(3),0.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be orthogonal'//{introspection:location})
     end if
     ! Compute the central density.
     self%density_=+        self%mass         &
@@ -234,7 +234,7 @@ contains
     else if (present(rotation)) then
        self%rotationIn=rotation
     else
-       call Galacticus_Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
+       call Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
     self%rotationOut=self%rotationIn%inverse()
     return
@@ -464,7 +464,7 @@ contains
           &                                 verbosityLevelWorking
     use :: File_Utilities          , only : Directory_Make       , File_Exists         , File_Lock     , File_Path      , &
           &                                 File_Unlock          , lockDescriptor
-    use :: Galacticus_Paths        , only : galacticusPath       , pathTypeDataDynamic
+    use :: Input_Paths             , only : inputPath            , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
     use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
@@ -493,9 +493,9 @@ contains
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
     ! Construct a file name for the table.
-    fileName=galacticusPath(pathTypeDataDynamic)// &
-         &   'galacticStructure/'               // &
-         &   self%objectType()                  // &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'galacticStructure/'          // &
+         &   self%objectType()             // &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.

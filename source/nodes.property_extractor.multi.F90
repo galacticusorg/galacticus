@@ -174,7 +174,7 @@ contains
     !!{
     Return the number of elements in the multiple property extractors.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
     integer                                     , intent(in   ) :: elementType
@@ -198,7 +198,7 @@ contains
        class is (nodePropertyExtractorList         )
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+1
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        extractor_ => extractor_%next
     end do
@@ -209,8 +209,8 @@ contains
     !!{
     Implement a multi output extractor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Poly_Ranks      , only : polyRankDouble
+    use :: Error     , only : Error_Report
+    use :: Poly_Ranks, only : polyRankDouble
     implicit none
     type            (polyRankDouble            )                         , allocatable, dimension(:  ) :: multiExtractDouble
     class           (nodePropertyExtractorMulti), intent(inout)                                        :: self
@@ -262,7 +262,7 @@ contains
           elementCount=0
        class default
           elementCount=0
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -274,8 +274,8 @@ contains
     !!{
     Implement a multi output extractor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Poly_Ranks      , only : polyRankInteger
+    use :: Error     , only : Error_Report
+    use :: Poly_Ranks, only : polyRankInteger
     implicit none
     type            (polyRankInteger           ), dimension(:) , allocatable  :: multiExtractInteger
     class           (nodePropertyExtractorMulti), intent(inout)               :: self
@@ -312,7 +312,7 @@ contains
           deallocate(rank0)
        class default
           elementCount=0
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -342,7 +342,7 @@ contains
     !!{
     Return the names of the multiple properties.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)                             :: self
     integer                                     , intent(in   )                             :: elementType
@@ -401,7 +401,7 @@ contains
              names       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -413,7 +413,7 @@ contains
     !!{
     Return column descriptions of the multiple properties.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
     integer                                     , intent(in   )              :: elementType            , i
@@ -476,7 +476,7 @@ contains
              end if
           end if
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -488,7 +488,7 @@ contains
     !!{
     Return the descriptions of the multiple properties.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)                             :: self
     integer                                     , intent(in   )                             :: elementType
@@ -547,7 +547,7 @@ contains
              descriptions       (offset+1:offset+elementCount)=extractor_%description (    )
           end if
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -559,7 +559,7 @@ contains
     !!{
     Return the units of the multiple properties in the SI system.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                            , dimension(:) , allocatable :: multiUnitsInSI
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -605,7 +605,7 @@ contains
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
           end if
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -617,7 +617,7 @@ contains
     !!{
     Return the ranks of the multiple properties. Negative values indicate variable length ranks.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer                                     , dimension(:) , allocatable :: multiRanks
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -663,7 +663,7 @@ contains
              multiRanks(offset+1:offset+elementCount)=-1
           end if
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next
@@ -688,7 +688,7 @@ contains
     !!{
     Populate multiple property meta-data.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
     integer                                     , intent(in   ) :: elementType
@@ -734,7 +734,7 @@ contains
              if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(                 metaData)
           end if
        class default
-          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+          call Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
        extractor_ => extractor_%next

@@ -114,7 +114,7 @@ contains
     method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
     except that they specifically used the circular velocity at half-mass radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk                     , nodeComponentSpheroid
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
@@ -132,7 +132,7 @@ contains
        velocity=component%velocity()
     class default
        velocity=0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Check for zero velocity disk.
     if (velocity <= 0.0d0) then

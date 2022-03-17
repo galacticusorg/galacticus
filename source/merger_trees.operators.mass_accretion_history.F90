@@ -115,7 +115,7 @@ contains
     !!{
     Internal constructor for the mass accretion history merger tree operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Error           , only : Component_List      , Error_Report
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type     (mergerTreeOperatorMassAccretionHistory)                        :: self
@@ -127,25 +127,25 @@ contains
     <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
     !!]
 
-    if (self%includeSpin      .and..not.defaultSpinComponent%angularMomentumIsGettable      ())                            &
-         & call Galacticus_Error_Report                                                                                    &
-         &  (                                                                                                              &
-         &   'the angularMomentum property of the spin component must be gettable.'                                     // &
-         &   Galacticus_Component_List(                                                                                    &
-         &                             'spin'                                                                            , &
-         &                              defaultSpinComponent%angularMomentumAttributeMatch      (requireGettable=.true.)   &
-         &                            )                                                                                 // &
-         &   {introspection:location}                                                                                      &
+    if (self%includeSpin      .and..not.defaultSpinComponent%angularMomentumIsGettable      ())                 &
+         & call Error_Report                                                                                    &
+         &  (                                                                                                   &
+         &   'the angularMomentum property of the spin component must be gettable.'                          // &
+         &   Component_List(                                                                                    &
+         &                  'spin'                                                                            , &
+         &                   defaultSpinComponent%angularMomentumAttributeMatch      (requireGettable=.true.)   &
+         &                 )                                                                                 // &
+         &   {introspection:location}                                                                           &
          &  )
-    if (self%includeSpinVector.and..not.defaultSpinComponent%angularMomentumVectorIsGettable())                            &
-         & call Galacticus_Error_Report                                                                                    &
-         &  (                                                                                                              &
-         &   'the angularMomentumVector property of the spin component must be gettable.'                               // &
-         &   Galacticus_Component_List(                                                                                    &
-         &                             'spin'                                                                            , &
-         &                              defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.)   &
-         &                            )                                                                                 // &
-         &   {introspection:location}                                                                                      &
+    if (self%includeSpinVector.and..not.defaultSpinComponent%angularMomentumVectorIsGettable())                 &
+         & call Error_Report                                                                                    &
+         &  (                                                                                                   &
+         &   'the angularMomentumVector property of the spin component must be gettable.'                    // &
+         &   Component_List(                                                                                    &
+         &                  'spin'                                                                            , &
+         &                   defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.)   &
+         &                 )                                                                                 // &
+         &   {introspection:location}                                                                           &
          &  )
     return
   end function massAccretionHistoryConstructorInternal
@@ -170,8 +170,8 @@ contains
     !!}
     use            :: Dark_Matter_Halo_Spins          , only : Dark_Matter_Halo_Angular_Momentum_Scale
     use            :: Display                         , only : displayGreen                           , displayReset
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Error                           , only : Error_Report
+    use            :: Output_HDF5                     , only : outputFile
     use            :: Galacticus_Nodes                , only : mergerTree                             , nodeComponentBasic, nodeComponentSpin, treeNode
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -235,23 +235,23 @@ contains
        end do
        ! Create the output group if necessary.
        !$ call hdf5Access%set()
-       if (.not.self%outputGroup%isOpen()) self%outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Mass accretion histories of main branches in merger trees.')
+       if (.not.self%outputGroup%isOpen()) self%outputGroup=outputFile%openGroup(char(self%outputGroupName),'Mass accretion histories of main branches in merger trees.')
        !$ call hdf5Access%unset()
        ! Output to HDF5 file.
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
        !$ call hdf5Access%set()
-       if (self%outputGroup%hasGroup(char(groupName)))                                                                                                                                   &
-            & call Galacticus_Error_Report(                                                                                                                                              &
-            &                              'duplicate tree index detected - mass accretion history can not be output'                                                       //char(10)// &
-            &                              {introspection:location}                                                                                                                   // &
-            &                              displayGreen()//'  HELP:'//displayReset()                                                                                                  // &
-            &                              ' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices'          // &
-            &                              ' to be reset to the index of the root node by adding the following to your input parameter file:'                               //char(10)// &
-            &                              '  <mergerTreeConstructor value="read">'                                                                                         //char(10)// &
-            &                              '     <treeIndexToRootNodeIndex value="true"/>'                                                                                  //char(10)// &
-            &                              '  </mergerTreeConstructor>'                                                                                                                  &
-            &                             )
+       if (self%outputGroup%hasGroup(char(groupName)))                                                                                                                        &
+            & call Error_Report(                                                                                                                                              &
+            &                   'duplicate tree index detected - mass accretion history can not be output'                                                       //char(10)// &
+            &                   {introspection:location}                                                                                                                   // &
+            &                   displayGreen()//'  HELP:'//displayReset()                                                                                                  // &
+            &                   ' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices'          // &
+            &                   ' to be reset to the index of the root node by adding the following to your input parameter file:'                               //char(10)// &
+            &                   '  <mergerTreeConstructor value="read">'                                                                                         //char(10)// &
+            &                   '     <treeIndexToRootNodeIndex value="true"/>'                                                                                  //char(10)// &
+            &                   '  </mergerTreeConstructor>'                                                                                                                  &
+            &                  )
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)

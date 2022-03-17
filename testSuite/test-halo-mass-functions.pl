@@ -78,7 +78,7 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
     $parameters->{'virialDensityContrast'   }->{'densityContrastValue'}->{'value'} =      $parametersHMFCalc{'delta_h'};
     $parameters->{'transferFunction'        }->{'fileName'            }->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_Tk.hdf5" ;
     $parameters->{'haloMassFunction'        }                          ->{'value'} = $massFunctionType->{'method'};
-    $parameters->{'galacticusOutputFileName'}                          ->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_HMF.hdf5";
+    $parameters->{'outputFileName'}                          ->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_HMF.hdf5";
     open(my $parameterOutputFile,">","outputs/HMFcalc/".$massFunctionType->{'label'}.".xml");
     print $parameterOutputFile $xml->XMLout($parameters, RootName => "parameters");
     close($parameterOutputFile);

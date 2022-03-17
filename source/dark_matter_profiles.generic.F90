@@ -182,7 +182,7 @@ contains
     use            :: Numerical_Ranges       , only : Make_Range                  , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeExtrapolate
     use            :: Numerical_Interpolation, only : gsl_interp_linear
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
+    use            :: Error                  , only : Error_Report
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target      :: self
     type            (treeNode                ), intent(inout), target      :: node
@@ -201,7 +201,7 @@ contains
          &                                                                    radiusVirial
 
     ! Validate input.
-    if (radiusUpper < radiusLower) call Galacticus_Error_Report('radiusUpper ≥ radiusLower is required'//{introspection:location})
+    if (radiusUpper < radiusLower) call Error_Report('radiusUpper ≥ radiusLower is required'//{introspection:location})
     if (radiusUpper <= 0.0d0) then
        genericEnclosedMassDifferenceNumerical=0.0d0
        return
@@ -421,9 +421,9 @@ contains
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess
+    use            :: Error                  , only : Error_Report        , errorStatusSuccess
     use            :: Numerical_Integration  , only : integrator
-    use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLogarithmic
+    use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeFix
     use            :: Numerical_Interpolation, only : gsl_interp_linear
     implicit none
@@ -531,7 +531,7 @@ contains
                         &            *toleranceRelative
                 end if
              end do
-             if (status /= errorStatusSuccess) call Galacticus_Error_Report('integration of Jeans equation failed'//{introspection:location})
+             if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
              call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
           end if
           if (density <= 0.0d0) then
@@ -539,7 +539,7 @@ contains
              ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
              ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
              velocityDispersions(i)=0.0d0
-             if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Galacticus_Error_Report('undefined velocity dispersion'//{introspection:location})
+             if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Error_Report('undefined velocity dispersion'//{introspection:location})
           else
              velocityDispersions(i)=sqrt(                         &
                   &                      +(                       &
@@ -809,7 +809,7 @@ contains
     !!{
     GSL-callable function to evaluate the energy of the dark matter profile.
     !!}
-    use :: Functions_Global, only : Galacticus_Calculations_Reset_
+    use :: Functions_Global, only : Calculations_Reset_
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
     double precision                       :: time
@@ -820,7 +820,7 @@ contains
     call genericBasic            %massSet            (genericMass +genericMassGrowthRate *(time-genericTime))
     call genericDarkMatterProfile%scaleSet           (genericScale+genericScaleGrowthRate*(time-genericTime))
     call genericDarkMatterProfile%shapeSet           (genericShape+genericShapeGrowthRate*(time-genericTime))
-    call Galacticus_Calculations_Reset_(solvers(solversCount)%node)
+    call Calculations_Reset_(solvers(solversCount)%node)
     genericEnergyEvaluate=solvers(solversCount)%self%energyNumerical(solvers(solversCount)%node)
     return
   end function genericEnergyEvaluate

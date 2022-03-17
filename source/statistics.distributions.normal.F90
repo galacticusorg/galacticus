@@ -157,7 +157,7 @@ contains
     !!{
     Return the minimum possible value of a uniform distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(distributionFunction1DNormal), intent(inout) :: self
 
@@ -165,7 +165,7 @@ contains
        normalMinimum=self%limitLower
     else
        normalMinimum=0.0d0
-       call Galacticus_Error_Report('no minimum exists'//{introspection:location})
+       call Error_Report('no minimum exists'//{introspection:location})
     end if
     return
   end function normalMinimum
@@ -174,7 +174,7 @@ contains
     !!{
     Return the maximum possible value of a uniform distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(distributionFunction1DNormal), intent(inout) :: self
 
@@ -182,7 +182,7 @@ contains
        normalMaximum=self%limitUpper
     else
        normalMaximum=0.0d0
-       call Galacticus_Error_Report('no maximum exists'//{introspection:location})
+       call Error_Report('no maximum exists'//{introspection:location})
     end if
     return
   end function normalMaximum
@@ -252,13 +252,13 @@ contains
     !!{
     Return the inverse of a normal distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (distributionFunction1DNormal), intent(inout), target :: self
     double precision                              , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
-         & call Galacticus_Error_Report(                             &
+         & call Error_Report(                             &
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )
@@ -281,7 +281,7 @@ contains
     Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the alogorithm of
     \cite{wichura_percentage_1988}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision, intent(in   )                :: p
     double precision, parameter    , dimension (8) :: a=[                            &
@@ -371,7 +371,7 @@ contains
        end if
        if (r <= 0.0d0) then
           normalStandardInverse=-1.0d0
-          call Galacticus_Error_Report('out of range - this should not happen'//{introspection:location})
+          call Error_Report('out of range - this should not happen'//{introspection:location})
        end if
        r=sqrt(-log(r))
        if (r <= split2) then

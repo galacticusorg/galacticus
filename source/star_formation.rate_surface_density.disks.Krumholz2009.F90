@@ -128,7 +128,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate in disks class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters

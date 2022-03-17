@@ -219,6 +219,6 @@
   </nodeOperator>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/regressions/cole2000TreeBuilderWDMNodeWellOrdering.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/cole2000TreeBuilderWDMNodeWellOrdering.hdf5"/>
 
 </parameters>

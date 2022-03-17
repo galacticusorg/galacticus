@@ -223,7 +223,7 @@
   </outputTimes>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/test-allowed-parameters.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-allowed-parameters.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
     <cosmologyParameters value="simple"> <!-- VALID: This should be allowed as galacticFilterMethod below will composite cosmologyFunctions which in turn composites cosmologyParameters -->

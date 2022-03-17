@@ -212,11 +212,8 @@ contains
     !!{
     Record counts of galaxy-galaxy major mergers.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
-
-use :: kind_numbers, only : kind_int8
-    
     implicit none
     class           (nodeOperatorNodeMajorMergerRecentCount), intent(inout)              :: self
     type            (treeNode                              ), intent(inout)              :: node
@@ -239,7 +236,7 @@ use :: kind_numbers, only : kind_int8
        intervalRecent=self%intervalRecent*self%darkMatterHaloScale_%timescaleDynamical(node)
     case default
        intervalRecent=0.0d0
-       call Galacticus_Error_Report('unrecognized recent time interval type'//{introspection:location})
+       call Error_Report('unrecognized recent time interval type'//{introspection:location})
     end select    
     ! Get current count of mergers.
     countMajorMergers=basicParent%integerRank1MetaPropertyGet(self%nodeMajorMergerRecentCountID)

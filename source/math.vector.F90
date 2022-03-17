@@ -142,13 +142,13 @@ contains
     !!{
     Copies the upper triangle of a square matrix to the lower triangle.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision, dimension(:                 ,:                 ), intent(in   ) :: matrix
     double precision, dimension(size(matrix,dim=1),size(matrix,dim=2))                :: Matrix_Copy_Upper_To_Lower_Triangle
     integer                                                                           :: i                                  , j
 
-    if (size(matrix,dim=1) /= size(matrix,dim=2)) call Galacticus_Error_Report('matrix must be square'//{introspection:location})
+    if (size(matrix,dim=1) /= size(matrix,dim=2)) call Error_Report('matrix must be square'//{introspection:location})
     do i=1,size(matrix,dim=1)
        do j=i,size(matrix,dim=2)
           Matrix_Copy_Upper_To_Lower_Triangle(i,j)=matrix(i,j)

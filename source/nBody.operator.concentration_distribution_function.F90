@@ -159,7 +159,8 @@ contains
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
-          &                              displayUnindent        , verbosityLevelStandard
+         &                              displayUnindent        , verbosityLevelStandard
+    use    :: Error             , only : Error_Report
     use    :: IO_HDF5           , only : hdf5Object
     use    :: HDF5_Access       , only : hdf5Access
     use    :: ISO_Varying_String, only : var_str
@@ -209,20 +210,20 @@ contains
        if (simulations(iSimulation)%propertiesReal%exists('massVirial'  )) then
           mass         => simulations(iSimulation)%propertiesReal%value('massVirial'  )
        else
-          call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'          //{introspection:location})
+          call Error_Report('halo virial masses are required, but are not available in the simulation'          //{introspection:location})
        end if
        ! Get the radii data.
        if (simulations(iSimulation)%propertiesReal%exists('radiusVirial')) then
           radiusVirial => simulations(iSimulation)%propertiesReal%value('radiusVirial')
        else
           allocate(radiusVirial(0))
-          call Galacticus_Error_Report('halo virial radii parameters are required, but are not available in the simulation'//{introspection:location})
+          call Error_Report('halo virial radii parameters are required, but are not available in the simulation'//{introspection:location})
        end if
        if (simulations(iSimulation)%propertiesReal%exists('radiusScale' )) then
           radiusScale  => simulations(iSimulation)%propertiesReal%value('radiusScale' )
        else
           allocate(radiusScale (0))
-          call Galacticus_Error_Report('halo scale radii parameters are required, but are not available in the simulation' //{introspection:location})
+          call Error_Report('halo scale radii parameters are required, but are not available in the simulation' //{introspection:location})
        end if
        ! Compute concentrations.
        allocate(concentration(size(mass,kind=c_size_t)))

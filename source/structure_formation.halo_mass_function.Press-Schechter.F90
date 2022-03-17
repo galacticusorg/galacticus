@@ -119,14 +119,14 @@ contains
     !!{
     Return the differential halo mass function at the given time and mass.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloMassFunctionPressSchechter), intent(inout), target   :: self
     double precision                                , intent(in   )           :: time , mass
     type            (treeNode                      ), intent(inout), optional :: node
     double precision                                                          :: alpha, variance
 
-    if (.not.present(node)) call Galacticus_Error_Report('"node" must be present'//{introspection:location})
+    if (.not.present(node)) call Error_Report('"node" must be present'//{introspection:location})
     alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass,time))
     variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass,time) **2
     if (variance > 0.0d0) then

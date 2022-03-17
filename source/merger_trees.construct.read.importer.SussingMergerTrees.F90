@@ -309,7 +309,6 @@ contains
     !!{
     Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -322,7 +321,6 @@ contains
     !!{
     Return a Boolean specifying whether or not the halo angular momenta include the contribution from subhalos.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -432,7 +430,7 @@ contains
     use            :: Arrays_Search                   , only : searchIndexed
     use            :: Display                         , only : displayCounter         , displayCounterClear, displayIndent        , displayMessage, &
           &                                                    displayUnindent        , displayVerbosity   , verbosityLevelWorking
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
+    use            :: Error                           , only : Error_Report
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Memory_Management               , only : allocateArray          , deallocateArray
@@ -525,7 +523,7 @@ contains
                 message=message//char(10)//'  hosted node time: '//label
                 write (label,'(f7.4)') self%nodes(j)%nodeTime
                 message=message//char(10)//'    host node time: '//label
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              ! Move to the new host.
              l=j
@@ -561,7 +559,7 @@ contains
                 message=message//char(10)//'  hosted node time: '//label
                 write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                 message=message//char(10)//'    host node time: '//label
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              hostStepCount=hostStepCount+1
              if (hostStepCount > stepCountMaximum) then
@@ -572,7 +570,7 @@ contains
                 message=message//char(10)//'  hosted node time: '//label
                 write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                 message=message//char(10)//'    host node time: '//label
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              l=nodeIndexRanks(k)
           end do
@@ -591,7 +589,7 @@ contains
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
                 message=message//char(10)//'  descendent node time: '//label
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              descendentStepCount=descendentStepCount+1
              if (descendentStepCount > stepCountMaximum) then
@@ -602,7 +600,7 @@ contains
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
                 message=message//char(10)//'  descendent node time: '//label
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              l=k
              hostStepCount=0
@@ -619,7 +617,7 @@ contains
                    message=message//char(10)//'  hosted node time: '//label
                    write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                    message=message//char(10)//'    host node time: '//label
-                   call Galacticus_Error_Report(message//{introspection:location})
+                   call Error_Report(message//{introspection:location})
                 end if
                 hostStepCount=hostStepCount+1
                 if (hostStepCount > stepCountMaximum) then
@@ -630,7 +628,7 @@ contains
                    message=message//char(10)//'  hosted node time: '//label
                    write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                    message=message//char(10)//'    host node time: '//label
-                   call Galacticus_Error_Report(message//{introspection:location})
+                   call Error_Report(message//{introspection:location})
                 end if
                 l=nodeIndexRanks(k)
              end do
@@ -665,8 +663,8 @@ contains
        do i=1,nodeCountTrees
           l=nodeDescendentLocations(i)
           if (l /= -1) then
-             if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                              &
-                  & call Galacticus_Error_Report('failed to cross-link trees'//{introspection:location})
+             if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                    &
+                  & call Error_Report('failed to cross-link trees'//{introspection:location})
           end if
        end do
        call displayCounterClear(verbosityLevelWorking)
@@ -726,7 +724,7 @@ contains
              if (k < 0 .or. self%nodes(i)%descendentIndex /= self%nodes(k)%nodeIndex) then
                 message='zero mass halo ['
                 message=message//self%nodes(i)%nodeIndex//'] has no non-zero mass descendents'
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           end do
        end if
@@ -754,7 +752,7 @@ contains
                 message=message//char(10)//'          y: '//label
                 write (label,'(e12.6)') self%nodes(j)%position(3)
                 message=message//char(10)//'          z: '//label
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           else
              ! Reset index to the start of this tree.
@@ -831,14 +829,13 @@ contains
     !!{
     Return the weight to assign to trees.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                           , intent(in   ) :: i
     !$GLC attributes unused :: i
 
     ! Compute the inverse of the cube volume.
-    sussingTreeWeight   =  1.0d0/self%cubeLength(self%cosmologyFunctions_%cosmicTime(1.0d0))**3/self%treeSampleRate
+    sussingTreeWeight=1.0d0/self%cubeLength(self%cosmologyFunctions_%cosmicTime(1.0d0))**3/self%treeSampleRate
     return
   end function sussingTreeWeight
 
@@ -955,7 +952,7 @@ contains
     !!{
     Returns a trace of subhalo position/velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                 :: self
     class           (nodeData                 ), intent(in   )                 :: node
@@ -963,7 +960,7 @@ contains
     double precision                           , intent(  out), dimension(:,:) :: position, velocity
     !$GLC attributes unused :: self, node, time, position, velocity
 
-    call Galacticus_Error_Report('subhalo traces are not available'//{introspection:location})
+    call Error_Report('subhalo traces are not available'//{introspection:location})
     return
   end subroutine sussingSubhaloTrace
 
@@ -986,7 +983,7 @@ contains
     !!{
     Import the $i^\mathrm{th}$ merger tree.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: Memory_Management, only : Memory_Usage_Record
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                            :: self
@@ -1004,8 +1001,8 @@ contains
     ! Decide if this tree should be included.
     if (self%randomNumberGenerator_%uniformSample() <= self%treeSampleRate) then
        ! Validate arguments.
-       if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('import of structure only is not supported'//{introspection:location})
-       if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('import of subsets is not supported'       //{introspection:location})
+       if (present(structureOnly).and.    structureOnly                ) call Error_Report('import of structure only is not supported'//{introspection:location})
+       if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Error_Report('import of subsets is not supported'       //{introspection:location})
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
        call Memory_Usage_Record(sizeof(nodes))
@@ -1090,7 +1087,7 @@ contains
     !!{
     Determine if a value in a ``Sussing'' merger tree file is bad
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
@@ -1102,7 +1099,7 @@ contains
        sussingValueIsBad=(x > self%badValue)
     case default
        sussingValueIsBad=.false.
-       call Galacticus_Error_Report('unknown badness test'//{introspection:location})
+       call Error_Report('unknown badness test'//{introspection:location})
     end select
     return
   end function sussingValueIsBad
@@ -1111,7 +1108,7 @@ contains
     !!{
     Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (mergerTreeImporterSussing), intent(inout)                            :: self
     integer(kind_int8                ), intent(  out), dimension(:), allocatable :: nodeSelfIndices    , nodeTreeIndices
@@ -1123,7 +1120,7 @@ contains
          &                                                                          velocityUnits
     !$GLC attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
 
-    call Galacticus_Error_Report('this function should not be accessed'//{introspection:location})
+    call Error_Report('this function should not be accessed'//{introspection:location})
     return
   end subroutine sussingLoad
 

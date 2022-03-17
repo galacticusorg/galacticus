@@ -239,7 +239,7 @@ contains
     Implement a Sunyaev-Zeldovich effect property extractor.
     !!}
     use :: Numerical_Integration           , only : integrator
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentHotHalo                   , nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : degreesToRadians                       , arcminutesToDegrees
     use :: Numerical_Constants_Math        , only : Pi
@@ -276,7 +276,7 @@ contains
     else
        distanceAngular=self%cosmologyFunctions_%distanceAngular(time)
     end if
-    if (distanceAngular <= 0.0d0) call Galacticus_Error_Report('non-positive angular diameter distance'//{introspection:location})
+    if (distanceAngular <= 0.0d0) call Error_Report('non-positive angular diameter distance'//{introspection:location})
     ! Compute the integrated Compton-y parameter within this radius, divided by the angular diameter distance squared, and
     ! converted to units of arcmin².
     integrator_ = integrator           (integrandComptonY,toleranceRelative=1.0d-3)

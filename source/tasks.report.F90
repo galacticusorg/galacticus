@@ -59,19 +59,19 @@ contains
     !!{
     Builds the tabulation.
     !!}
-    use :: Display              , only : displayIndent            , displayMessage, displayUnindent
-    use :: Galacticus_Build     , only : Galacticus_Build_String
-    use :: Galacticus_Error     , only : errorStatusSuccess
-    use :: Galacticus_Versioning, only : Galacticus_Version_String
+    use :: Display          , only : displayIndent      , displayMessage, displayUnindent
+    use :: Output_Build     , only : Output_Build_String
+    use :: Error            , only : errorStatusSuccess
+    use :: Output_Versioning, only : Version_String
     implicit none
     class  (taskReport), intent(inout), target   :: self
     integer            , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
-    call displayIndent  ('Begin task: report'                               )
-    call displayMessage ('This is Galacticus: '//Galacticus_Version_String())
-    call displayMessage ('Built with: '        //Galacticus_Build_String  ())
-    call displayUnindent('Done task: report'                                )
+    call displayIndent  ('Begin task: report'                         )
+    call displayMessage ('This is Galacticus: '//Version_String     ())
+    call displayMessage ('Built with: '        //Output_Build_String())
+    call displayUnindent('Done task: report'                          )
     if (present(status)) status=errorStatusSuccess
     return
   end subroutine reportPerform

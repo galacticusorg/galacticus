@@ -40,7 +40,7 @@ program Test_Zhao2009_Open
   use :: File_Utilities                           , only : Count_Lines_in_File
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                                , nodeComponentBasic                     , treeNode
-  use :: Galacticus_Paths                         , only : galacticusPath                                              , pathTypeExec
+  use :: Input_Paths                              , only : inputPath                                                   , pathTypeExec
   use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string              , &
        &                                                   var_str
   use :: Input_Parameters                         , only : inputParameters
@@ -218,7 +218,7 @@ program Test_Zhao2009_Open
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
      ! Count lines in the "mandc" comparison file.
-     fileName=char(galacticusPath(pathTypeExec))//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputOpenlgM'
+     fileName=char(inputPath(pathTypeExec))//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputOpenlgM'
      fileName=fileName//logarithmicHaloMasses(iMass)//'.data'
      totalLinesInFile=Count_Lines_in_File(fileName    )
      dataLinesInFile =Count_Lines_in_File(fileName,'#')-1

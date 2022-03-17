@@ -161,9 +161,9 @@ contains
     !!{
     Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     !!}
-    use :: Display         , only : displayMessage           , verbosityLevelSilent
-    use :: Galacticus_Error, only : Galacticus_Error_Report  , errorStatusSuccess
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Display    , only : displayMessage           , verbosityLevelSilent
+    use :: Error      , only : Error_Report             , errorStatusSuccess
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -237,7 +237,7 @@ contains
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
-                call Galacticus_Error_Report('root finding failed'//{introspection:location})
+                call Error_Report('root finding failed'//{introspection:location})
              end if
              self%radiusLast=font2008RadiusStripped
           end if

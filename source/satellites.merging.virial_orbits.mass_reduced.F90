@@ -144,11 +144,11 @@ contains
     Return massReduced orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
-    use :: Kepler_Orbits                       , only : keplerOrbitRadius                  , keplerOrbitVelocityTangential, keplerOrbitTheta, keplerOrbitPhi
+    use :: Kepler_Orbits                       , only : keplerOrbitPhi                     , keplerOrbitRadius, keplerOrbitTheta, keplerOrbitVelocityTangential
     use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
-    use :: Galactic_Structure_Options          , only : massTypeAll                        , componentTypeAll
+    use :: Galactic_Structure_Options          , only : componentTypeAll                   , massTypeAll
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
     implicit none
     type            (keplerOrbit               )                        :: orbit
@@ -224,7 +224,7 @@ contains
        if (orbit%energy() >= 0.0d0 .and. .not.acceptUnboundOrbits) &
             & acceptOrbit=.false.
     end do
-    if (.not.acceptOrbit) call Galacticus_Error_Report('no acceptable orbit found'//{introspection:location})
+    if (.not.acceptOrbit) call Error_Report('no acceptable orbit found'//{introspection:location})
     return
   end function massReducedOrbit
 
@@ -247,7 +247,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
-    use :: Galactic_Structure_Options          , only : massTypeAll                        , componentTypeAll
+    use :: Galactic_Structure_Options          , only : componentTypeAll                   , massTypeAll
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
     implicit none
     class           (virialOrbitMassReduced    ), intent(inout) :: self
@@ -296,7 +296,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
-    use :: Galactic_Structure_Options          , only : massTypeAll, componentTypeAll
+    use :: Galactic_Structure_Options          , only : componentTypeAll                   , massTypeAll
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
     implicit none
     class           (virialOrbitMassReduced    ), intent(inout) :: self

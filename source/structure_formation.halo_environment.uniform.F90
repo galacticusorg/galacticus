@@ -136,14 +136,14 @@ contains
     !!{
     Return the PDF of the environmental overdensity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
     !$GLC attributes unused :: self, overdensity
 
     uniformPDF=0.0d0
-    call Galacticus_Error_Report('PDF is a delta function'//{introspection:location})
+    call Error_Report('PDF is a delta function'//{introspection:location})
     return
   end function uniformPDF
 
@@ -168,14 +168,14 @@ contains
     !!{
     Return the CDF of the environmental overdensity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: overdensity
     !$GLC attributes unused :: self, node
 
-    if (overdensity /= 0.0d0) call Galacticus_Error_Report('non-zero overdensity is inconsistent with uniform density field'//{introspection:location})
+    if (overdensity /= 0.0d0) call Error_Report('non-zero overdensity is inconsistent with uniform density field'//{introspection:location})
     return
   end subroutine uniformOverdensityLinearSet
 

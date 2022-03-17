@@ -200,7 +200,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
@@ -213,7 +213,7 @@ contains
     !$GLC attributes unused :: self, node, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
 
     molecularHydrogenGalliPallaCoolingFunctionFractionInBand=0.0d0
-    call Galacticus_Error_Report('fraction in band is not supported'//{introspection:location})
+    call Error_Report('fraction in band is not supported'//{introspection:location})
     return
   end function molecularHydrogenGalliPallaCoolingFunctionFractionInBand
 

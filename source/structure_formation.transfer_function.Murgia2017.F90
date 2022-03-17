@@ -76,7 +76,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
          &                                                         gamma               , redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <inputParameter>
@@ -205,7 +205,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionMurgia2017), intent(inout), target   :: self

@@ -34,9 +34,9 @@ module Merger_Tree_State_Store
 contains
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>mergerTreeStateStore</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine mergerTreeStateStore(stateFile,gslStateFile,stateOperatorID)
     !!{
@@ -54,9 +54,9 @@ contains
   end subroutine mergerTreeStateStore
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>mergerTreeStateRestore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine mergerTreeStateRestore(stateFile,gslStateFile,stateOperatorID)
     !!{

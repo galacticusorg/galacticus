@@ -193,7 +193,7 @@ foreach my $simulation ( @simulations ) {
 	    my $redshiftLabel = sprintf("z%5.3f",$redshift);
     
 	    my $parameters = $xml->XMLin($outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
-	    $parameters->{'galacticusOutputFileName'}->{'value'} = "/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline.4/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
+	    $parameters->{'outputFileName'}->{'value'} = "/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline.4/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
 	    $parameters->{'haloMassFunctionParameters'}->{'a'            }->{'value'} = 0.82708790844954094;
 	    $parameters->{'haloMassFunctionParameters'}->{'b'            }->{'value'} = 1.7199906684586954E-004;
 	    $parameters->{'haloMassFunctionParameters'}->{'c'            }->{'value'} = -2.9075259886015061;

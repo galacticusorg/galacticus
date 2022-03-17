@@ -54,7 +54,7 @@ contains
     !!{
     Constructor for the ``intervalPass'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass
     implicit none
@@ -80,7 +80,7 @@ contains
     class is (nodePropertyExtractorScalar)
        self=galacticFilterIntervalPass(thresholdLow,thresholdHigh,nodePropertyExtractor_)
        class default
-       call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
+       call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>

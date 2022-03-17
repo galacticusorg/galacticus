@@ -206,7 +206,7 @@ contains
     !!{
     Return the specific angular momentum of cooling gas in the constantRotation model.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -239,7 +239,7 @@ contains
                &                      /hotHalo%mass           ()
        case default
           angularMomentumSpecificMean=0.0d0
-          call Galacticus_Error_Report('unknown profile type'//{introspection:location})
+          call Error_Report('unknown profile type'//{introspection:location})
        end select
        ! Compute the rotation normalization.
        select case (self%sourceNormalizationRotation      )
@@ -249,7 +249,7 @@ contains
           normalizationRotation=self%hotHaloMassDistribution_%rotationNormalization(node)
        case default
           normalizationRotation=0.0d0
-          call Galacticus_Error_Report('unknown profile type'//{introspection:location})
+          call Error_Report('unknown profile type'//{introspection:location})
        end select
        ! Compute the specific angular momentum of the cooling gas.
        self%angularMomentumSpecificPrevious=+normalizationRotation       &

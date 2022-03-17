@@ -25,18 +25,18 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   !!{
   Attach cooling pipes to the standard disk component.
   !!}
-  use :: Galacticus_Error, only : Galacticus_Error_Report
+  use :: Error, only : Error_Report
   implicit none
   class(nodeComponentDiskStandard), intent(in   ) :: self
   type (nodeComponentHotHalo     )                :: hotHalo
   !$GLC attributes unused :: self
 
   if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
-       call Galacticus_Error_Report('expected to find unclaimed hot halo mass cooling pipe'//{introspection:location})
+       call Error_Report('expected to find unclaimed hot halo mass cooling pipe'//{introspection:location})
   if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
-       call Galacticus_Error_Report('expected to find unclaimed hot halo angular momentum cooling pipe'//{introspection:location})
+       call Error_Report('expected to find unclaimed hot halo angular momentum cooling pipe'//{introspection:location})
   if (hotHalo%hotHaloCoolingAbundancesRateIsAttached     ()) &
-       call Galacticus_Error_Report('expected to find unclaimed hot halo abundances cooling pipe'//{introspection:location})
+       call Error_Report('expected to find unclaimed hot halo abundances cooling pipe'//{introspection:location})
   call hotHalo%hotHaloCoolingMassRateFunction           (DiskStandardMassGasRateGeneric        )
   call hotHalo%hotHaloCoolingAngularMomentumRateFunction(DiskStandardAngularMomentumRateGeneric)
   call hotHalo%hotHaloCoolingAbundancesRateFunction     (DiskStandardAbundancesGasRateGeneric  )
@@ -47,7 +47,7 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   !!{
   Return the half-mass radius of the standard disk.
   !!}
-  use :: Galacticus_Error                 , only : Galacticus_Error_Report
+  use :: Error                            , only : Error_Report
   use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
   implicit none
@@ -59,7 +59,7 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
      Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%radiusHalfMass()
   class default
      Node_Component_Disk_Standard_Half_Mass_Radius=0.0d0
-     call Galacticus_Error_Report('mass distribution should be cylindrical'//{introspection:location})
+     call Error_Report('mass distribution should be cylindrical'//{introspection:location})
   end select
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius

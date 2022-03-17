@@ -175,7 +175,7 @@ contains
        velocity      =0.0d0
        massGas       =0.0d0
        massStellar   =0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Get the tidal field due to the host halo.
     tidalTensorRadial =  self%satelliteTidalField_%tidalTensorRadial(node)

@@ -6,7 +6,7 @@
 
   <task value="NBodyAnalyze"/>
 
-  <galacticusOutputFileName value=""/>
+  <outputFileName value=""/>
 
   <nbodyImporter value="multiple">
     <nbodyImporter value="IRATE">

@@ -42,7 +42,7 @@ sub Class_Initialization {
 	description => "Initialize a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	    ],
 	variables   =>
 	    [
@@ -57,7 +57,7 @@ sub Class_Initialization {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 
-call Galacticus_Error_Report('can not initialize a generic component'//\{introspection:location\})
+call Error_Report('can not initialize a generic component'//\{introspection:location\})
 CODE
     # Insert a type-binding for this function.
     push(
@@ -116,7 +116,7 @@ sub Class_Builder {
 	description => "Build a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component from a supplied XML definition.",
 	modules     =>
 	    [
-	     "Galacticus_Error",
+	     "Error",
 	     "FoX_DOM, only : node"
 	    ],
 	variables   =>
@@ -138,7 +138,7 @@ sub Class_Builder {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self, componentDefinition
 
-call Galacticus_Error_Report('can not build a generic component'//\{introspection:location\})
+call Error_Report('can not build a generic component'//\{introspection:location\})
 CODE
     # Insert a type-binding for this function.
     push(
@@ -242,7 +242,7 @@ sub Class_Add_Meta_Property {
 	    modules     =>
 		[
 		 "ISO_Varying_String",
-		 "Galacticus_Error"
+		 "Error"
 		],
 	    variables   =>
 		[
@@ -374,9 +374,9 @@ CODE
 	    if ( $isEvolvable ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  if (present(isEvolvable)) then
-  if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty) .neqv. isEvolvable) call Galacticus_Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
+  if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty) .neqv. isEvolvable) call Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
  else
-  if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)                   ) call Galacticus_Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
+  if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)                   ) call Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
  end if
 CODE
 	    }
@@ -457,7 +457,7 @@ sub Class_Name_Meta_Property {
 	{
 	    type        => "type(varying_string) => nameMetaProperty",
 	    name        => "component".ucfirst($code::class->{'name'})."Name".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty",
-	    description => "Return the name of the indexed of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-property associated with the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    description => "Return the name of the indexed of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}." meta-property associated with the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	    modules     => [ "ISO_Varying_String" ],
 	    variables   =>
 		[
@@ -475,6 +475,7 @@ sub Class_Name_Meta_Property {
 		]
 	};
 	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    push(@{$function->{'modules'}},"Error");
 	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 
@@ -483,7 +484,7 @@ if (index > 0 .and. index <= size({$class->{'name'}.$prefix}MetaPropertyNames)) 
  nameMetaProperty={$class->{'name'}.$prefix}MetaPropertyNames(index)
 else
  nameMetaProperty=var_str('')
- call Galacticus_Error_Report('meta-property index is out of range'//\{introspection:location\})
+ call Error_Report('meta-property index is out of range'//\{introspection:location\})
 end if
 !$omp end critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
 CODE

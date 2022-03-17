@@ -99,7 +99,7 @@ contains
     !!{
     Constructor for ``gamma'' 1D distribution function class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (distributionFunction1DGamma)                                  :: self
     double precision                             , intent(in   )                   :: shape                 , rate
@@ -109,20 +109,20 @@ contains
     <constructorAssign variables="shape, rate, *randomNumberGenerator_"/>
     !!]
 
-    if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('rate>0 and shape>0 are required'//{introspection:location})
+    if (rate <= 0.0d0 .or. shape <= 0.0d0) call Error_Report('rate>0 and shape>0 are required'//{introspection:location})
     self%limitLowerExists=.false.
     self%limitUpperExists=.false.
     self%cdfAtLowerLimit =0.0d0
     self%cdfAtUpperLimit =1.0d0
     if (present(limitLower)) then
-       if (limitLower < 0.0d0) call Galacticus_Error_Report('limitLower≥0 is required'//{introspection:location})
+       if (limitLower < 0.0d0) call Error_Report('limitLower≥0 is required'//{introspection:location})
        self%limitLower     =limitLower
        self%cdfAtLowerLimit=self%cumulative(limitLower)
     else
        self%cdfAtLowerLimit=0.0d0
     end if
     if (present(limitUpper)) then
-       if (limitUpper < 0.0d0) call Galacticus_Error_Report('limitUpper≥0 is required'//{introspection:location})
+       if (limitUpper < 0.0d0) call Error_Report('limitUpper≥0 is required'//{introspection:location})
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=self%cumulative(limitUpper)
     else
@@ -205,14 +205,14 @@ contains
     !!{
     Return the inverse of a Gamma distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Gamma_Functions , only : Inverse_Gamma_Function_Incomplete_Complementary
+    use :: Error          , only : Error_Report
+    use :: Gamma_Functions, only : Inverse_Gamma_Function_Incomplete_Complementary
     implicit none
     class           (distributionFunction1DGamma), intent(inout), target :: self
     double precision                             , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
-         & call Galacticus_Error_Report(                             &
+         & call Error_Report(                             &
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )

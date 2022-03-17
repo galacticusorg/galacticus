@@ -57,7 +57,7 @@ contains
     Constructor for the ``descendentNode'' node property extractor class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
     implicit none
     type            (nodePropertyExtractorDescendentNode)                :: self
@@ -79,7 +79,7 @@ contains
     class is (nodePropertyExtractorScalar)
        self=nodePropertyExtractorDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),nodePropertyExtractor_)
     class default
-       call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
+       call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>
@@ -121,7 +121,7 @@ contains
     !!{
     Implement a descendentNode output analysis.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -142,7 +142,7 @@ contains
        end if
        nodeDescendent => nodeDescendent%parent
     end do
-    call Galacticus_Error_Report('failed to find descendent node'//{introspection:location})
+    call Error_Report('failed to find descendent node'//{introspection:location})
     return
   end function descendentNodeExtract
 

@@ -287,7 +287,7 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
-  <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
+  <outputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0 0.1 2 4"/>
   </outputTimes>

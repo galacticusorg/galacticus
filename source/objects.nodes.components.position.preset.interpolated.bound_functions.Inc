@@ -25,8 +25,8 @@ subroutine PositionPresetInterpolatedCheck(self,node,time)
   !!{
   Check that the requested time does not exceed the maximum time for the current interpolation.
   !!}
-  use :: Galacticus_Error  , only : Galacticus_Warn, Galacticus_Error_Report
-  use :: ISO_Varying_String, only : varying_string , operator(//)           , assignment(=), char
+  use :: Error             , only : Warn          , Error_Report
+  use :: ISO_Varying_String, only : varying_string, operator(//), assignment(=), char
   use :: String_Handling   , only : operator(//)
   implicit none
   class           (nodeComponentPositionPresetInterpolated), intent(inout) :: self
@@ -48,12 +48,12 @@ subroutine PositionPresetInterpolatedCheck(self,node,time)
         message=message//node%index()
      end if
      if (time > self%interpolationTimeMaximumData*(1.0d0+toleranceTime)) then
-        call Galacticus_Error_Report(message//{introspection:location})
+        call Error_Report(message//{introspection:location})
      else
         if (.not.warned) then
            !$omp critical(positionPresetInterpolatedWarn)
            if (.not.warned) then
-              call Galacticus_Warn(message//' (further warnings suppressed)')
+              call Warn(message//' (further warnings suppressed)')
               warned=.true.
            end if
            !$omp end critical(positionPresetInterpolatedWarn)
@@ -67,7 +67,6 @@ function PositionPresetInterpolatedPosition(self) result(position)
   !!{
   Return the position of the node.
   !!}
-  use :: Galacticus_Error                                , only : Galacticus_Warn
   use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_, positionPresetBoxLength, isPeriodic
   use :: Numerical_Interpolation                         , only : interpolator
   implicit none

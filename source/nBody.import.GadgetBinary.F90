@@ -163,7 +163,6 @@ contains
     use            :: Display                         , only : displayIndent           , displayUnindent         , verbosityLevelStandard
     use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use            :: File_Utilities                  , only : File_Exists
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash    , rank2DoublePtrHash, &
          &                                                     doubleHash              , varyingStringHash       , integerSizeTHash      , genericHash
     use            :: Memory_Management               , only : allocateArray

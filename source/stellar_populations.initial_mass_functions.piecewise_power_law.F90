@@ -102,8 +102,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily piecewisePowerLaw} initial mass function.
     !!}
-    use :: Array_Utilities , only : Array_Is_Monotonic     , directionIncreasing
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Array_Utilities, only : Array_Is_Monotonic, directionIncreasing
+    use :: Error          , only : Error_Report
     implicit none
     type            (initialMassFunctionPiecewisePowerLaw)                              :: self
     double precision                                      , intent(in   ), dimension(:) :: mass     , exponent
@@ -111,9 +111,9 @@ contains
     double precision                                                                    :: massTotal
 
     ! Validate.
-    if (size(mass) <                 2                             ) call Galacticus_Error_Report('at least 2 mass points are required to define the IMF'//{introspection:location})
-    if (size(mass) /= size(exponent)+1                             ) call Galacticus_Error_Report('number of exponents must match number of intervals'   //{introspection:location})
-    if (.not.Array_Is_Monotonic(mass,direction=directionIncreasing)) call Galacticus_Error_Report('masses must be monotonically increasing'              //{introspection:location})
+    if (size(mass) <                 2                             ) call Error_Report('at least 2 mass points are required to define the IMF'//{introspection:location})
+    if (size(mass) /= size(exponent)+1                             ) call Error_Report('number of exponents must match number of intervals'   //{introspection:location})
+    if (.not.Array_Is_Monotonic(mass,direction=directionIncreasing)) call Error_Report('masses must be monotonically increasing'              //{introspection:location})
     ! Set upper and lower masses.
     allocate(self%massLower    (size(exponent)))
     allocate(self%massUpper    (size(exponent)))

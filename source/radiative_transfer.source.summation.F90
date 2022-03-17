@@ -70,8 +70,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily summation} radiative transfer source class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (radiativeTransferSourceSummation), target        :: self
     type   (inputParameters                 ), intent(inout) :: parameters
@@ -93,7 +93,7 @@ contains
        <objectBuilder class="radiativeTransferSource" name="radiativeTransferSource_%radiativeTransferSource" source="parameters" copy="i" />
        !!]
        if (radiativeTransferSource_%radiativeTransferSource%sourceTypeCount() /= 1) &
-            & call Galacticus_Error_Report('more than 1 source type is not presently supported'//{introspection:location})
+            & call Error_Report('more than 1 source type is not presently supported'//{introspection:location})
        self%sourceTypeName_(i)=radiativeTransferSource_%radiativeTransferSource%sourceTypeName(1)
     end do
     !![
@@ -107,7 +107,7 @@ contains
     !!{
     Internal constructor for the ``summation'' radiative transfer source class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (radiativeTransferSourceSummation)                         :: self
     type (radiativeTransferSourceList     ), target , intent(in   ) :: radiativeTransferSources
@@ -133,7 +133,7 @@ contains
     do while (associated(radiativeTransferSource_))
        self%sourceTypeCount_    =  self%sourceTypeCount_        +1
        if (radiativeTransferSource_%radiativeTransferSource%sourceTypeCount() /= 1) &
-            & call Galacticus_Error_Report('more than 1 source type is not presently supported'//{introspection:location})
+            & call Error_Report('more than 1 source type is not presently supported'//{introspection:location})
        self%sourceTypeName_(self%sourceTypeCount_)=radiativeTransferSource_%radiativeTransferSource%sourceTypeName(1)
        radiativeTransferSource_ => radiativeTransferSource_%next
     end do
@@ -268,13 +268,13 @@ contains
     !!{
     Return the name of the source type.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (varying_string                  )                :: summationSourceTypeName
     class  (radiativeTransferSourceSummation), intent(inout) :: self
     integer                                  , intent(in   ) :: sourceType
 
-    if (sourceType < 1 .or. sourceType > self%sourceTypeCount_) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    if (sourceType < 1 .or. sourceType > self%sourceTypeCount_) call Error_Report('sourceType is out of range'//{introspection:location})
     summationSourceTypeName=self%sourceTypeName_(sourceType)
     return
   end function summationSourceTypeName

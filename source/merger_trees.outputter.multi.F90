@@ -194,7 +194,7 @@ contains
     !!{
     Reduce over the outputter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: reduced
@@ -210,7 +210,7 @@ contains
           outputterReduced_ => outputterReduced_%next
        end do
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine multiReduce

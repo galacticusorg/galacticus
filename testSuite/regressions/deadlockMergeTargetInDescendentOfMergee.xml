@@ -65,7 +65,7 @@
   <componentSpheroid value="standard"/>
   <componentSpin value="vector"/>
   <verbosityLevel value="standard"/>
-  <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
+  <outputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
 
   <!-- Halo scale radii and concentrations -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">

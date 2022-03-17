@@ -23,9 +23,9 @@
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass       , criticalOverdensityClass
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
-  use :: Virial_Density_Contrast   , only : virialDensityContrastClass   , virialDensityContrastBryanNorman1998
+  use :: Virial_Density_Contrast   , only : virialDensityContrastBryanNorman1998, virialDensityContrastClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
 
   !![
@@ -264,7 +264,7 @@ contains
     Return li2020 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     type            (keplerOrbit               )                        :: li2020Orbit
@@ -365,7 +365,7 @@ contains
        end if
     end do
     ! If too many iterations were required to find an orbit, abort.
-    if (attempts >= attemptsMaximum) call Galacticus_Error_Report('maximum number of attempts exceeded'//{introspection:location})
+    if (attempts >= attemptsMaximum) call Error_Report('maximum number of attempts exceeded'//{introspection:location})
     return
   end function li2020Orbit
 
@@ -577,7 +577,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                   , dimension(3)  :: li2020VelocityTangentialVectorMean
     class           (virialOrbitLi2020), intent(inout) :: self
@@ -585,7 +585,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     li2020VelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function li2020VelocityTangentialVectorMean
 
@@ -632,7 +632,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                   , dimension(3)  :: li2020AngularMomentumVectorMean
     class           (virialOrbitLi2020), intent(inout) :: self
@@ -640,7 +640,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     li2020AngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function li2020AngularMomentumVectorMean
 
@@ -733,7 +733,7 @@ contains
     !!{
     Evaluate the $\eta$ parameter used in the definition of \cite{li_orbital_2020} virial orbits.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic 
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (virialOrbitLi2020 ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: nodeHost

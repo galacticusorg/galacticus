@@ -50,7 +50,7 @@ sub Process_StateStore {
 	    foreach my $variable ( @variables ) {
 		$code .= &performIO("read (stateFile) wasAllocated_\n");
 		$code .= "if (wasAllocated_) then\n";
-		$code .= "   if (.not.associated(".$variable.")) call Galacticus_Error_Report(\"'".$variable."' was stored, but is now not allocated\"//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$code .= "   if (.not.associated(".$variable.")) call Error_Report(\"'".$variable."' was stored, but is now not allocated\"//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		$code .= "   call ".$variable."%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 		$code .= "end if\n";
 	    }
@@ -79,7 +79,7 @@ sub Process_StateStore {
 		type      => "moduleUse",
 		moduleUse =>
 		{
-		    Galacticus_Error => {intrinsic => 0, only => { "Galacticus_Error_Report" => 1}}
+		    Error => {intrinsic => 0, only => { "Error_Report" => 1}}
 		}
 	    };
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$moduleUses);

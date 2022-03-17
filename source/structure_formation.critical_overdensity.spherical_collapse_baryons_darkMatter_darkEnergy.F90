@@ -131,7 +131,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
     !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                          :: self
@@ -159,7 +159,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal

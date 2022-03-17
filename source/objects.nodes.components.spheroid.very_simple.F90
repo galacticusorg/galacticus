@@ -455,7 +455,7 @@ contains
     Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
     use :: Histories                       , only : history
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
@@ -518,10 +518,10 @@ contains
        case (destinationMergerUnmoved)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        ! Move stellar material within the host if necessary.
        select case (destinationStarsHost)
@@ -586,10 +586,10 @@ contains
        case (destinationMergerUnmoved)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        ! Move the gas component of the very simple spheroid to the host.
        select case (destinationGasSatellite)
@@ -612,10 +612,10 @@ contains
                &                                          +spheroid    %abundancesGas() &
                &                                         )
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        call    spheroid%massGasSet          (                                           &
             &                                                                     0.0d0 &
@@ -666,10 +666,10 @@ contains
           call diskHost       %stellarPropertiesHistorySet(historyHost    )
           call spheroid       %stellarPropertiesHistorySet(historySpheroid)
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        call    spheroid%         massStellarSet(                       &
             &                                   0.0d0                  &
@@ -812,9 +812,9 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Node_Component_Spheroid_Very_Simple_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -835,9 +835,9 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Node_Component_Spheroid_Very_Simple_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

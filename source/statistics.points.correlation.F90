@@ -34,12 +34,12 @@ contains
     !!{
     Compute the correlation function from a set of points.
     !!}
-    use :: Display          , only : displayCounter         , displayCounterClear , displayIndent, displayUnindent
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Display          , only : displayCounter  , displayCounterClear , displayIndent, displayUnindent
+    use :: Error            , only : Error_Report
     use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Memory_Management, only : allocateArray   , deallocateArray
     use :: Nearest_Neighbors, only : nearestNeighbors
-    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
+    use :: Numerical_Ranges , only : Make_Range      , rangeTypeLogarithmic
     use :: Vectors          , only : Vector_Magnitude
     implicit none
     double precision                  , intent(in   ), dimension(:,:), target      :: dataPosition                    , randomPosition
@@ -116,7 +116,7 @@ contains
     ! Find the minimum and maximum separations, and the logarithmic step size.
     separationLimit                 =separationMaximum*sqrt(separation(2)/separation(1))
     if (projectedActual) then
-       if (.not.present(radialSeparationMaximum)) call Galacticus_Error_Report('maximum radial separation required for projected correlation functions'//{introspection:location})
+       if (.not.present(radialSeparationMaximum)) call Error_Report('maximum radial separation required for projected correlation functions'//{introspection:location})
        separationLimit=sqrt(separationLimit**2+radialSeparationMaximum**2)
     end if
     separationLogarithmicStepInverse=1.0d0/log(separation(2)/separation(1))

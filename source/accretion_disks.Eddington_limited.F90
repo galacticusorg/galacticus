@@ -58,8 +58,8 @@ contains
     !!{
     Constructor for the Eddington-limited accretion disk class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionDisksEddingtonLimited)                :: self
     type            (inputParameters               ), intent(inout) :: parameters

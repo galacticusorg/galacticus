@@ -115,7 +115,7 @@
   </darkMatterProfileScaleRadius>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="haloMassFunctionWarmDarkMatter.hdf5"/>
+  <outputFileName value="haloMassFunctionWarmDarkMatter.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0 1.0"/>
   </outputTimes>

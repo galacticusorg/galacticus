@@ -110,7 +110,7 @@ contains
     !!{
     Evolves all properties of a merger tree to the specified time.
     !!}
-    use    :: Galacticus_Error     , only : errorStatusSuccess
+    use    :: Error     , only : errorStatusSuccess
     use    :: Merger_Tree_Operators, only : mergerTreeOperatorPruneByTime
     !$ use :: OMP_Lib              , only : OMP_Set_Lock                 , OMP_Unset_Lock, omp_lock_kind
     implicit none

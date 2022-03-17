@@ -285,7 +285,7 @@
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="lightcone.hdf5"/>
+  <outputFileName value="lightcone.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0 0.019933 0.041403 0.064493 0.089288 0.115883 0.144383 0.174898 0.207549"/>
   </outputTimes>

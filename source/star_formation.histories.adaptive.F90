@@ -237,9 +237,9 @@ contains
     !!{
     Internal constructor for the ``adaptive'' star formation history class.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeMin       , componentTypeMax
-    use :: Numerical_Ranges          , only : Make_Range             , rangeTypeLogarithmic
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
+    use :: Numerical_Ranges          , only : Make_Range      , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryAdaptive)                                        :: self
     double precision                              , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -268,27 +268,27 @@ contains
             &   present(metallicityMinimum   ) &
             &  .or.                            &
             &   present(metallicityMaximum   ) &
-            & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
+            & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        allocate(self%metallicityTable(size(metallicityBoundaries)))
        self%metallicityTable  =     metallicityBoundaries
        self%countMetallicities=size(metallicityBoundaries)-1
     else
        if     (                                &
             &   present(metallicityBoundaries) &
-            & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
+            & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        if     (                                     &
             &   .not.present(countMetallicities   ) &
             &  .or.                                 &
             &   .not.present(metallicityMinimum   ) &
             &  .or.                                 &
             &   .not.present(metallicityMaximum   ) &
-            & ) call Galacticus_Error_Report('metallicity range is incompletely specified'//{introspection:location})
+            & ) call Error_Report('metallicity range is incompletely specified'//{introspection:location})
        ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
        ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
        ! resolution is required.
        select case (countMetallicities)
        case (:-1,1)
-          call Galacticus_Error_Report('number of bins must be 0, or greater than 1'//{introspection:location})
+          call Error_Report('number of bins must be 0, or greater than 1'//{introspection:location})
        case default
           allocate(self%metallicityTable(countMetallicities+1))
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,int(countMetallicities),rangeType=rangeTypeLogarithmic)
@@ -368,7 +368,7 @@ contains
                 iCombine=iInterval
              end if
           end do
-          if (iCombine == -1) call Galacticus_Error_Report('no interval found - this should not happen'//{introspection:location})
+          if (iCombine == -1) call Error_Report('no interval found - this should not happen'//{introspection:location})
           ! Combine the intervals.
           allocate(timesNewTmp(size(timesNew)-1))
           allocate(indexMapTmp(size(timesNew)-1))
@@ -440,10 +440,10 @@ contains
     !!{
     Set the rate the star formation history for {\normalfont \ttfamily node}.
     !!}
-    use :: Abundances_Structure, only : abundances             , metallicityTypeLinearByMassSolar
+    use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
-    use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
+    use :: Error               , only : Error_Report
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -475,7 +475,7 @@ contains
        historyStarFormation%data(iHistory,iMetallicity)=rateStarFormation
     else
        ! No history exists - this is acceptable only if the star formation rate is zero.
-       if (rateStarFormation > 0.0d0) call Galacticus_Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
+       if (rateStarFormation > 0.0d0) call Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
     end if
     return
   end subroutine adaptiveRate
@@ -576,7 +576,7 @@ contains
     !!{
     Output all star formation history data in the output buffers.
     !!}
-    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Output_HDF5               , only : outputFile
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     use :: HDF5_Access               , only : hdf5Access
     use :: IO_HDF5                   , only : hdf5Object
@@ -594,8 +594,8 @@ contains
     nameOutputGroup         =var_str                       ("Output"                           )//self%indexOutput(componentType)
     nameStarFormationHistory=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"StarFormationHistory"
     !$ call hdf5Access%set()
-    historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data."                          )
-    outputGroup =historyGroup        %openGroup(char(nameOutputGroup)   ,"Star formation histories for all trees at each output.")
+    historyGroup=outputFile  %openGroup("starFormationHistories","Star formation history data."                          )
+    outputGroup =historyGroup%openGroup(char(nameOutputGroup)   ,"Star formation histories for all trees at each output.")
     if (.not.outputGroup%hasDataset('time')) then
        call outputGroup%writeDataset(self%intervals(self%indexOutput(componentType))%time            ,"time"       ,"Times at which the star formation history is tabulated [Gyr]."       )
        call outputGroup%writeDataset(self                                           %metallicityTable,"metallicity","Metallicities at which the star formation history is tabulated [Z☉].")
@@ -644,7 +644,7 @@ contains
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters  , only : inputParameters
-    use :: ISO_Varying_String, only : assignment(=)  , operator(//), char
+    use :: ISO_Varying_String, only : assignment(=)  , char, operator(//)
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor

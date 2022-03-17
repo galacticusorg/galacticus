@@ -112,7 +112,6 @@ contains
     !!{
     Read merger tree masses from file.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : hdf5Object
     use :: File_Utilities  , only : File_Name_Expand

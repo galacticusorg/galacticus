@@ -85,7 +85,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type            (mergerTreeConstructorBuild)                :: self
@@ -221,8 +220,8 @@ contains
     !!{
     Build a merger tree.
     !!}
-    use :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
-    use :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
+    use :: Functions_Global       , only : State_Retrieve_       , State_Store_
+    use :: Galacticus_Nodes       , only : mergerTree            , nodeComponentBasic, treeNode
     use :: Kind_Numbers           , only : kind_int8
     use :: Merger_Tree_State_Store, only : treeStateStoreSequence
     use :: String_Handling        , only : operator(//)
@@ -241,7 +240,7 @@ contains
     ! Prepare to store/restore internal state.
     treeStateStoreSequence=-1_c_size_t
     ! Retrieve stored internal state if possible.
-    call Galacticus_State_Retrieve_()
+    call State_Retrieve_()
     if (treeStateStoreSequence > 0_c_size_t) then
        if (self%processDescending) then
           self%treeNumberOffset=self%treeCount-treeStateStoreSequence
@@ -279,7 +278,7 @@ contains
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber
-       call Galacticus_State_Store_(message)
+       call State_Store_(message)
        ! Initialize.
        tree%event            => null()
        tree%initializedUntil =  0.0d0
@@ -329,7 +328,7 @@ contains
     !!{
     Construct the set of tree masses to be built.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: Memory_Management, only : allocateArray
     use :: Sorting          , only : sortIndex
     implicit none
@@ -350,7 +349,7 @@ contains
                &   allocated(self%treeMassMinimum) &
                &  .or.                             &
                &   allocated(self%treeMassMaximum) &
-               & ) call Galacticus_Error_Report('mass interval should not be set if tree weights are provided'//{introspection:location})
+               & ) call Error_Report('mass interval should not be set if tree weights are provided'//{introspection:location})
        else
           call allocateArray(self%treeWeight   ,[self%treeCount])
           call allocateArray(self%treeMassCount,[self%treeCount])

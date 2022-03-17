@@ -239,8 +239,8 @@ contains
     Perform radiative transfer and output results.
     !!}
     use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error        , only : Galacticus_Error_Report                  , errorStatusSuccess
-    use :: Galacticus_HDF5         , only : galacticusOutputFile
+    use :: Error                   , only : Error_Report                             , errorStatusSuccess
+    use :: Output_HDF5             , only : outputFile
     use :: IO_HDF5                 , only : hdf5Object
     use :: MPI_Utilities           , only : mpiBarrier                               , mpiSelf
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential
@@ -271,7 +271,7 @@ contains
     timerTotal_    =timer()
     timerIteration_=timer()
     ! Open group for output of our model data.
-    if (mpiSelf%isMaster()) outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
+    if (mpiSelf%isMaster()) outputGroup=outputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
     call timerTotal_%start()
     ! Initialize the computational domain.
     call self%computationalDomain_       %initialize      (                                         )
@@ -368,7 +368,7 @@ contains
              ! Photon packet propagation is done - determine how to handle it. If the packet is no longer alive, there's nothing to do.
              if (photonPacketAlive) then
                 ! Photon packet is still alive - it should have left the domain.
-                if (photonPacketInDomain) call Galacticus_Error_Report('photon packet propagation stopped while still in computational domain'//{introspection:location})
+                if (photonPacketInDomain) call Error_Report('photon packet propagation stopped while still in computational domain'//{introspection:location})
                 call self%radiativeTransferOutputter_  %photonPacketEscapes(self%radiativeTransferPhotonPacket_)
                 call self%radiativeTransferConvergence_%photonPacketEscapes(self%radiativeTransferPhotonPacket_)
              end if

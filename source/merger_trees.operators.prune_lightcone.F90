@@ -136,8 +136,8 @@ contains
     Validate the lightcone pruning operator.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultPositionComponent , defaultSatelliteComponent
+    use :: Error           , only : Component_List          , Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
     implicit none
     class(mergerTreeOperatorPruneLightcone), intent(inout) :: self
 
@@ -153,15 +153,15 @@ contains
             &         defaultSatelliteComponent%timeOfMergingIsSettable()                                                                     &
             &       )                                                                                                                         &
             & )                                                                                                                               &
-            & call Galacticus_Error_Report                                                                                                    &
+            & call Error_Report                                                                                                               &
             &      (                                                                                                                          &
             &       'buffering isolated halos requires that the timeOfMerging property of the satellite component be gettable and settable'// &
-            &       Galacticus_Component_List(                                                                                                &
-            &                                 'satellite'                                                                                  ,  &
-            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                 &
-            &                                  .intersection.                                                                                 &
-            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                 &
-            &                                 )                                                                                            // &
+            &       Component_List(                                                                                                           &
+            &                      'satellite'                                                                                             ,  &
+            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                            &
+            &                       .intersection.                                                                                            &
+            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                            &
+            &                      )                                                                                                       // &
             &       {introspection:location}                                                                                                  &
             &      )
     end if
@@ -464,7 +464,7 @@ contains
        end do
     else
        ! This should not happen.
-       call Galacticus_Error_Report('unknown state'//{introspection:location})
+       call Error_Report('unknown state'//{introspection:location})
     end if
     call displayUnindent('done',verbosityLevelInfo)
     return

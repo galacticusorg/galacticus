@@ -53,14 +53,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerIsolatedNodesBranch)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
-    call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
+    call Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function isolatedNodesBranchParameters
 

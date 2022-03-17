@@ -55,7 +55,7 @@ contains
     !!{
     Constructor for the ``hostNode'' node property extractor class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorHostNode)                :: self
@@ -69,7 +69,7 @@ contains
     class is (nodePropertyExtractorScalar)
        self=nodePropertyExtractorHostNode(nodePropertyExtractor_)
     class default
-       call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
+       call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>

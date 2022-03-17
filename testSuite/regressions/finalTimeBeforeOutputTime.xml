@@ -105,7 +105,7 @@
   <stellarPopulationSelector value="fixed"/>
   <componentBlackHole value="null"/>
   <stellarPopulationProperties value="instantaneous"/>
-  <galacticusOutputFileName value="testSuite/outputs/finalTimeBeforeOutputTime.hdf5"/>
+  <outputFileName value="testSuite/outputs/finalTimeBeforeOutputTime.hdf5"/>
   <componentSpheroid value="verySimple"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>

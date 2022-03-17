@@ -124,7 +124,7 @@ contains
     Generic constructor for the \cite{tomczak_galaxy_2014} mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     type   (surveyGeometryTomczak2014ZFOURGE)                        :: self
     integer                                  , intent(in   )         :: redshiftBin
@@ -160,7 +160,7 @@ contains
        self%redshiftMinimum=2.50d0
        self%redshiftMaximum=3.00d0
     case default
-       call Galacticus_Error_Report('0≤redshiftBin≤7 is required'//{introspection:location})
+       call Error_Report('0≤redshiftBin≤7 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -220,7 +220,7 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -229,7 +229,7 @@ contains
     !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+    if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -240,7 +240,7 @@ contains
        redshift=-58.4827675323933d0+logarithmicMass*(20.2501133330335d0+logarithmicMass*(-2.35628286307041d0+logarithmicMass*(0.0927047000361006d0)))
     case default
        redshift=0.0d0
-       call Galacticus_Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
+       call Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
     end select
     ! Convert from redshift to comoving distance.
     tomczak2014ZFOURGEDistanceMaximum                                                                                              &
@@ -257,7 +257,6 @@ contains
     !!{
     Compute the maximum volume within which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
@@ -281,13 +280,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
     type (varying_string                  )                :: tomczak2014ZFOURGEMangleDirectory
     !$GLC attributes unused :: self
 
-    tomczak2014ZFOURGEMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/ZFOURGE/"
+    tomczak2014ZFOURGEMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/ZFOURGE/"
     return
   end function tomczak2014ZFOURGEMangleDirectory
 

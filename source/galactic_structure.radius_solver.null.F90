@@ -98,7 +98,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -107,7 +107,7 @@ contains
     type is (galacticStructureSolverNull)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine nullSolveHook
@@ -116,7 +116,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -127,7 +127,7 @@ contains
     type is (galacticStructureSolverNull)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine nullSolvePreDeriativeHook

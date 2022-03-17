@@ -66,9 +66,9 @@ contains
     Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters
-    use :: String_Handling , only : String_Count_Words     , String_Split_Words                 , char
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter    , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters
+    use :: String_Handling , only : String_Count_Words, String_Split_Words                 , char
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
@@ -90,7 +90,7 @@ contains
          &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
          &  /=                                                                           &
          &   parameters%copiesCount('parameterMap'             ,zeroIfNotPresent=.true.) &
-         & ) call Galacticus_Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
+         & ) call Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
     do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
@@ -124,7 +124,7 @@ contains
           ! Empty value is acceptable.
           allocate(modelLikelihood_%modelParametersInactive_ (                0))
        else
-          call Galacticus_Error_Report('invalid parameter'//{introspection:location})
+          call Error_Report('invalid parameter'//{introspection:location})
        end if
     end do
     !![
@@ -185,7 +185,7 @@ contains
     !!{
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout)               :: self
@@ -222,7 +222,7 @@ contains
                    exit
                 end if
              end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
+             if (modelLikelihood_%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              !![
@@ -241,7 +241,7 @@ contains
                       exit
                    end if
                 end do
-                if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
+                if (modelLikelihood_%parameterMapInactive(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
                 allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
                 !![

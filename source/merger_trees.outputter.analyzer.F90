@@ -104,9 +104,9 @@ contains
     !!{
     Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic, treeNode
-    use :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     class           (mergerTreeOutputterAnalyzer), intent(inout)          :: self
     type            (mergerTree                 ), intent(inout), target  :: tree
@@ -127,7 +127,7 @@ contains
        do while (treeWalker%next(node))
           ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
           ! calculations would not be automatically reset because the node unique ID will not have changed).
-          call Galacticus_Calculations_Reset(node)
+          call Calculations_Reset(node)
           ! Get the basic component.
           basic => node%basic()
           if (basic%time() == time) call self%outputAnalysis_%analyze(node,indexOutput)
@@ -142,14 +142,14 @@ contains
     !!{
     Perform no output.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
     type   (treeNode                   ), intent(inout) :: node
     integer(c_size_t                   ), intent(in   ) :: indexOutput
     !$GLC attributes unused :: self, node, indexOutput
 
-    call Galacticus_Error_Report('output of single nodes is not supported'//{introspection:location})
+    call Error_Report('output of single nodes is not supported'//{introspection:location})
     return
   end subroutine analyzerOutputNode
 
@@ -157,7 +157,7 @@ contains
     !!{
     Reduce over the outputter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(mergerTreeOutputterAnalyzer), intent(inout) :: self
     class(mergerTreeOutputterClass   ), intent(inout) :: reduced
@@ -166,7 +166,7 @@ contains
     type is (mergerTreeOutputterAnalyzer)
        call self%outputAnalysis_%reduce(reduced%outputAnalysis_)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine analyzerReduce
@@ -175,10 +175,10 @@ contains
     !!{
     Finalize merger tree output by finalizing analyses.
     !!}
-    use :: Galacticus_HDF5, only : galacticusOutputFileIsOpen
+    use :: Output_HDF5, only : outputFileIsOpen
     implicit none
     class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
 
-    if (galacticusOutputFileIsOpen) call self%outputAnalysis_%finalize()
+    if (outputFileIsOpen) call self%outputAnalysis_%finalize()
     return
   end subroutine analyzerFinalize

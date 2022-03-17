@@ -115,7 +115,7 @@ CODE
 		    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding,label,dependencies)
-  use    :: Galacticus_Error  , only : Galacticus_Error_Report
+  use    :: Error             , only : Error_Report
   use    :: ISO_Varying_String, only : assignment(=)
   !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
   implicit none
@@ -128,7 +128,7 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
   class    (hook                     )               , pointer                :: hook_
   integer                                                                     :: i                  , openMPThreadBinding_
 
-  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{$location})
   call self%lock()
   if (present(openMPThreadBinding)) then
      openMPThreadBinding_=openMPThreadBinding
@@ -176,14 +176,14 @@ CODE
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@attacherNodes);
 		    my $detacher = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventHook{$interfaceType}Detach(self,object_,function_)
-  use Galacticus_Error, only : Galacticus_Error_Report
+  use Error, only : Error_Report
   implicit none
   class    (eventHook{$interfaceType}), intent(inout)          :: self
   class    (*                        ), intent(in   ), target  :: object_
   procedure(interface{$interfaceType})                         :: function_
   class    (hook                     )               , pointer :: hook_    , hookPrevious_
 
-  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{$location})
   call self%lock()
   if (associated(self%first_)) then
      hookPrevious_ => null()
@@ -208,7 +208,7 @@ subroutine eventHook{$interfaceType}Detach(self,object_,function_)
      end do
   end if
   call self%unlock()
-  call Galacticus_Error_Report('object/function not attached to this event'//{$location})
+  call Error_Report('object/function not attached to this event'//{$location})
   return
 end subroutine eventHook{$interfaceType}Detach
 CODE
@@ -217,14 +217,14 @@ CODE
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@detacherNodes);
 		    my $isAttacher = fill_in_string(<<'CODE', PACKAGE => 'code');
 logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
-  use Galacticus_Error, only : Galacticus_Error_Report
+  use Error, only : Error_Report
   implicit none
   class    (eventHook{$interfaceType}), intent(inout)          :: self
   class    (*                        ), intent(in   ), target  :: object_
   procedure(interface{$interfaceType})                         :: function_
   class    (hook                     )               , pointer :: hook_
 
-  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{$location})
   call self%lock(writeLock=.false.)
   if (associated(self%first_)) then
      hook_ => self%first_
@@ -352,7 +352,7 @@ my $waitTimeWriterNode   =
 			intrinsic => 0,
 			all       => 1
 		    },
-                    Galacticus_Error =>
+                    Error =>
 		    {
 			intrinsic => 0,
 			all       => 1
@@ -463,7 +463,7 @@ do while (associated(hook_))
       !$    end if
       !$ case default
       !$    functionActive_=.false.
-      !$    call Galacticus_Error_Report('unknown OpenMP binding'//{$location})
+      !$    call Error_Report('unknown OpenMP binding'//{$location})
       !$ end select
       if (functionActive_) call hook_%function_(hook_%object_{$callWith})
    end select

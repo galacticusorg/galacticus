@@ -103,8 +103,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeOperatorAugment)                              :: self
     type            (inputParameters          ), intent(inout)               :: parameters
@@ -459,8 +459,8 @@ contains
 
   recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
     use            :: Arrays_Search       , only : searchArrayClosest
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusSuccess
-    use            :: Galacticus_Nodes    , only : mergerTree             , nodeComponentBasic, treeNode
+    use            :: Error               , only : Error_Report      , errorStatusSuccess
+    use            :: Galacticus_Nodes    , only : mergerTree        , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
@@ -521,7 +521,7 @@ contains
              message='Failed to find matching snapshot time for time '//trim(label)//' Gyr.'//char(10)
              write (label,'(f8.5)') self%timeSnapshots(timeIndex)
              message=message//'Closest time was '//trim(label)//' Gyr'
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
           if (timeIndex == 1) then
              timeEarliest=timeEarliestIn
@@ -558,7 +558,7 @@ contains
                   &  trim(adjustl(label))                                                                                  // &
                   &  " Gyr."                                                                                     //char(10)// &
                   &  "Consider using the 'regridTimes' operator first to force halos onto a fixed array of times"
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
           childNode => childNode%sibling
        end do
@@ -592,7 +592,7 @@ contains
        message=message//"   tree root mass = "//trim(label)//char(10)
        write (label,'(e16.8)') self%massCutOff
        message=message//"     cut off mass = "//trim(label)
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
     call self%sortChildren(node)
@@ -1140,8 +1140,8 @@ contains
     !!{
     Sort the children of the given {\normalfont \ttfamily node} such that they are in descending mass order.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeOperatorAugment), intent(in   )          :: self
     type            (treeNode                 ), intent(inout), target  :: node
@@ -1183,7 +1183,7 @@ contains
        nodeCurrent  => nodeCurrent %sibling
        do while (associated(nodeCurrent))
           basicCurrent => nodeCurrent%basic()
-          if (basicCurrent%mass() > massLargest) call Galacticus_Error_Report('failed to sort child nodes'//{introspection:location})
+          if (basicCurrent%mass() > massLargest) call Error_Report('failed to sort child nodes'//{introspection:location})
           massLargest =  basicCurrent%mass   ()
           nodeCurrent => nodeCurrent %sibling
        end do
@@ -1258,8 +1258,8 @@ contains
     !!{
     Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : mergerTree             , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : mergerTree  , treeNode
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)          :: self
     type            (mergerTree               ), intent(inout), target  :: treeBest
@@ -1292,7 +1292,7 @@ contains
             &                            falseBestTreeNodeAboveCutoff, &
             &                            falseNewRescale               &
             &                           )
-       if (treeStatus /= treeBuildSuccess) call Galacticus_Error_Report('extension of non-overlap node failed'//{introspection:location})
+       if (treeStatus /= treeBuildSuccess) call Error_Report('extension of non-overlap node failed'//{introspection:location})
        nodeCurrent => nodeCurrent%sibling
     end do
     return
@@ -1326,7 +1326,7 @@ contains
     Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
     returns that information.
     !!}
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Error              , only : Error_Report
     use :: Galacticus_Nodes   , only : mergerTree                   , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
@@ -1351,7 +1351,7 @@ contains
        augmentTreeStatistics=endNodeCount
     case default
        augmentTreeStatistics=0
-       call Galacticus_Error_Report('unknown task requested'//{introspection:location})
+       call Error_Report('unknown task requested'//{introspection:location})
     end select
     return
   end function augmentTreeStatistics
@@ -1360,7 +1360,7 @@ contains
     !!{
     Output augmentation histogram.
     !!}
-    use :: Galacticus_HDF5  , only : galacticusOutputFile
+    use :: Output_HDF5      , only : outputFile
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Memory_Management, only : allocateArray       , deallocateArray
@@ -1372,9 +1372,9 @@ contains
     ! Output the data.
     !$ call hdf5Access%set()
     ! Check if our output group already exists.
-    if (galacticusOutputFile%hasGroup('augmentStatistics')) then
+    if (outputFile%hasGroup('augmentStatistics')) then
        ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
-       augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       augmentStatisticsGroup=outputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call allocateArray(retryHistogram,shape(self%retryHistogram))
        call allocateArray(trialCount    ,shape(self%trialCount    ))
        call augmentStatisticsGroup%readDataset('retryHistogram',retryHistogram)
@@ -1385,7 +1385,7 @@ contains
        call deallocateArray(trialCount    )
     else
        ! Our group does not already exist. Simply write the data.
-       augmentStatisticsGroup=galacticusOutputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       augmentStatisticsGroup=outputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
     end if
     call augmentStatisticsGroup%writeDataset(self%retryHistogram,"retryHistogram","Retry histogram []")
     call augmentStatisticsGroup%writeDataset(self%trialCount    ,"trialCount"    ,"Trial counts []"   )

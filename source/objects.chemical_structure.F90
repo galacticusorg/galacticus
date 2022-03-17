@@ -94,8 +94,8 @@ contains
     fully compatible with chemical markup language (CML), but only a limited subset of it.
     !!}
     use :: FoX_dom           , only : Node                        , destroy
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList       , XML_Parse, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : char                        , assignment(=)
     implicit none
@@ -107,8 +107,8 @@ contains
     ! Check if the chemical database is initialized.
     if (.not.chemicalDatabaseInitialized) then
        !$omp critical (FoX_DOM_Access)
-       doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml',iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Unable to find chemical database file'//{introspection:location})
+       doc => XML_Parse(char(inputPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml',iostat=ioErr)
+       if (ioErr /= 0) call Error_Report('Unable to find chemical database file'//{introspection:location})
        ! Get a list of all chemicals.
        call XML_Get_Elements_By_Tag_Name(doc,"chemical",chemicalList)
        ! Allocate the array of chemicals.
@@ -252,7 +252,7 @@ contains
     !!{
     Find a chemical in the database and return it.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     character(len=*), intent(in   ) :: chemicalName
@@ -269,7 +269,7 @@ contains
        end if
     end do
     Chemical_Database_Get_Index=-1
-    call Galacticus_Error_Report('chemical was not found in database'//{introspection:location})
+    call Error_Report('chemical was not found in database'//{introspection:location})
     return
   end function Chemical_Database_Get_Index
 

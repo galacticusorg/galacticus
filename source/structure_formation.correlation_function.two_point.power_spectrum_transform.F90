@@ -22,11 +22,11 @@ Contains a module which implements a two-point correlation function class in whi
 transforming a power spectrum.
 !!}
   
-  use :: Numerical_Interpolation , only : interpolator
-  use :: Power_Spectra           , only : powerSpectrumClass
-  use :: Power_Spectra_Nonlinear , only : powerSpectrumNonlinearClass
-  use :: Linear_Growth           , only : linearGrowthClass
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Numerical_Interpolation, only : interpolator
+  use :: Power_Spectra          , only : powerSpectrumClass
+  use :: Power_Spectra_Nonlinear, only : powerSpectrumNonlinearClass
+  use :: Linear_Growth          , only : linearGrowthClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
 
   !![
   <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform">
@@ -114,7 +114,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (correlationFunctionTwoPointPowerSpectrumTransform)                                  :: self
     class(powerSpectrumNonlinearClass                      ), intent(in   ), target, optional :: powerSpectrumNonlinear_
@@ -126,12 +126,12 @@ contains
     !!]
     
     if      (      present(powerSpectrumNonlinear_).and.present(powerSpectrum_) ) then
-       call Galacticus_Error_Report('provide either a linear or non-linear power spectrum, not both'//{introspection:location})
+       call Error_Report('provide either a linear or non-linear power spectrum, not both'//{introspection:location})
     else if (.not.(present(powerSpectrumNonlinear_).or. present(powerSpectrum_))) then
-       call Galacticus_Error_Report('provide either a linear or non-linear power spectrum'          //{introspection:location})
+       call Error_Report('provide either a linear or non-linear power spectrum'          //{introspection:location})
     end if
     if (present(powerSpectrum_).and..not.(present(cosmologyFunctions_).and.present(linearGrowth_))) &
-         & call Galacticus_Error_Report('linear power spectrum requires cosmology functions and linear growth objects be supplied also'//{introspection:location})
+         & call Error_Report('linear power spectrum requires cosmology functions and linear growth objects be supplied also'//{introspection:location})
     ! Initialize correlation range.
     self%time                           =-huge(0.0d0)
     self%timeVolumeAveraged             =-huge(0.0d0)
@@ -164,7 +164,7 @@ contains
     !!{
     Return a two-point correlation function by Fourier transforming a power spectrum.
     !!}
-    use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward 
+    use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range         , rangeTypeLogarithmic
     implicit none
@@ -243,10 +243,10 @@ contains
      \bar{\xi}(r) = 3 \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over (k r)^2} \left[ {\sin (k r) \over k r} - \cos(k r) \right].
     \end{equation}
     !!}
-    use :: FFTLogs                 , only : FFTLog     , fftLogForward
+    use :: FFTLogs                 , only : FFTLog      , fftLogForward
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Interpolation , only : interpolator
-    use :: Numerical_Ranges        , only : Make_Range , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range  , rangeTypeLogarithmic
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
     double precision                                                   , intent(in   )             :: time                      , separation

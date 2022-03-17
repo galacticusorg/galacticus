@@ -192,17 +192,17 @@ contains
     !!{
     Generate a mock galaxy catalog using a simple halo model approach.
     !!}
-    use :: Conditional_Mass_Functions        , only : haloModelGalaxyTypeCentral       , haloModelGalaxyTypeSatellite
-    use :: Display                           , only : displayIndent                    , displayMessage                     , displayUnindent
-    use :: Galactic_Structure_Options        , only : massTypeDark
-    use :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use :: Galacticus_Error                  , only : errorStatusSuccess
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , treeNode
-    use :: IO_IRATE                          , only : irate
-    use :: ISO_Varying_String                , only : varying_string
-    use :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use :: Numerical_Constants_Math          , only : Pi
-    use :: Root_Finder                       , only : rangeExpandMultiplicative        , rootFinder
+    use :: Conditional_Mass_Functions, only : haloModelGalaxyTypeCentral       , haloModelGalaxyTypeSatellite
+    use :: Display                   , only : displayIndent                    , displayMessage                     , displayUnindent
+    use :: Galactic_Structure_Options, only : massTypeDark
+    use :: Calculations_Resets       , only : Calculations_Reset
+    use :: Error          , only : errorStatusSuccess
+    use :: Galacticus_Nodes          , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , treeNode
+    use :: IO_IRATE                  , only : irate
+    use :: ISO_Varying_String        , only : varying_string
+    use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use :: Numerical_Constants_Math  , only : Pi
+    use :: Root_Finder               , only : rangeExpandMultiplicative        , rootFinder
     use :: String_Handling                   , only : operator(//)
     implicit none
     class           (taskHaloModelGenerate         ), intent(inout), target         :: self
@@ -288,10 +288,10 @@ contains
        numberSatelliteActual=+self%randomNumberGenerator_%poissonSample(numberSatelliteMean)
        if (numberSatelliteActual > 0) then
           ! Construct the dark matter halo profile.
-          call basic  %massSet              (massHalo                                 (iHalo))
-          call Galacticus_Calculations_Reset(                                          node  )
-          call profile%scaleSet             (self%darkMatterProfileScaleRadius_%radius(node ))
-          call Galacticus_Calculations_Reset(                                          node  )
+          call basic  %massSet   (massHalo                                 (iHalo))
+          call Calculations_Reset(                                          node  )
+          call profile%scaleSet  (self%darkMatterProfileScaleRadius_%radius(node ))
+          call Calculations_Reset(                                          node  )
           do iSatellite=1,numberSatelliteActual
              ! Sample satellite galaxy mass.
              xSatellite               =self%randomNumberGenerator_%uniformSample()*numberSatelliteMean

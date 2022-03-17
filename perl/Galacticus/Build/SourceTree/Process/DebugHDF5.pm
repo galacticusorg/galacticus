@@ -63,13 +63,13 @@ sub addUse {
     while ( $moduleNode ) {
 	if ( $moduleNode->{'type'} eq "module" ) {
 	    $moduleName = $moduleNode->{'name'};
-	    $skipUse    = $moduleNode->{'name'} eq "IO_HDF5" || $moduleNode->{'name'} eq "Galacticus_Error";
+	    $skipUse    = $moduleNode->{'name'} eq "IO_HDF5" || $moduleNode->{'name'} eq "Error";
 	    last;
 	}
 	$moduleNode = $moduleNode->{'parent'};
     }
-    my $addCall = $moduleName ne "Galacticus_Error";
-    # No need to add a module use statement if this is the IO_HDF5 or Galacticus_Error module.
+    my $addCall = $moduleName ne "Error";
+    # No need to add a module use statement if this is the IO_HDF5 or Error module.
     unless ( $skipUse ) {
 	&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses(
 	     $node,

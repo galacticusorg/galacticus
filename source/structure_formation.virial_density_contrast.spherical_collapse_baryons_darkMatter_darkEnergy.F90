@@ -210,7 +210,7 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                            , intent(in   )           :: mass
@@ -235,7 +235,7 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                            , intent(in   )           :: mass
@@ -295,7 +295,7 @@ contains
     Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     constant universe.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                            , intent(in   )           :: mass

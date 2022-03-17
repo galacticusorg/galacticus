@@ -89,9 +89,9 @@ contains
     !!{
     Filter particles outside of a convex hull.
     !!}
-    use :: Display           , only : displayIndent          , displayMessage     , displayUnindent, verbosityLevelStandard, &
-         &                            displayCounter         , displayCounterClear
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Display           , only : displayIndent , displayMessage     , displayUnindent, verbosityLevelStandard, &
+         &                            displayCounter, displayCounterClear
+    use :: Error             , only : Error_Report
     use :: Points_Convex_Hull, only : convexHull
     implicit none
     class           (nbodyOperatorFilterConvexHull), intent(inout)                 :: self
@@ -176,7 +176,7 @@ contains
           call simulations(i)%attributesReal%set('convexHullVolume',hull%volume())
        end do
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     nullify(hull)
     call displayUnindent('done',verbosityLevelStandard)

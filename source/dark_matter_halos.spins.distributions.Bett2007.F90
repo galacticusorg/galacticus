@@ -179,7 +179,7 @@ contains
     Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
     \ttfamily node}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -188,7 +188,7 @@ contains
        bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator_%uniformSample())
     else
        bett2007Sample=0.0d0
-       call Galacticus_Error_Report('can not sample - cumulative distribution table was not monotonic'//{introspection:location})
+       call Error_Report('can not sample - cumulative distribution table was not monotonic'//{introspection:location})
     end if
     return
   end function bett2007Sample

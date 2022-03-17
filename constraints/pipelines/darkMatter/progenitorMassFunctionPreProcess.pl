@@ -201,7 +201,7 @@ sub cosmoSimBuilder {
 	unless ( -e $simulation->{'path'}."progenitorsMassFunctions.hdf5" ) {
 	    ## Modify parameters.
 	    @{$massFunctionParameters->{'nbodyImporter'           }->{'nbodyImporter'}} = @nbodyImporters;
-	    $massFunctionParameters  ->{'galacticusOutputFileName'}                                                        ->{'value'} = $simulation->{'path'                      }."progenitorMassFunctions.hdf5";
+	    $massFunctionParameters  ->{'outputFileName'}                                                        ->{'value'} = $simulation->{'path'                      }."progenitorMassFunctions.hdf5";
 	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[0]->{'values'                    }->{'value'} = $simulation->{'massParticle'              }                               ;
 	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
 	    $massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
@@ -442,7 +442,7 @@ sub caterpillarBuilder {
 	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $snapshotParents;
 	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $snapshotsProgenitors;
 	# Set other task properties.
-	$massFunctionParameters  ->{'galacticusOutputFileName'}                                                              ->{'value'} = $outputFileName;
+	$massFunctionParameters  ->{'outputFileName'}                                                              ->{'value'} = $outputFileName;
 	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'        }                                                 ;
 	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'}                                                 ;
 	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'      }                                                 ;

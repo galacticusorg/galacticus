@@ -41,7 +41,8 @@ sub Hierarchy_Initialization {
 	    [ 
 	      "Input_Parameters"  ,
 	      "ISO_Varying_String",
-	      "Memory_Management" 
+	      "Memory_Management" ,
+	      "Error"
 	    ],
 	variables   =>
 	[
@@ -159,7 +160,7 @@ CODE
              @{$class->{'members'}}
            )
       }
-      call Galacticus_Error_Report(message//\{introspection:location\})
+      call Error_Report(message//\{introspection:location\})
     end if
 CODE
     }

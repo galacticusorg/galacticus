@@ -86,14 +86,14 @@ contains
     !!{
     Constructor for the ``gordon2003'' stellar spectra dust attenuation class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : extrapolationTypeExtrapolate
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none
     type   (stellarSpectraDustAttenuationGordon2003)                :: self
     integer                                         , intent(in   ) :: sample
 
     ! Initialize fitting function parameters for the chosen sample (values from Tables 2 & 3 of Gordon et al.).
-    if (.not.enumerationGordon2003SampleIsValid(sample)) call Galacticus_Error_Report('invalid sample'//{introspection:location})
+    if (.not.enumerationGordon2003SampleIsValid(sample)) call Error_Report('invalid sample'//{introspection:location})
     select case (sample)
     case (gordon2003SampleSMCBar)
        call self%attenuationTable%create([0.455d0,0.606d0,0.800d0,1.235d0,1.538d0,1.818d0,2.273d0,2.703d0,3.375d0,3.625d0,3.875d0,4.125d0,4.375d0,4.625d0,4.875d0,5.125d0,5.375d0,5.625d0,5.875d0,6.125d0,6.375d0,6.625d0,6.875d0,7.125d0,7.375d0,7.625d0,7.875d0,8.125d0,8.375d0,8.625d0],tableCount=1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))

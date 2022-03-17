@@ -125,7 +125,7 @@ contains
     Process a satellite node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host

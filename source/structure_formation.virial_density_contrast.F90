@@ -55,14 +55,14 @@ module Virial_Density_Contrast
     <description>Returns the ratio of turnaround and virial radii at the given epoch.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <modules>Galacticus_Error</modules>
+    <modules>Error</modules>
     <argument>double precision, intent(in   )           :: mass</argument>
     <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsing</argument>
     <code>
      !$GLC attributes unused :: self, mass, time, expansionFactor, collapsing
      virialDensityContrastTurnaroundOverVirialRadii=0.0d0
-     call Galacticus_Error_Report('ratio is undefined for the "'//char(self%objectType())//'" density contrast class'//{introspection:location})
+     call Error_Report('ratio is undefined for the "'//char(self%objectType())//'" density contrast class'//{introspection:location})
     </code>
    </method>
    <method name="isMassDependent" >

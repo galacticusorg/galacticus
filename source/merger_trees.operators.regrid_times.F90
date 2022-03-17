@@ -65,7 +65,6 @@ contains
     !!{
     Constructor for the regrid times merger tree operator class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -100,7 +99,7 @@ contains
     !!{
     Internal constructor for the regrid times merger tree operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                        :: self
     double precision                               , intent(in   )         :: snapTolerance
@@ -112,7 +111,7 @@ contains
     !!]
 
     ! Validate arguments.
-    if (self%outputTimes_%count() < 2_c_size_t) call Galacticus_Error_Report('2 or more output times are required'//{introspection:location})
+    if (self%outputTimes_%count() < 2_c_size_t) call Error_Report('2 or more output times are required'//{introspection:location})
     allocate(self%timeGrid(self%outputTimes_%count()))
     do i=1,self%outputTimes_%count()
        self%timeGrid(i)=self%outputTimes_%time(i)
@@ -139,7 +138,7 @@ contains
     !!}
     use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking, &
          &                                            displayMagenta          , displayReset
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
+    use            :: Error                  , only : Error_Report            , Warn
     use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent            , &
           &                                           treeNode                , treeNodeList
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -208,15 +207,15 @@ contains
           if (associated(node%mergeTarget).and..not.mergeTargetWarningIssued) then
              !$omp critical (mergeTargetWarning)
              if (.not.mergeTargetWarningIssued) then
-                call Galacticus_Warn(                                                                                          &
-                     &                                                                                    displayMagenta(  )// &
-                     &               'WARNING:'                                                         //displayReset  (  )// &
-                     &               ' nodes in this tree have merge targets set'                       //char          (10)// &
-                     &               '         this is not supported by the regridding operator'        //char          (10)// &
-                     &               '         your tree may crash or deadlock'                         //char          (10)// &
-                     &               '         to avoid this problem do not preset merge targets, e.g. '//char          (10)// &
-                     &               '           <mergerTreeReadPresetMergerNodes value="false"/>'                             &
-                     &              )
+                call Warn(                                                                                          &
+                     &                                                                         displayMagenta(  )// &
+                     &    'WARNING:'                                                         //displayReset  (  )// &
+                     &    ' nodes in this tree have merge targets set'                       //char          (10)// &
+                     &    '         this is not supported by the regridding operator'        //char          (10)// &
+                     &    '         your tree may crash or deadlock'                         //char          (10)// &
+                     &    '         to avoid this problem do not preset merge targets, e.g. '//char          (10)// &
+                     &    '           <mergerTreeReadPresetMergerNodes value="false"/>'                             &
+                     &   )
                 mergeTargetWarningIssued=.true.
              end if
              !$omp end critical (mergeTargetWarning)
@@ -312,7 +311,7 @@ contains
                 end if
                 ! Create new nodes.
                 allocate(newNodes(iParent-iNow),stat=allocErr)
-                if (allocErr/=0) call Galacticus_Error_Report('unable to allocate new nodes'//{introspection:location})
+                if (allocErr/=0) call Error_Report('unable to allocate new nodes'//{introspection:location})
                 do iTime=iNow+1,iParent
                    nodeIndex=nodeIndex+1_kind_int8
                    newNodes(iTime-iNow)%node => treeNode(hostTree=currentTree)

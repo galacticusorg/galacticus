@@ -57,7 +57,7 @@ contains
     !!{
     Initializor for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : trim
     use :: Numerical_Constants_Astronomical, only : megaParsec               , massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -83,7 +83,7 @@ contains
        self%propertyIDs(i)=enumerationKeplerOrbitEncode(char(properties(i)),includesPrefix=.false.)
        select case (self%propertyIDs(i))
        case (keplerOrbitMasses             )
-          call Galacticus_Error_Report('"masses" property is unsupported'//{introspection:location})
+          call Error_Report('"masses" property is unsupported'//{introspection:location})
        case (keplerOrbitMassHost           )
           self%names_       (i)=prefix//'HostMass'
           self%descriptions_(i)='The mass of the host system [M☉].'
@@ -141,7 +141,7 @@ contains
           self%descriptions_(i)='Semi-major axis of the orbit [Mpc].'
           self%unitsInSI_   (i)=megaParsec
        case default
-          call Galacticus_Error_Report('unexpected property "'//trim(properties(i))//'"'//{introspection:location})
+          call Error_Report('unexpected property "'//trim(properties(i))//'"'//{introspection:location})
        end select
     end do
     return

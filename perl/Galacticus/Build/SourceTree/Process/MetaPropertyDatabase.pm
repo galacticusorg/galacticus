@@ -72,7 +72,7 @@ sub Process_MetaPropertyDatabase {
 	    my $noCreator;
 	    $noCreator = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine metaPropertyNoCreator(component_,name_,type_,rank_)
- use :: Galacticus_Error, only : Galacticus_Error_Report
+ use :: Error, only : Error_Report
  implicit none
  character(len=* ), intent(in   ) :: component_, name_             , type_
  integer          , intent(in   ) :: rank_
@@ -94,9 +94,9 @@ CODE
  else
   className         =""
   implementationName=""
-  call Galacticus_Error_Report("no class creates the rank-"//trim(rankLabel)//" '"//trim(type_)//"' type meta-property '"//trim(name_)//"' in component '"//trim(component_)//"'"//{$location})
+  call Error_Report("no class creates the rank-"//trim(rankLabel)//" '"//trim(type_)//"' type meta-property '"//trim(name_)//"' in component '"//trim(component_)//"'"//{$location})
  end if
- call Galacticus_Error_Report("the rank-"//trim(rankLabel)//" '"//trim(type_)//"' type meta-property '"//trim(name_)//"' in component '"//trim(component_)//"' is required"//char(10)//"it is created by the '"//trim(implementationName)//"' implementation of the '"//trim(className)//"' class"//char(10)//"to create this meta-property include the following in your parameter file:"//char(10)//" <"//trim(className)//" value="""//trim(implementationName)//"""/>"//{$location})
+ call Error_Report("the rank-"//trim(rankLabel)//" '"//trim(type_)//"' type meta-property '"//trim(name_)//"' in component '"//trim(component_)//"' is required"//char(10)//"it is created by the '"//trim(implementationName)//"' implementation of the '"//trim(className)//"' class"//char(10)//"to create this meta-property include the following in your parameter file:"//char(10)//" <"//trim(className)//" value="""//trim(implementationName)//"""/>"//{$location})
  return
 end subroutine metaPropertyNoCreator
 CODE

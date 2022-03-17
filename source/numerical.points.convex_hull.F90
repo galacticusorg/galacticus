@@ -104,7 +104,7 @@ contains
     Constructor for {\normalfont \ttfamily convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
 #endif
     implicit none
     type            (convexHull)                                :: self
@@ -112,9 +112,9 @@ contains
 #ifdef QHULLAVAIL
     integer                                                     :: status
 
-    if (size(points,dim=1) /= 3) call Galacticus_Error_Report('3D points are required'//{introspection:location})
+    if (size(points,dim=1) /= 3) call Error_Report('3D points are required'//{introspection:location})
     self%qhull=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
-    if (status /= 0) call Galacticus_Error_Report('convex hull construction failed'//{introspection:location})
+    if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location})
 #else
     !$GLC attributes unused :: points
     self%qhull=c_null_ptr
@@ -145,7 +145,7 @@ contains
     Return the volume of a convex hull.
     !!}
 #ifndef QHULLAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
 #endif
     implicit none
     class(convexHull), intent(inout) :: self
@@ -155,7 +155,7 @@ contains
 #else
     !$GLC attributes unused :: self
     convexHullVolume=0.0d0
-    call Galacticus_Error_Report('qhull library is unavailable'//{introspection:location})
+    call Error_Report('qhull library is unavailable'//{introspection:location})
 #endif
     return
   end function convexHullVolume
@@ -165,7 +165,7 @@ contains
     Return the volume of a convex hull.
     !!}
 #ifndef QHULLAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
 #endif
     implicit none
     class(convexHull), intent(inout) :: self
@@ -176,7 +176,7 @@ contains
 #else
     !$GLC attributes unused :: self, point
     convexHullPointIsInHull=.false.
-    call Galacticus_Error_Report('qhull library is unavailable'//{introspection:location})
+    call Error_Report('qhull library is unavailable'//{introspection:location})
 #endif
     return
   end function convexHullPointIsInHull

@@ -300,7 +300,7 @@ contains
     !!{
     Internal constructor for the particulate merger tree operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (mergerTreeOperatorParticulate)                        :: self
     type            (varying_string               ), intent(in   )         :: outputFileName
@@ -327,7 +327,7 @@ contains
 
     self%parameters=inputParameters(parameters)
     ! Validate input.
-    if (.not.enumerationSelectionIsValid(selection)) call Galacticus_Error_Report('invalid selection type'//{introspection:location})
+    if (.not.enumerationSelectionIsValid(selection)) call Error_Report('invalid selection type'//{introspection:location})
    return
   end function particulateConstructorInternal
 
@@ -352,24 +352,24 @@ contains
     !!{
     Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
     !!}
-    use    :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                , coordinateSpherical
-    use    :: Cosmology_Parameters              , only : hubbleUnitsLittleH
-    use    :: Display                           , only : displayCounter                   , displayCounterClear                , verbosityLevelStandard, verbosityLevelWorking , &
-         &                                               displayGreen                     , displayReset
-    use    :: Galactic_Structure_Options        , only : massTypeDark
-    use    :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use    :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                 , nodeComponentPosition , nodeComponentSatellite, &
-          &                                              treeNode
-    use    :: HDF5_Access                       , only : hdf5Access
-    use    :: IO_HDF5                           , only : hdf5Object
-    use    :: ISO_Varying_String                , only : varying_string                   , var_str
-    use    :: Memory_Management                 , only : allocateArray                    , deallocateArray
-    use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes
-    use    :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-    use    :: Numerical_Comparison              , only : Values_Agree
-    use    :: Numerical_Constants_Math          , only : Pi
-    !$ use :: OMP_Lib                           , only : OMP_Get_Thread_Num
+    use    :: Coordinates               , only : assignment(=)                    , coordinateCartesian                , coordinateSpherical
+    use    :: Cosmology_Parameters      , only : hubbleUnitsLittleH
+    use    :: Display                   , only : displayCounter                   , displayCounterClear                , verbosityLevelStandard, verbosityLevelWorking , &
+         &                                       displayGreen                     , displayReset
+    use    :: Galactic_Structure_Options, only : massTypeDark
+    use    :: Calculations_Resets       , only : Calculations_Reset
+    use    :: Error                     , only : Error_Report
+    use    :: Galacticus_Nodes          , only : mergerTree                       , nodeComponentBasic                 , nodeComponentPosition , nodeComponentSatellite, &
+          &                                      treeNode
+    use    :: HDF5_Access               , only : hdf5Access
+    use    :: IO_HDF5                   , only : hdf5Object
+    use    :: ISO_Varying_String        , only : varying_string                   , var_str
+    use    :: Memory_Management         , only : allocateArray                    , deallocateArray
+    use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
+    use    :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use    :: Numerical_Comparison      , only : Values_Agree
+    use    :: Numerical_Constants_Math  , only : Pi
+    !$ use :: OMP_Lib                   , only : OMP_Get_Thread_Num
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout) , target      :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree
@@ -447,7 +447,7 @@ contains
     firstNode =.true.
     treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
-       call Galacticus_Calculations_Reset(node)
+       call Calculations_Reset(node)
        ! Check if the node exists at the snapshot time.
        basic => node%basic()
        if     (                                                               &
@@ -634,7 +634,7 @@ contains
                    write (label,'(e12.6)') distributionFunctionMaximum
                    message=message//trim(label)//']'//char(10)
                    message=message//displayGreen()//'HELP:'//displayReset()//' the issue is probably caused by an inaccurate estimation of the maximum of the distribution function from tabulated values. To resolve this issue, increase the parameter [energyDistributionPointsPerDecade].'//char(10)
-                   call Galacticus_Error_Report(message//{introspection:location})
+                   call Error_Report(message//{introspection:location})
                 end if
                 !$omp critical (mergerTreeOperatorParticulateSample)
                 keepSample=  +tree%randomNumberGenerator_%uniformSample() &
@@ -727,13 +727,13 @@ contains
           else
              particleIDs=particleIDs+particleCounts(typeIndex)
           end if
-          if (.not.firstNode.and.self%chunkSize == -1)                                                                                                                   &
-               & call Galacticus_Error_Report(                                                                                                                           &
-               &                              var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                            &
-               &                              displayGreen()//' HELP: '//displayReset()//                                                                                &
-               &                              ' set <chunkSize value="N"/> where N is a non-zero value in the particulate merger tree operator in your parameter file'// &
-               &                              {introspection:location}                                                                                                   &
-               &                              )
+          if (.not.firstNode.and.self%chunkSize == -1)                                                                                                        &
+               & call Error_Report(                                                                                                                           &
+               &                   var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                            &
+               &                   displayGreen()//' HELP: '//displayReset()//                                                                                &
+               &                   ' set <chunkSize value="N"/> where N is a non-zero value in the particulate merger tree operator in your parameter file'// &
+               &                   {introspection:location}                                                                                                   &
+               &                  )
           particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
           call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
           call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
@@ -769,7 +769,7 @@ contains
     \end{equation}
     which we can then take the derivative of numerically to obtain the distribution function.
     !!}
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic
     use :: Numerical_Integration, only : integrator
     use :: Table_Labels         , only : extrapolationTypeFix
@@ -1011,7 +1011,7 @@ contains
                    call particulateEnergyDistribution%populate(particulateEnergyDistribution%y(j+1,table=energyDistributionTablePotential)*(1.0d0+epsilon(0.0d0)),j,table=energyDistributionTableDistribution,computeSpline=i==radiusCount-1)
                 end do
              else
-                call Galacticus_Error_Report('unphysical distribution function'//{introspection:location})
+                call Error_Report('unphysical distribution function'//{introspection:location})
              end if
           end if
        end do

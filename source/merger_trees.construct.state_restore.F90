@@ -121,7 +121,7 @@ contains
     !!{
     Restores the state of a merger tree from file.
     !!}
-    use            :: Functions_Global, only : Galacticus_State_Retrieve_
+    use            :: Functions_Global, only : State_Retrieve_
     use            :: Galacticus_Nodes, only : mergerTree
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -133,7 +133,7 @@ contains
     ! Only one tree to construct.
     if (treeNumber == 1_c_size_t) then
        ! Retrieve stored internal state if possible.
-       call Galacticus_State_Retrieve_()
+       call State_Retrieve_()
        ! Read the tree(s).
        allocate(tree)
        call mergerTreeStateFromFile(tree,char(self%fileName))
@@ -148,8 +148,8 @@ contains
     !!{
     Store the complete internal state of a merger tree to file.
     !!}
-    use            :: Functions_Global   , only : Galacticus_State_Store_
-    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Functions_Global   , only : State_Store_
+    use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree                          , nodeEvent, nodeEventBuildFromRaw, treeNode
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Kind_Numbers       , only : kind_int8
@@ -174,7 +174,7 @@ contains
     !!]
 
     ! Store internal state.
-    if (snapshot_) call Galacticus_State_Store_()
+    if (snapshot_) call State_Store_()
     ! Open an output file. (Append to the old file if the file name has not changed.)
     !$omp critical (mergerTreeStateStore)
     if (append_ .and. trim(storeFile) == storeFilePrevious) then
@@ -188,7 +188,7 @@ contains
     treeCount   =  0
     treeCurrent => tree
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%event)) call Galacticus_Error_Report('tree events not current supported'//{introspection:location})
+       if (associated(treeCurrent%event)) call Error_Report('tree events not current supported'//{introspection:location})
        treeCount   =  treeCount           +1
        treeCurrent => treeCurrent%nextTree
     end do
@@ -271,7 +271,7 @@ contains
       !!{
       Returns the position of a node in the output list given its index.
       !!}
-      use :: Galacticus_Error  , only : Galacticus_Error_Report
+      use :: Error             , only : Error_Report
       use :: ISO_Varying_String, only : varying_string
       use :: Kind_Numbers      , only : kind_int8
       use :: String_Handling   , only : operator(//)
@@ -290,7 +290,7 @@ contains
          if (nodeIndices(nodeArrayPosition) /= nodeIndex) then
             message="node ["
             message=message//nodeIndex//"] could not be found in merger tree"
-            call Galacticus_Error_Report(message//{introspection:location})
+            call Error_Report(message//{introspection:location})
          end if
       end if
       return
@@ -302,7 +302,7 @@ contains
     !!{
     Read the state of a merger tree from file.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : Galacticus_Nodes_Unique_ID_Set, mergerTree  , nodeEvent, nodeEventBuildFromRaw, &
           &                         treeNode                      , treeNodeList
     use :: Kind_Numbers    , only : kind_int8
@@ -331,7 +331,7 @@ contains
 
     ! Open the file.
     open(newUnit=treeUnit,file=fileName,status='old',form='unformatted',iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('unable to open file "'//trim(fileName)//'"'//{introspection:location})
+    if (ioStatus /= 0) call Error_Report('unable to open file "'//trim(fileName)//'"'//{introspection:location})
     ! Read number of trees.
     read (treeUnit) treeCount
     ! Create trees
@@ -420,7 +420,7 @@ contains
              message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID()
              message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID()
              message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID()
-             call Galacticus_Error_Report(message//{introspection:location})
+             call Error_Report(message//{introspection:location})
           end if
        end if
     end do

@@ -151,7 +151,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily finiteResolution} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOFiniteResolution)                        :: self
     class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
@@ -164,7 +164,7 @@ contains
     <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
     !!]
     
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID              =-1_kind_int8
     self%genericLastUniqueID       =-1_kind_int8
     self%lengthResolutionPrevious  =-huge(0.0d0)

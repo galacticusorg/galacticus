@@ -66,8 +66,8 @@ contains
     Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given {\normalfont \ttfamily
     component}, assuming that the entire ISM is active.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentDisk      , nodeComponentSpheroid
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class(starFormationActiveMassTotalISM), intent(inout) :: self
     class(nodeComponent                  ), intent(inout) :: component
@@ -79,7 +79,7 @@ contains
        totalISMMassActive=component%massGas()
     class default
        totalISMMassActive=0.0d0
-       call Galacticus_Error_Report('unsupported class'//{introspection:location})
+       call Error_Report('unsupported class'//{introspection:location})
     end select
     return
   end function totalISMMassActive

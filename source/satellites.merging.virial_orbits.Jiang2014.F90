@@ -209,7 +209,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     !!}
-    use :: Numerical_Integration   , only : integrator                  , GSL_Integ_Gauss61
+    use :: Numerical_Integration   , only : GSL_Integ_Gauss61           , integrator
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
@@ -439,7 +439,7 @@ contains
     Return jiang2014 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     type            (keplerOrbit               )                        :: jiang2014Orbit
@@ -538,7 +538,7 @@ contains
        end if
     end do
     ! If too many iterations were required to find an orbit, abort.
-    if (attempts >= attemptsMaximum) call Galacticus_Error_Report('maximum number of attempts exceeded'//{introspection:location})
+    if (attempts >= attemptsMaximum) call Error_Report('maximum number of attempts exceeded'//{introspection:location})
     return
   end function jiang2014Orbit
 
@@ -641,7 +641,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -649,7 +649,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     jiang2014VelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function jiang2014VelocityTangentialVectorMean
 
@@ -692,7 +692,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -700,7 +700,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     jiang2014AngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function jiang2014AngularMomentumVectorMean
 

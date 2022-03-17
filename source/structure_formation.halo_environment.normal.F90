@@ -156,7 +156,7 @@ contains
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: ISO_Varying_String      , only : assignment(=)
     implicit none
     type            (haloEnvironmentNormal        )                           :: self
@@ -175,7 +175,7 @@ contains
     !!]
 
     ! Compute environmental radius and mass.
-    if (present(radiusEnvironment).and.present(massEnvironment)) call Galacticus_Error_Report('only one of radiusEnvironment and massEnvironment may be specified'//{introspection:location})
+    if (present(radiusEnvironment).and.present(massEnvironment)) call Error_Report('only one of radiusEnvironment and massEnvironment may be specified'//{introspection:location})
     if (present(radiusEnvironment)) then
        self%massEnvironment=+4.0d0                                                                   &
             &               *Pi                                                                      &
@@ -191,7 +191,7 @@ contains
             &                   /Pi                                                                   &
             &                  )**(1.0d0/3.0d0)
     else
-       call Galacticus_Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
+       call Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
     end if
     ! Set the redshift.
     self%redshift                       =self%cosmologyFunctions_      %redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%time))
@@ -444,14 +444,14 @@ contains
     !!{
     Set the environmental linear overdensity in the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: overdensity
     !$GLC attributes unused :: self
 
-    if (overdensity > self%environmentalOverdensityMaximum) call Galacticus_Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
+    if (overdensity > self%environmentalOverdensityMaximum) call Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
     call node%hostTree%properties%set(self%propertyName,overdensity)
     self%uniqueIDPrevious   =-1_kind_int8
     self%overdensityPrevious=overdensity

@@ -217,7 +217,7 @@ contains
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (mergerTreeBuilderCole2000          )                        :: self
     double precision                                     , intent(in   )         :: mergeProbability               , accretionLimit         , &
@@ -241,7 +241,7 @@ contains
          &                                         self%cosmologicalMassVariance_%growthIsMassDependent(     )
     self%timeNow                                 = self%cosmologyFunctions_      %cosmicTime           (1.0d0)
     ! Validate parameters.
-    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('accretionLimit < 1 required'//{introspection:location})
+    if (self%accretionLimit >= 1.0d0) call Error_Report('accretionLimit < 1 required'//{introspection:location})
     return
   end function cole2000ConstructorInternal
 
@@ -268,7 +268,7 @@ contains
     Build a merger tree.
     !!}
     use :: Display                 , only : displayReset                 , displayMagenta
-    use :: Galacticus_Error        , only : Galacticus_Error_Report      , Galacticus_Warn
+    use :: Error                   , only : Error_Report                 , Warn
     use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
     use :: ISO_Varying_String      , only : varying_string
     use :: Kind_Numbers            , only : kind_int8
@@ -394,7 +394,7 @@ contains
                 collapseTime        =self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
                 collapseTimeTruncate=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1            ,mass=nodeMass1        ,node=nodeNew1)
                 if (collapseTimeTruncate > collapseTime*(1.0d0+toleranceTime)) then
-                   call Galacticus_Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
+                   call Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
                 else
                    do while (collapseTimeTruncate > collapseTime*(1.0d0-toleranceTime))
                       deltaCritical1      =deltaCritical1*(1.0d0+toleranceTime)
@@ -625,7 +625,7 @@ contains
        if (basic%time() <= basicChild%time()) then
           ! Base node is mis-ordered. Simply shift and child nodes to be slightly earlier. If this leads to mis-ordering of those
           ! child nodes it will be detected below.
-          call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered at base node - fixing')
+          call Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered at base node - fixing')
           nodeChild => tree%nodeBase%firstChild
           do while (associated(nodeChild))
              basicChild => nodeChild%basic()
@@ -678,7 +678,7 @@ contains
                 message=message//" ->       tree mass = "//label//" M☉" //char(10)
                 write (label,'(e20.14)') massResolution
                 message=message//" -> mass resolution = "//label//" M☉"
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           end if
        end if

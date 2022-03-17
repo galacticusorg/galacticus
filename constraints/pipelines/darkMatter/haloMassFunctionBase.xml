@@ -11,7 +11,7 @@
    <includeMassAccretionRate            value="false"          />
    <includeUnevolvedSubhaloMassFunction value="false"          />
   </task>
-  <galacticusOutputFileName value="output.hdf5"/>
+  <outputFileName value="output.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0"/>
   </outputTimes>  

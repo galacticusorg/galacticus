@@ -116,7 +116,7 @@ contains
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     implicit none
     type            (transferFunctionCAMB    )                          :: self
     class           (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
@@ -133,7 +133,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Set initialization state.
     self%initialized=.false.

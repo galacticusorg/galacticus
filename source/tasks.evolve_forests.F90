@@ -108,7 +108,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
     implicit none
@@ -333,23 +332,23 @@ contains
     !!{
     Evolves the complete set of merger trees as specified.
     !!}
-    use               :: Display               , only : displayIndent                    , displayMessage                     , displayUnindent    , verbosityLevelInfo
-    use               :: Galacticus_Error      , only : Galacticus_Error_Report          , errorStatusSuccess
-    use               :: Galacticus_Nodes      , only : mergerTree                       , nodeComponentBasic                 , treeNode           , universe          , &
+    use               :: Display               , only : displayIndent                    , displayMessage                     , displayUnindent, verbosityLevelInfo
+    use               :: Error                 , only : Error_Report                     , errorStatusSuccess
+    use               :: Galacticus_Nodes      , only : mergerTree                       , nodeComponentBasic                 , treeNode       , universe          , &
           &                                             universeEvent
     use   , intrinsic :: ISO_C_Binding         , only : c_size_t
-    use               :: Memory_Management     , only : Memory_Usage_Record              , memoryTypeNodes                    , Memory_Usage_Report
+    use               :: Memory_Management     , only : Memory_Usage_Record              , Memory_Usage_Report                , memoryTypeNodes
     use               :: Merger_Tree_Walkers   , only : mergerTreeWalkerAllNodes         , mergerTreeWalkerIsolatedNodes
     use               :: Node_Components       , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree, only : Inter_Tree_Event_Post_Evolve
-    !$ use            :: OMP_Lib               , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock      , omp_lock_kind
+    !$ use            :: OMP_Lib               , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
     use               :: Sorting               , only : sortIndex
     use               :: String_Handling       , only : operator(//)
     ! Include modules needed for tasks.
     !![
     <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     !!]
-    include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
+    include 'tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
     !![
     </include>
     !!]
@@ -784,10 +783,10 @@ contains
                      &   .not.evolutionIsEventLimited    &
                      & ) then
                    if (deadlockReport) exit
-                   call Galacticus_Error_Report(                                           &
-                        &                       'failed to evolve tree to required time'// &
-                        &                       {introspection:location}                   &
-                        &                      )
+                   call Error_Report(                                           &
+                        &            'failed to evolve tree to required time'// &
+                        &            {introspection:location}                   &
+                        &           )
                 end if
                 ! Determine what limited evolution.
                 if (evolutionIsEventLimited) then
@@ -906,7 +905,7 @@ contains
                    !$omp end critical(universeTransform)
                    call displayMessage(message)
                    call Inter_Tree_Event_Post_Evolve()
-                   call Galacticus_Error_Report('exiting'//{introspection:location})
+                   call Error_Report('exiting'//{introspection:location})
                 else
                    deadlockReport=.true.
                 end if
@@ -921,7 +920,7 @@ contains
                 event_ => self%universeWaiting%event
                 do while (associated(event_))
                    if (event_%time < universalEvolveToTime) then
-                      call Galacticus_Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
+                      call Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
                    else if (event_%time == universalEvolveToTime) then
                       success=event_%task(self%universeWaiting)
                       if (success) call self%universeWaiting%removeEvent(event_)
@@ -987,7 +986,7 @@ contains
     !![
     <include directive="universePostEvolveTask" type="functionCall" functionType="void">
     !!]
-    include 'galacticus.tasks.evolve_tree.universePostEvolveTask.inc'
+    include 'tasks.evolve_tree.universePostEvolveTask.inc'
     !![
     </include>
     !!]
@@ -1002,9 +1001,9 @@ contains
     Suspend processing of a tree.
     !!}
 #ifdef USEMPI
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
 #endif
-    use :: ISO_Varying_String      , only : operator(//)           , varying_string
+    use :: ISO_Varying_String      , only : operator(//)        , varying_string
     use :: Kind_Numbers            , only : kind_int8
     use :: Merger_Tree_Construction, only : mergerTreeStateStore
     use :: String_Handling         , only : operator(//)
@@ -1016,7 +1015,7 @@ contains
     type   (varying_string   )                         :: fileName
 
 #ifdef USEMPI
-    call Galacticus_Error_Report('suspending trees is not supported under MPI'//{introspection:location})
+    call Error_Report('suspending trees is not supported under MPI'//{introspection:location})
 #endif
     ! If the tree is to be suspended to file do so now.
     if (.not.self%suspendToRAM) then

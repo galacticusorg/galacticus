@@ -4,7 +4,7 @@
   <version>0.9.4</version>
 
   <!-- Output control -->
-  <galacticusOutputFileName value="haloMassFunction_MilkyWay_Halo641_z0.000.hdf5"/>
+  <outputFileName value="haloMassFunction_MilkyWay_Halo641_z0.000.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>
   </outputTimes>  

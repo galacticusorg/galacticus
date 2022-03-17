@@ -601,7 +601,7 @@ contains
     Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     in units of Mpc).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout)           :: self
     type            (treeNode                    ), intent(inout)           :: node
@@ -620,7 +620,7 @@ contains
        radialMomentLower= radialMomentIndefinite(radiusScaleFree)
     else
        radialMomentLower=0.0d0
-       if (alpha <= 0.0d0 .or. 1.0d0+moment <= gamma) call Galacticus_Error_Report('radial moment is undefined'//{introspection:location})
+       if (alpha <= 0.0d0 .or. 1.0d0+moment <= gamma) call Error_Report('radial moment is undefined'//{introspection:location})
     end if
     if (present(radiusMaximum)) then
        radiusScaleFree  =+radiusMaximum &
@@ -628,7 +628,7 @@ contains
        radialMomentUpper= radialMomentIndefinite(radiusScaleFree)
     else
        radialMomentUpper=0.0d0
-       call Galacticus_Error_Report('radial moment is not implemented'//{introspection:location})
+       call Error_Report('radial moment is not implemented'//{introspection:location})
     end if
     zhao1996RadialMoment=+(                           &
          &                 +radialMomentUpper         &

@@ -96,7 +96,7 @@ contains
     !!{
     Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
+    use :: Error, only : Error_Report, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
     implicit none
     double precision               , intent(in   )           :: a(2)             , b(1), &
          &                                                      x
@@ -107,7 +107,7 @@ contains
 
     ! Use our own error handler.
     if (present(status)) then
-       call Galacticus_GSL_Error_Handler_Abort_Off()
+       call GSL_Error_Handler_Abort_Off()
        statusActual=GSL_Success
     end if
     ! GSL only evaluates this function for |x|<1.
@@ -135,14 +135,14 @@ contains
        end if
     else
        Hypergeometric_2F1=0.0d0
-       call Galacticus_Error_Report('function cannot be evaluated for x>1'//{introspection:location})
+       call Error_Report('function cannot be evaluated for x>1'//{introspection:location})
     end if
     if (present(status)) then
        status=statusActual
        ! Reset error handler.
-       call Galacticus_GSL_Error_Handler_Abort_On()
+       call GSL_Error_Handler_Abort_On()
     else if (statusActual /= GSL_Success) then
-       call Galacticus_Error_Report('GSL failed'//{introspection:location})
+       call Error_Report('GSL failed'//{introspection:location})
     end if
     return
   end function Hypergeometric_2F1

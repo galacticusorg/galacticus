@@ -85,12 +85,12 @@ contains
     !!{
     Read a \gls{mangle} window definition from file.
     !!}
-    use :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayMessage, &
+    use :: Display           , only : displayCounter    , displayCounterClear, displayIndent, displayMessage, &
           &                           displayUnindent
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)       , operator(==) , varying_string
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=)     , operator(//)       , operator(==) , varying_string
     use :: Sorting           , only : sortIndex
-    use :: String_Handling   , only : String_Split_Words     , operator(//)
+    use :: String_Handling   , only : String_Split_Words, operator(//)
     implicit none
     class           (window        ), intent(inout)              :: self
     character       (len=*         ), intent(in   )              :: fileName
@@ -123,7 +123,7 @@ contains
        ioStatus=0
        do while (ioStatus == 0)
           read (fileUnit,'(a)',iostat=ioStatus) line
-          if (ioStatus /= 0)  call Galacticus_Error_Report('end of file reached'//{introspection:location})
+          if (ioStatus /= 0)  call Error_Report('end of file reached'//{introspection:location})
           call String_Split_Words(words,line)
           if (words(1) == "polygon") exit
        end do
@@ -211,27 +211,27 @@ contains
     !!{
     Download and build the \textsc{mangle} code.
     !!}
-    use :: File_Utilities    , only : Directory_Make         , File_Exists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: File_Utilities    , only : Directory_Make   , File_Exists
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
     integer :: iStatus
 
     ! Ensure that we have the mangle source.
-    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle")) then
+    if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle")) then
        ! Clone the mangle repo.
-       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"mangle")
-       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"; git clone https://github.com/mollyswanson/mangle.git",iStatus)
-       if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle"            )) &
-            & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
+       call Directory_Make(inputPath(pathTypeDataDynamic)//"mangle")
+       call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"; git clone https://github.com/mollyswanson/mangle.git",iStatus)
+       if (iStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle"            )) &
+            & call Error_Report('failed to clone mangle repo'       //{introspection:location})
     end if
     ! Test for presence of the "ransack" executable - build if necessary.
-    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle/bin/ransack")) then
-       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"mangle/src; ./configure; make cleanest; make",iStatus)
-       if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle/bin/ransack")) &
-            & call Galacticus_Error_Report("failed to build mangle executables"//{introspection:location})
+    if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle/bin/ransack")) then
+       call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"mangle/src; ./configure; make cleanest; make",iStatus)
+       if (iStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle/bin/ransack")) &
+            & call Error_Report("failed to build mangle executables"//{introspection:location})
     end if
     return
   end subroutine geometryMangleBuild
@@ -240,15 +240,15 @@ contains
     !!{
     Compute the solid angle of a \textsc{mangle} geometry.
     !!}
-    use :: File_Utilities          , only : File_Exists            , File_Name_Temporary
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
+    use :: File_Utilities          , only : File_Exists       , File_Name_Temporary
+    use :: Error                   , only : Error_Report
+    use :: Input_Paths             , only : inputPath         , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
-    use :: ISO_Varying_String      , only : char                   , extract            , len               , operator(//), &
-          &                                 operator(==)           , varying_string
+    use :: ISO_Varying_String      , only : char              , extract            , len               , operator(//), &
+          &                                 operator(==)      , varying_string
     use :: Numerical_Constants_Math, only : Pi
-    use :: String_Handling         , only : String_Count_Words     , String_Join        , String_Split_Words, char
+    use :: String_Handling         , only : String_Count_Words, String_Join        , String_Split_Words, char
     use :: System_Command          , only : System_Command_Do
     implicit none
     type            (varying_string), intent(in   ), dimension(             : ) :: fileNames
@@ -289,8 +289,8 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
-          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"mangle/bin/harmonize "//fileName//" "//fileNameTmp,iStatus)
-          if (iStatus /= 0) call Galacticus_Error_Report('failed to run mangle harmonize'//{introspection:location})
+          call System_Command_Do(inputPath(pathTypeDataDynamic)//"mangle/bin/harmonize "//fileName//" "//fileNameTmp,iStatus)
+          if (iStatus /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
           read (wlmFile,*) w00
@@ -317,14 +317,14 @@ contains
     !!{
     Compute the angular power spectra of a \textsc{mangle} geometry.
     !!}
-    use :: File_Utilities    , only : File_Exists            , File_Name_Temporary
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: File_Utilities    , only : File_Exists       , File_Name_Temporary
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath         , pathTypeDataDynamic
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: ISO_Varying_String, only : char                   , extract            , len               , operator(//), &
-          &                           operator(==)           , var_str            , varying_string
-    use :: String_Handling   , only : String_Count_Words     , String_Join        , String_Split_Words, operator(//)
+    use :: ISO_Varying_String, only : char              , extract            , len               , operator(//), &
+          &                           operator(==)      , var_str            , varying_string
+    use :: String_Handling   , only : String_Count_Words, String_Join        , String_Split_Words, operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
     type            (varying_string), intent(in   ), dimension(             :                                                               ) :: fileNames
@@ -377,8 +377,8 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
-          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"mangle/bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,iStatus)
-          if (iStatus /= 0) call Galacticus_Error_Report('failed to run mangle harmonize'//{introspection:location})
+          call System_Command_Do(inputPath(pathTypeDataDynamic)//"mangle/bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,iStatus)
+          if (iStatus /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
           k=0

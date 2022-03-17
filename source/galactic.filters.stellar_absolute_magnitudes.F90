@@ -57,7 +57,7 @@ contains
     !!{
     Constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
     use :: Memory_Management             , only : allocateArray
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -68,11 +68,11 @@ contains
     class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
 
     ! Check and read parameters.
-    if (parameters%count('absoluteMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                       &
-         & call  Galacticus_Error_Report(                                                                                                 &
-         &                               '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
-         &                               {introspection:location}                                                                         &
-         &                              )
+    if (parameters%count('absoluteMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.))            &
+         & call  Error_Report(                                                                                                 &
+         &                    '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                    {introspection:location}                                                                         &
+         &                   )
     call allocateArray(absoluteMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
     !![
     <inputParameter>
@@ -94,7 +94,7 @@ contains
     !!{
     Internal constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: self
@@ -104,11 +104,11 @@ contains
     <constructorAssign variables="absoluteMagnitudeThreshold, *galacticStructure_"/>
     !!]
 
-    if (size(absoluteMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                     &
-         & call  Galacticus_Error_Report(                                                                                                 &
-         &                               '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
-         &                               {introspection:location}                                                                         &
-         &                              )
+    if (size(absoluteMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                          &
+         & call  Error_Report(                                                                                                 &
+         &                    '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                    {introspection:location}                                                                         &
+         &                   )
     ! Map magnitude limits onto the expanded filter set.
     call Stellar_Luminosities_Parameter_Map(self%absoluteMagnitudeThreshold)
     return

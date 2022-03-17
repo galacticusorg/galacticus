@@ -116,6 +116,7 @@ contains
     !!}
     use :: Display         , only : displayBlue       , displayGreen                  , displayYellow, displayBold, &
          &                          displayReset
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout)          :: self
@@ -129,12 +130,12 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     select type (darkMatterProfile)
     type is (nodeComponentDarkMatterProfile)
-       call Galacticus_Error_Report(                                                                                                                                                                                            &
-            &                       displayBold()//'darkMatterProfile'//displayReset()//' component must be created prior to initialization scale radius interpolation'                                            //char(10)// &
-            &                       '   For example, by using the following nodeOperator'                                                                                                                          //char(10)// &
-            &                       '    <'//displayBlue()//'nodeOperator'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"darkMatterProfileScaleSet"'//displayReset()//'/>'          // &
-            &                       {introspection:location}                                                                                                                                                                    &
-            &                      )
+       call Error_Report(                                                                                                                                                                                            &
+            &            displayBold()//'darkMatterProfile'//displayReset()//' component must be created prior to initialization scale radius interpolation'                                            //char(10)// &
+            &            '   For example, by using the following nodeOperator'                                                                                                                          //char(10)// &
+            &            '    <'//displayBlue()//'nodeOperator'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"darkMatterProfileScaleSet"'//displayReset()//'/>'          // &
+            &            {introspection:location}                                                                                                                                                                    &
+            &           )
     class default
        if (node%isPrimaryProgenitor()) then
           ! Node is the primary progenitor, so compute the scale radius growth rate.

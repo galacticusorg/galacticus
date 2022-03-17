@@ -6,7 +6,7 @@
   <version>0.9.4</version>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/test-star-formation-histories-adapative/galacticus.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-star-formation-histories-adapative/galacticus.hdf5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>

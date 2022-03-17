@@ -162,7 +162,7 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
@@ -171,7 +171,7 @@ contains
     !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+    if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
     ! Compute the limiting distance.
     logarithmicMass=log10(mass)
     select case (field)
@@ -189,7 +189,7 @@ contains
             &          )
     case default
        baldry2012GAMADistanceMaximum=0.0d0
-       call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
+       call Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
     end select
     baldry2012GAMADistanceMaximum=min(baldry2012GAMADistanceMaximum,self%distanceMaximumSurvey)
     return
@@ -199,13 +199,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
     !$GLC attributes unused :: self
 
-    baldry2012GAMAMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/GAMA/"
+    baldry2012GAMAMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/GAMA/"
     return
   end function baldry2012GAMAMangleDirectory
 

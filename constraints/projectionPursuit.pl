@@ -258,7 +258,7 @@ for(my $i=0;$i<nelem($eigenValues) && $i<$options{'eigenVectorsRetain'};++$i) {
 		$perturbedParameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
 		$perturbedParameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
 	    }
-	    $perturbedParameters->{'galacticusOutputFileName'}->{'value'} = $modelDirectory."galacticus.hdf5";
+	    $perturbedParameters->{'outputFileName'}->{'value'} = $modelDirectory."galacticus.hdf5";
 	    open(my $parameterFile,">".$modelDirectory."parameters.xml");
 	    print $parameterFile $xml->XMLout($perturbedParameters, rootName => "parameters");
 	    close($parameterFile);

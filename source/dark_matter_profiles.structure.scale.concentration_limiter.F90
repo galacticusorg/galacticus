@@ -91,7 +91,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily concentrationLimiter} dark matter halo profile scale radius class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusConcentrationLimiter)                        :: self
     class           (darkMatterHaloScaleClass                        ), intent(in   ), target :: darkMatterHaloScale_
@@ -101,7 +101,7 @@ contains
     <constructorAssign variables="concentrationMinimum, concentrationMaximum, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_"/>
     !!]
 
-    if (concentrationMaximum <= concentrationMinimum) call Galacticus_Error_Report('cₘₐₓ > cₘᵢₙ is required'//{introspection:location})
+    if (concentrationMaximum <= concentrationMinimum) call Error_Report('cₘₐₓ > cₘᵢₙ is required'//{introspection:location})
     return
   end function concentrationLimiterConstructorInternal
 

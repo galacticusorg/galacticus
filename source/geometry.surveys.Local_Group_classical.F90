@@ -136,13 +136,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     type (varying_string                   )                :: localGroupClassicalMangleDirectory
     !$GLC attributes unused :: self
 
-    localGroupClassicalMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/localGroupClassical/"
+    localGroupClassicalMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/localGroupClassical/"
     return
   end function localGroupClassicalMangleDirectory
 

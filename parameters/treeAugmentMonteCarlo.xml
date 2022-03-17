@@ -8,7 +8,7 @@
   <verbosityLevel value="working"/>
 
   <!-- Specify output file name -->
-  <galacticusOutputFileName value="trees.hdf5"/>
+  <outputFileName value="trees.hdf5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>

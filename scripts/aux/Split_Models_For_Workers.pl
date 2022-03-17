@@ -17,12 +17,12 @@ my $xml                 = new XML::Simple;
 my $parameters         = $xml->XMLin($parameterFile);  
 my $outputFileNameBase = "galacticus.hdf5";
 my $stateFileNameBase  = "none";
-$outputFileNameBase    = $parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'}
-             if ( exists($parameters->{'parameter'}->{'galacticusOutputFileName'}) );
+$outputFileNameBase    = $parameters->{'parameter'}->{'outputFileName'}->{'value'}
+             if ( exists($parameters->{'parameter'}->{'outputFileName'}) );
 $stateFileNameBase     = $parameters->{'parameter'}->{'stateFileRoot'           }->{'value'}
              if ( exists($parameters->{'parameter'}->{'stateFileRoot'           }) );
 for(my $worker=1;$worker<=$workerCount;++$worker) {
-    ($parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'}  = $outputFileNameBase ) =~ s/\.hdf5/_$worker\.hdf5/;
+    ($parameters->{'parameter'}->{'outputFileName'}->{'value'}  = $outputFileNameBase ) =~ s/\.hdf5/_$worker\.hdf5/;
     $parameters ->{'parameter'}->{'stateFileRoot'           }->{'value'}  = $stateFileNameBase;
     $parameters ->{'parameter'}->{'stateFileRoot'           }->{'value'} .= "_".$worker unless ( $stateFileNameBase eq "none" );
     $parameters ->{'parameter'}->{'treeEvolveWorkerCount'   }->{'value'}  = $workerCount;
