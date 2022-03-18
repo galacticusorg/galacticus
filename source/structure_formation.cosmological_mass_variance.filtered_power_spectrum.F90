@@ -60,6 +60,7 @@
   use :: Linear_Growth                       , only : linearGrowthClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass
+  use :: Transfer_Functions                  , only : transferFunctionClass
   use :: Tables                              , only : table1DLinearCSpline
   use :: File_Utilities                      , only : lockDescriptor
 
@@ -86,6 +87,7 @@
      class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null() , powerSpectrumPrimordialTransferredReference => null()
      class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
+     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null()
      class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null() , powerSpectrumWindowFunctionTopHat_          => null()
      logical                                                                              :: initialized                         =  .false., nonMonotonicIsFatal
      double precision                                                                     :: tolerance                                     , toleranceTopHat                                      , &
@@ -93,7 +95,7 @@
           &                                                                                  massMinimum                                   , massMaximum                                          , &
           &                                                                                  timeMinimum                                   , timeMaximum                                          , &
           &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
-          &                                                                                  wavenumberReference
+          &                                                                                  wavenumberReference                           , wavenumberHalfMode
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      type            (varying_string                         )                            :: fileName
@@ -162,6 +164,7 @@ contains
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_, powerSpectrumPrimordialTransferredReference
     class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_       , powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
+    class           (transferFunctionClass                  ), pointer       :: transferFunction_
     double precision                                                         :: sigma8Value                        , tolerance                                  , &
          &                                                                      toleranceTopHat                    , wavenumberReference
     logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal                        , &
@@ -173,6 +176,7 @@ contains
     <objectBuilder    class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_"         source="parameters"                                                  />
     <objectBuilder    class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"                source="parameters"                                                  />
     <objectBuilder    class="linearGrowth"                       name="linearGrowth_"                               source="parameters"                                                  />
+    <objectBuilder    class="transferFunction"                   name="transferFunction_"                           source="parameters"                                                  />
     !!]
     if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
        !![
@@ -250,6 +254,7 @@ contains
        &amp;                                cosmologyParameters_               =cosmologyParameters_               , &amp;
        &amp;                                cosmologyFunctions_                =cosmologyFunctions_                , &amp;
        &amp;                                linearGrowth_                      =linearGrowth_                      , &amp;
+       &amp;                                transferFunction_                  =transferFunction_                  , &amp;
        &amp;                                powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_, &amp;
        &amp;                                powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_         &amp;
        &amp;                                {conditions}                                                             &amp;
@@ -275,6 +280,7 @@ contains
     <objectDestructor    name="linearGrowth_"                              />
     <objectDestructor    name="powerSpectrumPrimordialTransferred_"        />
     <objectDestructor    name="powerSpectrumWindowFunction_"               />
+    <objectDestructor    name="transferFunction_"                          />
     !!]
     if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
        !![
@@ -284,7 +290,7 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
@@ -292,6 +298,8 @@ contains
     use :: Error                          , only : Error_Report
     use :: Input_Paths                    , only : inputPath                        , pathTypeDataDynamic
     use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
+    use :: Error                          , only : errorStatusSuccess
+    use :: Numerical_Constants_Math       , only : Pi
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
     double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat
@@ -306,8 +314,11 @@ contains
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target, optional :: cosmologicalMassVarianceReference
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target, optional :: powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), intent(in   ), target           :: linearGrowth_
+    class           (transferFunctionClass                  ), intent(in   ), target, optional :: transferFunction_ 
+    double precision                                                                           :: halfModeMass
+    integer                                                                                    :: status
     !![
-    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
+    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *transferFunction_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
     !!]
 
     if (.not.present(powerSpectrumWindowFunctionTopHat_)) then
@@ -344,6 +355,24 @@ contains
          &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
+    if (present(transferFunction_)) then
+       halfModeMass              =self%transferFunction_%halfModeMass(status)
+       if (status == errorStatusSuccess) then
+          self%wavenumberHalfMode=+(                                             &
+               &                    +4.0d0                                       &
+               &                    *Pi                                          &
+               &                    /3.0d0                                       &
+               &                    *self%cosmologyParameters_%OmegaMatter    () &
+               &                    *self%cosmologyParameters_%densityCritical() &
+               &                    /halfModeMass                                &
+               &                   )**(1.0d0/3.0d0)                              &
+               &                  *Pi
+       else
+          self%wavenumberHalfMode=huge(0.0d0)/5.0d0
+       end if
+    else
+       self%wavenumberHalfMode=huge(0.0d0)/5.0d0
+    end if
     return
   end function filteredPowerConstructorInternal
 
@@ -362,6 +391,7 @@ contains
     <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     <objectDestructor name="self%powerSpectrumWindowFunction_"       />
     <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
+    <objectDestructor name="self%transferFunction_"                  />
     !!]
     if (.not.self%normalizationSigma8) then
        !![
@@ -867,7 +897,7 @@ contains
       double precision            , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
       double precision                            :: topHatRadius           , wavenumberMaximum     , &
            &                                         wavenumberMinimum      , integrandLow          , &
-           &                                         integrandHigh
+           &                                         integrandMedium        , integrandHigh
       type            (integrator)                :: integrator_            , integratorLogarithmic_
 
       filteredPowerTime=time_
@@ -891,18 +921,36 @@ contains
       ! are significant (unless the upper limit of the integral is already below that wavenumber). This allows the oscillatory
       ! part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger wavenumbers, and
       ! leads to an overall more accurate and robust determination of σ(M).
+      ! For non-cold dark matter models with suppressed power spectrum on small scales, another splitting is done around the
+      ! half-mode wavenumber so that σ(M) is better resolved near the saturation value. This is particularly useful if the transfer
+      ! function oscillates on small scales.
       if (useTopHat) then
          integrator_=integrator(varianceIntegrandTopHat,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
-         if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
-            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
-            rootVariance =+(                                                            &
-                 &          +integrandLow                                               &
-                 &          +integrandHigh                                              &
-                 &         )                                                            &
-                 &        /2.0d0                                                        &
-                 &        /Pi**2
+         if      (                                                   &
+              &    wavenumberMaximum > 3.0d0*self%wavenumberHalfMode &
+              &   .and.                                              &
+              &    wavenumberBAO     < 3.0d0*self%wavenumberHalfMode &
+              &  ) then
+            integrandLow   =   integrator_%integrate(wavenumberMinimum            ,           wavenumberBAO     )
+            integrandMedium=   integrator_%integrate(wavenumberBAO                ,3.0d0*self%wavenumberHalfMode)
+            integrandHigh  =   integrator_%integrate(3.0d0*self%wavenumberHalfMode,           wavenumberMaximum )
+            rootVariance   =+(                                                            &
+                 &            +integrandLow                                               &
+                 &            +integrandMedium                                            &
+                 &            +integrandHigh                                              &
+                 &           )                                                            &
+                 &          /2.0d0                                                        &
+                 &          /Pi**2
+         else if (wavenumberMaximum > wavenumberBAO) then
+            integrandLow   =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
+            integrandHigh  =   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            rootVariance   =+(                                                            &
+                 &            +integrandLow                                               &
+                 &            +integrandHigh                                              &
+                 &           )                                                            &
+                 &          /2.0d0                                                        &
+                 &          /Pi**2
          else
             rootVariance =+  integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
                  &       /2.0d0                                                         &
@@ -911,9 +959,14 @@ contains
       else
          integrator_=integrator(varianceIntegrand,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
-         if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
-            integrandHigh=integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+         if      (                                                   &
+              &    wavenumberMaximum > 3.0d0*self%wavenumberHalfMode &
+              &   .and.                                              &
+              &    wavenumberBAO     < 3.0d0*self%wavenumberHalfMode &
+              &  ) then
+            integrandLow   =   integrator_%integrate(           wavenumberMinimum ,           wavenumberBAO     )
+            integrandMedium=   integrator_%integrate(           wavenumberBAO     ,3.0d0*self%wavenumberHalfMode)
+            integrandHigh  =   integrator_%integrate(3.0d0*self%wavenumberHalfMode,           wavenumberMaximum )
             if (integrandHigh <= 0.0d0) then
                ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
                ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
@@ -924,6 +977,16 @@ contains
                integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
                if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
             end if
+            rootVariance   =+(                                                            &
+                 &            +integrandLow                                               &
+                 &            +integrandMedium                                            &
+                 &            +integrandHigh                                              &
+                 &           )                                                            &
+                 &          /2.0d0                                                        &
+                 &          /Pi**2
+         else if (wavenumberMaximum > wavenumberBAO) then
+            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
+            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
             rootVariance =+(                                                            &
                  &          +integrandLow                                               &
                  &          +integrandHigh                                              &
@@ -1229,5 +1292,6 @@ contains
     call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)
     call    self%linearGrowth_                              %descriptor(parameters)
     call    self%powerSpectrumWindowFunction_               %descriptor(parameters)
+    call    self%transferFunction_                          %descriptor(parameters)
     return
   end subroutine filteredPowerDescriptor
