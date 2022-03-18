@@ -272,7 +272,7 @@ contains
         which the matter power spectrum, instead of the transfer function, is suppressed
         by a factor of two. A correction factor has been added in the calculations to be
         consistent with the common definition.
-    (2) For a mixed \gls{cdm} and \gls{fuzzy dark matter} model, the half-mode wavenumber
+    (2) For a mixed \gls{cdm} and \gls{fdm} model, the half-mode wavenumber
         is not well defined.
     !!}
     use :: Error                       , only : errorStatusSuccess
