@@ -33,7 +33,7 @@ module Node_Property_Extractors
   !![
   <functionClass>
    <name>nodePropertyExtractor</name>
-   <descriptiveName>Output Analysis Property Extractor</descriptiveName>
+   <descriptiveName>Node Property Extractor</descriptiveName>
    <description>Class providing extraction of properties from nodes.</description>
    <default>nodeIndices</default>
    <method name="type" >
