@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -122,7 +122,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     implicit none
     type            (nodeOperatorSatelliteSubsampling)                :: self
     double precision                                  , intent(in   ) :: samplingMassThreshold        , samplingInfallTimeThreshold, &
@@ -135,7 +135,7 @@ contains
     if (defaultSatelliteComponent%destructionTimeIsSettable()) then
        self%applyOrbitCriterion=defaultSatelliteComponent%virialOrbitIsGettable()
     else
-       call Galacticus_Error_Report('satellite subsampling is supported only when the "destructionTime" of satellite is settable'//{introspection:location})
+       call Error_Report('satellite subsampling is supported only when the "destructionTime" of satellite is settable'//{introspection:location})
     end if
     return
   end function satelliteSubsamplingConstructorInternal

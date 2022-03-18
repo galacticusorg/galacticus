@@ -18,6 +18,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
@@ -131,7 +136,6 @@
   <mergerMassMovements value="verySimple"/>
   <haloMassFunction value="tinker2008"/>
   <componentSatellite value="preset"/>
-  <mergerTreeBuildMassDistribution value="uniform"/>
   <mergerRemnantSize value="null"/>
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
@@ -153,7 +157,7 @@
     <outputReferences value="false"/>
   </mergerTreeOutputter>
   <stellarPopulationProperties value="instantaneous"/>
-  <galacticusOutputFileName value="testSuite/outputs/regressions/immediateSubSubMergerThenBranchJump.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/immediateSubSubMergerThenBranchJump.hdf5"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
@@ -183,7 +187,7 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetOrbits value="true"/>
     <fileNames value="testSuite/data/mergerTrees/immediateSubSubMergerThenBranchJump.hdf5"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetPositions value="true"/>
     <outputTimeSnapTolerance value="0.001"/>
     <presetSubhaloMasses value="false"/>
@@ -193,5 +197,6 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
+    <virialDensityContrastDefinition value="kitayamaSuto1996"/>
   </virialOrbit>
 </parameters>

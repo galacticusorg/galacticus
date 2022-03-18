@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,12 +86,12 @@
           &                                                                opticalDepthReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
-     integer                                                            :: countChemicals
+     integer                                                            :: countChemicals                     , massProgenitorMaximumID
    contains
      !![
      <methods>
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction" />
-       <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}." method="velocityScale" />
+       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction"/>
+       <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}."                     method="velocityScale" />
      </methods>
      !!]
      final     ::                           simpleDestructor
@@ -122,8 +122,8 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionHaloSimple          )                :: self
     type            (inputParameters              ), intent(inout) :: parameters
@@ -146,7 +146,7 @@ contains
     <objectBuilder class="chemicalState"            name="chemicalState_"            source="parameters"/>
     !!]
     if (parameters%isPresent("opticalDepthReionization")) then
-       if (parameters%isPresent("redshiftReionization")) call Galacticus_Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
+       if (parameters%isPresent("redshiftReionization")) call Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
        !![
        <inputParameter>
          <name>opticalDepthReionization</name>
@@ -205,7 +205,6 @@ contains
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes             , only : defaultBasicComponent
     implicit none
     type            (accretionHaloSimple          ), target                :: self
@@ -225,21 +224,11 @@ contains
     !![
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     !!]
-    ! Check that required properties have required attributes.
-    if     (                                                                                                       &
-         &   accretionNewGrowthOnly                                                                                &
-         &  .and.                                                                                                  &
-         &   .not.defaultBasicComponent%massMaximumIsGettable()                                                    &
-         & ) call Galacticus_Error_Report                                                                          &
-         &   (                                                                                                     &
-         &    'accretionNewGrowthOnly=true requires that the "massMaximum" '//                                     &
-         &    'property of the basic component be gettable.'              //                                       &
-         &    Galacticus_Component_List(                                                                           &
-         &                              'basic'                                                                 ,  &
-         &                               defaultBasicComponent%massMaximumAttributeMatch(requireGettable=.true.)   &
-         &                             )                                                                        // &
-         &    {introspection:location}                                                                             &
-         &   )
+    if (accretionNewGrowthOnly) then
+       !![
+       <addMetaProperty component="basic" name="massProgenitorMaximum" id="self%massProgenitorMaximumID" isEvolvable="no"/>
+       !!]
+    end if
     self%countChemicals=Chemicals_Property_Count()
     return
   end function simpleConstructorInternal
@@ -320,7 +309,7 @@ contains
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly) then
-       if (self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
+       if (self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) simpleAccretionRate=0.0d0
     end if
     return
   end function simpleAccretionRate
@@ -379,7 +368,7 @@ contains
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly) then
        basic => node%basic()
-       if (self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
+       if (self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) simpleFailedAccretionRate=0.0d0
     end if
     return
   end function simpleFailedAccretionRate
@@ -511,10 +500,10 @@ contains
          &                                                  temperature
 
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperature          =  self%darkMatterHaloScale_%virialTemperature(node)
+    temperature          =  self%darkMatterHaloScale_%temperatureVirial(node)
     numberDensityHydrogen=  hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     basic => node%basic()
@@ -535,7 +524,7 @@ contains
     class(accretionHaloSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node
 
-    simpleVelocityScale=self%darkMatterHaloScale_%virialVelocity(node)
+    simpleVelocityScale=self%darkMatterHaloScale_%velocityVirial(node)
     return
   end function simpleVelocityScale
 

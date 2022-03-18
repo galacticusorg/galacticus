@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,7 @@ Contains a module which implements a galactic low-pass (i.e. bright-pass) filter
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Galactic_Structure , only : galacticStructureClass
 
   !![
   <galacticFilter name="galacticFilterStellarApparentMagnitudes">
@@ -36,7 +37,8 @@ Contains a module which implements a galactic low-pass (i.e. bright-pass) filter
      A galactic low-pass (i.e. bright pass) filter class for stellar apparent magnitudes.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_        => null()
+     class           (galacticStructureClass ), pointer                   :: galacticStructure_         => null()
      double precision                         , allocatable, dimension(:) :: apparentMagnitudeThreshold
    contains
      final     ::           stellarApparentMagnitudesDestructor
@@ -57,7 +59,7 @@ contains
     !!{
     Constructor for the ``stellarApparentMagnitudes'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
     use :: Memory_Management             , only : allocateArray
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -66,13 +68,14 @@ contains
     type            (inputParameters                        ), intent(inout)               :: parameters
     double precision                                         , allocatable  , dimension(:) :: apparentMagnitudeThreshold
     class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
+    class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
 
     ! Check and read parameters.
-    if (parameters%count('apparentMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.)) &
-         & call  Galacticus_Error_Report(                                                                                                 &
-         &                               '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
-         &                               {introspection:location}                                                                         &
-         &                              )
+    if (parameters%count('apparentMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.))            &
+         & call  Error_Report(                                                                                                 &
+         &                    '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                    {introspection:location}                                                                         &
+         &                   )
     call allocateArray(apparentMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
     !![
     <inputParameter>
@@ -81,34 +84,37 @@ contains
       <description>The parameter $m_0$ appearing in the stellar apparent magnitude threshold for the stellar apparent magnitude galactic filter class.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
-    self=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
+    self=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-   <objectDestructor name="cosmologyFunctions_"/>
-   !!]
-   return
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
+    return
   end function stellarApparentMagnitudesConstructorParameters
 
-  function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_) result(self)
+  function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_,galacticStructure_) result(self)
     !!{
     Internal constructor for the ``stellarApparentMagnitudes'' galactic filter class.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarApparentMagnitudes)                              :: self
     double precision                                         , intent(in   ), dimension(:) :: apparentMagnitudeThreshold
     class           (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
+    class           (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
     !![
-    <constructorAssign variables="apparentMagnitudeThreshold, *cosmologyFunctions_"/>
+    <constructorAssign variables="apparentMagnitudeThreshold, *cosmologyFunctions_, *galacticStructure_"/>
     !!]
 
-    if (size(apparentMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                     &
-         & call  Galacticus_Error_Report(                                                                                                 &
-         &                               '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
-         &                               {introspection:location}                                                                         &
-         &                              )
+    if (size(apparentMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                          &
+         & call  Error_Report(                                                                                                 &
+         &                    '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                    {introspection:location}                                                                         &
+         &                   )
     ! Map magnitude limits onto the expanded filter set.
     call Stellar_Luminosities_Parameter_Map(self%apparentMagnitudeThreshold)
     return
@@ -122,7 +128,8 @@ contains
     type(galacticFilterStellarApparentMagnitudes), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%galacticStructure_" />
     !!]
     return
   end subroutine stellarApparentMagnitudesDestructor
@@ -131,10 +138,9 @@ contains
     !!{
     Implement a stellar apparent magnitude low-pass galactic filter.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : massTypeStellar                 , weightByLuminosity
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
-    use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
+    use :: Galactic_Structure_Options    , only : massTypeStellar        , weightByLuminosity
+    use :: Galacticus_Nodes              , only : nodeComponentBasic     , treeNode
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     class           (galacticFilterStellarApparentMagnitudes), intent(inout)         :: self
     type            (treeNode                               ), intent(inout), target :: node
@@ -162,7 +168,7 @@ contains
           ! Only check those luminosities which are being output at this output time.
           if (unitStellarLuminosities%isOutput(iLuminosity,time)) then
              ! Get the total stellar luminosity of the galaxy.
-             luminosity=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=iLuminosity)
+             luminosity=self%galacticStructure_%massEnclosed(node,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=iLuminosity)
              ! Test only if the luminosity is greater than zero.
              if (luminosity > 0.0d0) then
                 ! Convert to apparent magnitude.

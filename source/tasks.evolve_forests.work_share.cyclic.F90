@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,9 +56,11 @@ contains
     implicit none
     type(evolveForestsWorkShareCyclic)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=evolveForestsWorkShareCyclic()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cyclicConstructorParameters
 
@@ -90,7 +92,7 @@ contains
     !!{
     Return the number of the next forest to process.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer(c_size_t                    )                :: cyclicForestNumber
     class  (evolveForestsWorkShareCyclic), intent(inout) :: self
@@ -108,7 +110,7 @@ contains
                &              +1_c_size_t
        end do
     else
-       if (self%utilizeOpenMPThreads .neqv. utilizeOpenMPThreads) call Galacticus_Error_Report('"cyclic" work share can not support transitions between utilizing/not utilizing OpenMP threads'//{introspection:location})
+       if (self%utilizeOpenMPThreads .neqv. utilizeOpenMPThreads) call Error_Report('"cyclic" work share can not support transitions between utilizing/not utilizing OpenMP threads'//{introspection:location})
     end if
     !$ call OMP_Unset_Lock(self%lock)
     self%treeNumber_(self%workerID(utilizeOpenMPThreads))=+self%treeNumber_(self%workerID   (utilizeOpenMPThreads)) &

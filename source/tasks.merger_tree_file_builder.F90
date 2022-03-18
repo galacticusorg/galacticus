@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -192,27 +192,27 @@
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
-     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_
-     class           (powerSpectrumPrimordialClass ), pointer                   :: powerSpectrumPrimordial_
-     class           (transferFunctionClass        ), pointer                   :: transferFunction_
-     type            (propertyColumn               ), allocatable, dimension(:) :: properties                 , particleProperties
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_       => null()
+     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_  => null()
+     class           (powerSpectrumPrimordialClass ), pointer                   :: powerSpectrumPrimordial_   => null()
+     class           (transferFunctionClass        ), pointer                   :: transferFunction_          => null()
+     type            (propertyColumn               ), allocatable, dimension(:) :: properties                          , particleProperties
      type            (mergerTreeMetaData           ), allocatable, dimension(:) :: metaData
-     type            (varying_string               )                            :: outputFileName             , inputFileName                   , &
+     type            (varying_string               )                            :: outputFileName                      , inputFileName                   , &
           &                                                                        particlesFileName
      integer                                                                    :: outputFormat
-     double precision                                                           :: unitsMassInSI              , unitsLengthInSI                 , &
+     double precision                                                           :: unitsMassInSI                       , unitsLengthInSI                 , &
           &                                                                        unitsVelocityInSI
-     integer                                                                    :: unitsMassHubbleExponent    , unitsMassScaleFactorExponent    , &
-          &                                                                        unitsLengthHubbleExponent  , unitsLengthScaleFactorExponent  , &
-          &                                                                        unitsVelocityHubbleExponent, unitsVelocityScaleFactorExponent
-     type            (varying_string               )                            :: unitsMassName              , unitsLengthName                 , &
+     integer                                                                    :: unitsMassHubbleExponent             , unitsMassScaleFactorExponent    , &
+          &                                                                        unitsLengthHubbleExponent           , unitsLengthScaleFactorExponent  , &
+          &                                                                        unitsVelocityHubbleExponent         , unitsVelocityScaleFactorExponent
+     type            (varying_string               )                            :: unitsMassName                       , unitsLengthName                 , &
           &                                                                        unitsVelocityName
      type            (statefulInteger              )                            :: dummyHostId
      type            (statefulDouble               )                            :: massParticle
-     type            (statefulLogical              )                            :: haloMassesIncludeSubhalos  , includesHubbleFlow              , &
+     type            (statefulLogical              )                            :: haloMassesIncludeSubhalos           , includesHubbleFlow              , &
           &                                                                        positionsArePeriodic
-     logical                                                                    :: traceParticles             , columnHeaders
+     logical                                                                    :: traceParticles                      , columnHeaders
      character       (len=1                        )                            :: columnSeparator
    contains
      final     ::                       mergerTreeFileBuilderDestructor
@@ -630,7 +630,7 @@ contains
     use :: Cosmology_Parameters      , only : hubbleUnitsLittleH
     use :: Dates_and_Times           , only : Formatted_Date_and_Time
     use :: Display                   , only : displayIndent          , displayUnindent
-    use :: Galacticus_Error          , only : errorStatusSuccess
+    use :: Error          , only : errorStatusSuccess
     use :: HDF5                      , only : hsize_t
     use :: Input_Parameters          , only : inputParameters
     use :: Merger_Tree_Data_Structure, only : mergerTreeData         , metaDataTypeCosmology, metaDataTypeProvenance, metaDataTypeSimulation, &

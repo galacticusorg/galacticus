@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,6 @@ contains
     !!{
     Compute the minimum distance at which a galaxy is included in the survey.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -107,7 +106,7 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
@@ -116,7 +115,7 @@ contains
     !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (present(field).and.(field < 1 .or. field > 3)) call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
+    if (present(field).and.(field < 1 .or. field > 3)) call Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
     ! Compute the limiting distance. For the GAMAnear sample, all fields are limited to r=19.4
     logarithmicMass=log10(mass)
     kelvin2014GAMAnearDistanceMaximum                      &

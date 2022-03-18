@@ -84,10 +84,19 @@
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
   <darkMatterProfileConcentration value="diemerJoyce2019"/>
-  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  </nodeOperator>
+  
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Evolvers -->
   <mergerTreeEvolver value="standard">
@@ -100,7 +109,7 @@
   </mergerTreeNodeEvolver>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="testSuite/outputs/concentrationDistributionLudlow2016.hdf5"/>
+  <outputFileName value="testSuite/outputs/concentrationDistributionLudlow2016.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
@@ -110,16 +119,16 @@
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="nodeIndices"/>
     <nodePropertyExtractor value="massHalo">
-      <virialDensityContrast value="fixed">
+      <virialDensityContrastDefinition value="fixed">
 	<densityContrastValue value="200"/>
 	<densityType value="critical"/>
-      </virialDensityContrast>
+      </virialDensityContrastDefinition>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="concentration">
-      <virialDensityContrast value="fixed">
+      <virialDensityContrastDefinition value="fixed">
 	<densityContrastValue value="200"/>
 	<densityType value="critical"/>
-      </virialDensityContrast>
+      </virialDensityContrastDefinition>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
  

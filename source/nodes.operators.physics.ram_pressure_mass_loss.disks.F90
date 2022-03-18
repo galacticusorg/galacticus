@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,7 +101,7 @@ contains
     !!{
     Perform ram pressure stripping-induced mass loss in a disk.
     !!}
-    use :: Galacticus_Nodes    , only : propertyTypeInactive, nodeComponentDisk, nodeComponentHotHalo
+    use :: Galacticus_Nodes    , only : propertyInactive, nodeComponentDisk, nodeComponentHotHalo
     use :: Abundances_Structure, only : operator(*)
     implicit none
     class           (nodeOperatorRamPressureMassLossDisks), intent(inout), target  :: self
@@ -114,7 +114,7 @@ contains
     double precision                                                               :: massLossRate
 
     ! Do nothing during inactive property solving.
-    if (propertyType   == propertyTypeInactive) return
+    if (propertyInactive(propertyType)        ) return
     disk => node%disk()
     if (disk%massGas() <= 0.0d0               ) return
     massLossRate=self%ramPressureStripping_%rateMassLoss(disk)

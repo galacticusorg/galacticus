@@ -20,12 +20,12 @@
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
 !!{
-Contains a module which provides various interfaces to the \gls{AxionCamb} code.
+Contains a module which provides various interfaces to the \gls{axioncamb} code.
 !!}
 
 module Interfaces_AxionCAMB
   !!{
-  Provides various interfaces to the \gls{AxionCamb} code.
+  Provides various interfaces to the \gls{axioncamb} code.
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
@@ -62,12 +62,12 @@ contains
     !!{
     Initialize the interface with AxionCAMB, including downloading and compiling AxionCAMB if necessary.
     !!}
-    use :: File_Utilities    , only : File_Exists               , File_Lock            , File_Unlock , lockDescriptor, &
+    use :: File_Utilities    , only : File_Exists      , File_Lock            , File_Unlock , lockDescriptor, &
          &                            Directory_Make
-    use :: Display           , only : displayMessage            , verbosityLevelWorking
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)             , char                 , operator(//), replace       , &
+    use :: Display           , only : displayMessage   , verbosityLevelWorking
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -82,8 +82,8 @@ contains
     !!]
 
     ! Set path and version
-    axionCambPath   =galacticusPath(pathTypeDataDynamic)//"AxionCAMB/"
-    lockPath        =galacticusPath(pathTypeDataDynamic)//"axion_camb"
+    axionCambPath   =inputPath(pathTypeDataDynamic)//"AxionCAMB/"
+    lockPath        =inputPath(pathTypeDataDynamic)//"axion_camb"
     axionCambVersion="?"
     call File_Lock(char(lockPath),fileLock,lockIsShared=.false.)
     ! Build the AxionCAMB code.
@@ -92,7 +92,7 @@ contains
           ! Download AxionCAMB if necessary.
           call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
           call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//axionCambPath,status)
-          if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Galacticus_Error_Report("unable to download AxionCAMB"//{introspection:location})
+          if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
        command='cd '//axionCambPath//'; sed -r -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -r -i~ s/"F90C\s*=\s*ifort"/"F90C = gfortran"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -O3 -fopenmp'
@@ -104,7 +104,7 @@ contains
        end if
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
-       if (status /= 0 .or. .not.File_Exists(axionCambPath//"camb")) call Galacticus_Error_Report("failed to build AxionCAMB code"//{introspection:location})
+       if (status /= 0 .or. .not.File_Exists(axionCambPath//"camb")) call Error_Report("failed to build AxionCAMB code"//{introspection:location})
     end if
     call File_Unlock(fileLock)
     return
@@ -135,8 +135,8 @@ contains
     use               :: Dark_Matter_Particles           , only : darkMatterParticleClass     , darkMatterParticleFuzzyDarkMatter
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                   , File_Exists , File_Lock     , &
           &                                                       File_Path                   , File_Remove                      , File_Unlock , lockDescriptor
-    use               :: Galacticus_Error                , only : Galacticus_Error_Report
-    use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
+    use               :: Error                           , only : Error_Report
+    use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
@@ -220,7 +220,7 @@ contains
        write (parameterLabel,'(e12.6)') darkMatterParticle_%densityFraction()
        call descriptor%addParameter("fuzzyDMDensityFraction",parameterLabel)
     class default
-       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()            // &
@@ -228,10 +228,10 @@ contains
          &      String_C_To_Fortran(axionCambSourceDigest)
     call descriptor%destroy()
     ! Build the file name.
-    fileName_=char(galacticusPath(pathTypeDataDynamic))                            // &
-         &                       'largeScaleStructure/transfer_function_AxionCAMB_'// &
-         &                       Hash_MD5(uniqueLabel)                             // &
-         &                       '.hdf5'
+    fileName_=char(inputPath(pathTypeDataDynamic))                            // &
+         &                  'largeScaleStructure/transfer_function_AxionCAMB_'// &
+         &                  Hash_MD5(uniqueLabel)                             // &
+         &                  '.hdf5'
     if (present(fileName)) fileName=fileName_
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
@@ -296,9 +296,9 @@ contains
        coldDarkMatterDensityFraction =(1.0d0-darkMatterParticle_%densityFraction())*(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())
        fuzzyDarkMatterDensityFraction=       darkMatterParticle_%densityFraction() *(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())
     class default
-       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
-    if (fuzzyDarkMatterDensityFraction == 0.0d0)  call Galacticus_Error_Report('density fraction of fuzzy dark matter can not be exactally 0'//{introspection:location})
+    if (fuzzyDarkMatterDensityFraction == 0.0d0) call Error_Report('density fraction of fuzzy dark matter can not be exactally 0'//{introspection:location})
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the AxionCAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
@@ -320,7 +320,7 @@ contains
              redshiftLabel=extract(datasetNames(i),18,len(datasetNames(i)))
              read (redshiftLabel,*) redshiftsCombined(size(redshifts)+i)
           else
-             call Galacticus_Error_Report('unknown dataset'//{introspection:location})
+             call Error_Report('unknown dataset'//{introspection:location})
           end if
        end do
        allocate(redshiftRanksCombined (size(redshiftsCombined)))
@@ -353,7 +353,7 @@ contains
        if (allocated(wavenumbers)) wavenumberAxionCAMB=max(wavenumberAxionCAMB,wavenumbers(size(wavenumbers)))
        ! Construct input file for AxionCAMB.
        call Get_Environment_Variable('HOSTNAME',hostName)
-       workPath     =galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/'
+       workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
        parameterFile=workPath//'transfer_function_parameters'//'_'//trim(hostName)//'_'//GetPID()
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
        parameterFile=parameterFile//'.txt'
@@ -376,7 +376,7 @@ contains
           write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'm_ax                      ',darkMatterParticle_ %mass           ()*kilo
           write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_axion               ',fuzzyDarkMatterDensityFraction
        class default
-          call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+          call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
        end select
        write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_baryon                 ',cosmologyParameters_%OmegaBaryon    ()
        write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm                    ',coldDarkMatterDensityFraction
@@ -501,7 +501,7 @@ contains
                         &                                            /(coldDarkMatterDensityFraction+fuzzyDarkMatterDensityFraction)
                 end if
              else
-                call Galacticus_Error_Report('unable to read AxionCAMB transfer function file'//{introspection:location})
+                call Error_Report('unable to read AxionCAMB transfer function file'//{introspection:location})
              end if
           end do
           close(axionCambTransferFile)
@@ -562,7 +562,7 @@ contains
           call parametersGroup%writeAttribute(darkMatterParticle_%mass           (),'fuzzyDMMass'           )
           call parametersGroup%writeAttribute(darkMatterParticle_%densityFraction(),'fuzzyDMDensityFraction')
        class default
-          call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+          call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
        end select
        call parametersGroup%close()
        extrapolationGroup          =axionCambOutput   %openGroup('extrapolation')

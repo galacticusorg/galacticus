@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,6 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  use :: Hashes, only : doubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
@@ -37,15 +39,17 @@
        <method method="names"              description="Return the name of the properties extracted."                       />
        <method method="descriptions"       description="Return a description of the properties extracted."                  />
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"           description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
-     procedure(arrayNames       ), deferred :: columnDescriptions
+     procedure(arrayDescriptions), deferred :: columnDescriptions
      procedure(arraySize        ), deferred :: size
      procedure(arrayElementCount), deferred :: elementCount
      procedure(arrayExtract     ), deferred :: extract
      procedure(arrayNames       ), deferred :: names
-     procedure(arrayNames       ), deferred :: descriptions
+     procedure(arrayDescriptions), deferred :: descriptions
      procedure(arrayUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: metaData           => arrayMetaData
   end type nodePropertyExtractorArray
 
   abstract interface
@@ -63,15 +67,27 @@
   end interface
 
   abstract interface
-     function arrayNames(self,time)
+     subroutine arrayNames(self,time,names)
        !!{
-       Interface for array property names.
+       Interface for array names.
        !!}
        import varying_string, nodePropertyExtractorArray
-       type            (varying_string            ), allocatable  , dimension(:) :: arrayNames
-       class           (nodePropertyExtractorArray), intent(inout)               :: self
-       double precision                            , intent(in   )               :: time
-     end function arrayNames
+       class           (nodePropertyExtractorArray), intent(inout)                            :: self
+       double precision                            , intent(in   )                            :: time
+       type            (varying_string            ), intent(inout), allocatable, dimension(:) :: names
+    end subroutine arrayNames
+  end interface
+
+  abstract interface
+     subroutine arrayDescriptions(self,time,descriptions)
+       !!{
+       Interface for array descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorArray
+       class           (nodePropertyExtractorArray), intent(inout)                            :: self
+       double precision                            , intent(in   )                            :: time
+       type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
+    end subroutine arrayDescriptions
   end interface
 
   abstract interface
@@ -108,3 +124,18 @@
        double precision                            , intent(in   ) :: time
      end function arraySize
   end interface
+
+contains
+  
+  subroutine arrayMetaData(self,indexProperty,metaData)
+    !!{
+    Interface for array property meta-data.
+    !!}
+    implicit none
+    class(  nodePropertyExtractorArray), intent(inout) :: self
+    integer                            , intent(in   ) :: indexProperty
+    type   (doubleHash                ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, indexProperty, metaData
+    
+    return
+  end subroutine arrayMetaData

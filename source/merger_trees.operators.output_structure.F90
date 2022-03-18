@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,7 +40,7 @@
      A merger tree operator class which dumps pre-evolution tree structure to the output file.
      !!}
      private
-     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_
+     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
      type (hdf5Object                )          :: outputGroup
    contains
      final     ::                        outputStructureDestructor
@@ -112,8 +112,8 @@ contains
     !!{
     Output the structure of {\normalfont \ttfamily tree}.
     !!}
-    use    :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use    :: Galacticus_HDF5                   , only : galacticusOutputFile
+    use    :: Error                             , only : Error_Report
+    use    :: Output_HDF5                       , only : outputFile
     use    :: Galacticus_Nodes                  , only : nodeComponentBasic
     !$ use :: HDF5_Access                       , only : hdf5Access
     use    :: Kind_Numbers                      , only : kind_int8
@@ -142,7 +142,7 @@ contains
     type            (hdf5Object                       )                              :: treeGroup            , dataset
 
     !$ call hdf5Access%set  ()
-    if (.not.self%outputGroup%isOpen()) self%outputGroup=galacticusOutputFile%openGroup("mergerTreeStructures","Pre-evolution structures of merger trees.")
+    if (.not.self%outputGroup%isOpen()) self%outputGroup=outputFile%openGroup("mergerTreeStructures","Pre-evolution structures of merger trees.")
     !$ call hdf5Access%unset()
     treeCurrent => tree
     do while (associated(treeCurrent))
@@ -156,13 +156,13 @@ contains
           countNodes=countNodes+1
        end do
        ! Determine the number of properties for output.
-       basic                  => treeCurrent%baseNode%basic()
+       basic                  => treeCurrent%nodeBase%basic()
        countPropertiesDouble  =  0
        countPropertiesInteger =  0
        select type (extractor_ => self%nodePropertyExtractor_)
        type  is (nodePropertyExtractorNull         )
           ! Null extractor - pointless.
-          call Galacticus_Error_Report('null extractor is pointless'//{introspection:location})
+          call Error_Report('null extractor is pointless'//{introspection:location})
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor.
           countPropertiesDouble=1
@@ -180,47 +180,43 @@ contains
           countPropertiesDouble =extractor_%elementCount(elementTypeDouble ,basic%time())
           countPropertiesInteger=extractor_%elementCount(elementTypeInteger,basic%time())
        class default
-          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
+          call Error_Report('unsupported property extractor class'//{introspection:location})
        end select
        ! Allocate storage for the properties.
-       allocate(propertiesDouble   (countNodes,countPropertiesDouble ))
-       allocate(propertiesInteger  (countNodes,countPropertiesInteger))
-       allocate(namesDouble        (           countPropertiesDouble ))
-       allocate(namesInteger       (           countPropertiesInteger))
-       allocate(descriptionsDouble (           countPropertiesDouble ))
-       allocate(descriptionsInteger(           countPropertiesInteger))
-       allocate(unitsInSIDouble    (           countPropertiesDouble ))
-       allocate(unitsInSIInteger   (           countPropertiesInteger))
+       allocate(propertiesDouble (countNodes,countPropertiesDouble ))
+       allocate(propertiesInteger(countNodes,countPropertiesInteger))
+       allocate(unitsInSIDouble  (           countPropertiesDouble ))
+       allocate(unitsInSIInteger (           countPropertiesInteger))
        ! Retrieve property names, descriptions, and units.
        select type (extractor_ => self%nodePropertyExtractor_)
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor.
-          namesDouble        (1)=extractor_%name        (                               )
-          descriptionsDouble (1)=extractor_%description (                               )
-          unitsInSIDouble    (1)=extractor_%unitsInSI   (                               )
+          namesDouble        (1)=extractor_%name        (                                                   )
+          descriptionsDouble (1)=extractor_%description (                                                   )
+          unitsInSIDouble    (1)=extractor_%unitsInSI   (                                                   )
        class is (nodePropertyExtractorTuple        )
           ! Tuple property extractor.
-          namesDouble        (:)=extractor_%names       (                   basic%time())
-          descriptionsDouble (:)=extractor_%descriptions(                   basic%time())
-          unitsInSIDouble    (:)=extractor_%unitsInSI   (                   basic%time())
+          call extractor_%names                         (                   basic%time(),namesDouble        )
+          call extractor_%descriptions                  (                   basic%time(),descriptionsDouble )
+          unitsInSIDouble    (:)=extractor_%unitsInSI   (                   basic%time()                    )
        class is (nodePropertyExtractorIntegerScalar)
           ! Integer scalar property extractor.
-          namesInteger       (1)=extractor_%name        (                               )
-          descriptionsInteger(1)=extractor_%description (                               )
-          unitsInSIInteger   (1)=extractor_%unitsInSI   (                               )          
+          namesInteger       (1)=extractor_%name        (                                                   )
+          descriptionsInteger(1)=extractor_%description (                                                   )
+          unitsInSIInteger   (1)=extractor_%unitsInSI   (                                                   )
        class is (nodePropertyExtractorIntegerTuple )
           ! Integer tuple property extractor.
-          namesInteger       (:)=extractor_%names       (                   basic%time())
-          descriptionsInteger(:)=extractor_%descriptions(                   basic%time())
-          unitsInSIInteger   (:)=extractor_%unitsInSI   (                   basic%time())
+          call extractor_%names                         (                   basic%time(),namesInteger       )
+          call extractor_%descriptions                  (                   basic%time(),descriptionsInteger)
+          unitsInSIInteger   (:)=extractor_%unitsInSI   (                   basic%time()                    )
        class is (nodePropertyExtractorMulti        )
           ! Multi property extractor.
-          namesDouble        (:)=extractor_%names       (elementTypeDouble ,basic%time())
-          descriptionsDouble (:)=extractor_%descriptions(elementTypeDouble ,basic%time())
-          unitsInSIDouble    (:)=extractor_%unitsInSI   (elementTypeDouble ,basic%time())
-          namesInteger       (:)=extractor_%names       (elementTypeInteger,basic%time())
-          descriptionsInteger(:)=extractor_%descriptions(elementTypeInteger,basic%time())
-          unitsInSIInteger   (:)=extractor_%unitsInSI   (elementTypeInteger,basic%time())
+          call extractor_%names                         (elementTypeDouble ,basic%time(),namesDouble        )
+          call extractor_%descriptions                  (elementTypeDouble ,basic%time(),descriptionsDouble )
+          unitsInSIDouble    (:)=extractor_%unitsInSI   (elementTypeDouble ,basic%time()                    )
+          call extractor_%names                         (elementTypeInteger,basic%time(),namesInteger       )
+          call extractor_%descriptions                  (elementTypeInteger,basic%time(),descriptionsInteger)
+          unitsInSIInteger   (:)=extractor_%unitsInSI   (elementTypeInteger,basic%time()                    )
        end select
        ! Walk the tree again accumulating properties for output to arrays.
        countNodes =0
@@ -234,7 +230,7 @@ contains
           class is (nodePropertyExtractorTuple        )
              ! Tuple property extractor.
              if     ( countPropertiesDouble  /= extractor_%elementCount(                   basic%time())) &
-                  & call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
+                  & call Error_Report('unsupported change in number of properties'//{introspection:location})
              propertiesDouble (countNodes,:)=extractor_%extract       (node,basic%time())
          class is (nodePropertyExtractorIntegerScalar)
              ! Integer scalar property extractor.
@@ -242,7 +238,7 @@ contains
           class is (nodePropertyExtractorIntegerTuple )
              ! Integer tuple property extractor.
              if     ( countPropertiesInteger /= extractor_%elementCount(                   basic%time())) &
-                  & call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
+                  & call Error_Report('unsupported change in number of properties'//{introspection:location})
              propertiesInteger(countNodes,:)=extractor_%extract       (node,basic%time())
           class is (nodePropertyExtractorMulti        )
              ! Multi property extractor.
@@ -250,14 +246,14 @@ contains
                   &   countPropertiesDouble  /= extractor_%elementCount(elementTypeDouble ,basic%time())  &
                   &  .or.                                                                                 &
                   &   countPropertiesInteger /= extractor_%elementCount(elementTypeInteger,basic%time())  &
-                  & ) call Galacticus_Error_Report('unsupported change in number of properties'//{introspection:location})
+                  & ) call Error_Report('unsupported change in number of properties'//{introspection:location})
              doubleProperties =extractor_%extractDouble (node,basic%time())
              do i=1,size(doubleProperties )
                 select case (doubleProperties (i)%rank())
                 case (0)
                    propertiesDouble (countNodes,i)=doubleProperties (i)
                 case default
-                   call Galacticus_Error_Report('non-scalar properties are not supported'//{introspection:location})
+                   call Error_Report('non-scalar properties are not supported'//{introspection:location})
                 end select
              end do
              integerProperties=extractor_%extractInteger(node,basic%time())
@@ -266,7 +262,7 @@ contains
                 case (0)
                    propertiesInteger(countNodes,i)=integerProperties(i)
                 case default
-                   call Galacticus_Error_Report('non-scalar properties are not supported'//{introspection:location})
+                   call Error_Report('non-scalar properties are not supported'//{introspection:location})
                 end select
              end do
           end select

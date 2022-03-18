@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,6 +35,9 @@ Implements a radiation field class which sums over other radiation fields.
    <stateStore>
     <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
+   </allowedParameters>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldSummation
@@ -89,6 +92,9 @@ contains
        <objectBuilder class="radiationField" name="radiationField_%radiationField_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="radiationField"/>
+    !!]
     return
   end function summationConstructorParameters
 

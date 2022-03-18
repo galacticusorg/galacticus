@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,18 +59,21 @@ contains
     !!{
     Initialize the interface with CLASS, including downloading and compiling CLASS if necessary.
     !!}
-    use :: Display           , only : displayMessage         , verbosityLevelWorking
-    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock, &
+    use :: Display           , only : displayMessage   , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock   , File_Unlock, &
           &                           lockDescriptor
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), replace    , &
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace    , &
           &                           varying_string
+    use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageC
     implicit none
     type   (varying_string), intent(  out)           :: classPath, classVersion
     logical                , intent(in   ), optional :: static
-    integer                                          :: status  , flagsLength
+    integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
     !![
@@ -78,36 +81,32 @@ contains
     !!]
 
     ! Set path and version
-    classVersion    ="3.0.1"
-    classPath       =galacticusPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
+    classVersion    ="3.0.2"
+    classPath       =inputPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
-       call Directory_Make(classPath)
-       call File_Lock(char(classPath//"class"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     classPath                                        )
+       call File_Lock     (char(classPath//"class"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(classPath//"Makefile")) then
           ! Download CLASS if necessary.
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) then
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) then
              call displayMessage("downloading CLASS code....",verbosityLevelWorking)
-             call System_Command_Do("wget https://lesgourg.github.io/class_public/class_public-"//char(classVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
-             if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download CLASS"//{introspection:location})
+             call download("https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"class_public-"//char(classVersion)//".tar.gz",status)
+             if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")
-          if (status /= 0 .or. .not.File_Exists(classPath)) call Galacticus_Error_Report('failed to unpack CLASS code'//{introspection:location})        
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
+          if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})        
        end if
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
        command='cd '//classPath//'; cp Makefile Makefile.tmp; '
-       if (static_) then
-          command=command//' sed -r -i~ s/"^CCFLAG = "/"CCFLAG ='
-          ! Include Galacticus compilation flags here - may be necessary for static linking.
-          call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
-          if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
-          command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"/ Makefile.tmp; '
-       end if
-       command=command//'make -f Makefile.tmp -j1 class'
+       ! Include Galacticus compilation flags here.
+       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^CCFLAG = "/"CCFLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
+       if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
+       command=command//' "/ Makefile.tmp; make -f Makefile.tmp -j1 class'
        call System_Command_Do(char(command),status);
-       if (status /= 0 .or. .not.File_Exists(classPath//"class")) call Galacticus_Error_Report("failed to build CLASS code"//{introspection:location})
+       if (status /= 0 .or. .not.File_Exists(classPath//"class")) call Error_Report("failed to build CLASS code"//{introspection:location})
        call File_Unlock(fileLock)
     end if
     return
@@ -138,8 +137,8 @@ contains
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
          &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor, &
          &                                                        Directory_Remove
-    use               :: Galacticus_Error                , only : Galacticus_Error_Report
-    use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
+    use               :: Error                           , only : Error_Report
+    use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
@@ -215,10 +214,10 @@ contains
          &      String_C_To_Fortran(classSourceDigest)
     call descriptor%destroy()
     ! Build the file name.
-    fileName_=char(galacticusPath(pathTypeDataDynamic))                        // &
-         &                       'largeScaleStructure/transfer_function_CLASS_'// &
-         &                       Hash_MD5(uniqueLabel)                         // &
-         &                       '.hdf5'
+    fileName_=char(inputPath(pathTypeDataDynamic))                        // &
+         &                  'largeScaleStructure/transfer_function_CLASS_'// &
+         &                  Hash_MD5(uniqueLabel)                         // &
+         &                  '.hdf5'
     if (present(fileName)) fileName=fileName_
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
@@ -276,7 +275,7 @@ contains
              redshiftLabel=extract(datasetNames(i),18,len(datasetNames(i)))
              read (redshiftLabel,*) redshiftsCombined(size(redshifts)+i)
           else
-             call Galacticus_Error_Report('unknown dataset'//{introspection:location})
+             call Error_Report('unknown dataset'//{introspection:location})
           end if
        end do
        allocate(redshiftRanksCombined (size(redshiftsCombined)))
@@ -309,7 +308,7 @@ contains
        if (allocated(wavenumbers)) wavenumberCLASS=max(wavenumberCLASS,wavenumbers(size(wavenumbers)))
        ! Construct input file for CLASS.
        call Get_Environment_Variable('HOSTNAME',hostName)
-       workPath     =galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/class_transfer_function_'//trim(hostName)//'_'//GetPID()
+       workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/class_transfer_function_'//trim(hostName)//'_'//GetPID()
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
        parameterFile=workPath//'/parameters.ini'
        call Directory_Make(workPath)
@@ -369,7 +368,7 @@ contains
                    read (classTransferLine,*) wavenumbers(i),transferFunctions(i,classSpeciesPhotons,j),transferFunctions(i,classSpeciesBaryons,j),transferFunctions(i,classSpeciesDarkMatter,j)
                 end if
              else
-                call Galacticus_Error_Report('unable to read CLASS transfer function file'//{introspection:location})
+                call Error_Report('unable to read CLASS transfer function file'//{introspection:location})
              end if
           end do
           close(classTransferFile)

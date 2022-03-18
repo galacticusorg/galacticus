@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -125,7 +125,7 @@ contains
     !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     ! Compute luminosity and temperature.
     integrator_                     =integrator           (integrandOpticalDepth,toleranceRelative                           =1.0d-3)
-    icmOpticalDepthLymanAlphaExtract=integrator_%integrate(0.0d0                ,self%darkMatterHaloScale_%virialRadius(node)       )    
+    icmOpticalDepthLymanAlphaExtract=integrator_%integrate(0.0d0                ,self%darkMatterHaloScale_%radiusVirial(node)       )    
     !# <objectDestructor name="radiation_"/>
     return
 

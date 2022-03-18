@@ -30,16 +30,16 @@
     A critical overdensity for collapse class based on the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016} applied to
     some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
     \begin{equation}
-     h_{\rm F}(x) \exp [a_3 x^{-a_4}]+[1-h_{\rm F}(x)]\exp [a_5 x^{-a_6}],
+     h_\mathrm{F}(x) \exp [a_3 x^{-a_4}]+[1-h_\mathrm{F}(x)]\exp [a_5 x^{-a_6}],
     \end{equation}
     where $x=M/M_J$ with $M$ the mass in question, $M_\mathrm{J}$ the effective Jeans mass of the fuzzy dark matter as defined by
     \citeauthor{marsh_warmAndFuzzy_2016}~[\citeyear{marsh_warmAndFuzzy_2016}; their eqn.~18]:
     \begin{equation}
      M_\mathrm{J} = a_1\times 10^8 \left(\frac{m_a}{10^{-22}\text{ eV}}\right)^{-3/2}\left(\frac{\Omega_m h^2}{0.14} \right)^{1/4} h^{-1}M_{\odot},
     \end{equation}
-    the function $h_{\rm F}$ is given by
+    the function $h_\mathrm{F}$ is given by
     \begin{equation}
-     h_{\rm F}(x) =(1/2)\{1-\tanh [M_J(x-a_2)]\}.
+     h_\mathrm{F}(x) =(1/2)\{1-\tanh [M_J(x-a_2)]\}.
     \end{equation}
     The best-fit parameters $a_i$ are
     $\{a_1,a_2,a_3,a_4,a_5,a_6\}=\{3.4,1.0,1.8,0.5,1.7,0.9\}$.
@@ -137,8 +137,8 @@ contains
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: FoX_DOM                     , only : destroy                          , node                             , parseFile
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Galacticus_Paths            , only : galacticusPath                   , pathTypeDataStatic
+    use :: Error                       , only : Error_Report
+    use :: Input_Paths                 , only : inputPath                        , pathTypeDataStatic
     use :: IO_XML                      , only : XML_Array_Read                   , XML_Get_First_Element_By_Tag_Name
     use :: Numerical_Interpolation     , only : GSL_Interp_CSpline
     use :: Table_Labels                , only : extrapolationTypeFix
@@ -173,13 +173,13 @@ contains
             &          )**(1.0d0/4.0d0)                                                  &
             &         /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
     class default
-       call Galacticus_Error_Report('critical overdensity expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('critical overdensity expects a fuzzy dark matter particle'//{introspection:location})
     end select
     if (.not.self%useFittingFunction) then
        ! Read in the tabulated critical overdensity scaling.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(galacticusPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityFuzzyDarkMatterMarsh.xml",iostat=ioStatus)
-       if (ioStatus /= 0) call Galacticus_Error_Report('unable to find or parse the tabulated data'//{introspection:location})
+       doc => parseFile(char(inputPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityFuzzyDarkMatterMarsh.xml",iostat=ioStatus)
+       if (ioStatus /= 0) call Error_Report('unable to find or parse the tabulated data'//{introspection:location})
        ! Extract the datum lists.
        element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )
        call XML_Array_Read(element,"datum",self%deltaTableMass )
@@ -221,7 +221,7 @@ contains
     assumes that their results for the critical overdensity scale with the Jeans mass of the fuzzy dark matter particle
     as computed using their eqn.~(18).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensityMarsh2016FDM), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time                       , expansionFactor
@@ -235,7 +235,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Validate.
-    if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
+    if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     ! Determine the scale-free mass.
     massScaleFree=mass/self%jeansMass
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
@@ -303,7 +303,7 @@ contains
     !!{
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensityMarsh2016FDM), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time                       , expansionFactor
@@ -319,7 +319,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Validate.
-    if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
+    if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     ! Determine the scale-free mass.
     massScaleFree=mass/self%jeansMass
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.

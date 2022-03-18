@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   use    :: Kind_Numbers       , only : kind_int8
   !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
-  !$          &                         omp_lock_kind
+!$          &                             omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
 
   !![
@@ -39,11 +39,10 @@
     found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
    </description>
    <deepCopy>
-    <ignore   variables="recursiveSelf"                                                                       />
-    <deepCopy variables="percolationObjects_" function="percolationObjectsDeepCopy_" module="Functions_Global"/>
+    <ignore   variables="recursiveSelf"/>
    </deepCopy>
    <stateStorable>
-     <exclude variables="recursiveSelf"                                                                       />
+     <exclude variables="recursiveSelf"/>
    </stateStorable>
   </virialDensityContrast>
   !!]
@@ -55,21 +54,16 @@
      double precision                                            :: linkingLength
      type            (varying_string                  )          :: fileName
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
-     logical                                                     :: isRecursive                              , parentDeferred
+     logical                                                     :: isRecursive                               , parentDeferred
      class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
-     !![
-     <workaround type="gfortran" PR="90788" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=90788">
-      <description>Null initialization of the following class(*) pointer causes an ICE in gfortran 10.0</description>
-      <code>class           (*                      ), pointer :: percolationObjects_ => null()</code>
-     </workaround>
-     !!]
-     class           (*                               ), pointer :: percolationObjects_
+     class           (*                               ), pointer :: percolationObjects_             => null()
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
-     double precision                                            :: densityContrastTableTimeMinimum          , densityContrastTableTimeMaximum
-     double precision                                            :: densityContrastTableMassMinimum          , densityContrastTableMassMaximum
-     integer                                                     :: densityContrastTableMassCount            , densityContrastTableTimeCount
-     logical                                                     :: densityContrastTableInitialized
+     double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
+     double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
+     integer                                                     :: densityContrastTableMassCount             , densityContrastTableTimeCount
+     logical                                                     :: densityContrastTableInitialized =  .false.
+     logical                                                     :: densityContrastLockInitialized  =  .false.
      type            (table2DLogLogLin                )          :: densityContrastTable
      !$ integer      (omp_lock_kind                   )          :: densityContrastTableLock
      integer                                                     :: densityContrastTableRemakeCount
@@ -166,10 +160,10 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
-    use :: Input_Parameters  , only : inputParameter         , inputParameters
+    use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (virialDensityContrastPercolation)                                  :: self
     double precision                                  , intent(in   )                   :: linkingLength
@@ -181,7 +175,7 @@ contains
     !!]
 
     ! File name for tabulation.
-    self%fileName=galacticusPath(pathTypeDataDynamic)              // &
+    self%fileName=inputPath(pathTypeDataDynamic)                   // &
          &        'darkMatterHalos/'                               // &
          &        self%objectType      (                          )// &
          &        '_'                                              // &
@@ -194,23 +188,24 @@ contains
     self%densityContrastTableMassMaximum= 1.0d+16
     self%densityContrastTableInitialized=.false.
     self%densityContrastTableRemakeCount= 0
+    self%densityContrastLockInitialized =.true.
     !$ call OMP_Init_Lock(self%densityContrastTableLock)
     ! Check if we have been given a percolation objects container. If not, we expect that we are being built recursively, in which
     ! case we require a pointer to the originating object under construction.
     if (.not.associated(self%percolationObjects_)) then
-       if (.not.present(recursiveSelf)) call Galacticus_Error_Report('for recursive construction a pointer to the originating object is required'//{introspection:location})
+       if (.not.present(recursiveSelf)) call Error_Report('for recursive construction a pointer to the originating object is required'//{introspection:location})
        select type (recursiveSelf)
        class is (virialDensityContrastPercolation)
           self%recursiveSelf => recursiveSelf
           self%isRecursive   =  .true.
        class default
-          call Galacticus_Error_Report('originating object is of incorrect class'//{introspection:location})
+          call Error_Report('originating object is of incorrect class'//{introspection:location})
        end select
        ! Generate a new ID.
        !$omp critical (percolationIDIncrement)
        percolationID                =percolationID+1_kind_int8
        self                  %selfID=percolationID
-       if (percolationID == -1_kind_int8) call Galacticus_Error_Report('ran out of IDs for percolation class'//{introspection:location})
+       if (percolationID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
        !$omp end critical (percolationIDIncrement)
        percolationIDRecursive       =self%selfID
     else
@@ -222,7 +217,7 @@ contains
           !$omp critical (percolationIDIncrement)
           percolationID                =percolationID+1_kind_int8
           self                  %selfID=percolationID
-          if (percolationID == -1_kind_int8) call Galacticus_Error_Report('ran out of IDs for percolation class'//{introspection:location})
+          if (percolationID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
           !$omp end critical (percolationIDIncrement)
        else
           ! An ID was already set during recursive construction.
@@ -238,12 +233,12 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily percolation} virial density contrast class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type(virialDensityContrastPercolation), intent(inout) :: self
 
-    call self%densityContrastTable%destroy()
-    !$ call OMP_Destroy_Lock(self%densityContrastTableLock)
+    if    (self%densityContrastTableInitialized) call                  self%densityContrastTable    %destroy()
+    !$ if (self%densityContrastLockInitialized ) call OMP_Destroy_Lock(self%densityContrastTableLock          )
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
@@ -258,7 +253,7 @@ contains
     use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent, displayUnindent, &
           &                         verbosityLevelWorking
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass          , time
@@ -305,7 +300,7 @@ contains
        ! Remake the table is necessary.
        if (makeTable) then
           ! Check that we have a pointer to the required objects.
-          if (.not.associated(self%percolationObjects_)) call Galacticus_Error_Report('no percolationObjects available'//{introspection:location})
+          if (.not.associated(self%percolationObjects_)) call Error_Report('no percolationObjects available'//{introspection:location})
           ! Increment the number of table remakes.
           self%densityContrastTableRemakeCount=self%densityContrastTableRemakeCount+1
           ! Record that we are in the solving phase of calculation, so we will avoid recursive calls to this function.
@@ -351,7 +346,7 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
     double precision                                  , intent(in   )            :: mass
@@ -370,7 +365,7 @@ contains
     if (self%isRecursive) then
        if (percolationSolving) then
           ! Currently solving for solutions - return the current guess.
-          if (self%selfID /= self%recursiveSelf%selfID) call Galacticus_Error_Report('recursively-constructed percolation class object ID does not match that of actively solving object'//{introspection:location})
+          if (self%selfID /= self%recursiveSelf%selfID) call Error_Report('recursively-constructed percolation class object ID does not match that of actively solving object'//{introspection:location})
           useSolverCurrent=.true.
        else
           ! Not solving for solutions - if our table is sufficient (ensure it is up to date first), use it, otherwise request that
@@ -402,7 +397,7 @@ contains
        percolationDensityContrast=self%densityContrastTable%interpolate(mass,timeActual)
        !$ call OMP_Unset_Lock(self%densityContrastTableLock)
     else
-       call Galacticus_Error_Report('no method selected to compute density contrast'//{introspection:location})
+       call Error_Report('no method selected to compute density contrast'//{introspection:location})
     end if
     return
   end function percolationDensityContrast
@@ -412,7 +407,7 @@ contains
     Return the rate of change of the virial density contrast at the given epoch, based on the percolation algorithm of
     \cite{more_overdensity_2011}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
     double precision                                  , intent(in   )            :: mass
@@ -490,12 +485,20 @@ contains
     Perform a deep copy of the object.
     !!}
     use :: Functions_Global  , only : percolationObjectsDeepCopy_
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
 #ifdef OBJECTDEBUG
     use :: MPI_Utilities     , only : mpiSelf
+#endif
+#ifdef OBJECTDEBUG
     use :: Function_Classes  , only : debugReporting
+#endif
+#ifdef OBJECTDEBUG
     use :: Display           , only : displayMessage             , verbosityLevelSilent
+#endif
+#ifdef OBJECTDEBUG
     use :: ISO_Varying_String, only : operator(//)               , var_str
+#endif
+#ifdef OBJECTDEBUG
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
@@ -542,7 +545,7 @@ contains
                 class is (cosmologyFunctionsClass)
                 destination%cosmologyFunctions_ => s
              class default
-                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
              end select
              call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
           else
@@ -561,9 +564,10 @@ contains
           call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
        end if
        call destination%densitycontrasttable%deepCopyActions()
-       !$ call OMP_Init_Lock(destination%densitycontrasttablelock)
+       destination%densityContrastLockInitialized=.true.
+       !$ call OMP_Init_Lock(destination%densityContrastTableLock)
     class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+       call Error_Report('destination and source types do not match'//{introspection:location})
     end select
     return
   end subroutine percolationDeepCopy
@@ -587,7 +591,7 @@ contains
     !!{
     Find the deep-copied parent of a recursive child.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
 
@@ -595,7 +599,7 @@ contains
        if (associated(self%recursiveSelf%recursiveSelf)) then
           self%recursiveSelf => self%recursiveSelf%recursiveSelf
        else
-        call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+        call Error_Report("recursive child's parent was not copied"//{introspection:location})
        end if
        self%parentDeferred=.false.
     end if
@@ -606,7 +610,7 @@ contains
     !!{
     Copy the table from a recursive child's parent.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
 
@@ -624,7 +628,7 @@ contains
           self%densityContrastTableRemakeCount=self%recursiveSelf%densityContrastTableRemakeCount
        end if
     else
-       call Galacticus_Error_Report("recursive child has no parent"//{introspection:location})
+       call Error_Report("recursive child has no parent"//{introspection:location})
     end if
     return
   end subroutine percolationCopyTable

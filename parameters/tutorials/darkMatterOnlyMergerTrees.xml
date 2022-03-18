@@ -99,7 +99,7 @@
   </mergerTreeEvolver>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="darkMatterOnlyMergerTrees.hdf5"/>
+  <outputFileName value="darkMatterOnlyMergerTrees.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0 1.0"/>
   </outputTimes>
@@ -109,7 +109,12 @@
 
   <!-- Node physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
   </nodeOperator>
 

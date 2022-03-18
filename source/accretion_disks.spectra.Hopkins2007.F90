@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,6 +64,9 @@ contains
     !$GLC attributes unused :: parameters
 
     self=accretionDiskSpectraHopkins2007()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hopkins2007ConstructorParameters
 
@@ -71,13 +74,13 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
     !!}
-    use :: File_Utilities  , only : File_Lock     , File_Unlock
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: File_Utilities, only : File_Lock, File_Unlock
+    use :: Input_Paths   , only : inputPath, pathTypeDataStatic
     implicit none
     type(accretionDiskSpectraHopkins2007) :: self
 
     ! Set the file name.
-    self%fileName=galacticusPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    self%fileName=inputPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
     ! Build the file.
     call self%buildFile()
     ! Load the file.
@@ -97,8 +100,8 @@ contains
           &                                                    verbosityLevelWorking
     use            :: File_Utilities                  , only : Count_Lines_in_File    , Directory_Make      , File_Exists       , File_Lock      , &
           &                                                    File_Unlock
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use            :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataDynamic , pathTypeDataStatic
+    use            :: Error                           , only : Error_Report
+    use            :: Input_Paths                     , only : inputPath              , pathTypeDataDynamic , pathTypeDataStatic
     use            :: HDF5_Access                     , only : hdf5Access
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_Fortran_Env
@@ -149,32 +152,32 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
-          call Directory_Make(galacticusPath(pathTypeDataDynamic)//"/AGN_Spectrum")
-          call System_Command_Do("wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
+          call Directory_Make(inputPath(pathTypeDataDynamic)//"/AGN_Spectrum")
+          call System_Command_Do("wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Error_Report('failed to download agn_spectrum.c'//{introspection:location})
        end if
        ! Compile the AGN SED code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
-          call System_Command_Do("cd "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
+       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
+          call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-       call Directory_Make(char(galacticusPath(pathTypeDataStatic))//"blackHoles")
+       call Directory_Make(char(inputPath(pathTypeDataStatic))//"blackHoles")
        allocate(luminosityBolometric(luminosityBolometricCount))
        luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
        do i=1,luminosityBolometricCount
           call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
-          wavelengthCount=Count_Lines_in_File(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
+          call System_Command_Do(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
+          wavelengthCount=Count_Lines_in_File(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then
-             if (wavelengthCount /= size(wavelength)) call Galacticus_Error_Report('inconsistent number of wavelengths'//{introspection:location})
+             if (wavelengthCount /= size(wavelength)) call Error_Report('inconsistent number of wavelengths'//{introspection:location})
           else
              allocate(wavelength(wavelengthCount                          ))
              allocate(SED       (wavelengthCount,luminosityBolometricCount))
           end if
-          open(newUnit=sedUnit,file=char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
+          open(newUnit=sedUnit,file=char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
           j=wavelengthCount+1
           do
              read(sedUnit,'(a)',iostat=ioStatus) line

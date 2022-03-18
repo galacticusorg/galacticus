@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,7 @@ program Test_Mass_Distributions
   use :: Coordinates             , only : assignment(=)              , coordinateSpherical
   use :: Display                 , only : displayVerbositySet        , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
-  use :: Galacticus_Error        , only : Galacticus_Error_Report
+  use :: Error                   , only : Error_Report
   use :: Linear_Algebra          , only : assignment(=)              , vector
   use :: Mass_Distributions      , only : massDistributionBetaProfile, massDistributionClass , massDistributionExponentialDisk, massDistributionGaussianEllipsoid, &
           &                               massDistributionHernquist  , massDistributionSersic, massDistributionSpherical
@@ -87,7 +87,7 @@ program Test_Mass_Distributions
      radiusInProjection=massDistribution_%radiusHalfMassProjected()
   class default
      radiusInProjection=0.0d0
-     call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+     call Error_Report('unknown mass distribution'//{introspection:location})
   end select
   select type (massDistribution_)
   class is (massDistributionSpherical)
@@ -224,7 +224,7 @@ program Test_Mass_Distributions
      call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
      call Unit_Tests_End_Group()
   class default
-     call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+     call Error_Report('unknown mass distribution'//{introspection:location})
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
@@ -284,10 +284,10 @@ program Test_Mass_Distributions
         call Assert("[r,θ,φ] = [1,π/2,π/4]",massDistribution_%acceleration(position),acceleration,absTol=1.0d-6,relTol=1.0d-6)
         call Unit_Tests_End_Group()
         class default
-        call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+        call Error_Report('unknown mass distribution'//{introspection:location})
      end select
      class default
-     call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+     call Error_Report('unknown mass distribution'//{introspection:location})
   end select
   deallocate(massDistribution_      )
   deallocate(massDistributionRotated)
@@ -329,7 +329,7 @@ program Test_Mass_Distributions
      end do
      call Unit_Tests_End_Group()
   class default
-     call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+     call Error_Report('unknown mass distribution'//{introspection:location})
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()

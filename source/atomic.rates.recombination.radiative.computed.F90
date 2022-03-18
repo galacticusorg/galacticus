@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,9 +112,9 @@ contains
     !!{
     Returns the recombination rate coefficient.
     !!}
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Numerical_Integration       , only : integrator
-    use :: Numerical_Constants_Physical, only : boltzmannsConstant     , electronMass
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant, electronMass
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit
     implicit none
     class           (atomicRecombinationRateRadiativeComputed), intent(inout)           :: self
@@ -140,7 +140,7 @@ contains
        computedRate=integrator_%integrate(0.0d0        ,                  velocityMaximum)
     else
        computedRate=0.0d0
-       call Galacticus_Error_Report('calculation is only supported to specific levels'//{introspection:location})
+       call Error_Report('calculation is only supported to specific levels'//{introspection:location})
     end if
     return
 

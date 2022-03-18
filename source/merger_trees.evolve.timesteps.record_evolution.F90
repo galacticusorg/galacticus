@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,7 @@ main branch galaxy.
 !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Numerical_Interpolation, only : interpolator
   use :: Output_Times           , only : outputTimes       , outputTimesClass
 
@@ -57,6 +58,7 @@ main branch galaxy.
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_    => null()
      class           (outputTimesClass       ), pointer                   :: outputTimes_           => null()
+     class           (galacticStructureClass ), pointer                   :: galacticStructure_     => null()
      logical                                                              :: oneTimeDatasetsWritten
      integer                                                              :: countSteps
      double precision                                                     :: timeBegin                       , timeEnd
@@ -95,6 +97,7 @@ contains
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                       ), pointer       :: outputTimes_
+    class           (galacticStructureClass                 ), pointer       :: galacticStructure_
     double precision                                                         :: timeBegin          , timeEnd, &
          &                                                                      ageUniverse
     integer                                                                  :: countSteps
@@ -102,6 +105,7 @@ contains
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !![
@@ -124,16 +128,17 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_)
+    self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="outputTimes_"       />
+    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function recordEvolutionConstructorParameters
 
-  function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
+  function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
     !!}
@@ -144,11 +149,12 @@ contains
     type            (mergerTreeEvolveTimestepRecordEvolution)                        :: self
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_
+    class           (galacticStructureClass                 ), intent(in   ), target :: galacticStructure_
     double precision                                         , intent(in   )         :: timeBegin          , timeEnd
     integer                                                  , intent(in   )         :: countSteps
     integer         (c_size_t                               )                        :: timeIndex
     !![
-    <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_"/>
+    <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_, *galacticStructure_"/>
     !!]
 
     call allocateArray(self%time           ,[self%countSteps])
@@ -187,6 +193,7 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
     <objectDestructor name="self%outputTimes_"       />
+    <objectDestructor name="self%galacticStructure_" />
     !!]
     return
   end subroutine recordEvolutionDestructor
@@ -238,11 +245,10 @@ contains
     !!{
     Store properties of the main progenitor galaxy.
     !!}
-    use            :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use            :: Galactic_Structure_Options        , only : massTypeGalactic                , massTypeStellar
-    use            :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic, treeNode
-    use, intrinsic :: ISO_C_Binding                     , only : c_size_t
+    use            :: Galactic_Structure_Options, only : massTypeGalactic, massTypeStellar
+    use            :: Error                     , only : Error_Report
+    use            :: Galacticus_Nodes          , only : mergerTree      , nodeComponentBasic, treeNode
+    use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
     class           (*                 ), intent(inout)          :: self
     type            (mergerTree        ), intent(in   )          :: tree
@@ -262,10 +268,10 @@ contains
        else
           indexTime=self%interpolator_%locate(time)
        end if
-       self%massStellar(indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar )
-       self%massTotal  (indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeGalactic)
+       self%massStellar(indexTime)=self%galacticStructure_%massEnclosed(node,massType=massTypeStellar )
+       self%massTotal  (indexTime)=self%galacticStructure_%massEnclosed(node,massType=massTypeGalactic)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine recordEvolutionStore
@@ -274,14 +280,14 @@ contains
     !!{
     Store main branch evolution to the output file.
     !!}
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Error                           , only : Error_Report
+    use            :: Output_HDF5                     , only : outputFile
     use            :: HDF5_Access                     , only : hdf5Access
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : var_str                , varying_string
+    use            :: ISO_Varying_String              , only : var_str              , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
-    use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
+    use            :: Numerical_Constants_Astronomical, only : gigaYear             , massSolar
     use            :: String_Handling                 , only : operator(//)
     use            :: Locks                           , only : ompLock
     implicit none
@@ -299,7 +305,7 @@ contains
     class is (mergerTreeEvolveTimestepRecordEvolution)
        if (nodePassesFilter.and.iOutput == self%outputTimes_%count().and.node%isOnMainBranch()) then
           !$ call hdf5Access%set()
-          outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
+          outputGroup=outputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
           if (.not.self%oneTimeDatasetsWritten) then
              call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
              call dataset    %writeAttribute(gigaYear            ,"unitsInSI"                                                                             )
@@ -320,7 +326,7 @@ contains
           call    self      %reset()
        end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine recordEvolutionOutput

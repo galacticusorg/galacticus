@@ -73,6 +73,7 @@
     <galacticStructureSolver value="fixed">
       <factor value="0.29610738271059550"/>
       <radiusFixed value="turnaround"/>
+      <virialDensityContrast value="bryanNorman1998"/>
     </galacticStructureSolver>
     <gravitationalLensing value="takahashi2011"/>
     <haloMassFunction value="simpleSystematic">
@@ -137,7 +138,6 @@
       <precisionHypergeometric value="1.0e-6"/>
       <cdmAssumptions value="true"/>
     </mergerTreeBranchingProbability>
-    <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
     <mergerTreeNodeMerger value="singleLevelHierarchy"/>
     <mergerTreeNodeEvolver value="standard">
       <odeAlgorithm value="rungeKuttaSecondOrder"/>
@@ -193,7 +193,7 @@
       <neutrinoMassSummed value="0.0"/>
       <neutrinoNumberEffective value="3.04"/>
     </transferFunction>
-    <componentBasic value="standardExtended"/>
+    <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="verySimpleSize"/>
@@ -207,20 +207,29 @@
     <virialOrbit value="fixed">
       <velocityRadial value="-0.856"/>
       <velocityTangential value="+0.842"/>
-      <virialDensityContrast value="fixed">
+      <virialDensityContrastDefinition value="fixed">
         <densityContrastValue value="200.0"/>
         <densityType value="critical"/>
-      </virialDensityContrast>
+      </virialDensityContrastDefinition>
     </virialOrbit>
 
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"                        iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"                    iterable="no"/>
+      <nodeOperator value="bertschingerMass"                  iterable="no" >
+	<virialDensityContrast value="bryanNorman1998"/>
+      </nodeOperator>
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
-      <nodeOperator value="haloSpinRandom" iterable="no">
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
 	<factorReset value="2.0"/>
       </nodeOperator>
+      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="stellarFeedbackDisks" iterable="no">
@@ -234,7 +243,12 @@
 	</stellarFeedbackOutflows>
       </nodeOperator>
     </nodeOperator>
-    
+
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"      iterable="no"/>
+      <nodePropertyExtractor value="massBertschinger" iterable="no"/>
+    </nodePropertyExtractor>
+
   </parameters>
   
 </parameterGrid>

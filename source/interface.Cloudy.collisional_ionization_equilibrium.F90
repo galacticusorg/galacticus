@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     use :: Display                         , only : displayCounter                     , displayCounterClear           , displayIndent       , displayMessage, &
           &                                         displayUnindent                    , verbosityLevelWorking
     use :: File_Utilities                  , only : File_Exists                        , File_Lock                     , File_Remove         , File_Unlock
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : assignment(=)                      , char                          , operator(//)        , var_str       , &
@@ -91,7 +91,7 @@ contains
     
     !$omp critical(cloudyCIEFileLock)
     ! Ensure the requested file format version is compatible.
-    if (versionFileFormat /= versionFileFormatCurrent) call Galacticus_Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
+    if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
     ! Determine if we need to compute cooling functions.
     computeCoolingFunctions=.false.
     if (File_Exists(fileNameCoolingFunction)) then
@@ -187,7 +187,7 @@ contains
                & write (cloudyScript,'(a)') 'save emitted continuum units _keV "'//char(fileNameTempContinuum)//'"'
           close(cloudyScript)
           call System_Command_Do("cd "//cloudyPath//"/source; cloudy.exe -r input",status);
-          if (status /= 0) call Galacticus_Error_Report('Cloudy failed'//{introspection:location})
+          if (status /= 0) call Error_Report('Cloudy failed'//{introspection:location})
           ! Extract the cooling rate.
           open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempCooling),status='old')
           read (inputFile,*) ! Skip the header line.

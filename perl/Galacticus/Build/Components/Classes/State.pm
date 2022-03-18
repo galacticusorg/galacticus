@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils;
 use Galacticus::Build::Components::DataTypes;
+use Galacticus::Build::Components::Classes::MetaProperties;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -51,33 +52,52 @@ sub Class_State {
 	 }
 	)
 	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
-    push
-	(
-	 @{$build->{'variables'}},
-	 # Arrays used to store meta-property indices.
-	 {
-	     intrinsic  => "type"                                                   ,
-	     type       => "varying_string"                                         ,
-	     attributes => [ "allocatable", "dimension(:)" ]                        ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyLabels" ]
-	 },
-	 {
-	     intrinsic  => "type"                                                   ,
-	     type       => "varying_string"                                         ,
-	     attributes => [ "allocatable", "dimension(:)" ]                        ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyNames" ]
-	 },
-	 {
-	     intrinsic  => "logical"                                                ,
-	     attributes => [ "allocatable", "dimension(:)" ]                        ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyEvolvable" ]
-	 },
-	 {
-	     intrinsic  => "integer"                                                ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyCount=0", $code::class->{'name'}."MetaPropertyEvolvableCount=0" ]
-	 }
-	)
-	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+
+
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    push
+		(
+		 @{$build->{'variables'}},
+		 # Arrays used to store meta-property indices.
+		 {
+		     intrinsic  => "type"                                                                                                                            ,
+		     type       => "varying_string"                                                                                                                  ,
+		     attributes => [ "allocatable", "dimension(:)" ]                                                                                                 ,
+		     variables  => [ $code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyLabels"           ]
+		 },
+		 {
+		     intrinsic  => "type"                                                                                                                            ,
+		     type       => "varying_string"                                                                                                                  ,
+		     attributes => [ "allocatable", "dimension(:)" ]                                                                                                 ,
+		     variables  => [ $code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyNames"            ]
+		 },
+		 {
+		     intrinsic  => "logical"                                                                                                                         ,
+		     attributes => [ "allocatable", "dimension(:)" ]                                                                                                 ,
+		     variables  => [ $code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyCreator"          ]
+		 },
+		 {
+		     intrinsic  => "integer"                                                                                                                         ,
+		     variables  => [ $code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyCount         =0" ]
+		 }
+		);
+	    push
+		(
+		 @{$build->{'variables'}},
+		 {
+		     intrinsic  => "logical"                                                                                                                         ,
+		     attributes => [ "allocatable", "dimension(:)" ]                                                                                                 ,
+		     variables  => [ $code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyEvolvable"        ]
+		 },
+		 {
+		     intrinsic  => "integer"                                                                                                                         ,
+		     variables  => [ $code::class->{'name'}.ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaPropertyEvolvableCount=0" ]
+		 }
+		)
+		if ( $metaPropertyType->{'label'} eq "float" && $metaPropertyType->{'rank'} == 0 );	    
+	}
+    }
 }
 
 sub Class_Size_Of {

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -141,7 +141,7 @@ contains
     errorFractionalFixedSphere    =  +1.0d0               &
          &                           /sqrt(particleCount)
     ! Get the outer radius of the halo.
-    radiusHalo                    =  +self%darkMatterHaloScale_ %virialRadius(node           )
+    radiusHalo                    =  +self%darkMatterHaloScale_ %radiusVirial(node           )
     ! Get the density at the edge of the halo.
     densityOuterRadius            =  +self%darkMatterProfileDMO_%density     (node,radiusHalo)
     ! Find the ratio of the mean interior density in the halo to the density at the halo outer radius.

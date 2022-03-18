@@ -100,6 +100,25 @@ sub Process_Constructors {
 			}
 			$assignmentSource .= "   end if\n"
 			    unless ( $optional eq "" );
+		    } elsif ( $declaration->{'type'} eq "*" ) {
+			$assignmentSource .= "   ".$optional." then\n"
+			    unless ( $optional eq "" );
+			$assignmentSource .= "   if (associated(".$returnValueLabel."%".$argumentName.")) then\n"
+			    if ( $isPointer );
+			$assignmentSource .= "select type(s__ => ".$returnValueLabel."%".$argumentName.")\n";
+			$assignmentSource .= "class is (functionClass)\n";
+			$assignmentSource .= " call s__%referenceCountIncrement()\n";
+			if ( $debugging ) {
+			    $assignmentSource .= "   if (debugReporting.and.mpiSelf\%isMaster()) then\n";
+			    $assignmentSource .= "   ".$optional." call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
+			    $assignmentSource .= "   end if\n";
+			}
+			$assignmentSource .= "end select\n";
+			$assignmentSource .= "   end if\n"
+			    if ( $isPointer );
+			$assignmentSource .= "   end if\n"
+			    unless ( $optional eq "" );
+	
 		    }
 		}
 	    }

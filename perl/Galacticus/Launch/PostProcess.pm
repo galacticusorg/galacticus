@@ -7,7 +7,6 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use File::Copy;
 use File::Slurp;
-use MIME::Lite;
 use IO::Compress::Simple;
 use System::Redirect;
 
@@ -25,8 +24,10 @@ sub Failed {
     # Report the model failure (by e-mail if we have an e-mail address to send a report to and if
     # so requested).
     my $message = "FAILED: A Galacticus model failed to finish:\n\n";
-    $message   .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
-    $message   .= "  User:\t".$ENV{"USER"}."\n\n";
+    $message   .= "  Host:\t".$ENV{"HOSTNAME"}."\n"
+	if ( exists($ENV{"HOSTNAME"}) );
+    $message   .= "  User:\t".$ENV{"USER"}."\n\n"
+	if ( exists($ENV{"USER"    }) );
     $message   .= "Model output is in: ".$job->{'directory'}."\n\n";
     if (
 	exists($launchScript->{'config'}->{'contact'}->{'email'}) 
@@ -35,6 +36,7 @@ sub Failed {
 	&&
 	$launchScript->{'emailReport'} eq "yes" 
 	) {
+	require MIME::Lite;
 	$message .= "Log file is attached.\n";
 	my $msg = MIME::Lite->new(
 	    From    => 'Galacticus',
@@ -72,18 +74,6 @@ sub Analyze {
 	    ." ".
 	    ${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[0]."/galacticusMerged.hdf5"
 	    );
-	# for(my $i=0;$i<scalar(@{$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}});++$i) {
-	#     (my $mergedDirectory = ${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[0]) =~ s/.*?([^\/]+)$/..\/$1/;
-	#     system(
-	# 	"rm -f ".${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[$i]."/galacticus.hdf5;".
-	# 	"ln -sf ".
-	# 	$mergedDirectory."/galacticusMerged.hdf5 ".
-	# 	${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[$i]."/galacticus.hdf5"
-	# 	);
-	#     &CleanUp($job,$launchScript)
-	# 	unless ( $i == scalar(@{$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}})-1 );
-	# }
-	
     }
     # Perform analysis.
     if ( defined($job->{'analysis'}) ) {

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,21 +25,21 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   !!{
   Attach cooling pipes to the very simple disk component.
   !!}
-  use :: Galacticus_Error, only : Galacticus_Error_Report
+  use :: Error, only : Error_Report
   implicit none
   class(nodeComponentDiskVerySimple), intent(in   ) :: self
   type (nodeComponentHotHalo       )                :: hotHalo
   !$GLC attributes unused :: self
 
-  if     (                                                                                                 &
-       &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                                &
-       &  .or.                                                                                             &
-       &   hotHalo%hotHaloCoolingAbundancesRateIsAttached()                                                &
-       & )                                                                                                 &
-       & call Galacticus_Error_Report(                                                                     &
-       &                              'expected to find unclaimed hot halo mass/abundances cooling pipe'// &
-       &                              {introspection:location}                                             &
-       &                             )
+  if     (                                                                                      &
+       &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                     &
+       &  .or.                                                                                  &
+       &   hotHalo%hotHaloCoolingAbundancesRateIsAttached()                                     &
+       & )                                                                                      &
+       & call Error_Report(                                                                     &
+       &                   'expected to find unclaimed hot halo mass/abundances cooling pipe'// &
+       &                   {introspection:location}                                             &
+       &                  )
   call hotHalo%      hotHaloCoolingMassRateFunction(      DiskVerySimpleMassGasRateGeneric)
   call hotHalo%hotHaloCoolingAbundancesRateFunction(DiskVerySimpleAbundancesGasRateGeneric)
   return
@@ -52,7 +52,7 @@ double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,rad
   use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeDisk, massTypeAll    , massTypeBaryonic, &
           &                                 massTypeGalactic       , massTypeGaseous  , massTypeStellar, radiusLarge     , &
           &                                 weightByMass
-  use :: Galacticus_Error          , only : Galacticus_Error_Report
+  use :: Error                     , only : Error_Report
   implicit none
   class           (nodeComponentDiskVerySimple), intent(inout) :: self
   integer                                      , intent(in   ) :: componentType, massType, weightBy, weightIndex
@@ -74,13 +74,13 @@ double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,rad
         Node_Component_Disk_Very_Simple_Enclosed_Mass=               self%massStellar()
      end select
   case default
-     call Galacticus_Error_Report('this component does not track luminosity'//{introspection:location})
+     call Error_Report('this component does not track luminosity'//{introspection:location})
   end select
   ! Return if no mass.
   if (Node_Component_Disk_Very_Simple_Enclosed_Mass <=       0.0d0) return
   ! Return if the total mass was requested.
   if (radius                                        >= radiusLarge) return
   ! Otherwise we have an error.
-  call Galacticus_Error_Report('this component does not specify a mass profile'//{introspection:location})
+  call Error_Report('this component does not specify a mass profile'//{introspection:location})
   return
 end function Node_Component_Disk_Very_Simple_Enclosed_Mass

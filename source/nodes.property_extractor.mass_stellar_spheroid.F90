@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
 Contains a module which implements a spheroid stellar mass output analysis property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid">
    <description>A spheroid stellar mass output analysis property extractor class.</description>
@@ -31,7 +33,9 @@ Contains a module which implements a spheroid stellar mass output analysis prope
      A stelalr mass output analysis class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                massStellarSpheroidDestructor
      procedure :: extract     => massStellarSpheroidExtract
      procedure :: type        => massStellarSpheroidType
      procedure :: quantity    => massStellarSpheroidQuantity
@@ -45,6 +49,7 @@ Contains a module which implements a spheroid stellar mass output analysis prope
      Constructors for the ``massStellarSpheroid'' output analysis class.
      !!}
      module procedure massStellarSpheroidConstructorParameters
+     module procedure massStellarSpheroidConstructorInternal
   end interface nodePropertyExtractorMassStellarSpheroid
 
 contains
@@ -55,27 +60,60 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorMassStellarSpheroid)                :: self
-    type(inputParameters                         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (nodePropertyExtractorMassStellarSpheroid)                :: self
+    type (inputParameters                         ), intent(inout) :: parameters
+    class(galacticStructureClass                  ), pointer       :: galacticStructure_
 
-    self=nodePropertyExtractorMassStellarSpheroid()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorMassStellarSpheroid(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function massStellarSpheroidConstructorParameters
+
+  function massStellarSpheroidConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the ``massStellarSpheroid'' output analysis property extractor class.
+    !!}
+    implicit none
+    type (nodePropertyExtractorMassStellarSpheroid)                        :: self
+    class(galacticStructureClass                  ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function massStellarSpheroidConstructorInternal
+  
+  subroutine massStellarSpheroidDestructor(self)
+    !!{
+    Destructor for the ``massStellarSpheroid'' output analysis property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massStellarSpheroidDestructor
 
   double precision function massStellarSpheroidExtract(self,node,instance)
     !!{
     Implement a stellar mass-weighted morphology output analysis.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeStellar, radiusLarge
+    use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
     class           (nodePropertyExtractorMassStellarSpheroid), intent(inout)           :: self
     type            (treeNode                                ), intent(inout), target   :: node
     type            (multiCounter                            ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance
 
-    massStellarSpheroidExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
+    massStellarSpheroidExtract=self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
     return
   end function massStellarSpheroidExtract
 

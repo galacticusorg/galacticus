@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,16 +60,25 @@ contains
     Builds the tabulation.
     !!}
     use :: Display           , only : displayIndent               , displayMessage, displayUnindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Error  , only : errorStatusSuccess
     use :: Interfaces_RecFast, only : Interface_RecFast_Initialize
     implicit none
     class  (taskBuildToolRecFast), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     type   (varying_string      )                          :: recfastPath, recfastVersion
     !$GLC attributes unused :: self
+#include "os.inc"
 
     call displayIndent ('Begin task: RecFast tool build')
-    call Interface_RecFast_Initialize(recfastPath,recfastVersion,static=.true.)
+    call Interface_RecFast_Initialize(                       &
+         &                                   recfastPath   , &
+         &                                   recfastVersion, &
+#ifdef __APPLE__
+         &                            static=.false.         &
+#else
+         &                            static=.true.          &
+#endif
+         &                           )
     call displayMessage('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: RecFast tool build')

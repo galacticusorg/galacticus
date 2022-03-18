@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,6 +35,9 @@
    <stateStore>
     <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </allowedParameters>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti
@@ -87,6 +90,9 @@ contains
        <objectBuilder class="radiativeTransferOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="radiativeTransferOutputter"/>
+    !!]
     return
   end function multiConstructorParameters
 

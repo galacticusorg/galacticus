@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -160,16 +160,16 @@ contains
     !!{
     Compute the merger rate at a given snapshot.
     !!}
-    use    :: Arrays_Search   , only : searchIndexed
-    use    :: Display         , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
-          &                            displayUnindent        , verbosityLevelStandard
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    use    :: HDF5_Access     , only : hdf5Access
+    use    :: Arrays_Search, only : searchIndexed
+    use    :: Display      , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
+          &                         displayUnindent   , verbosityLevelStandard
+    use    :: Error        , only : Error_Report
+    use    :: HDF5_Access  , only : hdf5Access
 #ifdef USEMPI
-    use    :: MPI_Utilities   , only : mpiSelf
+    use    :: MPI_Utilities, only : mpiSelf
 #endif
-    !$ use :: OMP_Lib         , only : OMP_Get_Thread_Num
-    use    :: Sorting         , only : sortIndex
+    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num
+    use    :: Sorting      , only : sortIndex
     implicit none
     class           (nbodyOperatorMergerRates), intent(inout)               :: self
     type            (nBodyData               ), intent(inout), dimension(:) :: simulations
@@ -274,7 +274,7 @@ contains
                &  .or.                                       &
                &   k                         > size(indexID) &
                & )                                           &
-               & call Galacticus_Error_Report('failed to find descendent'//{introspection:location})
+               & call Error_Report('failed to find descendent'//{introspection:location})
           j=indexID(k)
           ! If this halo is not the most-massive progenitor, or if the descendent is hosted, we have a merger.
           isMerger=isMostMassiveProgenitor(i) == 0 .or. hostID(j) >= 0_c_size_t
@@ -289,7 +289,7 @@ contains
                      & ) then
                    ! A host could not be found.
                    if (self%missingHostIsFatal) then
-                      call Galacticus_Error_Report('failed to find host'//{introspection:location})
+                      call Error_Report('failed to find host'//{introspection:location})
                    else
                       exit
                    end if
@@ -297,7 +297,7 @@ contains
                 if (particleID(indexID(k)) /= hostID(j)) then
                    ! A host could not be found.
                    if (self%missingHostIsFatal) then
-                      call Galacticus_Error_Report('failed to find host'//{introspection:location})
+                      call Error_Report('failed to find host'//{introspection:location})
                    else
                       exit
                    end if

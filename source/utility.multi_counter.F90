@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,14 +71,14 @@ contains
     !!{
     Constructor for multi-counters where the ranges are provided.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: Memory_Management, only : allocateArray
     implicit none
     type   (multiCounter)                              :: self
     integer(c_size_t    ), intent(in   ), dimension(:) :: ranges
 
     ! Validate ranges.
-    if (any(ranges < 1_c_size_t)) call Galacticus_Error_Report('ranges must be positive'//{introspection:location})
+    if (any(ranges < 1_c_size_t)) call Error_Report('ranges must be positive'//{introspection:location})
     ! Build the object.
     call allocateArray(self%ranges,shape(ranges))
     call allocateArray(self%values,shape(ranges))
@@ -114,13 +114,13 @@ contains
     !!{
     Return the number of counters in the multi-counter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterCount
     class  (multiCounter), intent(inout) :: self
 
     ! Validate input.
-    if (.not.allocated(self%ranges)) call Galacticus_Error_Report('no counters defined'//{introspection:location})
+    if (.not.allocated(self%ranges)) call Error_Report('no counters defined'//{introspection:location})
     ! Return the count.
     multiCounterCount=size(self%ranges)
     return
@@ -130,15 +130,15 @@ contains
     !!{
     Return the state of the multi-counter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterState
     class  (multiCounter), intent(inout) :: self
     integer(c_size_t    ), intent(in   ) :: i
 
     ! Validate input.
-    if (               .not.allocated(self%ranges)) call Galacticus_Error_Report('no counters defined'//{introspection:location})
-    if (i < 1 .or. i >           size(self%ranges)) call Galacticus_Error_Report('out of range'//{introspection:location})
+    if (               .not.allocated(self%ranges)) call Error_Report('no counters defined'//{introspection:location})
+    if (i < 1 .or. i >           size(self%ranges)) call Error_Report('out of range'//{introspection:location})
     ! Return the state.
     multiCounterState=self%values(i)
     return
@@ -148,15 +148,15 @@ contains
     !!{
     Append a new counter with the given {\normalfont \ttfamily range}.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (multiCounter), intent(inout)               :: self
     integer(c_size_t    ), intent(in   )               :: range
     integer(c_size_t    ), allocatable  , dimension(:) :: rangesTmp
 
     ! Validate range.
-    if (range < 1_c_size_t) call Galacticus_Error_Report('range must be positive'//{introspection:location})
+    if (range < 1_c_size_t) call Error_Report('range must be positive'//{introspection:location})
     ! Expand the range.
     if (allocated(self%ranges)) then
        call move_alloc(self%ranges,rangesTmp)
@@ -178,13 +178,13 @@ contains
     !!{
     Increment a multi-counter. Return true if increment was possible, false otherwise.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (multiCounter), intent(inout) :: self
     integer(c_size_t    )                :: i
 
     ! Validate.
-    if (.not.allocated(self%ranges)) call Galacticus_Error_Report('no counters defined'//{introspection:location})
+    if (.not.allocated(self%ranges)) call Error_Report('no counters defined'//{introspection:location})
     ! Assume incrementing was possible.
     multiCounterIncrement=.true.
     ! Increment.
@@ -211,12 +211,12 @@ contains
     !!{
     Return true if a multi-counter is in its final state, false otherwise.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(multiCounter), intent(in   ) :: self
 
     ! Validate.
-    if (.not.allocated(self%ranges)) call Galacticus_Error_Report('no counters defined'//{introspection:location})
+    if (.not.allocated(self%ranges)) call Error_Report('no counters defined'//{introspection:location})
     ! Determine if in final state.
     multiCounterIsFinal=all(self%values == self%ranges)
     return

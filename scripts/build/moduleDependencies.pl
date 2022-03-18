@@ -197,8 +197,15 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
 		 my $dependsOn;
 		 if ( defined($submodule->{'extends'}) ) {
 		     my @match = grep {$_->{'name'} eq $submodule->{'extends'}} @{$submodules{lc($moduleFileName)}};
-		     die('moduleDependencies.pl: no matching submodule found')
-			 if ( scalar(@match) == 0 );
+		     if ( scalar(@match) == 0 ) {
+			 print "no matching submodule found:\n";
+			 print "\t'".$submodule->{'name'}."' extends '".$submodule->{'extends'}."'\n";
+			 print "\tavailable submodules are:\n";
+			 foreach my $availableSubmodule ( @{$submodules{lc($moduleFileName)}} ) {
+			     print "\t\t'".$availableSubmodule->{'name'}."'\n";
+			 }
+			 die('moduleDependencies.pl: no matching submodule found');
+		     }
 		     die('moduleDependencies.pl: multiple matching submodules found')
 			 if ( scalar(@match) >  1 );
 		     $dependsOn = $match[0]->{'fileName'}.".o";

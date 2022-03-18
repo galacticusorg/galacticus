@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -104,7 +104,7 @@ contains
     !!{
     Internal constructor for the ``velocityDispersion'' N-body operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
     logical                                          , intent(in   )               :: selfBoundParticlesOnly
@@ -115,7 +115,7 @@ contains
     <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radiusInner, radiusOuter, *randomNumberGenerator_"/>
     !!]
 
-    if (size(self%radiusInner) /= size(self%radiusOuter)) call Galacticus_Error_Report('number of inner and outer radii should be equal'//{introspection:location})
+    if (size(self%radiusInner) /= size(self%radiusOuter)) call Error_Report('number of inner and outer radii should be equal'//{introspection:location})
     return
   end function velocityDispersionConstructorInternal
 
@@ -136,8 +136,8 @@ contains
     !!{
     Determine the mean position and velocity of N-body particles.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (nbodyOperatorVelocityDispersion), intent(inout)                 :: self
     type            (nBodyData                      ), intent(inout), dimension(:  ) :: simulations
@@ -166,9 +166,9 @@ contains
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
              call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
           else
-             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+             call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
           call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
@@ -179,9 +179,9 @@ contains
           end do
        end if
        ! Get mean position.
-       if (.not.simulations(iSimulation)%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
+       if (.not.simulations(iSimulation)%analysis%hasDataset('positionMean')) call Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
        call simulations(iSimulation)%analysis%readDataset('positionMean',positionMean)
-       if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
+       if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
        do i=1,self%bootstrapSampleCount
           !$omp parallel workshare
           ! Compute radial distance from the mean position.

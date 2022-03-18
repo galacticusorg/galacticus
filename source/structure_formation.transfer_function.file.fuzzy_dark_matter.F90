@@ -226,12 +226,12 @@ contains
     !!{
     Read in the transfer function data from a file.
     !!}
-    use :: File_Utilities         , only : File_Name_Expand
-    use :: Display                , only : displayMessage
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object
-    use :: Numerical_Comparison   , only : Values_Differ
+    use :: File_Utilities      , only : File_Name_Expand
+    use :: Display             , only : displayMessage
+    use :: Error               , only : Error_Report
+    use :: HDF5_Access         , only : hdf5Access
+    use :: IO_HDF5             , only : hdf5Object
+    use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (transferFunctionFileFuzzyDarkMatter), intent(inout) :: self
     character       (len=*                              ), intent(in   ) :: fileName
@@ -252,7 +252,7 @@ contains
        if (Values_Differ(fuzzyDMDensityFraction,darkMatterParticle_%densityFraction(),absTol=1.0d-3)) &
             & call displayMessage('fuzzyDMDensityFraction from transfer function file does not match internal value')
     class default
-       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     call parametersObject%close()
     ! Close the file.
@@ -275,11 +275,11 @@ contains
     (2) For a mixed \gls{cdm} and \gls{fuzzy dark matter} model, the half-mode wavenumber
         is not well defined.
     !!}
-    use :: Galacticus_Error            , only : errorStatusSuccess
+    use :: Error                       , only : errorStatusSuccess
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
-    class           (transferFunctionFileFuzzyDarkMatter), intent(inout)           :: self
+    class           (transferFunctionFileFuzzyDarkMatter), intent(inout), target   :: self
     integer                                              , intent(  out), optional :: status
     double precision                                                               :: matterDensity, wavenumberHalfMode
     double precision                                                               :: m22
@@ -306,10 +306,10 @@ contains
                &                            /wavenumberHalfMode &
                &                           )**3
        else
-          call Galacticus_Error_Report('half-mode mass is not well defined for a mixed CDM and fuzzy dark matter model'//{introspection:location})
+          call Error_Report('half-mode mass is not well defined for a mixed CDM and fuzzy dark matter model'//{introspection:location})
        end if
     class default
-       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     if (present(status)) status=errorStatusSuccess
     return

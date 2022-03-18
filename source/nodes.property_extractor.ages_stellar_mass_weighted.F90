@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,14 +79,15 @@ contains
     !!{
     Internal constructor for the ``agesStellarMassWeighted'' output extractor property extractor class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self
-
-    self%stellarMassFormedDiskID        =defaultDiskComponent    %addMetaProperty(var_str('agesStellarMassFormedDisk'        ),'disk:stellarMassFormed'        ,isEvolvable=.true.)  
-    self%timeStellarMassFormedDiskID    =defaultDiskComponent    %addMetaProperty(var_str('agesTimeStellarMassFormedDisk'    ),'disk:timeStellarMassFormed'    ,isEvolvable=.true.)  
-    self%stellarMassFormedSpheroidID    =defaultSpheroidComponent%addMetaProperty(var_str('agesStellarMassFormedSpheroid'    ),'spheroid:stellarMassFormed'    ,isEvolvable=.true.)  
-    self%timeStellarMassFormedSpheroidID=defaultSpheroidComponent%addMetaProperty(var_str('agesTimeStellarMassFormedSpheroid'),'spheroid:timeStellarMassFormed',isEvolvable=.true.)  
+    
+    !![
+    <addMetaProperty component="disk"     name="agesStellarMassFormed"     id="self%stellarMassFormedDiskID"         isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="disk"     name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedDiskID"     isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="spheroid" name="agesStellarMassFormed"     id="self%stellarMassFormedSpheroidID"     isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="spheroid" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedSpheroidID" isEvolvable="yes" isCreator="no"/>
+    !!]
     return
   end function agesStellarMassWeightedConstructorInternal
 
@@ -130,8 +131,8 @@ contains
        massStellarDisk        =0.0d0
        massTimeStellarDisk    =0.0d0
     class default
-       massStellarDisk        =disk    %metaPropertyGet(self%    stellarMassFormedDiskID    )
-       massTimeStellarDisk    =disk    %metaPropertyGet(self%timeStellarMassFormedDiskID    )
+       massStellarDisk        =disk    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )
+       massTimeStellarDisk    =disk    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
@@ -139,8 +140,8 @@ contains
        massStellarSpheroid    =0.0d0
        massTimeStellarSpheroid=0.0d0
     class default
-       massStellarSpheroid    =spheroid%metaPropertyGet(self%    stellarMassFormedSpheroidID)
-       massTimeStellarSpheroid=spheroid%metaPropertyGet(self%timeStellarMassFormedSpheroidID)
+       massStellarSpheroid    =spheroid%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)
+       massTimeStellarSpheroid=spheroid%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)
     end select
     ! Compute ages.
     if (massStellarDisk > 0.0d0) then
@@ -166,41 +167,37 @@ contains
     return
   end function agesStellarMassWeightedExtract
 
-  function agesStellarMassWeightedNames(self,time)
+  subroutine agesStellarMassWeightedNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily agesStellarMassWeighted} properties.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: agesStellarMassWeightedNames
-    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(agesStellarMassWeightedNames(2))
-    agesStellarMassWeightedNames=[                                           &
-         &                        var_str('diskAgeStellarMassWeighted'    ), &
-         &                        var_str('spheroidAgeStellarMassWeighted')  &
-         &                       ]
+    allocate(names(2))
+    names(1)=var_str('diskAgeStellarMassWeighted'    )
+    names(2)=var_str('spheroidAgeStellarMassWeighted')
     return
-  end function agesStellarMassWeightedNames
+  end subroutine agesStellarMassWeightedNames
 
-  function agesStellarMassWeightedDescriptions(self,time)
+  subroutine agesStellarMassWeightedDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily agesStellarMassWeighted} properties.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: agesStellarMassWeightedDescriptions
-    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(agesStellarMassWeightedDescriptions(2))
-    agesStellarMassWeightedDescriptions=[                                                             &
-         &                               var_str('Stellar mass-weighted age of the disk [Gyr].'    ), &
-         &                               var_str('Stellar mass-weighted age of the spehroid [Mpc].')  &
-         &                              ]
+    allocate(descriptions(2))
+    descriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'    )
+    descriptions(2)=var_str('Stellar mass-weighted age of the spehroid [Mpc].')
     return
-  end function agesStellarMassWeightedDescriptions
+  end subroutine agesStellarMassWeightedDescriptions
 
   function agesStellarMassWeightedUnitsInSI(self,time)
     !!{

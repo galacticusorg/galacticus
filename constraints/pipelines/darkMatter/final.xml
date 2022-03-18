@@ -1,5 +1,8 @@
 <parameters formatVersion="2" version="0.9.4">
-  <galacticusOutputFileName value="/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline/final.hdf5" />
+  <darkMatterProfileScaleVirialTheoremEnergyBoost value="0.797003643180003" />
+  <darkMatterProfileScaleVirialTheoremMassExponent value="2.16840998565309" />
+  <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="+0.5500" />
+  <outputFileName value="/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline/final.hdf5" />
   <haloMassFunction value="shethTormen">
     <a value="0.758359488694975" />
     <normalization value="0.289897200615808" />
@@ -11,4 +14,19 @@
     <gamma2 value="0.0587448775510245" />
     <gamma3 value="0.645617093475741" />
   </mergerTreeBranchingProbability>
+  <virialOrbit value="spinCorrelated">
+    <alpha value="0.155573112534425" />
+  </virialOrbit>
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.10475"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"   />
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+  </nodeOperator>
 </parameters>

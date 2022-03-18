@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,9 +39,8 @@ program Test_Zhao2009_Dark_Energy
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: File_Utilities                           , only : Count_Lines_in_File
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                                , nodeComponentBasic                     , treeNode
-  use :: Galacticus_Paths                         , only : galacticusPath                                              , pathTypeExec
+  use :: Input_Paths                              , only : inputPath                                                   , pathTypeExec
   use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string              , &
        &                                                   var_str
   use :: Input_Parameters                         , only : inputParameters
@@ -138,7 +137,8 @@ program Test_Zhao2009_Dark_Energy
      &amp;                                                        index_                             =+1.0d0                             , &amp;
      &amp;                                                        running                            =+0.0d0                             , &amp;
      &amp;                                                        runningRunning                     =+0.0d0                             , &amp;
-     &amp;                                                        wavenumberReference                =+1.0d0                               &amp;
+     &amp;                                                        wavenumberReference                =+1.0d0                             , &amp;
+     &amp;                                                        runningSmallScalesOnly             =.false.                              &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -218,7 +218,7 @@ program Test_Zhao2009_Dark_Energy
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
      ! Count lines in the "mandc" comparison file.
-     fileName=char(galacticusPath(pathTypeExec))//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputDarkEnergylgM'
+     fileName=char(inputPath(pathTypeExec))//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputDarkEnergylgM'
      fileName=fileName//logarithmicHaloMasses(iMass)//'.data'
      totalLinesInFile=Count_Lines_in_File(fileName    )
      dataLinesInFile =Count_Lines_in_File(fileName,'#')-1
@@ -268,5 +268,4 @@ program Test_Zhao2009_Dark_Energy
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Zhao2009_Dark_Energy

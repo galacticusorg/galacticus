@@ -133,6 +133,7 @@ sub Find_Hash {
 			    }
 			}
 		    }
+		    close($dependencyFile);
 		}
 		if ( $useStoredCompositeHash ) {
 		    # Use the stored composite hash.
@@ -217,7 +218,7 @@ sub Find_Hash {
 						if ( $options{'report'} );
 					}
 					$digests{$sourceFileName} = $fileHasher->b64digest();
-					open(my $md5File,">".$md5FileName);
+					open(my $md5File,">".$md5FileName) or die $!;
 					print $md5File $digests{$sourceFileName};
 					close($md5File);
 					&updateModificationTime($md5FileName);

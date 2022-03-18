@@ -1,22 +1,22 @@
-  !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-  !!           2019, 2020, 2021
-  !!    Andrew Benson <abenson@carnegiescience.edu>
-  !!
-  !! This file is part of Galacticus.
-  !!
-  !!    Galacticus is free software: you can redistribute it and/or modify
-  !!    it under the terms of the GNU General Public License as published by
-  !!    the Free Software Foundation, either version 3 of the License, or
-  !!    (at your option) any later version.
-  !!
-  !!    Galacticus is distributed in the hope that it will be useful,
-  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  !!    GNU General Public License for more details.
-  !!
-  !!    You should have received a copy of the GNU General Public License
-  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
   !!{
   Contains a module which implements a property extractor class for the SED of a component.
   !!}
@@ -179,7 +179,7 @@ contains
     !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
     use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (nodePropertyExtractorSED     )                              :: self
@@ -200,7 +200,7 @@ contains
          &   component /= componentTypeDisk                                                                                &
          &  .and.                                                                                                          &
          &   component /= componentTypeSpheroid                                                                            &
-         & ) call Galacticus_Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
+         & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
     call self%stellarPopulationSpectra_%wavelengths(self%countWavelengths                   ,self%wavelengths_              )
     call self%stellarPopulationSpectra_%tabulation (     agesCount       ,metallicitiesCount,     ages        ,metallicities)
     self%metallicityBoundaries       =self%starFormationHistory_%metallicityBoundaries()
@@ -247,7 +247,7 @@ contains
     !!{
     Return the number of array alements in the {\normalfont \ttfamily sed} property extractors.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer         (c_size_t                )                              :: sedSize
     class           (nodePropertyExtractorSED), intent(inout)               :: self
@@ -275,7 +275,7 @@ contains
        case default
           expansionFactor=1.0d0
           sedSize        =0_c_size_t
-          call Galacticus_Error_Report('unknown frame'//{introspection:location})
+          call Error_Report('unknown frame'//{introspection:location})
        end select
        sedSize      =count(selection)
        indexTemplate=self%indexTemplateTime(time)
@@ -367,43 +367,43 @@ contains
     return
   end function sedExtract
 
-  function sedNames(self,time)
+  subroutine sedNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily sed} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedNames
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
+    class           (nodePropertyExtractorSED), intent(inout)                             :: self
+    double precision                          , intent(in   )                             :: time
+    type            (varying_string          ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(sedNames(1))
-    sedNames(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
+    allocate(names(1))
+    names(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
     return
-  end function sedNames
+  end subroutine sedNames
 
-  function sedDescriptions(self,time)
+  subroutine sedDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedDescriptions
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
+    class           (nodePropertyExtractorSED), intent(inout)                             :: self
+    double precision                          , intent(in   )                             :: time
+    type            (varying_string          ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(sedDescriptions(1))
-    sedDescriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
+    allocate(descriptions(1))
+    descriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
     return
-  end function sedDescriptions
+  end subroutine sedDescriptions
 
   function sedWavelengths(self,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                          , dimension(:) , allocatable :: sedWavelengths
     class           (nodePropertyExtractorSED), intent(inout)              :: self
@@ -422,7 +422,7 @@ contains
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
     case default
        expansionFactor=0.0d0
-       call Galacticus_Error_Report('unknown frame'//{introspection:location})
+       call Error_Report('unknown frame'//{introspection:location})
     end select
     do i=1,size(sedWavelengths)
        if (indexTemplate > 0) then
@@ -450,30 +450,38 @@ contains
     return
   end function sedWavelengths
 
-  function sedColumnDescriptions(self,time)
+  subroutine sedColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
-    double precision                          , dimension(:) , allocatable :: wavelengths
-    integer         (c_size_t                )                             :: i
-    character       (len=18                  )                             :: label
+    class           (nodePropertyExtractorSED), intent(inout)                            :: self
+    double precision                          , intent(in   )                            :: time
+    type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                          , dimension(:) , allocatable               :: wavelengths
+    integer         (c_size_t                )                                           :: i
+    character       (len=18                  )                                           :: label
     
-    allocate(sedColumnDescriptions(self%size(time)))
-    allocate(          wavelengths(self%size(time)))
+    allocate(descriptions(self%size(time)))
+    allocate(wavelengths (self%size(time)))
     wavelengths=self%wavelengths(time)
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
+#ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
-    do i=1,size(sedColumnDescriptions)      
+#endif
+    do i=1,size(descriptions)      
        write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
-       sedColumnDescriptions(i)=trim(label)
+       descriptions(i)=trim(label)
     end do
+#ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
+#endif
     return
-  end function sedColumnDescriptions
+  end subroutine sedColumnDescriptions
 
   function sedUnitsInSI(self,time)
     !!{
@@ -536,7 +544,7 @@ contains
     use :: Numerical_Comparison, only : Values_Agree
     use :: File_Utilities      , only : File_Exists       , File_Lock            , File_Unlock, lockDescriptor
     use :: String_Handling     , only : operator(//)
-    use :: Galacticus_Paths    , only : galacticusPath    , pathTypeDataDynamic
+    use :: Input_Paths         , only : inputPath         , pathTypeDataDynamic
     implicit none
     class    (nodePropertyExtractorSED), intent(inout) :: self
     type     (treeNode                ), intent(inout) :: node
@@ -560,7 +568,7 @@ contains
     if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
     if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
        ! Construct the file name.
-       fileName=galacticusPath(pathTypeDataDynamic)                    // &
+       fileName=inputPath(pathTypeDataDynamic)                         // &
             &        'stellarPopulations/'                             // &
             &        self%objectType             (                    )// &
             &        '_'                                               // &
@@ -608,7 +616,7 @@ contains
     use    :: Abundances_Structure , only : abundances             , metallicityTypeLinearByMassSolar, adjustElementsReset
     use    :: Display              , only : displayIndent          , displayUnindent                 , displayCounter     , displayCounterClear, &
          &                                  verbosityLevelWorking
-    use    :: Galacticus_Error     , only : Galacticus_Error_Report
+    use    :: Error                , only : Error_Report
     use    :: Histories            , only : history
     use    :: Numerical_Integration, only : integrator
     use    :: Multi_Counters       , only : multiCounter
@@ -651,7 +659,7 @@ contains
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
     case default
        expansionFactor=0.0d0
-       call Galacticus_Error_Report('unknown frame'//{introspection:location})
+       call Error_Report('unknown frame'//{introspection:location})
     end select
     if (self%resolution < 0.0d0) then
        allocate(jWavelength(size(sedLuminosityMean,dim=1)))
@@ -720,7 +728,7 @@ contains
           iWavelength =0_c_size_t
           iTime       =0_c_size_t
           iMetallicity=0_c_size_t
-          call Galacticus_Error_Report('unable to increment counter'//{introspection:location})
+          call Error_Report('unable to increment counter'//{introspection:location})
        end if
        call stateLock%unset()
        if (parallelize_) then
@@ -877,8 +885,15 @@ contains
     type     (inputParameters         )                :: descriptor
     type     (varying_string          )                :: descriptorString          , values
     integer                                            :: i
-    type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
-    !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+      <description>
+	Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+      </description>
+    </workaround>
+    !!]
+    ! type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
+    ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
@@ -923,10 +938,18 @@ contains
     descriptorString=descriptor%serializeToString()
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorSED5)//"}"
-    if (descriptorString /= descriptorStringPrevious) then
-       descriptorStringPrevious=         descriptorString
-       hashedDescriptorPrevious=Hash_MD5(descriptorString)
-    end if
-    sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+     <description>
+      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+     </description>
+    </workaround>
+    !!]
+    !if (descriptorString /= descriptorStringPrevious) then
+    !   descriptorStringPrevious=         descriptorString
+    !   hashedDescriptorPrevious=Hash_MD5(descriptorString)
+    !end if
+    !sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    sedHistoryHashedDescriptor=Hash_MD5(descriptorString)
     return
   end function sedHistoryHashedDescriptor

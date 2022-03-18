@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +21,16 @@
 Contains a module for storing and reporting memory usage by the code.
 !!}
 
+!: $(BUILDPATH)/utility.memory_usage.o
+
 module Memory_Management
   !!{
   Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   arrays with automatic error checking and deallocation at program termination and memory usage reporting.
   !!}
-  use            :: Galacticus_Error, only : Galacticus_Error_Report
-  use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_int    , c_long
-  use            :: Kind_Numbers    , only : kind_int8              , kind_quad
+  use            :: Error        , only : Error_Report
+  use, intrinsic :: ISO_C_Binding, only : c_double_complex, c_int    , c_long
+  use            :: Kind_Numbers , only : kind_int8       , kind_quad
   implicit none
   private
   public :: Memory_Usage_Report,Code_Memory_Usage,allocateArray,deallocateArray,Memory_Usage_Record
@@ -56,24 +58,26 @@ module Memory_Management
   end type memoryUsage
 
   ! Identifiers for the various memory types used.
-  integer, parameter, public :: memoryTypeCode =1
-  integer, parameter, public :: memoryTypeNodes=2
-  integer, parameter, public :: memoryTypeMisc =3
-  integer, parameter, public :: memoryTypeTotal=4
+  integer, parameter, public :: memoryTypeCode   =1
+  integer, parameter, public :: memoryTypeNodes  =2
+  integer, parameter, public :: memoryTypeMisc   =3
+  integer, parameter, public :: memoryTypeUnknown=4
+  integer, parameter, public :: memoryTypeTotal  =5
 
   type memoryUsageList
      !!{
      Dervied type variable for storing all memory usage in the code.
      !!}
-     type(memoryUsage) :: memoryType(4)
+     type(memoryUsage) :: memoryType(5)
   end type memoryUsageList
 
   ! List of all types of memory usage.
-  type (memoryUsageList) :: usedMemory=memoryUsageList([memoryUsage(-1,1,'code' ,'??'), &
-       &                                                memoryUsage( 0,1,'nodes','??'), &
-       &                                                memoryUsage( 0,1,'misc' ,'??'), &
-       &                                                memoryUsage( 0,1,'total','??')  &
-       &                                               ]                                &
+  type (memoryUsageList) :: usedMemory=memoryUsageList([memoryUsage(-1,1,'code'   ,'??'), &
+       &                                                memoryUsage( 0,1,'nodes'  ,'??'), &
+       &                                                memoryUsage( 0,1,'misc'   ,'??'), &
+       &                                                memoryUsage( 0,1,'unknown','??'), &
+       &                                                memoryUsage( 0,1,'total'  ,'??')  &
+       &                                               ]                                  &
        &                                              )
 
   ! Overhead memory (in bytes) per allocation.
@@ -81,7 +85,6 @@ module Memory_Management
 
 #ifdef PROCPS
   interface
-     !: $(BUILDPATH)/utility.memory_usage.o
      function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
        !!{
        Template for a C function that returns the current memory usage.
@@ -113,14 +116,23 @@ contains
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
-    double precision                , parameter :: newReportChangeFactor=1.2d0
-    logical                                     :: issueNewReport
-    type            (varying_string)            :: headerText                 , usageText
-    character       (len=1         )            :: join
-
+    double precision                , parameter    :: newReportChangeFactor=1.2d0
+    logical                                        :: issueNewReport
+    type            (varying_string)               :: headerText                 , usageText
+    character       (len =1        )               :: join
+#ifdef PROCPS
+    integer         (kind=kind_int8), dimension(2) :: memoryUsage
+#endif
+    
     !$omp critical(memoryUsageReport)
     call Code_Memory_Usage()
     issueNewReport=.false.
+    usedMemory%memoryType(memoryTypeUnknown)%usage=0_kind_int8
+#ifdef PROCPS
+    memoryUsage=Memory_Usage_Get()
+    usedMemory%memoryType(memoryTypeUnknown)%usage=+memoryUsage(1) &
+         &                                         -memoryUsage(2)
+#endif
     usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(1:memoryTypeTotal-1)%usage)
     if (usageAtPreviousReport <= 0) then ! First call, so always report memory usage.
        issueNewReport=.true.
@@ -143,19 +155,21 @@ contains
        ! Record new memory usage reported.
        usageAtPreviousReport=usedMemory%memoryType(memoryTypeTotal)%usage
        ! Set divisors and suffixes for output.
-       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeCode ))
-       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeNodes))
-       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeMisc ))
-       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeTotal))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeCode   ))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeNodes  ))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeMisc   ))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeUnknown))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeTotal  ))
        ! Output the memory usage.
        join=' '
        headerText='Memory: '
        usageText='       ' ! Note that these are non-breaking spaces.
-       call Add_Memory_Component(usedMemory%memoryType(memoryTypeCode) ,headerText,usageText,join)
-       call Add_Memory_Component(usedMemory%memoryType(memoryTypeNodes),headerText,usageText,join)
-       call Add_Memory_Component(usedMemory%memoryType(memoryTypeMisc) ,headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeCode   ),headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeNodes  ),headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeMisc   ),headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeUnknown),headerText,usageText,join)
        join='='
-       call Add_Memory_Component(usedMemory%memoryType(memoryTypeTotal),headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeTotal  ),headerText,usageText,join)
        call displayMessage(headerText)
        call displayMessage(usageText )
     end if
@@ -315,7 +329,7 @@ contains
 
     usedMemory%memoryType(memoryTypeTotal)%usage=0
     usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
-    Memory_Usage_Get(1)=Memory_Usage_Get_C()*4096_kind_int8
+    Memory_Usage_Get(1)=Memory_Usage_Get_C()
     Memory_Usage_Get(2)=usedMemory%memoryType(memoryTypeTotal)%usage
     return
   end function Memory_Usage_Get

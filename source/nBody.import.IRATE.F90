@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -152,9 +152,9 @@ contains
     Import data from a IRATE file.
     !!}
     use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash
+          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Object
     use :: IO_IRATE        , only : irate
@@ -181,6 +181,7 @@ contains
     simulations(1)%attributesInteger     =integerSizeTHash        ()
     simulations(1)%attributesReal        =doubleHash              ()
     simulations(1)%attributesText        =varyingStringHash       ()
+    simulations(1)%attributesGeneric     =genericHash             ()
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call irate_        %readSimulation    (          boxSize)
     call simulations(1)%attributesReal%set('boxSize',boxSize)
@@ -197,7 +198,7 @@ contains
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    call self%file%openFile(char(self%fileName),readOnly=.false.)
+    call self%file%openFile(char(self%fileName),readOnly=.false.,objectsOverwritable=.true.)
     snapshotGroup            =self%file         %openGroup(snapshotLabel)
     simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
     call simulations(1)%analysis%datasets(datasetNames)

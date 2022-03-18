@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,7 +72,7 @@ contains
     type            (inputParameters               ), intent(inout) :: parameters
     class           (haloMassFunctionClass         ), pointer       :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-    class           (nBodyHaloMassErrorClass       ), pointer       :: nBodyHaloMassError_
+    class           (nbodyHaloMassErrorClass       ), pointer       :: nbodyHaloMassError_
     double precision                                                :: errorFractionalMaximum
 
     ! Check and read parameters.
@@ -83,20 +83,20 @@ contains
       <description>Maximum allowed fractional error in halo mass.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
-    <objectBuilder class="nbodyHaloMassError"  name="nBodyHaloMassError_"   source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"   source="parameters"/>
     <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
     !!]
-    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum)
+    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_" />
-    <objectDestructor name="nBodyHaloMassError_"  />
+    <objectDestructor name="nbodyHaloMassError_"  />
     <objectDestructor name="massFunctionIntrinsic"/>
     !!]
     return
   end function errorConvolvedConstructorParameters
 
-  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum) result(self)
+  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
     !!}
@@ -104,10 +104,10 @@ contains
     type            (haloMassFunctionErrorConvolved)                        :: self
     class           (haloMassFunctionClass         ), target, intent(in   ) :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
-    class           (nBodyHaloMassErrorClass       ), target, intent(in   ) :: nBodyHaloMassError_
+    class           (nbodyHaloMassErrorClass       ), target, intent(in   ) :: nbodyHaloMassError_
     double precision                                        , intent(in   ) :: errorFractionalMaximum
     !![
-    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nBodyHaloMassError_, errorFractionalMaximum"/>
+    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nbodyHaloMassError_, errorFractionalMaximum"/>
     !!]
 
     return
@@ -123,7 +123,7 @@ contains
     !![
     <objectDestructor name="self%massFunctionIntrinsic" />
     <objectDestructor name="self%cosmologyParameters_"  />
-    <objectDestructor name="self%nBodyHaloMassError_"   />
+    <objectDestructor name="self%nbodyHaloMassError_"   />
     !!]
     return
   end subroutine errorConvolvedDestructor
@@ -135,7 +135,7 @@ contains
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (haloMassFunctionErrorConvolved), intent(inout)           :: self
+    class           (haloMassFunctionErrorConvolved), intent(inout), target   :: self
     double precision                                , intent(in   )           :: time                    , mass
     type            (treeNode                      ), intent(inout), optional :: node
     double precision                                , parameter               :: rangeIntegralSigma=5.0d0
@@ -153,7 +153,7 @@ contains
     ! Get the error at this mass scale.
     errorConvolvedErrorMass=+mass                                                       &
          &                  *min(                                                       &
-         &                       self%nBodyHaloMassError_   %errorFractional(nodeWork), &
+         &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
          &                       self%errorFractionalMaximum                            &
          &                      )
     ! Perform the convolution integral.
@@ -190,7 +190,7 @@ contains
       call basic%massSet(massPrime)
       errorConvolvedErrorMass=+massPrime                                                  &
            &                  *min(                                                       &
-           &                       self%nBodyHaloMassError_   %errorFractional(nodeWork), &
+           &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
            &                       self%errorFractionalMaximum                            &
            &                      )
       ! Return the convolution integrand.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,6 @@ program Test_Prada2011_Concentration
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic               , treeNode
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                             , varying_string
@@ -121,7 +120,8 @@ program Test_Prada2011_Concentration
      &amp;                                   index_                             =+0.95d0                            , &amp;
      &amp;                                   running                            =+0.00d0                            , &amp;
      &amp;                                   runningRunning                     =+0.00d0                            , &amp;
-     &amp;                                   wavenumberReference                =+1.00d0                              &amp;
+     &amp;                                   wavenumberReference                =+1.00d0                            , &amp;
+     &amp;                                   runningSmallScalesOnly             =.false.                              &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>
@@ -208,5 +208,4 @@ program Test_Prada2011_Concentration
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Prada2011_Concentration

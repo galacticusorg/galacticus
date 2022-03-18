@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -193,7 +193,7 @@ contains
     !!{
     Return a name for the specified entry in the chemicals structure.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : trim
     implicit none
     type   (varying_string)                :: Chemicals_Names
@@ -202,7 +202,7 @@ contains
     if (index >= 1 .and. index <= chemicalsCount) then
        Chemicals_Names=trim(chemicalsToTrack(index))
     else
-       call Galacticus_Error_Report('index out of range'//{introspection:location})
+       call Error_Report('index out of range'//{introspection:location})
     end if
     return
   end function Chemicals_Names
@@ -211,7 +211,7 @@ contains
     !!{
     Returns the index of a chemical in the chemical abundances structure given the {\normalfont \ttfamily chemicalName}.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use :: Error             , only : Error_Report, errorStatusFail, errorStatusSuccess
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     character(len=*), intent(in   )           :: chemicalName
@@ -229,7 +229,7 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('chemical species "'//trim(chemicalName)//'" is not available - to track this species add it to the <chemicalsToTrack> parameter'//{introspection:location})
+       call Error_Report('chemical species "'//trim(chemicalName)//'" is not available - to track this species add it to the <chemicalsToTrack> parameter'//{introspection:location})
     end if
     return
   end function Chemicals_Index
@@ -441,14 +441,14 @@ contains
     !!{
     Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
     implicit none
     class(chemicalAbundances), intent(inout) :: self
     type (node              ), pointer       :: chemicalsDefinition
     !$GLC attributes unused :: self, chemicalsDefinition
 
-    call Galacticus_Error_Report('building of chemicalAbundances objects is not yet supported'//{introspection:location})
+    call Error_Report('building of chemicalAbundances objects is not yet supported'//{introspection:location})
     return
   end subroutine Chemicals_Builder
 

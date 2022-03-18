@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,7 +66,7 @@ contains
          &                                                       redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
 
     !![
@@ -111,6 +111,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class.
     !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
+    use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (transferFunctionFuzzyDM)                         :: self
@@ -133,10 +134,10 @@ contains
                &   *kilo                        &
                &   /1.0d-22
        else
-          call Galacticus_Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
+          call Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
        end if
     class default
-       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     wavenumberHalfMode=+4.5d0                   &
          &             *self%m22**(4.0d0/9.0d0)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,8 +30,7 @@ program Test_Hearin2021_MAH
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: File_Utilities                           , only : Count_Lines_in_File
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
-  use :: Galacticus_Paths                         , only : galacticusPath                              , pathTypeExec
+  use :: Input_Paths                              , only : inputPath                                   , pathTypeExec
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                , nodeComponentBasic               , treeNode
   use :: Input_Parameters                         , only : inputParameters
   use :: ISO_Varying_String                       , only : char
@@ -67,8 +66,8 @@ program Test_Hearin2021_MAH
   ! Get the basic component.
   basic => node    %basic(autoCreate=.true.)
   ! Open the reference file produced by Andrew Hearin's "diffmah" code and read the parameter values used.
-  countTimes=Count_Lines_In_File(char(galacticusPath(pathTypeExec))//'testSuite/data/diffmah_massAccretionHistory.txt',comment_char='#')
-  open(newUnit=referenceFile,file=char(galacticusPath(pathTypeExec))//'testSuite/data/diffmah_massAccretionHistory.txt',status='old',form='formatted')
+  countTimes=Count_Lines_In_File(char(inputPath(pathTypeExec))//'testSuite/data/diffmah_massAccretionHistory.txt',comment_char='#')
+  open(newUnit=referenceFile,file=char(inputPath(pathTypeExec))//'testSuite/data/diffmah_massAccretionHistory.txt',status='old',form='formatted')
   read (referenceFile,'(a)') line
   read (line(index(line,"=")+1:len(line)),*) powerLawIndexEarly
   read (referenceFile,'(a)') line
@@ -112,5 +111,4 @@ program Test_Hearin2021_MAH
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Hearin2021_MAH

@@ -8,9 +8,16 @@
     <massTreeMinimum value="10000000000"/>
   </mergerTreeBuildMasses>
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
   </nodeOperator>
 </parameters>

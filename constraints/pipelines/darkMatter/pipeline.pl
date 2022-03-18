@@ -46,12 +46,12 @@ my @tasks =
 	 postProcess  => $pipelinePath."haloMassFunctionPostProcess.pl",
 	 parameterMap =>
 	 {
-	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionConditioned::a"               => "haloMassFunctionMethod::a"            ,
-	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionConditioned::p"               => "haloMassFunctionMethod::p"            ,
-	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionConditioned::normalization"   => "haloMassFunctionMethod::normalization",
-	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionUnconditioned::a"             => "haloMassFunctionMethod::a"            ,
-	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionUnconditioned::p"             => "haloMassFunctionMethod::p"            ,
-	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionUnconditioned::normalization" => "haloMassFunctionMethod::normalization",
+	     "haloMassFunction::haloMassFunction::haloMassFunctionConditioned::a"               => "haloMassFunction::a"            ,
+	     "haloMassFunction::haloMassFunction::haloMassFunctionConditioned::p"               => "haloMassFunction::p"            ,
+	     "haloMassFunction::haloMassFunction::haloMassFunctionConditioned::normalization"   => "haloMassFunction::normalization",
+	     "haloMassFunction::haloMassFunction::haloMassFunctionUnconditioned::a"             => "haloMassFunction::a"            ,
+	     "haloMassFunction::haloMassFunction::haloMassFunctionUnconditioned::p"             => "haloMassFunction::p"            ,
+	     "haloMassFunction::haloMassFunction::haloMassFunctionUnconditioned::normalization" => "haloMassFunction::normalization",
 	 }
      },
      {
@@ -84,6 +84,29 @@ my @tasks =
 	 postProcess  => $pipelinePath."progenitorMassFunctionPostProcess.pl"
      },
      {
+	 label        => "spinConcentration"          ,
+	 config       => "spinConcentrationConfig.xml",
+	 base         =>
+	     [
+	      "spinConcentrationBaseHugeMDPL.xml",
+	      "spinConcentrationBaseBigMDPL.xml" ,
+	      "spinConcentrationBaseMDPL2.xml"   ,
+	      "spinConcentrationBaseSMDPL.xml"   ,
+	      "spinConcentrationBaseVSMDPL.xml"
+	     ],
+	 suffix       =>
+	     [
+	      "HugeMDPL",
+	      "BigMDPL" ,
+	      "MDPL2"   ,
+	      "SMDPL"   ,
+	      "VSMDPL"
+	     ],
+	 ppn          => 16                                             ,
+	 nodes        =>  1                                             ,
+	 postProcess  => $pipelinePath."spinConcentrationPostProcess.pl"
+     },
+     {
 	 label       => "final"    ,
 	 base        => [ "final.xml" ]
      }
@@ -112,29 +135,29 @@ foreach my $task ( @tasks ) {
     foreach my $base ( @bases ) {
 	++$i;
 	my $suffix = exists($task->{'suffix'}) ? $task->{'suffix'}->[$i] : "";
-	$base->{'galacticusOutputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
+	$base->{'outputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
     }
     if ( defined($config) ) {
-	$config->{'galacticusOutputFileName'       }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
-	$config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
+	$config->{'outputFileName' }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
+	$config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
 	my $i = -1;
 	# Set base file names in the config file.
 	foreach my $base ( @bases ) {
 	    ++$i;
 	    my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
-	    if      ( exists($config->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'         }) ) {
+	    if      ( exists($config->{'posteriorSampleLikelihood'}->{'baseParametersFileName'         }) ) {
 		die("config file has insufficient base parameter file names")
 		    if ( $i > 0 );
-		$config->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'} = $baseFileName;
-	    } elsif ( exists($config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}) ) {
-		if ( reftype($config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}) eq "ARRAY" ) {
+		$config->{'posteriorSampleLikelihood'}->{'baseParametersFileName'}->{'value'} = $baseFileName;
+	    } elsif ( exists($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
+		if ( reftype($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) eq "ARRAY" ) {
 		    die("config file has insufficient base parameter file names")
-			if ( $i >= scalar(@{$config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}}) );
-		    $config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}->[$i]->{'baseParametersFileName'}->{'value'} = $baseFileName;
+			if ( $i >= scalar(@{$config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}}) );
+		    $config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}->[$i]->{'baseParametersFileName'}->{'value'} = $baseFileName;
 		} else {
 		    die("config file has insufficient base parameter file names")
 			if ( $i > 0 );
-		    $config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}      ->{'baseParametersFileName'}->{'value'} = $baseFileName;
+		    $config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}      ->{'baseParametersFileName'}->{'value'} = $baseFileName;
 		}
 	    }
 	}
@@ -225,16 +248,18 @@ sub applyParameters {
     if ( exists($task->{'parameterMap'}) ) {
 	# Apply parameters according to the task's map.
 	foreach my $parameterName ( keys(%{$task->{'parameterMap'}}) ) {
-	    if ( exists($parametersDetermined{$task->{'parameterMap'}->{$parameterName}}) ) {
-		(my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($base,$parameterName);
-		&Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$task->{'parameterMap'}->{$parameterName}}));
-	    }
+	    next
+		unless ( exists($parametersDetermined{$task->{'parameterMap'}->{$parameterName}}) );
+	    (my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($base,$parameterName);
+	    &Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$task->{'parameterMap'}->{$parameterName}}))
+		if ( defined($parameter) );
 	}
     } else {
 	# Apply all parameters directly.
 	foreach my $parameterName ( keys(%parametersDetermined) ) {
 	    (my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($base,$parameterName);
-	    &Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$parameterName}));
+	    &Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$parameterName}))
+		if ( defined($parameter) );
 	}
     }
 }

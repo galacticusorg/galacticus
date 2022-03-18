@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which tests the \glspl{node} implementation.
+Contains a program which tests the heated dark matter profile implementation.
 !!}
 
 program Test_Dark_Matter_Profiles_Heated
@@ -132,7 +132,7 @@ program Test_Dark_Matter_Profiles_Heated
   call basic    %timeSet                  (time           )
   call basic    %timeLastIsolatedSet      (time           )
   call satellite%tidalHeatingNormalizedSet(heatingSpecific)
-  radiusVirial=darkMatterHaloScale_%virialRadius(node)
+  radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   ! Compute the characteristic radius for heating.
   radiusHeated=sqrt(gravitationalConstantGalacticus*massVirial/2.0d0/heatingSpecific/radiusVirial)
   ! Compute initial radius, enclosed mass, and density for a variety of radii and compare to the analytic solutions.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -108,7 +108,7 @@ contains
     !!{
     Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} obejcts.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type  (quasiRandomNumberGenerator)                          :: self
     integer                           , intent(in   ), optional :: qrngType
@@ -144,15 +144,15 @@ contains
     !!{
     Return the next entry in the quasi-random sequence.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class           (quasiRandomNumberGenerator), intent(inout) :: self
     double precision                            , dimension(1)  :: sequenceNext
     integer         (c_int                     )                :: status
 
     status=GSL_qRng_Get(self%gsl_qrng,sequenceNext)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
     quasiRandomNumberGeneratorGet=sequenceNext(1)
     return
   end function quasiRandomNumberGeneratorGet

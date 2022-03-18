@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,7 @@ contains
     \end{description}
     The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if {\normalfont \ttfamily order}$<${\normalfont \ttfamily countObjects} then one or more circular dependencies existed in the graph.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
     integer                                , intent(in   ) :: countObjects
     integer                                , intent(in   ) :: countDependencies
@@ -85,7 +85,7 @@ contains
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report('circular dependencies'//{introspection:location})
+          call Error_Report('circular dependencies'//{introspection:location})
        end if
     end if
     return

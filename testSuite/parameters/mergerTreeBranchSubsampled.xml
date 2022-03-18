@@ -78,6 +78,7 @@
 
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO value="NFW"/>
@@ -108,7 +109,15 @@
   </mergerRemnantSize>
 
   <!-- Node evolution and physics -->
-  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  </nodeOperator>
  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
@@ -122,7 +131,7 @@
   </mergerTreeEvolver>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="testSuite/outputs/mergerTreeBranchSubsampled.hdf5"/>
+  <outputFileName value="testSuite/outputs/mergerTreeBranchSubsampled.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>

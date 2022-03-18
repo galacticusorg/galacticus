@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,6 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Kind_Numbers, only : kind_int8
+  use :: Hashes      , only : doubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
@@ -36,12 +37,14 @@
        <method method="name"        description="Return the name of the property extracted."                       />
        <method method="description" description="Return a description of the property extracted."                  />
        <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
+       <method method="metaData"    description="Populate a hash with meta-data for the property."                 />
      </methods>
      !!]
      procedure(integerScalarExtract), deferred :: extract
      procedure(integerScalarName   ), deferred :: name
      procedure(integerScalarName   ), deferred :: description
      procedure                                 :: unitsInSI   => integerScalarUnitsInSI
+     procedure                                 :: metaData    => integerScalarMetaData
   end type nodePropertyExtractorIntegerScalar
 
   abstract interface
@@ -82,3 +85,15 @@ contains
     integerScalarUnitsInSI=0.0d0
     return
   end function integerScalarUnitsInSI
+
+  subroutine integerScalarMetaData(self,metaData)
+    !!{
+    Interface for integerScalar property meta-data.
+    !!}
+    implicit none
+    class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
+    type (doubleHash                        ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, metaData
+    
+    return
+  end subroutine integerScalarMetaData

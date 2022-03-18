@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -184,7 +184,8 @@ contains
     use    :: Arrays_Search     , only : searchArray
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
-          &                              displayUnindent        , verbosityLevelStandard
+         &                               displayUnindent        , verbosityLevelStandard
+    use    :: Error             , only : Error_Report
     use    :: HDF5_Access       , only : hdf5Access
     use    :: IO_HDF5           , only : hdf5Object
     use    :: ISO_Varying_String, only : var_str
@@ -250,28 +251,28 @@ contains
           mass            => simulations(iSimulation)%propertiesReal   %value('massVirial'     )
        else
           allocate(mass           (0))
-         call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
+         call Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
        end if
        ! Get the expansion factor data.
        if (simulations(iSimulation)%propertiesReal   %exists('expansionFactor')) then
           expansionFactor => simulations(iSimulation)%propertiesReal   %value('expansionFactor')
        else
           allocate(expansionFactor(0))
-          call Galacticus_Error_Report('expansion factors are required, but are not available in the simulation'//{introspection:location})
+          call Error_Report('expansion factors are required, but are not available in the simulation'//{introspection:location})
        end if
        ! Get the tree ID data.
        if (simulations(iSimulation)%propertiesInteger%exists('hostedRootID'   )) then
           treeID          => simulations(iSimulation)%propertiesInteger%value('hostedRootID'   )
        else
           allocate(treeID         (0))
-          call Galacticus_Error_Report('hosted root IDs are required, but are not available in the simulation'  //{introspection:location})
+          call Error_Report('hosted root IDs are required, but are not available in the simulation'  //{introspection:location})
        end if
        ! Get the snapshot ID data.
        if (simulations(iSimulation)%propertiesInteger%exists('snapshotID'     )) then
           snapshotID      => simulations(iSimulation)%propertiesInteger%value('snapshotID'     )
        else
           allocate(snapshotID     (0))
-          call Galacticus_Error_Report('snapshot IDs are required, but are not available in the simulation'     //{introspection:location})
+          call Error_Report('snapshot IDs are required, but are not available in the simulation'     //{introspection:location})
        end if
        ! Build a look-up index for parent halo tree IDs.
        countParents      = 0_c_size_t

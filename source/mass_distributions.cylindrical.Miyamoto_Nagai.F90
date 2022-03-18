@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,7 +121,7 @@ contains
     !!{
     Internal constructor for ``miyamotoNagai'' mass distribution class.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -138,20 +138,20 @@ contains
     end if
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
-       if (.not.present(b))                            call Galacticus_Error_Report('"b" must be specified for dimensionless profiles'                                  //{introspection:location})
+       if (.not.present(b))                            call Error_Report('"b" must be specified for dimensionless profiles'                                  //{introspection:location})
        if (present(a   )) then
-          if (Values_Differ(a   ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('"a" should be unity for a dimensionless profile (or simply do not specify it)'     //{introspection:location})
+          if (Values_Differ(a   ,1.0d0,absTol=1.0d-6)) call Error_Report('"a" should be unity for a dimensionless profile (or simply do not specify it)'     //{introspection:location})
        end if
        if (present(mass)) then
-          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
+          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
        end if
        self%a                   =1.0d0
        self%b                   =b
        self%mass                =1.0d0
     else
-       if (.not.present(a   )) call Galacticus_Error_Report('"a" must be specified for dimensionful profiles' //{introspection:location})
-       if (.not.present(b   )) call Galacticus_Error_Report('"b" must be specified for dimensionful profiles' //{introspection:location})
-       if (.not.present(mass)) call Galacticus_Error_Report('mass must be specified for dimensionful profiles'//{introspection:location})
+       if (.not.present(a   )) call Error_Report('"a" must be specified for dimensionful profiles' //{introspection:location})
+       if (.not.present(b   )) call Error_Report('"b" must be specified for dimensionful profiles' //{introspection:location})
+       if (.not.present(mass)) call Error_Report('mass must be specified for dimensionful profiles'//{introspection:location})
        self%a                   =a
        self%b                   =b
        self%mass                =mass
@@ -433,8 +433,8 @@ contains
     !!{
     Compute radial moments of the Miyamoto-Nagai mass distribution surface density profile.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Tables          , only : tablesIntegrationWeightFunction
+    use :: Error , only : Error_Report
+    use :: Tables, only : tablesIntegrationWeightFunction
     implicit none
     class           (massDistributionMiyamotoNagai   ), intent(inout)           :: self
     double precision                                 , intent(in   )           :: moment
@@ -469,7 +469,7 @@ contains
           isInfinite=.true.
           return
        else
-          call Galacticus_Error_Report('-1 < momemnt < 2 is required for finite moment'//{introspection:location})
+          call Error_Report('-1 < momemnt < 2 is required for finite moment'//{introspection:location})
        end if
     end if
     ! Perform the integration.

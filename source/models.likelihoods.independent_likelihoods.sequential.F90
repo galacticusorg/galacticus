@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,8 +68,8 @@ contains
     Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
     parameter set.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
@@ -98,12 +98,12 @@ contains
          &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
          &  /=                                                                           &
          &   parameters%copiesCount('likelihoodMultiplier'     ,zeroIfNotPresent=.true.) &
-         & ) call Galacticus_Error_Report('number of likelihood multipliers must match number of likelihoods'//{introspection:location})
+         & ) call Error_Report('number of likelihood multipliers must match number of likelihoods'//{introspection:location})
     if     (                                                                             &
          &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
          &  /=                                                                           &
          &   parameters%copiesCount('likelihoodAccept'         ,zeroIfNotPresent=.true.) &
-         & ) call Galacticus_Error_Report('number of likelihood accepts must match number of likelihoods'    //{introspection:location})
+         & ) call Error_Report('number of likelihood accepts must match number of likelihoods'    //{introspection:location})
     allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
     allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
     do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
@@ -114,6 +114,9 @@ contains
     self%evaluateCount                                  =0
     self%evaluateCountGlobal                            =0
     self%forceCount                                     =0
+    !![
+    <inputParametersValidate source="parameters" multiParameters="likelihoodMultiplier, likelihoodAccept"/>
+    !!]
     return
   end function independentLikelihoodsSequentialConstructorParameters
 
@@ -143,10 +146,10 @@ contains
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
     use :: Display                     , only : displayMessage
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: ISO_Varying_String          , only : varying_string
     use :: MPI_Utilities               , only : mpiSelf
-    use :: Models_Likelihoods_Constants, only : logImpossible          , logImprobable
+    use :: Models_Likelihoods_Constants, only : logImpossible , logImprobable
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
@@ -221,7 +224,7 @@ contains
                    exit
                 end if
              end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
+             if (modelLikelihood_%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              !![
@@ -240,7 +243,7 @@ contains
                       exit
                    end if
                 end do
-                if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
+                if (modelLikelihood_%parameterMapInactive(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
                 allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
                 !![
@@ -296,7 +299,7 @@ contains
              ! Force acceptance if this is the first time we have reached this far (unless the proposed prior is impossible - we
              ! do not want to accept states outside of the prior bounds).
              if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex()) .and. logPriorProposed > logImpossible) then
-                if (.not.present(forceAcceptance)) call Galacticus_Error_Report('"forceAcceptance" argument must be present'//{introspection:location})
+                if (.not.present(forceAcceptance)) call Error_Report('"forceAcceptance" argument must be present'//{introspection:location})
                 forceCounts    (simulationState%chainIndex())=evaluateCounts(simulationState%chainIndex())
                 forceAcceptance                              =.true.
              end if

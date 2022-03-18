@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -191,7 +191,6 @@ contains
     concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014  )                         :: self

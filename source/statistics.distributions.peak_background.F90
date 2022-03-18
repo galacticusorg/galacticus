@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -95,7 +95,7 @@ contains
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
-    type            (distributionFunction1DPeakBackground)                        ::           self
+    type            (distributionFunction1DPeakBackground)                                  :: self
     double precision                                      , intent(in   )                   :: varianceBackground          , thresholdCollapse
     class           (randomNumberGeneratorClass          ), intent(in   ), target, optional :: randomNumberGenerator_
     double precision                                      , parameter                       :: rangeTable            =7.0d0
@@ -163,13 +163,13 @@ contains
     !!{
     Return the minimum possible value of a peak-background split distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !$GLC attributes unused :: self
 
     peakBackgroundMinimum=0.0d0
-    call Galacticus_Error_Report('no minimum exists'//{introspection:location})
+    call Error_Report('no minimum exists'//{introspection:location})
     return
   end function peakBackgroundMinimum
 
@@ -177,13 +177,13 @@ contains
     !!{
     Return the maximum possible value of a peak-background split distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
     !$GLC attributes unused :: self
 
     peakBackgroundMaximum=0.0d0
-    call Galacticus_Error_Report('no maximum exists'//{introspection:location})
+    call Error_Report('no maximum exists'//{introspection:location})
     return
   end function peakBackgroundMaximum
 
@@ -233,7 +233,7 @@ contains
     !!}
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout) :: self
-    double precision                                     , intent(in   ) :: x
+    double precision                                      , intent(in   ) :: x
 
     if      (x < self%cdf%x(+1)) then
        peakBackgroundCumulative=0.0d0
@@ -249,13 +249,13 @@ contains
     !!{
     Return the inverse of a normal distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout), target :: self
     double precision                                      , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
-         & call Galacticus_Error_Report(                             &
+         & call Error_Report(                             &
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )

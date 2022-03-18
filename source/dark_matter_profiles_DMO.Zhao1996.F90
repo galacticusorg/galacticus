@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,7 +70,6 @@
      procedure :: radiusFromSpecificAngularMomentum => zhao1996RadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => zhao1996RotationNormalization
      procedure :: energy                            => zhao1996Energy
-     procedure :: energyGrowthRate                  => zhao1996EnergyGrowthRate
      procedure :: kSpace                            => zhao1996KSpace
      procedure :: freefallRadius                    => zhao1996FreefallRadius
      procedure :: freefallRadiusIncreaseRate        => zhao1996FreefallRadiusIncreaseRate
@@ -232,7 +231,7 @@ contains
 
     basic                 =>  node %basic                                (                          )
     radiusScale           =   self                      %scaleRadius     (node                      )
-    radiusVirialScaleFree =  +self %darkMatterHaloScale_%virialRadius    (node                      )    &
+    radiusVirialScaleFree =  +self %darkMatterHaloScale_%radiusVirial    (node                      )    &
          &                   /                           radiusScale
     zhao1996Normalization =  +basic                     %mass            (                          )    &
          &                   /self                      %massUnnormalized(node,radiusVirialScaleFree)    &
@@ -464,7 +463,7 @@ contains
     type            (treeNode                    ), intent(inout) :: node
     double precision                                              :: radiusVirial
     
-    radiusVirial                 =+self%darkMatterHaloScale_%virialRadius(node                                        )
+    radiusVirial                 =+self%darkMatterHaloScale_%radiusVirial(node                                        )
     zhao1996RotationNormalization=+self                     %radialMoment(node,moment=2.0d0,radiusMaximum=radiusVirial) &
          &                        /self                     %radialMoment(node,moment=3.0d0,radiusMaximum=radiusVirial)
     return
@@ -481,18 +480,6 @@ contains
     zhao1996Energy=self%energyNumerical(node)
     return
   end function zhao1996Energy
-
-  double precision function zhao1996EnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of an Zhao1996 halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOZhao1996), intent(inout)          :: self
-    type (treeNode                    ), intent(inout), target  :: node
-
-    zhao1996EnergyGrowthRate=self%energyGrowthRateNumerical(node)
-    return
-  end function zhao1996EnergyGrowthRate
 
   double precision function zhao1996KSpace(self,node,waveNumber)
     !!{
@@ -533,7 +520,7 @@ contains
          &               rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &              )    
-    zhao1996FreefallRadius=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    zhao1996FreefallRadius=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     return
   end function zhao1996FreefallRadius
 
@@ -614,7 +601,7 @@ contains
     Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     in units of Mpc).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout)           :: self
     type            (treeNode                    ), intent(inout)           :: node
@@ -633,7 +620,7 @@ contains
        radialMomentLower= radialMomentIndefinite(radiusScaleFree)
     else
        radialMomentLower=0.0d0
-       if (alpha <= 0.0d0 .or. 1.0d0+moment <= gamma) call Galacticus_Error_Report('radial moment is undefined'//{introspection:location})
+       if (alpha <= 0.0d0 .or. 1.0d0+moment <= gamma) call Error_Report('radial moment is undefined'//{introspection:location})
     end if
     if (present(radiusMaximum)) then
        radiusScaleFree  =+radiusMaximum &
@@ -641,7 +628,7 @@ contains
        radialMomentUpper= radialMomentIndefinite(radiusScaleFree)
     else
        radialMomentUpper=0.0d0
-       call Galacticus_Error_Report('radial moment is not implemented'//{introspection:location})
+       call Error_Report('radial moment is not implemented'//{introspection:location})
     end if
     zhao1996RadialMoment=+(                           &
          &                 +radialMomentUpper         &

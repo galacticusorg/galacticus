@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,9 +30,9 @@
      Implementation of a task which analyzes N-body simulation data.
      !!}
      private
-     class  (nbodyImporterClass), pointer :: nbodyImporter_
-     class  (nbodyOperatorClass), pointer :: nbodyOperator_
-     logical                              :: storeBackToImported
+     class  (nbodyImporterClass), pointer :: nbodyImporter_      => null()
+     class  (nbodyOperatorClass), pointer :: nbodyOperator_      => null()
+     logical                              :: storeBackToImported          , nodeComponentsInitialized=.false.
      ! Pointer to the parameters for this task.
      type   (inputParameters   )          :: parameters
    contains
@@ -79,6 +79,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>storeBackToImported</name>
@@ -130,7 +131,7 @@ contains
     <objectDestructor name="self%nbodyOperator_"/>
     <objectDestructor name="self%nbodyImporter_"/>
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
 
@@ -139,8 +140,8 @@ contains
     Compute and output the halo mass function.
     !!}
     use :: Display              , only : displayIndent                    , displayUnindent
-    use :: Galacticus_Error     , only : errorStatusSuccess
-    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: Error                , only : errorStatusSuccess
+    use :: Output_HDF5          , only : outputFile
     use :: HDF5_Access          , only : hdf5Access
     use :: NBody_Simulation_Data, only : nBodyData
     use :: Node_Components      , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -162,7 +163,7 @@ contains
        if (.not.self%storeBackToImported.or..not.simulations(i)%analysis%isOpen()) then
           if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
           write (label,'(a,i4.4)') 'simulation',i
-          simulations(i)%analysis=galacticusOutputFile%openGroup(label)
+          simulations(i)%analysis=outputFile%openGroup(label)
           call simulations(i)%analysis%writeAttribute(simulations(i)%label,'label')
        end if
     end do

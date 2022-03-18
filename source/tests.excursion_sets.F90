@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -93,7 +93,8 @@ program Tests_Excursion_Sets
        &                                                                                                                       index_                                 =-1.0d0                                                        , &
        &                                                                                                                       running                                =+0.0d0                                                        , &
        &                                                                                                                       runningRunning                         =+0.0d0                                                        , &
-       &                                                                                                                       wavenumberReference                    =+1.0d0                                                          &
+       &                                                                                                                       wavenumberReference                    =+1.0d0                                                        , &
+       &                                                                                                                       runningSmallScalesOnly                 =.false.                                                         &
        &                                                                                                                      )
   transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
        &                                                                                                                       time                                   =13.8d0                                                          &

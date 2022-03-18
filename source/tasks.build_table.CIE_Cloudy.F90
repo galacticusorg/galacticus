@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,7 +49,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath , pathTypeDataDynamic
+    use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (taskBuildTableCIECloudy)                :: self
@@ -62,13 +62,13 @@ contains
     <inputParameter>
       <name>fileNameCoolingFunction</name>
       <description>The file name to which the cooling function table should be stored.</description>
-      <defaultValue>galacticusPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
+      <defaultValue>inputPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>fileNameChemicalState</name>
       <description>The file name to which the chemical state table should be stored.</description>
-      <defaultValue>galacticusPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
+      <defaultValue>inputPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -112,7 +112,7 @@ contains
     Builds the tabulation.
     !!}
     use :: Display              , only : displayIndent                , displayMessage, displayUnindent
-    use :: Galacticus_Error     , only : errorStatusSuccess
+    use :: Error     , only : errorStatusSuccess
     use :: Interfaces_Cloudy_CIE, only : Interface_Cloudy_CIE_Tabulate
     implicit none
     class  (taskBuildTableCIECloudy), intent(inout), target   :: self

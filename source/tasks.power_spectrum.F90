@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -225,16 +225,16 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use            :: Display                         , only : displayIndent       , displayUnindent
-    use            :: Galacticus_Error                , only : errorStatusSuccess
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Display                         , only : displayIndent     , displayUnindent
+    use            :: Error                           , only : errorStatusSuccess
+    use            :: Output_HDF5                     , only : outputFile
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : allocateArray
-    use            :: Numerical_Constants_Astronomical, only : massSolar           , megaParsec
+    use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15   , integrator
-    use            :: Numerical_Ranges                , only : Make_Range          , rangeTypeLogarithmic
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15 , integrator
+    use            :: Numerical_Ranges                , only : Make_Range        , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskPowerSpectra          ), intent(inout), target         :: self
@@ -320,10 +320,10 @@ contains
     end do
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing power spectrum data.'              )
-       outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       containerGroup=outputFile    %openGroup(char(self%outputGroup),'Group containing power spectrum data.'              )
+       outputsGroup  =containerGroup%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Iterate over output times and output data.
     do iOutput=1,outputCount

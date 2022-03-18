@@ -17,10 +17,10 @@ use Storable;
 # Andrew Benson (06-February-2020)
 
 # Get the name of the executable to compute source digests for.
-die("Usage: sourceDigests.pl <sourceDirectory> <executable>")
+die("Usage: sourceDigests.pl <sourceDirectory> <target>")
     unless ( scalar(@ARGV) == 2 );
 my $sourceDirectoryName = $ARGV[0];
-my $executableName      = $ARGV[1];
+my $targetName          = $ARGV[1];
 # Include files to exclude from MD5 construction:
 #  fftw3.f03 is part of the FFTW3 library, so not relevant to us;
 #  galacticus.output.build.environment.inc - contains compiler information so can change depending on, e.g. MPI vs. non-MPI build
@@ -49,10 +49,10 @@ if ( exists($stateStorables->{'functionClassTypes'}->{'name'}) ) {
     push(@allowedNames,sort(keys(%{$stateStorables->{'functionClassTypes'}          })));
 }
 # Build a list of object file dependencies.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executableName) =~ s/\.exe/\.d/;
+(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$targetName) =~ s/\.(exe|o)$/\.d/;
 my @objectFiles = map { $_ =~ /^$ENV{'BUILDPATH'}\/(.+\.o)$/ ? $1 : () } read_file($dependencyFileName, chomp => 1);
 # Initialize structure to hold record of parameters from each source file.
-(my $blobFileName = $executableName) =~ s/\.exe/.md5.blob/;
+(my $blobFileName = $targetName) =~ s/\.(exe|o)$/.md5.blob/;
 my $digestsPerFile;
 my $havePerFile = -e $ENV{'BUILDPATH'}."/".$blobFileName;
 my $updateTime;
@@ -220,7 +220,7 @@ while ( ! $resolved ) {
 # Output the per file digest data.
 store($digestsPerFile,$ENV{'BUILDPATH'}."/".$blobFileName);
 # Output the results.
-(my $outputFileName = $executableName) =~ s/\.exe/.md5s.c/;
+(my $outputFileName = $targetName) =~ s/\.(exe|o)$/.md5s.c/;
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/".$outputFileName);
 foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
     print $outputFile "char ".$hashName."MD5[]=\"".$digestsPerFile->{'types'}->{$hashName}->{'compositeMD5'}."\";\n"

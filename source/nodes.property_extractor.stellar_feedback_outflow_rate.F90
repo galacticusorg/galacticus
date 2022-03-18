@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,19 +64,6 @@
      module procedure stellarFeedbackOutflowRateConstructorInternal
   end interface nodePropertyExtractorStellarFeedbackOutflowRate
 
-  ! Enumerations for galactic components.
-  !![
-  <enumeration>
-   <name>galacticComponent</name>
-   <description>Specifies the galactic component for star formation rate calculations.</description>
-   <visibility>private</visibility>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="disk"    />
-   <entry label="spheroid"/>
-   <entry label="total"   />
-  </enumeration>
-  !!]
-
 contains
 
   function stellarFeedbackOutflowRateConstructorParameters(parameters) result(self)
@@ -119,7 +106,7 @@ contains
     !!{
     Internal constructor for the ``stellarFeedbackOutflowRate'' property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (nodePropertyExtractorStellarFeedbackOutflowRate)                        :: self
     integer                                                 , intent(in   )         :: component
@@ -142,7 +129,7 @@ contains
        self%name_       ="spheroidStellarFeedbackOutflowRate"
        self%description_="Spheroid stellar feedback-driven outflow rate [M☉ Gyr⁻¹]."
     case default
-       call Galacticus_Error_Report('Unknown component.'//{introspection:location})
+       call Error_Report('Unknown component.'//{introspection:location})
     end select
     return
   end function stellarFeedbackOutflowRateConstructorInternal
@@ -167,9 +154,8 @@ contains
     !!{
     Implement an emission line output analysis property extractor.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Abundances_Structure          , only : abundances
-    use :: Galacticus_Nodes              , only : nodeComponentDisk      , nodeComponentSpheroid
+    use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentSpheroid
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none

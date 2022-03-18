@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -192,8 +192,8 @@ contains
     !!{
     Returns the index of the output given the corresponding time.
     !!}
-    use :: Arrays_Search       , only : searchArray           , searchArrayClosest
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Arrays_Search       , only : searchArray  , searchArrayClosest
+    use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     integer         (c_size_t       )                          :: listIndex
@@ -206,7 +206,7 @@ contains
     else
        listIndex=searchArray            (self%times,time)
        if (Values_Differ(time,self%times(listIndex),relTol=1.0d-6)) &
-            & call Galacticus_Error_Report('time does not correspond to an output'//{introspection:location})
+            & call Error_Report('time does not correspond to an output'//{introspection:location})
     end if
     return
   end function listIndex
@@ -246,10 +246,10 @@ contains
     class           (outputTimesList), intent(inout) :: self
     double precision                 , intent(in   ) :: timeCurrent
 
-    if      (timeCurrent > self%times(size(self%times))) then
+    if      (timeCurrent >  self%times(size(self%times))) then
        ! If the current time exceeds the last output, return the last output.
        listTimePrevious=self%times(size(self%times))
-    else if (timeCurrent < self%times(          1)) then
+    else if (timeCurrent <= self%times(               1)) then
        ! If the current time preceeds the first output, return an unphysical value.
        listTimePrevious=-1.0d0
     else

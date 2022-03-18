@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,6 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  use :: Hashes, only : doubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
@@ -34,12 +36,14 @@
        <method method="name"        description="Return the name of the property extracted."                       />
        <method method="description" description="Return a description of the property extracted."                  />
        <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
+       <method method="metaData"    description="Populate a hash with meta-data for the property."                 />
      </methods>
      !!]
      procedure(scalarExtract  ), deferred :: extract
      procedure(scalarName     ), deferred :: name
      procedure(scalarName     ), deferred :: description
      procedure(scalarUnitsInSI), deferred :: unitsInSI
+     procedure                            :: metaData    => scalarMetaData
   end type nodePropertyExtractorScalar
 
   abstract interface
@@ -74,3 +78,17 @@
        class(nodePropertyExtractorScalar), intent(inout) :: self
      end function scalarUnitsInSI
   end interface
+
+contains
+  
+  subroutine scalarMetaData(self,metaData)
+    !!{
+    Interface for scalar property meta-data.
+    !!}
+    implicit none
+    class(nodePropertyExtractorScalar), intent(inout) :: self
+    type (doubleHash                 ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, metaData
+    
+    return
+  end subroutine scalarMetaData

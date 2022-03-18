@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -126,37 +126,37 @@ contains
     !!{
     Return the inverse of a negative exponential distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (distributionFunction1DNegativeExponential), intent(inout), target :: self
     double precision                                           , intent(in   )         :: p
     double precision                                           , parameter             :: pTiny=1.0d-6
 
-    if      (                                                    &
-         &    p < 0.0d0                                          &
-         &   .or.                                                &
-         &    p > 1.0d0                                          &
+    if      (                                         &
+         &    p < 0.0d0                               &
+         &   .or.                                     &
+         &    p > 1.0d0                               &
          &  ) then
        negativeExponentialInverse=+0.0d0
-       call Galacticus_Error_Report(                             &
-            &                       'probability out of range'// &
-            &                       {introspection:location}     &
-            &                      )
-    else if (                                                    &
-         &    p > pTiny                                          &
+       call Error_Report(                             &
+            &            'probability out of range'// &
+            &            {introspection:location}     &
+            &           )
+    else if (                                         &
+         &    p > pTiny                               &
          &  ) then
-       negativeExponentialInverse=-log(                          &
-            &                          +1.0d0                    &
-            &                          -p                        &
-            &                         )                          &
+       negativeExponentialInverse=-log(               &
+            &                          +1.0d0         &
+            &                          -p             &
+            &                         )               &
             &                     /self%rate
     else
-       negativeExponentialInverse=+(                             &
-            &                       +p**1/1.0d0                  &
-            &                       +p**2/2.0d0                  &
-            &                       +p**3/3.0d0                  &
-            &                       +p**4/4.0d0                  &
-            &                      )                             &
+       negativeExponentialInverse=+(                  &
+            &                       +p**1/1.0d0       &
+            &                       +p**2/2.0d0       &
+            &                       +p**3/3.0d0       &
+            &                       +p**4/4.0d0       &
+            &                      )                  &
             &                     /self%rate
     end if
     return

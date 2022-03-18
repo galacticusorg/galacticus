@@ -17,7 +17,7 @@ system("mkdir -p outputs/test-star-formation-histories-adapative");
 &System::Redirect::tofile("cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml","outputs/test-star-formation-histories-adapative/galacticus.log");
 
 # Check for failed models.
-system("grep -q -i -e fatal -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log");
+system("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log");
 if ( $? == 0 ) {
     print "FAILED: model run:\n";
     system("cat outputs/test-star-formation-histories-adapative/galacticus.log");

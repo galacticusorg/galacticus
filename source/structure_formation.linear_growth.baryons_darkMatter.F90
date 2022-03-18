@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,11 +45,11 @@
      of radiation perturbations.
      !!}
      private
-     logical                                                    :: tableInitialized
-     double precision                                           :: tableTimeMinimum                          , tableTimeMaximum      , &
-          &                                                        tableWavenumberMinimum                    , tableWavenumberMaximum, &
-          &                                                        fractionDarkMatter                        , fractionBaryons       , &
-          &                                                        normalizationMatterDominated              , redshiftInitial       , &
+     logical                                                    :: tableInitialized                 =  .false.
+     double precision                                           :: tableTimeMinimum                           , tableTimeMaximum      , &
+          &                                                        tableWavenumberMinimum                     , tableWavenumberMaximum, &
+          &                                                        fractionDarkMatter                         , fractionBaryons       , &
+          &                                                        normalizationMatterDominated               , redshiftInitial       , &
           &                                                        redshiftInitialDelta
      integer                                                    :: cambCountPerDecade
      type            (table2DLogLogLin               )          :: growthFactor
@@ -159,9 +159,9 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
     !!}
-    use :: File_Utilities  , only : Directory_Make         , File_Path
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataDynamic
+    use :: File_Utilities, only : Directory_Make, File_Path
+    use :: Error         , only : Error_Report
+    use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                           :: self
     double precision                                          , intent(in   ) :: redshiftInitial          , redshiftInitialDelta
@@ -186,7 +186,7 @@ contains
        if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-baryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
     end if
     ! Validate initial redshifts.
-    if (redshiftInitialDelta > redshiftInitial) call Galacticus_Error_Report('[redshiftInitialDelta] ≤ [redshiftInitial] is required'//{introspection:location})
+    if (redshiftInitialDelta > redshiftInitial) call Error_Report('[redshiftInitialDelta] ≤ [redshiftInitial] is required'//{introspection:location})
     ! Compute dark matter and baryon fractions.
     self%fractionDarkMatter=(+self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()
     self%fractionBaryons   =(                                        +self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()
@@ -201,7 +201,7 @@ contains
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
     self%normalizationMatterDominated=+self%linearGrowthCollisionlessMatter_%value(timeNow,normalize=normalizeMatterDominated) &
          &                            /self%linearGrowthCollisionlessMatter_%value(timeNow                                   )
-    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
          &                      'largeScaleStructure/'                           // &
          &                      self%objectType      (                          )// &
          &                      '_'                                              // &
@@ -234,7 +234,7 @@ contains
     $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
     !!}
     use    :: File_Utilities       , only : File_Lock                       , File_Unlock
-    use    :: Galacticus_Error     , only : Galacticus_Error_Report
+    use    :: Error                , only : Error_Report
     use    :: Interface_GSL        , only : GSL_Success
     use    :: Interfaces_CAMB      , only : Interface_CAMB_Transfer_Function
     use    :: Numerical_ODE_Solvers, only : odeSolver
@@ -278,15 +278,15 @@ contains
             &              -self%redshiftInitialDelta
        timesInitial    (1)=+self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(1)))
        timesInitial    (2)=+self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(2)))
-       if (time        < timesInitial(1)) call Galacticus_Error_Report('requested epoch is before the chosen initial epoch'//{introspection:location})
-       if (timePresent < timesInitial(1)) call Galacticus_Error_Report('present epoch is before the chosen initial epoch'  //{introspection:location})
+       if (time        < timesInitial(1)) call Error_Report('requested epoch is before the chosen initial epoch'//{introspection:location})
+       if (timePresent < timesInitial(1)) call Error_Report('present epoch is before the chosen initial epoch'  //{introspection:location})
        ! Find minimum and maximum times to tabulate.
        self%tableTimeMinimum=timesInitial(1)
        self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,2.0d0*time))
        timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-          if (self%tableTimeMinimum > timeBigCrunch) call Galacticus_Error_Report('Big Crunch occurs before the chosen initial epoch'//{introspection:location})
+          if (self%tableTimeMinimum > timeBigCrunch) call Error_Report('Big Crunch occurs before the chosen initial epoch'//{introspection:location})
           if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-baryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
        end if
        ! Find minimum and maximum wavenumbers to tabulate.
@@ -634,10 +634,10 @@ contains
     !!{
     Write tabulated data on linear growth factor to file.
     !!}
-    use :: Display, only : displayMessage, verbosityLevelWorking
-    use :: HDF5   , only : hsize_t
+    use :: Display    , only : displayMessage, verbosityLevelWorking
+    use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
     type (hdf5Object                   )                :: dataFile

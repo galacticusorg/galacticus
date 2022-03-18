@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,6 +63,7 @@
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
+     logical                                                :: initialized                   =.false., nodeComponentsInitialized=.false.
    contains
      !![
      <methods>
@@ -107,7 +108,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
     implicit none
@@ -142,6 +142,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>walltimeMaximum</name>
@@ -241,6 +242,7 @@ contains
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
+    self%initialized=.true.
     return
   end function evolveForestsConstructorInternal
 
@@ -308,6 +310,7 @@ contains
     implicit none
     type(taskEvolveForests), intent(inout) :: self
 
+    if (.not.self%initialized) return
     !![
     <objectDestructor name="self%mergerTreeConstructor_" />
     <objectDestructor name="self%mergerTreeOperator_"    />
@@ -319,9 +322,9 @@ contains
     <objectDestructor name="self%mergerTreeOutputter_"   />
     <objectDestructor name="self%mergerTreeInitializor_" />
     !!]
-    call stateStoreEvent  %detach(self,evolveForestsStateStore  )
-    call stateRestoreEvent%detach(self,evolveForestsStateRestore)
-    call Node_Components_Uninitialize()
+    if (stateStoreEvent  %isAttached(self,evolveForestsStateStore  )) call stateStoreEvent  %detach(self,evolveForestsStateStore  )
+    if (stateRestoreEvent%isAttached(self,evolveForestsStateRestore)) call stateRestoreEvent%detach(self,evolveForestsStateRestore)
+    if (self%nodeComponentsInitialized)                               call Node_Components_Uninitialize()
     return
   end subroutine evolveForestsDestructor
 
@@ -329,24 +332,23 @@ contains
     !!{
     Evolves the complete set of merger trees as specified.
     !!}
-    use               :: Display                             , only : displayIndent                      , displayMessage                     , displayUnindent, verbosityLevelInfo
-    use               :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
-    use               :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-    use               :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , treeNode       , universe          , &
-          &                                                           universeEvent
-    use   , intrinsic :: ISO_C_Binding                       , only : c_size_t
-    use               :: Memory_Management                   , only : Memory_Usage_Record                , memoryTypeNodes
-    use               :: Merger_Tree_Walkers                 , only : mergerTreeWalkerAllNodes           , mergerTreeWalkerIsolatedNodes
-    use               :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize
-    use               :: Node_Events_Inter_Tree              , only : Inter_Tree_Event_Post_Evolve
-    !$ use            :: OMP_Lib                             , only : OMP_Destroy_Lock                   , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
-    use               :: Sorting                             , only : sortIndex
-    use               :: String_Handling                     , only : operator(//)
+    use               :: Display               , only : displayIndent                    , displayMessage                     , displayUnindent, verbosityLevelInfo
+    use               :: Error                 , only : Error_Report                     , errorStatusSuccess
+    use               :: Galacticus_Nodes      , only : mergerTree                       , nodeComponentBasic                 , treeNode       , universe          , &
+          &                                             universeEvent
+    use   , intrinsic :: ISO_C_Binding         , only : c_size_t
+    use               :: Memory_Management     , only : Memory_Usage_Record              , Memory_Usage_Report                , memoryTypeNodes
+    use               :: Merger_Tree_Walkers   , only : mergerTreeWalkerAllNodes         , mergerTreeWalkerIsolatedNodes
+    use               :: Node_Components       , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use               :: Node_Events_Inter_Tree, only : Inter_Tree_Event_Post_Evolve
+    !$ use            :: OMP_Lib               , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
+    use               :: Sorting               , only : sortIndex
+    use               :: String_Handling       , only : operator(//)
     ! Include modules needed for tasks.
     !![
     <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     !!]
-    include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
+    include 'tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
     !![
     </include>
     !!]
@@ -373,8 +375,8 @@ contains
     type            (mergerTreeWalkerAllNodes     )                           , save :: treeWalkerAll
     !$omp threadprivate(currentTree,previousTree,treeWalkerAll)
     type            (treeNode                     ), pointer                  , save :: satelliteNode
-    class           (nodeComponentBasic           ), pointer                  , save :: baseNodeBasic
-    !$omp threadprivate(satelliteNode,baseNodeBasic,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
+    class           (nodeComponentBasic           ), pointer                  , save :: basicNodeBase
+    !$omp threadprivate(satelliteNode,basicNodeBase,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
     type            (universeEvent                ), pointer                  , save :: event_
     !$omp threadprivate(event_)
     ! Variables used in processing individual forests in parallel.
@@ -472,6 +474,7 @@ contains
     !$omp barrier
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
+       call Memory_Usage_Report()
        ! For single forest evolution, only the master thread should retrieve a merger tree.
        singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
           ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
@@ -510,18 +513,18 @@ contains
           singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
              ! If this is a new tree, perform any pre-evolution tasks on it.
              if (treeIsNew) then
-                call evolveForestsNodeOperator_      %nodeTreeInitialize (tree%baseNode)
+                call evolveForestsNodeOperator_      %nodeTreeInitialize (tree%nodeBase)
                 call evolveForestsMergerTreeOperator_%operatePreEvolution(tree         )
                 message="Evolving tree number "
              else
                 message="Resuming tree number "
              end if
              ! Display a message.
-             message=message//tree%index//" {"//tree%baseNode%index()//"}"
+             message=message//tree%index//" {"//tree%nodeBase%index()//"}"
              call displayIndent(message)
              ! Determine if this will be the final forest evolved by multiple threads.
              if (self%evolveSingleForest) then
-                basic =>tree%baseNode%basic()
+                basic =>tree%nodeBase%basic()
                 if (basic%mass() < self%evolveSingleForestMassMinimum) disableSingleForestEvolution=.true.
              end if
              ! Get the next time to which the tree should be evolved.
@@ -605,7 +608,7 @@ contains
                                !![
                                <referenceCountIncrement owner="branchNew%branch" object="randomNumberGenerator_"/>
                                !!]
-                               branchNew%branch%baseNode   => node
+                               branchNew%branch%nodeBase   => node
                                branchNew       %nodeParent => node%parent
                                node            %hostTree   => branchNew%branch
                                if (associated(branchList_)) then
@@ -626,16 +629,16 @@ contains
                          countBranch =  0
                          do while (associated(branchNew))
                             countBranch             =  countBranch                        +1
-                            basic                   => branchNew  %branch%baseNode%basic()
+                            basic                   => branchNew  %branch%nodeBase%basic()
                             massBranch(countBranch) =  basic                      %mass ()
                             branchNew               => branchNew                  %next
                          end do
                          rankBranch=sortIndex(massBranch)
                          ! Process trees.
                          currentTree => tree
-                         if (associated(currentTree%baseNode)) then
+                         if (associated(currentTree%nodeBase)) then
                             do while (associated(currentTree))
-                               basic => currentTree%baseNode%basic()
+                               basic => currentTree%nodeBase%basic()
                                call evolveForestsMergerTreeInitializor_%initialize(currentTree,basic%time())
                                currentTree => currentTree%nextTree
                             end do
@@ -661,8 +664,8 @@ contains
                          do i=1,rankBranch(countBranch+1-iBranch)-1
                             branchNew => branchNew%next
                          end do
-                         branchNew%branch%baseNode%parent =>                           null ()
-                         basic                            => branchNew%branch%baseNode%basic()
+                         branchNew%branch%nodeBase%parent =>                           null ()
+                         basic                            => branchNew%branch%nodeBase%basic()
                          call evolveForestsMergerTreeEvolver_%evolve(                                        &
                               &                                          branchNew    %branch              , &
                               &                                      min(                                    &
@@ -688,9 +691,9 @@ contains
                       ! Clean up.
                       branchNew => branchList_
                       do while (associated(branchNew))
-                         branchNew%branch%baseNode%hostTree => branchNew%nodeParent%hostTree
-                         branchNew%branch%baseNode%parent   => branchNew%nodeParent
-                         branchNew%branch%baseNode          => null()
+                         branchNew%branch%nodeBase%hostTree => branchNew%nodeParent%hostTree
+                         branchNew%branch%nodeBase%parent   => branchNew%nodeParent
+                         branchNew%branch%nodeBase          => null()
                          call branchNew%branch%destroy()
                          branchNext => branchNew%next
                          deallocate(branchNew)
@@ -728,14 +731,14 @@ contains
                 currentTree  => tree
                 do while (associated(currentTree))
                    ! Skip empty trees.
-                   if (associated(currentTree%baseNode)) then
-                      baseNodeBasic => currentTree%baseNode%basic()
-                      removeTree    =   .not.associated(currentTree%baseNode%firstChild) &
+                   if (associated(currentTree%nodeBase)) then
+                      basicNodeBase => currentTree%nodeBase%basic()
+                      removeTree    =   .not.associated(currentTree%nodeBase%firstChild) &
                            &           .and.                                             &
-                           &            (baseNodeBasic%time() < evolveToTime)
+                           &            (basicNodeBase%time() < evolveToTime)
                       if (removeTree) then
                          ! Does the node have attached satellites which are about to merge?
-                         satelliteNode => currentTree%baseNode%firstSatellite
+                         satelliteNode => currentTree%nodeBase%firstSatellite
                          do while (associated(satelliteNode))
                             if (associated(satelliteNode%mergeTarget)) then
                                removeTree=.false.
@@ -744,7 +747,7 @@ contains
                             satelliteNode => satelliteNode%sibling
                          end do
                          ! Does the node have attached events?
-                         if (associated(currentTree%baseNode%event)) removeTree=.false.
+                         if (associated(currentTree%nodeBase%event)) removeTree=.false.
                       end if
                    else
                       ! No need to remove already empty trees.
@@ -752,7 +755,7 @@ contains
                    end if
                    if (removeTree) then
                       message="Removing remnant tree "
-                      message=message//currentTree%index//" {"//currentTree%baseNode%index()//"}"
+                      message=message//currentTree%index//" {"//currentTree%nodeBase%index()//"}"
                       call displayMessage(message,verbosityLevelInfo)
                       if (.not.associated(previousTree)) then
                          nextTree    => currentTree%nextTree
@@ -780,10 +783,10 @@ contains
                      &   .not.evolutionIsEventLimited    &
                      & ) then
                    if (deadlockReport) exit
-                   call Galacticus_Error_Report(                                           &
-                        &                       'failed to evolve tree to required time'// &
-                        &                       {introspection:location}                   &
-                        &                      )
+                   call Error_Report(                                           &
+                        &            'failed to evolve tree to required time'// &
+                        &            {introspection:location}                   &
+                        &           )
                 end if
                 ! Determine what limited evolution.
                 if (evolutionIsEventLimited) then
@@ -902,7 +905,7 @@ contains
                    !$omp end critical(universeTransform)
                    call displayMessage(message)
                    call Inter_Tree_Event_Post_Evolve()
-                   call Galacticus_Error_Report('exiting'//{introspection:location})
+                   call Error_Report('exiting'//{introspection:location})
                 else
                    deadlockReport=.true.
                 end if
@@ -917,7 +920,7 @@ contains
                 event_ => self%universeWaiting%event
                 do while (associated(event_))
                    if (event_%time < universalEvolveToTime) then
-                      call Galacticus_Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
+                      call Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
                    else if (event_%time == universalEvolveToTime) then
                       success=event_%task(self%universeWaiting)
                       if (success) call self%universeWaiting%removeEvent(event_)
@@ -964,7 +967,6 @@ contains
     call evolveForestsMergerTreeOutputter_%reduce  (self%mergerTreeOutputter_)
     ! Explicitly deallocate objects.
     call Node_Components_Thread_Uninitialize()
-    call Galacticus_Function_Classes_Destroy()
     !![
     <objectDestructor name="evolveForestsMergerTreeOutputter_"  />
     <objectDestructor name="evolveForestsMergerTreeInitializor_"/>
@@ -984,7 +986,7 @@ contains
     !![
     <include directive="universePostEvolveTask" type="functionCall" functionType="void">
     !!]
-    include 'galacticus.tasks.evolve_tree.universePostEvolveTask.inc'
+    include 'tasks.evolve_tree.universePostEvolveTask.inc'
     !![
     </include>
     !!]
@@ -999,9 +1001,9 @@ contains
     Suspend processing of a tree.
     !!}
 #ifdef USEMPI
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
 #endif
-    use :: ISO_Varying_String      , only : operator(//)           , varying_string
+    use :: ISO_Varying_String      , only : operator(//)        , varying_string
     use :: Kind_Numbers            , only : kind_int8
     use :: Merger_Tree_Construction, only : mergerTreeStateStore
     use :: String_Handling         , only : operator(//)
@@ -1009,18 +1011,18 @@ contains
     class  (taskEvolveForests)         , intent(inout) :: self
     type   (mergerTree       ), pointer, intent(inout) :: tree
     type   (mergerTree       ), pointer                :: treeCurrent     , branchNext
-    integer(kind_int8        )                         :: baseNodeUniqueID
+    integer(kind_int8        )                         :: uniqueIDNodeBase
     type   (varying_string   )                         :: fileName
 
 #ifdef USEMPI
-    call Galacticus_Error_Report('suspending trees is not supported under MPI'//{introspection:location})
+    call Error_Report('suspending trees is not supported under MPI'//{introspection:location})
 #endif
     ! If the tree is to be suspended to file do so now.
     if (.not.self%suspendToRAM) then
        ! Make a copy of the unique ID of the base node.
-       baseNodeUniqueID=tree%baseNode%uniqueID()
+       uniqueIDNodeBase=tree%nodeBase%uniqueID()
        ! Generate a suitable file name.
-       fileName=self%suspendPath//'/suspendedTree_'//baseNodeUniqueID
+       fileName=self%suspendPath//'/suspendedTree_'//uniqueIDNodeBase
        ! Store the tree to file.
        call mergerTreeStateStore(tree,char(fileName),snapshot=.false.,append=.false.)
        ! Destroy the tree(s).
@@ -1031,7 +1033,7 @@ contains
           treeCurrent => branchNext
        end do
        ! Set the tree index to the base node unique ID so that we can resume from the correct file.
-       tree%index=baseNodeUniqueID
+       tree%index=uniqueIDNodeBase
     end if
     !$omp critical(universeTransform)
     call self%universeProcessed%pushTree(tree)

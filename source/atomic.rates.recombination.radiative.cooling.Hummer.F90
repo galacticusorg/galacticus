@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -141,8 +141,8 @@ contains
     !!{
     Returns the cooling rate coefficient.
     !!}
-    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA     , recombinationCaseB
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA, recombinationCaseB
+    use :: Error                               , only : Error_Report
     implicit none
     class           (atomicRecombinationRateRadiativeCoolingHummer), intent(inout)           :: self
     integer                                                        , intent(in   )           :: atomicNumber        , ionizationState
@@ -178,7 +178,7 @@ contains
           sequence_           =+0
           temperatureEffective=+temperature
           scaleFactor         =+1.0d0
-          call Galacticus_Error_Report('expected hydrogen- or helium-like ion'//{introspection:location})
+          call Error_Report('expected hydrogen- or helium-like ion'//{introspection:location})
        end if
        ! Handle zero temperature.
        if (temperatureEffective <= 0.0d0) then
@@ -196,7 +196,7 @@ contains
           hummerRate=+self%coefficientTable(sequence_)%interpolate(temperatureEffective,table=level1)
        case default
           hummerRate=0.0d0
-          call Galacticus_Error_Report('only level 1, case A, and case B recombination is supported'//{introspection:location})
+          call Error_Report('only level 1, case A, and case B recombination is supported'//{introspection:location})
        end select
        ! Scale and divide out the thermal energy.
        hummerRate=+hummerRate                 &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,8 +44,9 @@
      A power-law primordial power spectrum class.
      !!}
      private
-     double precision :: index_        , running            , &
-          &              runningRunning, wavenumberReference
+     double precision :: index_                , running            , &
+          &              runningRunning        , wavenumberReference
+     logical          :: runningSmallScalesOnly
    contains
      procedure :: power                 => powerLawPower
      procedure :: logarithmicDerivative => powerLawLogarithmicDerivative
@@ -65,11 +66,13 @@ contains
     !!{
     Constructor for the ``power-law'' primordial power spectrum class which takes a parameter set as input.
     !!}
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumPrimordialPowerLaw)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
-    double precision                                                 :: index_    , wavenumberReference, &
-         &                                                              running   , runningRunning
+    double precision                                                 :: index_                , wavenumberReference, &
+         &                                                              running               , runningRunning
+    logical                                                          :: runningSmallScalesOnly
 
     !![
     <inputParameter>
@@ -96,28 +99,52 @@ contains
       <name>wavenumberReference</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\normalfont \ttfamily [index]}.</description>
+      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to {\normalfont \ttfamily [index]}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>runningSmallScalesOnly</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If {\normalfont \ttfamily true} then the index runs only for $k > k_\mathrm{ref}$, for smaller $k$ the index is constant.</description>
     </inputParameter>
     !!]
-    self=powerSpectrumPrimordialPowerLaw(index_,running,runningRunning,wavenumberReference)
+    self=powerSpectrumPrimordialPowerLaw(index_,running,runningRunning,wavenumberReference,runningSmallScalesOnly)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function powerLawConstructorParameters
 
-  function powerLawConstructorInternal(index_,running,runningRunning,wavenumberReference) result(self)
+  function powerLawConstructorInternal(index_,running,runningRunning,wavenumberReference,runningSmallScalesOnly) result(self)
     !!{
     Internal constructor for the ``power-law'' primordial power spectrum class.
     !!}
+    use :: Error  , only : Warn
+    use :: Display, only : displayBlue, displayYellow, displayGreen, displayReset
     implicit none
     type            (powerSpectrumPrimordialPowerLaw)                :: self
-    double precision                                 , intent(in   ) :: index_ , wavenumberReference, &
-         &                                                              running, runningRunning
+    double precision                                 , intent(in   ) :: index_                , wavenumberReference, &
+         &                                                              running               , runningRunning
+    logical                                          , intent(in   ) :: runningSmallScalesOnly
     !![
-    <constructorAssign variables="index_, wavenumberReference, running, runningRunning"/>
+    <constructorAssign variables="index_, wavenumberReference, running, runningRunning, runningSmallScalesOnly"/>
     !!]
 
+    if     (                                                                                                                                                                                               &
+         &   (                                                                                                                                                                                             &
+         &     running        > 0.0d0                                                                                                                                                                      &
+         &    .or.                                                                                                                                                                                         &
+         &     runningRunning > 0.0d0                                                                                                                                                                      &
+         &   )                                                                                                                                                                                             &
+         &  .and.                                                                                                                                                                                          &
+         &   .not.runningSmallScalesOnly                                                                                                                                                                   &
+         & )                                                                                                                                                                                               &
+         & call Warn(                                                                                                                                                                                      &
+         &           'primordial power spectra with positive running can lead to divergent σ(M) integrals - if this happens consider setting:'                                                //char(10)// &
+         &           '    <'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>' //char(10)// &
+         &           '      <'//displayBlue()//'runningSmallScalesOnly'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/>'   //char(10)// &
+         &           '    </'//displayBlue()//'powerSpectrumPrimordial'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"powerLaw"'//displayReset()//'>'             &
+         &          )
     return
   end function powerLawConstructorInternal
 
@@ -130,22 +157,26 @@ contains
     double precision                                 , intent(in   ) :: wavenumber
     double precision                                                 :: indexLocal
 
-    indexLocal   =+self%index_                           &
-         &        +1.0d0/2.0d0                           &
-         &        *self%running                          &
-         &        *log(                                  &
-         &             +     wavenumber                  &
-         &             /self%wavenumberReference         &
-         &            )                                  &
-         &        +1.0d0/6.0d0                           &
-         &        *self%runningRunning                   &
-         &        *log(                                  &
-         &             +     wavenumber                  &
-         &             /self%wavenumberReference         &
-         &            )**2
-    powerLawPower=+(                                     &
-         &          +     wavenumber                     &
-         &          /self%wavenumberReference            &
+    if (self%runningSmallScalesOnly .and. wavenumber < self%wavenumberReference) then
+       indexLocal=+self%index_
+    else
+       indexLocal=+self%index_                   &
+            &     +1.0d0/2.0d0                   &
+            &     *self%running                  &
+            &     *log(                          &
+            &          +     wavenumber          &
+            &          /self%wavenumberReference &
+            &         )                          &
+            &     +1.0d0/6.0d0                   &
+            &     *self%runningRunning           &
+            &     *log(                          &
+            &          +     wavenumber          &
+            &          /self%wavenumberReference &
+            &         )**2
+    end if
+    powerLawPower=+(                             &
+         &          +     wavenumber             &
+         &          /self%wavenumberReference    &
          &         )**indexLocal
     return
   end function powerLawPower
@@ -158,17 +189,21 @@ contains
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
     double precision                                 , intent(in   ) :: wavenumber
 
-    powerLawLogarithmicDerivative=+self%index_                   &
-         &                        +self%running                  &
-         &                        *log(                          &
-         &                             +     wavenumber          &
-         &                             /self%wavenumberReference &
-         &                            )                          &
-         &                        +1.0d0/2.0d0                   &
-         &                        *self%runningRunning           &
-         &                        *log(                          &
-         &                             +     wavenumber          &
-         &                             /self%wavenumberReference &
-         &                            )**2
+    if (self%runningSmallScalesOnly .and. wavenumber < self%wavenumberReference) then
+       powerLawLogarithmicDerivative=+self%index_
+    else
+       powerLawLogarithmicDerivative=+self%index_                   &
+            &                        +self%running                  &
+            &                        *log(                          &
+            &                             +     wavenumber          &
+            &                             /self%wavenumberReference &
+            &                            )                          &
+            &                        +1.0d0/2.0d0                   &
+            &                        *self%runningRunning           &
+            &                        *log(                          &
+            &                             +     wavenumber          &
+            &                             /self%wavenumberReference &
+            &                            )**2
+    end if
     return
   end function powerLawLogarithmicDerivative

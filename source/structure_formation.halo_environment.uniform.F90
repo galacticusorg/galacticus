@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,6 +40,7 @@ Contains a module which implements a uniform halo environment.
      procedure :: pdf                           => uniformPDF
      procedure :: cdf                           => uniformCDF
      procedure :: overdensityLinearSet          => uniformOverdensityLinearSet
+     procedure :: overdensityIsSettable         => uniformOverdensityIsSettable
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
@@ -59,9 +60,11 @@ contains
     implicit none
     type(haloEnvironmentUniform)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=haloEnvironmentUniform()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function uniformConstructorParameters
 
@@ -133,14 +136,14 @@ contains
     !!{
     Return the PDF of the environmental overdensity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
     !$GLC attributes unused :: self, overdensity
 
     uniformPDF=0.0d0
-    call Galacticus_Error_Report('PDF is a delta function'//{introspection:location})
+    call Error_Report('PDF is a delta function'//{introspection:location})
     return
   end function uniformPDF
 
@@ -165,14 +168,25 @@ contains
     !!{
     Return the CDF of the environmental overdensity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: overdensity
     !$GLC attributes unused :: self, node
 
-    if (overdensity /= 0.0d0) call Galacticus_Error_Report('non-zero overdensity is inconsistent with uniform density field'//{introspection:location})
+    if (overdensity /= 0.0d0) call Error_Report('non-zero overdensity is inconsistent with uniform density field'//{introspection:location})
     return
   end subroutine uniformOverdensityLinearSet
 
+  logical function uniformOverdensityIsSettable(self)
+    !!{
+    Return false as the overdensity is not settable.
+    !!}
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    uniformOverdensityIsSettable=.false.
+    return
+  end function uniformOverdensityIsSettable

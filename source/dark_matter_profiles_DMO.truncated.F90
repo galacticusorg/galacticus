@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,7 +65,6 @@
      procedure :: radiusFromSpecificAngularMomentum => truncatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => truncatedRotationNormalization
      procedure :: energy                            => truncatedEnergy
-     procedure :: energyGrowthRate                  => truncatedEnergyGrowthRate
      procedure :: kSpace                            => truncatedKSpace
      procedure :: freefallRadius                    => truncatedFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => truncatedFreefallRadiusIncreaseRate
@@ -130,7 +129,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncated)                        :: self
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
@@ -142,7 +141,7 @@ contains
     !!]
 
     ! Validate.
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID       =-1_kind_int8
     self%genericLastUniqueID=-1_kind_int8
     return
@@ -172,7 +171,7 @@ contains
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
-    call calculationResetEvent%detach(self,truncatedCalculationReset)
+    if (calculationResetEvent%isAttached(self,truncatedCalculationReset)) call calculationResetEvent%detach(self,truncatedCalculationReset)
     return
   end subroutine truncatedDestructor
 
@@ -211,7 +210,7 @@ contains
     double precision                                                         :: radiusVirial      , x_
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if      (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
        if (present(x                 )) x                 =+0.0d0
        if (present(multiplier        )) multiplier        =+1.0d0
@@ -307,7 +306,7 @@ contains
     double precision                                                       :: radiusVirial, radiusTruncateMinimum
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%enclosedMassTruncateMinimumPrevious < 0.0d0) then
        self%enclosedMassTruncateMinimumPrevious=self%enclosedMass(node,radiusTruncateMinimum)
@@ -351,7 +350,7 @@ contains
     double precision                                               :: radiusVirial, radiusTruncateMinimum
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusTruncateMinimum) then
        truncatedEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radius                      )
@@ -430,7 +429,7 @@ contains
        truncatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-       radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
        radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
        if (radius >= radiusTruncateMinimum) then
           truncatedRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
@@ -502,22 +501,6 @@ contains
     end if
     return
   end function truncatedEnergy
-
-  double precision function truncatedEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a truncated halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOTruncated), intent(inout)         :: self
-    type (treeNode                     ), intent(inout), target :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       truncatedEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       truncatedEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function truncatedEnergyGrowthRate
 
   double precision function truncatedKSpace(self,node,waveNumber)
     !!{

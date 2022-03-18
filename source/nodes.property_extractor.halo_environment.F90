@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ Contains a module which implements a node property extractor class for halo envi
      A property extractor class for halo environment.
      !!}
      private
-     class(haloEnvironmentClass), pointer :: haloEnvironment_
+     class(haloEnvironmentClass), pointer :: haloEnvironment_ => null()
    contains
      final     ::                 haloEnvironmentDestructor
      procedure :: elementCount => haloEnvironmentElementCount
@@ -135,41 +135,37 @@ contains
     return
   end function haloEnvironmentExtract
 
-  function haloEnvironmentNames(self,time)
+  subroutine haloEnvironmentNames(self,time,names)
     !!{
     Return the name of the {\normalfont \ttfamily haloEnvironment} property.
     !!}
     implicit none
-    type            (varying_string                      ), dimension(:) , allocatable :: haloEnvironmentNames
-    class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
-    double precision                                      , intent(in   )              :: time
+    class           (nodePropertyExtractorHaloEnvironment), intent(inout)                             :: self
+    double precision                                      , intent(in   )                             :: time
+    type            (varying_string                      ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(haloEnvironmentNames(2))
-    haloEnvironmentNames=[                                                &
-         &                var_str('haloEnvironmentOverdensityLinear'   ), &
-         &                var_str('haloEnvironmentOverdensityNonLinear')  &
-         &               ]
+    allocate(names(2))
+    names(1)=var_str('haloEnvironmentOverdensityLinear'   )
+    names(2)=var_str('haloEnvironmentOverdensityNonLinear')
     return
-  end function haloEnvironmentNames
+  end subroutine haloEnvironmentNames
 
-  function haloEnvironmentDescriptions(self,time)
+  subroutine haloEnvironmentDescriptions(self,time,descriptions)
     !!{
     Return a description of the {\normalfont \ttfamily haloEnvironment} property.
     !!}
     implicit none
-    type            (varying_string                      ), dimension(:) , allocatable :: haloEnvironmentDescriptions
-    class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
-    double precision                                      , intent(in   )              :: time
+    class           (nodePropertyExtractorHaloEnvironment), intent(inout)                             :: self
+    double precision                                      , intent(in   )                             :: time
+    type            (varying_string                      ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(haloEnvironmentDescriptions(2))
-    haloEnvironmentDescriptions=[                                                                 &
-         &                       var_str('Environmental linear overdensity of the halo [].'    ), &
-         &                       var_str('Environmental non-linear overdensity of the halo [].')  &
-         &                      ]
+    allocate(descriptions(2))
+    descriptions(1)=var_str('Environmental linear overdensity of the halo [].'    )
+    descriptions(2)=var_str('Environmental non-linear overdensity of the halo [].')
     return
-  end function haloEnvironmentDescriptions
+  end subroutine haloEnvironmentDescriptions
 
   function haloEnvironmentUnitsInSI(self,time)
     !!{

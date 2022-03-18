@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,6 +59,7 @@ contains
     !!{
     Constructor for the instantReionization \gls{igm} state class which takes a parameter set as input.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (intergalacticMediumStateInstantReionization)                :: self
@@ -73,7 +74,7 @@ contains
     ! Check and read parameters.
     haveReionizationRedshift          =parameters%isPresent('reionizationRedshift'          )
     haveElectronScatteringOpticalDepth=parameters%isPresent('electronScatteringOpticalDepth')
-    if (haveReionizationRedshift.and.haveElectronScatteringOpticalDepth) call Galacticus_Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
+    if (haveReionizationRedshift.and.haveElectronScatteringOpticalDepth) call Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
     if (haveElectronScatteringOpticalDepth) then
        !![
        <inputParameter>
@@ -134,8 +135,8 @@ contains
     !!{
     Constructor for the instantReionization \gls{igm} state class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Error      , only : Error_Report
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (intergalacticMediumStateInstantReionization)                          :: self
     class           (cosmologyFunctionsClass                    ), intent(inout), target   :: cosmologyFunctions_
@@ -162,9 +163,9 @@ contains
             &                                                                )
     else if (present(electronScatteringOpticalDepth)) then
        ! Assert that we can not also have a reionization redshift specified.
-       if (present(reionizationRedshift)) call Galacticus_Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
+       if (present(reionizationRedshift)) call Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
        ! Validate optical depth.
-       if (electronScatteringOpticalDepth < 0.0d0) call Galacticus_Error_Report('electron scattering optical depth must be > 0'//{introspection:location})
+       if (electronScatteringOpticalDepth < 0.0d0) call Error_Report('electron scattering optical depth must be > 0'//{introspection:location})
        ! Solve for the redshift of reionization which gives the desired optical depth.
        timePresent          =cosmologyFunctions_ %cosmicTime                 (                               &
             &                 cosmologyFunctions_%expansionFactorFromRedshift (                              &
@@ -197,7 +198,7 @@ contains
        ! reionization epoch.
        self%electronScatteringTableInitialized=.false.
     else
-       call Galacticus_Error_Report('one of [reionizationRedshift] or [electronScatteringOpticalDepth] must be provided'//{introspection:location})
+       call Error_Report('one of [reionizationRedshift] or [electronScatteringOpticalDepth] must be provided'//{introspection:location})
     end if
     ! Compute the expansion factor at reionization.
     self%expansionFactorReionizationLog=log(cosmologyFunctions_%expansionFactor(self%reionizationTime))

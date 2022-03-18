@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -131,9 +131,11 @@ contains
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingFunctionMolecularHydrogenGalliPalla()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function molecularHydrogenGalliPallaConstructorParameters
 
@@ -198,7 +200,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
@@ -211,7 +213,7 @@ contains
     !$GLC attributes unused :: self, node, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
 
     molecularHydrogenGalliPallaCoolingFunctionFractionInBand=0.0d0
-    call Galacticus_Error_Report('fraction in band is not supported'//{introspection:location})
+    call Error_Report('fraction in band is not supported'//{introspection:location})
     return
   end function molecularHydrogenGalliPallaCoolingFunctionFractionInBand
 

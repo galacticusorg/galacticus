@@ -66,7 +66,7 @@ contains
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
     type            (transferFunctionHu2000FDM)                :: self
@@ -78,7 +78,7 @@ contains
     double precision                                           :: redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunctionMethod')) call Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -108,7 +108,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily hu2000} transfer function class.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -130,10 +130,10 @@ contains
                &                 /1.0d-22
           self%jeansWavenumberEq=9.00d0*sqrt(self%m22)
        else
-          call Galacticus_Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
+          call Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
        end if
     class default
-       call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
@@ -215,10 +215,10 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionHu2000FDM), intent(inout)           :: self
+    class           (transferFunctionHu2000FDM), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
     double precision                                                     :: matterDensity, wavenumberHalfMode
 

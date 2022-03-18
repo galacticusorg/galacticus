@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,7 +143,7 @@ contains
     use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
     use :: Array_Utilities              , only : operator(.intersection.)
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Error                        , only : Component_List           , Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     implicit none
     type (coolingRadiusIsothermal       )                        :: self
@@ -169,28 +169,28 @@ contains
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     !!]
     ! Check that required components are gettable.
-    if     (                                                                                                                        &
-         &  .not.(                                                                                                                  &
-         &         defaultHotHaloComponent%       massIsGettable() .and.                                                            &
-         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                            &
-         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                            &
-         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                                  &
-         &       )                                                                                                                  &
-         & ) call Galacticus_Error_Report                                                                                           &
-         & (                                                                                                                        &
-         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                                 &
-         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                                 &
-         &  Galacticus_Component_List(                                                                                              &
-         &                            'hotHalo'                                                                                  ,  &
-         &                             defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
-         &                            .intersection.                                                                                &
-         &                             defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
-         &                            .intersection.                                                                                &
-         &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
-         &                            .intersection.                                                                                &
-         &                             defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
-         &                           )                                                                                           // &
-         &  {introspection:location}                                                                                                &
+    if     (                                                                                                             &
+         &  .not.(                                                                                                       &
+         &         defaultHotHaloComponent%       massIsGettable() .and.                                                 &
+         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                 &
+         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                 &
+         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                       &
+         &       )                                                                                                       &
+         & ) call Error_Report                                                                                           &
+         & (                                                                                                             &
+         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                      &
+         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                      &
+         &  Component_List(                                                                                              &
+         &                 'hotHalo'                                                                                  ,  &
+         &                  defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
+         &                 .intersection.                                                                                &
+         &                  defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
+         &                 .intersection.                                                                                &
+         &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
+         &                 .intersection.                                                                                &
+         &                  defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
+         &                )                                                                                           // &
+         &  {introspection:location}                                                                                     &
          & )
     return
   end function isothermalConstructorInternal
@@ -224,7 +224,7 @@ contains
     <objectDestructor name="self%hotHaloMassDistribution_"  />
     <objectDestructor name="self%radiation"                 />
     !!]
-    call calculationResetEvent%detach(self,isothermalCalculationReset)
+    if (calculationResetEvent%isAttached(self,isothermalCalculationReset)) call calculationResetEvent%detach(self,isothermalCalculationReset)
     return
   end subroutine isothermalDestructor
 
@@ -259,7 +259,7 @@ contains
       ! Get the cooling radius.
        radiusCooling=self                     %      radius(node)
        ! Get the virial radius.
-       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
        ! Check if cooling radius has reached virial radius.
        if (radiusCooling >= radiusVirial) then
           self%radiusGrowthRateStored=0.0d0
@@ -313,7 +313,7 @@ contains
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
        end if
@@ -321,7 +321,7 @@ contains
        basic => node%basic()
        call self%radiation%timeSet(basic%time())
        ! Get the virial radius.
-       radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        ! Compute density, temperature and abundances.
        density     =self%hotHaloMassDistribution_  %density    (node,radiusVirial)
        temperature =self%hotHaloTemperatureProfile_%temperature(node,radiusVirial)

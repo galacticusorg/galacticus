@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -91,7 +91,7 @@ contains
     !!{
     Constructor for ``binomial'' 1D distribution function class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (distributionFunctionDiscrete1DBinomial)                                  :: self
     double precision                                        , intent(in   )                   :: probabilitySuccess
@@ -103,8 +103,8 @@ contains
     <constructorAssign variables="probabilitySuccess, countTrials, *randomNumberGenerator_"/>
     !!]
 
-    if (probabilitySuccess <  0.0d0 .or. probabilitySuccess > 1.0d0) call Galacticus_Error_Report('p ∈ [0,1]'//{introspection:location})
-    if (countTrials        <= 0                                    ) call Galacticus_Error_Report('n ∈ [1,∞]'//{introspection:location})
+    if (probabilitySuccess <  0.0d0 .or. probabilitySuccess > 1.0d0) call Error_Report('p ∈ [0,1]'//{introspection:location})
+    if (countTrials        <= 0                                    ) call Error_Report('n ∈ [1,∞]'//{introspection:location})
     ! Build the cumulative distribution.
     allocate(self%probabilityCumulative(0:countTrials))
     do i=0,countTrials
@@ -112,7 +112,7 @@ contains
        if (i > 0) self%probabilityCumulative(i)=+self%probabilityCumulative(i  ) &
             &                                   +self%probabilityCumulative(i-1)
     end do
-    if (self%probabilityCumulative(countTrials) < 1.0-tolerance) call Galacticus_Error_Report('CDF(n) < 1'//{introspection:location})
+    if (self%probabilityCumulative(countTrials) < 1.0-tolerance) call Error_Report('CDF(n) < 1'//{introspection:location})
     self%probabilityCumulative(countTrials)=1.0d0
     return
   end function binomialConstructorInternal
@@ -121,13 +121,13 @@ contains
     !!{
     Return the mass of a binomial discrete distribution.
     !!}
-    use :: Factorials      , only : Factorial
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Factorials, only : Factorial
+    use :: Error     , only : Error_Report
     implicit none
     class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     integer                                        , intent(in   ) :: x
 
-    if (x < 0 .or. x > self%countTrials) call Galacticus_Error_Report('k∈[0,n]'//{introspection:location})
+    if (x < 0 .or. x > self%countTrials) call Error_Report('k∈[0,n]'//{introspection:location})
     binomialMass=+            Factorial            (self%countTrials  ) &
          &       /            Factorial            (                 x) &
          &       /            Factorial            (self%countTrials-x) &
@@ -152,12 +152,12 @@ contains
     !!{
     Return the cumulative probability of a binomial discrete distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     integer                                        , intent(in   ) :: x
 
-    if (x < 0 .or. x > self%countTrials) call Galacticus_Error_Report('k∈[0,n]'//{introspection:location})
+    if (x < 0 .or. x > self%countTrials) call Error_Report('k∈[0,n]'//{introspection:location})
     binomialCumulative=self%probabilityCumulative(x)
     return
   end function binomialCumulative
@@ -166,12 +166,12 @@ contains
     !!{
     Return the inverse of a binomial discrete distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     double precision                                        , intent(in   ) :: p
 
-    if (p < 0.0d0 .or. p > 1.0d0) call Galacticus_Error_Report('p∈[0,1]'//{introspection:location})
+    if (p < 0.0d0 .or. p > 1.0d0) call Error_Report('p∈[0,1]'//{introspection:location})
     binomialInverse=0
     do while (self%probabilityCumulative(binomialInverse) < p)
        binomialInverse=binomialInverse+1

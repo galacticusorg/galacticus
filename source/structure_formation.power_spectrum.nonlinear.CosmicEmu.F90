@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -107,7 +107,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                        :: self
@@ -130,7 +130,7 @@ contains
          &                absTol=1.0d-3                                                                      &
          &               )                                                                                   &
          & )                                                                                                 &
-         & call Galacticus_Error_Report(                                                                     &
+         & call Error_Report(                                                                     &
          &                              'this method is applicable only to flat matter+dark energy models'// &
          &                               {introspection:location}                                            &
          &                             )
@@ -142,7 +142,7 @@ contains
          &                relTol=1.0d-3                                                                                    &
          &               )                                                                                                 &
          & )                                                                                                               &
-         & call Galacticus_Error_Report(                                                                                   &
+         & call Error_Report(                                                                                   &
          &                              'this method is applicable only to models with no running of the spectral index'// &
          &                               {introspection:location}                                                          &
          &                             )
@@ -173,8 +173,8 @@ contains
     use :: Display             , only : displayMessage              , verbosityLevelWorking
     use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &
           &                             File_Name_Temporary         , File_Remove          , File_Unlock
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: Galacticus_Paths    , only : galacticusPath              , pathTypeDataDynamic
+    use :: Error               , only : Error_Report
+    use :: Input_Paths         , only : inputPath                   , pathTypeDataDynamic
     use :: ISO_Varying_String  , only : varying_string
     use :: Memory_Management   , only : allocateArray               , deallocateArray
     use :: Numerical_Comparison, only : Values_Differ
@@ -196,8 +196,8 @@ contains
        self%timePrevious=time
        redshift         =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
        ! Generate parameters and a file name for this power spectrum.
-       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure")
-       powerSpectrumFile=galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
+       call Directory_Make(inputPath(pathTypeDataDynamic)//"largeScaleStructure")
+       powerSpectrumFile=inputPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
        parameterFile    =File_Name_Temporary("cosmicEmuParameters")
        parameters       =''
        write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                        )
@@ -235,31 +235,31 @@ contains
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
-          call Directory_Make(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then
+          call Directory_Make(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then
              ! Check for presence of the source code.
-             if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
+             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
                 ! Download the code.
-                if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
+                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
                    call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
-                   call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
-                   if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
-                        & call Galacticus_Error_Report("failed to download CosmicEmu code"//{introspection:location})
+                   call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
+                   if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
+                        & call Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
                 call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
-                call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
-                if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
-                     & call Galacticus_Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
+                call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
+                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
+                     & call Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
              call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
-             call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
-             if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
-                  & call Galacticus_Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
+             call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
+             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
+                  & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe < "//parameterFile)
+          call System_Command_Do(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe < "//parameterFile)
           ! Read the data file.
           self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
           if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )
@@ -274,7 +274,7 @@ contains
                 if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
                    read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
                    if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
-                        & call Galacticus_Error_Report(                                                                           &
+                        & call Error_Report(                                                                           &
                         &                              'values of H₀ in Galacticus and CosmicEmu are significantly different' //  &
                         &                               {introspection:location}                                                  &
                         &                             )

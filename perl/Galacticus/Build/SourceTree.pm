@@ -17,10 +17,13 @@ use Galacticus::Build::SourceTree::Parse::Visibilities;
 use Galacticus::Build::SourceTree::Parse::ModuleUses;
 use Galacticus::Build::SourceTree::Parse::Declarations;
 use Galacticus::Build::SourceTree::Parse::ModuleProcedures;
+use Galacticus::Build::SourceTree::Process::AddMetaProperty;
+use Galacticus::Build::SourceTree::Process::MetaPropertyDatabase;
 use Galacticus::Build::SourceTree::Process::Enumeration;
 use Galacticus::Build::SourceTree::Process::InputParameter;
 use Galacticus::Build::SourceTree::Process::InputParametersValidate;
 use Galacticus::Build::SourceTree::Process::FunctionClass;
+use Galacticus::Build::SourceTree::Process::StateStore;
 use Galacticus::Build::SourceTree::Process::StateStorable;
 use Galacticus::Build::SourceTree::Process::DeepCopyActions;
 use Galacticus::Build::SourceTree::Process::OptionalArgument;
@@ -63,7 +66,7 @@ sub ParseFile {
 	source     => $fileName    ,
 	line       => 0
     };
-    &BuildTree($tree);
+    &BuildTree($tree,%options);
     return $tree;
 }
 
@@ -88,7 +91,7 @@ sub ParseCode {
 	source     => $fileName    ,
 	line       => 0
     };
-    &BuildTree($tree);
+    &BuildTree($tree,%options);
     return $tree;
 }
 
@@ -136,8 +139,10 @@ sub Comment_Embedded {
 sub BuildTree {
     # Get the root of the tree;
     my $tree = shift();
+    my (%options) = @_;
     # Comment out LaTeX blocks.
-    $tree->{'content'}= &Comment_Embedded($tree->{'content'});
+    $tree->{'content'}= &Comment_Embedded($tree->{'content'})
+	unless ( exists($options{'commentEmbedded'}) && $options{'commentEmbedded'} == 0 );
     # Build the tree.
     my @stack = ( $tree );
     my $i = 0;
@@ -155,6 +160,8 @@ sub BuildTree {
     my @unitParsers = ( "directives" );
     for(my $stage=0;$stage<2;++$stage) {
 	foreach my $parser ( keys(%Galacticus::Build::SourceTree::Hooks::parseHooks) ) {
+	    next
+		if ( exists($options{'parsers'}) && ! grep {$_ eq $parser} @{$options{'parsers'}} );
 	    &{$Galacticus::Build::SourceTree::Hooks::parseHooks{$parser}}($tree)
 		if ( 
 		    ( $stage == 0 &&   grep {$_ eq $parser} @unitParsers )

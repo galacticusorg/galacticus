@@ -11,7 +11,7 @@
     <initializeNodeClassHierarchy value="true"/>
   </task>
 
-  <galacticusOutputFileName value="galacticus.hdf5"/>
+  <outputFileName value="galacticus.hdf5"/>
   
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>
@@ -54,7 +54,7 @@
   <posteriorSampleLikelihood value="independentLikelihoods">
 
     <!-- VSMDPL -->
-    <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
+    <parameterMap value="haloMassFunction::a haloMassFunction::p haloMassFunction::normalization"/>
     <parameterInactiveMap value=""/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -88,7 +88,7 @@
     </posteriorSampleLikelihood>
 
     <!-- SMDPL -->
-    <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
+    <parameterMap value="haloMassFunction::a haloMassFunction::p haloMassFunction::normalization"/>
     <parameterInactiveMap value=""/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -154,7 +154,7 @@
     </posteriorSampleLikelihood>
 
     <!-- BigMDPL -->
-    <parameterMap value="haloMassFunctionMethod::a haloMassFunctionMethod::p haloMassFunctionMethod::normalization"/>
+    <parameterMap value="haloMassFunction::a haloMassFunction::p haloMassFunction::normalization"/>
     <parameterInactiveMap value=""/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
@@ -244,7 +244,7 @@
 
     <!-- Parameters of the Sheth & Tormen (2001) dark matter halo mass function. -->
     <modelParameter value="active">
-       <name value="haloMassFunctionMethod::a"/>
+       <name value="haloMassFunction::a"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.3"/>
 	 <limitUpper value="1.3"/>
@@ -257,7 +257,7 @@
      </modelParameter>
      
     <modelParameter value="active">
-       <name value="haloMassFunctionMethod::p"/>
+       <name value="haloMassFunction::p"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="-1.0"/>
 	 <limitUpper value="+1.0"/>
@@ -270,7 +270,7 @@
      </modelParameter>
      
     <modelParameter value="active">
-       <name value="haloMassFunctionMethod::normalization"/>
+       <name value="haloMassFunction::normalization"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
 	 <limitUpper value="1.0"/>

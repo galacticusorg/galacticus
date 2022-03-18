@@ -102,10 +102,14 @@
   </mergerTreeOutputter>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
+  <outputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

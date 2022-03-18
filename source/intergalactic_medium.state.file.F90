@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -238,11 +238,11 @@ contains
     !!{
     Read in data describing the state of the intergalactic medium.
     !!}
-    use :: File_Utilities  , only : File_Exists
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : hdf5Object
-    use :: Table_Labels    , only : extrapolationTypeAbort , extrapolationTypeExtrapolate
+    use :: File_Utilities, only : File_Exists
+    use :: Error         , only : Error_Report
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
+    use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeExtrapolate
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
     integer                                              :: fileFormatVersion   , iRedshift, &
@@ -251,13 +251,13 @@ contains
 
     ! Check if data has yet to be read.
     if (.not.self%dataRead) then
-       if (.not.File_Exists(char(self%fileName))) call Galacticus_Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
+       if (.not.File_Exists(char(self%fileName))) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
        !$ call hdf5Access%set()
        ! Open the file.
        call file%openFile(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
        ! Check if extrapolation is allowed.
        self%extrapolationType=extrapolationTypeAbort
        if (file%hasAttribute('extrapolationAllowed')) then

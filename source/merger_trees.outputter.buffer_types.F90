@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
 !!{
 Contains a module which provides buffer types for merger tree outputters.
 !!}
@@ -27,6 +26,8 @@ module Merger_Tree_Outputter_Buffer_Types
   Provides buffer types for merger tree outputters.
   !!}
   use :: Kind_Numbers      , only : kind_int8
+  use :: Hashes            , only : doubleHash
+  use :: IO_HDF5           , only : hdf5VarDouble
   use :: ISO_Varying_String, only : varying_string
   public
 
@@ -39,6 +40,7 @@ module Merger_Tree_Outputter_Buffer_Types
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
+     type            (doubleHash                  ), allocatable                 :: metaData
      double precision                                                            :: unitsInSI
      integer         (kind_int8                   ), allocatable, dimension(:  ) :: scalar
      integer         (kind_int8                   ), allocatable, dimension(:,:) :: rank1
@@ -51,9 +53,11 @@ module Merger_Tree_Outputter_Buffer_Types
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
+     type            (doubleHash                  ), allocatable                 :: metaData
      double precision                                                            :: unitsInSI
      double precision                              , allocatable, dimension(:  ) :: scalar
      double precision                              , allocatable, dimension(:,:) :: rank1
+     type            (hdf5VarDouble               ), allocatable, dimension(:  ) :: rank1VarLen
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
   end type outputPropertyDouble
 

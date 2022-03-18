@@ -60,7 +60,7 @@ contains
     Builds the tabulation.
     !!}
     use :: Display             , only : displayIndent                 , displayMessage, displayUnindent
-    use :: Galacticus_Error    , only : errorStatusSuccess
+    use :: Error               , only : errorStatusSuccess
     use :: Interfaces_AxionCAMB, only : Interface_AxionCAMB_Initialize
     implicit none
     class  (taskBuildToolAxionCAMB), intent(inout), target   :: self

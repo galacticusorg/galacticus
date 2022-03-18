@@ -25,15 +25,14 @@ my %options =
 # Get any command line options.
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
-
 # Simply run the models.
 system("cd ..; scripts/aux/launch.pl testSuite/test-methods_MPI.xml ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)));
 
 # Check for failed models.
-system("grep -q -i fatal outputs/test-methods_MPI/galacticus_*/galacticus.log");
+system("grep -q -i -e fatal -e aborted outputs/test-methods_MPI/galacticus_*/galacticus.log");
 if ( $? == 0 ) {
     # Failures were found. Output their reports.
-    my @failures = split(" ",`grep -l -i fatal outputs/test-methods_MPI/galacticus_*/galacticus.log`);
+    my @failures = split(" ",`grep -l -i -e fatal -e aborted outputs/test-methods_MPI/galacticus_*/galacticus.log`);
     foreach my $failure ( @failures ) {
 	print "FAILED: log from ".$failure.":\n";
 	system("cat ".$failure);

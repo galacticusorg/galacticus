@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -122,7 +122,7 @@ contains
     Internal constructor for the \cite{caputi_stellar_2011} conditional mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     type            (surveyGeometryCaputi2011UKIDSSUDS)                                  :: self
     integer                                            , intent(in   )                   :: redshiftBin
@@ -144,7 +144,7 @@ contains
        self%redshiftMinimum=4.25d0
        self%redshiftMaximum=5.00d0
     case default
-       call Galacticus_Error_Report('0≤redshiftBin≤2 is required'//{introspection:location})
+       call Error_Report('0≤redshiftBin≤2 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -193,7 +193,7 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -202,7 +202,7 @@ contains
     !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -222,14 +222,14 @@ contains
     !!{
     Compute the maximum volume within which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
     integer                                            , intent(in   ), optional :: field
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     ! Compute the volume.
     caputi2011UKIDSSUDSVolumeMaximum                             &
          & =max(                                                 &
@@ -249,7 +249,7 @@ contains
     Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\normalfont \ttfamily
     constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
     integer                                            , intent(in   ), optional :: field
@@ -257,7 +257,7 @@ contains
     !$GLC attributes unused :: self
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     caputi2011UKIDSSUDSSolidAngle=solidAngleSurvey
     return
   end function caputi2011UKIDSSUDSSolidAngle
@@ -266,26 +266,26 @@ contains
     !!{
     Load random points for the survey.
     !!}
-    use :: File_Utilities  , only : File_Exists
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Paths, only : galacticusPath         , pathTypeExec
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : hdf5Object
-    use :: String_Handling , only : operator(//)
-    use :: System_Command  , only : System_Command_Do
+    use :: File_Utilities , only : File_Exists
+    use :: Error          , only : Error_Report
+    use :: Input_Paths    , only : inputPath        , pathTypeExec
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
+    use :: String_Handling, only : operator(//)
+    use :: System_Command , only : System_Command_Do
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
     type (hdf5Object                       )                :: surveyGeometryRandomsFile
 
     ! Generate the randoms file if necessary.
-    if (.not.File_Exists(galacticusPath(pathTypeExec)//&
+    if (.not.File_Exists(inputPath(pathTypeExec)//&
          &"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('unable to create survey geometry randoms file'//{introspection:location})
+       call System_Command_Do(inputPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
+       if (.not.File_Exists(inputPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    call surveyGeometryRandomsFile%openFile(char(galacticusPath(pathTypeExec)//&
+    call surveyGeometryRandomsFile%openFile(char(inputPath(pathTypeExec)//&
          &'constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)

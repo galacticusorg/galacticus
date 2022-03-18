@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,6 +38,7 @@
      Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.
      !!}
      private
+     integer :: nodeFormationTimeID
    contains
      procedure :: timeAvailable             => formationTimeTimeAvailable
      procedure :: timeAvailableIncreaseRate => formationTimeTimeAvailableIncreaseRate
@@ -48,6 +49,7 @@
      Constructors for the \cite{cole_hierarchical_2000} time available for cooling class.
      !!}
      module procedure formationTimeConstructorParameters
+     module procedure formationTimeConstructorInternal
   end interface coolingTimeAvailableFormationTime
 
 contains
@@ -56,46 +58,44 @@ contains
     !!{
     Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingTimeAvailableFormationTime)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
-    ! Check that there is a gettable formation time property.
-    if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
-         & call Galacticus_Error_Report                                                                                        &
-         &      (                                                                                                              &
-         &       "'haloFormation' method for time available for cooling requires a formationTime component that supports "  // &
-         &       "getting of the formationTime property."                                                                   // &
-         &       Galacticus_Component_List(                                                                                    &
-         &                                 'formationTime'                                                                  ,  &
-         &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                                 // &
-         &       {introspection:location}                                                                                      &
-         &      )
     self=coolingTimeAvailableFormationTime()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function formationTimeConstructorParameters
 
+  function formationTimeConstructorInternal() result(self)
+    !!{
+    Internal constructor for the \cite{cole_hierarchical_2000} time available for cooling class.
+    !!}
+    implicit none
+    type(coolingTimeAvailableFormationTime) :: self
+
+    !![
+    <addMetaProperty component="basic" name="nodeFormationTime" id="self%nodeFormationTimeID" isEvolvable="no" isCreator="no"/>
+    !!]
+    return
+  end function formationTimeConstructorInternal
+  
   double precision function formationTimeTimeAvailable(self,node)
     !!{
     Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
     class(nodeComponentBasic               ), pointer       :: basic
-    class(nodeComponentFormationTime       ), pointer       :: formationTime
-    !$GLC attributes unused :: self
 
-    basic                      =>  node         %basic        ()
-    formationTime              =>  node         %formationTime()
-    formationTimeTimeAvailable =  +basic        %time         () &
-         &                        -formationTime%formationTime()
+    basic                      =>  node %basic                    (                        )
+    formationTimeTimeAvailable =  +basic%time                     (                        ) &
+         &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
     return
   end function formationTimeTimeAvailable
 

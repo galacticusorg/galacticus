@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,7 +52,6 @@
      procedure :: radiusFromSpecificAngularMomentum => darkMatterOnlyRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => darkMatterOnlyRotationNormalization
      procedure :: energy                            => darkMatterOnlyEnergy
-     procedure :: energyGrowthRate                  => darkMatterOnlyEnergyGrowthRate
      procedure :: kSpace                            => darkMatterOnlyKSpace
      procedure :: freefallRadius                    => darkMatterOnlyFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => darkMatterOnlyFreefallRadiusIncreaseRate
@@ -316,19 +315,6 @@ contains
          &               *self%darkMatterProfileDMO_%energy(node)
     return
   end function darkMatterOnlyEnergy
-
-  double precision function darkMatterOnlyEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of the dark matter halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDarkMatterOnly), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
-
-    darkMatterOnlyEnergyGrowthRate=+self%darkMatterFraction                          **2 &
-         &                         *self%darkMatterProfileDMO_%energyGrowthRate(node)
-    return
-  end function darkMatterOnlyEnergyGrowthRate
 
   double precision function darkMatterOnlyKSpace(self,node,waveNumber)
     !!{

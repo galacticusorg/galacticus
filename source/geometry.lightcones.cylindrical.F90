@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -168,14 +168,14 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
     !!}
-    use :: File_Utilities          , only : File_Exists   , File_Lock          , File_Unlock  , lockDescriptor
-    use :: Galacticus_Nodes        , only : treeNode      , nodeComponentBasic
-    use :: Galacticus_Paths        , only : galacticusPath, pathTypeDataDynamic
+    use :: File_Utilities          , only : File_Exists, File_Lock          , File_Unlock  , lockDescriptor
+    use :: Galacticus_Nodes        , only : treeNode   , nodeComponentBasic
+    use :: Input_Paths             , only : inputPath  , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
-    use :: Linear_Algebra          , only : matrix        , vector             , assignment(=), operator(*)
+    use :: Linear_Algebra          , only : matrix     , vector             , assignment(=), operator(*)
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator    , GSL_Integ_Gauss15
+    use :: Numerical_Integration   , only : integrator , GSL_Integ_Gauss15
     use :: Hashes_Cryptographic    , only : Hash_MD5
     use :: MPI_Utilities           , only : mpiSelf
     implicit none
@@ -248,7 +248,7 @@ contains
     ! not use the automatically generated one as it will include the random number generator hash which does not affect the
     ! covariance.
     write (label,'(e17.10)') self%radiusCylinderComoving
-    fileName=         galacticusPath                           (pathTypeDataDynamic       )// &
+    fileName=         inputPath                                (pathTypeDataDynamic       )// &
          &            'largeScaleStructure/'                                               // &
          &            self%objectType                          (                          )// &
          &            'CosmicVariance_'                                                    // &
@@ -349,7 +349,7 @@ contains
        call basic%massSet            (self%massHaloLens)
        call basic%timeSet            (self%timeLens    )
        call basic%timeLastIsolatedSet(self%timeLens    )
-       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%virialRadius   (                                                     node              ) &
+       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%radiusVirial   (                                                     node              ) &
             &                            /self    %cosmologyFunctions_ %expansionFactor(                                                     self%timeLens     )
        self %correlationLensMaximum   =  +self%correlationFunctionTwoPoint_%correlation(self%radiusVirialComovingLens,self%timeLens) &
             &                            *self%darkMatterHaloBias_         %bias       (node                                       )
@@ -492,7 +492,7 @@ contains
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic 
     use :: Numerical_Comparison, only : Values_Agree
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: String_Handling     , only : operator(//)
     implicit none
     class           (geometryLightconeCylindrical), intent(inout)            :: self
@@ -524,13 +524,13 @@ contains
           message=message//'               node time = '//trim(label)//' Gyr'               //char(10)
           write (label,'(f6.3)') self%outputTimes_%time(output)
           message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//output//']'
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
        call self%sampleNode(node)
        cylindricalIsInLightcone=self%activeCount > 0_c_size_t
     else
        cylindricalIsInLightcone=.false.
-       call Galacticus_Error_Report('not well-defined'//{introspection:location})  
+       call Error_Report('not well-defined'//{introspection:location})  
     end if
     return
   end function cylindricalIsInLightcone
@@ -552,7 +552,7 @@ contains
     !!{
     Return the position of the node in lightcone coordinates.
     !!}
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report
+    use            :: Error               , only : Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: ISO_Varying_String  , only : varying_string
@@ -578,7 +578,7 @@ contains
        message=message//'               node time = '//trim(label)//' Gyr'               //char(10)
        write (label,'(f6.3)') self%outputTimes_%time(output)
        message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//output//']'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     call self%sampleNode(node)
     cylindricalPosition=self%activePosition(:,self%activeInstances(instance))
@@ -606,7 +606,7 @@ contains
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (geometryLightconeCylindrical), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -614,7 +614,7 @@ contains
     !$GLC attributes unused :: self, node, timeEnd
 
     cylindricalTimeLightconeCrossing=0.0d0
-    call Galacticus_Error_Report('not implemented'//{introspection:location})
+    call Error_Report('not implemented'//{introspection:location})
     return
   end function cylindricalTimeLightconeCrossing
   
@@ -622,7 +622,7 @@ contains
     !!{
     Return the position at the next lightcone crossing for this node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                              , dimension(3)  :: cylindricalPositionLightconeCrossing
     class           (geometryLightconeCylindrical), intent(inout) :: self
@@ -630,7 +630,7 @@ contains
     !$GLC attributes unused :: self, node
 
     cylindricalPositionLightconeCrossing=0.0d0
-    call Galacticus_Error_Report('not implemented'//{introspection:location})
+    call Error_Report('not implemented'//{introspection:location})
     return
   end function cylindricalPositionLightconeCrossing
   
@@ -640,8 +640,8 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Comparison    , only : Values_Agree
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes        , only : nodeComponentBasic     , nodeComponentSatellite
+    use :: Error                   , only : Error_Report
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentSatellite
     use :: String_Handling         , only : operator(//)
     implicit none
     class           (geometryLightconeCylindrical), intent(inout)          :: self
@@ -675,7 +675,7 @@ contains
        message=message//'               node time = '//trim(label)//' Gyr'               //char(10)
        write (label,'(f6.3)') self%outputTimes_%time(output)
        message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//output//']'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     ! Determine if the output has changed.
     if (output /= self%activeOutput) then

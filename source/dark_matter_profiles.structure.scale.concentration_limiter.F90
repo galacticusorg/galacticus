@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -91,7 +91,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily concentrationLimiter} dark matter halo profile scale radius class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusConcentrationLimiter)                        :: self
     class           (darkMatterHaloScaleClass                        ), intent(in   ), target :: darkMatterHaloScale_
@@ -101,7 +101,7 @@ contains
     <constructorAssign variables="concentrationMinimum, concentrationMaximum, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_"/>
     !!]
 
-    if (concentrationMaximum <= concentrationMinimum) call Galacticus_Error_Report('cₘₐₓ > cₘᵢₙ is required'//{introspection:location})
+    if (concentrationMaximum <= concentrationMinimum) call Error_Report('cₘₐₓ > cₘᵢₙ is required'//{introspection:location})
     return
   end function concentrationLimiterConstructorInternal
 
@@ -128,7 +128,7 @@ contains
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                                          :: radiusVirial
 
-    radiusVirial              =        self%darkMatterHaloScale_         %virialRadius(node)
+    radiusVirial              =        self%darkMatterHaloScale_         %radiusVirial(node)
     concentrationLimiterRadius=min(                                                                                     &
          &                                                                radiusVirial      /self%concentrationMinimum, &
          &                         max(                                                                                 &

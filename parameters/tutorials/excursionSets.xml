@@ -41,6 +41,6 @@
   <excursionSetFirstCrossing value="linearBarrier"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="excursionSets.hdf5"/>
+  <outputFileName value="excursionSets.hdf5"/>
 
 </parameters>

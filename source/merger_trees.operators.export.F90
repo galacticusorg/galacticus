@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -114,7 +114,7 @@ contains
     !!{
     Internal constructor for the export merger tree operator class.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatIsValid, mergerTreeFormatIrate
     implicit none
     type     (mergerTreeOperatorExport   )                        :: self
@@ -128,7 +128,7 @@ contains
     !!]
 
     ! Validate the export format.
-    if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportFormat is invalid'//{introspection:location})
+    if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Error_Report('exportFormat is invalid'//{introspection:location})
     ! Construct the object.
     self%snapshotsRequired=(exportFormat == mergerTreeFormatIrate)
     return
@@ -236,7 +236,7 @@ contains
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (self%snapshotsRequired) then
           call allocateArray(snapshotTime,[snapshotCountIncrement])
-          node                        => treeCurrent%baseNode
+          node                        => treeCurrent%nodeBase
           basic                       => node       %basic   ()
           snapshotCount               =  1
           snapshotTime(snapshotCount) =  basic      %time    ()

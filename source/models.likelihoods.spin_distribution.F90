@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -142,7 +142,7 @@ contains
       <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
       <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
     </inputParameter>
-     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
@@ -167,7 +167,6 @@ contains
     Constructor for ``spinDistribution'' posterior sampling likelihood class.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: HDF5_Access        , only : hdf5Access
     use :: IO_HDF5            , only : hdf5Object
     use :: Memory_Management  , only : allocateArray
@@ -245,7 +244,7 @@ contains
     !!{
     Return the log-likelihood for the halo spin distribution likelihood function.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentBasic             , nodeComponentSpin            , treeNode
     use :: Halo_Spin_Distributions       , only : haloSpinDistributionBett2007   , haloSpinDistributionLogNormal, haloSpinDistributionNbodyErrors
     use :: Models_Likelihoods_Constants  , only : logImpossible
@@ -288,17 +287,18 @@ contains
     ! Build the halo spin distribution object.
     select case (self%distributionType)
     case (spinDistributionTypeLogNormal)
-       if (size(stateVector) /= 2)                                                                             &
-            & call Galacticus_Error_Report(                                                                    &
-            &                              '2 parameters are required for the "lognormal" spin distribution'// &
-            &                              {introspection:location}                                            &
-            &                             )
+       if (size(stateVector) /= 2)                                                                  &
+            & call Error_Report(                                                                    &
+            &                   '2 parameters are required for the "lognormal" spin distribution'// &
+            &                   {introspection:location}                                            &
+            &                  )
        allocate(haloSpinDistributionLogNormal :: distributionLogNormal)
        select type (distributionLogNormal)
        type is (haloSpinDistributionLogNormal)
           distributionLogNormal=haloSpinDistributionLogNormal  (                                         &
                &                                                stateVector(1)                         , &
-               &                                                stateVector(2)                           &
+               &                                                stateVector(2)                         , &
+               &                                                self%darkMatterProfileDMO_               &
                &                                               )
           distributionNbody    =haloSpinDistributionNbodyErrors(                                         &
                &                                                distributionLogNormal                  , &
@@ -315,17 +315,18 @@ contains
                &                                               )
        end select
     case (spinDistributionTypeBett2007)
-       if (size(stateVector) /= 2)                                                                            &
-            & call Galacticus_Error_Report(                                                                   &
-            &                              '2 parameters are required for the "bett2007" spin distribution'// &
-            &                              {introspection:location}                                           &
-            &                             )
+       if (size(stateVector) /= 2)                                                                 &
+            & call Error_Report(                                                                   &
+            &                   '2 parameters are required for the "bett2007" spin distribution'// &
+            &                   {introspection:location}                                           &
+            &                  )
        allocate(haloSpinDistributionBett2007 :: distributionBett2007)
        select type (distributionBett2007)
        type is (haloSpinDistributionBett2007)
           distributionBett2007=haloSpinDistributionBett2007    (                                         &
                &                                                stateVector(1)                         , &
-               &                                                stateVector(2)                           &
+               &                                                stateVector(2)                         , &
+               &                                                self%darkMatterProfileDMO_               &
                &                                               )
           distributionNbody    =haloSpinDistributionNbodyErrors(                                         &
                &                                                distributionBett2007                   , &
@@ -371,10 +372,11 @@ contains
       !!{
       Integrand function used to find cumulative spin distribution over a bin.
       !!}
+      use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
       implicit none
       double precision, intent(in   ) :: spinPrime
 
-      call nodeSpin%spinSet(spinPrime)
+      call nodeSpin%angularMomentumSet(spinPrime*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
       spinDistributionIntegrate=distributionNbody%distributionAveraged(node,self%massHaloMinimum)
       return
     end function spinDistributionIntegrate

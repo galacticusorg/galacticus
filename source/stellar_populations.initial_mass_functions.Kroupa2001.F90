@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,9 +63,11 @@ contains
     implicit none
     type(initialMassFunctionKroupa2001)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionKroupa2001()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function kroupa2001ConstructorParameters
 

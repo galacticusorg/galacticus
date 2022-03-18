@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,6 +35,9 @@ Implements a survey geometry which combines multiple other surveys.
    <stateStore>
     <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
+   </allowedParameters>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryClass) :: surveyGeometryCombined
@@ -82,6 +85,9 @@ contains
        <objectBuilder class="surveyGeometry" name="surveyGeometry_%surveyGeometry_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="surveyGeometry"/>
+    !!]
     return
   end function combinedConstructorParameters
 
@@ -155,14 +161,14 @@ contains
     !!{
     Return the survey solid angle.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (surveyGeometryCombined), intent(inout)               :: self
     integer                        , intent(in   ), optional     :: field
     !$GLC attributes unused :: self, field
 
     combinedSolidAngle=0.0d0
-    call Galacticus_Error_Report('solid angle is not supported'//{introspection:location})
+    call Error_Report('solid angle is not supported'//{introspection:location})
     return
   end function combinedSolidAngle
 
@@ -170,8 +176,8 @@ contains
     !!{
     Provides window functions for combined survey geometries.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_double_complex
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_double_complex
     implicit none
     class           (surveyGeometryCombined), intent(inout)                                           :: self
     double precision                        , intent(in   )                                           :: mass1,mass2
@@ -180,7 +186,7 @@ contains
     complex         (c_double_complex      ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     !$GLC attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
 
-    call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
+    call Error_Report('window function construction is not supported'//{introspection:location})
     return
   end subroutine combinedWindowFunctions
 
@@ -188,7 +194,7 @@ contains
     !!{
     Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout):: self
     integer                                 , intent(in   ):: i          , j, &
@@ -196,7 +202,7 @@ contains
     !$GLC attributes unused ::self, i, j, l
 
     combinedAngularPower=0.0d0
-    call Galacticus_Error_Report('angular power is not supported'//{introspection:location})
+    call Error_Report('angular power is not supported'//{introspection:location})
     return
   end function combinedAngularPower
 
@@ -204,7 +210,6 @@ contains
     !!{
     Return true if a point is included in the combined survey geometry.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout)               :: self
     double precision                        , intent(in   ), dimension(3) :: point

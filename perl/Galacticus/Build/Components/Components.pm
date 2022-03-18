@@ -7,6 +7,7 @@ use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::Classes::MetaProperties;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -50,14 +51,6 @@ sub Build_Node_Component_Class {
 	     description => "Destroy the object."                                                                                  ,
 	     returnType  => "\\void"                                                                                               ,
 	     arguments   => ""
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "addMetaProperty"                                                                                      ,
-	     function    => "Node_Component_Generic_Add_Meta_Property"                                                             ,
-	     description => "Add a meta-property to this class."                                                                   ,
-	     returnType  => "\\intzero"                                                                                            ,
-	     arguments   => "\\textcolor{red}{\\textless type(varying\_string)\\textgreater label, \\textcolor{red}{\\textless character(len=*)\\textgreater name"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -245,6 +238,20 @@ sub Build_Node_Component_Class {
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 }
 	);
+    # Add meta-property methods.
+    foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	push(
+	    @typeBoundFunctions,
+	    {
+		type        => "procedure"                                                                                                             ,
+		name        => "add".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty"                           ,
+		function    => "Node_Component_Generic_Add_".ucfirst($metaPropertyType->{'label'})."_Rank".$metaPropertyType->{'rank'}."_Meta_Property",
+		description => "Add a rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}." meta-property to this class."              ,
+		returnType  => "\\intzero"                                                                                                             ,
+		arguments   => "\\textcolor{red}{\\textless type(varying\_string)\\textgreater label, \\textcolor{red}{\\textless character(len=*)\\textgreater name".($metaPropertyType->{'label'} eq "flat" && $metaPropertyType->{'rank'} == 0 ? ", \\logicalzero\ [isEvolvable]" : "").", \\logicalzero\ [isCreator]"
+	    }
+	    );
+    }
     # Specify the data content.
     my @dataContent =
 	(
@@ -253,13 +260,25 @@ sub Build_Node_Component_Class {
 	     type       =>   "treeNode"            ,
 	     attributes => [ "pointer" , "public" ],
 	     variables  => [ "hostNode => null()" ]
-	 },
-	 {
-	     intrinsic  =>   "double precision",
-	     attributes => [ "allocatable" , "dimension(:)" ],
-	     variables  => [ "metaProperties" ]
 	 }
 	);
+    foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	my $typeDef;
+	if ( $metaPropertyType->{'rank'} == 0 ) {
+	    $typeDef->{'intrinsic'} = $metaPropertyType->{'intrinsic'};
+	    $typeDef->{'type'     } = $metaPropertyType->{'type'     }
+	        if ( exists($metaPropertyType->{'type'}) );
+	} else {
+	    $typeDef->{'intrinsic'} = "type";
+	    $typeDef->{'type'     } = $metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperty";
+	}
+	$typeDef->{'attributes'} = [ "allocatable", "dimension(:)" ];
+	$typeDef->{'variables' } = [ $metaPropertyType->{'label'}."Rank".$metaPropertyType->{'rank'}."MetaProperties" ];
+	push(
+	    @dataContent,
+	    $typeDef
+	    );
+    }
     # Create the nodeComponent class.
     $build->{'types'}->{'nodeComponent'} = {
 	name           => "nodeComponent"                           ,

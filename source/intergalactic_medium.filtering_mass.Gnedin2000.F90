@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,8 +134,8 @@ contains
     !!{
     Constructor for the filtering mass class.
     !!}
-    use :: File_Utilities  , only : Directory_Make, File_Path
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+    use :: File_Utilities, only : Directory_Make, File_Path
+    use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     type   (intergalacticMediumFilteringMassGnedin2000)                        :: self
     class  (cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
@@ -148,12 +148,12 @@ contains
     !!]
 
     self%initialized=.false.
-    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
-         &                      'intergalacticMedium/'                           // &
-         &                      self%objectType      (                          )// &
-         &                      '_'                                              // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                      '.hdf5'
+    self%fileName   =inputPath(pathTypeDataDynamic)                   // &
+         &           'intergalacticMedium/'                           // &
+         &           self%objectType      (                          )// &
+         &           '_'                                              // &
+         &           self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &           '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     return
   end function gnedin2000ConstructorInternal
@@ -250,8 +250,8 @@ contains
     !!{
     Construct a table of filtering mass as a function of cosmological time.
     !!}
-    use :: File_Utilities          , only : File_Lock              , File_Unlock
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: File_Utilities          , only : File_Lock   , File_Unlock
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_ODE_Solvers   , only : odeSolver
     implicit none
@@ -281,7 +281,7 @@ contains
             &                                                            )                           &
             &                                                           )
        ! Abort if time is too early.
-       if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Galacticus_Error_Report('time is too early'//{introspection:location})
+       if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Error_Report('time is too early'//{introspection:location})
        ! Find minimum and maximum times to tabulate.
        self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
        self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
@@ -294,10 +294,12 @@ contains
             &                  self%timeMaximum , &
             &                  self%countTimes    &
             &                 )
+       ! Set the initial state for the composite variables used to solve for filtering mass.
+       call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
        ! Loop over times and populate tables.
        solver=odeSolver(3_c_size_t,massFilteringODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=massFilteringScales)    
        do iTime=1,self%countTimes
-          ! Set the composite variables used to solve for filtering mass.
+          ! Reset the initial state composite variables used to solve for filtering mass.
           call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
           ! Solve the ODE system
           timeCurrent=timeInitial
@@ -540,7 +542,7 @@ contains
     Return the coefficients of the fitting function for the filtering mass at early epochs from
     \cite{naoz_formation_2007}. Checks for valid range of redshift and cosmology for the fit to be valid.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Warn
+    use :: Error, only : Warn
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , dimension(4)  :: coefficients
@@ -553,8 +555,8 @@ contains
     expansionFactor=self%cosmologyFunctions_ %expansionFactor            (time           )
     redshift       =self%cosmologyFunctions_ %redshiftFromExpansionFactor(expansionFactor)
     ! Validate input.
-    if (omegaMatter < 0.25d0 .or. omegaMatter >   0.40d0) call Galacticus_Warn('gnedin2000CoefficientsEarlyEpoch: matter density outside validated range of fitting function; 0.25 ≤ Ωₘ ≤ 0.40')
-    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) call Galacticus_Warn('gnedin2000CoefficientsEarlyEpoch: redshift outside validated range of fitting function; 7 ≤ z ≤ 150'           )
+    if (omegaMatter < 0.25d0 .or. omegaMatter >   0.40d0) call Warn('gnedin2000CoefficientsEarlyEpoch: matter density outside validated range of fitting function; 0.25 ≤ Ωₘ ≤ 0.40')
+    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) call Warn('gnedin2000CoefficientsEarlyEpoch: redshift outside validated range of fitting function; 7 ≤ z ≤ 150'           )
     ! Evaluate fitting function.
     coefficients(1)=-0.38d0*(omegaMatter**2)+ 0.41d0*omegaMatter- 0.16d0
     coefficients(2)=+3.30d0*(omegaMatter**2)- 3.38d0*omegaMatter+ 1.15d0

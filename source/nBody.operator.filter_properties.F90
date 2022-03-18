@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,6 +62,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily filterProperties} N-body operator class which takes a parameter set as input.
     !!}
+    use :: Error                , only : Error_Report
     use :: Input_Parameters     , only : inputParameters
     use :: NBody_Simulation_Data, only : nBodyDataPropertyType, propertyTypeInteger, propertyTypeReal, propertyTypeUnknown
     implicit none
@@ -76,8 +77,8 @@ contains
     allocate(propertyNames(parameters%count('propertyNames',zeroIfNotPresent=.true.)))
     allocate(rangeLow     (parameters%count('rangeLow'     ,zeroIfNotPresent=.true.)))
     allocate(rangeHigh    (parameters%count('rangeHigh'    ,zeroIfNotPresent=.true.)))
-    if (size(rangeLow ) /= size(propertyNames)) call Galacticus_Error_Report('[rangeLow] must have same cardinality as [propertyNames]' //{introspection:location})
-    if (size(rangeHigh) /= size(propertyNames)) call Galacticus_Error_Report('[rangeHigh] must have same cardinality as [propertyNames]'//{introspection:location})
+    if (size(rangeLow ) /= size(propertyNames)) call Error_Report('[rangeLow] must have same cardinality as [propertyNames]' //{introspection:location})
+    if (size(rangeHigh) /= size(propertyNames)) call Error_Report('[rangeHigh] must have same cardinality as [propertyNames]'//{introspection:location})
     !![
     <inputParameter>
       <name>propertyNames</name>
@@ -127,7 +128,7 @@ contains
              read (range,*) propertyRanges(i)%rangeHighReal
           end if
        case (propertyTypeUnknown)
-          call Galacticus_Error_Report('unknown property "'//char(propertyNames(i))//'"'//{introspection:location})
+          call Error_Report('unknown property "'//char(propertyNames(i))//'"'//{introspection:location})
        end select
     end do
     self=nbodyOperatorFilterProperties(propertyRanges)
@@ -141,8 +142,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily filterProperties} N-body operator class.
     !!}
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
+    use :: Error                , only : Error_Report
+    use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal
     implicit none
     type   (nbodyOperatorFilterProperties)                              :: self
     type   (propertyRange                ), intent(in   ), dimension(:) :: propertyRanges
@@ -156,10 +157,10 @@ contains
        select case (propertyRanges(i)%type)
        case (propertyTypeInteger)
           if (propertyRanges(i)%rangeLowInteger > propertyRanges(i)%rangeHighInteger) &
-               & call Galacticus_Error_Report('range for property "'//char(propertyRanges(i)%name)//'" will exclude all'//{introspection:location})
+               & call Error_Report('range for property "'//char(propertyRanges(i)%name)//'" will exclude all'//{introspection:location})
        case (propertyTypeReal   )
           if (propertyRanges(i)%rangeLowReal    > propertyRanges(i)%rangeHighReal   ) &
-               & call Galacticus_Error_Report('range for property "'//char(propertyRanges(i)%name)//'" will exclude all'//{introspection:location})
+               & call Error_Report('range for property "'//char(propertyRanges(i)%name)//'" will exclude all'//{introspection:location})
        end select
     end do
     return
@@ -169,9 +170,9 @@ contains
     !!{
     Identify and flag particles which have been always isolated.
     !!}
-    use :: Display              , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
+    use :: Display              , only : displayIndent      , displayMessage  , displayUnindent, verbosityLevelStandard
+    use :: Error                , only : Error_Report
+    use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal
     implicit none
     class           (nbodyOperatorFilterProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -202,7 +203,7 @@ contains
                      &           propertyInteger <= self%propertyRanges(j)%rangeHighInteger
                 nullify(propertyInteger)
              else
-                call Galacticus_Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
+                call Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
              end if
           case (propertyTypeReal   )
              if (simulations(i)%propertiesReal   %exists(self%propertyRanges(j)%name)) then
@@ -218,10 +219,10 @@ contains
                      &           propertyReal    <= self%propertyRanges(j)%rangeHighReal   
                nullify(propertyReal   )
              else
-                call Galacticus_Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
+                call Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
              end if
           case default
-             call Galacticus_Error_Report('unsupported property type'//{introspection:location})
+             call Error_Report('unsupported property type'//{introspection:location})
           end select
        end do
        countFiltered=count(mask)

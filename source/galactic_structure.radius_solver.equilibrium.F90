@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,8 +21,9 @@
   Implementation of an ``equilibrium'' solver for galactic structure.
   !!}
 
-  use :: Dark_Matter_Profiles    , only : darkMatterProfile   , darkMatterProfileClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles    , only : darkMatterProfileClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <galacticStructureSolver name="galacticStructureSolverEquilibrium">
@@ -34,11 +35,12 @@
      Implementation of an ``equilibrium'' solver for galactic structure.
      !!}
      private
-     logical                                              :: includeBaryonGravity      , useFormationHalo, &
+     logical                                              :: includeBaryonGravity                , useFormationHalo, &
           &                                                  solveForInactiveProperties
      double precision                                     :: solutionTolerance
-     class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+     class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_         => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
+     class           (galacticStructureClass   ), pointer :: galacticStructure_         => null()
    contains
      final     ::             equilibriumDestructor
      procedure :: solve    => equilibriumSolve
@@ -75,6 +77,7 @@ contains
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (darkMatterProfileClass            ), pointer       :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass            ), pointer       :: galacticStructure_
     logical                                                             :: useFormationHalo          , includeBaryonGravity, &
          &                                                                 solveForInactiveProperties
     double precision                                                    :: solutionTolerance
@@ -106,17 +109,19 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_)
+    self=galacticStructureSolverEquilibrium(useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfile_"   />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_) result(self)
+  function equilibriumConstructorInternal(useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
     !!}
@@ -127,8 +132,9 @@ contains
     double precision                                    , intent(in   )         :: solutionTolerance
     class           (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterProfile_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterProfile_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -163,11 +169,12 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfile_"   />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
-    call   preDerivativeEvent%detach(self,equilibriumSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,equilibriumSolveHook            )
-    call satelliteMergerEvent%detach(self,equilibriumSolveHook            )
-    call   nodePromotionEvent%detach(self,equilibriumSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,equilibriumSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,equilibriumSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,equilibriumSolveHook            )) call      postEvolveEvent%detach(self,equilibriumSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,equilibriumSolveHook            )) call satelliteMergerEvent%detach(self,equilibriumSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,equilibriumSolveHook            )) call   nodePromotionEvent%detach(self,equilibriumSolveHook            )
     return
   end subroutine equilibriumDestructor
 
@@ -175,7 +182,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -184,7 +191,7 @@ contains
     type is (galacticStructureSolverEquilibrium)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolveHook
@@ -193,8 +200,8 @@ contains
     !!{
     Hookable wrapper around the solver for pre-derivative events.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : propertyTypeInactive   , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : propertyTypeInactive, treeNode
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -204,7 +211,7 @@ contains
     type is (galacticStructureSolverEquilibrium)
        if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolvePreDeriativeHook
@@ -213,8 +220,8 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Display         , only : displayMessage
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Display, only : displayMessage
+    use :: Error  , only : Error_Report
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -237,7 +244,7 @@ contains
        equilibriumFitMeasure    =2.0d0*self%solutionTolerance
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
-          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
+          if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
           equilibriumHaloNode => node%formationNode
        else
           equilibriumHaloNode => node
@@ -261,7 +268,7 @@ contains
        if (equilibriumFitMeasure > self%solutionTolerance) then
           call displayMessage('dumping node for which radii are currently being sought')
           call node%serializeASCII()
-          call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
+          call Error_Report('failed to find converged solution'//{introspection:location})
        end if
     end if
     ! Unset structure reversion flag.
@@ -274,14 +281,13 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
-      use :: Display                           , only : displayVerbosity                 , displayVerbositySet, verbosityLevelStandard
-      use :: Galactic_Structure_Options        , only : massTypeBaryonic
-      use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
-      use :: Galacticus_Error                  , only : Galacticus_Error_Report
-      use :: ISO_Varying_String                , only : varying_string
-      use :: Memory_Management                 , only : allocateArray                    , deallocateArray
-      use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-      use :: String_Handling                   , only : operator(//)
+      use :: Display                         , only : displayVerbosity               , displayVerbositySet, verbosityLevelStandard
+      use :: Galactic_Structure_Options      , only : massTypeBaryonic
+      use :: Error                           , only : Error_Report
+      use :: ISO_Varying_String              , only : varying_string
+      use :: Memory_Management               , only : allocateArray                  , deallocateArray
+      use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+      use :: String_Handling                 , only : operator(//)
       implicit none
       type            (treeNode          ), intent(inout)                     :: node
       double precision                    , intent(in   )                     :: specificAngularMomentum
@@ -355,7 +361,7 @@ contains
          darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
          ! Compute baryonic contribution to rotation curve.
          if (self%includeBaryonGravity) then
-            baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(node,radius,massType=massTypeBaryonic)**2
+            baryonicVelocitySquared=self%galacticStructure_%velocityRotation(node,radius,massType=massTypeBaryonic)**2
          else
             baryonicVelocitySquared=0.0d0
          end if
@@ -423,7 +429,7 @@ contains
             message=message//'   -> dark matter contribution: '//label//char(10)
             write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
             message=message//'   -> baryonic contribution:    '//label
-            call Galacticus_Error_Report(message//{introspection:location})
+            call Error_Report(message//{introspection:location})
          end if
       end if
       ! Set the component size to new radius and velocity.

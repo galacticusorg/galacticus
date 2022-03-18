@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@ Contains a module which implements an output analysis property extractor class t
      A property extractor output analysis class that extracts a property from a descendent node of the given node.
      !!}
      private
-     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
+     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
      double precision                                       :: timeDescendent
    contains
      final     ::                descendentNodeDestructor
@@ -57,7 +57,7 @@ contains
     Constructor for the ``descendentNode'' node property extractor class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
     implicit none
     type            (nodePropertyExtractorDescendentNode)                :: self
@@ -79,7 +79,7 @@ contains
     class is (nodePropertyExtractorScalar)
        self=nodePropertyExtractorDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),nodePropertyExtractor_)
     class default
-       call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
+       call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>
@@ -121,7 +121,7 @@ contains
     !!{
     Implement a descendentNode output analysis.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -142,7 +142,7 @@ contains
        end if
        nodeDescendent => nodeDescendent%parent
     end do
-    call Galacticus_Error_Report('failed to find descendent node'//{introspection:location})
+    call Error_Report('failed to find descendent node'//{introspection:location})
     return
   end function descendentNodeExtract
 

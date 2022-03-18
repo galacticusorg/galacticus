@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,7 +134,7 @@ contains
     use :: Abundances_Structure         , only : Abundances_Property_Count         , abundances
     use :: Array_Utilities              , only : operator(.intersection.)
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Error             , only : Galacticus_Component_List         , Galacticus_Error_Report
+    use :: Error                        , only : Component_List                    , Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionBetaProfile
     use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileVirial
@@ -162,28 +162,28 @@ contains
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     !!]
     ! Check that required components are gettable.
-    if     (                                                                                                                        &
-         &  .not.(                                                                                                                  &
-         &         defaultHotHaloComponent%       massIsGettable() .and.                                                            &
-         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                            &
-         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                            &
-         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                                  &
-         &       )                                                                                                                  &
-         & ) call Galacticus_Error_Report                                                                                           &
-         & (                                                                                                                        &
-         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                                 &
-         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                                 &
-         &  Galacticus_Component_List(                                                                                              &
-         &                            'hotHalo'                                                                                  ,  &
-         &                             defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
-         &                            .intersection.                                                                                &
-         &                             defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
-         &                            .intersection.                                                                                &
-         &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
-         &                            .intersection.                                                                                &
-         &                             defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
-         &                           )                                                                                           // &
-         &  {introspection:location}                                                                                                &
+    if     (                                                                                                             &
+         &  .not.(                                                                                                       &
+         &         defaultHotHaloComponent%       massIsGettable() .and.                                                 &
+         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                 &
+         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                 &
+         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                       &
+         &       )                                                                                                       &
+         & ) call Error_Report                                                                                           &
+         & (                                                                                                             &
+         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                      &
+         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                      &
+         &  Component_List(                                                                                              &
+         &                 'hotHalo'                                                                                  ,  &
+         &                  defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
+         &                 .intersection.                                                                                &
+         &                  defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
+         &                 .intersection.                                                                                &
+         &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
+         &                 .intersection.                                                                                &
+         &                  defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
+         &                )                                                                                           // &
+         &  {introspection:location}                                                                                     &
          & )
     ! Check that assumptions are valid. Note that currently we can not check all assumptions. We check that:
     !  * Hot halo temperature profile is isothermal;
@@ -195,13 +195,13 @@ contains
     class is (hotHaloTemperatureProfileVirial)
        ! An isothermal profile - this is acceptable.
     class default
-       call Galacticus_Error_Report('assumption of isothermal hot halo temperature profile is not met'//{introspection:location})
+       call Error_Report('assumption of isothermal hot halo temperature profile is not met'//{introspection:location})
     end select
     select type (hotHaloMassDistribution_   => self%hotHaloMassDistribution_  )
     class is (hotHaloMassDistributionBetaProfile)
        ! A beta-model profile - this is acceptable.
     class default
-       call Galacticus_Error_Report('assumption of β-model hot halo mass distribution is not met'     //{introspection:location})
+       call Error_Report('assumption of β-model hot halo mass distribution is not met'     //{introspection:location})
     end select
     return
   end function betaProfileConstructorInternal
@@ -235,7 +235,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"       />
     <objectDestructor name="self%radiation"                 />
     !!]
-    call calculationResetEvent%detach(self,betaProfileCalculationReset)
+    if (calculationResetEvent%isAttached(self,betaProfileCalculationReset)) call calculationResetEvent%detach(self,betaProfileCalculationReset)
     return
   end subroutine betaProfileDestructor
 

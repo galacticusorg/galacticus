@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,8 @@ module Node_Component_Position_Preset_Orphans
   implicit none
   private
   public :: Node_Component_Position_Preset_Orphans_Initialize         , Node_Component_Position_Preset_Orphans_Thread_Initialize, &
-       &    Node_Component_Position_Preset_Orphans_Thread_Uninitialize
+       &    Node_Component_Position_Preset_Orphans_Thread_Uninitialize, Node_Component_Position_Preset_Orphans_State_Store      , &
+       &    Node_Component_Position_Preset_Orphans_State_Restore
 
   !![
   <component>
@@ -196,5 +197,51 @@ contains
     Node_Component_Position_Preset_Orphans_Velocity_Orphan=self%velocityOrphanValue()
     return
   end function Node_Component_Position_Preset_Orphans_Velocity_Orphan
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Position_Preset_Orphans_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Position_Preset_Orphans_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentPosition -> presetOrphans',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="satelliteOrphanDistribution_"/>
+    !!]
+    return
+  end subroutine Node_Component_Position_Preset_Orphans_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Position_Preset_Orphans_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Position_Preset_Orphans_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentPosition -> presetOrphans',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="satelliteOrphanDistribution_"/>
+    !!]
+    return
+  end subroutine Node_Component_Position_Preset_Orphans_State_Restore
 
 end module Node_Component_Position_Preset_Orphans

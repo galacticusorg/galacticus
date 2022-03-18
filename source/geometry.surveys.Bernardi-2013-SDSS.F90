@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -91,10 +91,11 @@ contains
     implicit none
     type(surveyGeometryBernardi2013SDSS)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
-    ! Build the object.
     self=surveyGeometryBernardi2013SDSS()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function bernardi2013SDSSConstructorParameters
 
@@ -125,7 +126,6 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
@@ -169,13 +169,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
     !$GLC attributes unused :: self
 
-    bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/SDSS/"
+    bernardi2013SDSSMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/SDSS/"
     return
   end function bernardi2013SDSSMangleDirectory
 
@@ -183,9 +183,9 @@ contains
     !!{
     Return a list of \gls{mangle} files.
     !!}
-    use :: File_Utilities  , only : File_Exists            , File_Lock, File_Unlock, lockDescriptor
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: System_Command  , only : System_Command_Do
+    use :: File_Utilities, only : File_Exists      , File_Lock, File_Unlock, lockDescriptor
+    use :: Error         , only : Error_Report
+    use :: System_Command, only : System_Command_Do
     implicit none
     class  (surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
     type   (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
@@ -202,7 +202,7 @@ contains
        if (.not.File_Exists(mangleFiles(1))) then
           call System_Command_Do("wget http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz -O - | gunzip -c > "//mangleFiles(1),status)
           if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
-               & call Galacticus_Error_Report('failed to download mangle polygon file'//{introspection:location})
+               & call Error_Report('failed to download mangle polygon file'//{introspection:location})
        end if
        call File_Unlock(                     lock                     )
     end if

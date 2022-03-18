@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,7 +116,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                                  :: self
@@ -126,19 +126,19 @@ contains
     <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_"/>
     !!]
     
-    self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileNameCriticalOverdensity  =inputPath(pathTypeDataDynamic)                   // &
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'CriticalOverdensity_'                           // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                             '.hdf5'
-    self%fileNameVirialDensityContrast=galacticusPath(pathTypeDataDynamic)              // &
+    self%fileNameVirialDensityContrast=inputPath(pathTypeDataDynamic)                   // &
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'VirialDensityContrast_'                         // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
          &                             '.hdf5'
-    self%fileNameRadiusTurnaround     =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileNameRadiusTurnaround     =inputPath(pathTypeDataDynamic)                   // &
          &                             'largeScaleStructure/'                           // &
          &                             self%objectType      (                          )// &
          &                             'TurnaroundRadius_'                              // &
@@ -165,8 +165,8 @@ contains
     !!{
     Compute the critical overdensity for collapse for the spherical collapse model.
     !!}
-    use :: Galacticus_Error, only : errorStatusSuccess
-    use :: Tables          , only : table1D
+    use :: Error , only : errorStatusSuccess
+    use :: Tables, only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -186,8 +186,8 @@ contains
     !!{
     Tabulate the virial density contrast for the spherical collapse model.
     !!}
-    use :: Galacticus_Error, only : errorStatusSuccess
-    use :: Tables          , only : table1D
+    use :: Error , only : errorStatusSuccess
+    use :: Tables, only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -207,8 +207,8 @@ contains
     !!{
     Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
     !!}
-    use :: Galacticus_Error, only : errorStatusSuccess
-    use :: Tables          , only : table1D
+    use :: Error , only : errorStatusSuccess
+    use :: Tables, only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
@@ -229,7 +229,7 @@ contains
     Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
     !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
+    use :: Error              , only : Error_Report
     use :: Kind_Numbers       , only : kind_dble
     use :: Linear_Growth      , only : normalizeMatterDominated
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -325,7 +325,7 @@ contains
           select case (calculationType)
           case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity)
              ! Critical linear overdensity.
-             if (.not.associated(self%linearGrowth_)) call Galacticus_Error_Report('no linearGrowth object was supplied'//{introspection:location})
+             if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
              normalization=self%linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated)/expansionFactor
              call sphericalCollapse_%populate(                                                   &
                   &                           +normalization                                     &
@@ -544,7 +544,7 @@ contains
     !!}
     use :: Array_Utilities      , only : Array_Reverse
     use :: Arrays_Search        , only : searchArray
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     use :: Linear_Growth        , only : normalizeMatterDominated
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLinear              , rangeTypeLogarithmic
@@ -577,7 +577,7 @@ contains
          &                                                                                            iTime
 
     ! Check that we have a linear growth object.
-    if (.not.associated(self%linearGrowth_)) call Galacticus_Error_Report('no linearGrowth object was supplied'//{introspection:location})
+    if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
     ! Set initial state of root finder objects.
     finderPerturbationConstructed=.false. 
     finderRadiusConstructed      =.false.
@@ -804,7 +804,7 @@ contains
     Attempt to restore a table from file.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
-    use :: Galacticus_Error  , only : errorStatusFail, errorStatusSuccess
+    use :: Error             , only : errorStatusFail, errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char           , varying_string
@@ -859,8 +859,8 @@ contains
     !!{
     Store a table to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, &
-         &                            lockDescriptor
+    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
+          &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char          , varying_string

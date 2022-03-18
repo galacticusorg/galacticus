@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,11 +25,52 @@ module Dark_Matter_Profile_Structure_Tasks
   !!{
   Implements structure tasks related to the dark matter halo density profile.
   !!}
+  use :: Dark_Matter_Profiles, only : darkMatterProfileClass
   private
-  public :: Dark_Matter_Profile_Enclosed_Mass_Task         , Dark_Matter_Profile_Density_Task     , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task             , &
-       &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task, Dark_Matter_Profile_Tidal_Tensor_Task  , Dark_Matter_Profile_Chandrasekhar_Integral_Task
+  public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task        , Dark_Matter_Profile_Potential_Task               , &
+       &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task          , Dark_Matter_Profile_Chandrasekhar_Integral_Task  , &
+       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore
+
+  class(darkMatterProfileClass), pointer  :: darkMatterProfile_
+  !$omp threadprivate(darkMatterProfile_)
 
 contains
+
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_Thread_Initialize(parameters_)
+    !!{
+    Initializes the dark matter profile structure tasks module.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+
+    !![
+    <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters_"/>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_Thread_Initialize
+
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize()
+    !!{
+    Uninitializes the dark matter profile structure tasks module.
+    !!}
+    implicit none
+
+    !![
+    <objectDestructor name="darkMatterProfile_"/>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize
 
   !![
   <enclosedMassTask>
@@ -40,17 +81,15 @@ contains
     !!{
     Computes the mass within a given radius for a dark matter profile.
     !!}
-    use :: Dark_Matter_Profiles      , only : darkMatterProfile , darkMatterProfileClass
     use :: Galactic_Structure_Options, only : componentTypeAll  , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   radiusLarge       , weightByMass
     use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNode
     implicit none
-    type            (treeNode              ), intent(inout)           :: node
-    integer                                 , intent(in   )           :: componentType     , massType   , &
-         &                                                               weightBy          , weightIndex
-    double precision                        , intent(in   )           :: radius
-    class           (nodeComponentBasic    )               , pointer  :: basic
-    class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
+    type            (treeNode          ), intent(inout)           :: node
+    integer                             , intent(in   )           :: componentType, massType   , &
+         &                                                           weightBy     , weightIndex
+    double precision                    , intent(in   )           :: radius
+    class           (nodeComponentBasic)               , pointer  :: basic
     !$GLC attributes unused :: weightIndex
 
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
@@ -58,8 +97,6 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
 
-    ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
     ! Test radius.
     if (radius >= radiusLarge) then
        ! Return the total mass of the halo in this case.
@@ -116,22 +153,19 @@ contains
     !!{
     Computes the Chandrasekhar integral due to a dark matter profile.
     !!}
-    use :: Dark_Matter_Profiles      , only : darkMatterProfile, darkMatterProfileClass
-    use :: Galactic_Structure_Options, only : weightByMass     , weightIndexNull
+    use :: Galactic_Structure_Options, only : weightByMass, weightIndexNull
     use :: Galacticus_Nodes          , only : treeNode
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    double precision                                       , dimension(3) :: Dark_Matter_Profile_Chandrasekhar_Integral_Task
-    type            (treeNode              ), intent(inout)               :: node
-    integer                                 , intent(in   )               :: componentType                                         , massType
-    double precision                        , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
-    double precision                                       , dimension(3) :: positionSpherical
-    class           (darkMatterProfileClass), pointer                     :: darkMatterProfile_
-    double precision                        , parameter                   :: XvMaximum                                      =10.0d0
-    double precision                                                      :: radius                                                , velocity         , &
-         &                                                                   density                                               , xV
+    double precision                         , dimension(3) :: Dark_Matter_Profile_Chandrasekhar_Integral_Task
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   )               :: componentType                                         , massType
+    double precision          , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
+    double precision                         , dimension(3) :: positionSpherical
+    double precision          , parameter                   :: XvMaximum                                      =10.0d0
+    double precision                                        :: radius                                                , velocity         , &
+         &                                                     density                                               , xV
 
-    darkMatterProfile_                              => darkMatterProfile()
     radius                                          =  sqrt(sum(positionCartesian**2))
     velocity                                        =  sqrt(sum(velocityCartesian**2))
     positionSpherical                               =  [radius,0.0d0,0.0d0]
@@ -232,16 +266,14 @@ contains
     !!{
     Computes the density at a given position for a dark matter profile.
     !!}
-    use :: Dark_Matter_Profiles      , only : darkMatterProfile, darkMatterProfileClass
-    use :: Galactic_Structure_Options, only : componentTypeAll , componentTypeDarkHalo , massTypeAll, massTypeDark, &
+    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   weightByMass
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode              ), intent(inout)           :: node
-    integer                                 , intent(in   )           :: componentType          , massType   , &
-         &                                                               weightBy               , weightIndex
-    double precision                        , intent(in   )           :: positionSpherical   (3)
-    class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
+    type            (treeNode), intent(inout) :: node
+    integer                   , intent(in   ) :: componentType       , massType   , &
+         &                                       weightBy            , weightIndex
+    double precision          , intent(in   ) :: positionSpherical(3)
     !$GLC attributes unused :: weightIndex
 
     ! Return zero if the component and mass type is not matched.
@@ -249,8 +281,6 @@ contains
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
-    ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
     ! Compute the density
     Dark_Matter_Profile_Density_Task=darkMatterProfile_%density(node,positionSpherical(1))
     return
@@ -303,26 +333,68 @@ contains
     !!{
     Return the potential due to dark matter.
     !!}
-    use :: Dark_Matter_Profiles      , only : darkMatterProfile        , darkMatterProfileClass
     use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   structureErrorCodeSuccess
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode              ), intent(inout)           :: node
-    integer                                 , intent(in   )           :: componentType, massType
-    double precision                        , intent(in   )           :: radius
-    integer                                 , intent(inout), optional :: status
-    class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
-    integer                                                           :: statusLocal
+    type            (treeNode), intent(inout)           :: node
+    integer                   , intent(in   )           :: componentType, massType
+    double precision          , intent(in   )           :: radius
+    integer                   , intent(inout), optional :: status
+    integer                                             :: statusLocal
 
     Dark_Matter_Profile_Potential_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
-    darkMatterProfile_                 => darkMatterProfile           (                       )
-    Dark_Matter_Profile_Potential_Task =  darkMatterProfile_%potential(node,radius,statusLocal)
+    Dark_Matter_Profile_Potential_Task=darkMatterProfile_%potential(node,radius,statusLocal)
     if (present(status).and.statusLocal /= structureErrorCodeSuccess) status=structureErrorCodeSuccess
     return
   end function Dark_Matter_Profile_Potential_Task
+
+  !![
+  <stateStoreTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterProfile_"/>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterProfile_"/>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_State_Restore
 
 end module Dark_Matter_Profile_Structure_Tasks

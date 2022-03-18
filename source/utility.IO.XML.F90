@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -304,8 +304,8 @@ contains
     Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: FoX_DOM      , only : getFirstChild, getNextSibling, getNodeType, getNodeName, &
-         &                                  hasChildNodes, node          , Element_Node
+    use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
+          &                                 getNodeType , hasChildNodes, node
     implicit none
     type     (xmlNodeList), intent(inout), allocatable, dimension(:) :: elements
     integer  (c_size_t   )                                           :: countElements, offset
@@ -342,8 +342,8 @@ contains
     Return a count of all nodes matching a given {\normalfont \ttfamily tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: FoX_DOM      , only : getFirstChild, getNextSibling, getNodeType, getNodeName, &
-         &                                  hasChildNodes, node          , Element_Node
+    use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
+          &                                 getNodeType , hasChildNodes, node
     implicit none
     integer  (c_size_t)                         :: countElements
     type     (node    ), intent(in   ), pointer :: xmlElement
@@ -369,8 +369,8 @@ contains
     !!{
     Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
     !!}
-    use :: FoX_dom         , only : getParentNode, node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: FoX_dom, only : getParentNode, node
+    use :: Error  , only : Error_Report
     implicit none
     type     (node            )               , pointer      :: XML_Get_First_Element_By_Tag_Name
     type     (node            ), intent(in   ), pointer      :: xmlElement
@@ -399,7 +399,7 @@ contains
        endif
        call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name,currentTagName,elementList)
        if (size(elementList) < 1) then
-          call Galacticus_Error_Report('no elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
+          call Error_Report('no elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
        else
           if (directChildrenOnlyActual) then
              do i=0,size(elementList)-1
@@ -422,7 +422,7 @@ contains
     Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
     !!}
     use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
-         &                 getParentNode, node
+          &                getParentNode, node
     implicit none
     type     (node         ), intent(in   ), pointer      :: xmlElement
     character(len=*        ), intent(in   )               :: path
@@ -470,9 +470,9 @@ contains
     Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
     specified---if the extracted method does not match one of these an error is issued.
     !!}
-    use :: FoX_dom         , only : node                              , extractDataContent
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : enumerationExtrapolationTypeEncode
+    use :: FoX_dom     , only : extractDataContent                , node
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : enumerationExtrapolationTypeEncode
     implicit none
     type     (node       )              , intent(in   ), pointer     :: extrapolationElement
     character(len=*      )              , intent(  out)              :: limitType
@@ -484,18 +484,18 @@ contains
 
     ! Extract the limit type.
     call XML_Get_Elements_By_Tag_Name(extrapolationElement,"limit",elementList)
-    if (size(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one limit element'//{introspection:location})
+    if (size(elementList) /= 1) call Error_Report('extrapolation element must contain exactly one limit element'//{introspection:location})
     limitElement => elementList(0)%element
     call extractDataContent(limitElement,limitType)
     ! Extract the method type.
     call XML_Get_Elements_By_Tag_Name(extrapolationElement,"method",elementList)
-    if (size(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one method element'//{introspection:location})
+    if (size(elementList) /= 1) call Error_Report('extrapolation element must contain exactly one method element'//{introspection:location})
     methodElement => elementList(0)%element
     call extractDataContent(methodElement,methodType)
     extrapolationMethod=enumerationExtrapolationTypeEncode(trim(methodType),includesPrefix=.false.)
     ! Validate the method type.
     if (present(allowedMethods)) then
-       if (all(allowedMethods /= extrapolationMethod)) call Galacticus_Error_Report('unallowed extrapolation method'//{introspection:location})
+       if (all(allowedMethods /= extrapolationMethod)) call Error_Report('unallowed extrapolation method'//{introspection:location})
     end if
     return
   end subroutine XML_Extrapolation_Element_Decode
@@ -504,15 +504,15 @@ contains
     !!{
     Parse an XML document, automatically resolve XInclude references.
     !!}
-    use :: File_Utilities    , only : File_Exists            , File_Name       , File_Path
-    use :: FoX_dom           , only : ELEMENT_NODE           , destroy         , getAttribute    , getChildNodes , &
-         &                           getDocumentElement      , getFirstChild   , getNextSibling  , getNodeName   , &
-         &                           getNodeType             , getParentNode   , hasAttribute    , hasChildNodes , &
-         &                           importNode              , insertBefore    , node            , parseFile     , &
-         &                           removeChild             , replaceChild    , setLiveNodeLists, DOMException
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)    , len             , operator(==)  , &
-         &                            extract                , char
+    use :: File_Utilities    , only : File_Exists  , File_Name         , File_Path
+    use :: FoX_dom           , only : DOMException , ELEMENT_NODE      , destroy      , getAttribute    , &
+          &                           getChildNodes, getDocumentElement, getFirstChild, getNextSibling  , &
+          &                           getNodeName  , getNodeType       , getParentNode, hasAttribute    , &
+          &                           hasChildNodes, importNode        , insertBefore , node            , &
+          &                           parseFile    , removeChild       , replaceChild , setLiveNodeLists
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=), char              , extract      , len             , &
+          &                           operator(//) , operator(==)
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &
          &                                                      nodeCurrent        , nodeParent    , &
@@ -548,7 +548,7 @@ contains
     allElements=.false.
     do while (stackCount > 0)
        ! Check that file exists.
-       if (.not.File_Exists(char(filePath//stack(stackCount)%fileName))) call Galacticus_Error_Report('file "'//char(filePath//stack(stackCount)%fileName)//'" does not exist'//{introspection:location})
+       if (.not.File_Exists(char(filePath//stack(stackCount)%fileName))) call Error_Report('file "'//char(filePath//stack(stackCount)%fileName)//'" does not exist'//{introspection:location})
        ! Parse the document.
        !![
        <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
@@ -575,7 +575,7 @@ contains
              nodeInsert  => getParentNode(nodeInsert)
              allElements =  extract(stack(stackCount)%xPath,len(stack(stackCount)%xPath),len(stack(stackCount)%xPath)) == "*"
           else
-             call Galacticus_Error_Report("XPath '"//stack(stackCount)%xPath//"' not found"//{introspection:location})
+             call Error_Report("XPath '"//stack(stackCount)%xPath//"' not found"//{introspection:location})
           end if
        end if
        ! We drop the entire stack after popping off just one element. This is because when we insert a new node into the document
@@ -627,7 +627,7 @@ contains
           do i=0,size(nodesCurrent)-1
              nodeCurrent => nodesCurrent(i)%element
              if (getNodeName(nodeCurrent) == "xi:include") then
-                if (.not.hasAttribute(nodeCurrent,"href")) call Galacticus_Error_Report("missing 'href' in XInclude"//{introspection:location})
+                if (.not.hasAttribute(nodeCurrent,"href")) call Error_Report("missing 'href' in XInclude"//{introspection:location})
                 if (stackCount == size(stack)) then
                    call Move_Alloc(stack,stackTmp)
                    allocate(stack(stackCount+stackExpandCount))
@@ -647,7 +647,7 @@ contains
                         & ) then
                       stack(stackCount)%xPath=extract(stack(stackCount)%xPath,10,len(stack(stackCount)%xPath)-1)
                    else
-                      call Galacticus_Error_Report("malformed XPath in XPointer: '"//stack(stackCount)%xPath//"'"//{introspection:location})
+                      call Error_Report("malformed XPath in XPointer: '"//stack(stackCount)%xPath//"'"//{introspection:location})
                    end if
                 else
                    stack(stackCount)%xPath=""
@@ -677,7 +677,7 @@ contains
     race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
     \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
     !!}
-    use :: FoX_DOM, only : parseString, DOMException, DOMConfiguration, node
+    use :: FoX_DOM, only : DOMConfiguration, DOMException, node, parseString
     implicit none
     type     (DOMException    ), intent(  out), optional :: ex
     character(len=*           ), intent(in   )           :: string
@@ -705,7 +705,7 @@ contains
     race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
     \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
     !!}
-    use :: FoX_DOM           , only : getTextContent, node, DOMException
+    use :: FoX_DOM           , only : DOMException , getTextContent, node
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type(varying_string)                          :: getTextContentTS
@@ -733,7 +733,7 @@ contains
     race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
     \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
     !!}
-    use :: FoX_DOM     , only : extractDataContent, node, DOMException
+    use :: FoX_DOM     , only : DOMException, extractDataContent, node
     use :: Kind_Numbers, only : kind_int8
     type            (DOMException), intent(  out), optional :: ex
     type            (node        ), intent(inout), pointer  :: arg

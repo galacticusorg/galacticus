@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,26 +84,26 @@
      private
      class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null(), powerSpectrumPrimordialTransferredReference => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null() , powerSpectrumPrimordialTransferredReference => null()
      class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null(), powerSpectrumWindowFunctionTopHat_          => null()
      class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null()
-     logical                                                                              :: initialized                                  , nonMonotonicIsFatal
-     double precision                                                                     :: tolerance                                    , toleranceTopHat                                      , &
-          &                                                                                  sigma8Value                                  , sigmaNormalization                                   , &
-          &                                                                                  massMinimum                                  , massMaximum                                          , &
-          &                                                                                  timeMinimum                                  , timeMaximum                                          , &
-          &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse                          , &
-          &                                                                                  wavenumberReference                          , wavenumberHalfMode
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null() , powerSpectrumWindowFunctionTopHat_          => null()
+     logical                                                                              :: initialized                         =  .false., nonMonotonicIsFatal
+     double precision                                                                     :: tolerance                                     , toleranceTopHat                                      , &
+          &                                                                                  sigma8Value                                   , sigmaNormalization                                   , &
+          &                                                                                  massMinimum                                   , massMaximum                                          , &
+          &                                                                                  timeMinimum                                   , timeMaximum                                          , &
+          &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
+          &                                                                                  wavenumberReference                           , wavenumberHalfMode
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      type            (varying_string                         )                            :: fileName
      type            (lockDescriptor                         )                            :: fileLock
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_                               , &
-         &                                                                                   normalizationSigma8                          , truncateAtParticleHorizon
+     logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
+         &                                                                                   normalizationSigma8                   =.false., truncateAtParticleHorizon
    contains
      !![
      <methods>
@@ -152,8 +152,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter         , inputParameters
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error           , only : Error_Report
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
@@ -186,11 +186,11 @@ contains
        nullify(powerSpectrumWindowFunctionTopHat_)
     end if
     if (parameters%isPresent('wavenumberReference')) then
-       if (parameters%isPresent('sigma_8')) call Galacticus_Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
-       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
+       if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
+       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Error_Report('parameters must contain a "reference" section'//{introspection:location})
        referenceParameters=parameters%subParameters('reference',requireValue=.false.)
-       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Galacticus_Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
-       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Galacticus_Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
+       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
+       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
        !![
        <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
        <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />
@@ -266,7 +266,7 @@ contains
      <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
      <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
     </conditionalCall>
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="reference"/>
     !!]
     if (parameters%isPresent('wavenumberReference')) then
        !![
@@ -295,10 +295,10 @@ contains
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
     use :: File_Utilities                 , only : Directory_Make                   , File_Path
-    use :: Galacticus_Error               , only : Galacticus_Error_Report
-    use :: Galacticus_Paths               , only : galacticusPath                   , pathTypeDataDynamic
+    use :: Error                          , only : Error_Report
+    use :: Input_Paths                    , only : inputPath                        , pathTypeDataDynamic
     use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
-    use :: Galacticus_Error               , only : errorStatusSuccess
+    use :: Error                          , only : errorStatusSuccess
     use :: Numerical_Constants_Math       , only : Pi
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
@@ -331,13 +331,13 @@ contains
        end select
     end if
     if (present(sigma8)) then
-       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Galacticus_Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
        self%sigma8Value                                 =  sigma8
        self%normalizationSigma8                         =  .true.
        self%cosmologicalMassVarianceReference           => null()
        self%powerSpectrumPrimordialTransferredReference => null()
     else
-       if (.not.present(wavenumberReference).or..not.present(cosmologicalMassVarianceReference).or..not.present(powerSpectrumPrimordialTransferredReference)) call Galacticus_Error_Report('sigma8 is not specified, must specify matched power spectrum'    //{introspection:location})
+       if (.not.present(wavenumberReference).or..not.present(cosmologicalMassVarianceReference).or..not.present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is not specified, must specify matched power spectrum'    //{introspection:location})
        self%sigma8Value                                 =  -1.0d0 
        self%normalizationSigma8                         =  .false.
        self%wavenumberReference                         =  wavenumberReference
@@ -348,7 +348,7 @@ contains
     end if
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
-    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
+    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
          &                      'largeScaleStructure/'                           // &
          &                      self%objectType      (                          )// &
          &                      '_'                                              // &
@@ -641,10 +641,10 @@ contains
     Tabulate the cosmological mass variance.
     !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
-    use :: Display                 , only : displayIndent            , displayMessage                   , displayUnindent, verbosityLevelWorking, &
-         &                                  displayMagenta           , displayReset
+    use :: Display                 , only : displayIndent            , displayMagenta                   , displayMessage, displayReset, &
+          &                                 displayUnindent          , verbosityLevelWorking
     use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
-    use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
+    use :: Error                   , only : Error_Report             , Warn
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
     use :: Tables                  , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
@@ -866,10 +866,10 @@ contains
                 write (label,'(e12.6)') self%times(k)
                 message=message//" at time t="//label//"Gyr."//char(10)
                 if (self%nonMonotonicIsFatal) then
-                   call Galacticus_Error_Report(message//{introspection:location})
+                   call Error_Report(message//{introspection:location})
                 else
                    message=message//"         If problems occur consider not attempting to model structure below this mass scale."
-                   call Galacticus_Warn(message)
+                   call Warn        (message                          )
                 end if
              end if
           end do
@@ -895,10 +895,10 @@ contains
       double precision            , intent(in   ) :: time_
       logical                     , intent(in   ) :: useTopHat
       double precision            , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision                            :: topHatRadius           , wavenumberMaximum, &
-           &                                         wavenumberMinimum      , integrandLow     , &
+      double precision                            :: topHatRadius           , wavenumberMaximum     , &
+           &                                         wavenumberMinimum      , integrandLow          , &
            &                                         integrandMedium        , integrandHigh
-      type            (integrator)                :: integrator_
+      type            (integrator)                :: integrator_            , integratorLogarithmic_
 
       filteredPowerTime=time_
       topHatRadius     =(                                             &
@@ -967,6 +967,16 @@ contains
             integrandLow   =   integrator_%integrate(           wavenumberMinimum ,           wavenumberBAO     )
             integrandMedium=   integrator_%integrate(           wavenumberBAO     ,3.0d0*self%wavenumberHalfMode)
             integrandHigh  =   integrator_%integrate(3.0d0*self%wavenumberHalfMode,           wavenumberMaximum )
+            if (integrandHigh <= 0.0d0) then
+               ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
+               ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
+               ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
+               ! evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand are
+               ! placed at small wavenumber.
+               integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
+               integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
+               if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
+            end if
             rootVariance   =+(                                                            &
                  &            +integrandLow                                               &
                  &            +integrandMedium                                            &
@@ -1010,6 +1020,26 @@ contains
       return
     end function varianceIntegrand
 
+    double precision function varianceIntegrandLogarithmic(wavenumberLogarithmic)
+      !!{
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum. This version integrates with respect to $\log(k)$.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumberLogarithmic
+      double precision                :: wavenumber
+
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
+      ! elsewhere.
+      wavenumber                  =+exp(wavenumberLogarithmic)
+      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
+           &                       *(                                                                              &
+           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
+           &                         *                                               wavenumber                    &
+           &                        )**2                                                                           &
+           &                       *                                                 wavenumber
+      return
+    end function varianceIntegrandLogarithmic
+
     double precision function varianceIntegrandTopHat(wavenumber)
       !!{
       Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
@@ -1033,7 +1063,7 @@ contains
     !!{
     Compute interoplants in time.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
@@ -1048,7 +1078,7 @@ contains
        i=size(self%times)-1
        h=1.0d0
     else if (i < 1) then
-       call Galacticus_Error_Report('interpolant out of range'//{introspection:location})
+       call Error_Report('interpolant out of range'//{introspection:location})
     end if
     return
   end subroutine filteredPowerInterpolantsTime
@@ -1136,10 +1166,10 @@ contains
     !!{
     Write tabulated data on mass variance to file.
     !!}
-    use :: Display, only : displayMessage, verbosityLevelWorking
-    use :: HDF5   , only : hsize_t
+    use :: Display    , only : displayMessage, verbosityLevelWorking
+    use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp

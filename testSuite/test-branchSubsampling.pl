@@ -12,14 +12,14 @@ use PDL::IO::HDF5;
 system("mkdir -p outputs/");
 
 # Run the subsampled model.
-system("cd ..; Galacticus.exe testSuite/parameters/mergerTreeBranchSubsampled.xml");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchSubsampled.xml");
 unless ( $? == 0 ) {
     print "FAIL: merger tree branch subsampling model failed to run\n";
     exit;
 }
 
 # Run the not subsampled model.
-system("cd ..; Galacticus.exe testSuite/parameters/mergerTreeBranchNotSubsampled.xml");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchNotSubsampled.xml");
 unless ( $? == 0 ) {
     print "FAIL: merger tree branch no subsampling model failed to run\n";
     exit;

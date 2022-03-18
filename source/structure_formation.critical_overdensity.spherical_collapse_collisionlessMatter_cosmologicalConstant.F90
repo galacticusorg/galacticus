@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -117,8 +117,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class.
     !!}
-    use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
+    use :: Error                , only : Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: self
     class           (cosmologyFunctionsClass                                     ), target  , intent(in   ) :: cosmologyFunctions_
@@ -146,7 +146,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
     return
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
@@ -200,7 +200,7 @@ contains
     !!{
     Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
     double precision                                                              , intent(in   ), optional :: time      , expansionFactor, &
@@ -216,7 +216,7 @@ contains
     call self%retabulate(time_)
     ! Interpolate to get the critical overdensity.
     sphericalCollapseClsnlssMttrCsmlgclCnstntValue=+self%overdensityCritical%interpolate(time_) &
-         &                                          *self%normalization
+         &                                         *self%normalization
     return
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntValue
 

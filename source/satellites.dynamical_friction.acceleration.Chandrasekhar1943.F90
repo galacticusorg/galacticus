@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
@@ -50,6 +51,7 @@
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      double precision                                     :: logarithmCoulomb
    contains
      !![
@@ -82,6 +84,7 @@ contains
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass                     ), pointer       :: galacticStructure_
     double precision                                                             :: logarithmCoulomb
 
     !![
@@ -93,17 +96,19 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function chandrasekhar1943ConstructorParameters
 
-  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class.
     !!}
@@ -111,9 +116,10 @@ contains
     type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     double precision                                             , intent(in   )         :: logarithmCoulomb
     !![
-    <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -129,6 +135,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine chandrasekhar1943Destructor
@@ -137,37 +144,34 @@ contains
     !!{
     Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
     !!}
-    use :: Error_Functions                           , only : Error_Function
-    use :: Galactic_Structure_Densities              , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options                , only : coordinateSystemCartesian
-    use :: Galactic_Structure_Chandrasekhar_Integrals, only : Galactic_Structure_Chandrasekhar_Integral
-    use :: Galacticus_Nodes                          , only : nodeComponentSatellite                   , treeNode
-    use :: Numerical_Constants_Astronomical          , only : gigaYear                                 , megaParsec
-    use :: Numerical_Constants_Math                  , only : Pi
-    use :: Numerical_Constants_Astronomical          , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes              , only : kilo
-    use :: Vectors                                   , only : Vector_Magnitude
+    use :: Error_Functions                 , only : Error_Function
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
-    double precision                                             , dimension(3)  :: chandrasekhar1943Acceleration
-    class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
-    type            (treeNode                                   ), intent(inout) :: node
-    class           (nodeComponentSatellite                     ), pointer       :: satellite
-    type            (treeNode                                   ), pointer       :: nodeHost
-    double precision                                             , dimension(3)  :: position                            , velocity
-    double precision                                                             :: massSatellite                       , densityHost       , &
-         &                                                                          velocityMagnitude                   , velocityDispersion, &
-         &                                                                          Xv                                  , radius
-    double precision                                             , parameter     :: XvMaximum                    =10.0d0
+    double precision                                             , dimension(3)          :: chandrasekhar1943Acceleration
+    class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout), target :: self
+    type            (treeNode                                   ), intent(inout)         :: node
+    class           (nodeComponentSatellite                     ), pointer               :: satellite
+    type            (treeNode                                   ), pointer               :: nodeHost
+    double precision                                             , dimension(3)          :: position                            , velocity
+    double precision                                                                     :: massSatellite                       , densityHost       , &
+         &                                                                                  velocityMagnitude                   , velocityDispersion, &
+         &                                                                                  Xv                                  , radius
+    double precision                                             , parameter             :: XvMaximum                    =10.0d0
 
-    nodeHost                     =>  node     %mergesWith                                    (               )
-    satellite                    =>  node     %satellite                                     (               )
-    massSatellite                =   satellite%boundMass                                     (               )
-    position                     =   satellite%position                                      (               )
-    velocity                     =   satellite%velocity                                      (               )
-    radius                       =   Vector_Magnitude          (         position                            )
-    velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius)
-    velocityMagnitude            =   Vector_Magnitude          (         velocity                            )
-    densityHost                  =   Galactic_Structure_Density(nodeHost,position,coordinateSystemCartesian  )
+    nodeHost                     =>  node                           %mergesWith              (                                             )
+    satellite                    =>  node                           %satellite               (                                             )
+    massSatellite                =   satellite                      %boundMass               (                                             )
+    position                     =   satellite                      %position                (                                             )
+    velocity                     =   satellite                      %velocity                (                                             )
+    radius                       =   Vector_Magnitude                                        (         position                            )
+    velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius                              )
+    velocityMagnitude            =   Vector_Magnitude                                        (         velocity                            )
+    densityHost                  =   self     %galacticStructure_   %density                 (nodeHost,position,coordinateSystemCartesian  )
     if (velocityDispersion > 0.0d0) then
        Xv                        =  +velocityMagnitude                     &
             &                       /velocityDispersion                    &

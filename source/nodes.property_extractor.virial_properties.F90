@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@
      A property extractor which extracts virialProperties properties.
      !!}
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                 virialPropertiesDestructor
      procedure :: elementCount => virialPropertiesElementCount
@@ -132,47 +132,43 @@ contains
 
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
-         &                   self%darkMatterHaloScale_%virialRadius  (node), &
-         &                   self%darkMatterHaloScale_%virialVelocity(node)  &
+         &                   self%darkMatterHaloScale_%radiusVirial  (node), &
+         &                   self%darkMatterHaloScale_%velocityVirial(node)  &
          &                  ]
     return
   end function virialPropertiesExtract
 
-  function virialPropertiesNames(self,time)
+  subroutine virialPropertiesNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily virialProperties} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
-    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(virialPropertiesNames(2))
-    virialPropertiesNames=[                                         &
-         &                 var_str('darkMatterOnlyRadiusVirial'  ), &
-         &                 var_str('darkMatterOnlyVelocityVirial')  &
-         &                 ]
+    allocate(names(2))
+    names(1)=var_str('darkMatterOnlyRadiusVirial'  )
+    names(2)=var_str('darkMatterOnlyVelocityVirial')
     return
-  end function virialPropertiesNames
+  end subroutine virialPropertiesNames
 
-  function virialPropertiesDescriptions(self,time)
+  subroutine virialPropertiesDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
-    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(virialPropertiesDescriptions(2))
-    virialPropertiesDescriptions=[                                                                 &
-         &                        var_str('Virial radius of the dark matter only node [Mpc].'   ), &
-         &                        var_str('Virial velocity of the dark matter only node [km/s].')  &
-         &                       ]
+    allocate(descriptions(2))
+    descriptions(1)=var_str('Virial radius of the dark matter only node [Mpc].'   )
+    descriptions(2)=var_str('Virial velocity of the dark matter only node [km/s].')
     return
-  end function virialPropertiesDescriptions
+  end subroutine virialPropertiesDescriptions
 
   function virialPropertiesUnitsInSI(self,time)
     !!{

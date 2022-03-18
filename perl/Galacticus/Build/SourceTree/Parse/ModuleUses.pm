@@ -29,6 +29,7 @@ sub Parse_ModuleUses {
 	    my $rawModuleUse;
 	    my $rawPreprocessor;
 	    my $moduleUses;
+	    my @moduleOrder;
 	    my @preprocessorStack;
 	    my $lineNumber       = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
 	    my $source           = exists($node->{'source'}) ? $node->{'source'} : "unknown";
@@ -53,6 +54,8 @@ sub Parse_ModuleUses {
 		    my $isIntrinsic = $3;
 		    my $moduleName  = $5;
 		    my $only        = $7;
+		    push(@moduleOrder,$moduleName)
+			unless ( grep {$_ eq $moduleName} @moduleOrder );
 		    $moduleUses->{$moduleName}->{'openMP'} = $isOpenMP ? 1 : 0;
 		    if ( $isIntrinsic ) {
 			$moduleUses->{$moduleName}->{'intrinsic'} = 1;
@@ -128,8 +131,9 @@ sub Parse_ModuleUses {
 		    # Create a new node.
 		    my $newNode =
 		    {
-			type      => "moduleUse"  ,
-			moduleUse => $moduleUses
+			type        => "moduleUse"  ,
+			moduleUse   => $moduleUses  ,
+			moduleOrder => \@moduleOrder
 		    };
 		    $newNode->{'firstChild'} =
 		    {
@@ -155,6 +159,7 @@ sub Parse_ModuleUses {
 			if ( eof($code) && $isModuleUse == 0 );		    
 		    # Reset the raw module use text.
 		    undef($rawModuleUse);
+		    undef($moduleUses  );
 		    $rawCodeLine      = $lineNumber;
 		    $rawModuleUseLine = $lineNumber;
 		}
@@ -207,6 +212,8 @@ sub AddUses {
     # OpenMP, then we need to keep it as not-OpenMP - furthermore we need to do this on a per-symbol basis, requiring that we have
     # OpenMP and conditions status per symbol and reproduce this correctly when updating the code).
     foreach my $moduleName ( keys(%{$moduleUses->{'moduleUse'}}) ) {
+	push(@{$usesNode->{'moduleOrder'}},$moduleName)
+	    unless ( grep {$_ eq $moduleName} @{$usesNode->{'moduleOrder'}} );
 	$usesNode->{'moduleUse'}->{$moduleName}->{'openMP'    } = $moduleUses->{'moduleUse'}->{$moduleName}->{'openMP'    };
 	$usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic' } = $moduleUses->{'moduleUse'}->{$moduleName}->{'intrinsic' };
 	$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'} = $moduleUses->{'moduleUse'}->{$moduleName}->{'conditions'};
@@ -259,7 +266,7 @@ sub UpdateUses {
     }
     # Clear previous content.
     $usesNode->{'firstChild'}->{'content'} = undef();
-    foreach my $moduleName ( sort(keys(%{$usesNode->{'moduleUse'}})) ) {
+    foreach my $moduleName ( @{$usesNode->{'moduleOrder'}} ) {
 	if ( exists($usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}) ) {
 	    foreach ( @{$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'}} ) {
 		$usesNode->{'firstChild'}->{'content'} .= ($_->{'invert'} ? "#ifndef" : "#ifdef")." ".$_->{'name'}."\n";

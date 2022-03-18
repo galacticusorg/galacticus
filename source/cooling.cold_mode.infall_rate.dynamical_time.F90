@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,7 +88,7 @@ contains
     !!{
     Internal constructor for the dynamical time cooling time class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
@@ -99,11 +99,11 @@ contains
     !!]
 
     ! Check that the properties we need are gettable.
-    if (.not.defaultHotHaloComponent%massColdIsGettable())                                  &
-         & call Galacticus_Error_Report(                                                    &
-         &                              'hot halo component must have gettable cold mass'// &
-         &                              {introspection:location}                            &
-         &                             )
+    if (.not.defaultHotHaloComponent%massColdIsGettable())                       &
+         & call Error_Report(                                                    &
+         &                   'hot halo component must have gettable cold mass'// &
+         &                   {introspection:location}                            &
+         &                  )
     return
   end function dynamicalTimeConstructorInternal
 
@@ -132,7 +132,7 @@ contains
 
     hotHalo                 =>  node                        %hotHalo              (    )
     dynamicalTimeInfallRate =  +self                        %dynamicalRateFraction       &
-         &                     /self   %darkMatterHaloScale_%dynamicalTimescale   (node) &
+         &                     /self   %darkMatterHaloScale_%timescaleDynamical   (node) &
          &                     *hotHalo                     %massCold             (    )
     return
   end function dynamicalTimeInfallRate

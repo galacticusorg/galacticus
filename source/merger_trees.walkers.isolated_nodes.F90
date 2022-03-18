@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,14 +49,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerIsolatedNodes)                :: self
     type(inputParameters              ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
-    call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
+    call Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function isolatedNodesParameters
 
@@ -95,11 +95,11 @@ contains
     self%nodePrevious => self%node
     ! If the node is currently pointing to the base node of the tree, then attempt to move to the next tree (if we are spanning
     ! forests) - if this fails the tree walk is complete.
-    if (associated(self%node,self%tree%baseNode)) then
+    if (associated(self%node,self%tree%nodeBase)) then
        if (self%spanForest) then
           do while (associated(self%tree))
              self%tree => self%tree%nextTree
-             if (associated(self%tree).and.associated(self%tree%baseNode)) exit
+             if (associated(self%tree).and.associated(self%tree%nodeBase)) exit
           end do
        else
           self%tree => null()
@@ -117,8 +117,8 @@ contains
     end if
     ! If the node is currently null, set to the base node of the tree.
     if (.not.associated(self%node)) then
-       if (associated(self%tree%baseNode)) then
-          self%node => self%tree%baseNode
+       if (associated(self%tree%nodeBase)) then
+          self%node => self%tree%nodeBase
        else
           self%nodesRemain_ =  .false.
           node              => null()

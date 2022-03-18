@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,10 +35,9 @@ program Test_Concentrations
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use :: Calculations_Resets                 , only : Calculations_Reset
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
-  use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
+  use :: Input_Paths                         , only : inputPath                               , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                                  , operator(==)                               , &
           &                                           varying_string
   use :: Input_Parameters                    , only : inputParameters
@@ -55,17 +54,17 @@ program Test_Concentrations
   type            (treeNode                                                    ), pointer                             :: node
   class           (nodeComponentBasic                                          ), pointer                             :: basic
   class           (darkMatterProfileConcentrationClass                         ), pointer                             :: darkMatterProfileConcentration_
-  type            (cosmologyParametersSimple                                   )                                      :: cosmologyParametersSimple_
-  type            (cosmologyFunctionsMatterLambda                              )                                      :: cosmologyFunctionsMatterLambda_
-  type            (linearGrowthCollisionlessMatter                             )                                      :: linearGrowthCollisionlessMatter_
-  type            (cosmologicalMassVarianceFilteredPower                       )                                      :: cosmologicalMassVarianceFilteredPower_
-  type            (powerSpectrumWindowFunctionTopHat                           )                                      :: powerSpectrumWindowFunctionTopHat_
-  type            (powerSpectrumPrimordialPowerLaw                             )                                      :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionEisensteinHu1999                            )                                      :: transferFunctionEisensteinHu1999_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                                      :: powerSpectrumPrimordialTransferredSimple_
-  type            (powerSpectrumStandard                                       )                                      :: powerSpectrumStandard_
-  type            (darkMatterParticleCDM                                       )                                      :: darkMatterParticleCDM_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
+  type            (cosmologyParametersSimple                                   ), pointer                             :: cosmologyParametersSimple_
+  type            (cosmologyFunctionsMatterLambda                              ), pointer                             :: cosmologyFunctionsMatterLambda_
+  type            (linearGrowthCollisionlessMatter                             ), pointer                             :: linearGrowthCollisionlessMatter_
+  type            (cosmologicalMassVarianceFilteredPower                       ), pointer                             :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionTopHat                           ), pointer                             :: powerSpectrumWindowFunctionTopHat_
+  type            (powerSpectrumPrimordialPowerLaw                             ), pointer                             :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionEisensteinHu1999                            ), pointer                             :: transferFunctionEisensteinHu1999_
+  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumStandard                                       ), pointer                             :: powerSpectrumStandard_
+  type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (varying_string                                              )                                      :: parameterFile
   integer                                                                       , parameter                           :: countModels                                                   =5
   type            (varying_string                                              ), dimension(countModels)              :: modelName                                                       , modelLabel         , &
@@ -113,13 +112,13 @@ program Test_Concentrations
   call Unit_Tests_Begin_Group("Concentration algorithms")
   do iModel=1,countModels
      allocate(parameters)
-     parameterFile=galacticusPath(pathTypeExec)//'testSuite/parameters/concentrations_'//modelDensityContrast(iModel)//'.xml'
+     parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/concentrations_'//modelDensityContrast(iModel)//'.xml'
      parameters   =inputParameters(parameterFile)
      call nodeClassHierarchyInitialize     (parameters)
      call Node_Components_Initialize       (parameters)
      call Node_Components_Thread_Initialize(parameters)
      ! Read the Colossus target data (and parameters used) from file.
-     countMasses=Count_Lines_in_File(galacticusPath(pathTypeExec)//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'.txt','#')
+     countMasses=Count_Lines_in_File(inputPath(pathTypeExec)//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'.txt','#')
      i=0
      allocate(mass(               countMasses))
      allocate(concentration      (countMasses))
@@ -159,6 +158,17 @@ program Test_Concentrations
      ! Convert masses from h⁻¹M☉ to M☉.
      mass=mass/(HubbleConstant/100.0d0)
      ! Construct all required objects.
+     allocate(cosmologyParametersSimple_                                   )
+     allocate(cosmologyFunctionsMatterLambda_                              )
+     allocate(linearGrowthCollisionlessMatter_                             )
+     allocate(cosmologicalMassVarianceFilteredPower_                       )
+     allocate(powerSpectrumWindowFunctionTopHat_                           )
+     allocate(powerSpectrumPrimordialPowerLaw_                             )
+     allocate(transferFunctionEisensteinHu1999_                            )
+     allocate(powerSpectrumPrimordialTransferredSimple_                    )
+     allocate(powerSpectrumStandard_                                       )
+     allocate(darkMatterParticleCDM_                                       )
+     allocate(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_)
      !![
      <referenceConstruct object="darkMatterParticleCDM_"                                        >
       <constructor>
@@ -198,7 +208,8 @@ program Test_Concentrations
         &amp;                                                        index_                             =powerSpectrumIndex                       , &amp;
         &amp;                                                        running                            =+0.0d0                                   , &amp;
         &amp;                                                        runningRunning                     =+0.0d0                                   , &amp;
-        &amp;                                                        wavenumberReference                =+1.0d0                                     &amp;
+        &amp;                                                        wavenumberReference                =+1.0d0                                   , &amp;
+        &amp;                                                        runningSmallScalesOnly             =.false.                                    &amp;
         &amp;                                                       )
       </constructor>
      </referenceConstruct>
@@ -382,7 +393,7 @@ program Test_Concentrations
      ! Iterate over masses evaluating concentration.
      do i=1,countMasses
         call basic%massSet(mass(i))
-        call Galacticus_Calculations_Reset(node)
+        call Calculations_Reset(node)
         concentration(i)=darkMatterProfileConcentration_%concentration(node)
      end do
      ! Assert the result.
@@ -395,11 +406,21 @@ program Test_Concentrations
      deallocate(concentration      )
      deallocate(concentrationTarget)
      !![
-     <objectDestructor name="darkMatterProfileConcentration_"/>
+     <objectDestructor name="darkMatterProfileConcentration_"                              />
+     <objectDestructor name="cosmologyParametersSimple_"                                   />
+     <objectDestructor name="cosmologyFunctionsMatterLambda_"                              />
+     <objectDestructor name="linearGrowthCollisionlessMatter_"                             />
+     <objectDestructor name="cosmologicalMassVarianceFilteredPower_"                       />
+     <objectDestructor name="powerSpectrumWindowFunctionTopHat_"                           />
+     <objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
+     <objectDestructor name="transferFunctionEisensteinHu1999_"                            />
+     <objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
+     <objectDestructor name="powerSpectrumStandard_"                                       />
+     <objectDestructor name="darkMatterParticleCDM_"                                       />
+     <objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>
      !!]
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
-     call Galacticus_Function_Classes_Destroy()
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()

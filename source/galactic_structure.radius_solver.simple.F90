@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,8 +45,8 @@
      Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
      !!}
      private
-     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-     logical                                     :: useFormationHalo     , solveForInactiveProperties
+     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     logical                                     :: useFormationHalo               , solveForInactiveProperties
    contains
      final     ::             simpleDestructor
      procedure :: solve    => simpleSolve
@@ -143,10 +143,10 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,simpleSolveHook            )
-    call satelliteMergerEvent%detach(self,simpleSolveHook            )
-    call   nodePromotionEvent%detach(self,simpleSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,simpleSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,simpleSolveHook            )) call      postEvolveEvent%detach(self,simpleSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,simpleSolveHook            )) call satelliteMergerEvent%detach(self,simpleSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,simpleSolveHook            )) call   nodePromotionEvent%detach(self,simpleSolveHook            )
     return
   end subroutine simpleDestructor
 
@@ -154,7 +154,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -163,7 +163,7 @@ contains
     type is (galacticStructureSolverSimple)
        call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleSolveHook
@@ -172,7 +172,7 @@ contains
     !!{
     Hookable wrapper around the solver.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : propertyTypeInactive
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -184,7 +184,7 @@ contains
     type is (galacticStructureSolverSimple)
        if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleSolvePreDeriativeHook
@@ -193,7 +193,7 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     !![
     <include directive="radiusSolverTask" type="moduleUse">
     !!]
@@ -230,7 +230,7 @@ contains
     if (node%isPhysicallyPlausible) then
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
-          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
+          if (.not.associated(node%formationNode)) call Error_Report('no formation node exists'//{introspection:location})
           haloNode => node%formationNode
        else
           haloNode => node

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,9 +52,11 @@ contains
     implicit none
     type(satelliteDynamicalFrictionZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteDynamicalFrictionZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 
@@ -63,9 +65,9 @@ contains
     Return a zero acceleration for satellites due to dynamical friction.
     !!}
     implicit none
-    double precision                                , dimension(3)  :: zeroAcceleration
-    class           (satelliteDynamicalFrictionZero), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , dimension(3)          :: zeroAcceleration
+    class           (satelliteDynamicalFrictionZero), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout)         :: node
     !$GLC attributes unused :: self, node
 
     zeroAcceleration=[0.0d0,0.0d0,0.0d0]

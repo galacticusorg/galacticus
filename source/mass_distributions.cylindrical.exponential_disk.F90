@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,28 +34,28 @@
      The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
      !!}
   private
-  double precision                                                        :: scaleRadius                           , scaleHeight                           , &
-       &                                                                     densityNormalization                  , surfaceDensityNormalization           , &
+  double precision                                                        :: scaleRadius                                   , scaleHeight                                   , &
+       &                                                                     densityNormalization                          , surfaceDensityNormalization                   , &
        &                                                                     mass
   ! Tables used for rotation curves and potential.
-  logical                                                                 :: scaleLengthFactorSet                  , rotationCurveInitialized              , &
-       &                                                                     rotationCurveGradientInitialized      , potentialInitialized                  , &
-       &                                                                     accelerationInitialized
+  logical                                                                 :: scaleLengthFactorSet                          , rotationCurveInitialized              =.false., &
+       &                                                                     rotationCurveGradientInitialized      =.false., potentialInitialized                  =.false., &
+       &                                                                     accelerationInitialized               =.false.
   double precision                                                        :: scaleLengthFactor
-  double precision                                                        :: rotationCurveHalfRadiusMinimum        , rotationCurveHalfRadiusMaximum
-  double precision                                                        :: rotationCurveGradientHalfRadiusMinimum, rotationCurveGradientHalfRadiusMaximum
-  type            (table1DLogarithmicLinear)                              :: rotationCurveTable                    , rotationCurveGradientTable            , &
+  double precision                                                        :: rotationCurveHalfRadiusMinimum                , rotationCurveHalfRadiusMaximum
+  double precision                                                        :: rotationCurveGradientHalfRadiusMinimum        , rotationCurveGradientHalfRadiusMaximum
+  type            (table1DLogarithmicLinear)                              :: rotationCurveTable                            , rotationCurveGradientTable                    , &
        &                                                                     potentialTable
-  double precision                          , allocatable, dimension(:  ) :: accelerationRadii                     , accelerationHeights
-  double precision                          , allocatable, dimension(:,:) :: accelerationRadial                    , accelerationVertical                  , &
-       &                                                                     tidalTensorRadialRadial               , tidalTensorVerticalVertical           , &
+  double precision                          , allocatable, dimension(:  ) :: accelerationRadii                             , accelerationHeights
+  double precision                          , allocatable, dimension(:,:) :: accelerationRadial                            , accelerationVertical                          , &
+       &                                                                     tidalTensorRadialRadial                       , tidalTensorVerticalVertical                   , &
        &                                                                     tidalTensorCross
-  double precision                                                        :: accelerationRadiusMinimumLog          , accelerationRadiusMaximumLog          , &
-       &                                                                     accelerationHeightMinimumLog          , accelerationHeightMaximumLog          , &
-       &                                                                     accelerationRadiusInverseInterval     , accelerationHeightInverseInterval
+  double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
+       &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
+       &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
   ! Locks.
-  !$ integer      (omp_lock_kind           )                              :: factorComputeLock                     , rotationCurveLock                     , &
-  !$   &                                                                     rotationCurveGradientLock             , potentialLock
+  !$ integer      (omp_lock_kind           )                              :: factorComputeLock                             , rotationCurveLock                             , &
+  !$   &                                                                     rotationCurveGradientLock                     , potentialLock
 contains
      !![
      <methods>
@@ -160,7 +160,7 @@ contains
     !!{
     Internal constructor for ``exponentialDisk'' mass distribution class.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -179,18 +179,18 @@ contains
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
        if (present(scaleRadius)) then
-          if (Values_Differ(scaleRadius,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('scaleRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
+          if (Values_Differ(scaleRadius,1.0d0,absTol=1.0d-6)) call Error_Report('scaleRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
        end if
        if (present(mass       )) then
-          if (Values_Differ(mass       ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'               //{introspection:location})
+          if (Values_Differ(mass       ,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'               //{introspection:location})
        end if
        self%scaleRadius                =1.0d0
        self%mass                       =1.0d0
        self%surfaceDensityNormalization=1.0d0/2.0d0/Pi
     else
        ! Set core radius.
-       if (.not.present(scaleRadius)) call Galacticus_Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
-       if (.not.present(mass       )) call Galacticus_Error_Report('mass must be specified for dimensionful profiles'        //{introspection:location})
+       if (.not.present(scaleRadius)) call Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
+       if (.not.present(mass       )) call Error_Report('mass must be specified for dimensionful profiles'        //{introspection:location})
        self%scaleRadius                =scaleRadius
        self%mass                       =mass
        self%surfaceDensityNormalization=self%mass/2.0d0/Pi/self%scaleRadius**2
@@ -232,9 +232,9 @@ contains
     implicit none
     type(massDistributionExponentialDisk), intent(inout) :: self
 
-    call self%rotationCurveTable        %destroy()
-    call self%rotationCurveGradientTable%destroy()
-    call self%potentialTable            %destroy()
+    if (self%rotationCurveInitialized        ) call self%rotationCurveTable        %destroy()
+    if (self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%destroy()
+    if (self%potentialInitialized            ) call self%potentialTable            %destroy()
     !$ call OMP_Destroy_Lock(self%factorComputeLock        )
     !$ call OMP_Destroy_Lock(self%rotationCurveLock        )
     !$ call OMP_Destroy_Lock(self%rotationCurveGradientLock)
@@ -295,8 +295,8 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
     !!}
-    use :: Coordinates     , only : assignment(=)          , coordinateCylindrical
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
+    use :: Error      , only : Error_Report
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -306,7 +306,7 @@ contains
          &                                                              coshTerm
 
     ! If disk is razor thin, density is undefined.
-    if (self%scaleHeight <= 0.0d0) call Galacticus_Error_Report('density undefined for razor-thin disk'//{introspection:location})
+    if (self%scaleHeight <= 0.0d0) call Error_Report('density undefined for razor-thin disk'//{introspection:location})
     ! Get position in cylindrical coordinate system.
     position=coordinates
     ! Compute density.
@@ -653,8 +653,8 @@ contains
     !!{
     Compute radial moments of the exponential disk mass distribution surface density profile.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Gamma_Functions , only : Gamma_Function         , Gamma_Function_Incomplete
+    use :: Error          , only : Error_Report
+    use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)           :: self
     double precision                                 , intent(in   )           :: moment
@@ -667,7 +667,7 @@ contains
     if (moment <= -1.0d0) then
        exponentialDiskSurfaceDensityRadialMoment=0.0d0
        if (present(isInfinite)) return
-       call Galacticus_Error_Report('moment is infinite'//{introspection:location})
+       call Error_Report('moment is infinite'//{introspection:location})
     end if
     ! Compute the moment.
     if (present(radiusMinimum)) then
@@ -910,8 +910,8 @@ contains
           &                                 verbosityLevelWorking
     use :: File_Utilities          , only : Directory_Make         , File_Exists            , File_Lock              , File_Path      , &
           &                                 File_Unlock            , lockDescriptor
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
+    use :: Error                   , only : Error_Report
+    use :: Input_Paths             , only : inputPath              , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
     use :: ISO_Varying_String      , only : char                   , operator(//)           , varying_string
@@ -945,11 +945,11 @@ contains
     if (self%accelerationInitialized) return
     ! Construct a file name for the table.
     write (label,'(f8.6)') self%scaleHeight/self%scaleRadius
-    fileName=galacticusPath(pathTypeDataDynamic)// &
-         &   'galacticStructure/'               // &
-         &   self%objectType()                  // &
-         &   '_h'                               // &
-         &   trim(adjustl(label))               // &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'galacticStructure/'          // &
+         &   self%objectType()             // &
+         &   '_h'                          // &
+         &   trim(adjustl(label))          // &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -1063,7 +1063,7 @@ contains
                       wavenumberHigh=+Bessel_Function_Jn_Zero(2.0d0,iBesselZero) &
                            &         /radius
                    case default
-                      call Galacticus_Error_Report('incorrect Bessel function order'//{introspection:location})
+                      call Error_Report('incorrect Bessel function order'//{introspection:location})
                    end select
                    tidalTensorDelta=+integratorTidalTensorRadialRadial%integrate(wavenumberLow,wavenumberHigh)
                    converged=abs(tidalTensorDelta) < 1.0d-6*abs(tidalTensorRadialRadial)                   
@@ -1180,8 +1180,8 @@ contains
       !!{
       Integrand for the of the $\partial^2 \Phi \over \partial R^2$ component of the tidal tensor.
       !!}
-      use :: Bessel_Functions, only : Bessel_Function_J0     , Bessel_Function_Jn
-      use :: Galacticus_Error, only : Galacticus_Error_Report
+      use :: Bessel_Functions, only : Bessel_Function_J0, Bessel_Function_Jn
+      use :: Error           , only : Error_Report
       implicit none
       double precision, intent(in   ) :: wavenumber
       double precision                :: besselFunction
@@ -1193,7 +1193,7 @@ contains
          besselFunction=-Bessel_Function_Jn(2,wavenumber*radius)
       case default
          besselFunction=+0.0d0
-         call Galacticus_Error_Report('incorrect Bessel function order'//{introspection:location})
+         call Error_Report('incorrect Bessel function order'//{introspection:location})
       end select
       tidalTensorRadialRadialIntegrand=-0.5d0             &
            &                           *   wavenumber **2 &

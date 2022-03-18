@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -161,7 +161,7 @@ contains
     class is (radiationFieldIntergalacticBackground)
        ! This is as expected.
     class default
-       call Galacticus_Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
+       call Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
     end select
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
@@ -191,7 +191,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
     !!}
-    use            :: Galacticus_Error                     , only : Galacticus_Error_Report
+    use            :: Error                                , only : Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
     use            :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
     use            :: Memory_Management                    , only : allocateArray
@@ -308,7 +308,7 @@ contains
                  ionicFraction=self%intergalacticMediumStateInitial%doublyIonizedHeliumFraction  (self%timeMinimum)
               end select
            case default
-              call Galacticus_Error_Report('unknown atomic number'//{introspection:location})
+              call Error_Report('unknown atomic number'//{introspection:location})
            end select
            density=+massFractionPrimordial                                    &
                 &  *self%cosmologyParameters_%OmegaBaryon    (           )    &
@@ -393,11 +393,11 @@ contains
      Update the properties for a given universe.
      !!}
      use            :: Arrays_Search           , only : searchArrayClosest
-     use            :: Display                 , only : displayIndent          , displayMessage, displayUnindent
-     use            :: Galacticus_Error        , only : Galacticus_Error_Report
-     use            :: Galacticus_HDF5         , only : galacticusOutputFile
-     use            :: Galacticus_Nodes        , only : mergerTree             , mergerTreeList, nodeComponentBasic, treeNode, &
-          &                                             universe               , universeEvent
+     use            :: Display                 , only : displayIndent     , displayMessage, displayUnindent
+     use            :: Error                   , only : Error_Report
+     use            :: Output_HDF5             , only : outputFile
+     use            :: Galacticus_Nodes        , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
+          &                                             universe          , universeEvent
      use            :: HDF5_Access             , only : hdf5Access
      use            :: IO_HDF5                 , only : hdf5Object
      use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -427,7 +427,7 @@ contains
           &                                                            timeMaximum
 
 #ifdef USEMPI
-     call Galacticus_Error_Report('intergalactic medium state evolver not implemented under MPI'//{introspection:location})
+     call Error_Report('intergalactic medium state evolver not implemented under MPI'//{introspection:location})
 #endif
      select type (self => event%creator)
      class is (universeOperatorIntergalacticMediumStateEvolve)
@@ -441,7 +441,7 @@ contains
         if (iNow > 1) then
            ! Get required objects.
            intergalacticMediumStateEvolveSelf => self
-           intergalacticMediumStateEvolveNode => universe_%trees%tree%baseNode
+           intergalacticMediumStateEvolveNode => universe_%trees%tree%nodeBase
            ! Map properties to a contiguous array.
            properties( 1   )=self%temperature           (iNow-1    )
            properties( 2: 3)=self%densityHydrogen       (iNow-1,1:2)
@@ -490,7 +490,7 @@ contains
         do while (associated(forest))
            tree => forest%tree
            do while (associated(tree))
-              node           => tree%baseNode
+              node           => tree%nodeBase
               basic          => node%basic()
               treetimeLatest =  max(treetimeLatest,basic%time())
               tree           => tree%nextTree
@@ -507,7 +507,7 @@ contains
         else
            ! Output the results to file.
            !$ call hdf5Access%set()
-           igmGroup=galacticusOutputFile%openGroup('igmProperties', 'Properties of the intergalactic medium.')
+           igmGroup=outputFile%openGroup('igmProperties', 'Properties of the intergalactic medium.')
            call igmGroup  %writeDataset  (self%redshift            ,'redshift'        ,'Redshift [].'                                  ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(0.0d0                    ,'unitsInSI'                                                                                   )
            call igmDataset%close()
@@ -546,7 +546,7 @@ contains
         ! Display message.
         call displayUnindent('done')
         class default
-        call Galacticus_Error_Report('incorrect class'//{introspection:location})
+        call Error_Report('incorrect class'//{introspection:location})
      end select
      ! Return true since we've performed our task.
      success=.true.

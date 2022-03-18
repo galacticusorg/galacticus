@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@
      Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
      !!}
      private
-     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_
+     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
      final     ::              sampledDistributionPseudoRandomDestructor
      procedure :: sampleCMF => sampledDistributionPseudoRandomSampleCMF
@@ -59,6 +59,7 @@ contains
     self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
     !![
     <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    <inputParametersValidate source="parameters"/>
     !!]
     return
   end function sampledDistributionPseudoRandomConstructorParameters

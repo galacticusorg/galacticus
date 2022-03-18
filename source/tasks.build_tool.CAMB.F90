@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,16 +60,25 @@ contains
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: Interfaces_CAMB , only : Interface_CAMB_Initialize
     implicit none
     class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: cambPath, cambVersion
     !$GLC attributes unused :: self
-
+#include "os.inc"
+    
     call displayIndent  ('Begin task: CAMB tool build')
-    call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
+    call Interface_CAMB_Initialize(                    &
+         &                                cambPath   , &
+         &                                cambVersion, &
+#ifdef __APPLE__
+         &                         static=.false.      &
+#else
+         &                         static=.true.       &
+#endif
+         &                        )
     call displayMessage('CAMB version '//cambVersion//' successfully built in: '//cambPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: CAMB tool build')

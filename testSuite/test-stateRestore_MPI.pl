@@ -21,7 +21,8 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 # Get any command line options.
 my %options =
     (
-     'processesPerNode' => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
+     'processesPerNode'  => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
+     'allow-run-as-root' => "no"
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
@@ -40,7 +41,7 @@ for(my $pass=0;$pass<2;++$pass) {
     print "State store/restore test pass #".$pass."\n";
 
     # Run full store model.
-    system("export OMP_NUM_THREADS=1; rm -f outputs/state.state*:MPI: outputs/state.gsl.state*:MPI*; cd ..; mpirun -np 8 Galacticus.exe_MPI testSuite/parameters/state/store.xml"  );
+    system("export OMP_NUM_THREADS=1; rm -f outputs/state.state*:MPI: outputs/state.gsl.state*:MPI*; cd ..; mpirun -np 8".($options{'allow-run-as-root'} eq "yes" ? " --allow-run-as-root" : "")." Galacticus.exe_MPI testSuite/parameters/state/store.xml"  );
     die("FAILED: failed to run store model")
 	unless ( $? == 0 );
     # Find which threads ran the final tree.
@@ -72,7 +73,7 @@ for(my $pass=0;$pass<2;++$pass) {
     }
 
     # Run the restore model.
-    system("export OMP_NUM_THREADS=1; cd ..; mpirun -np 1 Galacticus.exe_MPI testSuite/parameters/state/retrieve.xml");
+    system("export OMP_NUM_THREADS=1; cd ..; mpirun -np 1".($options{'allow-run-as-root'} eq "yes" ? " --allow-run-as-root" : "")." Galacticus.exe_MPI testSuite/parameters/state/retrieve.xml");
     die("FAILED: failed to run retrieve model")
 	unless ( $? == 0 );
 

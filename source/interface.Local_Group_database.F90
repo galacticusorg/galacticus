@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -119,13 +119,13 @@ contains
     !!{
     Constructor for the Local Group database class.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
+    use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: ISO_Varying_String, only : char
     implicit none
     type(localGroupDB) :: self
 
-    self%database => XML_Parse(char(galacticusPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
+    self%database => XML_Parse(char(inputPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
     call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name(self%database,'galaxies'),'galaxy',self%galaxies)
     allocate(self%selected(0:size(self%galaxies)-1))
     self%selected=.false.
@@ -149,7 +149,7 @@ contains
     Get a named text property from the Local Group database.
     !!}
     use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute
-    use                      :: Galacticus_Error  , only : Galacticus_Error_Report
+    use                      :: Error             , only : Error_Report
     use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
     {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string              , assignment(=)¦}
     implicit none
@@ -174,7 +174,7 @@ contains
        else
           call XML_Get_Elements_By_Tag_Name(galaxy,name,properties)
           if      (size(properties) > 1) then
-             call Galacticus_Error_Report('galaxy has multiple entries for named property'//{introspection:location})
+             call Error_Report('galaxy has multiple entries for named property'//{introspection:location})
           else if (size(properties) == 1) then
              countGalaxies=countGalaxies+1
           end if
@@ -208,7 +208,7 @@ contains
                 {Type¦match¦^VarStr$¦property(countGalaxies)='not present'¦}
              else
                 attribute       => getAttributeNode(galaxy,'name')
-                call Galacticus_Error_Report('property "'//name//'" is not present in galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
+                call Error_Report('property "'//name//'" is not present in galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
              end if
           end if
        end if
@@ -234,10 +234,10 @@ contains
     !!{
     Impose a selection on the database.
     !!}
-    use                      :: FoX_DOM           , only : getAttributeNode       , getTextContent
-    use                      :: Galacticus_Error  , only : Galacticus_Error_Report
+    use                      :: FoX_DOM           , only : getAttributeNode, getTextContent
+    use                      :: Error             , only : Error_Report
     use                      :: ISO_Varying_String, only : varying_string
-    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)            , operator(>), operator(==)¦}
+    {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)     , operator(>), operator(==)¦}
     implicit none
     class           (localGroupDB  ), intent(inout)               :: self
     character       (len=*         ), intent(in   )               :: name
@@ -258,7 +258,7 @@ contains
        if (.not.isPresent(i+1)) then
           galaxy => self%galaxies(i)%element
           attribute       => getAttributeNode(galaxy,'name')
-         call Galacticus_Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
+         call Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
        end if
        select case (comparison)
        case (comparisonEquals     )
@@ -269,7 +269,7 @@ contains
           comparisonResult=values(i+1) >  value
        case default
           comparisonResult=.false.
-          call Galacticus_Error_Report('unknown comparison operator'//{introspection:location})
+          call Error_Report('unknown comparison operator'//{introspection:location})
        end select
        select case (setOperator)
        case (setOperatorIntersection)
@@ -279,7 +279,7 @@ contains
        case (setOperatorRelativeComplement)
           selectedCurrent(i)=selectedCurrent(i) .and. .not.comparisonResult
        case default
-          call Galacticus_Error_Report('unknown set operator'       //{introspection:location})
+          call Error_Report('unknown set operator'       //{introspection:location})
        end select
     end do
     self%selected=selectedCurrent
@@ -292,8 +292,8 @@ contains
     !!}
     use :: FoX_DOM                         , only : appendChild                 , createElementNS                            , setAttribute      , getAttributeNode, &
          &                                          getNamespaceURI             , getTextContent                             , hasAttribute      , serialize
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataStatic
+    use :: Error                           , only : Error_Report
+    use :: Input_Paths                     , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML                          , only : XML_Get_Elements_By_Tag_Name, extractDataContent  => extractDataContentTS
     use :: ISO_Varying_String              , only : char
     use :: Numerical_Constants_Astronomical, only : arcminutesToDegrees         , arcsecondsToDegrees                        , degreesToRadians  , hoursToDegrees  , &
@@ -328,8 +328,8 @@ contains
        if (getTextContent(attribute) == "The Galaxy") indexMilkyWay=i
        if (getTextContent(attribute) == "Andromeda" ) indexM31     =i
     end do
-    if (indexMilkyWay < 0) call Galacticus_Error_Report('unable to find Milky Way in the database'//{introspection:location})
-    if (indexM31      < 0) call Galacticus_Error_Report('unable to find M31 in the database'      //{introspection:location})
+    if (indexMilkyWay < 0) call Error_Report('unable to find Milky Way in the database'//{introspection:location})
+    if (indexM31      < 0) call Error_Report('unable to find M31 in the database'      //{introspection:location})
     ! Iterate over galaxies.
     do i=0,size(self%galaxies)-1
        galaxy => self%galaxies(i)%element
@@ -555,7 +555,7 @@ contains
        end if
     end do
     ! Write out the updated database.
-    call serialize(self%database,char(galacticusPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
+    call serialize(self%database,char(inputPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
     return
   end subroutine localGroupDBUpdate
 
@@ -574,13 +574,13 @@ contains
     !!{
     Unimplemented comparison operators for 3D vectors.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(vector3D), intent(in   ) :: self, other
     !$GLC attributes unused :: self, other
 
     vector3DComparisonUnimplemented=.false.
-    call Galacticus_Error_Report('comparison operator is unimplemented'//{introspection:location})
+    call Error_Report('comparison operator is unimplemented'//{introspection:location})
     return
   end function vector3DComparisonUnimplemented
 

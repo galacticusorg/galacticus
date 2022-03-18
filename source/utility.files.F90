@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,9 +28,9 @@ module File_Utilities
   !!{
   Implements various file-related utilities.
   !!}
-  use   , intrinsic :: ISO_C_Binding     , only : c_int         , c_char, c_ptr
-  use               :: ISO_Varying_String, only : varying_string
-  use               :: Locks             , only : ompLock
+  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int, c_ptr
+  use            :: ISO_Varying_String, only : varying_string
+  use            :: Locks             , only : ompLock
   implicit none
   private
   public :: Count_Lines_in_File, File_Exists    , File_Rename   , File_Lock       , &
@@ -182,12 +182,10 @@ module File_Utilities
      type(varying_string) :: fileName
   end type lockDescriptor
 
-#ifdef OFDUNAVAIL
   type   (ompLock) :: posixOpenMPFileLock
   logical          :: posixOpenMPFileLockInitialized=.false.
   integer          :: posixOpenMPFileLockCount      =0
   !$omp threadprivate(posixOpenMPFileLockCount)
-#endif
   
 contains
 
@@ -241,7 +239,7 @@ contains
     !!{
     Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     character(len=*), intent(in   )           :: in_file
     character(len=1), intent(in   ), optional :: comment_char
@@ -250,7 +248,7 @@ contains
     !$omp threadprivate(io_status,i_unit)
     open(newunit=i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
     if (io_status /= 0) then
-       call Galacticus_Error_Report("cannot open file '"//trim(in_file)//{introspection:location})
+       call Error_Report("cannot open file '"//trim(in_file)//{introspection:location})
     end if
     Count_Lines_in_File_Char=0
     do while (io_status == 0)
@@ -271,7 +269,7 @@ contains
     !!{
     Place a lock on a file.
     !!}
-    use :: ISO_Varying_String, only : trim, assignment(=)
+    use :: ISO_Varying_String, only : assignment(=), trim
     implicit none
     character(len=*         ), intent(in   )           :: fileName
     type     (lockDescriptor), intent(inout)           :: lock
@@ -280,8 +278,8 @@ contains
 
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
-#ifdef OFDUNAVAIL
-    ! Without OFD locks we must lock per OpenMP thread since POSIX file locks are only process-aware, not thread-aware.
+    ! Even if using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
+    ! times with different "descriptions" (see https://www.gnu.org/software/libc/manual/html_node/Open-File-Description-Locks.html).
     if (.not.posixOpenMPFileLockInitialized) then
        !$omp critical(ofdOpenMPInitialize)
        if (.not.posixOpenMPFileLockInitialized) then
@@ -293,7 +291,6 @@ contains
     ! Obtain an OpenMP lock, if this thread has no other file locks active.
     if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%set()
     posixOpenMPFileLockCount=posixOpenMPFileLockCount+1
-#endif
     ! Now obtain the lock on the file.
     call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_)
     lock%fileName=trim(fileName)
@@ -304,7 +301,7 @@ contains
     !!{
     Remove a lock from a file.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     type   (lockDescriptor), intent(inout)           :: lock
@@ -341,7 +338,7 @@ contains
 #ifdef THREADSAFEIO
           !$omp end critical(gfortranInternalIO)
 #endif
-          if (fsync(fileDescriptor) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
+          if (fsync(fileDescriptor) /= 0) call Error_Report('error syncing file at unlock'//{introspection:location})
           !![
           <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
            <description>Internal file I/O in gfortran can be non-thread safe.</description>
@@ -358,12 +355,11 @@ contains
     end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
-#ifdef OFDUNAVAIL
-    ! Without OFD locks we must lock per OpenMP thread since POSIX file locks are only process-aware, not thread-aware. Release
-    ! that lock now, if this thread has no more file locks.
+    ! Even if using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
+    ! times with different "descriptions" (see https://www.gnu.org/software/libc/manual/html_node/Open-File-Description-Locks.html).
+    ! Release that lock now, if this thread has no more file locks.
     posixOpenMPFileLockCount=posixOpenMPFileLockCount-1
     if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%unset()
-#endif
     return
   end subroutine File_Unlock
 
@@ -371,7 +367,7 @@ contains
     !!{
     Return the full path to the executable of the given name.
     !!}
-    use :: ISO_Varying_String, only : operator(//)      , char              , assignment(=)
+    use :: ISO_Varying_String, only : assignment(=)     , char              , operator(//)
     use :: String_Handling   , only : String_Count_Words, String_Split_Words
     implicit none
     type     (varying_string)                            :: Executable_Find
@@ -398,7 +394,7 @@ contains
       !!{
       Retrieve the {\normalfont \ttfamily PATH} environment variable.
       !!}
-      use ISO_Varying_String, only : assignment(=)
+      use :: ISO_Varying_String, only : assignment(=)
       implicit none
       integer                     , intent(in   ) :: pathsLength
       character(len=pathsLength+1)                :: pathsName
@@ -428,8 +424,8 @@ contains
     !!{
     Make the given directory path. Will create intermediate directories in the path if necessary.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : var_str                , trim
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : trim        , var_str
     implicit none
     character(len=*), intent(in   ) :: pathName
     integer  (c_int)                :: status
@@ -442,13 +438,13 @@ contains
           if (File_Exists(var_str(pathName(1:i-1)))) cycle
           !$omp critical(mkdir)
           status=mkdir_C(pathName(1:i-1)//char(0))
-          if (status /= 0) call Galacticus_Error_Report('failed to make intermediate directory "'//pathName(1:i-1)//'"'//{introspection:location})
+          if (status /= 0) call Error_Report('failed to make intermediate directory "'//pathName(1:i-1)//'"'//{introspection:location})
           !$omp end critical(mkdir)
        end if
     end do
     !$omp critical(mkdir)
     status=mkdir_C(trim(pathName)//char(0))
-    if (status /= 0) call Galacticus_Error_Report('failed to make directory "'//trim(pathName)//'"'//{introspection:location})
+    if (status /= 0) call Error_Report('failed to make directory "'//trim(pathName)//'"'//{introspection:location})
     !$omp end critical(mkdir)
     return
   end subroutine Directory_Make_Char
@@ -470,7 +466,7 @@ contains
     !!{
     Returns the path to the file.
     !!}
-    use :: ISO_Varying_String, only : char, index, extract, assignment(=)
+    use :: ISO_Varying_String, only : assignment(=), char, extract, index
     implicit none
     type     (varying_string)                :: File_Path_Char
     character(len=*         ), intent(in   ) :: fileName
@@ -487,7 +483,7 @@ contains
     !!{
     Returns the path to the file.
     !!}
-    use :: ISO_Varying_String, only : varying_string, assignment(=), extract, index
+    use :: ISO_Varying_String, only : assignment(=), extract, index, varying_string
     implicit none
     type     (varying_string)                :: File_Name
     character(len=*         ), intent(in   ) :: fileName
@@ -507,8 +503,8 @@ contains
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
-    !$ use :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
-    use    :: ISO_Varying_String, only : varying_string , operator(//)      , assignment(=), var_str
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: ISO_Varying_String, only : assignment(=)     , operator(//)   , var_str, varying_string
     use    :: String_Handling   , only : operator(//)
     implicit none
     type     (varying_string)                          :: fileName
@@ -550,7 +546,7 @@ contains
     !!{
     Remove a file.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     character(len=*), intent(in   ) :: fileName
@@ -558,7 +554,7 @@ contains
 
     if (File_Exists(fileName)) then
        status=unlink_C(trim(fileName)//char(0))
-       if (status /= 0) call Galacticus_Error_Report('failed to remove file "'//trim(fileName)//'"'//{introspection:location})
+       if (status /= 0) call Error_Report('failed to remove file "'//trim(fileName)//'"'//{introspection:location})
     end if
     return
   end subroutine File_Remove_Char
@@ -579,7 +575,7 @@ contains
     !!{
     Remove a file.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
     character(len=*), intent(in   ) :: directoryName
@@ -587,7 +583,7 @@ contains
 
     if (File_Exists(directoryName)) then
        status=rmdir_C(trim(directoryName)//char(0))
-       if (status /= 0) call Galacticus_Error_Report('failed to remove directory "'//trim(directoryName)//'"'//{introspection:location})
+       if (status /= 0) call Error_Report('failed to remove directory "'//trim(directoryName)//'"'//{introspection:location})
     end if
     return
   end subroutine Directory_Remove_Char
@@ -596,8 +592,8 @@ contains
     !!{
     Remove a file.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : trim                   , operator(//), char
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char        , operator(//), trim
     implicit none
     type   (varying_string), intent(in   )           :: nameOld  , nameNew
     logical                , intent(in   ), optional :: overwrite
@@ -608,7 +604,7 @@ contains
 
     if (overwrite_ .and. File_Exists(nameNew)) call File_Remove(nameNew)
     status=rename_C(char(nameOld)//char(0),char(nameNew)//char(0))
-    if (status /= 0) call Galacticus_Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
+    if (status /= 0) call Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
     return
   end subroutine File_Rename
 
@@ -616,16 +612,16 @@ contains
     !!{
     Expands placeholders for Galacticus paths in file names.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
-    use :: ISO_Varying_String, only : assignment(=) , replace
+    use :: Input_Paths       , only : inputPath    , pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
+    use :: ISO_Varying_String, only : assignment(=), replace
     implicit none
     type     (varying_string)                :: fileNameOut
     character(len=*         ), intent(in   ) :: fileNameIn
 
     fileNameOut=fileNameIn
-    fileNameOut=replace(fileNameOut,"%EXECPATH%"       ,galacticusPath(pathTypeExec       ),every=.true.)
-    fileNameOut=replace(fileNameOut,"%DATASTATICPATH%" ,galacticusPath(pathTypeDataStatic ),every=.true.)
-    fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",galacticusPath(pathTypeDataDynamic),every=.true.)
+    fileNameOut=replace(fileNameOut,"%EXECPATH%"       ,inputPath(pathTypeExec       ),every=.true.)
+    fileNameOut=replace(fileNameOut,"%DATASTATICPATH%" ,inputPath(pathTypeDataStatic ),every=.true.)
+    fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",inputPath(pathTypeDataDynamic),every=.true.)
     return
   end function File_Name_Expand
 

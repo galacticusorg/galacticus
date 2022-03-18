@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -133,7 +133,7 @@ contains
     type            (treeNode                                 ), intent(  out), pointer, optional :: lockNode
     type            (varying_string                           ), intent(  out)         , optional :: lockType
     class           (nodeComponentPosition                    )               , pointer           :: position         , positionParent
-    class           (nodecomponentBasic                       )               , pointer           :: basic
+    class           (nodeComponentBasic                       )               , pointer           :: basic
     double precision                                                                              :: timeCrossing     , timeMaximum   , &
          &                                                                                           timeMaximumParent
     
@@ -182,7 +182,7 @@ contains
     !!{
     Process a lightconeCrossing node which has undergone a merger with its host node.
     !!}
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use mpi_utilities
     implicit none
@@ -198,7 +198,7 @@ contains
        ! The tree was changed, so mark that it is not deadlocked.
        deadlockStatus=deadlockStatusIsNotDeadlocked
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine lightconeCrossingProcess

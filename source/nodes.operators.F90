@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,6 +47,7 @@ module Nodes_Operators
       <description>Act on the initialization of a tree.</description>
       <type>void</type>
       <pass>yes</pass>
+      <selfTarget>yes</selfTarget>
       <argument>type(treeNode), intent(inout), target :: node</argument>
       <code>
 	!$GLC attributes unused :: self, node
@@ -97,8 +98,17 @@ module Nodes_Operators
 	!$GLC attributes unused :: self, node
       </code>
     </method>
+    <method name="differentialEvolutionAnalytics" >
+      <description>Mark (meta-)properties as analytically solved in differential evolution.</description>
+      <type>void</type>
+      <pass>yes</pass>
+      <argument>type(treeNode), intent(inout) :: node</argument>
+      <code>
+	!$GLC attributes unused :: self, node
+      </code>
+    </method>
     <method name="differentialEvolutionInactives" >
-      <description>Mark meta-properties as inactive in differential evolution.</description>
+      <description>Mark (meta-)properties as inactive in differential evolution.</description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -119,7 +129,17 @@ module Nodes_Operators
 	!$GLC attributes unused :: self, node, interrupt, functionInterrupt, propertyType
       </code>
     </method>
-    <method name="differentialEvolutionStepFinalState" >
+     <method name="differentialEvolutionSolveAnalytics" >
+      <description>Set the values of analytically-solvable properties of a node during differential evolution.</description>
+      <type>void</type>
+      <pass>yes</pass>
+      <argument>type            (treeNode), intent(inout) :: node</argument>
+      <argument>double precision          , intent(in   ) :: time</argument>
+      <code>
+	!$GLC attributes unused :: self, node, time
+      </code>
+    </method>
+   <method name="differentialEvolutionStepFinalState" >
       <description>Operate on a node at the end of an ODE step.</description>
       <type>void</type>
       <pass>yes</pass>
@@ -135,6 +155,16 @@ module Nodes_Operators
       <argument>type(treeNode), intent(inout) :: node</argument>
       <code>
 	!$GLC attributes unused :: self, node
+      </code>
+    </method>
+    <method name="differentialEvolutionPostStep" >
+      <description>Operate on a node after a differential evolution step.</description>
+      <type>void</type>
+      <pass>yes</pass>
+      <argument>type   (treeNode), intent(inout) :: node</argument>
+      <argument>integer          , intent(inout) :: status</argument>
+      <code>
+	!$GLC attributes unused :: self, node, status
       </code>
     </method>
   </functionClass>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -98,7 +98,7 @@ contains
     Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultHotHaloComponent
     implicit none
     type            (hotHaloMassDistributionPatejLoeb2015)                        :: self
@@ -114,35 +114,35 @@ contains
     if (.not.initialized) then
        !$omp critical(patejLoeb2015Initialized)
        if (.not.initialized) then
-          if     (                                                                                                                 &
-               &  .not.(                                                                                                           &
-               &         defaultHotHaloComponent          %       massIsGettable()                                                 &
-               &        .and.                                                                                                      &
-               &         defaultHotHaloComponent          %outerRadiusIsGettable()                                                 &
-               &       )                                                                                                           &
-               & ) call Galacticus_Error_Report                                                                                    &
-               & (                                                                                                                 &
-               &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//              &
-               &  Galacticus_Component_List(                                                                                       &
-               &                            'hotHalo'                                                                           ,  &
-               &                             defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)   &
-               &                            .intersection.                                                                         &
-               &                             defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)   &
-               &                           )                                                                                    // &
-               &  {introspection:location}                                                                                         &
+          if     (                                                                                                      &
+               &  .not.(                                                                                                &
+               &         defaultHotHaloComponent          %       massIsGettable()                                      &
+               &        .and.                                                                                           &
+               &         defaultHotHaloComponent          %outerRadiusIsGettable()                                      &
+               &       )                                                                                                &
+               & ) call Error_Report                                                                                    &
+               & (                                                                                                      &
+               &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//   &
+               &  Component_List(                                                                                       &
+               &                 'hotHalo'                                                                           ,  &
+               &                  defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)   &
+               &                 .intersection.                                                                         &
+               &                  defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)   &
+               &                )                                                                                    // &
+               &  {introspection:location}                                                                              &
                & )
-          if     (                                                                                                                 &
-               &  .not.(                                                                                                           &
-               &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                                 &
-               &       )                                                                                                           &
-               & ) call Galacticus_Error_Report                                                                                    &
-               & (                                                                                                                 &
-               &  'This method requires that the "scale" property of the dark matter profile is gettable.'//                       &
-               &  Galacticus_Component_List(                                                                                       &
-               &                            'darkMatterProfile'                                                                 ,  &
-               &                             defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)   &
-               &                           )                                                                                    // &
-               &  {introspection:location}                                                                                         &
+          if     (                                                                                                      &
+               &  .not.(                                                                                                &
+               &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                      &
+               &       )                                                                                                &
+               & ) call Error_Report                                                                                    &
+               & (                                                                                                      &
+               &  'This method requires that the "scale" property of the dark matter profile is gettable.'//            &
+               &  Component_List(                                                                                       &
+               &                 'darkMatterProfile'                                                                 ,  &
+               &                  defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)   &
+               &                )                                                                                    // &
+               &  {introspection:location}                                                                              &
                & )
           initialized=.true.
        end if
@@ -184,7 +184,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock and outer radii.
     radiusShock         =+self                        %shockRadius                         &
-         &               *self   %darkMatterHaloScale_%virialRadius(node                 )
+         &               *self   %darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter         =+hotHalo                     %outerRadius (                     )
     ! Find the density normalization.
     radiusDarkMatter    =+radiusShock                                                         &
@@ -225,7 +225,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock radius.
     radiusShock         =+self                     %shockRadius                    &
-         &               *self%darkMatterHaloScale_%virialRadius(node            )
+         &               *self%darkMatterHaloScale_%radiusVirial(node            )
     ! Compute the log slope of density.
     patejLoeb2015DensityLogSlope=+3.0d0                                                       &
          &                       *(self%gamma-1.0d0)                                          &
@@ -261,7 +261,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock, outer, and scale radii.
     radiusShock              =+self                     %shockRadius                         &
-         &                    *self%darkMatterHaloScale_%virialRadius(node                 )
+         &                    *self%darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter              =     hotHalo              %outerRadius (                     )
     radiusScale              =     darkMatterHaloProfile%scale       (                     )
     ! Find the density normalization.
@@ -314,7 +314,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock, outer, and scale radii.
     radiusShock         =+self                     %shockRadius                         &
-         &               *self%darkMatterHaloScale_%virialRadius(node                 )
+         &               *self%darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter         =     hotHalo              %outerRadius (                     )
     radiusScale         =     darkMatterHaloProfile%scale       (                     )
     ! Find the density normalization.

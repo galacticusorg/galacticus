@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,6 +24,7 @@
   !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
+  use :: Galactic_Structure             , only : galacticStructureClass
 
   !![
   <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
@@ -53,6 +54,7 @@
      !!}
      private
      class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
+     class           (galacticStructureClass            ), pointer :: galacticStructure_             => null()
      double precision                                              :: efficiency
    contains
      final     ::                 zentner2005Destructor
@@ -83,6 +85,7 @@ contains
     type            (satelliteTidalStrippingZentner2005)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
+    class           (galacticStructureClass            ), pointer       :: galacticStructure_
     double precision                                                    :: efficiency
 
     !![
@@ -93,25 +96,28 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
+    <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
     !!]
-    self=satelliteTidalStrippingZentner2005(efficiency,satelliteTidalStrippingRadius_)
+    self=satelliteTidalStrippingZentner2005(efficiency,satelliteTidalStrippingRadius_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
+    <objectDestructor name="galacticStructure_"            />
     !!]
     return
   end function zentner2005ConstructorParameters
 
-  function zentner2005ConstructorInternal(efficiency,satelliteTidalStrippingRadius_) result(self)
+  function zentner2005ConstructorInternal(efficiency,satelliteTidalStrippingRadius_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
+    class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     double precision                                    , intent(in)            :: efficiency
     !![
-    <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_"/>
+    <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_, *galacticStructure_"/>
     !!]
 
     return
@@ -126,6 +132,7 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
+    <objectDestructor name="self%galacticStructure_"            />
     !!]
     return
   end subroutine zentner2005Destructor
@@ -134,12 +141,11 @@ contains
     !!{
     Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec    , gravitationalConstantGalacticus
-    use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude      , Vector_Product
     implicit none
     class           (satelliteTidalStrippingZentner2005), intent(inout)  :: self
     type            (treeNode                          ), intent(inout)  :: node
@@ -175,10 +181,10 @@ contains
          &                     frequencyRadial   &
          &                    )
     ! Compute the mass of the satellite outside of the tidal radius.
-    massOuterSatellite =  max(                                                                                          &
-         &                    +massSatellite                                                                            &
-         &                    -Galactic_Structure_Enclosed_Mass(node,self%satelliteTidalStrippingRadius_%radius(node)), &
-         &                    +0.0d0                                                                                    &
+    massOuterSatellite =  max(                                                                                              &
+         &                    +massSatellite                                                                                &
+         &                    -self%galacticStructure_%massEnclosed(node,self%satelliteTidalStrippingRadius_%radius(node)), &
+         &                    +0.0d0                                                                                        &
          &                   )
     ! Compute the rate of mass loss.
     zentner2005MassLossRate=-self%efficiency    &

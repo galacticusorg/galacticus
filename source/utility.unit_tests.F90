@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,11 +134,11 @@ contains
     !!{
     Assess and record an assertion.
     !!}
-    use                            :: Galacticus_Error    , only : Galacticus_Error_Report
-    use                            :: ISO_Varying_String  , only : assignment(=)          , operator(//), var_str
+    use                            :: Error               , only : Error_Report
+    use                            :: ISO_Varying_String  , only : assignment(=), operator(//), var_str
     use                            :: Numerical_Comparison, only : Values_Agree
     {Type¦match¦^integerLong¦  use :: Kind_Numbers        , only : kind_int8¦}
-    {Type¦match¦^varyingString¦use :: ISO_Varying_String  , only : operator(==)           , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=)¦}
+    {Type¦match¦^varyingString¦use :: ISO_Varying_String  , only : operator(==) , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=)¦}
     character                                  (len=*         ), intent(in   )              :: testName
     {Type¦intrinsic}                                           , intent(in   )  {Type¦rank} :: value1    , value2
     integer                                                    , intent(in   ), optional    :: compare
@@ -168,23 +168,23 @@ contains
    case (compareLessThan          )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  < value2}
        comparison="≮"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThan       )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  > value2}
        comparison="≯"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareLessThanOrEqual   )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 <= value2}
        comparison="≰"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThanOrEqual)
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 >= value2}
        comparison="≱"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case default
        passed=.false.
        comparison=""
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
+       call Error_Report('unknown comparison'//{introspection:location})
     end select
     ! Get an object to store the results in.
     result => Get_New_Assert_Result()

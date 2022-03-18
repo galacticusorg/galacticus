@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,7 +56,7 @@ contains
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     type     (nodePropertyExtractorMetallicityISM)                :: self
     type     (inputParameters                    ), intent(inout) :: parameters
@@ -71,7 +71,7 @@ contains
     </inputParameter>
     !!]
     indexElement=Abundances_Index_From_Name(element)
-    if (indexElement < 0) call Galacticus_Error_Report('element "'//trim(element)//'" is not being tracked'//{introspection:location})
+    if (indexElement < 0) call Error_Report('element "'//trim(element)//'" is not being tracked'//{introspection:location})
     self=nodePropertyExtractorMetallicityISM(indexElement)
     !![
     <inputParametersValidate source="parameters"/>

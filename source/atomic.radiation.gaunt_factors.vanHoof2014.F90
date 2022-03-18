@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,7 +134,7 @@ contains
     Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
     \cite{van_hoof_accurate_2014}.
     !!}
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : rydbergs
     implicit none
@@ -150,7 +150,7 @@ contains
        return
     end if
     ! Validate input.
-    if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
+    if (electronNumber > atomicNumber) call Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
     if (self%atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        vanHoof2014Total=0.0d0

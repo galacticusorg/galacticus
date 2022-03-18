@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +21,11 @@
   An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
   !!}
 
-  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass                                  , criticalOverdensityClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
-  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass    , darkMatterProfileDMONFW
+  use :: Virial_Density_Contrast   , only : virialDensityContrastClass   , virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
@@ -47,6 +47,8 @@
      class           (cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_              => null()
      class           (criticalOverdensityClass                                      ), pointer :: criticalOverdensity_             => null()
      class           (cosmologicalMassVarianceClass                                 ), pointer :: cosmologicalMassVariance_        => null()
+     class           (virialDensityContrastClass                                    ), pointer :: virialDensityContrast_           => null()
+     class           (darkMatterProfileDMOClass                                     ), pointer :: darkMatterProfileDMO_            => null()
      type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW                                       ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                                                          :: F                                         , K
@@ -80,6 +82,8 @@ contains
     class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     class           (criticalOverdensityClass                 ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass            ), pointer       :: cosmologicalMassVariance_
+    class           (virialDensityContrastClass               ), pointer       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     double precision                                                           :: F                        , K
 
     ! Check and read parameters.
@@ -102,19 +106,23 @@ contains
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     !!]
-    self=darkMatterProfileConcentrationBullock2001(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=darkMatterProfileConcentrationBullock2001(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />
     <objectDestructor name="cosmologyFunctions_"      />
     <objectDestructor name="criticalOverdensity_"     />
     <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="virialDensityContrast_"   />
+    <objectDestructor name="darkMatterProfileDMO_"    />
     !!]
     return
   end function bullock2001ConstructorParameters
 
-  function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
     concentration class.
@@ -127,9 +135,11 @@ contains
     class           (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass                          ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                         ), intent(in   ), target :: darkMatterProfileDMO_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !![
-    <constructorAssign variables="F,K,*cosmologyParameters_,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_"/>
+    <constructorAssign variables="F,K,*cosmologyParameters_,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_,*virialDensityContrast_,*darkMatterProfileDMO_"/>
     !!]
 
     allocate(self%darkMatterProfileDMODefinition_ )
@@ -178,6 +188,8 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"             />
     <objectDestructor name="self%criticalOverdensity_"            />
     <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     !!]
@@ -203,10 +215,20 @@ contains
          &                                                                                 densityContrast
 
     ! Compute the characteristic mass at formation time.
-    basic                  =>  node                               %basic                    (                                               )
-    virialDensityContrast_ =>  self                               %densityContrastDefinition(                                               )
-    densityContrast        =   virialDensityContrast_             %densityContrast          (basic%mass(),basic          %timeLastIsolated())
-    massHalo               =   Dark_Matter_Profile_Mass_Definition                          (node        ,densityContrast                   )
+    basic                  =>  node                               %basic                    ()
+    virialDensityContrast_ =>  self                               %densityContrastDefinition()
+    densityContrast        =   virialDensityContrast_             %densityContrast          (                                                     &
+         &                                                                                                          basic%mass            ()    , &
+         &                                                                                                          basic%timeLastIsolated()      &
+         &                                                                                  )
+    massHalo               =   Dark_Matter_Profile_Mass_Definition                          (                                                     &
+         &                                                                                   node                                               , &
+         &                                                                                   densityContrast                                    , &
+         &                                                                                   cosmologyParameters_  =self %cosmologyParameters_  , &
+         &                                                                                   cosmologyFunctions_   =self %cosmologyFunctions_   , &
+         &                                                                                   darkMatterProfileDMO_ =self %darkMatterProfileDMO_ , &
+         &                                                                                   virialDensityContrast_=self %virialDensityContrast_  &
+         &                                                                                  )
     massHaloFormation      =  +self%F*massHalo
     ! Compute the corresponding rms fluctuation in the density field (i.e. σ(M)).
     sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation,     self%cosmologyFunctions_%cosmicTime(1.0d0))

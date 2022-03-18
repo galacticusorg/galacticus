@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -144,7 +144,7 @@ contains
     !!{
     Internal constructor for the file stellar spectra class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type     (stellarPopulationSpectraFile)                :: self
     logical                                , intent(in   ) :: forceZeroMetallicity
@@ -165,7 +165,7 @@ contains
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
           &                                        metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report              , errorStatusInputDomain, errorStatusSuccess
+    use            :: Error               , only : Error_Report                         , errorStatusInputDomain, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     implicit none
     class           (stellarPopulationSpectraFile), intent(inout)            :: self
@@ -193,7 +193,7 @@ contains
        message='age ['//trim(label)//'] exceeds the maximum tabulated ['
        write (label,'(e12.4)') self%spectra%ages(self%spectra%agesCount)
        message=message//trim(label)//']'
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     if (self%forceZeroMetallicity) then
        metallicity=logMetallicityZero
@@ -209,7 +209,7 @@ contains
           message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['
           write (metallicityLabel,'(f12.6)') self%spectra%metallicities(self%spectra%metallicityCount)
           message=message//trim(adjustl(metallicityLabel))//']'
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
     end if
     ! Assume zero flux outside of the tabulated wavelength range.
@@ -267,10 +267,10 @@ contains
     !!{
     Read a file of simple stellar population spectra.
     !!}
-    use :: File_Utilities  , only : File_Name_Expand
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : hdf5Object
+    use :: File_Utilities, only : File_Name_Expand
+    use :: Error         , only : Error_Report
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout) :: self
     integer                                              :: fileFormatVersion
@@ -283,7 +283,7 @@ contains
        call spectraFile%openFile(char(File_Name_Expand(char(self%fileName))),readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
        ! Read the wavelengths array.
        call spectraFile%readDataset('wavelengths'                 ,self%spectra%wavelengths  )
        self%spectra%wavelengthsCount=size(self%spectra%wavelengths  )

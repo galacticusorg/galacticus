@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -182,7 +182,6 @@ contains
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                        :: self
     class           (cosmologicalMassVarianceClass                  ), intent(in   ), target :: cosmologicalMassVariance_
@@ -252,8 +251,8 @@ contains
     Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     branches. This routine then finds the progenitor mass corresponding to this value.
     !!}
-    use :: Display           , only : displayMessage         , displayVerbosity, verbosityLevelWarn
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
@@ -298,14 +297,14 @@ contains
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
        if (generalizedPressSchechterMassBranchRoot(0.5d0*haloMass) >= 0.0d0) then
           ! Check that we are sufficiently close to zero. If we're not, it might indicate a problem.
-          if     (                                                                                      &
-               &   generalizedPressSchechterMassBranchRoot(0.5d0*haloMass)                              &
-               &  >                                                                                     &
-               &   probabilityFraction*smallProbabilityFraction                                         &
-               & ) call Galacticus_Error_Report(                                                        &
-               &                                "numerical accuracy lost in root finding calculation"// &
-               &                                {introspection:location}                                &
-               &                               )
+          if     (                                                                           &
+               &   generalizedPressSchechterMassBranchRoot(0.5d0*haloMass)                   &
+               &  >                                                                          &
+               &   probabilityFraction*smallProbabilityFraction                              &
+               & ) call Error_Report(                                                        &
+               &                     "numerical accuracy lost in root finding calculation"// &
+               &                     {introspection:location}                                &
+               &                    )
           ! Return a binary split mass.
           generalizedPressSchechterMassBranch=0.5d0*haloMass
           return
@@ -414,7 +413,7 @@ contains
  $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
  !!}
     use :: Display              , only : displayMagenta   , displayReset
-    use :: Galacticus_Error     , only : Galacticus_Warn  , errorStatusSuccess
+    use :: Error                , only : Warn             , errorStatusSuccess
     use :: ISO_Varying_String   , only : varying_string
     use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
@@ -471,7 +470,7 @@ contains
                      &                    ' Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char        (10)// &
                      &                    'Will try again with lower tolerance. This warning will not be issued again.'                                                         // &
                      &                    {introspection:location}
-                call Galacticus_Warn(message)
+                call Warn(message)
                 self%subresolutionFractionIntegrandFailureWarned=.true.
              end if
              call integrator_%toleranceSet(toleranceRelative=1.0d-2)

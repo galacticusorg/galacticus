@@ -217,12 +217,18 @@
 
   <!-- Physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks">
       <luminositiesStellarInactive value="false"/>
@@ -277,6 +283,6 @@
   <luminosityType value="observed observed"/>
   <luminosityRedshift value="all all"/>
   <luminosityPostprocessSet value="default default"/>
-  <galacticusOutputFileName value="testSuite/outputs/inactiveLuminosities/activeLuminosities.hdf5"/>
+  <outputFileName value="testSuite/outputs/inactiveLuminosities/activeLuminosities.hdf5"/>
 
 </parameters>

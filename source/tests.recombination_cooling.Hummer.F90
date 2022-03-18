@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,7 @@ program Test_Recombination_Cooling_Hummer
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeVerner1996
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed, atomicRecombinationRateRadiativeCoolingHummer
   use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
-  use :: Galacticus_Error                            , only : errorStatusSuccess
+  use :: Error                            , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(atomicCrossSectionIonizationPhotoVerner        ), pointer :: atomicCrossSectionIonizationPhoto_

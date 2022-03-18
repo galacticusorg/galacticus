@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,17 +42,17 @@
      A merger tree operator class which records and outputs tree processing time information.
      !!}
      private
-     logical                                                :: collectMemoryUsageData
-     double precision                                       :: timePostEvolution     , timePreConstruction, &
-          &                                                    timePreEvolution      , mass
+     logical                                                :: collectMemoryUsageData=.false.
+     double precision                                       :: timePostEvolution             , timePreConstruction, &
+          &                                                    timePreEvolution              , mass
      integer         (kind_int8)                            :: treeID
-     integer         (c_size_t )                            :: memoryUsagePeak       , countNodes
+     integer         (c_size_t )                            :: memoryUsagePeak               , countNodes
      real                                                   :: time
      integer                                                :: countTrees
-     double precision           , allocatable, dimension(:) :: timesConstruct        , timesEvolve    , &
+     double precision           , allocatable, dimension(:) :: timesConstruct                , timesEvolve        , &
           &                                                    masses
      integer         (kind_int8), allocatable, dimension(:) :: treeIDs
-     integer         (c_size_t ), allocatable, dimension(:) :: memoryUsagesPeak      , countsNodes
+     integer         (c_size_t ), allocatable, dimension(:) :: memoryUsagesPeak              , countsNodes
    contains
      final     ::                           treeProcessingTimerDestructor
      procedure :: operatePreConstruction => treeProcessingTimerOperatePreConstruction
@@ -136,7 +136,8 @@ contains
     implicit none
     type(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
 
-    if (self%collectMemoryUsageData) call postEvolveEvent%detach(self,treeProcessingTimerPostEvolve)
+    if (self%collectMemoryUsageData .and. postEvolveEvent%isAttached(self,treeProcessingTimerPostEvolve)) &
+         & call postEvolveEvent%detach(self,treeProcessingTimerPostEvolve)
     return
   end subroutine treeProcessingTimerDestructor
 
@@ -179,7 +180,7 @@ contains
     real                                                                 :: time
     
     ! Record the mass and ID of the tree.
-    node        => tree %baseNode
+    node        => tree %nodeBase
     basic       => node %basic   ()
     self%mass   =  basic%mass    ()
     self%treeID =  tree %index
@@ -305,7 +306,7 @@ contains
     !!{
     Outputs collected meta-data on tree processing times.
     !!}
-    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: HDF5                            , only : hsize_t
@@ -318,9 +319,9 @@ contains
 
     if (self%countTrees > 0) then
        !$ call hdf5Access%set()
-       metaDataGroup  =galacticusOutputFile%openGroup ('metaData'  ,'Galacticus meta data.'    )
-       timingDataGroup=metaDataGroup       %openGroup ('treeTiming','Meta-data on tree timing.')
-       preExists      =timingDataGroup     %hasDataset('treeID'                                )
+       metaDataGroup  =outputFile     %openGroup ('metaData'  ,'Galacticus meta data.'    )
+       timingDataGroup=metaDataGroup  %openGroup ('treeTiming','Meta-data on tree timing.')
+       preExists      =timingDataGroup%hasDataset('treeID'                                )
        call timingDataGroup       %writeDataset  (self%treeIDs         (1:self%countTrees),"treeID"         ,"Tree ID"                    ,chunkSize=chunkSize                                ,appendTo=.true.)
        call timingDataGroup       %writeDataset  (self%masses          (1:self%countTrees),"treeMass"       ,"Tree mass [M⊙]"             ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &

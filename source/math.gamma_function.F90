@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -133,7 +133,7 @@ contains
     !!{
     Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
     use :: Incomplete_Gamma  , only : GamInv
     implicit none
@@ -159,7 +159,7 @@ contains
        case (-8)
           message='accuracy lost'
        end select
-       call Galacticus_Error_Report(message//{introspection:location})
+       call Error_Report(message//{introspection:location})
     end if
     return
   end function Inverse_Gamma_Function_Incomplete_Complementary

@@ -12,7 +12,7 @@
       <mass>1.0e12</mass>
     </basic>
     <spin>
-      <spin>0.035</spin>
+      <angularMomentum>1.635e12</angularMomentum>
     </spin>
     <hotHalo>
       <mass>0.0</mass>
@@ -41,7 +41,7 @@
       <mass>1.0e12</mass>
     </basic>
     <spin>
-      <spin>0.035</spin>
+      <angularMomentum>1.635e12</angularMomentum>
     </spin>
   </node>
 </tree>

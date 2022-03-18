@@ -91,7 +91,7 @@ sub testRegressions {
     my $failed  = 0;
     if ( $status == 0 ) {
 	# Job completed, check the output log.
-	system("grep -q -i fatal ".$logFile);
+	system("grep -q -i -e fatal -e aborted ".$logFile);
 	$failed = 1
 	    if ( $? == 0 );
 	system("grep -q FAIL ".$logFile);

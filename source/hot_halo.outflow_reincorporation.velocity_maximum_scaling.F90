@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -141,7 +141,7 @@ contains
     !!{
     Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Error           , only : Component_List         , Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                        :: self
@@ -154,15 +154,15 @@ contains
     !!]
 
     ! Validate.
-    if (.not.defaultHotHaloComponent%outflowedMassIsGettable())                                                       &
-         & call Galacticus_Error_Report                                                                               &
-         &   (                                                                                                        &
-         &    'the "outflowedMass" properties of the hotHalo component must be gettable.'                          // &
-         &    Galacticus_Component_List(                                                                              &
-         &                              'hotHalo'                                                                   , &
-         &                              defaultHotHaloComponent%outflowedMassAttributeMatch(requireGettable=.true.)   &
-         &                             )                                                                           // &
-         &    {introspection:location}                                                                                &
+    if (.not.defaultHotHaloComponent%outflowedMassIsGettable())                                            &
+         & call Error_Report                                                                               &
+         &   (                                                                                             &
+         &    'the "outflowedMass" properties of the hotHalo component must be gettable.'               // &
+         &    Component_List(                                                                              &
+         &                   'hotHalo'                                                                   , &
+         &                   defaultHotHaloComponent%outflowedMassAttributeMatch(requireGettable=.true.)   &
+         &                  )                                                                           // &
+         &    {introspection:location}                                                                     &
          &   )
     ! Construct the object.
     self%timeScaleNormalization =timeScale/velocityMaximumScalingVelocityNormalization**velocityExponent
@@ -203,7 +203,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call calculationResetEvent%detach(self,velocityMaximumScalingCalculationReset)
+    if (calculationResetEvent%isAttached(self,velocityMaximumScalingCalculationReset)) call calculationResetEvent%detach(self,velocityMaximumScalingCalculationReset)
     return
   end subroutine velocityMaximumScalingDestructor
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@ module Radiative_Transfer_Matters
   Provides a class that implements matter types for radiative transfer calculations.
   !!}
   use, intrinsic :: ISO_C_Binding                          , only : c_size_t
+  use            :: ISO_Varying_String                     , only : varying_string
   use            :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorClass
   use            :: Radiative_Transfer_Photon_Packet       , only : radiativeTransferPhotonPacketClass
   private

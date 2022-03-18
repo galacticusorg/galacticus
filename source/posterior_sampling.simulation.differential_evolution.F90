@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -111,11 +111,11 @@ contains
     Constructor for the {\normalfont \ttfamily differentialEvolution} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
-    use :: Display         , only : displayMessage         , displayVerbosity      , verbosityLevelInfo
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter      , inputParameters
     use :: MPI_Utilities   , only : mpiSelf
-    use :: Model_Parameters, only : modelParameterActive   , modelParameterInactive
+    use :: Model_Parameters, only : modelParameterActive, modelParameterInactive
     use :: String_Handling , only : operator(//)
     implicit none
     type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -239,7 +239,7 @@ contains
        <objectDestructor name="modelParameter_"/>
        !!]
     end do
-    if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
+    if (activeParameterCount < 1) call Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
     if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo) then
        message='Found '
        message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
@@ -274,7 +274,7 @@ contains
     end do
     self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     <objectDestructor name="posteriorSampleLikelihood_"              />
     <objectDestructor name="posteriorSampleConvergence_"             />
     <objectDestructor name="posteriorSampleStoppingCriterion_"       />
@@ -365,19 +365,23 @@ contains
     <objectDestructor name="self%posteriorSampleDffrntlEvltnRandomJump_"  />
     <objectDestructor name="self%randomNumberGenerator_"                  />
     !!]
-    do i=1,size(self%modelParametersActive_  )
-       !![
-       <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
-       !!]
-    end do
-    do i=1,size(self%modelParametersInactive_)
-       !![
-       <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
-       !!]
-    end do
-    deallocate(self%modelParametersActive_  )
-    deallocate(self%modelParametersInactive_)
-    return
+    if (allocated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          !![
+	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+          !!]
+       end do
+       deallocate(self%modelParametersActive_  )
+    end if
+    if (allocated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          !![
+	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+          !!]
+       end do
+       deallocate(self%modelParametersInactive_)
+     end if
+     return
   end subroutine differentialEvolutionDestructor
 
   subroutine differentialEvolutionSimulate(self)
@@ -387,7 +391,7 @@ contains
     use :: Display                     , only : displayIndent             , displayMessage , displayUnindent, displayMagenta, &
          &                                      displayReset
     use :: File_Utilities              , only : File_Exists               , File_Remove
-    use :: Galacticus_Error            , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: Error                       , only : Error_Report              , Warn
     use :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
@@ -416,13 +420,13 @@ contains
     ! Check that we have sufficient chains for differential evolution.
     if (.not.self%ignoreChainNumberAdvice) then
        if      (mpiSelf%count() <   size(self%modelParametersActive_)) then
-          call Galacticus_Error_Report('the number of chains should at least equal the number of active parameters, otherwise it may not be possible to sample the full posterior distribution'     //{introspection:location})
+          call Error_Report('the number of chains should at least equal the number of active parameters, otherwise it may not be possible to sample the full posterior distribution'    //{introspection:location})
        else if (mpiSelf%count() < 2*size(self%modelParametersActive_)) then
-          call Galacticus_Warn         ('the number of chains should be at least twice the number of active parameters, otherwise it may not be efficient to sample the full posterior distribution'//{introspection:location})
+          call Warn        ('the number of chains should be at least twice the number of active parameters, otherwise it may not be efficient to sample the full posterior distribution'//{introspection:location})
        end if
     end if
     ! Check that the random number generator is independent across MPI processes.
-    if (.not.self%randomNumberGenerator_%mpiIndependent()) call Galacticus_Error_Report('random number generator produces same sequence on all MPI processes'//{introspection:location})
+    if (.not.self%randomNumberGenerator_%mpiIndependent()) call Error_Report('random number generator produces same sequence on all MPI processes'//{introspection:location})
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
@@ -446,7 +450,7 @@ contains
     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
     timeEvaluatePrevious=timeEvaluate
     ! Check for impossible state.
-    if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('impossible initial state'//{introspection:location})
+    if (self%logPosterior <= logImpossible) call Error_Report('impossible initial state'//{introspection:location})
     ! If the initializor returned a non-impossible likelihood, use it instead.
     if (logLikelihoodInitial > logImpossible) then
        logLikelihood    =logLikelihoodInitial
@@ -653,7 +657,7 @@ contains
     Return the log of the posterior for the current state.
     !!}
     use            :: Display         , only : displayIndent             , displayMessage, displayUnindent
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use            :: Error           , only : Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int4
     use            :: MPI_Utilities   , only : mpiBarrier                , mpiSelf
@@ -739,7 +743,7 @@ contains
              end do
              if (processToProcess(timesEvaluateOrder(i)) >= 0) exit
           end do
-          if (processToProcess(timesEvaluateOrder(i)) < 0) call Galacticus_Error_Report('failed to assign task to process'//{introspection:location})
+          if (processToProcess(timesEvaluateOrder(i)) < 0) call Error_Report('failed to assign task to process'//{introspection:location})
        end do
        ! Report.
        if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then

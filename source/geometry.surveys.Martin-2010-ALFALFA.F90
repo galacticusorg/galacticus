@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,7 +145,7 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute, luminosity
@@ -165,7 +165,7 @@ contains
     !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     ! Get the logarithm of the mass.
     logarithmicMass=log10(mass)
     ! Find the median line width for this mass. (See
@@ -187,7 +187,7 @@ contains
     !!{
     Return the solid angle of the \cite{martin_arecibo_2010} sample.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
     integer                                          , intent(in   ), optional :: field
@@ -195,7 +195,7 @@ contains
     !$GLC attributes unused :: self
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     martin2010ALFALFASolidAngle=solidAngleSurvey
     return
   end function martin2010ALFALFASolidAngle
@@ -204,7 +204,6 @@ contains
     !!{
     Initialize random points for the survey.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Memory_Management               , only : allocateArray
     use :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
     use :: Numerical_Constants_Math        , only : Pi

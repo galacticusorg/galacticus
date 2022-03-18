@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -118,8 +118,7 @@ contains
     !!{
     Default constructor for the triaxiality hot halo outflow reincorporation class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : extrapolationTypeExtrapolate
+    use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none
     type   (haloModelPowerSpectrumModifierTriaxiality)                        :: self
     class  (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
@@ -160,7 +159,7 @@ contains
     Applies a triaxiality modification to a halo model power spectrum based on the results of \cite{smith_triaxial_2005}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Vectors             , only : Vector_Outer_Product
     implicit none
     class           (haloModelPowerSpectrumModifierTriaxiality), intent(inout)                           :: self
@@ -174,7 +173,7 @@ contains
     integer                                                                                              :: i                            , tableIndex
 
     ! Mass is required.
-    if (.not.present(mass)) call Galacticus_Error_Report('mass is required'//{introspection:location})
+    if (.not.present(mass)) call Error_Report('mass is required'//{introspection:location})
     ! Determine table to use.
     select case (term)
     case (haloModelTermOneHalo)

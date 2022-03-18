@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -125,7 +125,7 @@ contains
     Constructs a nearest neighor search object.
     !!}
 #ifndef ANNAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
 #endif
     implicit none
     type            (nearestNeighbors)                                :: nearestNeighborsConstructor
@@ -136,7 +136,7 @@ contains
 #else
     !$GLC attributes unused :: points
     nearestNeighborsConstructor%ANNkd_tree=C_Null_Ptr
-    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+    call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
   end function nearestNeighborsConstructor
@@ -145,17 +145,19 @@ contains
     !!{
     Destroys a nearest neighbor search object.
     !!}
-#ifndef ANNAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef ANNAVAIL
+    use, intrinsic :: ISO_C_Binding, only : c_associated
+#else
+    use            :: Error        , only : Error_Report
 #endif
     implicit none
     type(nearestNeighbors), intent(inout) :: self
 
 #ifdef ANNAVAIL
-    call nearestNeighborsDestructorC(self%ANNkd_tree)
+    if (c_associated(self%ANNkd_tree)) call nearestNeighborsDestructorC(self%ANNkd_tree)
 #else
     !$GLC attributes unused :: self
-    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+    call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
   end subroutine nearestNeighborsDestructor
@@ -165,14 +167,14 @@ contains
     Closes the ANN (Approximate Nearest Neighbor) library.
     !!}
 #ifndef ANNAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
 #endif
     implicit none
 
 #ifdef ANNAVAIL
     call nearestNeighborsCloseC()
 #else
-    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+    call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
   end subroutine nearestNeighborsClose
@@ -182,7 +184,7 @@ contains
     Return indices and distances to the (approximate) nearest neighbors.
     !!}
 #ifndef ANNAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
 #endif
     implicit none
     class           (nearestNeighbors)              , intent(inout) :: self
@@ -201,7 +203,7 @@ contains
     !$GLC attributes unused :: self, point, neighborCount, tolerance
     neighborIndex   =0
     neighborDistance=0.0d0
-    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+    call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
   end subroutine nearestNeighborsSearch
@@ -211,9 +213,9 @@ contains
     Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
     !!}
 #ifndef ANNAVAIL
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
 #endif
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (nearestNeighbors)                           , intent(inout)           :: self
     double precision                  , dimension(:)             , intent(in   )           :: point
@@ -252,7 +254,7 @@ contains
 #else
     !$GLC attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
     neighborCount=0
-    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+    call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
   end subroutine nearestNeighborsSearchFixedRadius

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,6 +35,9 @@
    <stateStore>
     <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </allowedParameters>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
@@ -86,6 +89,9 @@ contains
        <objectBuilder class="mergerTreeOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeOutputter"/>
+    !!]
     return
   end function multiConstructorParameters
 
@@ -188,7 +194,7 @@ contains
     !!{
     Reduce over the outputter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     class(mergerTreeOutputterClass), intent(inout) :: reduced
@@ -204,7 +210,7 @@ contains
           outputterReduced_ => outputterReduced_%next
        end do
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine multiReduce

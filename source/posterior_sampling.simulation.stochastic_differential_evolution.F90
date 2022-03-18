@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,7 @@ contains
     !!]
     call self%initialize(temperatureScale)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     !!]
     return
   end function stochasticDifferentialEvolutionConstructorParameters
@@ -141,7 +141,7 @@ contains
     !!{
     Return whether or not to accept a proposal.
     !!}
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceGelmanRubin
     implicit none
     class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
@@ -163,7 +163,7 @@ contains
        end if
        class default
        temperatureConvergenceFactor=0.0d0
-       call Galacticus_Error_Report('this class requires a Gelman-Rubin convergence criterion'//{introspection:location})
+       call Error_Report('this class requires a Gelman-Rubin convergence criterion'//{introspection:location})
     end select
     ! Set the chain temperature to the root-variance of the difference between the current and proposed likelihoods (which is
     ! characteristic amount by which we expect them to differ due to random fluctuations). Multiply by a user-specified factor to
