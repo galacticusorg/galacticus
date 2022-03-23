@@ -155,6 +155,19 @@
     <version>0.9.4</version>
     <mergerTreeConstructor value="build">
       <redshiftBase value="0.0"/>
+      <mergerTreeBuilder value="excursionSetSimulator">
+	<redshiftMaximum value="12.0" />
+      </mergerTreeBuilder>
+      <mergerTreeMassResolution value="fixed">
+	<massResolution value="1.0e9"/>
+      </mergerTreeMassResolution>
+      <mergerTreeBuildMasses value="fixedMass">
+	<massTree value="1.0e12"/>
+	<treeCount  value="1"/>
+      </mergerTreeBuildMasses>
+    </mergerTreeConstructor>
+    <mergerTreeConstructor value="build">
+      <redshiftBase value="0.0"/>
       <mergerTreeBuilder value="smoothAccretion">
 	<massHaloDeclineFactor value="0.9"/>
       </mergerTreeBuilder>
