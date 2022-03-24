@@ -172,7 +172,7 @@ program Test_Integration2
               time(i)=time(i)+(countEnd-countStart)
            class default
               call Error_Report('unknown integrator class [3]'//{introspection:location})
-          end select
+           end select          
         end do
         ! Evaluate GSL integrators.
         do i=1,2

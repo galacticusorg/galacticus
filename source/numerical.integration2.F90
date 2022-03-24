@@ -468,11 +468,11 @@ contains
     class  (integratorCompositeGaussKronrod1D), intent(inout) :: self
     integer                                   , intent(in   ) :: iterationsMaximum, order
 
-    if (iterationsMaximum < 3)                                                 &
+    if (iterationsMaximum < 3)                                      &
          & call Error_Report(                                       &
-         &                              'at least 3 iterations are required'// &
-         &                               {introspection:location}              &
-         &                             )
+         &                   'at least 3 iterations are required'// &
+         &                    {introspection:location}              &
+         &                  )
     self%iterationsMaximum=iterationsMaximum
     ! Choose order.
     select case (order)
@@ -1125,8 +1125,8 @@ contains
          &          +sum(                                        &
          &               +self%wKronrod (1:pointCountKronrod-1)  &
          &               *(                                      &
-         &                 +     fvalue1(1:pointCountKronrod-1)  &
-         &                 +     fvalue2(1:pointCountKronrod-1)  &
+         &                 +     fValue1(1:pointCountKronrod-1)  &
+         &                 +     fValue2(1:pointCountKronrod-1)  &
          &                )                                      &
          &              )
     integralAbsolute=+self%wKronrod     (  pointCountKronrod  )  &
@@ -1134,13 +1134,20 @@ contains
          &           +sum(                                       &
          &                +self%wKronrod(1:pointCountKronrod-1)  &
          &                *(                                     &
-         &                  +abs(fvalue1(1:pointCountKronrod-1)) &
-         &                  +abs(fvalue2(1:pointCountKronrod-1)) &
+         &                  +abs(fValue1(1:pointCountKronrod-1)) &
+         &                  +abs(fValue2(1:pointCountKronrod-1)) &
          &                 )                                     &
          &               )
     mean       =integralKronrod*0.5d0
-    integralAsc=+sum(self%wKronrod                   *(abs(fValue1  -mean)+abs(fValue2-mean))) &
-         &      +    self%wKronrod(pointCountKronrod)* abs(fUnion(1)-mean)
+    integralAsc=+sum(                                      &
+         &           +self%wKronrod(1:pointCountKronrod-1) &
+         &           *(                                    &
+         &             +abs(fValue1   -mean)               &
+         &             +abs(fValue2   -mean)               &
+         &            )                                    &
+         &          )                                      &
+         &      +    self%wKronrod(  pointCountKronrod  )  &
+         &      *       abs(fUnion (1)-mean)
     ! Evaluate error.
     error           =abs((integralKronrod-integralGauss)*halfLength)
     integralKronrod =integralKronrod *halfLength

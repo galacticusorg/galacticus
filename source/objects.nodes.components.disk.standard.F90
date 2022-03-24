@@ -258,13 +258,13 @@ contains
     !!{
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx      , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                          satelliteMergerEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
     use :: Mass_Distributions               , only : massDistributionCylindrical
-    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution       , diskMassDistribution_        
     implicit none
     type            (inputParameters), intent(inout) :: parameters_
     type            (dependencyRegEx), dimension(1)  :: dependencies
@@ -281,7 +281,7 @@ contains
        <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="parameters_"                    />
        <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="parameters_"                    />
        <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="parameters_"                    />
-       <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution"         source="parameters_" threadPrivate="yes" >
+       <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution_"        source="parameters_" threadPrivate="yes" >
         <default>
          <diskMassDistribution value="exponentialDisk">
           <dimensionless value="true"/>
@@ -289,40 +289,48 @@ contains
         </default>
        </objectBuilder>
        !!]
-       if (.not.diskMassDistribution%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
-       ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
-       ! momentum of the disk assuming a flat rotation curve.
-       select type (diskMassDistribution)
+       ! Validate the disk mass distribution.
+       select type (diskMassDistribution_)
        class is (massDistributionCylindrical)
-          ! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
-          ! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
-          ! distribution (assuming a flat rotation curve).
-          diskMassDistributionDensityMoment1=diskMassDistribution%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
-          diskMassDistributionDensityMoment2=diskMassDistribution%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
-          if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
-             ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
-             diskStructureSolverSpecificAngularMomentum=0.5d0
-          else
-             diskStructureSolverSpecificAngularMomentum=  &
-                  & +diskStructureSolverRadius            &
-                  & /(                                    &
-                  &   +diskMassDistributionDensityMoment2 &
-                  &   /diskMassDistributionDensityMoment1 &
-                  &  )
-          end if
+          ! Since the disk must be cylindrical, deep-copy it to an object of that class. Then we do not need to perform
+          ! type-guards elsewhere in the code.
+          allocate(diskMassDistribution,mold=diskMassDistribution_)
+          !$omp critical(diskStandardDeepCopy)
+          !![
+	  <deepCopyReset variables="diskMassDistribution_"/>
+	  <deepCopy source="diskMassDistribution_" destination="diskMassDistribution"/>
+	  <deepCopyFinalize variables="diskMassDistribution"/>  
+          !!]
+          !$omp end critical(diskStandardDeepCopy)
        class default
           call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
+       if (.not.diskMassDistribution%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
+       ! momentum of the disk assuming a flat rotation curve.
+       !! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
+       !! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
+       !! distribution (assuming a flat rotation curve).
+       diskMassDistributionDensityMoment1=diskMassDistribution%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
+       diskMassDistributionDensityMoment2=diskMassDistribution%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
+       if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
+          ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
+          diskStructureSolverSpecificAngularMomentum=0.5d0
+       else
+          diskStructureSolverSpecificAngularMomentum=  &
+               & +diskStructureSolverRadius            &
+               & /(                                    &
+               &   +diskMassDistributionDensityMoment2 &
+               &   /diskMassDistributionDensityMoment1 &
+               &  )
+       end if
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
        if (diskRadiusSolverCole2000Method) then
-          select type (diskMassDistribution)
-             class is (massDistributionCylindrical)
-             diskRadiusSolverFlatVsSphericalFactor=                                          &
-                  & +diskMassDistribution%rotationCurve       (diskStructureSolverRadius)**2 &
-                  & *                                          diskStructureSolverRadius     &
-                  & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
-          end select
+          diskRadiusSolverFlatVsSphericalFactor=                                          &
+               & +diskMassDistribution%rotationCurve       (diskStructureSolverRadius)**2 &
+               & *                                          diskStructureSolverRadius     &
+               & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
        end if
     end if
     return
@@ -339,7 +347,7 @@ contains
     !!}
     use :: Events_Hooks                     , only : postEvolveEvent     , satelliteMergerEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution, diskMassDistribution_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -351,6 +359,7 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="diskMassDistribution"        />
+       <objectDestructor name="diskMassDistribution_"       />
        !!]
     end if
     return
