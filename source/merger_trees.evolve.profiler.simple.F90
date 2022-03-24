@@ -139,7 +139,8 @@ contains
          &                                                                           profilerDataGroup
     integer                                                                       :: i                , hitCount
     
-    if (all(self%timestepCount == 0)) return
+    if (.not.allocated(self%timestepCount     )) return
+    if (           all(self%timestepCount == 0)) return
     !$ call hdf5Access%set  ()
     metaDataGroup    =outputFile   %openGroup('metaData'       ,'Galacticus meta data.'     )
     profilerDataGroup=metaDataGroup%openGroup('evolverProfiler','Meta-data on tree evolver.')
