@@ -48,19 +48,11 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   Return the half-mass radius of the standard disk.
   !!}
   use :: Error                            , only : Error_Report
-  use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
   implicit none
   class(nodeComponentDiskStandard), intent(inout) :: self
 
-  ! Check that the mass distribution is cylindrical.
-  select type (diskMassDistribution)
-  class is (massDistributionCylindrical)
-     Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%radiusHalfMass()
-  class default
-     Node_Component_Disk_Standard_Half_Mass_Radius=0.0d0
-     call Error_Report('mass distribution should be cylindrical'//{introspection:location})
-  end select
+  Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%radiusHalfMass()
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius
 
@@ -424,7 +416,6 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
   Computes the rotation curve at a given radius for an standard disk.
   !!}
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull
-  use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
   use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   implicit none
@@ -438,21 +429,17 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
   ! Get the mass of the disk.
   componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass <= 0.0d0) return
-  ! Check that the mass distribution is cylindrical.
-  select type (diskMassDistribution)
-  class is (massDistributionCylindrical)
-     ! Compute the actual velocity.
-     radiusDisk=self%radius()
-     if (radiusDisk > 0.0d0) then
-        fractionalRadius=radius/radiusDisk
-        Node_Component_Disk_Standard_Rotation_Curve=+sqrt(                                                &
-             &                                            +gravitationalConstantGalacticus                &
-             &                                            *componentMass                                  &
-             &                                            /radiusDisk                                     &
-             &                                           )                                                &
-             &                                      *diskMassDistribution%rotationCurve(fractionalRadius)
-     end if
-  end select
+  ! Compute the actual velocity.
+  radiusDisk=self%radius()
+  if (radiusDisk > 0.0d0) then
+     fractionalRadius=radius/radiusDisk
+     Node_Component_Disk_Standard_Rotation_Curve=+sqrt(                                                &
+          &                                            +gravitationalConstantGalacticus                &
+          &                                            *componentMass                                  &
+          &                                            /radiusDisk                                     &
+          &                                           )                                                &
+          &                                      *diskMassDistribution%rotationCurve(fractionalRadius)
+  end if
   return
 end function Node_Component_Disk_Standard_Rotation_Curve
 
@@ -461,9 +448,8 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
   Computes the rotation curve gradient for an standard disk.
   !!}
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull
-  use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
-  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentDiskStandard), intent(inout) :: self
   integer                                    , intent(in   ) :: componentType, massType
@@ -478,19 +464,15 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
   ! Get the mass of the disk.
   componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass <= 0.0d0) return
-  ! Check that the mass distribution is cylindrical.
-  select type (diskMassDistribution)
-  class is (massDistributionCylindrical)
-     ! Compute the rotation curve gradient.
-     radiusDisk=self%radius()
-     if (radiusDisk > 0.0d0) then
-        fractionalRadius=radius/radiusDisk
-        Node_Component_Disk_Standard_Rotation_Curve_Gradient=+gravitationalConstantGalacticus                              &
-             &                                               *componentMass                                                &
-             &                                               /radiusDisk**2                                                &
-             &                                               *diskMassDistribution%rotationCurveGradient(fractionalRadius)
-     end if
-  end select
+  ! Compute the rotation curve gradient.
+  radiusDisk=self%radius()
+  if (radiusDisk > 0.0d0) then
+     fractionalRadius=radius/radiusDisk
+     Node_Component_Disk_Standard_Rotation_Curve_Gradient=+gravitationalConstantGalacticus                              &
+          &                                               *componentMass                                                &
+          &                                               /radiusDisk**2                                                &
+          &                                               *diskMassDistribution%rotationCurveGradient(fractionalRadius)
+  end if
   return
 end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
 
@@ -502,7 +484,6 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   use :: Galactic_Structure_Options       , only : componentTypeAll                    , componentTypeDisk         , massTypeAll                       , massTypeBaryonic            , &
           &                                        massTypeGalactic                    , massTypeGaseous           , massTypeStellar                   , weightByLuminosity          , &
           &                                        weightByMass
-  use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset  , diskMassDistribution      , lastUniqueID                      , radiusScaleDisk             , &
           &                                        radiusScaleDiskComputed             , surfaceDensityCentralGas  , surfaceDensityCentralGasComputed  , surfaceDensityCentralStellar, &
           &                                        surfaceDensityCentralStellarComputed, surfaceDensityCentralTotal, surfaceDensityCentralTotalComputed
@@ -563,16 +544,12 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
         Node_Component_Disk_Standard_Surface_Density=luminositiesDisk%luminosity(weightIndex)/2.0d0/Pi/radiusScaleDisk**2
      end select
   end select
-  ! Return if no density.
+  ! Return if no surface density.
   if (Node_Component_Disk_Standard_Surface_Density <= 0.0d0) return
-  ! Check that the mass distribution is cylindrical.
-  select type (diskMassDistribution)
-  class is (massDistributionCylindrical)
-     ! Compute the surface density.
-     call position%rSet(positionCylindrical(1)/self%radius())
-     Node_Component_Disk_Standard_Surface_Density=         &
-          & +Node_Component_Disk_Standard_Surface_Density  &
-          & *diskMassDistribution%surfaceDensity(position)
-  end select
+  ! Compute the surface density.
+  call position%rSet(positionCylindrical(1)/radiusScaleDisk)
+  Node_Component_Disk_Standard_Surface_Density=         &
+       & +Node_Component_Disk_Standard_Surface_Density  &
+       & *diskMassDistribution%surfaceDensity(position)
   return
 end function Node_Component_Disk_Standard_Surface_Density
