@@ -141,7 +141,7 @@ contains
           basic       => node       %basic()
           basicParent => node%parent%basic()
           ! Get the time of this node and its parent.
-          timeNow   =basic  %time()
+          timeNow   =basic      %time()
           timeParent=basicParent%time()
           ! If the branch from node to parent spans the earliest time, insert a new node at that time.
           if (timeParent >= self%timeEarliest .and. timeNow < self%timeEarliest) then
@@ -154,8 +154,8 @@ contains
                 nodeChild => node%parent%firstChild%sibling
                 do while (associated(nodeChild))
                    basicChild => nodeChild%basic()
-                   massParent          =  massParent-basicChild%mass()
-                   nodeChild           => nodeChild%sibling
+                   massParent =  massParent-basicChild%mass()
+                   nodeChild  => nodeChild%sibling
                 end do
              else
                 ! Halo is not the primary progenitor of its parent. Assume that its mass does not grow further.

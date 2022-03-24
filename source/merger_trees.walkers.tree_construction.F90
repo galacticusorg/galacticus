@@ -32,12 +32,18 @@
      A merger tree walker for trees under construction.
      !!}
      private
-     type   (mergerTree), pointer :: tree => null()
-     type   (treeNode  ), pointer :: node => null()
+     type   (mergerTree), pointer :: tree         => null()
+     type   (treeNode  ), pointer :: node         => null()
      logical                      :: nodesRemain_
    contains
+     !![
+     <methods>
+       <method description="Set the walker to the given node." method="setNode"/>
+     </methods>
+     !!]
      procedure :: next        => treeConstructionNext
      procedure :: nodesRemain => treeConstructionNodesRemain
+     procedure :: setNode     => treeConstructionSetNode
   end type mergerTreeWalkerTreeConstruction
 
   interface mergerTreeWalkerTreeConstruction
@@ -142,3 +148,18 @@ contains
     treeConstructionNodesRemain=self%nodesRemain_
     return
   end function treeConstructionNodesRemain
+
+  subroutine treeConstructionSetNode(self,node)
+    !!{
+    Set the current node for the walker.
+    !!}
+    implicit none
+    class(mergerTreeWalkerTreeConstruction), intent(inout)         :: self
+    type (treeNode                        ), intent(in   ), target :: node
+
+    self%nodesRemain_ =  .true.
+    self%node         => node
+    self%tree         => node%hostTree
+    return
+  end subroutine treeConstructionSetNode
+
