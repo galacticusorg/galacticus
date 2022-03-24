@@ -208,7 +208,7 @@ contains
        call self%molecularFraction%populate(self%molecularFraction_(self%molecularFraction%x(i)),i)
     end do
     ! Initialize exponentiator.
-    self%surfaceDensityExponentiator=fastExponentiator(1.0d0,100.0d0,0.33d0,100.0d0,.false.)
+    self%surfaceDensityExponentiator=fastExponentiator(1.0d0,1000.0d0,0.33d0,100.0d0,.false.)
     ! Build root finder.
     self%finder=rootFinder(                                                               &
          &                 rootFunction                 =krumholz2009CriticalDensityRoot, &
@@ -351,9 +351,9 @@ contains
           if      (surfaceDensityGasDimensionless <= 0.0d0) then
              surfaceDensityFactor=0.0d0
           else if (surfaceDensityGasDimensionless <  1.0d0) then
-             surfaceDensityFactor=1.0d0/self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
+             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(1.0d0/surfaceDensityGasDimensionless)
           else
-             surfaceDensityFactor=1.0d0*self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
+             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(      surfaceDensityGasDimensionless)
           end if
           ! Compute the star formation rate surface density.
           krumholz2009Rate=+self%frequencyStarFormation &
@@ -534,7 +534,7 @@ contains
           krumholz2009Unchanged=.true.
        else
           krumholz2009Unchanged=.false.
-          self%massGasPrevious                                         =0.0d0
+          self%massGasPrevious =0.0d0
        end if
     end if
     return
