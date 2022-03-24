@@ -88,6 +88,48 @@ my @simulations =
      plotModify          => \&zoomInsPlotModify
  },
  {
+     label               => "MilkyWay_Axion22",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-22 eV axion zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#b00bf7",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
+     label               => "MilkyWay_Axion21",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-21 eV axion zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#d80bf7",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
+     label               => "MilkyWay_Axion20",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-20 eV axion zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
      label               => "VSMDPL",
      description         => "Halo mass function for non-backsplash z=0 halos from the VSMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
@@ -716,7 +758,7 @@ sub zoomInsPlotModify {
     my $plotOptions = shift();
     my $realization = shift();
     # Appending environment to title.
-    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_MilkyWay_".$realization."_z0.000.hdf5");                                    
+    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z0.000.hdf5");                                    
     my $targetSimulation    = $target          ->group  ('simulation0001'   );                                                                                                                                  
     (my $massRegion       ) = $targetSimulation->attrGet('massRegion'       );                                                                                                                                  
     (my $overdensityRegion) = $targetSimulation->attrGet('overdensityRegion');
