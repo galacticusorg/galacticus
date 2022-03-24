@@ -95,13 +95,10 @@ Contains a module which implements the standard galactic structure functions.
   !$omp threadprivate(galacticStructureState_,galacticStructureStateCount)
   
   ! Submodule-scope variables used in callback functions and root-finding.
-  integer                                                                 :: componentType_               , massType_          , &
-       &                                                                     weightBy_                    , weightIndex_       , &
-       &                                                                     status_
-  double precision                                                        :: radius_
+  integer                                                                 :: status_
   double precision                           , dimension(3)               :: positionSpherical_           , positionCartesian_ , &
        &                                                                     positionCylindrical_         , velocityCartesian_
-  !$omp threadprivate(radius_,massType_,componentType_,weightBy_,weightIndex_,status_,positionSpherical_,positionCartesian_,positionCylindrical_,velocityCartesian_)
+  !$omp threadprivate(status_,positionSpherical_,positionCartesian_,positionCylindrical_,velocityCartesian_)
 
   ! Submodule-scope variables used in root finding.
   double precision                                                        :: massTarget                   , surfaceDensityTarget
@@ -274,7 +271,7 @@ contains
     density           =  node%mapDouble0(densityComponent_,reductionSummation,optimizeFor=optimizeForDensitySummation)
     !![
     <include directive="densityTask" type="functionCall" functionType="function" returnParameter="densityComponent__">
-     <functionArgs>node,positionSpherical_,componentType_,massType_,weightBy_,weightIndex_</functionArgs>
+     <functionArgs>node,positionSpherical_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_</functionArgs>
      <onReturn>density=density+densityComponent__</onReturn>
     !!]
     include 'galactic_structure.density.tasks.inc'
@@ -293,7 +290,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    densityComponent=component%density(positionSpherical_,componentType_,massType_,weightBy_,weightIndex_)
+    densityComponent=component%density(positionSpherical_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_)
     return
   end function densityComponent
 
@@ -325,7 +322,7 @@ contains
     ! Call routines to supply the masses for all components.
     !![
     <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="massComponent">
-     <functionArgs>node,radius_,componentType_,massType_,weightBy_,weightIndex_</functionArgs>
+     <functionArgs>node,galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_</functionArgs>
      <onReturn>massEnclosed=massEnclosed+massComponent</onReturn>
     !!]
     include 'galactic_structure.enclosed_mass.tasks.inc'
@@ -344,7 +341,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    massComponentEnclosed=component%enclosedMass(radius_,componentType_,massType_,weightBy_,weightIndex_)
+    massComponentEnclosed=component%enclosedMass(galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_)
     return
   end function massComponentEnclosed
 
@@ -373,7 +370,7 @@ contains
        if (present(massFractional)) call Error_Report('only one mass or massFractional can be specified'//{introspection:location})
        massTarget=mass
     else if (present(massFractional)) then
-       massTarget=massFractional*self%massEnclosed(node,componentType=componentType_,massType=massType_,weightBy=weightBy_,weightIndex=weightIndex_)
+       massTarget=massFractional*self%massEnclosed(node,componentType=galacticStructureState_(galacticStructureStateCount)%componentType_,massType=galacticStructureState_(galacticStructureStateCount)%massType_,weightBy=galacticStructureState_(galacticStructureStateCount)%weightBy_,weightIndex=galacticStructureState_(galacticStructureStateCount)%weightIndex_)
     else
        call Error_Report('either mass or massFractional must be specified'//{introspection:location})
     end if
@@ -387,9 +384,9 @@ contains
     ! If dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
     ! matter profile. Otherwise, find the radius numerically.
     if     (                                         &
-         &   componentType_ == componentTypeDarkHalo &
+         &   galacticStructureState_(galacticStructureStateCount)%componentType_ == componentTypeDarkHalo &
          &  .or.                                     &
-         &   massType_      == massTypeDark          &
+         &   galacticStructureState_(galacticStructureStateCount)%massType_      == massTypeDark          &
          & ) then
        if (.not.associated(self%darkMatterProfile_)) call Error_Report('object is not expecting dark matter requests'//{introspection:location})       
        standardRadiusEnclosingMass=self%darkMatterProfile_%radiusEnclosingMass(node_,massTarget)
@@ -397,7 +394,7 @@ contains
        ! Solve for the radius.
        if (massEnclosedRoot(0.0d0) >= 0.0d0) then
           message='Enclosed mass in galaxy (ID='
-          write (massLabel,'(e10.4)') self%massEnclosed(node_,0.0d0,componentType_,massType_,weightBy_,weightIndex_)
+          write (massLabel,'(e10.4)') self%massEnclosed(node_,0.0d0,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_)
           message=message//node%index()//') seems to be finite ('//trim(massLabel)
           write (massLabel,'(e10.4)') massTarget
           message=message//') at zero radius (was seeking '      //trim(massLabel)
@@ -426,7 +423,7 @@ contains
     !!}
     double precision, intent(in   ) :: radius
 
-    massEnclosedRoot=+self_%massEnclosed(node_,radius,componentType_,massType_,weightBy_,weightIndex_) &
+    massEnclosedRoot=+self_%massEnclosed(node_,radius,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_) &
          &           -      massTarget
     return
   end function massEnclosedRoot
@@ -452,13 +449,12 @@ contains
     procedure       (velocityRotationComponent)               , pointer  :: velocityRotationComponent_
     double precision                                                     :: velocityRotationComponent__, rotationCurveSquared
 
-    call self%defaults(componentType=componentType,massType=massType)
-    radius_                    =  radius
+    call self%defaults(radius=radius,componentType=componentType,massType=massType)
     velocityRotationComponent_ => velocityRotationComponent
     rotationCurveSquared       =  node%mapDouble0(velocityRotationComponent_,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
     !![
     <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="velocityRotationComponent__">
-     <functionArgs>node,radius_,componentType_,massType_</functionArgs>
+     <functionArgs>node,galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
      <onReturn>rotationCurveSquared=rotationCurveSquared+velocityRotationComponent__**2</onReturn>
     !!]
     include 'galactic_structure.rotation_curve.tasks.inc'
@@ -479,7 +475,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    velocityRotationComponent=component%rotationCurve(radius_,componentType_,massType_)**2
+    velocityRotationComponent=component%rotationCurve(galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)**2
     return
   end function velocityRotationComponent
 
@@ -504,15 +500,14 @@ contains
     procedure       (velocityRotationGradientComponent)               , pointer  :: velocityRotationGradientComponent_
     double precision                                                             :: velocityRotationGradientComponent__
 
-    call self%defaults(componentType=componentType,massType=massType)
+    call self%defaults(radius=radius,componentType=componentType,massType=massType)
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
     ! dV²/dr so that they can be summed directly.
-    radius_                            =  radius
     velocityRotationGradientComponent_ => velocityRotationGradientComponent
     velocityRotationGradient           =  node%mapDouble0(velocityRotationGradientComponent_,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
     !![
     <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="velocityRotationGradientComponent__">
-     <functionArgs>node,radius_,massType_,componentType_</functionArgs>
+     <functionArgs>node,galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%componentType_</functionArgs>
      <onReturn>velocityRotationGradient=velocityRotationGradient+velocityRotationGradientComponent__</onReturn>
     !!]
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
@@ -535,7 +530,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    velocityRotationGradientComponent=component%rotationCurveGradient(radius_,componentType_,massType_)
+    velocityRotationGradientComponent=component%rotationCurveGradient(galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)
     return
   end function velocityRotationGradientComponent
 
@@ -569,21 +564,20 @@ contains
     if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
     ! Evaluate the potential at the halo virial radius.
     if (.not.self%potentialOffsetComputed) then
-       componentType_=componentTypeAll
-       massType_     =massTypeAll
-       radius_       =self%darkMatterHaloScale_%radiusVirial(node)
+       call self%defaults(componentType=componentTypeAll,massType=massTypeAll,radius=self%darkMatterHaloScale_%radiusVirial(node))
        status_       =structureErrorCodeSuccess
        potential     =node%mapDouble0(potentialComponent_,reductionSummation,optimizeFor=optimizeForPotentialSummation)
        if (status_ /= structureErrorCodeSuccess) status=status_
        !![
        <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="potentialComponent__">
-        <functionArgs>node,radius_,componentType_,massType_,status</functionArgs>
+        <functionArgs>node,galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,status</functionArgs>
         <onReturn>potential=potential+potentialComponent__</onReturn>
        !!]
        include 'galactic_structure.potential.tasks.inc'
        !![
        </include>
        !!]
+       call self%restore()
        ! Compute the potential offset such that the total gravitational potential at the virial radius is -V² where V is the
        ! virial velocity.
        self%potentialOffset        =-potential-self%darkMatterHaloScale_%velocityVirial(node)**2
@@ -592,9 +586,9 @@ contains
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
     ! Determine which component type to use.
     if (present(componentType)) then
-       componentType_=componentType
+       galacticStructureState_(galacticStructureStateCount)%componentType_=componentType
     else
-       componentType_=componentTypeAll
+       galacticStructureState_(galacticStructureStateCount)%componentType_=componentTypeAll
     end if
     status_  = structureErrorCodeSuccess
     potential=+node%mapDouble0(potentialComponent_,reductionSummation,optimizeFor=optimizeForPotentialSummation) &
@@ -613,7 +607,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    potentialComponent=component%potential(radius_,componentType_,massType_,status_)
+    potentialComponent=component%potential(galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,status_)
     return
   end function potentialComponent
 
@@ -666,7 +660,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    surfaceDensityComponent=component%surfaceDensity(positionCylindrical_,componentType_,massType_,weightBy_,weightIndex_)
+    surfaceDensityComponent=component%surfaceDensity(positionCylindrical_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_)
     return
   end function surfaceDensityComponent
 
@@ -708,7 +702,7 @@ contains
     double precision, intent(in   ) :: radius
 
     ! Evaluate the root function.
-    surfaceDensityRoot=+self_%surfaceDensity      (node_,[radius,0.0d0,0.0d0],coordinateSystemCylindrical,componentType_,massType_,weightBy_,weightIndex_) &
+    surfaceDensityRoot=+self_%surfaceDensity      (node_,[radius,0.0d0,0.0d0],coordinateSystemCylindrical,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_) &
          &             -      surfaceDensityTarget
     return
   end function surfaceDensityRoot
@@ -742,7 +736,7 @@ contains
     acceleration           =  node%mapDouble1(accelerationComponent_,accelerationSize,reductionSummation,optimizeFor=optimizeForAccelerationSummation)
     !![
     <include directive="accelerationTask" type="functionCall" functionType="function" returnParameter="accelerationComponent__">
-     <functionArgs>node,positionCartesian_,componentType_,massType_</functionArgs>
+     <functionArgs>node,positionCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
      <onReturn>acceleration=acceleration+accelerationComponent__</onReturn>
     !!]
     include 'galactic_structure.acceleration.tasks.inc'
@@ -763,7 +757,7 @@ contains
     class           (nodeComponent), intent(inout)         :: component
     double precision               , dimension(resultSize) :: accelerationComponent
 
-    accelerationComponent=component%acceleration(positionCartesian_,componentType_,massType_)
+    accelerationComponent=component%acceleration(positionCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)
     return
   end function accelerationComponent
 
@@ -796,7 +790,7 @@ contains
     tidalTensor           =  node%mapTensorR2D3(tidalTensorComponent_,reductionSummation,optimizeFor=optimizeForTidalTensorSummation)
     !![
     <include directive="tidalTensorTask" type="functionCall" functionType="function" returnParameter="tidalTensorComponent__">
-     <functionArgs>node,positionCartesian_,componentType_,massType_</functionArgs>
+     <functionArgs>node,positionCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
      <onReturn>tidalTensor=tidalTensor+tidalTensorComponent__</onReturn>
     !!]
     include 'galactic_structure.tidal_tensor.tasks.inc'
@@ -817,7 +811,7 @@ contains
     class(nodeComponent                 ), intent(inout) :: component
     type (tensorRank2Dimension3Symmetric)                :: tidalTensorComponent
 
-    tidalTensorComponent=component%tidalTensor(positionCartesian_,componentType_,massType_)
+    tidalTensorComponent=component%tidalTensor(positionCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)
     return
   end function tidalTensorComponent
 
@@ -857,7 +851,7 @@ contains
     chandrasekharIntegral           =  node%mapDouble1(chandrasekharIntegralComponent_,chandrasekharIntegralSize,reductionSummation,optimizeFor=optimizeForChandrasekharIntegralSummation)
     !![
     <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="chandrasekharIntegralComponent__">
-     <functionArgs>node,positionCartesian_,velocityCartesian_,componentType_,massType_</functionArgs>
+     <functionArgs>node,positionCartesian_,velocityCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
      <onReturn>chandrasekharIntegral=chandrasekharIntegral+chandrasekharIntegralComponent__</onReturn>
     !!]
     include 'galactic_structure.chandrasekharIntegral.tasks.inc'
@@ -878,7 +872,7 @@ contains
     class           (nodeComponent), intent(inout)         :: component
     double precision               , dimension(resultSize) :: chandrasekharIntegralComponent
 
-    chandrasekharIntegralComponent=component%chandrasekharIntegral(positionCartesian_,velocityCartesian_,componentType_,massType_)
+    chandrasekharIntegralComponent=component%chandrasekharIntegral(positionCartesian_,velocityCartesian_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_)
     return
   end function chandrasekharIntegralComponent
 
@@ -898,8 +892,8 @@ contains
 
     self_         => self
     node_         => node
-    componentType_=  componentType
-    massType_     =  massType
+    galacticStructureState_(galacticStructureStateCount)%componentType_=  componentType
+    galacticStructureState_(galacticStructureStateCount)%massType_     =  massType
     massTotal=self%massEnclosed(node,radiusLarge,componentType=componentType,massType=massType)
     ! Return with zero dispersion if the component is massless.
     if (massTotal <= 0.0d0) then
@@ -940,8 +934,8 @@ contains
             &                      *self_%density     (                              &
             &                                          node_                       , &
             &                                          [radius,0.0d0,0.0d0]        , &
-            &                                          componentType=componentType_, &
-            &                                          massType=massType_            &
+            &                                          componentType=galacticStructureState_(galacticStructureStateCount)%componentType_, &
+            &                                          massType=galacticStructureState_(galacticStructureStateCount)%massType_            &
             &                                         )
     end if
     return
@@ -951,15 +945,15 @@ contains
     !!{
     Set the default values for options in the enclosed mass functions.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll       , massTypeAll, weightByLuminosity, weightByMass, &
+    use :: Galactic_Structure_Options, only : componentTypeAll, massTypeAll, weightByLuminosity, weightByMass, &
          &                                    radiusLarge
     use :: Error                     , only : Error_Report
     implicit none
-    class           (galacticStructureStandard), intent(inout)             :: self
-    double precision                           , intent(in   ), optional   :: radius
-    integer                                    , intent(in   ), optional   :: componentType            , massType   , &
-         &                                                                    weightBy                 , weightIndex
-    type            (galacticStructureState   ), dimension(:), allocatable :: galacticStructureStateTmp
+    class           (galacticStructureStandard), intent(inout)              :: self
+    double precision                           , intent(in   ), optional    :: radius
+    integer                                    , intent(in   ), optional    :: componentType            , massType   , &
+         &                                                                     weightBy                 , weightIndex
+    type            (galacticStructureState   ), dimension(:) , allocatable :: galacticStructureStateTmp
 
     ! Expand the state stack if necessary.
     if      (.not.allocated(galacticStructureState_)) then
@@ -970,57 +964,45 @@ contains
        galacticStructureState_(1:galacticStructureStateCount)=galacticStructureStateTmp
        deallocate(galacticStructureStateTmp)
     end if
+    ! Increment stack counter.
+    galacticStructureStateCount=galacticStructureStateCount+1
     ! Set defaults.    
     if (present(radius       )) then
-       radius_        =radius
+       galacticStructureState_(galacticStructureStateCount)%radius_        =radius
     else
-       radius_        =radiusLarge
+       galacticStructureState_(galacticStructureStateCount)%radius_        =radiusLarge
     end if
     if (present(massType     )) then
-       massType_      =massType
+       galacticStructureState_(galacticStructureStateCount)%massType_      =massType
     else
-       massType_      =massTypeAll
+       galacticStructureState_(galacticStructureStateCount)%massType_      =massTypeAll
     end if
     if (present(componentType)) then
-       componentType_ =componentType
+       galacticStructureState_(galacticStructureStateCount)%componentType_ =componentType
     else
-       componentType_ =componentTypeAll
+       galacticStructureState_(galacticStructureStateCount)%componentType_ =componentTypeAll
     end if
     if (present(weightBy     )) then
-       weightBy_      =weightBy
-       select case (weightBy_)
+       galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightBy
+       select case (weightBy)
        case (weightByLuminosity)
           if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
-          weightIndex_=weightIndex
+          galacticStructureState_(galacticStructureStateCount)%weightIndex_=weightIndex
        end select
     else
-       weightBy_      =weightByMass
+       galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightByMass
     end if
-    ! Store to stack.
-    galacticStructureStateCount                                        =galacticStructureStateCount+1
-    galacticStructureState_(galacticStructureStateCount)%componentType_=componentType_
-    galacticStructureState_(galacticStructureStateCount)%massType_     =massType_
-    galacticStructureState_(galacticStructureStateCount)%weightBy_     =weightBy_
-    galacticStructureState_(galacticStructureStateCount)%weightIndex_  =weightIndex_
-    galacticStructureState_(galacticStructureStateCount)%radius_       =radius_
     return
   end subroutine standardDefaults
 
   subroutine standardRestore(self)
     !!{
-    Restore default values for options from the stack.
+    Restore the previous state from the stack.
     !!}
     implicit none
     class(galacticStructureStandard), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-    ! Restore from stack.
     galacticStructureStateCount=galacticStructureStateCount-1
-    if (galacticStructureStateCount > 0) then
-       componentType_=galacticStructureState_(galacticStructureStateCount)%componentType_
-       massType_     =galacticStructureState_(galacticStructureStateCount)%massType_
-       weightBy_     =galacticStructureState_(galacticStructureStateCount)%weightBy_
-       weightIndex_  =galacticStructureState_(galacticStructureStateCount)%weightIndex_
-       radius_       =galacticStructureState_(galacticStructureStateCount)%radius_
-    end if
     return
   end subroutine standardRestore
