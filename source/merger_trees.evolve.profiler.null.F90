@@ -60,15 +60,18 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullProfile(self,timestep,propertyName)
+  subroutine nullProfile(self,node,timestep,countEvaluations,interrupted,propertyName,timeCPU)
     !!{
     Profile the differential evolution step.
     !!}
     implicit none
     class           (mergerTreeEvolveProfilerNull), intent(inout) :: self
-    double precision                              , intent(in   ) :: timeStep
+    type            (treeNode                    ), intent(in   ) :: node
+    double precision                              , intent(in   ) :: timeStep        , timeCPU
+    integer         (c_size_t                    ), intent(in   ) :: countEvaluations
+    logical                                       , intent(in   ) :: interrupted
     type            (varying_string              ), intent(in   ) :: propertyName
-    !$GLC attributes unused :: self, timeStep, propertyName
+    !$GLC attributes unused :: self, node, timeStep, countEvaluations, interrupted, propertyName, timeCPU
 
     return
   end subroutine nullProfile

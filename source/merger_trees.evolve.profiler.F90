@@ -25,6 +25,8 @@ module Merger_Tree_Evolve_Profilers
   !!{
   Provides a class that implements profiling of merger tree evolution.
   !!}
+  use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  use            :: Galacticus_Nodes, only : treeNode
   private
 
   !![
@@ -37,8 +39,12 @@ module Merger_Tree_Evolve_Profilers
     <description>Profile a differential evolution step.</description>
     <type>void</type>
     <pass>yes</pass>
+    <argument>type            (treeNode      ), intent(in   ) :: node</argument>
     <argument>double precision                , intent(in   ) :: timeStep</argument>
+    <argument>integer         (c_size_t      ), intent(in   ) :: countEvaluations</argument>
+    <argument>logical                         , intent(in   ) :: interrupted</argument>
     <argument>type            (varying_string), intent(in   ) :: propertyName</argument>
+    <argument>double precision                , intent(in   ) :: timeCPU</argument>
    </method>
   </functionClass>
   !!]
