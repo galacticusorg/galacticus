@@ -65,7 +65,11 @@ message='Dumping node '
 message=message//self%index()
 call displayIndent(message)
 message='host tree: '
-message=message//self%hostTree%index
+if (associated(self%hostTree)) then
+ message=message//self%hostTree%index
+else
+ message=message//'unhosted'
+end if
 call displayMessage(message)
 call displayIndent('pointers')
 CODE
