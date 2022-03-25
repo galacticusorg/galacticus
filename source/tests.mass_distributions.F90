@@ -36,23 +36,25 @@ program Test_Mass_Distributions
   use :: Tensors                 , only : assignment(=)
   use :: Unit_Tests              , only : Assert                     , Unit_Tests_Begin_Group, Unit_Tests_End_Group           , Unit_Tests_Finish
   implicit none
-  class           (massDistributionClass)                             , allocatable :: massDistribution_                                                                                            , massDistributionRotated
-  integer                                , parameter                                :: sersicTableCount          =8
-  double precision                       , dimension(sersicTableCount)              :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
+  class           (massDistributionClass)                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated
+  integer                                , parameter                                :: sersicTableCount             =8
+  double precision                       , dimension(sersicTableCount)              :: sersicTableRadius            =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
   ! Mass targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                       , dimension(sersicTableCount)              :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableMassTarget        =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
   ! Density targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                       , dimension(sersicTableCount)              :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableDensityTarget     =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
-  double precision                       , dimension(sersicTableCount)              :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                       , dimension(sersicTableCount)              :: sersicTableDensity                                                                                           , sersicTableMass               , &
+  double precision                       , dimension(sersicTableCount)              :: sersicTablePotentialTarget   =[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableDensity                                                                                              , sersicTableMass               , &
        &                                                                               sersicTablePotential
-  type            (coordinateSpherical  )                                           :: position                                                                                                     , positionZero
+  type            (coordinateSpherical  )                                           :: position                                                                                                        , positionZero
   integer                                                                           :: i
-  double precision                                                                  :: radiusInProjection                                                                                           , radius                        , &
+  double precision                                                                  :: radiusInProjection                                                                                              , radius                        , &
+       &                                                                               rotationCurveGradientAnalytic                                                                                   , rotationCurveGradientNumerical, &
        &                                                                               massFraction
+  double precision                       , parameter                                :: epsilonFiniteDifference      =0.01d0
   character       (len=4                )                                           :: label
-  double precision                       , dimension(3,3)                           :: tidalTensorComponents                                                                                        , tidalTensorSphericalComponents
+  double precision                       , dimension(3,3)                           :: tidalTensorComponents                                                                                           , tidalTensorSphericalComponents
   double precision                       , dimension(3  )                           :: acceleration
   type            (vector               ), dimension(:  )             , allocatable :: axes
   
@@ -156,6 +158,28 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   type is (massDistributionExponentialDisk)
      massDistribution_=massDistributionExponentialDisk(scaleHeight=0.01d0,dimensionless=.true.)
+     ! Test that the rotation curve gradient matches a finite-difference estimate.
+     call Unit_Tests_Begin_Group("Rotation curve gradient matches finite-difference estimate")
+     do i=1,3
+        select case (i)
+        case (1)
+           radius=0.5d0
+        case (2)
+           radius=1.0d0
+        case (3)
+           radius=4.0d0
+        end select
+        write (label,'(f4.1)') radius
+        rotationCurveGradientAnalytic =+  massDistribution_%rotationCurveGradient(radius=radius                                )
+        rotationCurveGradientNumerical=+(                                                                                           &
+             &                           +massDistribution_%rotationCurve        (radius=radius*(1.0d0+epsilonFiniteDifference))**2 &
+             &                           -massDistribution_%rotationCurve        (radius=radius                                )**2 &
+             &                           )                                                                                          &
+             &                           /epsilonFiniteDifference                                                                   &
+             &                           /radius
+        call Assert("Rotation curve gradient at r="//trim(adjustl(label)),rotationCurveGradientAnalytic,rotationCurveGradientNumerical,relTol=5.0d0*epsilonFiniteDifference)
+     end do
+     call Unit_Tests_End_Group()
      ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
      call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
      do i=1,2
@@ -333,7 +357,7 @@ program Test_Mass_Distributions
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
-    ! End unit tests.
+  ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
 
