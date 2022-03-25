@@ -126,8 +126,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Error, only : Error_Report
     implicit none
     type            (galacticStructureSolverFixed)                        :: self
     double precision                              , intent(in   )         :: factor
