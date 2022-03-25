@@ -892,8 +892,7 @@ contains
 
     self_         => self
     node_         => node
-    galacticStructureState_(galacticStructureStateCount)%componentType_=  componentType
-    galacticStructureState_(galacticStructureStateCount)%massType_     =  massType
+    call self%defaults(componentType=componentType,massType=massType)
     massTotal=self%massEnclosed(node,radiusLarge,componentType=componentType,massType=massType)
     ! Return with zero dispersion if the component is massless.
     if (massTotal <= 0.0d0) then
@@ -911,6 +910,7 @@ contains
     else
        velocityDispersion=sqrt(max(densityVelocityVariance,0.0d0)/componentDensity)
     end if
+    call self%restore()
     return
   end function standardVelocityDispersion
 
