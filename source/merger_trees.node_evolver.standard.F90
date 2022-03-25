@@ -26,6 +26,7 @@
   use :: Merger_Trees_Merge_Node     , only : mergerTreeNodeMerger         , mergerTreeNodeMergerClass
   use :: Nodes_Operators             , only : nodeOperatorClass
   use :: Numerical_ODE_Solvers       , only : odeSolver
+  use :: Timers                      , only : timer
   
   !![
   <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
@@ -54,7 +55,7 @@
           &                                                                        odeLatentIntegratorIntervalsMaximum
      integer         (c_size_t                     )                            :: propertyCountAll                             , propertyCountMaximum         , &
           &                                                                        propertyCountInactive                        , propertyCountActive          , &
-          &                                                                        propertyCountPrevious
+          &                                                                        propertyCountPrevious                        , countEvaluationsToSuccess
      double precision                               , allocatable, dimension(:) :: propertyScalesActive                         , propertyValuesActive         , &
           &                                                                        propertyErrors                               , propertyTolerances           , &
           &                                                                        propertyValuesActiveSaved                    , propertyScalesInactive       , &
@@ -72,6 +73,7 @@
      double precision                                                           :: timePrevious
      double precision                               , allocatable, dimension(:) :: propertyValuesPrevious                       , propertyRatesPrevious
      integer         (kind_int8                    )                            :: systemClockMaximum
+     type            (timer                        )                            :: stepTimer
    contains
      final     ::               standardDestructor
      procedure :: evolve     => standardEvolve
@@ -299,9 +301,11 @@ contains
         call Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
      end select
      ! Initialize
-     self%propertyCountPrevious=-1
-     self%propertyCountMaximum = 0
-     self%timePrevious         =-1.0d0
+     self%propertyCountPrevious    =-1
+     self%propertyCountMaximum     = 0
+     self%timePrevious             =-1.0d0
+     self%countEvaluationsToSuccess=0_c_size_t
+     self%stepTimer                =timer()
      return
    end function standardConstructorInternal
 
@@ -619,6 +623,7 @@ contains
                    else
                       odeAlgorithm=self%odeAlgorithmNonJacobian
                    end if
+                   if (self%profileOdeEvolver) call self%stepTimer%start()
                    !![
                    <conditionalCall>
 		    <call>
@@ -1145,8 +1150,12 @@ contains
     integer         (c_size_t      )                              :: iProperty           , limitingProperty
     type            (varying_string)                              :: propertyName
 
+    ! Count steps.
+    standardSelf%countEvaluationsToSuccess=standardSelf%countEvaluationsToSuccess+1_c_size_t
     ! If the step was not good, return immediately.
     if (stepStatus /= GSL_Success) return
+    ! Stop the timer.
+    call standardSelf%stepTimer%stop()
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     limitingProperty  =-1_c_size_t
@@ -1162,9 +1171,15 @@ contains
     if (scaledErrorMaximum > 0.0d0) then
        ! Decode the step limiting property.
        propertyName=standardSelf%activeNode%nameFromIndex(int(limitingProperty),standardSelf%propertyTypeODE)
-       ! Profile the step.
-       call standardSelf%mergerTreeEvolveProfiler_%profile(timeStep,propertyName)
+    else
+       propertyName="unknown"
     end if
+    ! Profile the step.
+    call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,propertyName,standardSelf%stepTimer%report())
+    ! Reset the count of steps to success.
+    standardSelf%countEvaluationsToSuccess=0_c_size_t
+    ! Restart the timer.
+    call standardSelf%stepTimer%start()
     return
   end subroutine standardStepErrorAnalyzer
 

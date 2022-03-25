@@ -45,11 +45,15 @@
      A merger tree evolve profiler that collects simple data.
      !!}
      private
-     double precision                                         :: timeStepMaximum        , timeStepMinimum
+     double precision                                         :: timeStepMaximum                   , timeStepMinimum           , &
+          &                                                      timeStepSmallest
      integer                                                  :: timeStepPointsPerDecade
-     double precision             , allocatable, dimension(:) :: timeStep
-     integer                      , allocatable, dimension(:) :: timeStepCount
+     double precision             , allocatable, dimension(:) :: timeStep                          , timeCPU                   , &
+          &                                                      timeCPUInterrupted
+     integer         (c_size_t   ), allocatable, dimension(:) :: timeStepCount                     , evaluationCount           , &
+          &                                                      timeStepCountInterrupted          , evaluationCountInterrupted
      type            (integerHash)                            :: propertyHits
+     type            (treeNode   ), pointer                   :: node                     => null()
    contains
      final     ::            simpleDestructor
      procedure :: profile => simpleProfile
@@ -115,10 +119,21 @@ contains
     !!]
     
     timeStepPoints=int(log10(timeStepMaximum/timeStepMinimum)*dble(timeStepPointsPerDecade))+1
-    allocate(self%timeStep     (timeStepPoints))
-    allocate(self%timeStepCount(timeStepPoints))
-    self%timeStep     =Make_Range(timeStepMinimum,timeStepMaximum,timeStepPoints,rangeTypeLogarithmic)
-    self%timeStepCount=0
+    allocate(self%timeStep                  (timeStepPoints))
+    allocate(self%timeStepCount             (timeStepPoints))
+    allocate(self%timeStepCountInterrupted  (timeStepPoints))
+    allocate(self%evaluationCount           (timeStepPoints))
+    allocate(self%evaluationCountInterrupted(timeStepPoints))
+    allocate(self%timeCPU                   (timeStepPoints))
+    allocate(self%timeCPUInterrupted        (timeStepPoints))
+    self%timeStep                  =Make_Range(timeStepMinimum,timeStepMaximum,timeStepPoints,rangeTypeLogarithmic)
+    self%timeStepCount             =0_c_size_t
+    self%evaluationCount           =0_c_size_t
+    self%timeCPU                   =0.0d0
+    self%timeStepCountInterrupted  =0_c_size_t
+    self%evaluationCountInterrupted=0_c_size_t
+    self%timeCPUInterrupted        =0_c_size_t
+    self%timeStepSmallest          =huge(0.0d0)
     call self%propertyHits%initialize()
     return
   end function simpleConstructorInternal
@@ -127,26 +142,59 @@ contains
     !!{
     Output collected meta-data on tree evolution.
     !!}
+    use :: Display                         , only : displayIndent , displayUnindent
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: ISO_Varying_String              , only : assignment(=)
     implicit none
     type            (mergerTreeEvolveProfilerSimple), intent(inout)               :: self
     type            (varying_string                ), allocatable  , dimension(:) :: propertyNames
-    integer                                         , allocatable  , dimension(:) :: propertyHitCount , timeStepCountPrevious
-    type            (hdf5Object                    )                              :: metaDataDataset  , metaDataGroup, &
+    integer                                         , allocatable  , dimension(:) :: propertyHitCount
+    double precision                                , allocatable  , dimension(:) :: timeCPUPrevious
+    integer         (c_size_t                      ), allocatable  , dimension(:) :: timeStepCountPrevious, evaluationCountPrevious
+    type            (hdf5Object                    )                              :: metaDataDataset      , metaDataGroup          , &
          &                                                                           profilerDataGroup
-    integer                                                                       :: i                , hitCount
+    integer                                                                       :: i                    , hitCount
+    type            (varying_string                )                              :: message
+    character       (len=12                        )                              :: label
     
     if (.not.allocated(self%timestepCount     )) return
     if (           all(self%timestepCount == 0)) return
+    ! Store meta-data to the output file.
     !$ call hdf5Access%set  ()
     metaDataGroup    =outputFile   %openGroup('metaData'       ,'Galacticus meta data.'     )
     profilerDataGroup=metaDataGroup%openGroup('evolverProfiler','Meta-data on tree evolver.')
-    if (profilerDataGroup%hasDataset('timeStepCount')) then
-       call profilerDataGroup%readDataset('timeStepCount',timeStepCountPrevious)
-       self%timeStepCount=self%timeStepCount+timeStepCountPrevious
+    if (profilerDataGroup%hasDataset('timeStepCount'             )) then
+       call profilerDataGroup%readDataset('timeStepCount'             ,  timeStepCountPrevious)
+       self%  timeStepCount           =self%  timeStepCount           +  timeStepCountPrevious
+       deallocate(  timeStepCountPrevious)
+    end if
+    if (profilerDataGroup%hasDataset('evaluationCount'           )) then
+       call profilerDataGroup%readDataset('evaluationCount'           ,evaluationCountPrevious)
+       self%evaluationCount           =self%evaluationCount           +evaluationCountPrevious
+       deallocate(evaluationCountPrevious)
+    end if
+    if (profilerDataGroup%hasDataset('timeCPU'                   )) then
+       call profilerDataGroup%readDataset('timeCPU'                   ,  timeCPUPrevious      )
+       self%  timeCPU                 =self%  timeCPU                 +  timeCPUPrevious
+       deallocate(  timeCPUPrevious      )
+    end if
+    if (profilerDataGroup%hasDataset('timeStepCountInterrupted'  )) then
+       call profilerDataGroup%readDataset('timeStepCountInterrupted'  ,  timeStepCountPrevious)
+       self%  timeStepCountInterrupted=self%  timeStepCountInterrupted+  timeStepCountPrevious
+       deallocate(  timeStepCountPrevious)
+    end if
+    if (profilerDataGroup%hasDataset('evaluationCountInterrupted')) then
+       call profilerDataGroup%readDataset('evaluationCountInterrupted',evaluationCountPrevious)
+       self%evaluationCountInterrupted=self%evaluationCountInterrupted+evaluationCountPrevious
+       deallocate(evaluationCountPrevious)
+    end if
+    if (profilerDataGroup%hasDataset('timeCPUInterrupted'        )) then
+       call profilerDataGroup%readDataset('timeCPUInterrupted'        ,  timeCPUPrevious      )
+       self%  timeCPUInterrupted      =self%        timeCPUInterrupted+        timeCPUPrevious
+       deallocate(  timeCPUPrevious      )
     end if
     if (profilerDataGroup%hasDataset('propertyNames')) then
        call profilerDataGroup%readDataset("propertyNames"   ,propertyNames   )
@@ -166,19 +214,34 @@ contains
     end if
     call self%propertyHits%keys  (propertyNames   )
     call self%propertyHits%values(propertyHitCount)
-    call profilerDataGroup%writeDataset  (self%timeStep        ,"timeStep"        ,"Timestep [Gyr]"        ,datasetReturned=metaDataDataset)
-    call metaDataDataset  %writeAttribute(     gigaYear        ,"unitsInSI"                                                                )
-    call metaDataDataset  %close         (                                                                                                 )
-    call profilerDataGroup%writeDataset  (self%timeStepCount   ,"timeStepCount"   ,"Timestep histogram []"                                 )
-    call profilerDataGroup%writeDataset  (     propertyNames   ,"propertyNames"   ,"Property names"                                        )
-    call profilerDataGroup%writeDataset  (     propertyHitCount,"propertyHitCount","Property hit count"                                    )
-    call profilerDataGroup%close         (                                                                                                 )
-    call metaDataGroup    %close         (                                                                                                 )
+    call profilerDataGroup%writeDataset  (self%timeStep                  ,"timeStep"                  ,"Timestep [Gyr]"                             ,datasetReturned=metaDataDataset)
+    call metaDataDataset  %writeAttribute(     gigaYear                  ,"unitsInSI"                                                                                               )
+    call metaDataDataset  %close         (                                                                                                                                          )
+    call profilerDataGroup%writeDataset  (self%  timeStepCount           ,"timeStepCount"             ,"Timestep histogram []"                                                      )
+    call profilerDataGroup%writeDataset  (self%evaluationCount           ,"evaluationCount"           ,"Evaluations at this timestep []"                                            )
+    call profilerDataGroup%writeDataset  (self%  timeCPU                 ,"timeCPU"                   ,"CPU time histogram [s]"                                                     )
+    call profilerDataGroup%writeDataset  (self%  timeStepCountInterrupted,"timeStepCountInterrupted"  ,"Interrupted timestep histogram []"                                          )
+    call profilerDataGroup%writeDataset  (self%evaluationCountInterrupted,"evaluationCountInterrupted","Interrupted evaluations at this timestep []"                                )
+    call profilerDataGroup%writeDataset  (self%        timeCPUInterrupted,"timeCPUInterrupted"        ,"Interrupted CPU time histogram [s]"                                         )
+    call profilerDataGroup%writeDataset  (     propertyNames             ,"propertyNames"             ,"Property names"                                                             )
+    call profilerDataGroup%writeDataset  (     propertyHitCount          ,"propertyHitCount"          ,"Property hit count"                                                         )
+    call profilerDataGroup%close         (                                                                                                                                          )
+    call metaDataGroup    %close         (                                                                                                                                          )
     !$ call hdf5Access%unset()
+    ! Report on the node causing the smallest timestep.
+    if (associated(self%node)) then
+       write (label,'(e12.6)') self%timeStepSmallest
+       message='Snapshot of node causing the smallest timestep of '//trim(adjustl(label))//' Gyr'
+       call displayIndent(message)
+       call self%node%serializeASCII()
+       call self%node%destroy       ()
+       deallocate(self%node)
+       call displayUnindent('')       
+    end if
     return
   end subroutine simpleDestructor
 
-  subroutine simpleProfile(self,timestep,propertyName)
+  subroutine simpleProfile(self,node,timestep,countEvaluations,interrupted,propertyName,timeCPU)
     !!{
     Profile the differential evolution step.
     !!}
@@ -186,18 +249,41 @@ contains
     use            :: Arrays_Search, only : searchArray
     implicit none
     class           (mergerTreeEvolveProfilerSimple), intent(inout) :: self
-    double precision                                , intent(in   ) :: timeStep
+    type            (treeNode                      ), intent(in   ) :: node
+    double precision                                , intent(in   ) :: timeStep        , timeCPU
+    integer         (c_size_t                      ), intent(in   ) :: countEvaluations
+    logical                                         , intent(in   ) :: interrupted
     type            (varying_string                ), intent(in   ) :: propertyName
     integer                                                         :: hitCount
     integer         (c_size_t                      )                :: i
 
-    i                    =searchArray(self%timeStep,timeStep)
-    self%timeStepCount(i)=self%timeStepCount(i)+1
+    ! Accumulate timestep.
+    i                                    =searchArray(self%timeStep,timeStep)
+    self   %  timeStepCount           (i)=self%  timeStepCount           (i)+1_c_size_t
+    self   %evaluationCount           (i)=self%evaluationCount           (i)+countEvaluations
+    self   %  timeCPU                 (i)=self%  timeCPU                 (i)+timeCPU
+    if (interrupted) then
+       self%  timeStepCountInterrupted(i)=self%  timeStepCountInterrupted(i)+1_c_size_t
+       self%evaluationCountInterrupted(i)=self%evaluationCountInterrupted(i)+countEvaluations
+       self   %  timeCPUInterrupted   (i)=self%  timeCPUInterrupted      (i)+timeCPU
+    end if
+    ! Accumulate property hit counts.
     if (self%propertyHits%exists(propertyName)) then
        hitCount=self%propertyHits%value(propertyName)+1
     else
        hitCount=1
     end if
     call self%propertyHits%set(propertyName,hitCount)
+    ! Store a copy of the node corresponding to the smallest seen timestep.
+    if (timestep < self%timeStepSmallest) then
+       if (associated(self%node)) then
+          call self%node%destroy()
+          deallocate(self%node)
+       end if
+       allocate(self%node)
+       call node%copyNodeTo(self%node)
+       self%node%hostTree    => null()
+       self%timeStepSmallest =  timestep
+    end if
     return
   end subroutine simpleProfile
