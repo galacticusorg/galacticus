@@ -69,7 +69,9 @@ contains
     use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
+    use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
     implicit none
     type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
     logical                , intent(in   ), optional :: static
@@ -95,36 +97,14 @@ contains
           if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
-       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"F90C[[:space:]]*=[[:space:]]*ifort"/"F90C = gfortran"/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -O3'
-       if (static_) then
-          ! Include Galacticus compilation flags here - may be necessary for static linking.
-          call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
-          if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
-          command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
-       end if
+       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"F90C[[:space:]]*=[[:space:]]*ifort"/"F90C = ”//compiler(languageFortran)//"/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -O3'//stringSubstitute(compilerOptions(languageFortran),"/","\/")
+       if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(axionCambPath//"camb")) call Error_Report("failed to build AxionCAMB code"//{introspection:location})
     end if
     call File_Unlock(fileLock)
     return
-
-  contains
-
-    function flagsRetrieve(flagsLength)
-      !!{
-      Retrieve the compiler flags.
-      !!}
-      implicit none
-      type     (varying_string )                :: flagsRetrieve
-      integer                   , intent(in   ) :: flagsLength
-      character(len=flagsLength)                :: flags
-
-      call Get_Environment_Variable('GALACTICUS_FCFLAGS',value=flags)
-      flagsRetrieve=replace(flags,"/","\/",every=.true.)
-      return
-    end function flagsRetrieve
-
   end subroutine Interface_AxionCAMB_Initialize
 
   subroutine Interface_AxionCAMB_Transfer_Function(cosmologyParameters_,darkMatterParticle_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionColdDarkMatter,transferFunctionFuzzyDarkMatter,transferFunctionBaryons)
