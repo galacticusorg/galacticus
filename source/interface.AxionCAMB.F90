@@ -95,14 +95,14 @@ contains
           if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
-       command='cd '//axionCambPath//'; sed -r -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -r -i~ s/"F90C\s*=\s*ifort"/"F90C = gfortran"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -O3'
+       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"F90C[[:space:]]*=[[:space:]]*ifort"/"F90C = gfortran"/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -O3'
        if (static_) then
           ! Include Galacticus compilation flags here - may be necessary for static linking.
           call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
           if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
           command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        end if
-       command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
+       command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(axionCambPath//"camb")) call Error_Report("failed to build AxionCAMB code"//{introspection:location})
     end if

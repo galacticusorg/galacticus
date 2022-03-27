@@ -483,6 +483,7 @@ contains
     !!{
     Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     !!}
+    use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeAll                         , massTypeAll
     use :: Galacticus_Nodes          , only : optimizeForRotationCurveGradientSummation, reductionSummation, treeNode
     !![
@@ -495,10 +496,10 @@ contains
     implicit none
     class           (galacticStructureStandard        ), intent(inout)           :: self
     type            (treeNode                         ), intent(inout)           :: node
-    integer                                            , intent(in   ), optional :: componentType                       , massType
+    integer                                            , intent(in   ), optional :: componentType                      , massType
     double precision                                   , intent(in   )           :: radius
     procedure       (velocityRotationGradientComponent)               , pointer  :: velocityRotationGradientComponent_
-    double precision                                                             :: velocityRotationGradientComponent__
+    double precision                                                             :: velocityRotationGradientComponent__, velocityRotation
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
@@ -507,7 +508,7 @@ contains
     velocityRotationGradient           =  node%mapDouble0(velocityRotationGradientComponent_,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
     !![
     <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="velocityRotationGradientComponent__">
-     <functionArgs>node,galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%componentType_</functionArgs>
+     <functionArgs>node,galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_</functionArgs>
      <onReturn>velocityRotationGradient=velocityRotationGradient+velocityRotationGradientComponent__</onReturn>
     !!]
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
@@ -515,9 +516,14 @@ contains
     </include>
     !!]
     ! Convert the summed dV²/dr to dV/dr.
-    velocityRotationGradient=+0.5d0                                                             &
-         &                   *     velocityRotationGradient                                     &
-         &                   /self%velocityRotation        (node,radius,componentType,massType)
+    velocityRotation=+self%velocityRotation(node,radius,componentType,massType)
+    if (velocityRotation > 0.0d0) then
+       velocityRotationGradient=+0.5d0                    &
+            &                   *velocityRotationGradient &
+            &                   /velocityRotation
+    else if (velocityRotationGradient /= 0.0d0) then
+       call Error_Report('rotation curve is zero, but gradient is non-zero'//{introspection:location})
+    end if
     call self%restore()
     return
   end function standardVelocityRotationGradient
