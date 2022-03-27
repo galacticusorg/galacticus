@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'source/interface.CAMB.F90'
+      - 'source/interface.AxionCAMB.F90'
       - 'source/interface.CLASS.F90'
       - 'source/interface.Cloudy.F90'
       - 'source/interface.FSPS.F90'
@@ -163,6 +164,8 @@ jobs:
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" -lforutils -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -O30 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F9 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
@@ -174,6 +177,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOS.zip \
             dynamic/CAMB-1.3.2/fortran/camb \
+            dynamic/AxionCAMB/camb \
             dynamic/class_public-3.0.2/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \

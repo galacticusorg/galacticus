@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'source/interface.CAMB.F90'
+      - 'source/interface.AxionCAMB.F90'
       - 'source/interface.CLASS.F90'
       - 'source/interface.Cloudy.F90'
       - 'source/interface.FSPS.F90'
@@ -44,6 +45,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-1.3.2/fortran/camb \
+            dynamic/AxionCAMB/camb \
             dynamic/class_public-3.0.2/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \
