@@ -16,7 +16,7 @@ use Scalar::Util qw(reftype);
 
 # Initialize a structure which will hold the generated code.
 my $code;
-$code  ->{'units'} = [];
+$code->{'main'} = [];
 
 # Initialize a structure which will hold the Python interfaces.
 my $python;
@@ -141,7 +141,7 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 	# Add interfaces to all methods.
 	&interfacesMethods      ($code,$python,$functionClass                        );
 	# Add a destructor.
-	&interfacesDestructor   ($code,$python,$functionClass                        );	
+	&interfacesDestructor   ($code,$python,$functionClass                        );
     }
 }
 
@@ -159,14 +159,18 @@ program libGalacticusInit
 end program libGalacticusInit
 CODE
 push(
-    @{$code->{'units'}},
+    @{$code->{'main'}},
     $libraryInitializer
     );
 
 # Serialize the code.
-open(my $output,">",$ENV{'BUILDPATH'}."/libgalacticus.Inc");
-print $output join("\n",@{$code->{'units'}})."\n";
-close($output);
+system("mkdir -p ".$ENV{'BUILDPATH'}."/libgalacticus");
+foreach my $className ( sort(keys(%{$code})) ) {
+    my $outputFileName = $ENV{'BUILDPATH'}."/".($className eq "main" ? "libgalacticus.Inc" : "libgalacticus/".$className.".F90");
+    open(my $output,">",$outputFileName);
+    print $output join("\n",@{$code->{$className}})."\n";
+    close($output);
+}
 
 # Generate code to initialize the Python interface,
 $python->{'units'}->{'init'}->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'ext');
@@ -246,7 +250,7 @@ CODE
 end function {$functionClass->{'name'}}GetPtr
 CODE
     push(
-	@{$code->{'units'}},
+	@{$code->{$ext::functionClass->{'name'}}},
 	$function
 	);
 }
@@ -302,7 +306,7 @@ function {$implementation->{'name'}}L({join(",",@functionArguments)}) bind(c,nam
 end function {$implementation->{'name'}}L
 CODE
 	push(
-	    @{$code->{'units'}},
+	    @{$code->{$ext::functionClass->{'name'}}},
 	    $constructor
 	);
 	# Add library interface descriptors.
@@ -358,7 +362,7 @@ subroutine {$functionClass->{'name'}}DestructorL(self,classID) bind(c,name='{$fu
 end subroutine {$functionClass->{'name'}}DestructorL
 CODE
     push(
-	@{$code->{'units'}},
+	@{$code->{$ext::functionClass->{'name'}}},
 	$destructor
 	);
     # Add c_lib interface.
@@ -474,7 +478,7 @@ sub interfacesMethods {
 end {$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}L
 CODE
 	push(
-	    @{$code->{'units'}},
+	    @{$code->{$ext::functionClass->{'name'}}},
 	    $function
 	    );
 	# Add library interface descriptors.
