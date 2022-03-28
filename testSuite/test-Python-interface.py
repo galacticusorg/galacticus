@@ -36,10 +36,6 @@ transferFunction = galacticus.transferFunctionCAMB(darkMatterParticle,cosmologyP
 transferValue = transferFunction.value(2.0)
 print "CAMB transfer function at k=2/Mpc is "+str(transferValue)
 
-transferFunctionFile = galacticus.transferFunctionFile(ctypes.c_char_p("/home/abenson/Galacticus/datasets/dynamic/largeScaleStructure/transfer_function_CAMB_7Z0TsZiN4r667I9DosWt8..hdf5"),0.0,cosmologyParameters,cosmologyFunctions,transferFunction)
-transferValue = transferFunction.value(2.0)
-print "File transfer function at k=2/Mpc is "+str(transferValue)
-
 linearGrowth = galacticus.linearGrowthCollisionlessMatter(cosmologyParameters,cosmologyFunctions)
 growthFunction = linearGrowth.value(time=6.0)
 print "Growth function at t=6.0 is "+str(growthFunction)
