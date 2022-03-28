@@ -114,9 +114,7 @@
      double precision                                                                                 :: baryonicFinalTerm                        , baryonicFinalTermDerivative, &
           &                                                                                              darkMatterDistributedFraction            , initialMassFraction        , &
           &                                                                                              radiusFinal                              , radiusFinalMean            , &
-          &                                                                                              radiusFinalMeanSelfDerivative            , radiusInitial_             , &
-          &                                                                                              radiusInitialMeanSelfDerivative          , radiusShared               , &
-          &                                                                                              radiusVirial                             , darkMatterFraction
+          &                                                                                              darkMatterFraction                       , radiusVirial
      logical                                                                                          :: massesComputed
    contains
      !![
@@ -756,11 +754,9 @@ contains
     end if
     ! Compute the various factors needed by this calculation.
     call self%computeFactors(node,radius,computeGradientFactors=.false.)
-    ! If no baryons present at this radius, so initial radius is unchanged.
-    if (self%baryonicFinalTerm <= 0.0d0) then
-       adiabaticGnedin2004RadiusInitial=radius
-       return
-    end if
+    !! Note that even if no baryons are present at this radius we can not assume that the initial radius is unchanged because it
+    !! is possible that the initial fraction of baryons and the fraction of mass distributed as the dark matter are not equal, fᵢ
+    !! ≠ fᵪ.
     ! Check that solution is within bounds.
     if (adiabaticGnedin2004Solver(self%radiusVirial) < 0.0d0) then
        adiabaticGnedin2004RadiusInitial=self%radiusVirial
@@ -831,28 +827,15 @@ contains
     Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     \cite{gnedin_response_2004}.
     !!}
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder                          ), save          :: finder
-    !$omp threadprivate(finder)
+    double precision                                                      :: radiusInitial                  , radiusInitialMean            , &
+         &                                                                   massDarkMatterInitial          , densityDarkMatterInitial     , &
+         &                                                                   radiusInitialMeanSelfDerivative, radiusFinalMeanSelfDerivative
 
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeDownwardLimit           =0.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%rootFunction(adiabaticGnedin2004DerivativeSolver                  )
-       call finder%tolerance   (toleranceAbsolute                  ,toleranceRelative)
-    end if
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Compute the various factors needed by this calculation.
@@ -863,12 +846,38 @@ contains
        return
     end if
     ! Compute initial radius, and derivatives of initial and final mean radii.
-    self%radiusFinal                    =                                           radius
-    self%radiusInitial_                 =self%radiusInitial              (node,     radius        )
-    self%radiusInitialMeanSelfDerivative=self%radiusOrbitalMeanDerivative(     self%radiusInitial_)
-    self%radiusFinalMeanSelfDerivative  =self%radiusOrbitalMeanDerivative(          radius        )
-    ! Find the solution for initial radius.
-    adiabaticGnedin2004RadiusInitialDerivative=finder%find(rootGuess=1.0d0)
+    radiusInitial                  =self                      %radiusInitial              (node,radius           )
+    radiusInitialMeanSelfDerivative=self                      %radiusOrbitalMeanDerivative(     radiusInitial    )
+    radiusFinalMeanSelfDerivative  =self                      %radiusOrbitalMeanDerivative(     radius           )
+    ! Find the initial mean orbital radius.
+    radiusInitialMean              =self                      %radiusOrbitalMean          (     radiusInitial    )
+    ! Get the mass of dark matter inside the initial radius.
+    massDarkMatterInitial          =self%darkMatterProfileDMO_%enclosedMass               (node,radiusInitialMean)
+    ! Get the mass of dark matter inside the initial radius.
+    densityDarkMatterInitial       =self%darkMatterProfileDMO_%density                    (node,radiusInitialMean)
+    ! Find the solution for the derivtive of the initial radius.
+    adiabaticGnedin2004RadiusInitialDerivative=+(                                                      &
+         &                                       +massDarkMatterInitial                                &
+         &                                       *self%darkMatterDistributedFraction                   &
+         &                                       +self%baryonicFinalTerm                               &
+         &                                       *(                                                    &
+         &                                         +1.0d0                        /     radius          &
+         &                                         +radiusFinalMeanSelfDerivative/self%radiusFinalMean &
+         &                                        )                                                    &
+         &                                       +self%baryonicFinalTermDerivative                     &
+         &                                      )                                                      &
+         &                                     /(                                                      &
+         &                                       +massDarkMatterInitial*self%initialMassFraction       &
+         &                                       +(                                                    &
+         &                                         +self%initialMassFraction          *radiusInitial   &
+         &                                         -self%darkMatterDistributedFraction*radius          &
+         &                                        )                                                    &
+         &                                       *4.0d0                                                &
+         &                                       *Pi                                                   &
+         &                                       *radiusInitialMean**2                                 &
+         &                                       *densityDarkMatterInitial                             &
+         &                                       *radiusInitialMeanSelfDerivative                      &
+         &                                      )
     return
   end function adiabaticGnedin2004RadiusInitialDerivative
 
@@ -899,14 +908,19 @@ contains
     ! Store the final radius and its orbit-averaged mean.
     self%radiusFinal    =                       radius
     self%radiusFinalMean=self%radiusOrbitalMean(radius)
-    self%radiusShared   =self%radiusFinalMean
     ! Compute the baryonic contribution to the rotation curve.
     velocityCircularSquared=galacticStructureVelocityRotation_(self%galacticStructure_,node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType)**2
     self%baryonicFinalTerm=velocityCircularSquared*self%radiusFinalMean*self%radiusFinal/gravitationalConstantGalacticus
     ! Compute the baryonic contribution to the rotation curve.
     if (computeGradientFactors) then
-       velocityCircularSquaredGradient=galacticStructureVelocityRotationGradient_(self%galacticStructure_,node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType)
-       self%baryonicFinalTermDerivative=velocityCircularSquaredGradient*self%radiusOrbitalMeanDerivative(self%radiusFinal)*self%radiusFinalMean*self%radiusFinal/gravitationalConstantGalacticus
+       velocityCircularSquaredGradient =+galacticStructureVelocityRotationGradient_(self%galacticStructure_,node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType) &
+            &                           *2.0d0                                                                                                                                                      &
+            &                           *sqrt(velocityCircularSquared)
+       self%baryonicFinalTermDerivative=+     velocityCircularSquaredGradient                                                                                                                       &
+            &                           *self%radiusOrbitalMeanDerivative(self%radiusFinal)                                                                                                         &
+            &                           *self%radiusFinalMean                                                                                                                                       &
+            &                           *self%radiusFinal                                                                                                                                           &
+            &                           /     gravitationalConstantGalacticus
     end if
     ! Compute the initial baryonic contribution from this halo, and any satellites.
     if (.not.self%massesComputed) then
@@ -982,6 +996,7 @@ contains
     double precision                                      , intent(in   ) :: radius
 
     adiabaticGnedin2004RadiusOrbitalMeanDerivative=+self%A                &
+         &                                         *self%omega            &
          &                                         *(                     &
          &                                           +     radius         &
          &                                           /self%radiusVirial   &
@@ -1010,48 +1025,6 @@ contains
          &                    -adiabaticGnedin2004Self%baryonicFinalTerm
     return
   end function adiabaticGnedin2004Solver
-
-  double precision function adiabaticGnedin2004DerivativeSolver(radiusInitialDerivative)
-    !!{
-    Root function used in finding the derivative of the initial radius in the dark matter halo when solving for adiabatic
-    contraction.
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    double precision, intent(in   ) :: radiusInitialDerivative
-    double precision                :: densityDarkMatterInitial, massDarkMatterInitial, &
-         &                             radiusInitialMean
-
-    ! Find the initial mean orbital radius.
-    radiusInitialMean       =adiabaticGnedin2004Self                      %radiusOrbitalMean(                        adiabaticGnedin2004Self%radiusInitial_   )
-    ! Get the mass of dark matter inside the initial radius.
-    massDarkMatterInitial   =adiabaticGnedin2004Self%darkMatterProfileDMO_%enclosedMass     (adiabaticGnedin2004Node,                        radiusInitialMean)
-    ! Get the mass of dark matter inside the initial radius.
-    densityDarkMatterInitial=adiabaticGnedin2004Self%darkMatterProfileDMO_%density          (adiabaticGnedin2004Node,                        radiusInitialMean)
-    ! Compute the root function.
-    adiabaticGnedin2004DerivativeSolver=+massDarkMatterInitial                                                                                   &
-         &                              *(                                                                                                       &
-         &                                +adiabaticGnedin2004Self%initialMassFraction*                                  radiusInitialDerivative &
-         &                                -adiabaticGnedin2004Self%darkMatterDistributedFraction                                                 &
-         &                               )                                                                                                       &
-         &                              +(                                                                                                       &
-         &                                +adiabaticGnedin2004Self%initialMassFraction          *adiabaticGnedin2004Self%radiusInitial_          &
-         &                                -adiabaticGnedin2004Self%darkMatterDistributedFraction*adiabaticGnedin2004Self%radiusFinal             &
-         &                               )                                                                                                       &
-         &                              *4.0d0                                                                                                   &
-         &                              *Pi                                                                                                      &
-         &                              *radiusInitialMean**2                                                                                    &
-         &                              *densityDarkMatterInitial                                                                                &
-         &                              *adiabaticGnedin2004Self%radiusInitialMeanSelfDerivative                                                 &
-         &                              *               radiusInitialDerivative                                                                  &
-         &                              -adiabaticGnedin2004Self%baryonicFinalTerm                                                               &
-         &                              *(                                                                                                       &
-         &                                +1.0d0                                                /adiabaticGnedin2004Self%radiusFinal             &
-         &                                +adiabaticGnedin2004Self%radiusFinalMeanSelfDerivative/adiabaticGnedin2004Self%radiusFinalMean         &
-         &                               )                                                                                                       &
-         &                              -adiabaticGnedin2004Self%baryonicFinalTermDerivative
-    return
-  end function adiabaticGnedin2004DerivativeSolver
 
   subroutine adiabaticGnedin2004DeepCopyReset(self)
     !!{
@@ -1109,15 +1082,11 @@ contains
        destination%radiusInitialPrevious          =self%radiusInitialPrevious           
        destination%radiusExponentiator            =self%radiusExponentiator             
        destination%baryonicFinalTerm              =self%baryonicFinalTerm                       
-       destination% baryonicFinalTermDerivative   =self%baryonicFinalTermDerivative     
+       destination%baryonicFinalTermDerivative    =self%baryonicFinalTermDerivative
        destination%darkMatterDistributedFraction  =self%darkMatterDistributedFraction           
        destination%initialMassFraction            =self%initialMassFraction             
        destination%radiusFinal                    =self%radiusFinal                             
        destination%radiusFinalMean                =self%radiusFinalMean                 
-       destination%radiusFinalMeanSelfDerivative  =self%radiusFinalMeanSelfDerivative           
-       destination%radiusInitial_                 =self%radiusInitial_                  
-       destination%radiusInitialMeanSelfDerivative=self%radiusInitialMeanSelfDerivative         
-       destination%radiusShared                   =self%radiusShared                    
        destination%radiusVirial                   =self%radiusVirial                            
        destination%darkMatterFraction             =self%darkMatterFraction              
        destination%massesComputed                 =self%massesComputed                  
@@ -1209,7 +1178,7 @@ contains
     !!}
     implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
-    class(darkMatterProfileClass                          ), intent(inout), target :: destination
+    class(darkMatterProfileClass              ), intent(inout), target :: destination
 
     select type (destination)
     type is (darkMatterProfileAdiabaticGnedin2004)
