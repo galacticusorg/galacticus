@@ -76,7 +76,7 @@ jobs:
       - name: Test interface
         run: |
           apt -y update
-          apt install -y python2
+          apt -y install python2.7
           which python
           which python2
           python2 testSuite/test-Python-interface.py
