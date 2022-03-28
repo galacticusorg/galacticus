@@ -67,9 +67,18 @@ contains
     integer                        , intent(  out), optional :: status
     type   (varying_string        )                          :: axionCambPath, axionCambVersion
     !$GLC attributes unused :: self
+#include "os.inc"
 
     call displayIndent  ('Begin task: AxionCAMB tool build')
-    call Interface_AxionCAMB_Initialize(axionCambPath,axionCambVersion,static=.true.)
+    call Interface_AxionCAMB_Initialize(                         &
+         &                                     axionCambPath   , &
+         &                                     axionCambVersion, &
+#ifdef __APPLE__
+         &                              static=.false.           &
+#else
+         &                              static=.true.            &
+#endif
+         &                             )
     call displayMessage('AxionCAMB version '//axionCambVersion//' successfully built in: '//axionCambPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: AxionCAMB tool build')
