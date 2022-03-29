@@ -150,9 +150,12 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 my $libraryInitializer = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine libGalacticusInitL() bind(c,name='libGalacticusInitL')
   use:: Events_Hooks, only : eventsHooksInitialize
+  use :: IO_HDF5    , only : ioHDF5AccessInitialize
 
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  ! Initialize HDF5 library acess lock.
+  call ioHDF5AccessInitialize()
 end subroutine libGalacticusInitL
 
 program libGalacticusInit
