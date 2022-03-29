@@ -193,7 +193,8 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Error, only : Error_Report
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Error              , only : Error_Report
     !![
     <include directive="radiusSolverTask" type="moduleUse">
     !!]
@@ -236,6 +237,7 @@ contains
           haloNode => node
        end if
        ! Solve for each component.
+       call Calculations_Reset(node)
        !![
        <include directive="radiusSolverTask" type="functionCall" functionType="void">
         <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
