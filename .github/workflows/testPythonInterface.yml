@@ -61,6 +61,10 @@ jobs:
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+      - name: Install Python2
+        run: |
+          apt -y update
+          apt -y install python2.7
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -75,8 +79,6 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          apt -y update
-          apt -y install python2.7 || true
           which python
           which python2
           python2 testSuite/test-Python-interface.py
