@@ -201,7 +201,5 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          which python
-          which python2
           python2 testSuite/test-Python-interface.py
       - run: echo "This job's status is ${{ job.status }}."
