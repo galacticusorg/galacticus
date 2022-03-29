@@ -628,6 +628,11 @@ contains
     double precision                          :: potentialCentral      , potentialCentralSelf, &
          &                                       potentialHalo         , potentialHaloSelf
 
+    ! Return false immediately if the recoil velocity is zero.
+    if (velocityRecoil <= 0.0d0) then
+       Node_Component_Black_Hole_Standard_Recoil_Escapes=.false.
+       return
+    end if
     ! Compute relevant potentials.
     potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
     potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
