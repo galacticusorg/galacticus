@@ -322,7 +322,6 @@ contains
     use :: Display                       , only : displayMessage      , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk      , nodeComponentDiskVerySimple, treeNode
     use :: ISO_Varying_String            , only : assignment(=)       , operator(//)           , varying_string
-    use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                 , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -334,6 +333,7 @@ contains
     character       (len=20            )                         :: valueString
     type            (varying_string    ), save                   :: message
     !$omp threadprivate(message)
+    !$GLC attributes unused :: status
 
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%verySimpleIsActive()) return
@@ -342,6 +342,9 @@ contains
     ! Check if a very simple disk component exists.
     select type (disk)
     class is (nodeComponentDiskVerySimple)
+       ! Note that "status" is not set to failure as these changes in state of the disk should not change any calculation of
+       ! differential evolution rates as a negative gas mass was unphysical anyway.
+       !
        ! Trap negative gas masses.
        if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -384,8 +387,6 @@ contains
           ! Reset the gas mass of the disk.
           call disk%      massGasSet(         0.0d0)
           call disk%abundancesGasSet(zeroAbundances)
-          ! Record that state was changed.
-          status=GSL_Failure
        end if
     end select
     return

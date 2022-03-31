@@ -296,7 +296,6 @@ contains
     use :: Display                       , only : displayMessage          , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid  , nodeComponentSpheroidVerySimple, treeNode
     use :: ISO_Varying_String            , only : assignment(=)           , operator(//)           , varying_string
-    use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                     , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -308,6 +307,7 @@ contains
     character       (len=20                )                         :: valueString
     type            (varying_string        ), save                   :: message
     !$omp threadprivate(message)
+    !$GLC attributes unused :: status
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
@@ -316,7 +316,8 @@ contains
     ! Check if a very simple spheroid component exists.
     select type (spheroid)
     class is (nodeComponentSpheroidVerySimple)
-       ! Trap negative gas masses.
+       ! Trap negative gas masses. Note that "status" is not set to failure as this change in state of the spheroid should not
+       ! change any calculation of differential evolution rates as a negative gas mass was unphysical anyway.
        if (spheroid%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
           fractionalError=   abs(spheroid%massGas    ()) &
@@ -358,7 +359,6 @@ contains
           ! Reset the gas mass of the spheroid.
           call spheroid%      massGasSet(         0.0d0)
           call spheroid%abundancesGasSet(zeroAbundances)
-          status=GSL_Failure
        end if
     end select
     return

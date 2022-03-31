@@ -460,7 +460,6 @@ contains
     use :: Galacticus_Nodes              , only : defaultDiskComponent   , nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
           &                                       treeNode               , nodeComponentBasic
     use :: ISO_Varying_String            , only : assignment(=)          , operator(//)       , varying_string
-    use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                    , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -478,6 +477,7 @@ contains
     !$omp threadprivate(message)
     type            (stellarLuminosities), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
+    !$GLC attributes unused :: status
 
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%standardIsActive()) return
@@ -486,6 +486,9 @@ contains
     ! Check if an standard disk component exists.
     select type (disk)
     class is (nodeComponentDiskStandard)
+       ! Note that "status" is not set to failure as these changes in state of the disk should not change any calculation of
+       ! differential evolution rates as a negative gas/stellar mass was unphysical anyway.
+       !
        ! Trap negative gas masses.
        if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -541,7 +544,6 @@ contains
           call disk%        massGasSet(                                     0.0d0)
           call disk%  abundancesGasSet(                            zeroAbundances)
           call disk%angularMomentumSet(specificAngularMomentum*disk%massStellar())
-          status=GSL_Failure
        end if
        ! Trap negative stellar masses.
        if (disk%massStellar() < 0.0d0) then
@@ -589,7 +591,6 @@ contains
           call disk%      massStellarSet(                                 0.0d0)
           call disk%abundancesStellarSet(                        zeroAbundances)
           call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
-          status=GSL_Failure
        end if
        ! Trap negative angular momentum.
        if (disk%angularMomentum() < 0.0d0) then
@@ -629,7 +630,6 @@ contains
                 call Error_Report(message//{introspection:location})
              end if
           end if
-          status=GSL_Failure
        end if
     end select
     return

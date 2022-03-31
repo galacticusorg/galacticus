@@ -1164,7 +1164,6 @@ contains
     Keep black hole spin in physical range.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
-    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status
@@ -1172,6 +1171,7 @@ contains
     double precision                        , parameter              :: spinMaximum=0.9999d0
     integer                                                          :: i                   , instanceCount
     double precision                                                 :: spin
+    !$GLC attributes unused :: status
 
     ! Check if the standard component is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -1183,8 +1183,9 @@ contains
              ! Get the black hole component.
              blackHole => node%blackHole(instance=i)
              if (blackHole%spin() > spinMaximum .or. blackHole%spin() < 0.0d0) then
-                status    =GSL_Failure
-                spin      =max(min(blackHole%spin(),spinMaximum),0.0d0)
+                ! Note that "status" is not set to failure as this change in state of the black hole should not change any
+                ! calculation of differential evolution rates as the spin was in an unphysical regime anyway
+                spin=max(min(blackHole%spin(),spinMaximum),0.0d0)
                 call blackHole%spinSet(spin)
              end if
           end do

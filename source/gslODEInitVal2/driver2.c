@@ -209,6 +209,9 @@ gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
 	  postStep(*t,y,&s);
 	  if (s != 0)
 	    {
+	      /* Post-step processing returned failure, which indicates that the state of the system was changed. We must reset
+		 the evolver (specifically setting d->e->count = 0) to avoid re-using the dydt's computed at the end of the
+		 current step at the start of the next step, as they could be invalid due to this change of state. */
 	      gsl_odeiv2_evolve_reset(d->e);
 	    }
 	}
