@@ -177,7 +177,8 @@ module Node_Component_Spheroid_Standard
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate, stellarPropertiesHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
   ! Parameters controlling the physical implementation.
-  double precision                            :: spheroidEnergeticOutflowMassRate    , spheroidMassToleranceAbsolute
+  double precision                            :: spheroidEnergeticOutflowMassRate    , spheroidMassToleranceAbsolute, &
+       &                                         spheroidMetallicityTolerance
   logical                                     :: spheroidLuminositiesStellarInactive
 
   ! Spheroid structural parameters.
@@ -225,6 +226,12 @@ contains
          <name>spheroidEnergeticOutflowMassRate</name>
          <defaultValue>1.0d-2</defaultValue>
          <description>The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>spheroidMetallicityTolerance</name>
+         <defaultValue>1.0d-4</defaultValue>
+         <description>The metallicity tolerance for ODE solution.</description>
          <source>parameters_</source>
        </inputParameter>
        <inputParameter>
@@ -746,11 +753,10 @@ contains
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
     class           (nodeComponentDisk    )               , pointer :: disk
-    double precision                       , parameter              :: massMinimum                   =1.0d0
-    double precision                       , parameter              :: angularMomentumMinimum        =0.1d0
-    double precision                       , parameter              :: gasMassScaling                =0.1d0
-    double precision                       , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                                :: angularMomentum                     , mass
+    double precision                       , parameter              :: massMinimum                   =1.0d+0
+    double precision                       , parameter              :: angularMomentumMinimum        =0.1d+0
+    double precision                       , parameter              :: luminosityMinimum             =1.0d+0
+    double precision                                                :: angularMomentum                      , mass
     type            (history              )                         :: stellarPopulationHistoryScales
     type            (stellarLuminosities  )                         :: stellarLuminositiesScale
     type            (abundances           )                         :: abundancesScale
@@ -771,15 +777,16 @@ contains
        !! such a process creates the spheroid then, by definition, the spheroid initially has no mass/angular momentum.
        angularMomentum=+abs(disk    %angularMomentum()) &
             &          +abs(spheroid%angularMomentum())
-       call spheroid%angularMomentumScale  (               max(angularMomentum,angularMomentumMinimum))
-       ! Set scale for gas mass.
-       mass           =abs(                                                     &
-            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ()) &
-            &              +abs(disk%massStellar())+abs(spheroid%massStellar()) &
+       call spheroid%angularMomentumScale  (max(angularMomentum,angularMomentumMinimum))
+       ! Set scale for masses.
+       mass           =max(                                                      &
+            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
+            &              +abs(disk%massStellar())+abs(spheroid%massStellar()), &
+            &              +massMinimum                                          &
             &             )
-       call spheroid%          massGasScale(gasMassScaling*max(           mass,           massMinimum))
-       call spheroid%      massStellarScale(               max(           mass,           massMinimum))
-       call spheroid%massStellarFormedScale(               max(           mass,           massMinimum))
+       call spheroid%          massGasScale(mass)
+       call spheroid%      massStellarScale(mass)
+       call spheroid%massStellarFormedScale(mass)
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for abundances.
@@ -788,13 +795,16 @@ contains
                &               +abs(+disk    %abundancesStellar())  &
                &               +abs(+spheroid%abundancesGas    ())  &
                &               +abs(+spheroid%abundancesStellar()), &
+               &               +max(                                &
+               &                    +mass                           &
+               &                    *spheroidMetallicityTolerance , &
                &                    +massMinimum                    &
+               &                   )                                &
                &                    *unitAbundances                 &
                &              )
           ! Set scale for gas abundances.
           call spheroid%abundancesGasScale    (                     &
-               &                               +gasMassScaling      &
-               &                               *abundancesScale     &
+               &                               +abundancesScale     &
                &                              )
           ! Set scale for stellar abundances.
           call spheroid%abundancesStellarScale(                     &

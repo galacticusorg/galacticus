@@ -166,7 +166,8 @@ module Node_Component_Disk_Standard
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                         , diskStructureSolverRadius
+  double precision                            :: diskMassToleranceAbsolute                         , diskStructureSolverRadius            , &
+       &                                         diskMetallicityTolerance
   logical                                     :: diskNegativeAngularMomentumAllowed                , diskRadiusSolverCole2000Method       , &
        &                                         diskLuminositiesStellarInactive
 
@@ -218,6 +219,12 @@ contains
          <name>diskMassToleranceAbsolute</name>
          <defaultValue>1.0d-6</defaultValue>
          <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>diskMetallicityTolerance</name>
+         <defaultValue>1.0d-4</defaultValue>
+         <description>The metallicity tolerance for ODE solution.</description>
          <source>parameters_</source>
        </inputParameter>
        <inputParameter>
@@ -725,13 +732,14 @@ contains
        ! Set scale for masses.
        !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
        !! tiny disks to high precision in massive spheroidal galaxies.
-       mass           =abs(                                                     &
-            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ()) &
-            &              +abs(disk%massStellar())+abs(spheroid%massStellar()) &
-            &             )
-       call disk%massGasScale                    (max(mass,massMinimum      ))
-       call disk%massStellarScale                (max(mass,massMinimum      ))
-       call disk%massStellarFormedScale          (max(mass,massMinimum      ))
+        mass           =max(                                                      &
+            &               +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
+            &               +abs(disk%massStellar())+abs(spheroid%massStellar()), &
+            &               +massMinimum                                          &
+            &              )
+       call disk%massGasScale          (mass)
+       call disk%massStellarScale      (mass)
+       call disk%massStellarFormedScale(mass)
        ! Set the scale for the retained stellar mass fraction.
        call disk%fractionMassRetainedScale(fractionTolerance*disk%fractionMassRetained())
        ! Set scales for abundances if necessary.
@@ -742,7 +750,11 @@ contains
                &               +abs(+disk    %abundancesStellar())  &
                &               +abs(+spheroid%abundancesGas    ())  &
                &               +abs(+spheroid%abundancesStellar()), &
+               &               +max(                                &
+               &                    +mass                           &
+               &                    *diskMetallicityTolerance     , &
                &                    +massMinimum                    &
+               &                   )                                &
                &                    *unitAbundances                 &
                &              )
           ! Set scale for gas abundances.
