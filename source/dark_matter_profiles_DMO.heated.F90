@@ -394,6 +394,7 @@ contains
     class           (darkMatterProfileDMOHeated), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     double precision                            , intent(in   )          :: radiusFinal
+    double precision                            , parameter              :: epsilonExpand=1.0d-2
     double precision                                                     :: factorExpand
     
     ! If profile is unheated, the initial radius equals the final radius.
@@ -430,6 +431,7 @@ contains
           else
              factorExpand=self%radiusFinalPrevious/     radiusFinal
           end if
+          factorExpand=max(factorExpand,1.0d0+epsilonExpand)
           call self%finder%rangeExpand(                                                             &
                &                       rangeExpandUpward            =1.0d0*factorExpand           , &
                &                       rangeExpandDownward          =1.0d0/factorExpand           , &
