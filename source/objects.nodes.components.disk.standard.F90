@@ -454,13 +454,14 @@ contains
     !!{
     Trim histories attached to the disk.
     !!}
-    use :: Abundances_Structure          , only : abs                    , zeroAbundances
-    use :: Display                       , only : displayMessage         , verbosityLevelWarn
+    use :: Abundances_Structure          , only : abs                 , zeroAbundances
+    use :: Display                       , only : displayMessage      , verbosityLevelWarn
     use :: Error                         , only : Error_Report
-    use :: Galacticus_Nodes              , only : defaultDiskComponent   , nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
-          &                                       treeNode               , nodeComponentBasic
-    use :: ISO_Varying_String            , only : assignment(=)          , operator(//)       , varying_string
-    use :: Stellar_Luminosities_Structure, only : abs                    , stellarLuminosities
+    use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
+          &                                       treeNode            , nodeComponentBasic
+    use :: Interface_GSL                 , only : GSL_Success         , GSL_Continue
+    use :: ISO_Varying_String            , only : assignment(=)       , operator(//)       , varying_string
+    use :: Stellar_Luminosities_Structure, only : abs                 , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode           ), intent(inout), pointer :: node
@@ -477,7 +478,6 @@ contains
     !$omp threadprivate(message)
     type            (stellarLuminosities), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
-    !$GLC attributes unused :: status
 
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%standardIsActive()) return
@@ -544,6 +544,8 @@ contains
           call disk%        massGasSet(                                     0.0d0)
           call disk%  abundancesGasSet(                            zeroAbundances)
           call disk%angularMomentumSet(specificAngularMomentum*disk%massStellar())
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative stellar masses.
        if (disk%massStellar() < 0.0d0) then
@@ -591,6 +593,8 @@ contains
           call disk%      massStellarSet(                                 0.0d0)
           call disk%abundancesStellarSet(                        zeroAbundances)
           call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative angular momentum.
        if (disk%angularMomentum() < 0.0d0) then
@@ -630,6 +634,8 @@ contains
                 call Error_Report(message//{introspection:location})
              end if
           end if
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return

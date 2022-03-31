@@ -295,6 +295,7 @@ contains
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
     use :: Display                       , only : displayMessage          , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid  , nodeComponentSpheroidVerySimple, treeNode
+    use :: Interface_GSL                 , only : GSL_Success             , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)           , operator(//)           , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                     , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -307,7 +308,6 @@ contains
     character       (len=20                )                         :: valueString
     type            (varying_string        ), save                   :: message
     !$omp threadprivate(message)
-    !$GLC attributes unused :: status
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
@@ -359,6 +359,8 @@ contains
           ! Reset the gas mass of the spheroid.
           call spheroid%      massGasSet(         0.0d0)
           call spheroid%abundancesGasSet(zeroAbundances)
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return

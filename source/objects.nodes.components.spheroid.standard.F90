@@ -423,6 +423,7 @@ contains
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
     use :: Display                       , only : displayMessage          , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Interface_GSL                 , only : GSL_Success             , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)           , operator(//)         , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                     , stellarLuminosities
     use :: String_Handling               , only : operator(//)
@@ -440,7 +441,6 @@ contains
     !$omp threadprivate(message)
     type            (stellarLuminosities  ), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
-    !$GLC attributes unused :: status
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -506,7 +506,9 @@ contains
           call spheroid%        massGasSet(                                                      0.0d0)
           call spheroid%  abundancesGasSet(                                             zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
-       end if
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
+      end if
        ! Trap negative stellar masses.
        if (spheroid%massStellar() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -552,6 +554,8 @@ contains
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return

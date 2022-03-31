@@ -1106,7 +1106,7 @@ contains
     Perform any post-step actions on the node.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
-    use            :: Interface_GSL, only : GSL_Success
+    use            :: Interface_GSL, only : GSL_Success, GSL_Continue
     !![
     <include directive="postStepTask" type="moduleUse">
     !!]
@@ -1130,7 +1130,11 @@ contains
     !![
     </include>
     !!]
-    if (postStepStatus /= GSL_Success) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    ! If the post-step processing returned a non-success error code - indicating that the node state was changed - reserialize the
+    ! node state to the ODE solver arrays.
+    if (postStepStatus /= GSL_Success ) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    ! If post-step processing returned a "continue" code, we do not need to reset ODE evolution, so set status back to success.
+    if (postStepStatus == GSL_Continue) postStepStatus=GSL_Success
     return
   end subroutine standardPostStepProcessing
 
