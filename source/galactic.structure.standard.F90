@@ -349,10 +349,10 @@ contains
     !!{
     Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     !!}
-    use :: Display                   , only : displayMessage         , verbosityLevelWarn
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark
+    use :: Display                   , only : displayMessage       , verbosityLevelWarn
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark
     use :: Error                     , only : Error_Report
-    use :: ISO_Varying_String        , only : assignment(=)          , operator(//)      , varying_string
+    use :: ISO_Varying_String        , only : assignment(=)        , operator(//)      , varying_string
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (galacticStructureStandard), intent(inout), target   :: self
@@ -381,11 +381,11 @@ contains
     end if
     self_ => self
     node_ => node
-    ! If dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
+    ! If the dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
     ! matter profile. Otherwise, find the radius numerically.
-    if     (                                         &
+    if     (                                                                                              &
          &   galacticStructureState_(galacticStructureStateCount)%componentType_ == componentTypeDarkHalo &
-         &  .or.                                     &
+         &  .or.                                                                                          &
          &   galacticStructureState_(galacticStructureStateCount)%massType_      == massTypeDark          &
          & ) then
        if (.not.associated(self%darkMatterProfile_)) call Error_Report('object is not expecting dark matter requests'//{introspection:location})       
