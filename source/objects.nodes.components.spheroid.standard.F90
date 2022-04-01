@@ -423,8 +423,8 @@ contains
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
     use :: Display                       , only : displayMessage          , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Interface_GSL                 , only : GSL_Success             , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)           , operator(//)         , varying_string
-    use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                     , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -449,6 +449,9 @@ contains
     ! Check if an standard spheroid component exists.
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
+       ! Note that "status" is not set to failure as these changes in state of the spheroid should not change any calculation of
+       ! differential evolution rates as a negative gas/stellar mass was unphysical anyway.
+       !
        ! Trap negative gas masses.
        if (spheroid%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -503,8 +506,9 @@ contains
           call spheroid%        massGasSet(                                                      0.0d0)
           call spheroid%  abundancesGasSet(                                             zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
-          status=GSL_Failure
-       end if
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
+      end if
        ! Trap negative stellar masses.
        if (spheroid%massStellar() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -550,7 +554,8 @@ contains
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
-          status=GSL_Failure
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return
