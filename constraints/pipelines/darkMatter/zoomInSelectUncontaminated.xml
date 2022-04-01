@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Select particles in the uncontaminated part of the zoom-in simulation -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <task value="NBodyAnalyze"/>
+
+  <nbodyImporter value="gadgetBinary">
+    <fileName value="/data002/abenson/Galacticus/Merger_Trees/ZoomIns/MilkyWay/snapshots/snapshot_235" />
+    <isCosmological value="true" />
+    <lengthSoftening  value="242.86e-6"  />
+    <particleType value="-1" />
+    <unitLengthInSI value="3.085678e22" />
+    <unitMassInSI value="1.989e40" />
+    <unitVelocityInSI value="1.0e3" />
+  </nbodyImporter>
+
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="filterUncontaminatedSphere">
+      <point value="" />
+      <fractionContamination value="0.1" />
+      <particleType          value="1"   />
+      <massWeighted          value="true"/>
+    </nbodyOperator>
+    <nbodyOperator value="exportIRATE">
+      <fileName value="/data002/abenson/Galacticus/Merger_Trees/ZoomIns/MilkyWay/selectedParticles_z0.000.hdf5" />
+      <redshift value="0.0" />
+      <snapshot value="1" />
+    </nbodyOperator>
+  </nbodyOperator>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.000000"/>
+    <OmegaMatter     value=" 0.286000"/>
+    <OmegaDarkEnergy value=" 0.714000"/>
+    <OmegaBaryon     value=" 0.047000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+</parameters>
