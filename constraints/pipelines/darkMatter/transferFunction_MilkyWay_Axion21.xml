@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Transfer function options -->
+  <!-- Use AxionCAMB to compute the transfer function -->
+  <transferFunction value="axionCAMB">
+     <!-- Dark matter particle properties -->
+    <darkMatterParticle value="fuzzyDarkMatter">
+      <mass            value="10.0"/>
+      <densityFraction value=" 1.0"/>
+    </darkMatterParticle>
+  </transferFunction>
+
+</parameters>
