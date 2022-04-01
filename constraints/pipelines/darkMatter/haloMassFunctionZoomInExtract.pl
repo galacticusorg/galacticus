@@ -40,7 +40,8 @@ my $boxSize       = $boxSizeOriginal*$regionExtent->prodover()->pow(1.0/3.0);
 my $treeFileName = $pathName."tree_0_0_0.dat";
 # Read the merger tree file looking for the position and virial radius of the most massive halo.
 print "\tReading tree file\n";
-system("awk '{if (substr(\$1,1,1) != \"#\" && NF > 1) print \$1,\$2,\$4,\$11,\$12,\$15,\$18,\$19,\$20}' ".$treeFileName." > ".$pathName."treeReduced.dat");
+system("awk '{if (substr(\$1,1,1) != \"#\" && NF > 1) print \$1,\$2,\$4,\$11,\$12,\$15,\$18,\$19,\$20}' ".$treeFileName." > ".$pathName."treeReduced.dat")
+    unless ( -e $pathName."treeReduced.dat" );
 (my $haloExpansionFactor, my $haloID, my $descID, my $massHalo, my $radiusHalo, my $mostMassiveProgenitor, my $x, my $y, my $z) = rcols($pathName."treeReduced.dat",0,1,2,3,4,5,6,7,8, {CHUNKSIZE => 100000000});
 # Convert units to Galacticus standards.
 print "\tConverting units\n";
