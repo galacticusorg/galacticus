@@ -116,6 +116,7 @@ contains
     <inputParameter>
       <name>setParticleType</name>
       <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
       <description>If true, particle type values will be set.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
