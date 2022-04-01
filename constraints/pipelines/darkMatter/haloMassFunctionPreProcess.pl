@@ -582,7 +582,8 @@ sub zoomInsProcessExtract {
     unless ( -e $uncontaminatedFileName ) {
 	my $parametersUncontaminated = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/zoomInSelectUncontaminated.xml");
 	# Modify file names.
-	$parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $pathName."snapshots/snapshot_235";
+	(my $snapshot) = map {$simulation->{'expansionFactors'}->[$_] == $expansionFactor ? $simulation->{'snapshots'}->[$_] : ()} 0..$#{$simulation->{'expansionFactors'}};
+	$parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
 	$parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'   }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel};
 	$parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'}->{'value'} = $uncontaminatedFileName;
 	# Write parameter file.
@@ -644,7 +645,8 @@ sub zoomInsPostprocessSelectInSphere {
 	my $redshift             =  1.0/$expansionFactor-1.0;
 	my $redshiftLabel        = sprintf("z%5.3f"                ,$redshift       );
 	my $expansionFactorLabel = sprintf("sphericalOrigin:a%5.3f",$expansionFactor);
-	$parameters->{'nbodyImporter'}                        ->{'fileName' }->{'value'} = $pathName."snapshots/snapshot_235";
+	(my $snapshot)           = map {$simulation->{'expansionFactors'}->[$_] == $expansionFactor ? $simulation->{'snapshots'}->[$_] : ()} 0..$#{$simulation->{'expansionFactors'}};
+	$parameters->{'nbodyImporter'}                        ->{'fileName' }->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'fileName' }->{'value'} = $pathName."selectedParticles_".$redshiftLabel.".hdf5";
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'redshift' }->{'value'} =                                $redshift             ;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'    }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel   };
