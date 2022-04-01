@@ -69,12 +69,19 @@ my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
 my %libraries;
 # Open the file of dependencies for the executable.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.(exe|o)$/\.d/;
+(my $mainDependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.(exe|o)$/\.d/;
 die("libraryDependencies.pl: dependency file is missing")
-    unless ( -e $dependencyFileName );
-open(my $dependencyFile,$dependencyFileName);
-chomp(my @objectFileNames = <$dependencyFile>);
-close($dependencyFile);
+    unless ( -e $mainDependencyFileName );
+my @dependencyFileNames = ( $mainDependencyFileName );
+push(@dependencyFileNames,$ENV{'BUILDPATH'}."/libgalacticus_classes.d")
+    if ( $executable eq "libgalacticus.o" );
+my @objectFileNames;
+foreach my $dependencyFileName ( @dependencyFileNames ) {
+    open(my $dependencyFile,$dependencyFileName);
+    chomp(my @thisObjectFileNames = <$dependencyFile>);
+    close($dependencyFile);
+    push(@objectFileNames,@thisObjectFileNames);
+}
 # Read library dependency files for each object file.
 foreach my $objectFileName ( map {$_ =~ s/\.o$/\.fl/; -e $_ ? $_ : ()} @objectFileNames ) {
     open(my $libraryDependenciesFile,$objectFileName);

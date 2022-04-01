@@ -38,8 +38,8 @@
    contains
      !![
      <methods>
-       <method description="Step back to the previously visited node (if possible)." method="previous" />
-       <method description="Set the walker to the given node." method="setNode" />
+       <method description="Step back to the previously visited node (if possible)."                     method="previous"/>
+       <method description="Set the walker to the given node."                                           method="setNode" />
        <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
      </methods>
      !!]
@@ -240,7 +240,7 @@ contains
 
   subroutine allNodesSetNode(self,node)
     !!{
-    Returns true if more nodes remain to be walked to.
+    Set the current node for the walker.
     !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)         :: self

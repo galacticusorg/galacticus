@@ -115,12 +115,8 @@
   type            (treeNode                                        ), pointer   :: krumholz2009Node
   !$omp threadprivate(krumholz2009Self,krumholz2009Node)
 
-  ! Minimum fraction of molecular hydrogen allowed.
-  double precision                                                  , parameter :: krumholz2009MolecularFractionMinimum=1.0d-4
-
   ! Range of s-parameter to tabulate.
-  double precision                                                  , parameter :: sMinimum                            =0.0d+0, sMaximum=8.0d0
-
+  double precision                                                  , parameter :: sMinimum                            =0.0d+0, sMaximum=10.0d0
 
 contains
 
@@ -208,7 +204,7 @@ contains
        call self%molecularFraction%populate(self%molecularFraction_(self%molecularFraction%x(i)),i)
     end do
     ! Initialize exponentiator.
-    self%surfaceDensityExponentiator=fastExponentiator(1.0d0,100.0d0,0.33d0,100.0d0,.false.)
+    self%surfaceDensityExponentiator=fastExponentiator(1.0d0,1000.0d0,0.33d0,100.0d0,.false.)
     ! Build root finder.
     self%finder=rootFinder(                                                               &
          &                 rootFunction                 =krumholz2009CriticalDensityRoot, &
@@ -317,11 +313,19 @@ contains
     double precision                                                                  :: surfaceDensityFactor, molecularFraction             , &
          &                                                                               s                   , sigmaMolecularComplex         , &
          &                                                                               surfaceDensityGas   , surfaceDensityGasDimensionless
-
+    
     ! Compute factors.
     call self%computeFactors(node)
     ! Check if the disk is physical.
-    if (self%massGas <= 0.0d0 .or. self%radiusDisk <= 0.0d0) then
+    if     (                                                  &
+         &   self%massGas                            <= 0.0d0 &
+         &  .or.                                              &
+         &   self%radiusDisk                         <= 0.0d0 &
+         &  .or.                                              &
+         &   self%metallicityRelativeToSolar         <= 0.0d0 &
+         &  .or.                                              &
+         &   self%sigmaMolecularComplexNormalization <= 0.0d0 &
+         & ) then
        ! It is not, so return zero rate.
        krumholz2009Rate=0.0d0
     else
@@ -332,28 +336,20 @@ contains
           krumholz2009Rate=0.0d0
        else
           ! Compute the molecular fraction.
-          if (self%metallicityRelativeToSolar > 0.0d0) then
-             sigmaMolecularComplex=self%sigmaMolecularComplexNormalization*surfaceDensityGas
-             if (sigmaMolecularComplex > 0.0d0) then
-                if (sigmaMolecularComplex < self%sNormalization/sMaximum) then
-                   s=sMaximum
-                else
-                   s=self%sNormalization/sigmaMolecularComplex
-                end if
-                molecularFraction=self%molecularFraction%interpolate(s)
-             else
-                molecularFraction=krumholz2009MolecularFractionMinimum
-             end if
+          sigmaMolecularComplex=self%sigmaMolecularComplexNormalization*surfaceDensityGas
+          s                    =self%sNormalization/sigmaMolecularComplex
+          if (s > sMaximum) then
+             molecularFraction=self%molecularFraction_           (s)
           else
-             molecularFraction   =krumholz2009MolecularFractionMinimum
+             molecularFraction=self%molecularFraction%interpolate(s)
           end if
           ! Compute the cloud density factor.
           if      (surfaceDensityGasDimensionless <= 0.0d0) then
              surfaceDensityFactor=0.0d0
           else if (surfaceDensityGasDimensionless <  1.0d0) then
-             surfaceDensityFactor=1.0d0/self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
+             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(1.0d0/surfaceDensityGasDimensionless)
           else
-             surfaceDensityFactor=1.0d0*self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
+             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(      surfaceDensityGasDimensionless)
           end if
           ! Compute the star formation rate surface density.
           krumholz2009Rate=+self%frequencyStarFormation &
@@ -399,19 +395,24 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: s
-    double precision, parameter     :: sMinimum=1.0d-6
-    double precision, parameter     :: sMaximum=8.0d0
+    double precision, parameter     :: sTiny        =1.000000d-06
+    double precision, parameter     :: sHuge        =1.000000d+10
+    double precision, parameter     :: deltaInfinity=0.214008d+00 ! The value of δ for s → ∞.
     double precision                :: delta
 
-    ! Check if s is below maximum. If not, simply truncate to the minimum fraction that we allow. Also use a simple series
-    ! expansion for cases of very small s.
-    if      (s <  sMinimum) then
+    if      (s <  sTiny   ) then
+       ! Series expansion for very small s.
        krumholz2009MolecularFractionSlow=1.0d0-0.75d0*s
+    else if (s >= sHuge   ) then
+       ! Truncate to zero for extremely large s.
+       krumholz2009MolecularFractionSlow=0.0d0
     else if (s >= sMaximum) then
-       krumholz2009MolecularFractionSlow=                                                               krumholz2009MolecularFractionMinimum
+       ! Simplified form for very large s.
+       krumholz2009MolecularFractionSlow=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5/5.0d0/s**5
     else
+       ! Full expression.
        delta                            =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
-       krumholz2009MolecularFractionSlow=max(1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0),krumholz2009MolecularFractionMinimum)
+       krumholz2009MolecularFractionSlow=1.0d0-1.0d0/((1.0d0+(((1.0d0+delta)/0.75d0/s)**5))**0.2d0)
     end if
     return
   end function krumholz2009MolecularFractionSlow
@@ -424,11 +425,11 @@ contains
     implicit none
     double precision, intent(in   ) :: s
 
-    ! Check that s is below 2 - if it is, compute the molecular fraction, otherwise truncate to the minimum.
+    ! Check that s is below 2 - if it is, compute the molecular fraction, otherwise truncate to zero.
     if (s < 2.0d0) then
-       krumholz2009MolecularFractionFast=max(1.0d0-0.75d0*s/(1.0d0+0.25d0*s),krumholz2009MolecularFractionMinimum)
+       krumholz2009MolecularFractionFast=1.0d0-0.75d0*s/(1.0d0+0.25d0*s)
     else
-       krumholz2009MolecularFractionFast=                                    krumholz2009MolecularFractionMinimum
+       krumholz2009MolecularFractionFast=0.0d0
     end if
     return
   end function krumholz2009MolecularFractionFast
@@ -534,7 +535,7 @@ contains
           krumholz2009Unchanged=.true.
        else
           krumholz2009Unchanged=.false.
-          self%massGasPrevious                                         =0.0d0
+          self%massGasPrevious =0.0d0
        end if
     end if
     return

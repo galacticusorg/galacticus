@@ -126,8 +126,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Error, only : Error_Report
     implicit none
     type            (galacticStructureSolverFixed)                        :: self
     double precision                              , intent(in   )         :: factor
@@ -224,6 +223,7 @@ contains
     Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     proportion to specific angular momentum.
     !!}
+    use :: Calculations_Resets, only : Calculations_Reset
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -240,6 +240,7 @@ contains
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     if (.not.node%isPhysicallyPlausible) return
+    call Calculations_Reset(node)
     include 'galactic_structure.radius_solver.tasks.inc'
     return
 

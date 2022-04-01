@@ -166,7 +166,8 @@ module Node_Component_Disk_Standard
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                         , diskStructureSolverRadius
+  double precision                            :: diskMassToleranceAbsolute                         , diskStructureSolverRadius            , &
+       &                                         diskMetallicityTolerance
   logical                                     :: diskNegativeAngularMomentumAllowed                , diskRadiusSolverCole2000Method       , &
        &                                         diskLuminositiesStellarInactive
 
@@ -221,6 +222,12 @@ contains
          <source>parameters_</source>
        </inputParameter>
        <inputParameter>
+         <name>diskMetallicityTolerance</name>
+         <defaultValue>1.0d-4</defaultValue>
+         <description>The metallicity tolerance for ODE solution.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
          <name>diskStructureSolverRadius</name>
          <defaultValue>1.0d0</defaultValue>
          <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
@@ -258,13 +265,13 @@ contains
     !!{
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx      , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                          satelliteMergerEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
     use :: Mass_Distributions               , only : massDistributionCylindrical
-    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution       , diskMassDistribution_        
     implicit none
     type            (inputParameters), intent(inout) :: parameters_
     type            (dependencyRegEx), dimension(1)  :: dependencies
@@ -281,7 +288,7 @@ contains
        <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="parameters_"                    />
        <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="parameters_"                    />
        <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="parameters_"                    />
-       <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution"         source="parameters_" threadPrivate="yes" >
+       <objectBuilder class="massDistribution"               parameterName="diskMassDistribution" name="diskMassDistribution_"        source="parameters_" threadPrivate="yes" >
         <default>
          <diskMassDistribution value="exponentialDisk">
           <dimensionless value="true"/>
@@ -289,40 +296,48 @@ contains
         </default>
        </objectBuilder>
        !!]
-       if (.not.diskMassDistribution%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
-       ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
-       ! momentum of the disk assuming a flat rotation curve.
-       select type (diskMassDistribution)
+       ! Validate the disk mass distribution.
+       select type (diskMassDistribution_)
        class is (massDistributionCylindrical)
-          ! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
-          ! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
-          ! distribution (assuming a flat rotation curve).
-          diskMassDistributionDensityMoment1=diskMassDistribution%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
-          diskMassDistributionDensityMoment2=diskMassDistribution%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
-          if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
-             ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
-             diskStructureSolverSpecificAngularMomentum=0.5d0
-          else
-             diskStructureSolverSpecificAngularMomentum=  &
-                  & +diskStructureSolverRadius            &
-                  & /(                                    &
-                  &   +diskMassDistributionDensityMoment2 &
-                  &   /diskMassDistributionDensityMoment1 &
-                  &  )
-          end if
+          ! Since the disk must be cylindrical, deep-copy it to an object of that class. Then we do not need to perform
+          ! type-guards elsewhere in the code.
+          allocate(diskMassDistribution,mold=diskMassDistribution_)
+          !$omp critical(diskStandardDeepCopy)
+          !![
+	  <deepCopyReset variables="diskMassDistribution_"/>
+	  <deepCopy source="diskMassDistribution_" destination="diskMassDistribution"/>
+	  <deepCopyFinalize variables="diskMassDistribution"/>  
+          !!]
+          !$omp end critical(diskStandardDeepCopy)
        class default
           call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
+       if (.not.diskMassDistribution%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
+       ! momentum of the disk assuming a flat rotation curve.
+       !! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
+       !! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
+       !! distribution (assuming a flat rotation curve).
+       diskMassDistributionDensityMoment1=diskMassDistribution%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
+       diskMassDistributionDensityMoment2=diskMassDistribution%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
+       if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
+          ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
+          diskStructureSolverSpecificAngularMomentum=0.5d0
+       else
+          diskStructureSolverSpecificAngularMomentum=  &
+               & +diskStructureSolverRadius            &
+               & /(                                    &
+               &   +diskMassDistributionDensityMoment2 &
+               &   /diskMassDistributionDensityMoment1 &
+               &  )
+       end if
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
        if (diskRadiusSolverCole2000Method) then
-          select type (diskMassDistribution)
-             class is (massDistributionCylindrical)
-             diskRadiusSolverFlatVsSphericalFactor=                                          &
-                  & +diskMassDistribution%rotationCurve       (diskStructureSolverRadius)**2 &
-                  & *                                          diskStructureSolverRadius     &
-                  & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
-          end select
+          diskRadiusSolverFlatVsSphericalFactor=                                          &
+               & +diskMassDistribution%rotationCurve       (diskStructureSolverRadius)**2 &
+               & *                                          diskStructureSolverRadius     &
+               & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
        end if
     end if
     return
@@ -339,7 +354,7 @@ contains
     !!}
     use :: Events_Hooks                     , only : postEvolveEvent     , satelliteMergerEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+    use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution, diskMassDistribution_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -351,6 +366,7 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="diskMassDistribution"        />
+       <objectDestructor name="diskMassDistribution_"       />
        !!]
     end if
     return
@@ -438,14 +454,14 @@ contains
     !!{
     Trim histories attached to the disk.
     !!}
-    use :: Abundances_Structure          , only : abs                    , zeroAbundances
-    use :: Display                       , only : displayMessage         , verbosityLevelWarn
+    use :: Abundances_Structure          , only : abs                 , zeroAbundances
+    use :: Display                       , only : displayMessage      , verbosityLevelWarn
     use :: Error                         , only : Error_Report
-    use :: Galacticus_Nodes              , only : defaultDiskComponent   , nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
-          &                                       treeNode               , nodeComponentBasic
-    use :: ISO_Varying_String            , only : assignment(=)          , operator(//)       , varying_string
-    use :: Interface_GSL                 , only : GSL_Failure
-    use :: Stellar_Luminosities_Structure, only : abs                    , stellarLuminosities
+    use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
+          &                                       treeNode            , nodeComponentBasic
+    use :: Interface_GSL                 , only : GSL_Success         , GSL_Continue
+    use :: ISO_Varying_String            , only : assignment(=)       , operator(//)       , varying_string
+    use :: Stellar_Luminosities_Structure, only : abs                 , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode           ), intent(inout), pointer :: node
@@ -470,6 +486,9 @@ contains
     ! Check if an standard disk component exists.
     select type (disk)
     class is (nodeComponentDiskStandard)
+       ! Note that "status" is not set to failure as these changes in state of the disk should not change any calculation of
+       ! differential evolution rates as a negative gas/stellar mass was unphysical anyway.
+       !
        ! Trap negative gas masses.
        if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -525,7 +544,8 @@ contains
           call disk%        massGasSet(                                     0.0d0)
           call disk%  abundancesGasSet(                            zeroAbundances)
           call disk%angularMomentumSet(specificAngularMomentum*disk%massStellar())
-          status=GSL_Failure
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative stellar masses.
        if (disk%massStellar() < 0.0d0) then
@@ -573,7 +593,8 @@ contains
           call disk%      massStellarSet(                                 0.0d0)
           call disk%abundancesStellarSet(                        zeroAbundances)
           call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
-          status=GSL_Failure
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative angular momentum.
        if (disk%angularMomentum() < 0.0d0) then
@@ -613,7 +634,8 @@ contains
                 call Error_Report(message//{introspection:location})
              end if
           end if
-          status=GSL_Failure
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return
@@ -716,13 +738,14 @@ contains
        ! Set scale for masses.
        !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
        !! tiny disks to high precision in massive spheroidal galaxies.
-       mass           =abs(                                                     &
-            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ()) &
-            &              +abs(disk%massStellar())+abs(spheroid%massStellar()) &
-            &             )
-       call disk%massGasScale                    (max(mass,massMinimum      ))
-       call disk%massStellarScale                (max(mass,massMinimum      ))
-       call disk%massStellarFormedScale          (max(mass,massMinimum      ))
+        mass           =max(                                                      &
+            &               +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
+            &               +abs(disk%massStellar())+abs(spheroid%massStellar()), &
+            &               +massMinimum                                          &
+            &              )
+       call disk%massGasScale          (mass)
+       call disk%massStellarScale      (mass)
+       call disk%massStellarFormedScale(mass)
        ! Set the scale for the retained stellar mass fraction.
        call disk%fractionMassRetainedScale(fractionTolerance*disk%fractionMassRetained())
        ! Set scales for abundances if necessary.
@@ -733,7 +756,11 @@ contains
                &               +abs(+disk    %abundancesStellar())  &
                &               +abs(+spheroid%abundancesGas    ())  &
                &               +abs(+spheroid%abundancesStellar()), &
+               &               +max(                                &
+               &                    +mass                           &
+               &                    *diskMetallicityTolerance     , &
                &                    +massMinimum                    &
+               &                   )                                &
                &                    *unitAbundances                 &
                &              )
           ! Set scale for gas abundances.

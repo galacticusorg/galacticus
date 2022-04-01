@@ -783,10 +783,14 @@ contains
                      &   .not.evolutionIsEventLimited    &
                      & ) then
                    if (deadlockReport) exit
-                   call Error_Report(                                           &
-                        &            'failed to evolve tree to required time'// &
-                        &            {introspection:location}                   &
-                        &           )
+                   message='failed to evolve tree to required time'//char(10)
+                   write (label,'(f7.2)') evolveToTime
+                   message=message//"            target time = "//trim(label)//" Gyr"//char(10)
+                   write (label,'(f7.2)') treeTimeEarliest
+                   message=message//"  earliest time in tree = "//trim(label)//" Gyr"//char(10)
+                   write (label,'(f7.2)') treeTimeLatest
+                   message=message//"    latest time in tree = "//trim(label)//" Gyr"
+                   call Error_Report(message//{introspection:location})
                 end if
                 ! Determine what limited evolution.
                 if (evolutionIsEventLimited) then

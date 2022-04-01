@@ -48,7 +48,7 @@ for(my $i=1;$i<=4;++$i) {
 	}
 	my $errorFractional = abs($property->{'inactive'}-$property->{'active'})/$property->{'active'};
 	my $status = "SUCCESS";
-	if ( $errorFractional->((0)) > 1.0e-3 ) {
+	if ( $errorFractional->((0)) > 1.5e-3 ) {
 	    $status  = "FAILED";
 	    $success = 0;
 	}

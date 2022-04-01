@@ -156,7 +156,7 @@ contains
           ! It is not, so return zero rate.
           intgrtdSurfaceDensityRate=0.0d0
        else
-          ! Set a pointer to self and to the node that is accessible by integral function.
+          ! Set a pointer to self and to the node that is accessible by the integrand function.
           intgrtdSurfaceDensitySelf => self
           intgrtdSurfaceDensityNode => node
           ! Compute suitable limits for the integration.

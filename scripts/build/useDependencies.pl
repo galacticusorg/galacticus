@@ -92,11 +92,13 @@ if ( -e $sourceDirectoryNames[0] ) {
     push(@sourceDirectoryNames,map {chomp($_);my $path = $sourceDirectoryNames[0]."/".$_; (-d $path && $_ !~ m/^\.+$/) ? $path : ()} readdir($sourceDirectory) );	 
     closedir($sourceDirectory);
 }
+push(@sourceDirectoryNames,$rootSourceDirectoryName."/".$ENV{'BUILDPATH'}."/libgalacticus");
+
 # Iterate over source directories.
 my @sourceFilesToProcess;
 foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
     # Extract the subdirectory name.
-    (my $subDirectoryName = $sourceDirectoryName) =~ s/^$rootSourceDirectoryName\/source\/?//;
+    (my $subDirectoryName = $sourceDirectoryName) =~ s/^$rootSourceDirectoryName\/(source|$ENV{'BUILDPATH'})\/?//;
     # Find all source files to process.
     opendir(my $sourceDirectory,$sourceDirectoryName) 
 	or die "useDependencies.pl: can not open the source directory: #!";
@@ -118,6 +120,7 @@ foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
 	 readdir($sourceDirectory));
     closedir($sourceDirectory);
 }
+
 # Initialize list of modules needed for event hooks.
 my @eventHookModules;
 # Iterate over files to process.

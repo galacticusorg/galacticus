@@ -600,7 +600,7 @@ contains
     Do processing of the node required after evolution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
-    use :: Interface_GSL   , only : GSL_Failure
+    use :: Interface_GSL   , only : GSL_Success         , GSL_Continue
     implicit none
     type   (treeNode            ), intent(inout), pointer :: node
     integer                      , intent(inout)          :: status
@@ -612,13 +612,17 @@ contains
     hotHalo => node%hotHalo()
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
+       ! Note that "status" is not set to failure as these changes in state of the hot halo should not change any calculation of
+       ! differential evolution rates as a negative mass/outer radius was unphysical anyway.
        if (hotHalo%       mass() < 0.0d0) then
-          status=GSL_Failure
           call hotHalo%       massSet(0.0d0)
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
        if (hotHalo%outerRadius() < 0.0d0) then
-          status=GSL_Failure
           call hotHalo%outerRadiusSet(0.0d0)
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return

@@ -487,7 +487,7 @@ contains
           ! Successful completion of the step - do nothing except store the step-size used.
           if (present(xStep)) xStep=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
        case (GSL_Failure)
-         ! Generic failure - most likely a stepsize underflow.
+          ! Generic failure - most likely a stepsize underflow.
           if (associated(self%errorHandler)) call self%errorHandler(status_,x,y)
           ! If ODE status was requested, then return it instead of aborting.
           if (present(status)) then

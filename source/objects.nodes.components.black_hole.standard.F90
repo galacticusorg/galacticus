@@ -628,6 +628,11 @@ contains
     double precision                          :: potentialCentral      , potentialCentralSelf, &
          &                                       potentialHalo         , potentialHaloSelf
 
+    ! Return false immediately if the recoil velocity is zero.
+    if (velocityRecoil <= 0.0d0) then
+       Node_Component_Black_Hole_Standard_Recoil_Escapes=.false.
+       return
+    end if
     ! Compute relevant potentials.
     potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
     potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
@@ -1159,7 +1164,7 @@ contains
     Keep black hole spin in physical range.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
-    use :: Interface_GSL   , only : GSL_Failure
+    use :: Interface_GSL   , only : GSL_Success              , GSL_Continue
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status
@@ -1178,9 +1183,12 @@ contains
              ! Get the black hole component.
              blackHole => node%blackHole(instance=i)
              if (blackHole%spin() > spinMaximum .or. blackHole%spin() < 0.0d0) then
-                status    =GSL_Failure
-                spin      =max(min(blackHole%spin(),spinMaximum),0.0d0)
+                ! Note that "status" is not set to failure as this change in state of the black hole should not change any
+                ! calculation of differential evolution rates as the spin was in an unphysical regime anyway
+                spin=max(min(blackHole%spin(),spinMaximum),0.0d0)
                 call blackHole%spinSet(spin)
+                ! Indicate that ODE evolution should continue after this state change.
+                if (status == GSL_Success) status=GSL_Continue
              end if
           end do
        end if

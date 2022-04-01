@@ -136,7 +136,9 @@ contains
        call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Set initialization state.
-    self%initialized=.false.
+    self%initialized                        =  .false.
+    self%massHalfModeAvailable              =  .false.
+    self%massQuarterModeAvailable           =  .false.
     ! No reference transfer function is used.
     self%massHalfModeAvailable              =  .false.
     self%massQuarterModeAvailable           =  .false.

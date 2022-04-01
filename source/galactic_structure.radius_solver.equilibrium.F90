@@ -220,8 +220,9 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Display, only : displayMessage
-    use :: Error  , only : Error_Report
+    use :: Calculations_Resets, only : Calculations_Reset
+    use :: Display            , only : displayMessage
+    use :: Error              , only : Error_Report
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -251,6 +252,7 @@ contains
        end if
        ! Begin iteration to find a converged solution.
        do while (equilibriumIterationCount <= 2 .or. ( equilibriumFitMeasure > self%solutionTolerance .and. equilibriumIterationCount < iterationMaximum ) )
+          call Calculations_Reset(node)
           equilibriumIterationCount      =equilibriumIterationCount+1
           equilibriumActiveComponentCount=0
           if (equilibriumIterationCount > 1) equilibriumFitMeasure=0.0d0
