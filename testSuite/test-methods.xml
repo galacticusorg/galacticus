@@ -104,7 +104,7 @@
       </nodeOperator>
     </darkMatterProfileDMO>
     <darkMatterProfileDMO value="accretionFlow">
-      <toleranceRelativePotential value="1.0e-5"/>
+      <toleranceRelativePotential value="1.0e-4"/>
       <darkMatterProfileDMO value="NFW"/>
       <accretionFlows value="diemerKravtsov2014" parameterLevel="top">
 	<darkMatterProfileDMO value="NFW"/>
