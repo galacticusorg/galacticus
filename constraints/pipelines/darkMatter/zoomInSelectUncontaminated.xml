@@ -14,6 +14,7 @@
     <unitLengthInSI value="3.085678e22" />
     <unitMassInSI value="1.989e40" />
     <unitVelocityInSI value="1.0e3" />
+    <setParticleType value="true"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">
