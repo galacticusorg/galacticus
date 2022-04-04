@@ -349,6 +349,7 @@ contains
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     simulations(1)%attributesGeneric     =genericHash             ()
     call simulations(1)%attributesReal     %set('boxSize'     ,boxSize  )
+    call simulations(1)%attributesReal     %set('redshift'    ,redshift )
     call simulations(1)%propertiesRealRank1%set('position'    ,position_)
     call simulations(1)%propertiesRealRank1%set('velocity'    ,velocity_)
     call simulations(1)%propertiesInteger  %set('particleID'  ,id_      )
