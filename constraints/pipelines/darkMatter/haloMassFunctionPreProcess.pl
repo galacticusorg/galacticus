@@ -311,7 +311,7 @@ foreach my $simulation ( @simulations ) {
 		    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionIdentifyAlwaysIsolated.xml");
 		    # Modify file names.
 		    $parameters->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $pathName."tree_"                   .$i."_".$j."_".$k.".dat" ;
-		    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'fileName'}->{'value'} = $pathName."alwaysIsolated_subVolume".$i."_".$j."_".$k.".hdf5";
+		    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'fileName'}->{'value'} = $pathName."alwaysIsolated_subVolume".$i."_".$j."_".$k.".hdf5";
 		    # If a custom process function is defined, call it.
 		    &{$simulation->{'processIdentify'}}($simulation,$realization,$pathName,$parameters)
 			if ( exists($simulation->{'processIdentify'}) );

@@ -16,6 +16,7 @@
     <nbodyOperator value="deleteProperties">
       <propertyNames value="descendentID hostID isMostMassiveProgenitor"/>
     </nbodyOperator>
+    <nbodyOperator value="physicalToComoving"/>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_subVolume0_0_0.hdf5"/>
       <snapshot value="1"                                 />
