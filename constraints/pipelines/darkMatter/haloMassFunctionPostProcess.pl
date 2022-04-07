@@ -35,7 +35,8 @@ my @simulations =
      label               => "MilkyWay",
      description         => "Halo mass function for non-backsplash z=0 halos from Milky Way zoom-in simulations.",
      subpath             => "ZoomIns",
-     realizations        => [ "Halo014", "Halo247", "Halo327", "Halo414", "Halo460", "Halo530", "Halo569", "Halo628", "Halo749", "Halo8247", "Halo852", "Halo925", "Halo939", "Halo9829", "Halo023", "Halo268", "Halo349", "Halo415", "Halo469", "Halo558", "Halo570", "Halo641", "Halo797", "Halo825", "Halo878", "Halo926", "Halo967", "Halo990", "Halo119", "Halo288", "Halo374", "Halo416", "Halo490", "Halo567", "Halo573", "Halo675", "Halo800", "Halo829", "Halo881", "Halo937", "Halo9749" ],
+#     realizations        => [ "Halo014", "Halo247", "Halo327", "Halo414", "Halo460", "Halo530", "Halo569", "Halo628", "Halo749", "Halo8247", "Halo852", "Halo925", "Halo939", "Halo9829", "Halo023", "Halo268", "Halo349", "Halo415", "Halo469", "Halo558", "Halo570", "Halo641", "Halo797", "Halo825", "Halo878", "Halo926", "Halo967", "Halo990", "Halo119", "Halo288", "Halo374", "Halo416", "Halo490", "Halo567", "Halo573", "Halo675", "Halo800", "Halo829", "Halo881", "Halo937", "Halo9749" ],
+     realizations        => [ "Halo023" ],
      simulationReference => "Nadler et al.",
      simulationURL       => "https://www",
      hubbleConstant      => 0.7,
@@ -45,88 +46,88 @@ my @simulations =
      color               => "#0bf7f4",
      plotModify          => \&zoomInsPlotModify
  },
- {
-     label               => "MilkyWay_WDM1",
-     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 1keV zoom-in simulations.",
-     subpath             => "ZoomIns",
-     realizations        => [ "Halo416" ],
-     simulationReference => "Nadler et al.",
-     simulationURL       => "https://www",
-     hubbleConstant      => 0.7,
-     massParticle        => 2.81981e5,
-     countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
-     color               => "#0ba0f7",
-     plotModify          => \&zoomInsPlotModify
- },
- {
-     label               => "MilkyWay_WDM5",
-     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 5keV zoom-in simulations.",
-     subpath             => "ZoomIns",
-     realizations        => [ "Halo416" ],
-     simulationReference => "Nadler et al.",
-     simulationURL       => "https://www",
-     hubbleConstant      => 0.7,
-     massParticle        => 2.81981e5,
-     countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
-     color               => "#0b65f7",
-     plotModify          => \&zoomInsPlotModify
- },
- {
-     label               => "MilkyWay_WDM10",
-     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 10keV zoom-in simulations.",
-     subpath             => "ZoomIns",
-     realizations        => [ "Halo416" ],
-     simulationReference => "Nadler et al.",
-     simulationURL       => "https://www",
-     hubbleConstant      => 0.7,
-     massParticle        => 2.81981e5,
-     countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
-     color               => "#0b23f7",
-     plotModify          => \&zoomInsPlotModify
- },
- {
-     label               => "MilkyWay_Axion22",
-     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-22 eV axion zoom-in simulations.",
-     subpath             => "ZoomIns",
-     realizations        => [ "Halo416" ],
-     simulationReference => "Nadler et al.",
-     simulationURL       => "https://www",
-     hubbleConstant      => 0.7,
-     massParticle        => 2.81981e5,
-     countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
-     color               => "#b00bf7",
-     plotModify          => \&zoomInsPlotModify
- },
- {
-     label               => "MilkyWay_Axion21",
-     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-21 eV axion zoom-in simulations.",
-     subpath             => "ZoomIns",
-     realizations        => [ "Halo416" ],
-     simulationReference => "Nadler et al.",
-     simulationURL       => "https://www",
-     hubbleConstant      => 0.7,
-     massParticle        => 2.81981e5,
-     countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
-     color               => "#d80bf7",
-     plotModify          => \&zoomInsPlotModify
- },
- {
-     label               => "MilkyWay_Axion20",
-     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-20 eV axion zoom-in simulations.",
-     subpath             => "ZoomIns",
-     realizations        => [ "Halo416" ],
-     simulationReference => "Nadler et al.",
-     simulationURL       => "https://www",
-     hubbleConstant      => 0.7,
-     massParticle        => 2.81981e5,
-     countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
-     color               => "#f70bdf",
+ # {
+ #     label               => "MilkyWay_WDM1",
+ #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 1keV zoom-in simulations.",
+ #     subpath             => "ZoomIns",
+ #     realizations        => [ "Halo416" ],
+ #     simulationReference => "Nadler et al.",
+ #     simulationURL       => "https://www",
+ #     hubbleConstant      => 0.7,
+ #     massParticle        => 2.81981e5,
+ #     countHaloMinimum    => 0,
+ #     expansionFactors    => [ 1.00000 ],
+ #     color               => "#0ba0f7",
+ #     plotModify          => \&zoomInsPlotModify
+ # },
+ # {
+ #     label               => "MilkyWay_WDM5",
+ #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 5keV zoom-in simulations.",
+ #     subpath             => "ZoomIns",
+ #     realizations        => [ "Halo416" ],
+ #     simulationReference => "Nadler et al.",
+ #     simulationURL       => "https://www",
+ #     hubbleConstant      => 0.7,
+ #     massParticle        => 2.81981e5,
+ #     countHaloMinimum    => 0,
+ #     expansionFactors    => [ 1.00000 ],
+ #     color               => "#0b65f7",
+ #     plotModify          => \&zoomInsPlotModify
+ # },
+ # {
+ #     label               => "MilkyWay_WDM10",
+ #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 10keV zoom-in simulations.",
+ #     subpath             => "ZoomIns",
+ #     realizations        => [ "Halo416" ],
+ #     simulationReference => "Nadler et al.",
+ #     simulationURL       => "https://www",
+ #     hubbleConstant      => 0.7,
+ #     massParticle        => 2.81981e5,
+ #     countHaloMinimum    => 0,
+ #     expansionFactors    => [ 1.00000 ],
+ #     color               => "#0b23f7",
+ #     plotModify          => \&zoomInsPlotModify
+ # },
+ # {
+ #     label               => "MilkyWay_Axion22",
+ #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-22 eV axion zoom-in simulations.",
+ #     subpath             => "ZoomIns",
+ #     realizations        => [ "Halo416" ],
+ #     simulationReference => "Nadler et al.",
+ #     simulationURL       => "https://www",
+ #     hubbleConstant      => 0.7,
+ #     massParticle        => 2.81981e5,
+ #     countHaloMinimum    => 0,
+ #     expansionFactors    => [ 1.00000 ],
+ #     color               => "#b00bf7",
+ #     plotModify          => \&zoomInsPlotModify
+ # },
+ # {
+ #     label               => "MilkyWay_Axion21",
+ #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-21 eV axion zoom-in simulations.",
+ #     subpath             => "ZoomIns",
+ #     realizations        => [ "Halo416" ],
+ #     simulationReference => "Nadler et al.",
+ #     simulationURL       => "https://www",
+ #     hubbleConstant      => 0.7,
+ #     massParticle        => 2.81981e5,
+ #     countHaloMinimum    => 0,
+ #     expansionFactors    => [ 1.00000 ],
+ #     color               => "#d80bf7",
+ #     plotModify          => \&zoomInsPlotModify
+ # },
+ # {
+ #     label               => "MilkyWay_Axion20",
+ #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-20 eV axion zoom-in simulations.",
+ #     subpath             => "ZoomIns",
+ #     realizations        => [ "Halo416" ],
+ #     simulationReference => "Nadler et al.",
+ #     simulationURL       => "https://www",
+ #     hubbleConstant      => 0.7,
+ #     massParticle        => 2.81981e5,
+ #     countHaloMinimum    => 0,
+ #     expansionFactors    => [ 1.00000 ],
+ #     color               => "#f70bdf",
      plotModify          => \&zoomInsPlotModify
  },
  {
@@ -141,8 +142,6 @@ my @simulations =
      countHaloMinimum    => 0,
      expansionFactors    => [ 1.00000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      color               => "#0bf7f4",
-     plotModify          => \&zoomInsPlotModify
- },
  {
      label               => "VSMDPL",
      description         => "Halo mass function for non-backsplash z=0 halos from the VSMDPL simulation.",
@@ -248,6 +247,23 @@ foreach my $simulation ( @simulations ) {
 	    my $redshift      = 1.0/$expansionFactor-1.0;
 	    my $redshiftLabel = sprintf("z%5.3f",$redshift);
 
+	    ## AJB HACK
+	    my $parameters = $xml->XMLin($outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
+	    $parameters->{'outputFileName'}->{'value'} = "/data001/abenson/Galacticus/galacticus_dmConstraintPipeline/pipeline.4/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
+	    $parameters->{'haloMassFunctionParameters'}->{'a'            }->{'value'} = 0.82708790844954094;
+	    $parameters->{'haloMassFunctionParameters'}->{'b'            }->{'value'} = 1.7199906684586954E-004;
+	    $parameters->{'haloMassFunctionParameters'}->{'c'            }->{'value'} = -2.9075259886015061;
+	    $parameters->{'haloMassFunctionParameters'}->{'d'            }->{'value'} = 1.9942484921746402;
+	    $parameters->{'haloMassFunctionParameters'}->{'p'            }->{'value'} = 0.45989788756150141;
+	    $parameters->{'haloMassFunctionParameters'}->{'q'            }->{'value'} = 1.3059119345941366;
+	    $parameters->{'haloMassFunctionParameters'}->{'normalization'}->{'value'} = 0.30889429317881800;
+	    $parameters->{'haloMassFunctionParameters'}->{'cW'           }->{'value'} = 2.1593973153805543;
+	    $parameters->{'haloMassFunctionParameters'}->{'beta'         }->{'value'} = 9.1004921410628903;
+	    open(my $out,">",$outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
+	    print $out $xml->XMLout($parameters, RootName => "parameters");
+	    close($out);
+
+	    
 	    # Generate a job.
 	    my $job;
 	    $job->{'command'   } =
@@ -463,7 +479,7 @@ for(my $i=0;$i<=$iMax;++$i) {
 		$plotOptions ->{'yMaximum'} = 1.0e+02;
 		$plotOptions ->{'xKey'    } = 0.475;
 		$plotOptions ->{'yKey'    } = 0.450;
-		&{$simulation->{'plotModify'}}($simulation,$plotOptions,$realization)
+		&{$simulation->{'plotModify'}}($simulation,$plotOptions,$realization,$simulation->{'expansionFactors'}->[$i])
 		    if ( exists($simulation->{'plotModify'}) );
 		## Halo mass function.
 		my $plot;
@@ -768,15 +784,17 @@ exit 0;
 
 sub zoomInsPlotModify {
     # Modify plotting arguments for the halo mass function.
-    my $simulation  = shift();
-    my $plotOptions = shift();
-    my $realization = shift();
+    my $simulation      = shift();
+    my $plotOptions     = shift();
+    my $realization     = shift();
+    my $expansionFactor = shift();
+    my $redshiftLabel   = sprintf("%5.3f",1.0/$expansionFactor-1.0);
     # Appending environment to title.
-    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z0.000.hdf5");                                    
+    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabel.".hdf5");                                    
     my $targetSimulation    = $target          ->group  ('simulation0001'   );                                                                                                                                  
     (my $massRegion       ) = $targetSimulation->attrGet('massRegion'       );                                                                                                                                  
     (my $overdensityRegion) = $targetSimulation->attrGet('overdensityRegion');
-    $plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$\\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massRegion),$overdensityRegion);
+    $plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$z = ".$redshiftLabel."; \\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massRegion),$overdensityRegion);
     # Set plotting limits.
     $plotOptions->{'xMinimum'} = 8.0e+06;
     $plotOptions->{'xMaximum'} = 3.0e+12;
