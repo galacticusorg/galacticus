@@ -40,7 +40,7 @@ my @simulations =
  {
      label               => "VSMDPL",
      subpath             => "CosmoSim",
-     description         => "Halo mass function for non-backsplash z=0 halos from the VSMDPL simulation.",
+     description         => "Halo mass function for non-backsplash halos from the VSMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/vsmdpl/",
      hubbleConstant      => 0.6777,
@@ -51,7 +51,7 @@ my @simulations =
  {
      label               => "SMDPL",
      subpath             => "CosmoSim",
-     description         => "Halo mass function for non-backsplash z=0 halos from the SMDPL simulation.",
+     description         => "Halo mass function for non-backsplash halos from the SMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/smdpl/",
      hubbleConstant      => 0.6777,
@@ -62,7 +62,7 @@ my @simulations =
  {
      label               => "MDPL2",
      subpath             => "CosmoSim",
-     description         => "Halo mass function for non-backsplash z=0 halos from the MDPL2 simulation.",
+     description         => "Halo mass function for non-backsplash halos from the MDPL2 simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/mdpl2/",
      hubbleConstant      => 0.6777,
@@ -73,7 +73,7 @@ my @simulations =
  {
      label               => "BigMDPL",
      subpath             => "CosmoSim",
-     description         => "Halo mass function for non-backsplash z=0 halos from the BigMDPL simulation.",
+     description         => "Halo mass function for non-backsplash halos from the BigMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/bigmdpl/",
      hubbleConstant      => 0.6777,
@@ -84,7 +84,7 @@ my @simulations =
  {
      label               => "HugeMDPL",
      subpath             => "CosmoSim",
-     description         => "Halo mass function for non-backsplash z=0 halos from the HugeMDPL simulation.",
+     description         => "Halo mass function for non-backsplash halos from the HugeMDPL simulation.",
      simulationReference => "Klypin, Yepes, Gottlober, Hess; 2016; MNRAS; 457; 4340",
      simulationURL       => "https://www.cosmosim.org/cms/simulations/hugemdpl/",
      hubbleConstant      => 0.6777,
@@ -95,14 +95,17 @@ my @simulations =
  {
      label                   => "MilkyWay",
      subpath                 => "ZoomIns",
-     realizations            => [ "Halo014", "Halo247", "Halo327", "Halo414", "Halo460", "Halo530", "Halo569", "Halo628", "Halo749", "Halo8247", "Halo852", "Halo925", "Halo939", "Halo9829", "Halo023", "Halo268", "Halo349", "Halo415", "Halo469", "Halo558", "Halo570", "Halo641", "Halo797", "Halo825", "Halo878", "Halo926", "Halo967", "Halo990", "Halo119", "Halo288", "Halo374", "Halo416", "Halo490", "Halo567", "Halo573", "Halo675", "Halo800", "Halo829", "Halo881", "Halo937", "Halo9749" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way zoom-in simulations.",
+     realizations            => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990" ],
+     description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 2.81981e5,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      subvolumes              => 1,
-     expansionFactors        => [ 1.0000 ],
+     expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
@@ -122,11 +125,13 @@ my @simulations =
      label                   => "MilkyWay_WDM1",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo416" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way, 1keV WDM zoom-in simulations.",
+     description             => "Halo mass function for non-backsplash halos from Milky Way, 1keV WDM zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 2.81981e5,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
@@ -148,10 +153,12 @@ my @simulations =
      label                   => "MilkyWay_WDM5",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo416" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way, 5keV WDM zoom-in simulations.",
+     description             => "Halo mass function for non-backsplash halos from Milky Way, 5keV WDM zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      massParticle            => 2.81981e5,
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
@@ -174,11 +181,13 @@ my @simulations =
      label                   => "MilkyWay_WDM10",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo416" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way, 10keV WDM zoom-in simulations.",
+     description             => "Halo mass function for non-backsplash halos from Milky Way, 10keV WDM zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 2.81981e5,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
@@ -200,11 +209,13 @@ my @simulations =
      label                   => "MilkyWay_Axion22",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo416" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way, 10^-22 eV axion zoom-in simulations.",
+     description             => "Halo mass function for non-backsplash halos from Milky Way, 10^-22 eV axion zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 2.81981e5,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
@@ -226,11 +237,13 @@ my @simulations =
      label                   => "MilkyWay_Axion21",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo416" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way, 10^-21 eV axion zoom-in simulations.",
+     description             => "Halo mass function for non-backsplash halos from Milky Way, 10^-21 eV axion zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 2.81981e5,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
@@ -252,13 +265,44 @@ my @simulations =
      label                   => "MilkyWay_Axion20",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo416" ],
-     description             => "Halo mass function for non-backsplash z=0 halos from Milky Way, 10^-20 eV axion zoom-in simulations.",
+     description             => "Halo mass function for non-backsplash halos from Milky Way, 10^-20 eV axion zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 2.81981e5,
+     massHostLogMin          => 12.0, 
+     massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     processIdentify         => \&zoomInsProcessIdentify,
+     processExtract          => \&zoomInsProcessExtract,
+     postprocessExtract      =>
+ 	 [
+ 	  \&zoomInsPostprocessSelectInSphere    ,
+ 	  \&zoomInsPostprocessExtractSelectedIDs,
+ 	  \&zoomInsPostprocessSelectInICs       ,
+ 	  \&zoomInsPostprocessAnalyze           ,
+ 	  \&zoomInsPostprocessSetVolume
+ 	 ],
+     postprocessMassFunction =>
+ 	 [
+ 	  \&zoomInsPostProcessMassFunction
+ 	 ]
+ },
+ {
+     label                   => "LMC",
+     subpath                 => "ZoomIns",
+     realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo479", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo888", "Halo914", "Halo932", "Halo933" ],
+     description             => "Halo mass function for non-backsplash halos from LMC zoom-in simulations.",
+     simulationReference     => "Nadler et al.",
+     simulationURL           => "https://www",
+     hubbleConstant          => 0.7,
+     massParticle            => 3.52476e4,
+     massHostLogMin          => 10.45, 
+     massHostLogMax          => 11.15, 
+     subvolumes              => 1,
+     expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
@@ -563,13 +607,14 @@ sub zoomInsProcessExtract {
     unless ( -e $primaryHaloFileName ) {
 	# Generate a job to extract the primary halo.
 	my $job;
-	$job->{'command'   } = $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionZoomInExtract.pl ".$pathName." ".$primaryHaloFileName." ".$expansionFactor." ".$simulation->{'hubbleConstant'}." ".$simulation->{'massParticle'};
+	$job->{'command'   } = $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionZoomInExtract.pl ".$pathName." ".$primaryHaloFileName." ".$expansionFactor." ".$simulation->{'hubbleConstant'}." ".$simulation->{'massParticle'}." ".$simulation->{'massHostLogMin'}." ".$simulation->{'massHostLogMax'};
 	$job->{'launchFile'} = $pathName."zoomInExtract_".$simulation->{'label'}."_".$redshiftLabel.".sh" ;
 	$job->{'logFile'   } = $pathName."zoomInExtract_".$simulation->{'label'}."_".$redshiftLabel.".log";
 	$job->{'label'     } =           "zoomInExtract_".$simulation->{'label'}."_".$redshiftLabel       ;
 	$job->{'ppn'       } = 1;
 	$job->{'nodes'     } = 1;
-	$job->{'mpi'       } = "no";	
+	$job->{'mem'       } = "32G";
+	$job->{'mpi'       } = "no";
 	&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,$job);
     }
     # Find properties of the central halo.

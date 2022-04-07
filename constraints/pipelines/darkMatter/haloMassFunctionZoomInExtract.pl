@@ -10,13 +10,15 @@ use PDL::NiceSlice;
 # Andrew Benson (15-March-2022)
 
 # Get arguments.
-die("Usgae: haloMassFunctionZoomInExtract.pl <pathName> <primaryHaloFileName> <expansionFactor> <hubbleConstant> <massParticle>")
-    unless ( scalar(@ARGV) == 5 );
+die("Usgae: haloMassFunctionZoomInExtract.pl <pathName> <primaryHaloFileName> <expansionFactor> <hubbleConstant> <massParticle> <massHostLogMin> <massHostLogMax>")
+    unless ( scalar(@ARGV) == 7 );
 my $pathName            =     $ARGV[0];
 my $primaryHaloFileName =     $ARGV[1];
 my $expansionFactor     =     $ARGV[2];
 my $hubbleConstant      = pdl $ARGV[3];
 my $massParticle        = pdl $ARGV[4];
+my $massHostLogMin      = pdl $ARGV[5];
+my $massHostLogMax      = pdl $ARGV[6];
 
 # Extract box and region size from the Music config file.
 print "\tExtracting high-resolution region\n";
@@ -63,7 +65,7 @@ my $yCenter  = 0.5*($yMaximum+$yMinimum);
 my $zCenter  = 0.5*($zMaximum+$zMinimum);
 # Find focus halo.
 print "\tLocating focus halo\n";
-my $halosCurrent           = which(($haloExpansionFactor > 0.9999) & (log10($massHalo) > 12.0) & (log10($massHalo) < 12.3));
+my $halosCurrent           = which(($haloExpansionFactor > 0.9999) & (log10($massHalo) > $massHostLogMin) & (log10($massHalo) < $massHostLogMax));
 die("ERROR: unable to locate any viable halos")
     if ( nelem($halosCurrent) <= 0 );
 my $distanceFromCenter     = sqrt(+($x-$xCenter)**2+($y-$yCenter)**2+($z-$zCenter)**2);
@@ -74,13 +76,13 @@ my $massCentral            = $massHalo->($indexHaloFocus);
 # Find the primary progenitor at this expansion factor.
 print "\tLocating primary progenitor\n";
 my $indexPrimaryProgenitor = $indexHaloFocus;
-while ( abs($haloExpansionFactor->($indexPrimaryProgenitor)-$expansionFactor) > 1.0e-3 ) {
+while ( abs($haloExpansionFactor->(($indexPrimaryProgenitor))-$expansionFactor) > 1.0e-3 ) {
     my $selection =
 	which
 	(
-	 ($descID                == $haloID->($indexPrimaryProgenitor))
+	 ($descID                == $haloID->(($indexPrimaryProgenitor)))
 	 &
-	 ($mostMassiveProgenitor == 1                                 )
+	 ($mostMassiveProgenitor == 1                                   )
 	);
     if      ( nelem($selection) < 1 ) {
 	die('no progenitor found' );
@@ -92,16 +94,16 @@ while ( abs($haloExpansionFactor->($indexPrimaryProgenitor)-$expansionFactor) > 
 }
 # Store the relevant data.
 my $primaryHaloData;
-$primaryHaloData->{'x'   } = $x         ->($indexPrimaryProgenitor)->sclr();
-$primaryHaloData->{'y'   } = $y         ->($indexPrimaryProgenitor)->sclr();
-$primaryHaloData->{'z'   } = $z         ->($indexPrimaryProgenitor)->sclr();
-$primaryHaloData->{'r'   } = $radiusHalo->($indexPrimaryProgenitor)->sclr();
-$primaryHaloData->{'m'   } = $massHalo  ->($indexPrimaryProgenitor)->sclr();
-$primaryHaloData->{'l'   } = $boxSize                              ->sclr();
-$primaryHaloData->{'xc'  } = $xCenter                              ->sclr();
-$primaryHaloData->{'yc'  } = $yCenter                              ->sclr();
-$primaryHaloData->{'zc'  } = $zCenter                              ->sclr();
-$primaryHaloData->{'mc'  } = $massCentral                          ->sclr();
+$primaryHaloData->{'x'   } = $x         ->(($indexPrimaryProgenitor))->sclr();
+$primaryHaloData->{'y'   } = $y         ->(($indexPrimaryProgenitor))->sclr();
+$primaryHaloData->{'z'   } = $z         ->(($indexPrimaryProgenitor))->sclr();
+$primaryHaloData->{'r'   } = $radiusHalo->(($indexPrimaryProgenitor))->sclr();
+$primaryHaloData->{'m'   } = $massHalo  ->(($indexPrimaryProgenitor))->sclr();
+$primaryHaloData->{'l'   } = $boxSize                                ->sclr();
+$primaryHaloData->{'xc'  } = $xCenter                                ->sclr();
+$primaryHaloData->{'yc'  } = $yCenter                                ->sclr();
+$primaryHaloData->{'zc'  } = $zCenter                                ->sclr();
+$primaryHaloData->{'mc'  } = $massCentral                            ->sclr();
 my $xml = new XML::Simple();
 open(my $primaryHaloFile,">",$primaryHaloFileName);
 print $primaryHaloFile $xml->XMLout($primaryHaloData, RootName => "primaryHalo");
