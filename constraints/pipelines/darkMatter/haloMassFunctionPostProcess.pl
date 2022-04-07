@@ -41,7 +41,7 @@ my @simulations =
      hubbleConstant      => 0.7,
      massParticle        => 2.81981e5,
      countHaloMinimum    => 0,
-     expansionFactors    => [ 1.00000 ],
+     expansionFactors    => [ 1.00000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      color               => "#0bf7f4",
      plotModify          => \&zoomInsPlotModify
  },
@@ -127,6 +127,20 @@ my @simulations =
      countHaloMinimum    => 0,
      expansionFactors    => [ 1.00000 ],
      color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify
+ },
+ {
+     label               => "LMC",
+     description         => "Halo mass function for non-backsplash z=0 halos from LMC zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo479", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo888", "Halo914", "Halo932", "Halo933" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 3.52476e4,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000,   0.66503,   0.50239,   0.32987,   0.20064 ],
+     color               => "#0bf7f4",
      plotModify          => \&zoomInsPlotModify
  },
  {
