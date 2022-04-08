@@ -4,22 +4,22 @@
   <version>0.9.4</version>
 
   <!-- Output control -->
-  <outputFileName value="haloMassFunction_MilkyWay_Axion22_Halo416_z0.000.hdf5"/>
+  <outputFileName value="haloMassFunction_MilkyWay_Axion20_Halo416_z0.000.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>
   </outputTimes>  
 
   <!-- Halo environments -->
   <haloEnvironment value="fixed">
-    <massEnvironment value="+4.53881e+12"/>
-    <overdensity     value="-0.00243703" />
+    <massEnvironment value="+4.538805e+12"/>
+    <overdensity     value="-0.002437    "/>
   </haloEnvironment>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
-  <xi:include href="haloMassFunctionParameters.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="simulation_MilkyWay.xml"                       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="cosmology_MilkyWay_powerSpectrumIndex1.00.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="transferFunction_MilkyWay_Axion20.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="haloMassFunction_MilkyWay.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunctionParameters.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="simulation_Symphony.xml"                        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cosmology_Symphony.xml"                         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunction_Symphony.xml"                  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="transferFunction_MilkyWay_Axion20.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
 </parameters>
