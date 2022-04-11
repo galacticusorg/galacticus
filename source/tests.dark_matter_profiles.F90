@@ -27,39 +27,51 @@ program Test_Dark_Matter_Profiles
   !!}
   use :: Cosmology_Parameters        , only : cosmologyParametersSimple
   use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
+  use :: Dark_Matter_Particles       , only : darkMatterParticleSelfInteractingDarkMatter                   , darkMatterParticleCDM
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW, darkMatterProfileDMOFiniteResolution
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW          , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW
   use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
-  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed       , fixedDensityTypeCritical
   use :: Events_Hooks                , only : eventsHooksInitialize
   use :: Functions_Global_Utilities  , only : Functions_Global_Set
   use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                   , nodeComponentDarkMatterProfile, &
           &                                   treeNode
   use :: Input_Parameters            , only : inputParameters
   use :: ISO_Varying_String          , only : varying_string                                                , assignment(=)                    , var_str
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize  , Node_Components_Uninitialize
+  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                 , Unit_Tests_Finish
   implicit none
-  type            (treeNode                                                      ), pointer      :: node
+  type            (treeNode                                                      ), pointer      :: node                                                                                            , &
+       &                                                                                            nodePippin
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentDarkMatterProfile                                ), pointer      :: dmProfile
-  double precision                                                                , parameter    :: concentration                   =8.0d0                                                          , &
-       &                                                                                            massVirial                      =1.0d0
+  double precision                                                                , parameter    :: concentration                   = 8.0d0                                                         , &
+       &                                                                                            massVirial                      = 1.0d0                                                         , &
+       ! Mass and concentration of Pippin halos (Jiang et al. 2022).
+       &                                                                                            concentrationPippin             =15.8d0                                                         , &
+       &                                                                                            massVirialPippin                =10.0d0**9.89d0
   double precision                                                                , dimension(7) :: radius                          =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
   double precision                                                                , dimension(7) :: mass                                                                                            , &
        &                                                                                            density                                                                                         , &
        &                                                                                            fourier                                                                                         , &
        &                                                                                            radialVelocityDispersion                                                                        , &
        &                                                                                            radialVelocityDispersionSeriesExpansion
+  type            (darkMatterParticleCDM                                         ), pointer      :: darkMatterParticleCDM_
+  type            (darkMatterParticleSelfInteractingDarkMatter                   ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_
   type            (darkMatterProfileDMOBurkert                                   ), pointer      :: darkMatterProfileDMOBurkert_
   type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFW_
   type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFWSeriesExpansion_
   type            (darkMatterProfileDMOFiniteResolution                          ), pointer      :: darkMatterProfileDMOFiniteResolution_
-  type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_
+  type            (darkMatterProfileDMOSIDMCoreNFW                               ), pointer      :: darkMatterProfileDMOSIDMCoreNFW_
+  type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_                                                                            , &
+       &                                                                                            cosmologyParametersPippin_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_                                                                             , &
+       &                                                                                            cosmologyFunctionsPippin_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_                                                                            , &
+       &                                                                                            darkMatterHaloScalePippin_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
+  type            (virialDensityContrastFixed                                    ), pointer      :: virialDensityContrastPippin_
   type            (inputParameters                                               )               :: parameters
   integer                                                                                        :: i
   double precision                                                                               :: radiusScale
@@ -75,14 +87,21 @@ program Test_Dark_Matter_Profiles
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
   ! Build required objects.
-  allocate(cosmologyParameters_        )
-  allocate(cosmologyFunctions_         )
-  allocate(virialDensityContrast_      )
-  allocate(darkMatterHaloScale_        )
-  allocate(darkMatterProfileDMOBurkert_)
-  allocate(darkMatterProfileDMONFW_    )
-  allocate(darkMatterProfileDMONFWSeriesExpansion_  )
-  allocate(darkMatterProfileDMOFiniteResolution_    )
+  allocate(cosmologyParameters_                        )
+  allocate(cosmologyFunctions_                         )
+  allocate(virialDensityContrast_                      )
+  allocate(darkMatterHaloScale_                        )
+  allocate(darkMatterProfileDMOBurkert_                )
+  allocate(darkMatterProfileDMONFW_                    )
+  allocate(darkMatterProfileDMONFWSeriesExpansion_     )
+  allocate(darkMatterProfileDMOFiniteResolution_       )
+  allocate(darkMatterProfileDMOSIDMCoreNFW_            )
+  allocate(darkMatterParticleSelfInteractingDarkMatter_)
+  allocate(darkMatterParticleCDM_                      )
+  allocate(cosmologyParametersPippin_                  )
+  allocate(cosmologyFunctionsPippin_                   )
+  allocate(virialDensityContrastPippin_                )
+  allocate(darkMatterHaloScalePippin_                  )
   !![
   <referenceConstruct object="cosmologyParameters_"        >
    <constructor>
@@ -312,7 +331,7 @@ program Test_Dark_Matter_Profiles
      mass   (i)=darkMatterProfileDMOFiniteResolution_%enclosedMass(node,      radiusScale*radius(i))
      density(i)=darkMatterProfileDMOFiniteResolution_%density     (node,      radiusScale*radius(i))*radiusScale**3
      fourier(i)=darkMatterProfileDMOFiniteResolution_%kSpace      (node,1.0d0/radiusScale/radius(i))
-  end do  
+  end do
   call Assert(                        &
        &      'enclosed mass'       , &
        &      mass                  , &
@@ -338,6 +357,121 @@ program Test_Dark_Matter_Profiles
        &      relTol=1.0d-2           &
        &     )
   call Unit_Tests_End_Group       ()
+  ! Test CoreNFW self-interacting dark matter profile.
+  call Unit_Tests_Begin_Group('CoreNFW self-interacting dark matter profile')
+  !![
+  <referenceConstruct object="cosmologyParametersPippin_"        >
+   <constructor>
+    cosmologyParametersSimple                         (                                                                                   &amp;
+     &amp;                                             OmegaMatter                         = 0.2660d0                                   , &amp;
+     &amp;                                             OmegaBaryon                         = 0.0000d0                                   , &amp;
+     &amp;                                             OmegaDarkEnergy                     = 0.7340d0                                   , &amp;
+     &amp;                                             temperatureCMB                      = 2.7800d0                                   , &amp;
+     &amp;                                             HubbleConstant                      =71.0000d0                                     &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctionsPippin_"         >
+   <constructor>
+    cosmologyFunctionsMatterLambda                    (                                                                                   &amp;
+     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                    &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrastPippin_"      >
+   <constructor>
+    virialDensityContrastFixed                        (                                                                                   &amp;
+     &amp;                                             densityContrastValue                =200.0d0                                     , &amp;
+     &amp;                                             densityType                         =fixedDensityTypeCritical                    , &amp;
+     &amp;                                             turnAroundOverVirialRadius          =  2.0d0                                     , &amp;
+     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                  , &amp;
+     &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsPippin_                     &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterHaloScalePippin_"        >
+   <constructor>
+    darkMatterHaloScaleVirialDensityContrastDefinition(                                                                                   &amp;
+     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                  , &amp;
+     &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsPippin_                   , &amp;
+     &amp;                                             virialDensityContrast_              =virialDensityContrastPippin_                  &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterParticleCDM_"                      >
+   <constructor>
+    darkMatterParticleCDM                             (                                                                                   &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatter_">
+   <constructor>
+    darkMatterParticleSelfInteractingDarkMatter       (                                                                                   &amp;
+     &amp;                                             crossSectionSelfInteraction         =1.0d0                                       , &amp;
+     &amp;                                             darkMatterParticle_                 =darkMatterParticleCDM_                        &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMOSIDMCoreNFW_"            >
+   <constructor>
+    darkMatterProfileDMOSIDMCoreNFW                   (                                                                                   &amp;
+     &amp;                                             factorRadiusCore                    =0.45d0                                      , &amp;
+     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                  , &amp;
+     &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatter_  &amp;
+     &amp;                                            )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  !! Set properties to match the Pippin halos of Elbert et al. (2015; https://ui.adsabs.harvard.edu/abs/2015MNRAS.453...29E).
+  nodePippin => treeNode                    (                 )
+  basic      => nodePippin%basic            (autoCreate=.true.)
+  dmProfile  => nodePippin%darkMatterProfile(autoCreate=.true.)
+  call basic%timeSet(cosmologyFunctionsPippin_%cosmicTime(1.0d0))
+  call basic%massSet(massVirialPippin                           )
+  radiusScale=+darkMatterHaloScalePippin_%radiusVirial(nodePippin) &
+       &      /concentrationPippin                                          
+  call dmProfile%scaleSet(radiusScale)
+  do i=1,7
+     mass   (i)=darkMatterProfileDMOSIDMCoreNFW_%enclosedMass(nodePippin,radiusScale*radius(i))
+     density(i)=darkMatterProfileDMOSIDMCoreNFW_%density     (nodePippin,radiusScale*radius(i))
+  end do
+  ! Interaction radius estimated from Figure 2 of Jiang et al. (2022).
+  call Assert(                                                                &
+       &      'interaction radius'                                          , &
+       &      darkMatterProfileDMOSIDMCoreNFW_%radiusInteraction(nodePippin), &
+       &      2.337664390096387d-3                                          , &
+       &      relTol=1.0d-2                                                   &
+       &     )
+  ! Mass and density computed using Mathematica.
+  call Assert(                        &
+       &      'enclosed mass'       , &
+       &      mass                  , &
+       &      [                       &
+       &       8.129152247051000d+06, &
+       &       5.187526955035893d+07, &
+       &       2.497029836166847d+08, &
+       &       7.849597988938884d+08, &
+       &       1.782425795084028d+09, &
+       &       3.340544103197336d+09, &
+       &       5.399491464861386d+09  &
+       &      ]                     , &
+       &      relTol=1.0d-2           &
+       &     )
+  call Assert(                        &
+       &      'density'             , &
+       &      density               , &
+       &      [                       &
+       &       5.505559342899632d+16, &
+       &       3.962252050514667d+16, &
+       &       1.865412896231910d+16, &
+       &       5.093277224421450d+15, &
+       &       1.087639992726731d+15, &
+       &       1.955797749926653d+14, &
+       &       3.018205906859390d+13  &
+       &      ]                     , &
+       &      relTol=1.0d-2           &
+       &     )
+  call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
@@ -347,13 +481,20 @@ program Test_Dark_Matter_Profiles
   call nodeClassHierarchyFinalize         ()
   ! Clean up objects.
   !![
-  <objectDestructor name="cosmologyParameters_"                   />
-  <objectDestructor name="cosmologyFunctions_"                    />
-  <objectDestructor name="virialDensityContrast_"                 />
-  <objectDestructor name="darkMatterHaloScale_"                   />
-  <objectDestructor name="darkMatterProfileDMOBurkert_"           />
-  <objectDestructor name="darkMatterProfileDMONFW_"               />
-  <objectDestructor name="darkMatterProfileDMONFWSeriesExpansion_"/>
-  <objectDestructor name="darkMatterProfileDMOFiniteResolution_"  />
+  <objectDestructor name="cosmologyParameters_"                        />
+  <objectDestructor name="cosmologyFunctions_"                         />
+  <objectDestructor name="virialDensityContrast_"                      />
+  <objectDestructor name="darkMatterHaloScale_"                        />
+  <objectDestructor name="darkMatterProfileDMOBurkert_"                />
+  <objectDestructor name="darkMatterProfileDMONFW_"                    />
+  <objectDestructor name="darkMatterProfileDMONFWSeriesExpansion_"     />
+  <objectDestructor name="darkMatterProfileDMOFiniteResolution_"       />
+  <objectDestructor name="darkMatterProfileDMOSIDMCoreNFW_"            />
+  <objectDestructor name="darkMatterParticleSelfInteractingDarkMatter_"/>
+  <objectDestructor name="darkMatterParticleCDM_"                      />
+  <objectDestructor name="cosmologyParametersPippin_"                  />
+  <objectDestructor name="cosmologyFunctionsPippin_"                   />
+  <objectDestructor name="virialDensityContrastPippin_"                />
+  <objectDestructor name="darkMatterHaloScalePippin_"                  />
   !!]
 end program Test_Dark_Matter_Profiles
