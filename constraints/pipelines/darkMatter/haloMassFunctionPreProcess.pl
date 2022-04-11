@@ -107,6 +107,10 @@ my @simulations =
      expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
+     preprocessExtract       => [
+	 \&zoomInsPreProcessExtractLocate,
+	 \&zoomInsPreProcessExtractUncontaminated,
+	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -136,6 +140,10 @@ my @simulations =
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
      processExtract          => \&zoomInsProcessExtract,
+     preprocessExtract       => [
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      postprocessExtract      =>
  	 [
  	  \&zoomInsPostprocessSelectInSphere    ,
@@ -164,6 +172,10 @@ my @simulations =
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
      processExtract          => \&zoomInsProcessExtract,
+     preprocessExtract       => [
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      postprocessExtract      =>
  	 [
  	  \&zoomInsPostprocessSelectInSphere    ,
@@ -191,6 +203,10 @@ my @simulations =
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
+     preprocessExtract       => [
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -219,6 +235,10 @@ my @simulations =
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
+     preprocessExtract       => [
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -247,6 +267,10 @@ my @simulations =
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
+     preprocessExtract       => [
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -275,6 +299,10 @@ my @simulations =
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      processIdentify         => \&zoomInsProcessIdentify,
+     preprocessExtract       => [
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -292,7 +320,7 @@ my @simulations =
  {
      label                   => "LMC",
      subpath                 => "ZoomIns",
-     realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo479", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo888", "Halo914", "Halo932", "Halo933" ],
+     realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo479", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo914", "Halo932", "Halo933", "Halo888" ],
      description             => "Halo mass function for non-backsplash halos from LMC zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
@@ -304,6 +332,11 @@ my @simulations =
      expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
+     preprocessExtract       =>
+	 [
+	  \&zoomInsPreProcessExtractLocate,
+	  \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -386,6 +419,30 @@ foreach my $simulation ( @simulations ) {
 &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobsIdentify)
     if ( scalar(@jobsIdentify) > 0 );
 
+# Perform any preprocessing.
+{
+    my $workDone  =  1;
+    my $iteration = -1;
+    while ( $workDone ) {
+	my @preprocessingJobs;
+	++$iteration;
+	$workDone = 0;
+	foreach my $simulation ( @simulations ) {
+	    # Iterate over realizations.
+	    foreach my $realization ( @{$simulation->{'realizations'}} ) {
+		my $pathName = $simulation->{'path'}.($realization eq "" ? "" : $realization."/");
+		# If a custom preprocess function is defined, call it.
+		if ( exists($simulation->{'preprocessExtract'}) && scalar(@{$simulation->{'preprocessExtract'}}) > $iteration ) {
+		    $workDone = 1;
+		    &{$simulation->{'preprocessExtract'}->[$iteration]}($simulation,$realization,$pathName,\@preprocessingJobs);
+		}
+	    }
+	}
+	&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@preprocessingJobs)
+	    if ( scalar(@preprocessingJobs) > 0 );
+    }
+}
+
 # Iterate over simulations to extract snapshots
 my @jobsExtract;
 foreach my $simulation ( @simulations ) {
@@ -400,8 +457,8 @@ foreach my $simulation ( @simulations ) {
 		    # Iterate over expansion factors.
 		    foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 			my $redshift            =  1.0        /$expansionFactor-1.0;
-			my $expansionFactorLow  = (1.0-1.0e-4)*$expansionFactor    ;
-			my $expansionFactorHigh = (1.0+1.0e-4)*$expansionFactor    ;
+			my $expansionFactorLow  = (1.0-5.0e-4)*$expansionFactor    ;
+			my $expansionFactorHigh = (1.0+5.0e-4)*$expansionFactor    ;
 			my $redshiftLabel       = sprintf("z%5.3f",$redshift)      ;
 			# Parse the base parameters.
 			my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionExtractSnapshot.xml");
@@ -576,6 +633,7 @@ sub zoomInsProcessIdentify {
     my $realization = shift();
     my $pathName    = shift();
     my $parameters  = shift();
+    my $expansionFactor = shift();
     # Set the relevant cosmology.
     $parameters->{'cosmologyParameters'}->{'HubbleConstant' }->{'value'} = 70.000;
     $parameters->{'cosmologyParameters'}->{'OmegaMatter'    }->{'value'} =  0.286;
@@ -583,6 +641,88 @@ sub zoomInsProcessIdentify {
     $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.047;
     # Add read of additional columns.
     $parameters->{'nbodyImporter'      }->{'readColumns'    }->{'value'} .= " X Y Z Rvir rs";
+}
+
+sub zoomInsPreProcessExtractLocate {
+    # Identify the primary progenitor.
+    my $simulation  = shift();
+    my $realization = shift();
+    my $pathName    = shift();
+    my $jobs        = shift();
+    # Iterate over expansion factors.
+    my $job;
+    foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
+	# Look for an existing record of the primary halo.
+	my $redshift               =  1.0/$expansionFactor-1.0;
+	my $redshiftLabel          = sprintf("z%5.3f",$redshift);
+	my $primaryHaloFileName    = $pathName."primaryHalo_".$redshiftLabel.".xml";
+	my $xml                    = new XML::Simple();
+	unless ( -e $primaryHaloFileName ) {
+	    # Generate a job to extract the primary halo.
+	    unless ( defined($job) ) {
+		$job->{'command'   } = "";
+		$job->{'launchFile'} = $pathName."zoomInExtract_".$simulation->{'label'}.".sh" ;
+		$job->{'logFile'   } = $pathName."zoomInExtract_".$simulation->{'label'}.".log";
+		$job->{'label'     } =           "zoomInExtract_".$simulation->{'label'}       ;
+		$job->{'ppn'       } = 1;
+		$job->{'nodes'     } = 1;
+		$job->{'mem'       } = "32G";
+		$job->{'mpi'       } = "no";
+	    }
+	    $job->{'command'} .= $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionZoomInExtract.pl ".$pathName." ".$primaryHaloFileName." ".$expansionFactor." ".$simulation->{'hubbleConstant'}." ".$simulation->{'massParticle'}." ".$simulation->{'massHostLogMin'}." ".$simulation->{'massHostLogMax'}."\n";
+	}
+    }   
+    push(@{$jobs},$job)
+	if ( defined($job) );
+}
+
+sub zoomInsPreProcessExtractUncontaminated {
+    # Find the uncontaminated region.
+    my $simulation  = shift();
+    my $realization = shift();
+    my $pathName    = shift();
+    my $jobs        = shift();
+    # Iterate over expansion factors.
+    foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
+	# Look for an existing record of the primary halo.
+	my $redshift             =  1.0/$expansionFactor-1.0;
+	my $redshiftLabel        = sprintf("z%5.3f",$redshift);
+	my $primaryHaloFileName  = $pathName."primaryHalo_".$redshiftLabel.".xml";
+	# Find properties of the central halo.
+	my $xml                  = new XML::Simple();
+	my $primaryHaloData      = $xml->XMLin($primaryHaloFileName);
+	my $expansionFactorLabel = sprintf("sphericalOrigin:a%5.3f",$expansionFactor);
+	$simulation->{$realization}->{$expansionFactorLabel} =
+	    $primaryHaloData->{'x'}." ".
+	    $primaryHaloData->{'y'}." ".
+	    $primaryHaloData->{'z'}    ;
+	$simulation->{'massCentral'} = pdl $primaryHaloData->{'mc'};
+	# Generate job to find the uncontaminated region.
+	my $uncontaminatedFileName = $pathName."uncontaminated_".$redshiftLabel.".hdf5";
+	unless ( -e $uncontaminatedFileName ) {
+	    my $parametersUncontaminated = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/zoomInSelectUncontaminated.xml");
+	    # Modify file names.
+	    (my $snapshot) = map {$simulation->{'expansionFactors'}->[$_] == $expansionFactor ? $simulation->{'snapshots'}->[$_] : ()} 0..$#{$simulation->{'expansionFactors'}};
+	    $parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
+	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'   }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel};
+	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'}->{'value'} = $uncontaminatedFileName;
+	    # Write parameter file.
+	    my $parameterFileName = $pathName."uncontaminated_".$redshiftLabel.".xml";
+	    open(my $outputFile,">",$parameterFileName);
+	    print $outputFile $xml->XMLout($parametersUncontaminated, RootName => "parameters");
+	    close($outputFile);
+	    # Generate a job to extract the uncontaminated region around the primary halo.
+	    my $job;
+	    $job->{'command'   } = $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$pathName."uncontaminated_".$redshiftLabel.".xml";
+	    $job->{'launchFile'} = $pathName."uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel.".sh" ;
+	    $job->{'logFile'   } = $pathName."uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel.".log";
+	    $job->{'label'     } =           "uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel       ;
+	    $job->{'ppn'       } = $queueConfig->{'ppn'};
+	    $job->{'nodes'     } = 1;
+	    $job->{'mpi'       } = "no";
+	    push(@{$jobs},$job)
+	} 
+    }
 }
 
 sub zoomInsProcessExtract {
@@ -598,55 +738,16 @@ sub zoomInsProcessExtract {
     $parameters->{'cosmologyParameters'}->{'OmegaMatter'    }->{'value'} =  0.286;
     $parameters->{'cosmologyParameters'}->{'OmegaDarkEnergy'}->{'value'} =  0.714;
     $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.047;
-    # Look for an existing record of the primary halo.
+    # Set path names.
     my $redshift               =  1.0/$expansionFactor-1.0;
     my $redshiftLabel          = sprintf("z%5.3f",$redshift);
+    my $expansionFactorLabel   = sprintf("sphericalOrigin:a%5.3f",$expansionFactor);
     my $primaryHaloFileName    = $pathName."primaryHalo_".$redshiftLabel.".xml";
     my $uncontaminatedFileName = $pathName."uncontaminated_".$redshiftLabel.".hdf5";
-    my $xml                    = new XML::Simple();
-    unless ( -e $primaryHaloFileName ) {
-	# Generate a job to extract the primary halo.
-	my $job;
-	$job->{'command'   } = $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionZoomInExtract.pl ".$pathName." ".$primaryHaloFileName." ".$expansionFactor." ".$simulation->{'hubbleConstant'}." ".$simulation->{'massParticle'}." ".$simulation->{'massHostLogMin'}." ".$simulation->{'massHostLogMax'};
-	$job->{'launchFile'} = $pathName."zoomInExtract_".$simulation->{'label'}."_".$redshiftLabel.".sh" ;
-	$job->{'logFile'   } = $pathName."zoomInExtract_".$simulation->{'label'}."_".$redshiftLabel.".log";
-	$job->{'label'     } =           "zoomInExtract_".$simulation->{'label'}."_".$redshiftLabel       ;
-	$job->{'ppn'       } = 1;
-	$job->{'nodes'     } = 1;
-	$job->{'mem'       } = "32G";
-	$job->{'mpi'       } = "no";
-	&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,$job);
-    }
     # Find properties of the central halo.
-    my $primaryHaloData      = $xml->XMLin($primaryHaloFileName);
-    my $expansionFactorLabel = sprintf("sphericalOrigin:a%5.3f",$expansionFactor);
-    $simulation->{$realization}->{$expansionFactorLabel} = $primaryHaloData->{'x'}." ".
-		                                           $primaryHaloData->{'y'}." ".
-                                                           $primaryHaloData->{'z'}    ;
-    $simulation->{'massCentral'} = pdl $primaryHaloData->{'mc'  };
-    unless ( -e $uncontaminatedFileName ) {
-	my $parametersUncontaminated = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/zoomInSelectUncontaminated.xml");
-	# Modify file names.
-	(my $snapshot) = map {$simulation->{'expansionFactors'}->[$_] == $expansionFactor ? $simulation->{'snapshots'}->[$_] : ()} 0..$#{$simulation->{'expansionFactors'}};
-	$parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
-	$parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'   }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel};
-	$parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'}->{'value'} = $uncontaminatedFileName;
-	# Write parameter file.
-	my $parameterFileName = $pathName."uncontaminated_".$redshiftLabel.".xml";
-	open(my $outputFile,">",$parameterFileName);
-	print $outputFile $xml->XMLout($parametersUncontaminated, RootName => "parameters");
-	close($outputFile);
-	# Generate a job to extract the uncontaminated region around the primary halo.
-	my $job;
-	$job->{'command'   } = $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$pathName."uncontaminated_".$redshiftLabel.".xml";
-	$job->{'launchFile'} = $pathName."uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel.".sh" ;
-	$job->{'logFile'   } = $pathName."uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel.".log";
-	$job->{'label'     } =           "uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel       ;
-	$job->{'ppn'       } = $queueConfig->{'ppn'};
-	$job->{'nodes'     } = 1;
-	$job->{'mpi'       } = "no";	
-	&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,$job);
-    }
+    my $xml                    = new XML::Simple();
+    my $primaryHaloData        = $xml->XMLin($primaryHaloFileName);
+    # Find uncontaminated region.
     my $uncontaminatedFile      = new PDL::IO::HDF5($uncontaminatedFileName);
     my $uncontaminatedParticles = $uncontaminatedFile     ->group  ('Snapshot00001/HaloCatalog');
     (my $radiusUncontaminated)  = $uncontaminatedParticles->attrGet('radiusUncontaminated'     );
@@ -654,8 +755,8 @@ sub zoomInsProcessExtract {
     $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} .= " position"         ;
     $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} .= " distanceFromPoint";
     # Add calculation of distance from primary halo.
-    $simulation->{$realization}->{'sphericalRadiusMinimum'} = 0.0;
-    $simulation->{$realization}->{'sphericalRadiusMaximum'} = $radiusUncontaminated->sclr();
+    $simulation->{$realization}->{$redshiftLabel}->{'sphericalRadiusMinimum'} = 0.0;
+    $simulation->{$realization}->{$redshiftLabel}->{'sphericalRadiusMaximum'} = $radiusUncontaminated->sclr();
     splice(
 	@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},
 	1,0,
@@ -664,10 +765,10 @@ sub zoomInsProcessExtract {
 	    point         => {value => $simulation->{$realization}->{$expansionFactorLabel  }}
 	},
 	{
-	    value         =>           "filterProperties"                                      ,
-	    propertyNames => {value => "distanceFromPoint"                                    },
-	    rangeLow      => {value => $simulation->{$realization}->{'sphericalRadiusMinimum'}},
-	    rangeHigh     => {value => $simulation->{$realization}->{'sphericalRadiusMaximum'}},
+	    value         =>           "filterProperties"                                                        ,
+	    propertyNames => {value => "distanceFromPoint"                                                      },
+	    rangeLow      => {value => $simulation->{$realization}->{$redshiftLabel}->{'sphericalRadiusMinimum'}},
+	    rangeHigh     => {value => $simulation->{$realization}->{$redshiftLabel}->{'sphericalRadiusMaximum'}},
 	},
 	{
 	    value         => "setBoxSize",
@@ -694,9 +795,9 @@ sub zoomInsPostprocessSelectInSphere {
 	$parameters->{'nbodyImporter'}                        ->{'fileName' }->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'fileName' }->{'value'} = $pathName."selectedParticles_".$redshiftLabel.".hdf5";
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'redshift' }->{'value'} =                                $redshift             ;
-	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'    }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel   };
-	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'rangeLow' }->{'value'} = $simulation->{$realization}->{'sphericalRadiusMinimum'};
-	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'rangeHigh'}->{'value'} = $simulation->{$realization}->{'sphericalRadiusMaximum'};
+	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'    }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel}                            ;
+	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'rangeLow' }->{'value'} = $simulation->{$realization}->{$redshiftLabel       }->{'sphericalRadiusMinimum'};
+	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'rangeHigh'}->{'value'} = $simulation->{$realization}->{$redshiftLabel       }->{'sphericalRadiusMaximum'};
 	my $parameterFileName = $pathName."selectInSphere_".$redshiftLabel.".xml";
 	open(my $outputFile,">",$parameterFileName);
 	print $outputFile $xml->XMLout($parameters, RootName => "parameters");
@@ -791,11 +892,11 @@ sub zoomInsPostprocessAnalyze {
 	my $redshift            =  1.0/$expansionFactor-1.0;
 	my $redshiftLabel       = sprintf("z%5.3f",$redshift);
 	$parameters->{'outputFileName'}                                                         ->{'value'} =                $pathName                   ."environment_"      .$redshiftLabel.".hdf5"     ;
-	$parameters->{'nbodyImporter'           }->{'nbodyImporter'}->[0]                   ->{'fileName'}->{'value'} =                $pathName                   ."selectedParticles_".$redshiftLabel."_ICs.hdf5" ;
-	$parameters->{'nbodyImporter'           }->{'nbodyImporter'}->[1]                   ->{'fileName'}->{'value'} =                $pathName                   ."ic/ic_gadget_dist"                             ;
-	$parameters->{'nbodyOperator'           }->{'nbodyOperator'}->[0]                   ->{'values'  }->{'value'} = sprintf("%.3f",$simulation->{'redshiftICs'}                                                );
-	$parameters->{'nbodyOperator'           }->{'nbodyOperator'}->[5]->{'nbodyOperator'}->{'fileName'}->{'value'} =                $pathName                   ."allParticles_"     .$redshiftLabel."_ICs.hdf5" ;
-	$parameters->{'nbodyOperator'           }->{'nbodyOperator'}->[5]->{'nbodyOperator'}->{'redshift'}->{'value'} = sprintf("%.3f",$simulation->{'redshiftICs'}                                                );
+	$parameters->{'nbodyImporter' }->{'nbodyImporter'}->[0]                   ->{'fileName'}->{'value'} =                $pathName                   ."selectedParticles_".$redshiftLabel."_ICs.hdf5" ;
+	$parameters->{'nbodyImporter' }->{'nbodyImporter'}->[1]                   ->{'fileName'}->{'value'} =                $pathName                   ."ic/ic_gadget_dist"                             ;
+	$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[0]                   ->{'values'  }->{'value'} = sprintf("%.3f",$simulation->{'redshiftICs'}                                                );
+	$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[5]->{'nbodyOperator'}->{'fileName'}->{'value'} =                $pathName                   ."allParticles_"     .$redshiftLabel."_ICs.hdf5" ;
+	$parameters->{'nbodyOperator' }->{'nbodyOperator'}->[5]->{'nbodyOperator'}->{'redshift'}->{'value'} = sprintf("%.3f",$simulation->{'redshiftICs'}                                                );
 	my $parameterFileName = $pathName."analyze_".$redshiftLabel.".xml";
 	open(my $outputFile,">",$parameterFileName);
 	print $outputFile $xml->XMLout($parameters, RootName => "parameters");
@@ -835,8 +936,8 @@ sub zoomInsPostprocessSetVolume {
 	my $densityMean             = 3.0*$OmegaMatter*$HubbleConstant**2/8.0/PI/$gravitationalConstant;
 	# Compute the volume of a cube containing the mass of our selected region.
 	my $boxSize                                   = (    $mass/$densityMean       )**(1.0/3.0);
-	$simulation->{$realization}->{'radiusRegion'} = (3.0*$mass/$densityMean/4.0/PI)**(1.0/3.0);
-	$simulation->{$realization}->{'massRegion'  } =      $mass                                ;
+	$simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'} = (3.0*$mass/$densityMean/4.0/PI)**(1.0/3.0);
+	$simulation->{$realization}->{$redshiftLabel}->{'massRegion'  } =      $mass                                ;
 	# Set the box size.
 	my $halosFile                                 = new PDL::IO::HDF5(">".$pathName."alwaysIsolated_".$redshiftLabel."_subVolume0_0_0.hdf5");
 	$halosFile->group('Snapshot00001'       )->group('HaloCatalog')->attrSet(boxSize => $boxSize);
@@ -863,8 +964,8 @@ sub zoomInsPostProcessMassFunction {
 	# Store these to the halo mass function.
 	my $haloMassFunctionFile = new PDL::IO::HDF5(">".$pathName."haloMassFunction_".$redshiftLabel.":MPI0000.hdf5");
 	my $simulationGroup      = $haloMassFunctionFile->group('simulation0001')                                                       ;
-	$simulationGroup->attrSet(massRegion        => $simulation->{$realization}->{'massRegion'  });
-	$simulationGroup->attrSet(radiusRegion      => $simulation->{$realization}->{'radiusRegion'});
-	$simulationGroup->attrSet(overdensityRegion => $overdensity                                );
+	$simulationGroup->attrSet(massRegion        => $simulation->{$realization}->{$redshiftLabel}->{'massRegion'  });
+	$simulationGroup->attrSet(radiusRegion      => $simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'});
+	$simulationGroup->attrSet(overdensityRegion => $overdensity                                                   );
    }
 }
