@@ -11,8 +11,8 @@
 
   <!-- Halo environments -->
   <haloEnvironment value="fixed">
-    <massEnvironment value="+6.234395e+12"/>
-    <overdensity     value="-0.470151    "/>
+    <massEnvironment value="+5.875076e+12"/>
+    <overdensity     value="-0.448479    "/>
   </haloEnvironment>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
