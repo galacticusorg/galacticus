@@ -5,6 +5,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
+use PDL::IO::HDF5;
 
 # Locate and extract properties of the primary halo in the zoom-in simulation.
 # Andrew Benson (15-March-2022)
@@ -41,10 +42,70 @@ my $boxSize       = $boxSizeOriginal*$regionExtent->prodover()->pow(1.0/3.0);
 # Extract the name of the tree file being processed.
 my $treeFileName = $pathName."tree_0_0_0.dat";
 # Read the merger tree file looking for the position and virial radius of the most massive halo.
-print "\tReading tree file\n";
-system("awk '{if (substr(\$1,1,1) != \"#\" && NF > 1) print \$1,\$2,\$4,\$11,\$12,\$15,\$18,\$19,\$20}' ".$treeFileName." > ".$pathName."treeReduced.dat")
+print "\tPre-processing tree file\n";
+system("awk '{if (substr(\$1,1,1) != \"#\" && NF > 1 && \$15 == 1) print \$1,\$2,\$4,\$11,\$12,\$18,\$19,\$20}' ".$treeFileName." > ".$pathName."treeReduced.dat")
     unless ( -e $pathName."treeReduced.dat" );
-(my $haloExpansionFactor, my $haloID, my $descID, my $massHalo, my $radiusHalo, my $mostMassiveProgenitor, my $x, my $y, my $z) = rcols($pathName."treeReduced.dat",0,1,2,3,4,5,6,7,8, {CHUNKSIZE => 100000000});
+system("wc -l ".$pathName."treeReduced.dat > ".$pathName."treeCount.dat")
+    unless ( -e $pathName."treeCount.dat" );
+open(my $treeMetaData,$pathName."treeCount.dat");
+my $wc = <$treeMetaData>;
+my @wcs = split(" ",$wc);
+my $treeCount = $wcs[0];
+close($treeMetaData);
+print "\t\tPre-processed tree contains ".$treeCount." halos\n";
+print "\tReading tree file\n";
+my $haloExpansionFactor;
+my $haloID             ;
+my $descID             ;
+my $massHalo           ;
+my $radiusHalo         ;
+my $x                  ;
+my $y                  ;
+my $z                  ; 
+if ( -e $pathName."treeReduced.hdf5" ) {
+    my $treeRaw = new PDL::IO::HDF5($pathName."treeReduced.hdf5");
+    $haloExpansionFactor = $treeRaw->dataset('haloExpansionFactor')->get();
+    $haloID              = $treeRaw->dataset('haloID'             )->get();
+    $descID              = $treeRaw->dataset('descID'             )->get();
+    $massHalo            = $treeRaw->dataset('massHalo'           )->get();
+    $radiusHalo          = $treeRaw->dataset('radiusHalo'         )->get();
+    $x                   = $treeRaw->dataset('x'                  )->get();
+    $y                   = $treeRaw->dataset('y'                  )->get();
+    $z                   = $treeRaw->dataset('z'                  )->get();
+} else {
+    $haloExpansionFactor = pdl zeroes($treeCount);
+    $haloID              = pdl zeroes($treeCount);
+    $descID              = pdl zeroes($treeCount);
+    $massHalo            = pdl zeroes($treeCount);
+    $radiusHalo          = pdl zeroes($treeCount);
+    $x                   = pdl zeroes($treeCount);
+    $y                   = pdl zeroes($treeCount);
+    $z                   = pdl zeroes($treeCount);
+    open(my $tree,$pathName."treeReduced.dat");
+    for(my $i=0;$i<$treeCount;++$i) {
+	my $line = <$tree>;
+	my @columns = split(" ",$line);
+	$haloExpansionFactor->(($i)) .= $columns[0];
+	$haloID             ->(($i)) .= $columns[1];
+	$descID             ->(($i)) .= $columns[2];
+	$massHalo           ->(($i)) .= $columns[3];
+	$radiusHalo         ->(($i)) .= $columns[4];
+	$x                  ->(($i)) .= $columns[5];
+	$y                  ->(($i)) .= $columns[6];
+	$z                  ->(($i)) .= $columns[7];
+    }
+    close($tree);
+    my $treeRaw = new PDL::IO::HDF5(">".$pathName."treeReduced.hdf5");
+    $treeRaw->dataset('haloExpansionFactor')->set($haloExpansionFactor);
+    $treeRaw->dataset('haloID'             )->set($haloID             );
+    $treeRaw->dataset('descID'             )->set($descID             );
+    $treeRaw->dataset('massHalo'           )->set($massHalo           );
+    $treeRaw->dataset('radiusHalo'         )->set($radiusHalo         );
+    $treeRaw->dataset('x'                  )->set($x                  );
+    $treeRaw->dataset('y'                  )->set($y                  );
+    $treeRaw->dataset('z'                  )->set($z                  );
+}
+
 # Convert units to Galacticus standards.
 print "\tConverting units\n";
 $massHalo       /=        $hubbleConstant; # Convert Msun/h to Msun.
@@ -80,9 +141,7 @@ while ( abs($haloExpansionFactor->(($indexPrimaryProgenitor))-$expansionFactor) 
     my $selection =
 	which
 	(
-	 ($descID                == $haloID->(($indexPrimaryProgenitor)))
-	 &
-	 ($mostMassiveProgenitor == 1                                   )
+	 $descID == $haloID->(($indexPrimaryProgenitor))
 	);
     if      ( nelem($selection) < 1 ) {
 	die('no progenitor found' );
