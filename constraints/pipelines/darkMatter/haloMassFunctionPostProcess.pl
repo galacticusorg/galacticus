@@ -133,7 +133,8 @@ my @simulations =
      label               => "LMC",
      description         => "Halo mass function for non-backsplash z=0 halos from LMC zoom-in simulations.",
      subpath             => "ZoomIns",
-     realizations        => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo479", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo888", "Halo914", "Halo932", "Halo933" ],
+     # Halo479 and Halo539 have been excluded due to contamination by low-res particles 
+     realizations        => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo511", "Halo524", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo888", "Halo914", "Halo932", "Halo933" ],
      simulationReference => "Nadler et al.",
      simulationURL       => "https://www",
      hubbleConstant      => 0.7,
