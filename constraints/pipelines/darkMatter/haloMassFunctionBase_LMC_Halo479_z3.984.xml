@@ -13,6 +13,7 @@
   <haloEnvironment value="fixed">
     <massEnvironment value="+1.357650e+11"/>
     <overdensity     value="+2.043592    "/>
+    <redshift        value="3.984"/>
   </haloEnvironment>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
