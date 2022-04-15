@@ -47,6 +47,23 @@ const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_type_get(int i) 
   return minimizer;
 }
 
+const gsl_multimin_fminimizer_type *gsl_multimin_fminimizer_type_get(int i) {
+  /* Return a GSL interpolator type */
+  const gsl_multimin_fminimizer_type *minimizer;
+  switch(i) {
+  case 6:
+    minimizer = gsl_multimin_fminimizer_nmsimplex2;
+    break;
+  case 7:
+    minimizer = gsl_multimin_fminimizer_nmsimplex2rand;
+    break;
+  default:
+    minimizer = NULL;
+    break;
+  }
+  return minimizer;
+}
+
 gsl_multimin_function_fdf *gslMultiminFunctionFdFConstructor(size_t n, double (* f) (const gsl_vector * x, void * params), void (* df) (const gsl_vector * x, void * params, gsl_vector * g), void (* fdf) (const gsl_vector * x, void * params, double * f, gsl_vector * g)) {
   /* Construct a gsl_multimin_function_fdf object. */
   gsl_multimin_function_fdf *fGSL;
@@ -59,7 +76,22 @@ gsl_multimin_function_fdf *gslMultiminFunctionFdFConstructor(size_t n, double (*
   return fGSL;
 }
 
-void gslMultiminFunctionDestructor(gsl_multimin_function_fdf *f) {
+gsl_multimin_function *gslMultiminFunctionFConstructor(size_t n, double (* f) (const gsl_vector * x, void * params)) {
+  /* Construct a gsl_multimin_function object. */
+  gsl_multimin_function *fGSL;
+  fGSL           = (gsl_multimin_function *) malloc(sizeof(gsl_multimin_function));
+  fGSL->f      = f;
+  fGSL->n      = n;
+  fGSL->params = NULL;
+  return fGSL;
+}
+
+void gslMultiminFunctionFdFDestructor(gsl_multimin_function_fdf *f) {
   /* Destroy a gsl_multimin_function_fdf object. */
+  free(f);
+}
+
+void gslMultiminFunctionFDestructor(gsl_multimin_function *f) {
+  /* Destroy a gsl_multimin_function object. */
   free(f);
 }
