@@ -41,11 +41,13 @@ program Test_Multidimensional_Minimizer
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Multidimensional minimizer")
+  ! Case using gradients.
+  call Unit_Tests_Begin_Group("Use gradient functions")
   !! Build the minimizer.
   allocate(minimizer_)
   minimizer_=multiDMinimizer(2_c_size_t,minimizerFunction_,minimizeFunctionDerivative_,minimizeFunctionBoth_)
   call minimizer_%set(x=[5.0d0,7.0d0],stepSize=0.01d0,tolerance=1.0d-4)
-  ! Perform the minimization.
+  !! Perform the minimization.
   iteration=0
   converged=.false.
   do while (.not.converged.and.iteration < 100)
@@ -57,6 +59,26 @@ program Test_Multidimensional_Minimizer
   call Assert('converged',iteration,100,compareLessThan)
   call Assert('minimum',x,[1.0d0,2.0d0],relTol=1.0d-6)
   deallocate(minimizer_)
+  call Unit_Tests_End_Group()
+  ! Case with using gradients.
+  call Unit_Tests_Begin_Group("Do not use gradient functions")
+  !! Build the minimizer.
+  allocate(minimizer_)
+  minimizer_=multiDMinimizer(2_c_size_t,minimizerFunction_                                                  )
+  call minimizer_%set(x=[5.0d0,7.0d0],stepSize=[0.01d0,0.01d0])
+  !! Perform the minimization.
+  iteration=0
+  converged=.false.
+  do while (.not.converged.and.iteration < 100)
+     iteration=iteration+1
+     call minimizer_%iterate()
+     converged=minimizer_%testSize(toleranceAbsolute=1.0d-3)
+  end do
+  x=minimizer_%x()
+  call Assert('converged',iteration,100,compareLessThan)
+  call Assert('minimum',x,[1.0d0,2.0d0],absTol=1.0d-3)
+  deallocate(minimizer_)
+  call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

@@ -41,27 +41,31 @@ module Multidimensional_Minimizer
      Multidimensional minimizer class.
      !!}
      private
-     type     (c_ptr                         ), allocatable         :: minimizer_                , minimizerFDFFunction
+     type     (c_ptr                         ), allocatable         :: minimizer_                , minimizerFDFFunction, &
+          &                                                            minimizerFFunction
      type     (c_ptr                         )                      :: gslMinimizerType
      integer                                                        :: minimizerType
      integer  (c_size_t                      )                      :: countDimensions
+     logical                                                        :: useGradient
      procedure(gslMultiminFunctionFTemplate  ), pointer    , nopass :: minimizeFunction
      procedure(gslMultiminFunctionDFTemplate ), pointer    , nopass :: minimizeFunctionDerivative
      procedure(gslMultiminFunctionFDFTemplate), pointer    , nopass :: minimizeFunctionBoth
    contains
      !![
      <methods>
-       <method description="Set the initial state of the minimizer." method="set" />
-       <method description="Iterate the minimizer." method="iterate" />
-       <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient" />
-       <method description="Retrieve the parameter values at the current minimum from the minimizer." method="minimum" />
-       <method description="Retrieve the function value at the current minimum from the minimizer." method="x" />
+       <method description="Set the initial state of the minimizer."                                  method="set"         />
+       <method description="Iterate the minimizer."                                                   method="iterate"     />
+       <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient"/>
+       <method description="Test the size of the interval in the minimizer."                          method="testSize"    />
+       <method description="Retrieve the parameter values at the current minimum from the minimizer." method="minimum"     />
+       <method description="Retrieve the function value at the current minimum from the minimizer."   method="x"           />
      </methods>
      !!]
      final     ::                 multiDMinimizerDestructor
      procedure :: set          => multiDMinimizerSet
      procedure :: iterate      => multiDMinimizerIterate
      procedure :: testGradient => multiDMinimizerTestGradient
+     procedure :: testSize     => multiDMinimizerTestSize
      procedure :: minimum      => multiDMinimizerMinimum
      procedure :: x            => multiDMinimizerX
   end type multiDMinimizer
@@ -101,6 +105,22 @@ module Multidimensional_Minimizer
   end interface
 
   interface
+     subroutine gslMultiminFunctionFdFDestructor(f) bind(c,name="gslMultiminFunctionFdFDestructor")
+       !!{
+       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       !!}
+       import c_funptr
+       type(c_funptr), value :: f
+     end subroutine gslMultiminFunctionFdFDestructor
+
+     subroutine gslMultiminFunctionFDestructor(f) bind(c,name="gslMultiminFunctionFDestructor")
+       !!{
+       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       !!}
+       import c_funptr
+       type(c_funptr), value :: f
+     end subroutine gslMultiminFunctionFDestructor
+
      function gslMultiminFunctionFdFConstructor(n,f,df,fdf) bind(c,name="gslMultiminFunctionFdFConstructor")
        !!{
        Interface to a C function which establishes a {\normalfont \ttfamily gslMultiminFunctionFdF} type.
@@ -111,14 +131,6 @@ module Multidimensional_Minimizer
        type   (c_funptr), value :: f                                , df, &
             &                      fdf
      end function gslMultiminFunctionFdFConstructor
-
-     subroutine gslMultiminFunctionDestructor(f) bind(c,name="gslMultiminFunctionDestructor")
-       !!{
-       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
-       !!}
-       import c_funptr
-       type(c_funptr), value :: f
-     end subroutine gslMultiminFunctionDestructor
 
      function gsl_multimin_fdfminimizer_type_get(i) bind(c,name='gsl_multimin_fdfminimizer_type_get')
        !!{
@@ -181,7 +193,7 @@ module Multidimensional_Minimizer
        Template for the GSL multimin minimum function.
        !!}
        import c_ptr, c_double
-       real(c_double)        ::  gsl_multimin_fdfminimizer_minimum
+       real(c_double)        :: gsl_multimin_fdfminimizer_minimum
        type(c_ptr   ), value :: s
      end function gsl_multimin_fdfminimizer_minimum
 
@@ -194,6 +206,15 @@ module Multidimensional_Minimizer
        type(c_ptr), value :: s
      end function gsl_multimin_fdfminimizer_gradient
 
+     function gsl_multimin_fdfminimizer_dx(s) bind(c,name='gsl_multimin_fdfminimizer_dx')
+       !!{
+       Template for the GSL multimin size function.
+       !!}
+       import c_ptr, c_int, c_double
+       type(c_ptr)        :: gsl_multimin_fdfminimizer_dx
+       type(c_ptr), value :: s
+     end function gsl_multimin_fdfminimizer_dx
+
      function gsl_multimin_test_gradient(g,epsabs) bind(c,name='gsl_multimin_test_gradient')
        !!{
        Template for the GSL multimin minimum function.
@@ -203,6 +224,99 @@ module Multidimensional_Minimizer
        type   (c_ptr   ), value :: g
        real   (c_double), value :: epsabs
      end function gsl_multimin_test_gradient
+
+     function gsl_multimin_test_size(size,epsabs) bind(c,name='gsl_multimin_test_size')
+       !!{
+       Template for the GSL multimin test size function.
+       !!}
+       import c_ptr, c_int, c_double
+       integer(c_int   )        :: gsl_multimin_test_size
+       real   (c_double), value :: size                  , epsabs
+     end function gsl_multimin_test_size
+
+     function gslMultiminFunctionFConstructor(n,f) bind(c,name="gslMultiminFunctionFConstructor")
+       !!{
+       Interface to a C function which establishes a {\normalfont \ttfamily gslMultiminFunctionF} type.
+       !!}
+       import c_ptr, c_funptr, c_size_t
+       type   (c_ptr   )        :: gslMultiminFunctionFConstructor
+       integer(c_size_t), value :: n
+       type   (c_funptr), value :: f
+     end function gslMultiminFunctionFConstructor
+
+     function gsl_multimin_fminimizer_type_get(i) bind(c,name='gsl_multimin_fminimizer_type_get')
+       !!{
+       Interface to C function which gets a GSL minimizer type.
+       !!}
+       import c_ptr, c_int
+       type   (c_ptr)        :: gsl_multimin_fminimizer_type_get
+       integer(c_int), value :: i
+     end function gsl_multimin_fminimizer_type_get
+     
+     function gsl_multimin_fminimizer_alloc(T,n) bind(c,name='gsl_multimin_fminimizer_alloc')
+       !!{
+       Template for the GSL multimin allocate function.
+       !!}
+       import c_ptr, c_size_t
+       type   (c_ptr   )        :: gsl_multimin_fminimizer_alloc
+       type   (c_ptr   ), value :: T
+       integer(c_size_t), value :: n
+     end function gsl_multimin_fminimizer_alloc
+
+     function gsl_multimin_fminimizer_set(s,f,x,step_size) bind(c,name='gsl_multimin_fminimizer_set')
+       !!{
+       Template for the GSL multimin set function.
+       !!}
+       import c_ptr, c_int, c_double
+       integer(c_int   )        :: gsl_multimin_fminimizer_set
+       type   (c_ptr   ), value :: s                            , f        , &
+            &                      x                            , step_size
+     end function gsl_multimin_fminimizer_set
+
+     subroutine gsl_multimin_fminimizer_free(s) bind(c,name='gsl_multimin_fminimizer_free')
+       !!{
+       Template for the GSL multimin set function.
+       !!}
+       import c_ptr
+       type(c_ptr), value :: s
+     end subroutine gsl_multimin_fminimizer_free
+
+     function gsl_multimin_fminimizer_iterate(s) bind(c,name='gsl_multimin_fminimizer_iterate')
+       !!{
+       Template for the GSL multimin iterator function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_multimin_fminimizer_iterate
+       type   (c_ptr), value :: s
+     end function gsl_multimin_fminimizer_iterate
+
+     function gsl_multimin_fminimizer_x(s) bind(c,name='gsl_multimin_fminimizer_x')
+       !!{
+       Template for the GSL multimin x function.
+       !!}
+       import c_ptr
+       type(c_ptr)        :: gsl_multimin_fminimizer_x
+       type(c_ptr), value :: s
+     end function gsl_multimin_fminimizer_x
+
+     function gsl_multimin_fminimizer_minimum(s) bind(c,name='gsl_multimin_fminimizer_minimum')
+       !!{
+       Template for the GSL multimin minimum function.
+       !!}
+       import c_ptr, c_double
+       real(c_double)        :: gsl_multimin_fminimizer_minimum
+       type(c_ptr   ), value :: s
+     end function gsl_multimin_fminimizer_minimum
+
+     function gsl_multimin_fminimizer_size(s) bind(c,name='gsl_multimin_fminimizer_size')
+       !!{
+       Template for the GSL multimin size function.
+       !!}
+       import c_ptr, c_int, c_double
+       real(c_double)        :: gsl_multimin_fminimizer_size
+       type(c_ptr   ), value :: s
+     end function gsl_multimin_fminimizer_size
+
   end interface
 
   ! Minimizer types.
@@ -211,6 +325,8 @@ module Multidimensional_Minimizer
   integer, public, parameter :: gsl_multimin_fdfminimizer_vector_bfgs2    =3
   integer, public, parameter :: gsl_multimin_fdfminimizer_vector_bfgs     =4
   integer, public, parameter :: gsl_multimin_fdfminimizer_steepest_descent=5
+  integer, public, parameter :: gsl_multimin_fminimizer_nmsimplex2        =6
+  integer, public, parameter :: gsl_multimin_fminimizer_nmsimplex2rand    =7
 
   ! Sub-module scope pointer to self for use in wrapper functions.
   class(multiDMinimizer), pointer :: self_
@@ -222,28 +338,51 @@ contains
     !!{
     Constructor for {\normalfont \ttfamily multiDMinimizer} class.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : c_funloc
+    use, intrinsic :: ISO_C_Binding, only : c_funloc, c_loc
+    use            :: Error        , only : Error_Report
     implicit none
     type     (multiDMinimizer               )                          :: self
     integer  (c_size_t                      ), intent(in   )           :: countDimensions
     procedure(gslMultiminFunctionFTemplate  )                          :: minimizeFunction
-    procedure(gslMultiminFunctionDFTemplate )                          :: minimizeFunctionDerivative
-    procedure(gslMultiminFunctionFDFTemplate)                          :: minimizeFunctionBoth
+    procedure(gslMultiminFunctionDFTemplate )               , optional :: minimizeFunctionDerivative
+    procedure(gslMultiminFunctionFDFTemplate)               , optional :: minimizeFunctionBoth
     integer                                  , intent(in   ), optional :: minimizerType
+    integer                                                            :: minimizerType_
     !![
-    <optionalArgument name="minimizerType" defaultsTo="gsl_multimin_fdfminimizer_conjugate_pr"/>
     <constructorAssign variables="countDimensions, *minimizeFunction, *minimizeFunctionDerivative, *minimizeFunctionBoth"/>
     !!]
-    
-    ! Get the interpolator type.
-    self%minimizerType   =                                           minimizerType_
-    self%gslMinimizerType=gsl_multimin_fdfminimizer_type_get(        minimizerType_                )
-    ! Allocate the minimizer object.
-    allocate(self%minimizer_)
-    self%minimizer_      =gsl_multimin_fdfminimizer_alloc   (self%gslMinimizerType ,countDimensions)
-    ! Build the function object.
-    allocate(self%minimizerFDFFunction)
-    self%minimizerFDFFunction=gslMultiminFunctionFdFConstructor(countDimensions,c_funloc(gslMultiminFunctionFWrapper),c_funloc(gslMultiminFunctionDFWrapper),c_funloc(gslMultiminFunctionFDFWrapper))
+
+    ! Determine if a gradient function is supplied.
+    self%useGradient=present(minimizeFunctionDerivative)
+    if (self%useGradient) then
+       if (.not.present(minimizeFunctionBoth)) call Error_Report('a function evaluating both the function and its derivatives must be supplied'//{introspection:location})
+       ! Get the interpolator type.
+       minimizerType_=gsl_multimin_fdfminimizer_conjugate_pr
+       if (present(minimizerType)) minimizerType_=minimizerType
+       if (minimizerType_ >  gsl_multimin_fdfminimizer_steepest_descent) call Error_Report('this minimizer type is not intended for cases where a gradient function is available'//{introspection:location})
+       self%minimizerType   =                                           minimizerType_
+       self%gslMinimizerType=gsl_multimin_fdfminimizer_type_get(        minimizerType_                )
+       ! Allocate the minimizer object.
+       allocate(self%minimizer_)
+       self%minimizer_      =gsl_multimin_fdfminimizer_alloc   (self%gslMinimizerType ,countDimensions)
+       ! Build the function object.
+       allocate(self%minimizerFDFFunction)
+       self%minimizerFDFFunction=gslMultiminFunctionFdFConstructor(countDimensions,c_funloc(gslMultiminFunctionFWrapper),c_funloc(gslMultiminFunctionDFWrapper),c_funloc(gslMultiminFunctionFDFWrapper))
+    else
+       if (     present(minimizeFunctionBoth)) call Error_Report('no function evaluating both the function and its derivatives should be supplied'//{introspection:location})
+       ! Get the interpolator type.
+       minimizerType_=gsl_multimin_fminimizer_nmsimplex2
+       if (present(minimizerType)) minimizerType_=minimizerType
+       if (minimizerType_ <  gsl_multimin_fminimizer_nmsimplex2) call Error_Report('this minimizer type is intended for cases where a gradient function is available'//{introspection:location})
+       self%minimizerType   =                                         minimizerType_
+       self%gslMinimizerType=gsl_multimin_fminimizer_type_get(        minimizerType_                )
+       ! Allocate the minimizer object.
+       allocate(self%minimizer_)
+       self%minimizer_      =gsl_multimin_fminimizer_alloc   (self%gslMinimizerType ,countDimensions)
+       ! Build the function object.
+       allocate(self%minimizerFFunction)
+       self%minimizerFFunction=gslMultiminFunctionFConstructor(countDimensions,c_funloc(gslMultiminFunctionFWrapper))
+    end if
     return
   end function multiDMinimizerConstructor
 
@@ -255,12 +394,20 @@ contains
     type(multiDMinimizer), intent(inout) :: self
 
     if (allocated(self%minimizer_)) then
-       call gsl_multimin_fdfminimizer_free(self%minimizer_)
+       if (self%useGradient) then
+          call gsl_multimin_fdfminimizer_free(self%minimizer_)
+       else
+          call gsl_multimin_fminimizer_free  (self%minimizer_)
+       end if
        deallocate(self%minimizer_)
     end if
     if (allocated(self%minimizerFDFFunction)) then
-       call gslMultiminFunctionDestructor(self%minimizerFDFFunction)
+       call gslMultiminFunctionFdFDestructor(self%minimizerFDFFunction)
        deallocate(self%minimizerFDFFunction)
+    end if
+    if (allocated(self%minimizerFFunction  )) then
+       call gslMultiminFunctionFDestructor  (self%minimizerFFunction  )
+       deallocate(self%minimizerFFunction  )
     end if
     return
   end subroutine multiDMinimizerDestructor
@@ -271,17 +418,36 @@ contains
     !!}
     use :: Linear_Algebra, only : vector
     use :: Error         , only : Error_Report
-    use :: Interface_GSL , only : GSL_Success
+    use :: Interface_GSL , only : GSL_Success , GSL_Failure
     implicit none
-    class           (multiDMinimizer), intent(inout), target       :: self
-    double precision                 , intent(in   ), dimension(:) :: x
-    double precision                 , intent(in   )               :: stepSize, tolerance
-    type            (vector         )                              :: vector_
-    integer         (c_int          )                              :: status
+    class           (multiDMinimizer), intent(inout), target        :: self
+    double precision                 , intent(in   ), dimension(:)  :: x
+    double precision                 , intent(in   ), dimension(..) :: stepSize
+    double precision                 , intent(in   ), optional      :: tolerance
+    type            (vector         )                               :: vector_  , stepSize_
+    integer         (c_int          )                               :: status
 
     self_ => self
     vector_=vector(x)
-    status =GSL_MultiMin_FDFMinimizer_Set(self%minimizer_,self%minimizerFDFFunction,vector_%gslObject(),stepSize,tolerance)
+    status=GSL_Failure
+    if (self%useGradient) then
+       if (.not.present(tolerance)) call Error_Report('a tolerance must be provided'   //{introspection:location})
+       select rank (stepSize)
+       rank (0)
+          status =GSL_MultiMin_FDFMinimizer_Set(self%minimizer_,self%minimizerFDFFunction,vector_%gslObject(),stepSize,tolerance)
+       rank default
+          call Error_Report('stepSize should be a scalar'//{introspection:location})
+       end select
+    else
+       if (     present(tolerance)) call Error_Report('no tolerance should be provided'//{introspection:location})
+       select rank (stepSize)
+       rank (1)
+          stepSize_=vector(stepSize)
+          status =GSL_MultiMin_FMinimizer_Set  (self%minimizer_,self%minimizerFFunction  ,vector_%gslObject(),stepSize_%gslObject())
+       rank default
+          call Error_Report('stepSize should be a rank-1 array'//{introspection:location})
+       end select
+    end if
     if (status /= GSL_Success) call Error_Report('failed to set minimizer'//{introspection:location})
     self_ => null()
     return
@@ -299,7 +465,11 @@ contains
     integer(c_int          )                          :: status_
 
     self_ => self
-    status_=gsl_multimin_fdfminimizer_iterate(self%minimizer_)
+    if (self%useGradient) then
+       status_=gsl_multimin_fdfminimizer_iterate(self%minimizer_)
+    else
+       status_=gsl_multimin_fminimizer_iterate  (self%minimizer_)
+    end if
     if (present(status)) status=status_
     if (status /= GSL_Success .and. .not.present(status)) call Error_Report('failed to iterate minimizer'//{introspection:location})
     self_ => null()
@@ -310,16 +480,33 @@ contains
     !!{
     Test for convergence in the gradient of the function for a multidimensional minimizer.
     !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    class           (multiDMinimizer), intent(inout) :: self
+    double precision                 , intent(in   ) :: toleranceAbsolute
+
+    if (.not.self%useGradient) call Error_Report('gradient test can not be performed for this minimizer'//{introspection:location})
+    multiDMinimizerTestGradient=GSL_Multimin_Test_Gradient(GSL_Multimin_FDFMinimizer_Gradient(self%minimizer_),toleranceAbsolute) == GSL_Success
+    return
+  end function multiDMinimizerTestGradient
+  
+  logical function multiDMinimizerTestSize(self,toleranceAbsolute)
+    !!{
+    Test for convergence in the interval size for a multidimensional minimizer.
+    !!}
+    use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
     implicit none
     class           (multiDMinimizer), intent(inout) :: self
     double precision                 , intent(in   ) :: toleranceAbsolute
     !$GLC attributes unused :: self
 
-    multiDMinimizerTestGradient=GSL_Multimin_Test_Gradient(GSL_Multimin_FDFMinimizer_Gradient(self%minimizer_),toleranceAbsolute) == GSL_Success
+    if (    self%useGradient) call Error_Report('size test can not be performed for this minimizer'//{introspection:location})
+    multiDMinimizerTestSize=GSL_Multimin_Test_Size(GSL_Multimin_FMinimizer_Size(self%minimizer_),toleranceAbsolute) == GSL_Success
     return
-  end function multiDMinimizerTestGradient
-
+  end function multiDMinimizerTestSize
+  
   double precision function multiDMinimizerMinimum(self)
     !!{
     Return the minimized function value for a multidimensional minimizer.
@@ -327,7 +514,11 @@ contains
     implicit none
     class(multiDMinimizer), intent(inout) :: self
 
-    multiDMinimizerMinimum=GSL_Multimin_FDFMinimizer_Minimum(self%minimizer_)
+    if (self%useGradient) then
+       multiDMinimizerMinimum=GSL_Multimin_FDFMinimizer_Minimum(self%minimizer_)
+    else
+       multiDMinimizerMinimum=GSL_Multimin_FMinimizer_Minimum  (self%minimizer_)
+    end if
     return
   end function multiDMinimizerMinimum
 
@@ -342,7 +533,11 @@ contains
     type            (c_ptr          )                                  :: x
     integer         (c_size_t       )                                  :: i
     
-    x=GSL_Multimin_FDFMinimizer_X(self%minimizer_)
+    if (self%useGradient) then
+       x=GSL_Multimin_FDFMinimizer_X(self%minimizer_)
+    else
+       x=GSL_Multimin_FMinimizer_X  (self%minimizer_)
+    end if
     do i=1,self%countDimensions
        multiDMinimizerX(i)=GSL_Vector_Get(x,i-1)
     end do

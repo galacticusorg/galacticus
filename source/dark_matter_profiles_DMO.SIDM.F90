@@ -47,7 +47,7 @@
    contains
      !![
      <methods>
-       <method method="radiusInteraction" description="Computes the characteristic interaction radius of halo."/>
+       <method method="radiusInteraction" description="Computes the characteristic interaction radius of the halo."/>
      </methods>
      !!]
      procedure :: radiusInteraction => sidmRadiusInteraction
@@ -60,8 +60,8 @@
   !$omp threadprivate(self_,node_,timeAge_,crossSection_)
   
 contains
-
-  double precision function sidmRadiusInteraction(self,node)
+  
+  double precision function sidmRadiusInteraction(self,node,timeAge)
     !!{
     Returns the characteristic interaction radius (in Mpc) of the self-interacting dark matter profile of {\normalfont \ttfamily node}.
     !!}
@@ -72,15 +72,21 @@ contains
     use :: Numerical_Constants_Astronomical, only : megaParsec                                 , massSolar
     use :: Root_Finder                     , only : rootFinder                                 , rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
-    class           (darkMatterProfileDMOSIDM), intent(inout), target  :: self
-    type            (treeNode                ), intent(inout), target  :: node
-    class           (nodeComponentBasic      )               , pointer :: basic
-    type            (rootFinder              )                         :: finder
-    double precision                          , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    class           (darkMatterProfileDMOSIDM), intent(inout), target   :: self
+    type            (treeNode                ), intent(inout), target   :: node
+    double precision                          , intent(in   ), optional :: timeAge
+    class           (nodeComponentBasic      )               , pointer  :: basic
+    type            (rootFinder              )                          :: finder
+    double precision                          , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    
     self_         =>  self
     node_         =>  node
-    basic         =>  node %basic()
-    timeAge_      =   basic%time ()
+    if (present(timeAge)) then
+       timeAge_   =         timeAge
+    else
+       basic      =>  node %basic  ()
+       timeAge_   =   basic%time   ()
+    end if
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
        crossSection_=+darkMatterParticle_%crossSectionSelfInteraction() &
