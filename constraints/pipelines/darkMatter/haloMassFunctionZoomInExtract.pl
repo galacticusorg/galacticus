@@ -11,8 +11,8 @@ use PDL::IO::HDF5;
 # Andrew Benson (15-March-2022)
 
 # Get arguments.
-die("Usgae: haloMassFunctionZoomInExtract.pl <pathName> <primaryHaloFileName> <expansionFactor> <hubbleConstant> <massParticle> <massHostLogMin> <massHostLogMax>")
-    unless ( scalar(@ARGV) == 7 );
+die("Usgae: haloMassFunctionZoomInExtract.pl <pathName> <primaryHaloFileName> <expansionFactor> <hubbleConstant> <massParticle> <massHostLogMin> <massHostLogMax> <hostHaloID>")
+    unless ( scalar(@ARGV) == 8 );
 my $pathName            =     $ARGV[0];
 my $primaryHaloFileName =     $ARGV[1];
 my $expansionFactor     =     $ARGV[2];
@@ -20,6 +20,7 @@ my $hubbleConstant      = pdl $ARGV[3];
 my $massParticle        = pdl $ARGV[4];
 my $massHostLogMin      = pdl $ARGV[5];
 my $massHostLogMax      = pdl $ARGV[6];
+my $hostHaloID          =     $ARGV[7];
 
 # Extract box and region size from the Music config file.
 print "\tExtracting high-resolution region\n";
@@ -115,23 +116,35 @@ $y              /=        $hubbleConstant; # Convert Mpc/h to Mpc.
 $z              /=        $hubbleConstant; # Convert Mpc/h to Mpc.
 # Find region center.
 my $selection = which($haloExpansionFactor > 0.9999);
-my $xMinimum = $x->($selection)->minimum();
-my $xMaximum = $x->($selection)->maximum();
-my $yMinimum = $y->($selection)->minimum();
-my $yMaximum = $y->($selection)->maximum();
-my $zMinimum = $z->($selection)->minimum();
-my $zMaximum = $z->($selection)->maximum();
-my $xCenter  = 0.5*($xMaximum+$xMinimum);
-my $yCenter  = 0.5*($yMaximum+$yMinimum);
-my $zCenter  = 0.5*($zMaximum+$zMinimum);
-# Find focus halo.
+my $xCenter   = sum($x->($selection)*$massHalo->($selection))/sum($massHalo->($selection));
+my $yCenter   = sum($y->($selection)*$massHalo->($selection))/sum($massHalo->($selection));
+my $zCenter   = sum($z->($selection)*$massHalo->($selection))/sum($massHalo->($selection));
+
+# Find focus halo unless we have already been given a host halo ID.
 print "\tLocating focus halo\n";
-my $halosCurrent           = which(($haloExpansionFactor > 0.9999) & (log10($massHalo) > $massHostLogMin) & (log10($massHalo) < $massHostLogMax));
-die("ERROR: unable to locate any viable halos")
-    if ( nelem($halosCurrent) <= 0 );
-my $distanceFromCenter     = sqrt(+($x-$xCenter)**2+($y-$yCenter)**2+($z-$zCenter)**2);
-my $indexHalosCurrentFocus = $distanceFromCenter->($halosCurrent)->minimum_ind();
-my $indexHaloFocus         = $halosCurrent->(($indexHalosCurrentFocus));
+my $indexHaloFocus;
+if ( $hostHaloID < 0 ) {
+    my $halosCurrent = which(($haloExpansionFactor > 0.9999) & (log10($massHalo) > $massHostLogMin) & (log10($massHalo) < $massHostLogMax));
+    if ( nelem($halosCurrent) <= 0 ) {
+	# No halo meets the criterion. Simply find the most massive halo at z=0.
+	undef($halosCurrent);
+	my $halosPresent = which($haloExpansionFactor > 0.9999);
+	die("ERROR: unable to locate any viable halos")
+	    if ( nelem($halosPresent) <= 0 );
+	my $orderMass = $massHalo->($halosPresent)->qsorti();
+	$halosCurrent = $halosPresent->($orderMass)->(-1);
+    }
+    my $distanceFromCenter     = sqrt(+($x-$xCenter)**2+($y-$yCenter)**2+($z-$zCenter)**2);
+    my $indexHalosCurrentFocus = $distanceFromCenter->($halosCurrent)->minimum_ind();
+    $indexHaloFocus            = $halosCurrent->(($indexHalosCurrentFocus));
+} else {
+    my $halosCurrent = which($haloID == $hostHaloID);
+    die('unable to locate host halo')
+	if ( nelem($halosCurrent) < 1 );
+    die('ambiguous host halo')
+	if ( nelem($halosCurrent) > 1 );
+    $indexHaloFocus = $halosCurrent->((0));
+}
 # Determine the upper mass limit.
 my $massCentral            = $massHalo->($indexHaloFocus);
 # Find the primary progenitor at this expansion factor.
@@ -153,6 +166,8 @@ while ( abs($haloExpansionFactor->(($indexPrimaryProgenitor))-$expansionFactor) 
 }
 # Store the relevant data.
 my $primaryHaloData;
+$primaryHaloData->{'i'   } = $haloID    ->(($indexPrimaryProgenitor))->sclr();
+$primaryHaloData->{'x'   } = $x         ->(($indexPrimaryProgenitor))->sclr();
 $primaryHaloData->{'x'   } = $x         ->(($indexPrimaryProgenitor))->sclr();
 $primaryHaloData->{'y'   } = $y         ->(($indexPrimaryProgenitor))->sclr();
 $primaryHaloData->{'z'   } = $z         ->(($indexPrimaryProgenitor))->sclr();

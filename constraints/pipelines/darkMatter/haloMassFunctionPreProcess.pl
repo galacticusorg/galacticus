@@ -93,9 +93,12 @@ my @simulations =
      expansionFactors    => [ 1.00000, 0.67120, 0.50320, 0.33030, 0.24770 ]
  },
  {
+     # Milky Way zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to
+     # that of the target halo in the originasl cosmological box simulation.
      label                   => "MilkyWay",
      subpath                 => "ZoomIns",
      realizations            => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990" ],
+     hostHaloIDs             => [ "7019390", "31120521", "10208174", "28839883", "6646440", "7287306", "31107790", "8697419", "8391099", "15119051", "10301677", "9405794", "9487756", "29718260", "8297694", "14783515", "8932799", "30280719", "9659071", "7714515", "9967184", "8104130", "19722077", "27371347", "12638322", "30457872", "23284353", "28833029", "28077485", "12607178", "9948707", "9113976", "9721967", "6414883", "7961010", "10422676", "42248692", "8529408", "8839742", "9785057", "8282747", "18133566", "27982424", "18701512", "11431405" ],     
      description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
@@ -318,16 +321,20 @@ my @simulations =
  	 ]
  },
  {
+     # LMC zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to that of
+     # the target halo in the originasl cosmological box simulation.
      label                   => "LMC",
      subpath                 => "ZoomIns",
-     realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo479", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo914", "Halo932", "Halo933", "Halo888" ],
+     # Halo479 and Halo888 have been excluded due to contamination by low-res particles 
+     realizations            => [ "Halo032", "Halo059", "Halo0662", "Halo083", "Halo088", "Halo097", "Halo104", "Halo110", "Halo202", "Halo208", "Halo218", "Halo296", "Halo301", "Halo303", "Halo340", "Halo374", "Halo380", "Halo391", "Halo405", "Halo440", "Halo463", "Halo4662", "Halo511", "Halo524", "Halo539", "Halo567", "Halo575", "Halo602", "Halo697", "Halo711", "Halo721", "Halo767", "Halo802", "Halo824", "Halo850", "Halo853", "Halo914", "Halo932", "Halo933" ],
+     hostHaloIDs             => [ "6809161", "11451612", "4714720", "2614218", "5470740", "2572433", "2104392", "8920770", "9048851", "5571100", "4797341", "9373983", "3585923", "5676033", "2705971", "2781538", "6323270", "4919362", "4865033", "9443609", "4414397", "5613596", "4210297", "4382204", "3371981", "3775946", "4263000", "9045701", "4524194", "4286404", "4959649", "3145683", "2965025", "6225728", "6473303", "5309166", "7168215", "2680560", "2599455" ],	 
      description             => "Halo mass function for non-backsplash halos from LMC zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
      hubbleConstant          => 0.7,
      massParticle            => 3.52476e4,
-     massHostLogMin          => 10.45, 
-     massHostLogMax          => 11.15, 
+     massHostLogMin          => 10.95, 
+     massHostLogMax          => 11.50, 
      subvolumes              => 1,
      expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
@@ -649,6 +656,13 @@ sub zoomInsPreProcessExtractLocate {
     my $realization = shift();
     my $pathName    = shift();
     my $jobs        = shift();
+    # Find the host halo ID for this realization.
+    my $hostHaloID;
+    if ( exists($simulation->{'hostHaloIDs'}) ) {
+	($hostHaloID) = map {$simulation->{'realizations'}->[$_] eq $realization ? $simulation->{'hostHaloIDs'}->[$_] : ()} 0..$#{$simulation->{'realizations'}};
+    } else {
+	$hostHaloID = -1;
+    }
     # Iterate over expansion factors.
     my $job;
     foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
@@ -669,7 +683,7 @@ sub zoomInsPreProcessExtractLocate {
 		$job->{'mem'       } = "32G";
 		$job->{'mpi'       } = "no";
 	    }
-	    $job->{'command'} .= $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionZoomInExtract.pl ".$pathName." ".$primaryHaloFileName." ".$expansionFactor." ".$simulation->{'hubbleConstant'}." ".$simulation->{'massParticle'}." ".$simulation->{'massHostLogMin'}." ".$simulation->{'massHostLogMax'}."\n";
+	    $job->{'command'} .= $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionZoomInExtract.pl ".$pathName." ".$primaryHaloFileName." ".$expansionFactor." ".$simulation->{'hubbleConstant'}." ".$simulation->{'massParticle'}." ".$simulation->{'massHostLogMin'}." ".$simulation->{'massHostLogMax'}." ".$hostHaloID."\n";
 	}
     }   
     push(@{$jobs},$job)
@@ -721,7 +735,7 @@ sub zoomInsPreProcessExtractUncontaminated {
 	    $job->{'nodes'     } = 1;
 	    $job->{'mpi'       } = "no";
 	    push(@{$jobs},$job)
-	} 
+	}
     }
 }
 
@@ -751,6 +765,10 @@ sub zoomInsProcessExtract {
     my $uncontaminatedFile      = new PDL::IO::HDF5($uncontaminatedFileName);
     my $uncontaminatedParticles = $uncontaminatedFile     ->group  ('Snapshot00001/HaloCatalog');
     (my $radiusUncontaminated)  = $uncontaminatedParticles->attrGet('radiusUncontaminated'     );
+    $primaryHaloData->{'ur'} = $radiusUncontaminated->sclr();
+    open(my $primaryHaloDataFile,">",$primaryHaloFileName);
+    print $primaryHaloDataFile $xml->XMLout($primaryHaloData, RootName => "primaryHalo");
+    close($primaryHaloDataFile);
     # Add read of (x,y,z) coordinate columns, and subsequent delete.
     $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} .= " position"         ;
     $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} .= " distanceFromPoint";
