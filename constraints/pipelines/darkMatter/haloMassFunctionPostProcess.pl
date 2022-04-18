@@ -357,8 +357,7 @@ for(my $i=0;$i<=$iMax;++$i) {
 		style        => "line"                                             ,
 		weight       => [1,1]                                              ,
 		linePattern  => 3                                                  ,
-		color        => [$simulation->{'colorDark'},$simulation->{'color'}],
-		title        => $title
+		color        => [$simulation->{'colorDark'},$simulation->{'color'}]
 		);
  	    # Iterate over realizations.
 	    my $massTarget;
@@ -392,17 +391,17 @@ for(my $i=0;$i<=$iMax;++$i) {
 			($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'mass'            } >  $massHaloMinimum)
 		    );
 		unless ( defined($massTarget) ) {
-		    $massTarget               = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'              }->($selected     )   ;
-		    $massFunctionTarget       = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'      }->($selected     )   ;
-		    $massFunctionTargetError  = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError' }->($selected     )**2;
-		    $massModel                = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'mass'              }->($selectedModel)   ;
-		    $massFunctionModel        = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunction'      }->($selectedModel)   ;
-		    $massFunctionModelBinned  = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunctionBinned'}->($selectedModel)   ;
+		    $massTarget               = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'              }->($selected     )->copy()   ;
+		    $massFunctionTarget       = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'      }->($selected     )->copy()   ;
+		    $massFunctionTargetError  = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError' }->($selected     )->copy()**2;
+		    $massModel                = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'mass'              }->($selectedModel)->copy()   ;
+		    $massFunctionModel        = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunction'      }->($selectedModel)->copy()   ;
+		    $massFunctionModelBinned  = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunctionBinned'}->($selectedModel)->copy()   ;
 		} else {
-		    $massFunctionTarget      += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'      }->($selected     )   ;
-		    $massFunctionTargetError += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError' }->($selected     )**2;
-		    $massFunctionModel       += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunction'      }->($selectedModel)   ;
-		    $massFunctionModelBinned += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunctionBinned'}->($selectedModel)   ;
+		    $massFunctionTarget      += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'      }->($selected     )           ;
+		    $massFunctionTargetError += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError' }->($selected     )        **2;
+		    $massFunctionModel       += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunction'      }->($selectedModel)           ;
+		    $massFunctionModelBinned += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunctionBinned'}->($selectedModel)           ;
 		}
 	    }
 	    $massFunctionTargetError .= $massFunctionTargetError->sqrt();
@@ -429,7 +428,8 @@ for(my $i=0;$i<=$iMax;++$i) {
 		$massFunctionModel,
 		style        => "line"                                                                                  ,
 		weight       => [3,1]                                                                                   ,
-		color        => [$simulation->{'colorDark'},$simulation->{'color'}]
+		color        => [$simulation->{'colorDark'},$simulation->{'color'}],
+		title        => $title
 		);
 	    &GnuPlot::PrettyPlots::Prepare_Dataset(
 		\$plot                                                                                                    ,
@@ -441,7 +441,7 @@ for(my $i=0;$i<=$iMax;++$i) {
 		pointSize    => 0.3                                                                                       ,
 		color        => [$simulation->{'colorDark'},$simulation->{'color'}]
 		);
-	}    
+	}  
 	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
 	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
@@ -553,7 +553,7 @@ for(my $i=0;$i<=$iMax;++$i) {
 		    symbol       => [2,2]                                                                                     ,
 		    pointSize    => 0.3                                                                                       ,
 		    color        => [$simulation->{'colorDark'},$simulation->{'color'}]
-		    );
+		    );		
 		&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 		close($gnuPlot);
 		&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
