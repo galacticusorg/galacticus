@@ -21,7 +21,7 @@
   <haloMassFunction value="errorConvolved">
     <errorFractionalMaximum value="1.0"/>
     <haloMassFunction value="environmentalRenormalized">
-      <fractionMassEnvironmentNormalize value="0.1"/>
+      <fractionMassEnvironmentNormalize value="1.0e-4"/>
       <!-- The actual mass function to be used (after renormalization), conditioned on the environment as described above -->
       <haloMassFunction value="shethTormenPlus">
 	<a             value="=[haloMassFunctionParameters::a]"            />
@@ -36,23 +36,23 @@
       <haloMassFunctionConditioned value="environmentAveraged">
 	<includeUnoccupiedVolume value="true"/>
 	<haloEnvironment value="normal">
-	  <massEnvironment value="+3.577749e+12"/>
-	  <redshift value="0.000"/>
+	  <massEnvironment value="=[haloEnvironment::massEnvironment]"/>
+	  <redshift        value="=[haloEnvironment::redshift]"       />
 	  <cosmologicalMassVariance value="filteredPower">
-	    <sigma_8         value="0.820" />
-	    <tolerance       value="4.0e-4"/>
-	    <toleranceTopHat value="2.0e-4"/>
-	    <nonMonotonicIsFatal value="false"/>
+	    <sigma_8             value="=[cosmologicalMassVariance::cosmologicalMassVariance::sigma_8]"        />
+	    <tolerance           value="=[cosmologicalMassVariance::cosmologicalMassVariance::tolerance]"      />
+	    <toleranceTopHat     value="=[cosmologicalMassVariance::cosmologicalMassVariance::toleranceTopHat]"/>
+	    <nonMonotonicIsFatal value="false"                                                                 />
 	  </cosmologicalMassVariance>
 	  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 	</haloEnvironment>
 	<haloMassFunctionConditioned value="shethTormenPlus">
 	  <cosmologicalMassVariance value="peakBackgroundSplit">
 	    <cosmologicalMassVariance value="filteredPower">
-	      <sigma_8         value="0.820" />
-	      <tolerance       value="4.0e-4"/>
-	      <toleranceTopHat value="2.0e-4"/>
-	      <nonMonotonicIsFatal value="false"/>
+	      <sigma_8             value="=[cosmologicalMassVariance::cosmologicalMassVariance::sigma_8]"        />
+	      <tolerance           value="=[cosmologicalMassVariance::cosmologicalMassVariance::tolerance]"      />
+	      <toleranceTopHat     value="=[cosmologicalMassVariance::cosmologicalMassVariance::toleranceTopHat]"/>
+	      <nonMonotonicIsFatal value="false"                                                                 />
 	    </cosmologicalMassVariance>
 	  </cosmologicalMassVariance>
 	  <criticalOverdensity   value="peakBackgroundSplit"                       >
@@ -87,10 +87,10 @@
 	<normalization value="=[haloMassFunctionParameters::normalization]"/>
 	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 	<cosmologicalMassVariance value="filteredPower">
-	  <sigma_8         value="0.820" />
-	  <tolerance       value="4.0e-4"/>
-	  <toleranceTopHat value="2.0e-4"/>
-	  <nonMonotonicIsFatal value="false"/>
+	  <sigma_8             value="=[cosmologicalMassVariance::cosmologicalMassVariance::sigma_8]"        />
+	  <tolerance           value="=[cosmologicalMassVariance::cosmologicalMassVariance::tolerance]"      />
+	  <toleranceTopHat     value="=[cosmologicalMassVariance::cosmologicalMassVariance::toleranceTopHat]"/>
+	  <nonMonotonicIsFatal value="false"                                                                 />
 	</cosmologicalMassVariance>
       </haloMassFunctionUnconditioned>
     </haloMassFunction>

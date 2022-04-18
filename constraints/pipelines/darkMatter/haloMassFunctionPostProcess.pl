@@ -141,7 +141,8 @@ my @simulations =
      massParticle        => 3.52476e4,
      countHaloMinimum    => 0,
      expansionFactors    => [ 1.00000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     color               => "#0bf7f4",
+     color               => "#e6e6fa",
+     plotModify          => \&zoomInsPlotModify
  },
  {
      label               => "VSMDPL",
@@ -247,7 +248,7 @@ foreach my $simulation ( @simulations ) {
 	foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 	    my $redshift      = 1.0/$expansionFactor-1.0;
 	    my $redshiftLabel = sprintf("z%5.3f",$redshift);
-    
+	    
 	    # Generate a job.
 	    my $job;
 	    $job->{'command'   } =
@@ -280,7 +281,7 @@ foreach my $simulation ( @simulations ) {
 	    $expansionFactors[$i] =     $expansionFactor    ;
 	    my $redshift          = 1.0/$expansionFactor-1.0;
 	    my $redshiftLabel     = sprintf("z%5.3f",$redshift);
-	    
+
 	    # Read the resulting halo mass function.
 	    my $model                                                                                = new PDL::IO::HDF5($outputDirectory."/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5");
 	    my $outputs                                                                              = $model           ->group  ('Outputs'                       )       ;
