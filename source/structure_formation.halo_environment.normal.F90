@@ -449,7 +449,6 @@ contains
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: overdensity
-    !$GLC attributes unused :: self
 
     if (overdensity > self%environmentalOverdensityMaximum) call Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
     call node%hostTree%properties%set(self%propertyName,overdensity)
