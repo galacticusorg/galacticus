@@ -156,7 +156,7 @@ CODE
   <haloEnvironment value="fixed">
     <massEnvironment value="{$massRegion}"/>
     <overdensity     value="{$overdensityRegion}"/>
-    <redshift        value="{$redshiftShort}"/>
+    <redshift        value="{$redshiftShort}" ignoreWarnings="true"/>
   </haloEnvironment>
 
   <!-- Include Milky Way cosmology and mass function parameters -->
