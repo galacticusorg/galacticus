@@ -16,7 +16,6 @@ use Galacticus::Options;
 
 # Get command line options.
 my %options;
-$options{'outputDirectory'} = getcwd()."/pipeline";
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Validate required parameters are present.
