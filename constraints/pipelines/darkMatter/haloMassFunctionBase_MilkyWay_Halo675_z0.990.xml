@@ -12,7 +12,7 @@
   <!-- Halo environments -->
   <haloEnvironment value="fixed">
     <massEnvironment value="+1.961336e+13"/>
-    <overdensity     value="-0.290242    "/>
+    <overdensity     value="-0.375068    "/>
     <redshift        value="0.990"/>
   </haloEnvironment>
 
