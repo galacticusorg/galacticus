@@ -100,9 +100,9 @@ my @types =
 open(my $configFile,">haloMassFunctionConfig.xml");
 foreach my $type ( @types ) {
     opendir(my $dir,$options{'simulationDataPath'}."/ZoomIns/".$type->{'label'});
-    while ( my $halo = readdir($dir) ) {
-	next
-	    unless ( $halo =~ m/^Halo\d+/ );
+    my @halos = sort map {$_ =~ m/^Halo\d+/ ? $_ : ()} readdir($dir);
+closedir($dir);    
+    foreach my $halo ( @halos ) {
 	$code::label       = $type->{'label'};
 	$code::name        = $type->{'name'};
 	$code::suite       = $type->{'suite'};
@@ -174,7 +174,6 @@ CODE
 	    }
 	}
     }
-    closedir($dir);
 }
 close($configFile);
 
