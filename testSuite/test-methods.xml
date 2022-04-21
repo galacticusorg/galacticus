@@ -824,15 +824,6 @@
     <nodePropertyExtractor value="mainBranchStatus"/>
   </parameters>
 
-  <!-- Output mass profile -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <nodePropertyExtractor value="massProfile">
-      <radii value="10.0e-3 100.0d-3"/>
-    </nodePropertyExtractor>
-  </parameters>
-
   <!-- Output star formation rates -->
   <parameters>
     <formatVersion>2</formatVersion>

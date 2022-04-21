@@ -84,7 +84,16 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodePropertyExtractor value="projectedDensity">
-      <radiusSpecifiers value="  virialRadius:all:dark:1.0  darkMatterScaleRadius:all:dark:1.0  "/>
+      <radiusSpecifiers value="virialRadius:all:dark:1.0  darkMatterScaleRadius:all:dark:1.0  "/>
+    </nodePropertyExtractor>
+  </parameters>
+
+  <!-- Enclosed masses -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <nodePropertyExtractor value="massProfile">
+      <radiusSpecifiers value="radius:all:all:10.0e-3  radius:all:all:100.0e-3  "/>
     </nodePropertyExtractor>
   </parameters>
 
