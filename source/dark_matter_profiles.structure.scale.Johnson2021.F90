@@ -168,12 +168,13 @@ contains
     !!{
     Initialize dark matter profile scale radii.
     !!}
-    use Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile     , nodeComponentSatellite
-    use Root_Finder                     , only : rootFinder                     , rangeExpandMultiplicative          , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
-    use Kepler_Orbits                   , only : keplerOrbit
-    use Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use Beta_Functions                  , only : Beta_Function                  , Beta_Function_Incomplete_Normalized
-    use Hypergeometric_Functions
+    use :: Calculations_Resets             , only : Calculations_Reset
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile     , nodeComponentSatellite
+    use :: Root_Finder                     , only : rootFinder                     , rangeExpandMultiplicative          , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use :: Kepler_Orbits                   , only : keplerOrbit
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Beta_Functions                  , only : Beta_Function                  , Beta_Function_Incomplete_Normalized
+    use :: Hypergeometric_Functions
     implicit none
     class           (darkMatterProfileScaleRadiusJohnson2021), intent(inout), target    :: self
     type            (treeNode                               ), intent(inout), target    :: node
@@ -357,6 +358,7 @@ contains
        radiusScaleOriginal =  darkMatterProfile%scale(                          )
        radiusScale         =  finder           %find (rootGuess=radiusScaleChild)
        call darkMatterProfile%scaleSet(radiusScaleOriginal)       
+       call Calculations_Reset(node)
     end if
     return
   end function darkMatterProfileScaleJohnson2021Radius
@@ -365,10 +367,12 @@ contains
     !!{
     Function used in root-finding to compute the scale radius of a dark matter profile as a given energy.
     !!}
+    use :: Calculations_Resets, only : Calculations_Reset
     implicit none
     double precision, intent(in   ) :: radiusScale
 
     call darkMatterProfile_%scaleSet(radiusScale)
+    call Calculations_Reset(node_)
     radiusScaleRoot=+                            energyTotal        &
          &          -self_%darkMatterProfileDMO_%energy     (node_)
     return
