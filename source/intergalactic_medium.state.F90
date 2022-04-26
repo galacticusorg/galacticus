@@ -193,6 +193,7 @@ contains
     !!{
     Construct a table of electron scattering optical depth as a function of cosmological time.
     !!}
+    use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
@@ -202,7 +203,9 @@ contains
     logical                                                                :: fullyIonized
 
     if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
-      ! Find minimum and maximum times to tabulate.
+       ! Validate cosmological parameters.
+       if (self%cosmologyParameters_%OmegaBaryon() <= 0.0d0) call Error_Report('can not compute electron scattering optical depths in a universe with no baryons'//{introspection:location})
+       ! Find minimum and maximum times to tabulate.
        self%electronScatteringTableTimeMaximum=    self%cosmologyFunctions_%cosmicTime(1.0d0)
        self%electronScatteringTableTimeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time)/2.0d0
        ! Decide how many points to tabulate and allocate table arrays.
