@@ -234,8 +234,8 @@ contains
     !!{
     Tabulate solutions for $y_0(\xi)$, $z_0(\xi)$.
     !!}
-    use            :: Numerical_Ranges          , only : Make_Range     , rangeTypeLinear
-    use            :: Multidimensional_Minimizer, only : multiDMinimizer
+    use :: Numerical_Ranges          , only : Make_Range     , rangeTypeLinear
+    use :: Multidimensional_Minimizer, only : multiDMinimizer
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)                             :: self
     integer                                             , parameter                                 :: countXi             =1000
@@ -368,7 +368,7 @@ contains
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
     use :: Numerical_ODE_Solvers           , only : odeSolver
-    use :: Numerical_Ranges                , only : Make_Range     , rangeTypeLinear
+    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLinear
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -386,7 +386,6 @@ contains
          &                                                                            densityInteraction                  , massInteraction                 , &
          &                                                                            radiusInteraction                   , radius                          , &
          &                                                                            velocityDispersionInteraction       , xi
-         &                                                                            
 
     ! Ensure dimensionless solutions have been tabulated.
     call self%tabulateSolutions()
@@ -456,7 +455,7 @@ contains
            &                           *Pi                                &
            &                           *gravitationalConstantGalacticus   &
            &                           *density
-      if (radius > 0.0d0)&
+      if (radius > 0.0d0)                                                 &
            & propertiesRateOfChange(2)=+propertiesRateOfChange(2)         &
            &                           -2.0d0                             &
            &                           *properties            (2)         &
@@ -476,17 +475,16 @@ contains
     Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
-    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalDensity=self%darkMatterProfileDMO_%density(node,radius)
     else
-       if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
        sidmIsothermalDensity=self%densityProfile%interpolate(radius)
     end if
     return
@@ -499,14 +497,14 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalDensityLogSlope=self%darkMatterProfileDMO_%densityLogSlope(node,radius)
     else
-       if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
        sidmIsothermalDensityLogSlope=self%densityProfile%derivative(radius)*radius/self%densityProfile%interpolate(radius)
     end if
     return
@@ -519,14 +517,14 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalEnclosedMass=self%darkMatterProfileDMO_%enclosedMass(node,radius)
     else
-       if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
        sidmIsothermalEnclosedMass=self%massProfile%interpolate(radius)
     end if
     return
@@ -539,8 +537,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: density
+    type            (treeNode                          ), intent(inout), target :: node
+    double precision                                    , intent(in   )         :: density
     
     sidmIsothermalRadiusEnclosingDensity=self%radiusEnclosingDensityNumerical(node,density)
     return
@@ -553,8 +551,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: mass
+    type            (treeNode                          ), intent(inout), target :: node
+    double precision                                    , intent(in   )         :: mass
 
     sidmIsothermalRadiusEnclosingMass=self%radiusEnclosingMassNumerical(node,mass)
     return
@@ -567,9 +565,9 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout)           :: node
-    double precision                                 , intent(in   )           :: moment
-    double precision                                 , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    type            (treeNode                          ), intent(inout)           :: node
+    double precision                                    , intent(in   )           :: moment
+    double precision                                    , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
     sidmIsothermalRadialMoment=self%radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
     return
@@ -582,15 +580,15 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    double precision                                 , intent(in   )           :: radius
-    integer                                          , intent(  out), optional :: status
+    type            (treeNode                          ), intent(inout), target   :: node
+    double precision                                    , intent(in   )           :: radius
+    integer                                             , intent(  out), optional :: status
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalPotential=self%darkMatterProfileDMO_%potential(node,radius)
     else
-       if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
        sidmIsothermalPotential=self%darkMatterProfileDMO_%potential(node,self%radiusInteraction(node))-self%velocityDispersionCentral**2*log(self%densityProfile%interpolate(radius)/self%densityProfile%interpolate(self%radiusInteraction(node)))
     end if
     return
@@ -603,8 +601,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
 
     sidmIsothermalCircularVelocity=self%circularVelocityNumerical(node,radius)
     return
@@ -616,7 +614,7 @@ contains
     !!}
     implicit none
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
+    type (treeNode                          ), intent(inout) :: node
 
     sidmIsothermalCircularVelocityMaximum=self%circularVelocityMaximumNumerical(node)
     return
@@ -629,14 +627,14 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: radius
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
-       if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
        sidmIsothermalRadialVelocityDispersion=self%velocityDispersionCentral
     end if
     return
@@ -649,8 +647,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: specificAngularMomentum
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: specificAngularMomentum
 
     sidmIsothermalRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(node,specificAngularMomentum)
     return
@@ -662,7 +660,7 @@ contains
     !!}
     implicit none
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
+    type (treeNode                          ), intent(inout) :: node
 
     sidmIsothermalRotationNormalization=self%rotationNormalizationNumerical(node)
     return
@@ -674,7 +672,7 @@ contains
     !!}
     implicit none
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
+    type (treeNode                          ), intent(inout) :: node
 
     sidmIsothermalEnergy=self%energyNumerical(node)
     return
@@ -687,8 +685,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)         :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: waveNumber
+    type            (treeNode                          ), intent(inout), target :: node
+    double precision                                    , intent(in   )         :: waveNumber
 
     sidmIsothermalKSpace=self%kSpaceNumerical(node,waveNumber)
     return
@@ -701,8 +699,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: time
+    type            (treeNode                          ), intent(inout), target :: node
+    double precision                                    , intent(in   )         :: time
 
     sidmIsothermalFreefallRadius=self%freefallRadiusNumerical(node,time)
     return
@@ -715,8 +713,8 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: time
+    type            (treeNode                          ), intent(inout), target :: node
+    double precision                                    , intent(in   )         :: time
 
     sidmIsothermalFreefallRadiusIncreaseRate=self%freefallRadiusIncreaseRateNumerical(node,time)
     return
