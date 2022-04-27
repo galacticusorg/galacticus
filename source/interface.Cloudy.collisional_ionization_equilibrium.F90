@@ -64,7 +64,7 @@ contains
     double precision                , parameter                       :: metallicityMinimumLogarithmic=-4.000d+0, metallicityZeroLogarithmic   =-9.990d2, &
          &                                                               metallicityStepLogarithmic   =+0.250d+0
     double precision                , parameter                       :: energyMinimum                =+1.000d-3, energyMaximum                =+1.000d2
-    integer                         , parameter                       :: energyBinsPerDecade=50
+    integer                         , parameter                       :: energyBinsPerDecade          =50
     double precision                , allocatable  , dimension(:    ) :: metallicitiesLogarithmic               , temperaturesLogarithmic               , &
          &                                                               energyContinuum
     double precision                , allocatable  , dimension(:,:  ) :: coolingFunction                        , densityElectron                       , &
