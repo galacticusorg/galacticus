@@ -532,14 +532,15 @@ contains
     !!}
     use :: FoX_dom           , only : DOMException , ELEMENT_NODE  , getAttributeNode, getNodeName, &
           &                           getNodeType  , getTextContent, hasAttribute    , inException
-    use :: ISO_Varying_String, only : assignment(=), operator(==)
+    use :: ISO_Varying_String, only : assignment(=), operator(==)  , char
     use :: Error             , only : Error_Report
     implicit none
-    class(inputParameters), intent(inout) :: self
-    type (inputParameter ), pointer       :: currentParameter, referencedParameter
-    type (node           ), pointer       :: identifierNode  , identifierReferenceNode
-    type (varying_string )                :: identifier      , identifierReference
-    type (DOMException   )                :: exception
+    class  (inputParameters), intent(inout) :: self
+    type   (inputParameter ), pointer       :: currentParameter, referencedParameter
+    type   (node           ), pointer       :: identifierNode  , identifierReferenceNode
+    type   (varying_string )                :: identifier      , identifierReference
+    type   (DOMException   )                :: exception
+    logical                                 :: found
 
     ! Begin walking the parameter tree.
     currentParameter => inputParametersWalkTree(self%parameters)
@@ -551,6 +552,7 @@ contains
             &   hasAttribute(currentParameter%content,'idRef')                 &
             & ) then
           ! Search for a parameter with the referenced ID and the same name.
+          found               =  .false.
           referencedParameter => inputParametersWalkTree(self%parameters)
           do while (associated(referencedParameter))
              ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
@@ -567,11 +569,21 @@ contains
                 if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
                 identifierReference     =  getTextContent  (identifierReferenceNode        ,ex=exception)
                 if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
-                if (identifier == identifierReference) currentParameter%referenced => referencedParameter
+                if (identifier == identifierReference) then
+                   currentParameter%referenced => referencedParameter
+                   found=.true.
+                   exit
+                end if
              end if
              ! Walk to next node.
              referencedParameter => inputParametersWalkTree(referencedParameter)
           end do
+          if (.not.found) then
+             identifierReferenceNode => getAttributeNode(currentParameter       %content,   'idRef'  )
+             identifierReference     =  getTextContent  (identifierReferenceNode        ,ex=exception)
+             if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
+             call Error_Report('unable to find referenced parameter "'//char(identifierReference)//'"'//{introspection:location})
+          end if
        end if
        ! Walk to next node.
        currentParameter => inputParametersWalkTree(currentParameter)
