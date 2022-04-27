@@ -75,7 +75,7 @@ contains
     implicit none
     type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
     logical                , intent(in   ), optional :: static
-    integer                                          :: status  , flagsLength
+    integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
     type   (varying_string)                          :: lockPath
