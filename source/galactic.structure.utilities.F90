@@ -28,7 +28,7 @@ module Galactic_Structure_Utilities
   private
   public :: galacticStructureConstruct       , galacticStructureMassEnclosed            , galacticStructureDestruct  , galacticStructureDeepCopy    , &
        &    galacticStructureDeepCopyReset   , galacticStructureDeepCopyFinalize        , galacticStructureStateStore, galacticStructureStateRestore, &
-       &    galacticStructureVelocityRotation, galacticStructureVelocityRotationGradient
+       &    galacticStructureVelocityRotation, galacticStructureVelocityRotationGradient, galacticStructureDensity
 
   ! Module-scope pointer to our task object. This is used for reference counting so that debugging information is consistent
   ! between the increments and decrements.
@@ -107,6 +107,42 @@ contains
     return
   end function galacticStructureMassEnclosed
 
+  !![
+  <functionGlobal>
+   <unitName>galacticStructureDensity</unitName>
+   <type>double precision</type>
+   <module>Galacticus_Nodes, only : treeNode</module>
+   <arguments>class           (*       ), intent(inout)               :: galacticStructure_</arguments>
+   <arguments>type            (treeNode), intent(inout)               :: node</arguments>
+   <arguments>double precision          , intent(in   ), dimension(3) :: position</arguments>
+   <arguments>integer                   , intent(in   ), optional     :: coordinateSystem, componentType, massType, weightBy, weightIndex</arguments>
+  </functionGlobal>
+  !!]
+  double precision function galacticStructureDensity(galacticStructure_,node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
+    !!{
+    Compute the density for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Galacticus_Nodes  , only : treeNode
+    implicit none
+    class           (*       ), intent(inout)               :: galacticStructure_
+    type            (treeNode), intent(inout)               :: node
+    integer                   , intent(in   ), optional     :: componentType     , massType   , &
+         &                                                     weightBy          , weightIndex, &
+         &                                                     coordinateSystem
+    double precision          , intent(in   ), dimension(3) :: position
+ 
+    select type (galacticStructure_)
+    class is (galacticStructureClass)
+       galacticStructureDensity=galacticStructure_%density(node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
+    class default
+       galacticStructureDensity=0.0d0
+       call Error_Report('unexpected class'//{introspection:location})
+    end select
+    return
+  end function galacticStructureDensity
+  
   !![
   <functionGlobal>
    <unitName>galacticStructureVelocityRotation</unitName>
