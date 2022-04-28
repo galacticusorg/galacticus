@@ -895,11 +895,10 @@ contains
     type            (treeNode                            ), intent(inout), target  :: node
     double precision                                      , intent(in   )          :: radius
     logical                                               , intent(in   )          :: computeGradientFactors
-    type            (treeNode                            )               , pointer :: nodeCurrent                          , nodeHost
+    type            (treeNode                            )               , pointer :: nodeCurrent                    , nodeHost
     class           (nodeComponentBasic                  )               , pointer :: basic
-    double precision                                      , parameter              :: toleranceAbsolute              =0.0d0, toleranceRelative      =1.0d-3
-    double precision                                                               :: massBaryonicSelfTotal                , massBaryonicTotal             , &
-         &                                                                            velocityCircularSquaredGradient      , velocityCircularSquared       , &
+    double precision                                                               :: massBaryonicSelfTotal          , massBaryonicTotal      , &
+         &                                                                            velocityCircularSquaredGradient, velocityCircularSquared, &
          &                                                                            
 
     ! Set module-scope pointers to node and self.

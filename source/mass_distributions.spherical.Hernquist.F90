@@ -240,7 +240,7 @@ contains
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
     !!}
-    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(massDistributionHernquist), intent(inout) :: self

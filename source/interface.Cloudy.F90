@@ -66,7 +66,7 @@ contains
           ! Check for existance of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
-             call download('"http://data.nublado.org/cloudy_releases/c17/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)
+             call download('"http://data.nublado.org/cloudy_releases/c17/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)
              if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
           end if
           ! Unpack and patch the code.

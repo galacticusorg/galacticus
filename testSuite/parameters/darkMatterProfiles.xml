@@ -9,7 +9,11 @@
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
   <componentSatellite         value="null"    />
-  <componentSpheroid          value="null"    />
+  <componentSpheroid          value="standard"/>
   <componentSpin              value="null"    />
   <hotHaloMassDistribution    value="null"    />
+  <spheroidMassDistribution value="hernquist">
+    <dimensionless value="true"/>
+  </spheroidMassDistribution>
+  <mergerRemnantSize value="null"/>
 </parameters>

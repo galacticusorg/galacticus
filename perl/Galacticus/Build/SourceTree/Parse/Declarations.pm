@@ -9,6 +9,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Storable qw(dclone);
 use Fortran::Utils;
+use List::MoreUtils qw(first_index);
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'declarations'} = \&Parse_Declarations;
@@ -222,9 +223,12 @@ sub AddAttributes {
     if ( scalar(@{$declarationFound->{'variables'}}) > 1 ) {
 	# Extract out other variables and push into their own declaration.
 	my $declarationCopy = dclone($declarationFound);
-	$declarationFound->{'variables'} = [ $variableName ];
-	@{$declarationCopy->{'variables'}} = map {$_ eq $variableName ? () : $_} @{$declarationCopy->{'variables'}};
-	push(@{$declarationFound->{'variables'}},$declarationCopy);
+	my $index           = first_index {$_ eq lc($variableName)} @{$declarationCopy->{'variables'}};
+	$declarationFound->{'variables'    } = [ $declarationCopy->{'variables'    }->[$index] ];
+	$declarationFound->{'variableNames'} = [ $declarationCopy->{'variableNames'}->[$index] ];
+	splice(@{$declarationCopy->{'variables'    }},$index,1);
+	splice(@{$declarationCopy->{'variableNames'}},$index,1);
+	push(@{$declarationsFound->{'declarations'}},$declarationCopy);
     }
     foreach my $attribute ( @attributes ) {
 	unless ( grep {$_ eq $attribute} @{$declarationFound->{'attributes'}} ) {

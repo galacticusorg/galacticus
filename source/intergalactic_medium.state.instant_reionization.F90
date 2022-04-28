@@ -32,9 +32,9 @@
      fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.
      !!}
      private
-     class           (intergalacticMediumStateClass), pointer :: preReionizationState => null()
-     double precision                                         :: reionizationTime     , reionizationTemperature       , &
-          &                                                      presentDayTemperature, expansionFactorReionizationLog
+     class           (intergalacticMediumStateClass), pointer :: preReionizationState  => null()
+     double precision                                         :: reionizationTime               , reionizationTemperature       , &
+          &                                                      presentDayTemperature          , expansionFactorReionizationLog
    contains
      final     ::                                instantReionizationDestructor
      procedure :: electronFraction            => instantReionizationElectronFraction
