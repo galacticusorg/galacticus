@@ -93,16 +93,16 @@ contains
       <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
       <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"             source="parameters"                                          />
-    <objectBuilder class="outputTimes"                  name="outputTimes_"                     source="parameters"                                          />
-    <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"              source="parameters"                                          />
-    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"                source="parameters"                                          />
-    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"             source="parameters"                                          />
-    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"            source="parameters"                                          />
-    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_"    source="parameters"                                          />
-    <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"           source="parameters"                                          />
-    <objectBuilder class="virialDensityContrast"        name="virialDensityContrastDefinition_" source="parameters" parameterName="virialConstrastDefinition"/>
-    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"              source="parameters"                                          />
+    <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="outputTimes"                  name="outputTimes_"                     source="parameters"                                                />
+    <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"              source="parameters"                                                />
+    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"                source="parameters"                                                />
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"             source="parameters"                                                />
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"            source="parameters"                                                />
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_"    source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"           source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast"        name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"              source="parameters"                                                />
     !!]
     if (parameters%isPresent('fileName')) then
        !![
