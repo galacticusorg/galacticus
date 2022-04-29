@@ -477,8 +477,8 @@ contains
             &                      +1.0d0/heatedRadiusFinal                                                                                              &
             &                      -1.0d0/radiusInitial                                                                                                  &
             &                     )                                                                                                                      &
-            &                    +massEnclosed                                                                                                             &
-            &                    /radiusInitial**2                                                                                                         &
+            &                    +massEnclosed                                                                                                           &
+            &                    /radiusInitial**2                                                                                                       &
             &                   )
        if (.not.noShellCrossingIsValid) then
           heatedRadiusInitialRoot=0.0d0

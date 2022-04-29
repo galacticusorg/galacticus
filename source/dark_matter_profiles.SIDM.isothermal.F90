@@ -53,11 +53,11 @@
      A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
      !!}
      private
-     integer         (kind=kind_int8   )              :: uniqueIDPrevious
-     double precision                                 :: velocityDispersionCentral
-     logical                                          :: solutionsTabulated
-     class           (*                ), pointer     :: galacticStructure_        => null()
-     type            (interpolator     ), allocatable :: densityProfile                     , massProfile
+     integer         (kind=kind_int8)              :: uniqueIDPrevious
+     double precision                              :: velocityDispersionCentral
+     logical                                       :: solutionsTabulated
+     class           (*             ), pointer     :: galacticStructure_        => null()
+     type            (interpolator  ), allocatable :: densityProfile                     , massProfile
    contains
      !![
      <methods>
@@ -149,8 +149,9 @@ contains
     class default
        call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
     end select
-    self%uniqueIDPrevious   =-1_kind_int8
-    self%genericLastUniqueID=-1_kind_int8
+    self%uniqueIDPrevious    =-1_kind_int8
+    self%genericLastUniqueID =-1_kind_int8
+    self%uniqueIDPreviousSIDM=-1_kind_int8
     return
   end function sidmIsothermalConstructorInternal
 
@@ -195,6 +196,8 @@ contains
 
     self%uniqueIDPrevious         =node%uniqueID()
     self%genericLastUniqueID      =node%uniqueID()
+    self%uniqueIDPreviousSIDM     =node%uniqueID()
+    self%radiusInteractivePrevious=-1.0d0
     self%velocityDispersionCentral=-1.0d0
     if (allocated(self%densityProfile                         )) deallocate(self%densityProfile                         )
     if (allocated(self%massProfile                            )) deallocate(self%massProfile                            )

@@ -47,6 +47,8 @@
      </methods>
      !!]
      final     ::                                      sidmCoreNFWDestructor
+     procedure :: autoHook                          => sidmCoreNFWAutoHook
+     procedure :: calculationReset                  => sidmCoreNFWCalculationReset
      procedure :: radiusCore                        => sidmCoreNFWRadiusCore
      procedure :: density                           => sidmCoreNFWDensity
      procedure :: densityLogSlope                   => sidmCoreNFWDensityLogSlope
@@ -144,13 +146,28 @@ contains
        </referenceConstruct>
        !!]
     end select
+    self%genericLastUniqueID =-1_kind_int8
+    self%uniqueIDPreviousSIDM=-1_kind_int8
     return
   end function sidmCoreNFWConstructorInternal
+
+  subroutine sidmCoreNFWAutoHook(self)
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,sidmCoreNFWCalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine sidmCoreNFWAutoHook
 
   subroutine sidmCoreNFWDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily sidmCoreNFW} dark matter halo profile class.
     !!}
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
 
@@ -159,16 +176,35 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterParticle_"  />
     !!]
+    if (calculationResetEvent%isAttached(self,sidmCoreNFWCalculationReset)) call calculationResetEvent%detach(self,sidmCoreNFWCalculationReset)
     return
   end subroutine sidmCoreNFWDestructor
+
+  subroutine sidmCoreNFWCalculationReset(self,node)
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
+    implicit none
+    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
+
+    self%genericLastUniqueID      =node%uniqueID()
+    self%uniqueIDPreviousSIDM     =node%uniqueID()
+    self%radiusInteractivePrevious=-1.0d0
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    return
+  end subroutine sidmCoreNFWCalculationReset
 
   double precision function sidmCoreNFWRadiusCore(self,node)
     !!{
     Returns the core radius (in Mpc) of the ``coreNFW'' approximation to the self-interacting dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
+    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
 
     sidmCoreNFWRadiusCore=+self%factorRadiusCore        &
          &                *self%radiusInteraction(node)
