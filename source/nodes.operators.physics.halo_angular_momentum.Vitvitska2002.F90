@@ -228,13 +228,14 @@ contains
              angularMomentumTotal=+           angularMomentumTotal   &
                   &               +spinChild%angularMomentumVector()
              ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular momentum averaged over the distribution of virial orbits.
-             nodeUnresolved              => treeNode                                                      (                         )
-             basicUnresolved             => nodeUnresolved                              %basic            (autoCreate=.true.        )
-             darkMatterProfileUnresolved => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
+             nodeUnresolved                       => treeNode                                                      (                         )
+             nodeUnresolved             %hostTree => node%hostTree
+             basicUnresolved                      => nodeUnresolved                              %basic            (autoCreate=.true.        )
+             darkMatterProfileUnresolved          => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
              call basicUnresolved            %massSet            (massResolution       )
              call basicUnresolved            %timeSet            (basicChild%time()    )
              call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
-             radiusScaleUnresolved       =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
+             radiusScaleUnresolved                =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
              call darkMatterProfileUnresolved%scaleSet           (radiusScaleUnresolved)
              ! Compute a correction factor to the orbital angular momentum which takes into account the mass dependence of the
              ! 1/(1+m/M)ᵅ term that is applied to the angular momentum, and the reduced mass factor that appears in the orbital

@@ -231,40 +231,42 @@ contains
      return
   end function nbodyErrorsConstructorInternal
 
-  subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
+  subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum,tree)
     !!{
     Tabulate the halo spin distribution.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Calculations_Resets   , only : Calculations_Reset
     use :: Error                 , only : Error_Report
-    use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode, &
+         &                                mergerTree
     use :: Memory_Management     , only : allocateArray                          , deallocateArray
     use :: Numerical_Integration , only : integrator
     implicit none
-    class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
-    double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
-         &                                                                        massFixed                           , spinFixed                  , &
-         &                                                                        spinFixedMeasuredMinimum            , spinFixedMeasuredMaximum
-    type            (treeNode                       ), pointer                 :: node
-    class           (nodeComponentBasic             ), pointer                 :: nodeBasic
-    class           (nodeComponentSpin              ), pointer                 :: nodeSpin
-    class           (nodeComponentDarkMatterProfile ), pointer                 :: nodeDarkMatterProfile
-    double precision                                 , parameter               :: massIntegrationRange         =10.0d0
-    type            (integrator                     )                          :: integratorMass                      , integratorSpin             , &
-         &                                                                        integratorMassSpin                  , integratorProduct
-    logical                                                                    :: retabulate                          , fixedPoint
-    integer                                                                    :: iSpin                               , iMass
-    double precision                                                           :: spinMeasured                        , massMeasured               , &
-         &                                                                        densityRatioInternalToSurface       , massError                  , &
-         &                                                                        radiusHalo                          , densityOuterRadius         , &
-         &                                                                        massMinimum                         , massMaximum                , &
-         &                                                                        logNormalWidth                      , logNormalLogMean           , &
-         &                                                                        errorSpinDependent                  , errorSpinIndependent       , &
-         &                                                                        errorSpinIndependent1D              , nonCentrality              , &
-         &                                                                        particleNumber                      , massEnergyEstimateMaximum  , &
-         &                                                                        energyEstimateErrorCorrection       , massAverage                , &
-         &                                                                        massSpinAverage
+    class           (haloSpinDistributionNbodyErrors), intent(inout)                    :: self
+    double precision                                 , intent(in   )         , optional :: massRequired                        , spinRequired               , &
+         &                                                                                 massFixed                           , spinFixed                  , &
+         &                                                                                 spinFixedMeasuredMinimum            , spinFixedMeasuredMaximum
+    type            (mergerTree                     ), intent(in   ), target , optional :: tree
+    type            (treeNode                       )               , pointer           :: node
+    class           (nodeComponentBasic             )               , pointer           :: nodeBasic
+    class           (nodeComponentSpin              )               , pointer           :: nodeSpin
+    class           (nodeComponentDarkMatterProfile )               , pointer           :: nodeDarkMatterProfile
+    double precision                                 , parameter                        :: massIntegrationRange         =10.0d0
+    type            (integrator                     )                                   :: integratorMass                      , integratorSpin             , &
+         &                                                                                 integratorMassSpin                  , integratorProduct
+    logical                                                                             :: retabulate                          , fixedPoint
+    integer                                                                             :: iSpin                               , iMass
+    double precision                                                                    :: spinMeasured                        , massMeasured               , &
+         &                                                                                 densityRatioInternalToSurface       , massError                  , &
+         &                                                                                 radiusHalo                          , densityOuterRadius         , &
+         &                                                                                 massMinimum                         , massMaximum                , &
+         &                                                                                 logNormalWidth                      , logNormalLogMean           , &
+         &                                                                                 errorSpinDependent                  , errorSpinIndependent       , &
+         &                                                                                 errorSpinIndependent1D              , nonCentrality              , &
+         &                                                                                 particleNumber                      , massEnergyEstimateMaximum  , &
+         &                                                                                 energyEstimateErrorCorrection       , massAverage                , &
+         &                                                                                 massSpinAverage
 
     ! Validate optional parameter combinations.
     if     (          (present(massRequired).or. present(spinRequired))                                                               &
@@ -346,6 +348,7 @@ contains
     nodeSpin              => node    %spin             (autoCreate=.true.)
     nodeDarkMatterProfile => node    %darkMatterProfile(autoCreate=.true.)
     call nodeBasic%timeSet(self%time)
+    if (present(tree)) node%hostTree => tree
     ! Build integrators.
     integratorMass    =integrator(massIntegral               ,toleranceAbsolute=1.0d-30,toleranceRelative=1.0d-3)
     integratorMassSpin=integrator(massSpinIntegral           ,toleranceAbsolute=1.0d-30,toleranceRelative=1.0d-3)
@@ -833,7 +836,7 @@ contains
     spin      =  +nodeSpin %angularMomentum()                                              &
          &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
     ! Ensure the table has sufficient extent.
-    call self%tabulate(massRequired=mass,spinRequired=spin)
+    call self%tabulate(massRequired=mass,spinRequired=spin,tree=node%hostTree)
     ! Find the interpolating factors.
     hMass=log10(mass/self%massMinimum)/self%massDelta
     hSpin=log10(spin/self%spinMinimum)/self%spinDelta
@@ -875,7 +878,7 @@ contains
     spin      =  +nodeSpin %angularMomentum()                                              &
          &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
     ! Ensure the table has sufficient extent.
-    call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasuredMinimum=spinMeasuredMinimum,spinFixedMeasuredMaximum=spinMeasuredMaximum)
+    call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasuredMinimum=spinMeasuredMinimum,spinFixedMeasuredMaximum=spinMeasuredMaximum,tree=node%hostTree)
     ! Find the interpolating factors.
     hSpin=log10(spinMeasured/self%spinMinimum)/self%spinDelta
     iSpin=int(hSpin)+1
