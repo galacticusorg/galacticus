@@ -311,7 +311,7 @@ contains
        ! Set absolute property scales for ODE solving.
        propertyScales=1.0d0
        ! Start parallel region to solve for halo structure at each value of ξ.
-       !$omp parallel private(i,locationMinimum,iteration,converged,minimizer_)
+       !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged,minimizer_)
        !! Allocate and construct objects needed by each thread.
        allocate(odeSolver_)
        allocate(minimizer_)
