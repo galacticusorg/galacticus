@@ -230,8 +230,8 @@ contains
     type            (treeNode                          ), intent(inout), target :: node
     logical                                             , parameter             :: specificAngularMomentumRequired=.true.
     integer                                             , parameter             :: iterationMaximum               =  100
-    procedure       (solverGet                         ), pointer               :: radiusGet                              , velocityGet
-    procedure       (solverSet                         ), pointer               :: radiusSet                              , velocitySet
+    procedure       (solverGet                         ), pointer               :: radiusGet                             , velocityGet
+    procedure       (solverSet                         ), pointer               :: radiusSet                             , velocitySet
     logical                                                                     :: componentActive
     double precision                                                            :: specificAngularMomentum
 
@@ -422,7 +422,7 @@ contains
             if (displayVerbosity() < verbosityLevelStandard) call displayVerbositySet(verbosityLevelStandard)
             call node%serializeASCII()
             message='radius has reached zero for node '
-            message=message//node%index()//' - report follows:'//char(10)
+            message=message//node%index()//' - report follows:'       //char(10)
             write (label,'(e12.6)') specificAngularMomentum
             message=message//'  specific angular momentum:    '//label//char(10)
             write (label,'(e12.6)') velocity
