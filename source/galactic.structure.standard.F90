@@ -381,7 +381,7 @@ contains
     end if
     self_ => self
     node_ => node
-    ! If the dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
+    ! If the dark matter component is queried and its density profile is unaffected by baryons, compute the radius from the dark
     ! matter profile. Otherwise, find the radius numerically.
     if     (                                                                                              &
          &   galacticStructureState_(galacticStructureStateCount)%componentType_ == componentTypeDarkHalo &
@@ -968,7 +968,20 @@ contains
        call move_alloc(galacticStructureState_,galacticStructureStateTmp)
        allocate(galacticStructureState_(galacticStructureStateCount+1))
        galacticStructureState_(1:galacticStructureStateCount)=galacticStructureStateTmp
-       deallocate(galacticStructureStateTmp)
+       !![
+       <workaround type="unknown">
+	 <description>
+	   Previously, "galacticStructureStateTmp" was deallocated here. However, in some instances this changed the value of
+	   "massType", even though "massType" is "intent(in)" and the argument passed to "massType" was actually a "parameter", so
+	   should be immutable. This seems like it must be a compiler bug, but I was unable to create a reduced test case to
+	   demonstrate this. So, the deallocate statement has been removed. It will automatically deallocate at function exit
+	   anyway, but by then the correct value of "massType" has been stored to the stack. The compiler revision hash for which
+	   this problem occured is given in the "compiler" element.
+	 </description>
+	 <compiler name="GCC" revisionHash="c2a9a98a369528c8689ecb68db576f8e7dc2fa45"/>
+	 <codeRemoved>deallocate(galacticStructureStateTmp)</codeRemoved>
+       </workaround>
+       !!]
     end if
     ! Increment stack counter.
     galacticStructureStateCount=galacticStructureStateCount+1

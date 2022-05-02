@@ -962,3 +962,38 @@ jobs:
           ./test-tidalTracks.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
+  Test-galacticStructureState-Deallocate-Bug:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-galacticStructureStateDeallocateBug.pl
+          ./test-galacticStructureStateDeallocateBug.pl 2>&1 | tee test.log
+          ! grep -q FAIL test.log
+      - run: echo "This job's status is ${{ job.status }}."
