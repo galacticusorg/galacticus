@@ -1914,7 +1914,7 @@ module Galacticus_Nodes
          &           .or.                                                                  &
          &            (propertyType == propertyTypeActive   .and. .not.propertyIsInactive) &
          &           .or.                                                                  &
-         &            (propertyType == propertyTypeNumerics .and. .not.propertyIsInactive) &
+         &             propertyType == propertyTypeNumerics                                &
          &           .or.                                                                  &
          &            (propertyType == propertyTypeInactive .and.      propertyIsInactive)
     return
