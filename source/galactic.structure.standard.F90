@@ -960,6 +960,13 @@ contains
     integer                                    , intent(in   ), optional    :: componentType            , massType   , &
          &                                                                     weightBy                 , weightIndex
     type            (galacticStructureState   ), dimension(:) , allocatable :: galacticStructureStateTmp
+    !![
+    <optionalArgument name="componentType" defaultsTo="componentTypeAll" />  
+    <optionalArgument name="massType"      defaultsTo="massTypeAll"      />
+    <optionalArgument name="weightBy"      defaultsTo="weightByMass"     />
+    <optionalArgument name="weightIndex"   defaultsTo="-1"               />
+    <optionalArgument name="radius"        defaultsTo="radiusLarge"      />
+    !!]
 
     ! Expand the state stack if necessary.
     if      (.not.allocated(galacticStructureState_)) then
@@ -968,49 +975,20 @@ contains
        call move_alloc(galacticStructureState_,galacticStructureStateTmp)
        allocate(galacticStructureState_(galacticStructureStateCount+1))
        galacticStructureState_(1:galacticStructureStateCount)=galacticStructureStateTmp
-       !![
-       <workaround type="unknown">
-	 <description>
-	   Previously, "galacticStructureStateTmp" was deallocated here. However, in some instances this changed the value of
-	   "massType", even though "massType" is "intent(in)" and the argument passed to "massType" was actually a "parameter", so
-	   should be immutable. This seems like it must be a compiler bug, but I was unable to create a reduced test case to
-	   demonstrate this. So, the deallocate statement has been removed. It will automatically deallocate at function exit
-	   anyway, but by then the correct value of "massType" has been stored to the stack. The compiler revision hash for which
-	   this problem occured is given in the "compiler" element.
-	 </description>
-	 <compiler name="GCC" revisionHash="c2a9a98a369528c8689ecb68db576f8e7dc2fa45"/>
-	 <codeRemoved>deallocate(galacticStructureStateTmp)</codeRemoved>
-       </workaround>
-       !!]
+       deallocate(galacticStructureStateTmp)
     end if
     ! Increment stack counter.
     galacticStructureStateCount=galacticStructureStateCount+1
     ! Set defaults.    
-    if (present(radius       )) then
-       galacticStructureState_(galacticStructureStateCount)%radius_        =radius
-    else
-       galacticStructureState_(galacticStructureStateCount)%radius_        =radiusLarge
-    end if
-    if (present(massType     )) then
-       galacticStructureState_(galacticStructureStateCount)%massType_      =massType
-    else
-       galacticStructureState_(galacticStructureStateCount)%massType_      =massTypeAll
-    end if
-    if (present(componentType)) then
-       galacticStructureState_(galacticStructureStateCount)%componentType_ =componentType
-    else
-       galacticStructureState_(galacticStructureStateCount)%componentType_ =componentTypeAll
-    end if
-    if (present(weightBy     )) then
-       galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightBy
-       select case (weightBy)
-       case (weightByLuminosity)
-          if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
-          galacticStructureState_(galacticStructureStateCount)%weightIndex_=weightIndex
-       end select
-    else
-       galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightByMass
-    end if
+    galacticStructureState_(galacticStructureStateCount)%radius_        =radius_
+    galacticStructureState_(galacticStructureStateCount)%massType_      =massType_
+    galacticStructureState_(galacticStructureStateCount)%componentType_ =componentType_
+    galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightBy_
+    select case (weightBy_)
+    case (weightByLuminosity)
+       if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
+       galacticStructureState_(galacticStructureStateCount)%weightIndex_=weightIndex_
+    end select
     return
   end subroutine standardDefaults
 
