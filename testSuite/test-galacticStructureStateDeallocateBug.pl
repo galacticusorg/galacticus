@@ -11,7 +11,7 @@ use PDL::IO::HDF5;
 # Make output directory.
 system("mkdir -p outputs/");
 
-# Run the tidal tracks model.
+# Run the model.
 system("cd ..; ./Galacticus.exe testSuite/parameters/galacticStructureStateDeallocateBug.xml");
 if ( $? == 0 ) {
     print "SUCCESS:  galacticStructureState deallocate bug\n";
