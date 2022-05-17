@@ -775,11 +775,11 @@ sub zoomInsPlotModify {
     my $expansionFactor = shift();
     my $redshiftLabel   = sprintf("%5.3f",1.0/$expansionFactor-1.0);
     # Appending environment to title.
-    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabel.".hdf5");                                    
-    my $targetSimulation    = $target          ->group  ('simulation0001'   );                                                                                                                                  
-    (my $massRegion       ) = $targetSimulation->attrGet('massRegion'       );                                                                                                                                  
-    (my $overdensityRegion) = $targetSimulation->attrGet('overdensityRegion');
-    $plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$z = ".$redshiftLabel."; \\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massRegion),$overdensityRegion);
+    my $target                   = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabel.".hdf5");                                    
+    my $targetSimulation         = $target          ->group  ('simulation0001'        );                                                                                                                                  
+    (my $massEnvironment       ) = $targetSimulation->attrGet('massEnvironment'       );                                                                                                                                  
+    (my $overdensityEnvironment) = $targetSimulation->attrGet('overdensityEnvironment');
+    $plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$z = ".$redshiftLabel."; \\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massEnvironment),$overdensityEnvironment);
     # Set plotting limits.
     $plotOptions->{'xMinimum'} = 8.0e+06;
     $plotOptions->{'xMaximum'} = 3.0e+12;
