@@ -141,6 +141,7 @@ my @simulations =
      massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     snapshots               => [ 235    ],
      processIdentify         => \&zoomInsProcessIdentify,
      processExtract          => \&zoomInsProcessExtract,
      preprocessExtract       => [
@@ -173,6 +174,7 @@ my @simulations =
      massParticle            => 2.81981e5,
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     snapshots               => [ 235    ],
      processIdentify         => \&zoomInsProcessIdentify,
      processExtract          => \&zoomInsProcessExtract,
      preprocessExtract       => [
@@ -205,6 +207,7 @@ my @simulations =
      massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     snapshots               => [ 235    ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       => [
  	 \&zoomInsPreProcessExtractLocate,
@@ -237,6 +240,7 @@ my @simulations =
      massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     snapshots               => [ 235    ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       => [
  	 \&zoomInsPreProcessExtractLocate,
@@ -269,6 +273,7 @@ my @simulations =
      massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     snapshots               => [ 235    ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       => [
  	 \&zoomInsPreProcessExtractLocate,
@@ -301,6 +306,7 @@ my @simulations =
      massHostLogMax          => 12.3, 
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
+     snapshots               => [ 235    ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       => [
  	 \&zoomInsPreProcessExtractLocate,
@@ -973,17 +979,16 @@ sub zoomInsPostProcessMassFunction {
     foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 	my $redshift            =  1.0/$expansionFactor-1.0;
 	my $redshiftLabel       = sprintf("z%5.3f",$redshift);
-	# Extract mass of the final spherical region.
-	my $particlesFinal       = new PDL::IO::HDF5($pathName."selectedParticles_".$redshiftLabel.".hdf5"  );
-	(my $mass)               = $particlesFinal      ->group('Snapshot00001')->group('HaloCatalog')->attrGet('massTotal'            );
 	# Extract overdensity from the analysis file.
 	my $analysisFile         = new PDL::IO::HDF5($pathName."environment_".$redshiftLabel.":MPI0000.hdf5");
-	(my $overdensity)        = $analysisFile        ->group('simulation0002')                     ->attrGet('convexHullOverdensity');
+	(my $mass)               = $analysisFile->group('simulation0002')->attrGet('massTotal'            );
+	(my $overdensity)        = $analysisFile->group('simulation0002')->attrGet('convexHullOverdensity');
 	# Store these to the halo mass function.
 	my $haloMassFunctionFile = new PDL::IO::HDF5(">".$pathName."haloMassFunction_".$redshiftLabel.":MPI0000.hdf5");
-	my $simulationGroup      = $haloMassFunctionFile->group('simulation0001')                                                       ;
-	$simulationGroup->attrSet(massRegion        => $simulation->{$realization}->{$redshiftLabel}->{'massRegion'  });
-	$simulationGroup->attrSet(radiusRegion      => $simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'});
-	$simulationGroup->attrSet(overdensityRegion => $overdensity                                                   );
+	my $simulationGroup      = $haloMassFunctionFile->group('simulation0001')                                     ;
+	$simulationGroup->attrSet(massRegion             => $simulation->{$realization}->{$redshiftLabel}->{'massRegion'  });
+	$simulationGroup->attrSet(radiusRegion           => $simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'});
+	$simulationGroup->attrSet(overdensityEnvironment => $overdensity                                                   );
+	$simulationGroup->attrSet(massEnvironment        => $mass                                                          );
    }
 }
