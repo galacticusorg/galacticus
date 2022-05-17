@@ -121,7 +121,7 @@ closedir($dir);
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
 			 haloMassFunctionParameters::d
 			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
-    <parameterInactiveMap value=""/>
+    <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="constraints/pipelines/darkMatter/haloMassFunctionBase_{$label}_{$halo}_z{$redshiftShort}.xml"/>
