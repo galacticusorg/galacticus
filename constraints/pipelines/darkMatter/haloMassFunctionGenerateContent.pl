@@ -137,9 +137,9 @@ CODE
 	    if ( -e $hmfFileName ) {
 		my $hmfFile = new PDL::IO::HDF5($hmfFileName);
 		my $hmf = $hmfFile->group('simulation0001');
-		(my $massRegion, my $overdensityRegion) = $hmf->attrGet('massRegion', 'overdensityRegion');
-		$code::massRegion = sprintf("%+13.6e",$massRegion);
-		$code::overdensityRegion = sprintf("%+9.6f    ",$overdensityRegion);
+		(my $massEnvironment, my $overdensityEnvironment) = $hmf->attrGet('massEnvironment', 'overdensityEnvironment');
+		$code::massEnvironment = sprintf("%+13.6e",$massEnvironment);
+		$code::overdensityEnvironment = sprintf("%+9.6f    ",$overdensityEnvironment);
 		my $base = fill_in_string(<<'CODE', PACKAGE => 'code');
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
@@ -154,8 +154,8 @@ CODE
 
   <!-- Halo environments -->
   <haloEnvironment value="fixed">
-    <massEnvironment value="{$massRegion}"/>
-    <overdensity     value="{$overdensityRegion}"/>
+    <massEnvironment value="{$massEnvironment}"/>
+    <overdensity     value="{$overdensityEnvironment}"/>
     <redshift        value="{$redshiftShort}" ignoreWarnings="true"/>
   </haloEnvironment>
 
