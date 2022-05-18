@@ -43,92 +43,99 @@ my @simulations =
      countHaloMinimum    => 0,
      expansionFactors    => [ 1.00000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      color               => "#0bf7f4",
-     plotModify          => \&zoomInsPlotModify
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
  },
- # {
- #     label               => "MilkyWay_WDM1",
- #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 1keV zoom-in simulations.",
- #     subpath             => "ZoomIns",
- #     realizations        => [ "Halo416" ],
- #     simulationReference => "Nadler et al.",
- #     simulationURL       => "https://www",
- #     hubbleConstant      => 0.7,
- #     massParticle        => 2.81981e5,
- #     countHaloMinimum    => 0,
- #     expansionFactors    => [ 1.00000 ],
- #     color               => "#0ba0f7",
- #     plotModify          => \&zoomInsPlotModify
- # },
- # {
- #     label               => "MilkyWay_WDM5",
- #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 5keV zoom-in simulations.",
- #     subpath             => "ZoomIns",
- #     realizations        => [ "Halo416" ],
- #     simulationReference => "Nadler et al.",
- #     simulationURL       => "https://www",
- #     hubbleConstant      => 0.7,
- #     massParticle        => 2.81981e5,
- #     countHaloMinimum    => 0,
- #     expansionFactors    => [ 1.00000 ],
- #     color               => "#0b65f7",
- #     plotModify          => \&zoomInsPlotModify
- # },
- # {
- #     label               => "MilkyWay_WDM10",
- #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 10keV zoom-in simulations.",
- #     subpath             => "ZoomIns",
- #     realizations        => [ "Halo416" ],
- #     simulationReference => "Nadler et al.",
- #     simulationURL       => "https://www",
- #     hubbleConstant      => 0.7,
- #     massParticle        => 2.81981e5,
- #     countHaloMinimum    => 0,
- #     expansionFactors    => [ 1.00000 ],
- #     color               => "#0b23f7",
- #     plotModify          => \&zoomInsPlotModify
- # },
- # {
- #     label               => "MilkyWay_Axion22",
- #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-22 eV axion zoom-in simulations.",
- #     subpath             => "ZoomIns",
- #     realizations        => [ "Halo416" ],
- #     simulationReference => "Nadler et al.",
- #     simulationURL       => "https://www",
- #     hubbleConstant      => 0.7,
- #     massParticle        => 2.81981e5,
- #     countHaloMinimum    => 0,
- #     expansionFactors    => [ 1.00000 ],
- #     color               => "#b00bf7",
- #     plotModify          => \&zoomInsPlotModify
- # },
- # {
- #     label               => "MilkyWay_Axion21",
- #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-21 eV axion zoom-in simulations.",
- #     subpath             => "ZoomIns",
- #     realizations        => [ "Halo416" ],
- #     simulationReference => "Nadler et al.",
- #     simulationURL       => "https://www",
- #     hubbleConstant      => 0.7,
- #     massParticle        => 2.81981e5,
- #     countHaloMinimum    => 0,
- #     expansionFactors    => [ 1.00000 ],
- #     color               => "#d80bf7",
- #     plotModify          => \&zoomInsPlotModify
- # },
- # {
- #     label               => "MilkyWay_Axion20",
- #     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-20 eV axion zoom-in simulations.",
- #     subpath             => "ZoomIns",
- #     realizations        => [ "Halo416" ],
- #     simulationReference => "Nadler et al.",
- #     simulationURL       => "https://www",
- #     hubbleConstant      => 0.7,
- #     massParticle        => 2.81981e5,
- #     countHaloMinimum    => 0,
- #     expansionFactors    => [ 1.00000 ],
- #     color               => "#f70bdf",
- #     plotModify          => \&zoomInsPlotModify
- # },
+ {
+     label               => "MilkyWay_WDM1",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 1keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#0ba0f7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_WDM5",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 5keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#0b65f7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_WDM10",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way WDM 10keV zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#0b23f7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_Axion22",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-22 eV axion zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#b00bf7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_Axion21",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-21 eV axion zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#d80bf7",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
+ {
+     label               => "MilkyWay_Axion20",
+     description         => "Halo mass function for non-backsplash z=0 halos from Milky Way 10^-20 eV axion zoom-in simulations.",
+     subpath             => "ZoomIns",
+     realizations        => [ "Halo416" ],
+     simulationReference => "Nadler et al.",
+     simulationURL       => "https://www",
+     hubbleConstant      => 0.7,
+     massParticle        => 2.81981e5,
+     countHaloMinimum    => 0,
+     expansionFactors    => [ 1.00000 ],
+     color               => "#f70bdf",
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
+ },
  {
      label               => "LMC",
      description         => "Halo mass function for non-backsplash z=0 halos from LMC zoom-in simulations.",
@@ -142,7 +149,8 @@ my @simulations =
      countHaloMinimum    => 0,
      expansionFactors    => [ 1.00000,   0.66503,   0.50239,   0.32987,   0.20064 ],
      color               => "#e6e6fa",
-     plotModify          => \&zoomInsPlotModify
+     plotModify          => \&zoomInsPlotModify,
+     validate            => \&zoomInsValidate
  },
  {
      label               => "VSMDPL",
@@ -248,7 +256,12 @@ foreach my $simulation ( @simulations ) {
 	foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 	    my $redshift      = 1.0/$expansionFactor-1.0;
 	    my $redshiftLabel = sprintf("z%5.3f",$redshift);
-	    
+
+	    # Validate parameters.
+	    my $parameters = $xml->XMLin($outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
+	    &{$simulation->{'validate'}}($simulation,$parameters,$realization,$expansionFactor)
+		if ( exists($simulation->{'validate'}) );
+
 	    # Generate a job.
 	    my $job;
 	    $job->{'command'   } =
@@ -289,17 +302,19 @@ foreach my $simulation ( @simulations ) {
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'mass'              } = $output          ->dataset('haloMass'                      )->get();
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'massFunction'      } = $output          ->dataset('haloMassFunctionLnM'           )->get();
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'massFunctionBinned'} = $output          ->dataset('haloMassFunctionLnMBinAveraged')->get();
-
+	    
 	    # Read the target dataset.
 	    my $target                                                                               = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5");
 	    my $targetSimulation                                                                     = $target          ->group  ('simulation0001'                )       ;
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'             } = $targetSimulation->dataset('mass'                          )->get();
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'     } = $targetSimulation->dataset('massFunction'                  )->get();
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'count'            } = $targetSimulation->dataset('count'                         )->get();	    
+
 	    # Construct the target dataset errors.
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError'}                    =       $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'}                            ->copy()     ;
 	    my $nonZeroTarget                                                                                           = which($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'count'       }                                     > 0);
 	    $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError'}->($nonZeroTarget) /=       $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'count'       }->double()->($nonZeroTarget)->sqrt()     ;
+
 	    # Interpolate mass function.
 	    ($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'massFunctionInterpolated'})  
 		= interpolate(
@@ -561,6 +576,171 @@ for(my $i=0;$i<=$iMax;++$i) {
 	}
     }
 
+    # Realization plots.
+    foreach my $simulation ( @simulations ) {
+	next
+	    unless ( scalar(@{$simulation->{'expansionFactors'}}) > $i );
+	next
+	    unless ( scalar(@{$simulation->{'realizations'    }}) > 1  );
+	# Skip if plot exists.
+	next
+	    if ( -e $outputDirectory."/haloMassFunctionRealizations_".$simulation->{'label'}."_".$redshiftLabel.".pdf" );
+	# If a custom plot modifier function is defined, call it.
+	my $plotOptions;
+	($plotOptions->{'title'   } = $simulation->{'label'}) =~ s/_/ /g;
+	$plotOptions ->{'xMinimum'} = 8.0e+06;
+	$plotOptions ->{'xMaximum'} = 1.0e+16;
+	$plotOptions ->{'yMinimum'} = 1.0e-09;
+	$plotOptions ->{'yMaximum'} = 1.0e+02;
+	$plotOptions ->{'xKey'    } = 0.475;
+	$plotOptions ->{'yKey'    } = 0.450;
+	&{$simulation->{'plotModify'}}($simulation,$plotOptions,undef(),$simulation->{'expansionFactors'}->[$i])
+	    if ( exists($simulation->{'plotModify'}) );
+	## Halo mass function.
+	my $plot;
+	my $gnuPlot;
+	my $plotFileTeX = $outputDirectory."/haloMassFunctionRealizations_".$simulation->{'label'}."_".$redshiftLabel.".tex";
+	open($gnuPlot,"|gnuplot");
+	print $gnuPlot "set terminal cairolatex pdf standalone color lw 2 size 4in,4in\n";
+	print $gnuPlot "set output '".$plotFileTeX."'\n";
+	print $gnuPlot "set xlabel '\$ M \$ [\$\\mathrm{M}_\\odot\$]'\n";
+	print $gnuPlot "set ylabel '\$ \\mathrm{d} n / \\mathrm{d} \\log M \$ [Mpc\$^{-3}\$]\n";
+	print $gnuPlot "set lmargin screen 0.15\n";
+	print $gnuPlot "set rmargin screen 0.95\n";
+	print $gnuPlot "set bmargin screen 0.15\n";
+	print $gnuPlot "set tmargin screen 0.95\n";
+	print $gnuPlot "set key spacing 1.2\n";
+	print $gnuPlot "set key at screen ".sprintf("%5.3f",$plotOptions->{'xKey'}).",".sprintf("%5.3f",$plotOptions->{'yKey'})."\n";
+	print $gnuPlot "set logscale x\n";
+	print $gnuPlot "set mxtics 10\n";
+	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+	print $gnuPlot "set xrange [".sprintf("%12.6e",$plotOptions->{'xMinimum'}).":".sprintf("%12.6e",$plotOptions->{'xMaximum'})."]\n";
+	print $gnuPlot "set yrange [0.0:2.0]\n";
+	print $gnuPlot "set pointsize 1.0\n";
+	my $massHaloMinimum = $simulation->{'massParticle'}*$countParticlesMinimum;
+	my $xLimit          = pdl [ $massHaloMinimum, $massHaloMinimum ];
+	my $yLimit          = pdl [ 0.0             , 2.0              ];
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
+	    \$plot                                                                                                  ,
+	    $xLimit                                                                                                 ,
+	    $yLimit                                                                                                 ,
+	    style        => "line"                                                                                  ,
+	    weight       => [1,1]                                                                                   ,
+	    linePattern  => 3                                                                                       ,
+	    color        => [$simulation->{'colorDark'},$simulation->{'color'}]
+	    );
+	# Iterate over realizations.
+	my $massFunctionTarget;
+	my $massFunctionTargetError;
+	my $massFunctionModel;
+	foreach my $realization ( @{$simulation->{'realizations'}} ) {
+	    my $realizationLabel = $realization eq "" ? "" : "_".$realization;
+	    my $countHalos =
+		(
+		 +$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'     }
+		 /$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError'}
+		)**2;
+	    my $selectConversion = which(
+		($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'        } > $massHaloMinimum)
+		&
+		($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'} > 0.0             )
+		);
+	    my $conversion = average($countHalos->($selectConversion)/$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'}->($selectConversion));
+	    my $countHalosModel = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'massFunctionInterpolated'}*$conversion;
+	    (my $selected, my $unselected) =
+		which(
+		    ($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'            } >  $massHaloMinimum)
+		    &
+		    ($simulation                                                      ->{'countHaloMinimum'} <= $countHalosModel)
+		);
+	    my $selectedModel =
+		which(
+		    ($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'mass'            } >  $massHaloMinimum)
+		);
+	    unless ( defined($massFunctionModel) ) {
+		$massFunctionTarget       = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'      }->($selected     )->copy()   ;
+		$massFunctionTargetError  = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError' }->($selected     )->copy()**2;
+		$massFunctionModel        = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunction'      }->($selectedModel)->copy()   ;
+	    } else {
+		$massFunctionTarget      += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'      }->($selected     )           ;
+		$massFunctionTargetError += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError' }->($selected     )        **2;
+		$massFunctionModel       += $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'massFunction'      }->($selectedModel)           ;
+	    }
+	}
+	$massFunctionTargetError .= $massFunctionTargetError->sqrt();
+	$massFunctionTarget      /= scalar(@{$simulation->{'realizations'}});
+	$massFunctionTargetError /= scalar(@{$simulation->{'realizations'}});
+	$massFunctionModel       /= scalar(@{$simulation->{'realizations'}});
+	# Iterate over realizations.
+	foreach my $realization ( @{$simulation->{'realizations'}} ) {
+	    my $redshiftLabelLocal   = sprintf("%5.3f",1.0/$simulation->{'expansionFactors'}->[$i]-1.0);
+	    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabelLocal.".hdf5");
+	    my $targetSimulation    = $target          ->group  ('simulation0001'   );
+	    (my $massRegion       ) = $targetSimulation->attrGet('massRegion'       );
+	    (my $overdensityRegion) = $targetSimulation->attrGet('overdensityRegion');
+	    my $realizationLabel = $realization eq "" ? "" : "_".$realization;
+	    my $countHalos =
+		(
+		 +$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'     }
+		 /$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunctionError'}
+		)**2;
+	    my $selectConversion = which(
+		($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'        } > $massHaloMinimum)
+		&
+		($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'} > 0.0             )
+		);
+	    my $conversion = average($countHalos->($selectConversion)/$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'}->($selectConversion));
+	    my $countHalosModel = $simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'massFunctionInterpolated'}*$conversion;
+	    (my $selected, my $unselected) =
+		which(
+		    ($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'            } >  $massHaloMinimum)
+		    &
+		    ($simulation                                                      ->{'countHaloMinimum'} <= $countHalosModel)
+		);
+	    my $selectedModel =
+		which(
+		    ($simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model' }->{'mass'            } >  $massHaloMinimum)
+		);
+	    my $overdensityLow  = -1.50;
+	    my $overdensityHigh = +1.10;
+	    my $fraction;
+	    if ( $overdensityRegion < $overdensityLow ) {
+		$fraction = 0.0;
+	    } elsif ( $overdensityRegion > $overdensityHigh ) {
+		$fraction = 1.0;
+	    } else {
+		$fraction = sclr(($overdensityRegion-$overdensityLow)/($overdensityHigh-$overdensityLow));
+	    }
+	    my @colorLowDensity  = ( 237.0, 0.83, 0.94 );
+	    my @colorHighDensity = (  13.0, 0.83, 0.94 ); 
+	    my $color = &GnuPlot::PrettyPlots::Color_Gradient($fraction,\@colorLowDensity,\@colorHighDensity);
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(
+		\$plot                                                                                                               ,
+		$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'mass'        }->($selected)                     ,
+		$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'target'}->{'massFunction'}->($selected)                     
+		/$massFunctionTarget,
+		style        => "line"                                                                                  ,
+		style        => "point"                                                                                              ,
+		weight       => [2,1]                                                                                                ,
+		symbol       => [6,6]                                                                                                ,
+		pointSize    => 0.5                                                                                                  ,
+		color        => [$color,$color]
+	    	);
+	    &GnuPlot::PrettyPlots::Prepare_Dataset(
+		\$plot                                                                                                  ,
+		$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'mass'        }->($selectedModel)    ,
+	 	$simulation->{$realizationLabel}->{'redshifts'}->[$i]->{'model'}->{'massFunction'}->($selectedModel)
+		/$massFunctionModel,
+		style        => "line"                                                                                  ,
+		weight       => [3,1]                                                                                   ,
+		color        => [$color,$color]
+		);
+	}
+	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	close($gnuPlot);
+	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+    }
+    
     unless ( -e $outputDirectory."/haloMassFunctionResidualsFractional_".$redshiftLabel.".pdf" ) {
 	## Halo mass function residuals, fractional.
 	my $plot;
@@ -775,11 +955,13 @@ sub zoomInsPlotModify {
     my $expansionFactor = shift();
     my $redshiftLabel   = sprintf("%5.3f",1.0/$expansionFactor-1.0);
     # Appending environment to title.
-    my $target                   = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabel.".hdf5");                                    
-    my $targetSimulation         = $target          ->group  ('simulation0001'        );                                                                                                                                  
-    (my $massEnvironment       ) = $targetSimulation->attrGet('massEnvironment'       );                                                                                                                                  
-    (my $overdensityEnvironment) = $targetSimulation->attrGet('overdensityEnvironment');
-    $plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$z = ".$redshiftLabel."; \\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massEnvironment),$overdensityEnvironment);
+    if ( defined($realization) ) {
+	my $target                   = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabel.".hdf5");                                    
+	my $targetSimulation         = $target          ->group  ('simulation0001'        );                                                                                                                                  
+	(my $massEnvironment       ) = $targetSimulation->attrGet('massEnvironment'       );                                                                                                                                  
+	(my $overdensityEnvironment) = $targetSimulation->attrGet('overdensityEnvironment');
+	$plotOptions->{'title'   } = "\\\\tiny ".$plotOptions->{'title'}.sprintf("; ".$realization."; \$z = ".$redshiftLabel."; \\\\log_{10}(M_\\\\mathrm{env}/\\\\mathrm{M}_\\\\odot)=%5.2f; \\\\delta_\\\\mathrm{env}=%+6.3f",log10($massEnvironment),$overdensityEnvironment);
+    }
     # Set plotting limits.
     $plotOptions->{'xMinimum'} = 8.0e+06;
     $plotOptions->{'xMaximum'} = 3.0e+12;
@@ -788,4 +970,32 @@ sub zoomInsPlotModify {
     # Set key location.
     $plotOptions->{'xKey'    } = 0.975;
     $plotOptions->{'yKey'    } = 0.900;
+}
+
+sub zoomInsValidate {
+    # Validate parameters for the halo mass function.
+    my $simulation      = shift();
+    my $parameters      = shift();
+    my $realization     = shift();
+    my $expansionFactor = shift();
+    my $redshiftLabel   = sprintf("%5.3f",1.0/$expansionFactor-1.0);
+    # Check environment properties match those in the halo mass function file
+    if ( defined($realization) ) {
+	my $target                   = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabel.".hdf5");
+	my $targetSimulation         = $target          ->group  ('simulation0001'        );                                                                                                                                  
+	(my $massEnvironment       ) = $targetSimulation->attrGet('massEnvironment'       );                                                                                                                                  
+	(my $overdensityEnvironment) = $targetSimulation->attrGet('overdensityEnvironment');
+	if ( abs($massEnvironment       -$parameters->{'haloEnvironment'}->{'massEnvironment'}->{'value'}) > 1.0e-3*$massEnvironment ) {
+	    print "environment mass in parameter file does not match that in halo mass function file for ".$simulation->{'label'}." ".$realization." z=".$redshiftLabel."\n";
+	    print "           parameter file: ".$parameters->{'haloEnvironment'}->{'massEnvironment'}->{'value'}."\n";
+	    print "  halo mass function file: ".                                   $massEnvironment             ."\n";
+	    exit 1;
+	}
+	if ( abs($overdensityEnvironment-$parameters->{'haloEnvironment'}->{'overdensity'    }->{'value'}) > 1.0e-3                  ) {
+	    print "environment overdensity in parameter file does not match that in halo mass function file for ".$simulation->{'label'}." ".$realization." z=".$redshiftLabel."\n";
+	    print "           parameter file: ".$parameters->{'haloEnvironment'}->{'overdensity'}->{'value'}."\n";
+	    print "  halo mass function file: ".                                   $overdensityEnvironment  ."\n";
+	    exit 1;
+	}
+    }
 }
