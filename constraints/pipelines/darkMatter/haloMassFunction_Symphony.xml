@@ -19,7 +19,8 @@
 
   <!-- Halo mass function -->
   <haloMassFunction value="errorConvolved">
-    <errorFractionalMaximum value="1.0"/>
+    <errorFractionalMaximum value="1.0e+0"/>
+    <toleranceRelative      value="1.0e-5"/>
     <haloMassFunction value="shethTormenPlus">
       <a             value="=[haloMassFunctionParameters::a]"            />
       <b             value="=[haloMassFunctionParameters::b]"            />
