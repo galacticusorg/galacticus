@@ -182,6 +182,7 @@ contains
     call node%destroy()
     deallocate(node)
     ! Initialize state.
+    self%specialCase          =specialCaseGeneral
     self%scaleRadiusPrevious  =-1.0d0
     self%normalizationPrevious=-1.0d0
     self%uniqueIDPrevious     =node%uniqueID()
