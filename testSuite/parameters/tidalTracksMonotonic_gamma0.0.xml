@@ -46,7 +46,7 @@
 
   <!-- Merger tree building options --> 
   <mergerTreeConstructor value="fullySpecified">
-    <fileName value="projects/tidalTracks/parameters/orbitTree.xml"/>
+    <fileName value="testSuite/parameters/tidalTracksTree.xml"/>
   </mergerTreeConstructor>
 
   <!-- Substructure hierarchy options -->
