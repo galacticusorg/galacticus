@@ -190,6 +190,10 @@ contains
     self%enclosedMassTruncateMaximumPrevious                       =-1.0d0
     self%radialVelocityDispersionTruncateMinimumPrevious           =-1.0d0
     self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious=-1.0d0
+    self%genericEnclosedMassRadiusMinimum                          =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum                          =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum              =+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum              =-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )

@@ -194,11 +194,15 @@ contains
     class(darkMatterProfileSIDMIsothermal), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
 
-    self%uniqueIDPrevious         =node%uniqueID()
-    self%genericLastUniqueID      =node%uniqueID()
-    self%uniqueIDPreviousSIDM     =node%uniqueID()
-    self%radiusInteractivePrevious=-1.0d0
-    self%velocityDispersionCentral=-1.0d0
+    self%uniqueIDPrevious                            =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%uniqueIDPreviousSIDM                        =node%uniqueID()
+    self%radiusInteractivePrevious                   =-1.0d0
+    self%velocityDispersionCentral                   =-1.0d0
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%densityProfile                         )) deallocate(self%densityProfile                         )
     if (allocated(self%massProfile                            )) deallocate(self%massProfile                            )
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
