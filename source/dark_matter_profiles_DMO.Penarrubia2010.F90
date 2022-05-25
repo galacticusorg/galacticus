@@ -331,7 +331,7 @@ contains
           ratioVelocityMaximumVelocityScale=self%ratioVelocityMaximumVelocityScaleStripped
        end if
        massScaleOriginal=self%darkMatterProfileUnstripped%enclosedMass(node,darkMatterProfile%scale())
-       massScale=+massScaleOriginal&
+       massScale=+massScaleOriginal                                                      &
             &    *self             %scaleRadius          (node                      )    &
             &    /darkmatterProfile%scale                (                          )    &
             &    *self             %ratioVelocityMaximumVelocityScaleUnstripped      **2 &
