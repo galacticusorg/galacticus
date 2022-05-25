@@ -171,15 +171,15 @@ contains
     return
   end subroutine tidalDestructor
 
-  double precision function tidalSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
+  double precision function tidalSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                                               :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
 
     call self%specificEnergyTerms(node,darkMatterProfileDMO_,radius,energyPerturbationFirstOrder,energyPerturbationSecondOrder)
@@ -188,7 +188,7 @@ contains
     return
   end function tidalSpecificEnergy
 
-  double precision function tidalSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
+  double precision function tidalSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
@@ -196,8 +196,8 @@ contains
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     double precision                                               :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
 
     

@@ -134,7 +134,7 @@ contains
     return
   end subroutine summationDestructor
 
-  double precision function summationSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
+  double precision function summationSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
@@ -151,22 +151,22 @@ contains
        summationSpecificEnergy=+summationSpecificEnergy                                     &
             &                  +heatSource%heatSource%specificEnergy(                       &
             &                                                        node                 , &
-            &                                                        darkMatterProfileDMO_, &
-            &                                                        radius                 &
+            &                                                        radius               , &
+            &                                                        darkMatterProfileDMO_  &
             &                                                       )
        heatSource => heatSource%next
     end do
     return
   end function summationSpecificEnergy
 
-  double precision function summationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
+  double precision function summationSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
     double precision                                   , intent(in   ) :: radius
     type            (heatSourceList                   ), pointer       :: heatSource
 
@@ -176,8 +176,8 @@ contains
        summationSpecificEnergyGradient=+summationSpecificEnergyGradient                                     &
             &                          +heatSource%heatSource%specificEnergyGradient(                       &
             &                                                                        node                 , &
-            &                                                                        darkMatterProfileDMO_, &
-            &                                                                        radius                 &
+            &                                                                        radius               , &
+            &                                                                        darkMatterProfileDMO_  &
             &                                                                       )
        heatSource => heatSource%next
     end do
