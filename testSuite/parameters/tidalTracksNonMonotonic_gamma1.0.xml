@@ -69,7 +69,8 @@
     </darkMatterProfileDMOSatellite>
   </darkMatterProfileDMO>
   <darkMatterProfileHeating     value="tidal"  >
-    <coefficientSecondOrder    value="+0.406"/>
+    <coefficientSecondOrder0   value="+0.406"/>
+    <coefficientSecondOrder1   value="+0.000"/>
     <correlationVelocityRadius value="-0.333"/>
   </darkMatterProfileHeating>
   <darkMatterProfileConcentration value="fixed" >
@@ -170,7 +171,7 @@
   </mergerTreeEvolveTimestep>
 
   <!-- Output options -->
-  <outputFileName value="testSuite/outputs/tidalTracks.hdf5"/>
+  <outputFileName value="testSuite/outputs/tidalTracksNonMonotonic_gamma1.0.hdf5"/>
   <hdf5UseLatestFormat value="true"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
@@ -181,6 +182,8 @@
     <countTimes  value="601" />
   </outputTimes>
   <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"          />
+    <nodePropertyExtractor value="time"                 />
     <nodePropertyExtractor value="velocityMaximum"      />
     <nodePropertyExtractor value="radiusVelocityMaximum"/>
   </nodePropertyExtractor>

@@ -208,11 +208,15 @@ contains
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
-    self%lastUniqueID              =node%uniqueID()
-    self%genericLastUniqueID       =node%uniqueID()
-    self%lengthResolutionPrevious  =-huge(0.0d0)
-    self%enclosedMassPrevious      =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious=-huge(0.0d0)
+    self%lastUniqueID                                =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%lengthResolutionPrevious                    =-huge(0.0d0)
+    self%enclosedMassPrevious                        =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious                  =-huge(0.0d0)
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )

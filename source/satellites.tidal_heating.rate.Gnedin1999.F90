@@ -177,7 +177,7 @@ contains
     radius                    =  Vector_Magnitude                   (position)
     speed                     =  Vector_Magnitude                   (velocity)
     ! Find the universal dark matter fraction.
-    fractionDarkMatter        =  +(                                        &
+    fractionDarkMatter        =  +(                                         &
          &                         +self%cosmologyParameters_%OmegaMatter() &
          &                         -self%cosmologyParameters_%OmegaBaryon() &
          &                        )                                         &
@@ -186,11 +186,16 @@ contains
     tidalTensor              =  self%galacticStructure_%tidalTensor(nodeHost,position)
     ! Find the orbital frequency at the half mass radius of the satellite.
     basic                    => node%basic()
-    massHalfSatellite        =  +0.50d0             &
-         &                      *fractionDarkMatter &
-         &                      *min(               &
-         &                           massSatellite, &
-         &                           basic%mass()   &
+    massHalfSatellite        =  +0.50d0                                                                                                 &
+         &                      *min(                                                                                                   &
+         &                           +                        fractionDarkMatter                                                        &
+         &                           *                        massSatellite                                                           , &
+         &                           +self%galacticStructure_%massEnclosed (                                                            &
+         &                                                                                                                       node , &
+         &                                                                  radius       =self%darkMatterHaloScale_%radiusVirial(node), &
+         &                                                                  componentType=componentTypeAll                            , &
+         &                                                                  massType     =massTypeDark                                  &
+         &                                                                 )                                                            &
          &                      )
     radiusHalfMassSatellite  =  self%galacticStructure_%radiusEnclosingMass(                                            &
          &                                                                   node                                     , &

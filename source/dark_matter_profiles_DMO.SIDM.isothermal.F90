@@ -225,15 +225,19 @@ contains
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
 
-    self%uniqueIDPrevious             =node%uniqueID()
-    self%genericLastUniqueID          =node%uniqueID()
-    self%uniqueIDPreviousSIDM         =node%uniqueID()
-    self%velocityDispersionCentral    =-1.0d0
-    self%radiusInteractivePrevious    =-1.0d0
-    self%radiusInteraction_           =-1.0d0
-    self%densityInteraction           =-1.0d0
-    self%massInteraction              =-1.0d0
-    self%velocityDispersionInteraction=-1.0d0
+    self%uniqueIDPrevious                            =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%uniqueIDPreviousSIDM                        =node%uniqueID()
+    self%velocityDispersionCentral                   =-1.0d0
+    self%radiusInteractivePrevious                   =-1.0d0
+    self%radiusInteraction_                          =-1.0d0
+    self%densityInteraction                          =-1.0d0
+    self%massInteraction                             =-1.0d0
+    self%velocityDispersionInteraction               =-1.0d0
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )

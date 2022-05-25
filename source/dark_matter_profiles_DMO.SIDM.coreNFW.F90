@@ -188,9 +188,13 @@ contains
     class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
 
-    self%genericLastUniqueID      =node%uniqueID()
-    self%uniqueIDPreviousSIDM     =node%uniqueID()
-    self%radiusInteractivePrevious=-1.0d0
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%uniqueIDPreviousSIDM                        =node%uniqueID()
+    self%radiusInteractivePrevious                   =-1.0d0
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -221,23 +225,43 @@ contains
     class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
-    double precision                                                 :: radiusCore
+    double precision                                 , parameter     :: radiusFractionalLarge=10.0d0
+    double precision                                                 :: radiusFractional            , radiusCore
 
-    radiusCore        =+self%radiusCore(node)
-    sidmCoreNFWDensity=+self%darkMatterProfileDMO_%density(node,radius)      &
-         &             *tanh(                                                &
-         &                   +radius                                         &
-         &                   /radiusCore                                     &
-         &                  )                                                &
-         &             +self%darkMatterProfileDMO_%enclosedMass(node,radius) &
-         &             /4.0d0                                                &
-         &             /Pi                                                   &
-         &             /      radius     **2                                 &
-         &             /      radiusCore                                     &
-         &             /cosh(                                                &
-         &                   +radius                                         &
-         &                   /radiusCore                                     &
-         &             )**2
+    radiusCore      =+self%radiusCore(node)
+    radiusFractional=+     radius           &
+         &            /    radiusCore
+    if (radiusFractional < radiusFractionalLarge) then
+       ! Use the full solution for sufficiently small radii.
+       sidmCoreNFWDensity=+self%darkMatterProfileDMO_%density(node,radius)      &
+            &             *tanh(                                                &
+            &                   +radiusFractional                               &
+            &                  )                                                &
+            &             +self%darkMatterProfileDMO_%enclosedMass(node,radius) &
+            &             /4.0d0                                                &
+            &             /Pi                                                   &
+            &             /      radiusFractional**2                            &
+            &             /      radiusCore      **3                            &
+            &             /cosh(                                                &
+            &                   +radiusFractional                               &
+            &             )**2
+    else
+       ! For large fractional radii avoid floating point overflow by approximating cosh(x) ~ 1/2/exp(-x).
+       sidmCoreNFWDensity=+self%darkMatterProfileDMO_%density(node,radius)      &
+            &             *tanh(                                                &
+            &                   +radiusFractional                               &
+            &                  )                                                &
+            &             +self%darkMatterProfileDMO_%enclosedMass(node,radius) &
+            &             /4.0d0                                                &
+            &             /Pi                                                   &
+            &             /      radiusFractional**2                            &
+            &             /      radiusCore      **3                            &
+            &             *4.0d0                                                &
+            &             *exp(                                                 &
+            &                  -2.0d0                                           &
+            &                  * radiusFractional                               &
+            &                 )
+    end if
     return
   end function sidmCoreNFWDensity
 
