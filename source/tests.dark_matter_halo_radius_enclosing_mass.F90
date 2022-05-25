@@ -132,15 +132,15 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
    </constructor>
   </referenceConstruct>  
   !!]
-  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (velocityDispersionUseSeriesExpansion,                                                                                             darkMatterHaloScale_ )
-  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                                  darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                    &
-       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_,darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,alpha                          ,beta                               ,gamma                   ,                       &
-       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_,darkMatterHaloScale_ )
-  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,correlationVelocityRadius                                                                                         )
-  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,darkMatterProfileDMONFW_,darkMatterHaloScale_,  &
-       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                         )
+  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (velocityDispersionUseSeriesExpansion,                                                                                              darkMatterHaloScale_ )
+  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                                   darkMatterHaloScale_ )
+  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                     &
+       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
+  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,alpha                          ,beta                               ,gamma                    ,                       &
+       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
+  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder             ,correlationVelocityRadius                      )
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,darkMatterProfileDMONFW_ ,darkMatterHaloScale_,  &
+       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
   satellite => node%satellite             (autoCreate=.true.)
