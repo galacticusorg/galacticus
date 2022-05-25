@@ -328,12 +328,16 @@ contains
     type (treeNode                            ), intent(inout) :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID              =node%uniqueID()
-    self%genericLastUniqueID       =node%uniqueID()
-    self%radiusPreviousIndex       = 0
-    self%radiusPreviousIndexMaximum= 0
-    self%radiusPrevious            =-1.0d0
-    self%massesComputed            =.false.
+    self%lastUniqueID                                =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%radiusPreviousIndex                         = 0
+    self%radiusPreviousIndexMaximum                  = 0
+    self%radiusPrevious                              =-1.0d0
+    self%massesComputed                              =.false.
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -728,9 +732,9 @@ contains
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    integer                                                               :: i               , j, &
+    integer                                                               :: i               , j           , &
          &                                                                   iMod
-    double precision                                                      :: radiusUpperBound
+    double precision                                                      :: radiusUpperBound, massEnclosed
 
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -782,14 +786,19 @@ contains
        ! approximation. Furthermore, since it will underestimate the actual mass within the initial mean radius it gives
        ! an overestimate of the initial radius. This means that we have a bracketing of the initial radius which we can
        ! use in the solver.
-       radiusUpperBound   =  +(                                                                                        &
-            &                  +self%baryonicFinalTerm                                                                 &
-            &                  /self%darkMatterProfileDMO_%enclosedMass(node,self%radiusOrbitalMean(self%radiusFinal)) &
-            &                  +self%darkMatterDistributedFraction                                                     &
-            &                  *self%radiusFinal                                                                       &
-            &                 )                                                                                        &
-            &                /  self%initialMassFraction
-       if (radiusUpperBound < radius) radiusUpperBound=radius
+       massEnclosed=+self%darkMatterProfileDMO_%enclosedMass(node,self%radiusOrbitalMean(self%radiusFinal))
+       if (massEnclosed > 0.0d0) then
+          radiusUpperBound=+(                                    &
+               &             +self%baryonicFinalTerm             &
+               &             /     massEnclosed                  &
+               &             +self%darkMatterDistributedFraction &
+               &             *self%radiusFinal                   &
+               &            )                                    &
+               &           /  self%initialMassFraction
+          if (radiusUpperBound < radius) radiusUpperBound=radius
+       else
+          radiusUpperBound=radius
+       end if
        call self%finder%rangeExpand(                                                             &
             &                       rangeExpandUpward            =1.1d0                        , &
             &                       rangeExpandDownward          =0.9d0                        , &
