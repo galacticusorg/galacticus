@@ -34,7 +34,7 @@ my @testCases =
      {
       	 label     => "monotonic",
       	 gamma     => 0.000      ,
-	 fitMetric => 0.021
+	 fitMetric => 0.025
      }
     );
 foreach my $testCase ( @testCases ) {
