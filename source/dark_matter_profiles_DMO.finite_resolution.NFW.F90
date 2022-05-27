@@ -737,7 +737,13 @@ contains
           iRadiusCore_=iRadiusCore
           do iMass=1,self%radiusEnclosingMassTableMassCount
              iMass_=iMass
-             self%radiusEnclosingMassTable(iMass,iRadiusCore)=finder%find(rootGuess=1.0d0)
+             ! Check that the root condition is satisfied at infinitely large radius. If it is not, then no radius encloses the
+             ! required mass. Simply set the radius to an infinitely large value in such case.
+             if (rootMass(radius=huge(0.0d0)) < 0.0d0) then
+                self%radiusEnclosingMassTable(iMass,iRadiusCore)=huge(0.0d0)
+             else
+                self%radiusEnclosingMassTable(iMass,iRadiusCore)=finder%find(rootGuess=1.0d0)
+             end if
           end do
        end do
        ! Build interpolators.
@@ -975,9 +981,11 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
-    double precision                                         , intent(in   ) :: radiusScaleFree                , lengthResolutionScaleFree
-    double precision                                         , parameter     :: radiusScaleFreeSmall    =1.0d-3, radiusScaleFreeLarge     =1.0d4
-    double precision                                                         :: radiusScaleFreeEffective
+    double precision                                         , intent(in   ) :: radiusScaleFree                 , lengthResolutionScaleFree
+    double precision                                         , parameter     :: radiusScaleFreeSmall     =1.0d-3, radiusScaleFreeLarge     =1.0d4, &
+         &                                                                      radiusScaleFreeLargeATanh=1.0d+6
+    double precision                                                         :: radiusScaleFreeEffective        , arctanhTerm                    , &
+         &                                                                      arctanhTerm1
     
     if (lengthResolutionScaleFree /= self%lengthResolutionScaleFreePrevious) then
        self%lengthResolutionScaleFreePrevious             =lengthResolutionScaleFree
@@ -988,13 +996,30 @@ contains
        self%lengthResolutionScaleFreePreviousSqrtTerm     =sqrt(self%lengthResolutionScaleFreePreviousOnePlusTerm )
        self%lengthResolutionScaleFreePreviousSqrt2Term    =sqrt(self%lengthResolutionScaleFreePreviousOnePlus2Term)
        self%lengthResolutionScaleFreePreviousSqrtCubedTerm=self%lengthResolutionScaleFreePreviousSqrtTerm**3
+       ! For large values of the argument to arctanh(), use a series solution to avoiding floating point errors.
+       if (lengthResolutionScaleFree > radiusScaleFreeLargeATanh) then
+          arctanhTerm=-log(                           &
+               &           +2.0d0                     &
+               &           *lengthResolutionScaleFree &
+               &          )                           &
+               &      /2.0d0                          &
+               &      +1.0d0                          &
+               &      /2.0d0                          &
+               &      /lengthResolutionScaleFree      &
+               &      +1.0d0                          &
+               &      /8.0d0                          &
+               &      /lengthResolutionScaleFree**2
+       else
+          arctanhTerm=+atanh(                                                &
+               &             +(+1.0d0-lengthResolutionScaleFree)             &
+               &             /self%lengthResolutionScaleFreePreviousSqrtTerm &
+               &            ) 
+       end if
        self%lengthResolutionScaleFreePreviousLowerTerm    =+            lengthResolutionScaleFree                      &
             &                                              /       self%lengthResolutionScaleFreePreviousOnePlusTerm   &
-            &                                              -       self%lengthResolutionScaleFreePreviousOnePlus2Term  &
-            &                                              *atanh(                                                     &
-            &                                                     +     lengthResolutionScaleFree                      &
-            &                                                     /self%lengthResolutionScaleFreePreviousSqrtTerm      &
-            &                                                    )                                                     &
+            &                                              +       2.0d0                                               &
+            &                                              *       self%lengthResolutionScaleFreePreviousOnePlus2Term  &
+            &                                              *       arctanhTerm                                         &
             &                                              /       self%lengthResolutionScaleFreePreviousSqrtCubedTerm
     end if
     if (radiusScaleFree < radiusScaleFreeSmall) then
@@ -1012,25 +1037,40 @@ contains
     else
        ! Full analytic solution.
        !! Limit the evaluation to some large radius.
-       radiusScaleFreeEffective                =min(radiusScaleFree,radiusScaleFreeLarge)
-       finiteResolutionNFWMassEnclosedScaleFree=+(                                                                                                      &
-            &                                     -       sqrt (      +radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePreviousSquared      ) &
-            &                                     /            (+1.0d0+radiusScaleFreeEffective                                                       ) &
-            &                                     /                                                self%lengthResolutionScaleFreePreviousOnePlusTerm    &
-            &                                     +atanh(                                                                                               &
-            &                                                         +radiusScaleFreeEffective                                                         &
-            &                                            /sqrt(       +radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePreviousSquared      ) &
-            &                                           )                                                                                               &
-            &                                     +                                                self%lengthResolutionScaleFreePreviousOnePlus2Term   &
-            &                                     *atanh(                                                                                               &
-            &                                                 (       -radiusScaleFreeEffective   +self%lengthResolutionScaleFreePreviousSquared      ) &
-            &                                            /                                         self%lengthResolutionScaleFreePreviousSqrtTerm       &
-            &                                            /sqrt(       +radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePreviousSquared      ) &
-            &                                           )                                                                                               &
-            &                                     /                                                self%lengthResolutionScaleFreePreviousSqrtCubedTerm  &
-            &                                     +                                                self%lengthResolutionScaleFreePreviousLowerTerm      &
-            &                                    )
-       !! Beyond the limiting radius assume logarithmic growth in mass as appropriate or an r⁻³ profile.
+       radiusScaleFreeEffective=min(radiusScaleFree,radiusScaleFreeLarge)
+       if (radiusScaleFreeEffective > radiusScaleFreeLargeATanh*self%lengthResolutionScaleFreePrevious) then
+          arctanhTerm1=+log  (                                               &
+               &              +4.0d0                                         &
+               &              *      radiusScaleFreeEffective**2             &
+               &              /self%lengthResolutionScaleFreePreviousSquared &
+               &             )                                               &
+               &       /2.0d0                                                &
+               &       -self%lengthResolutionScaleFreePreviousSquared        &
+               &       /8.0d0                                                &
+               &       /     radiusScaleFreeEffective**2
+       else
+          arctanhTerm1=+atanh(                                                                                  &
+            &                       +radiusScaleFreeEffective                                                   &
+            &                 /sqrt(+radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePreviousSquared) &
+            &                )
+       end if
+       finiteResolutionNFWMassEnclosedScaleFree=-         sqrt(+radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePrevious**2) &
+            &                                   /(+1.0d0+radiusScaleFreeEffective)                                                     &
+            &                                   /self%lengthResolutionScaleFreePreviousOnePlusTerm                                     &
+            &                                   -2.0d0                                                                                 &
+            &                                   *self%lengthResolutionScaleFreePreviousOnePlus2Term                                    &
+            &                                   *atanh(                                                                                &
+            &                                          +(                                                                              &
+            &                                            +1.0d0                                                                        &
+            &                                            +radiusScaleFreeEffective                                                     &
+            &                                            -sqrt(+radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePrevious**2) &
+            &                                           )                                                                              &
+            &                                          /self%lengthResolutionScaleFreePreviousSqrtTerm                                 &
+            &                                         )                                                                                &
+            &                                   /self%lengthResolutionScaleFreePreviousSqrtCubedTerm                                   &
+            &                                   +arctanhTerm1                                                                          &
+            &                                   +self%lengthResolutionScaleFreePreviousLowerTerm
+       !! Beyond the limiting radius assume logarithmic growth in mass as appropriate for an r⁻³ profile.
        if (radiusScaleFree > radiusScaleFreeEffective)                                           &
             & finiteResolutionNFWMassEnclosedScaleFree=+finiteResolutionNFWMassEnclosedScaleFree &
             &                                          *log(                                     &
@@ -1379,9 +1419,9 @@ contains
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,readOnly=.false.)
+    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%velocityDispersionRadialTableRadiusCore,'radiusCore'        )
     call file%writeDataset(self%velocityDispersionRadialTableRadius    ,'radius'            )
     call file%writeDataset(self%velocityDispersionRadialTable          ,'velocityDispersion')
@@ -1469,9 +1509,9 @@ contains
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,readOnly=.false.)
+    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%radiusEnclosingDensityTableRadiusCore,'radiusCore')
     call file%writeDataset(self%radiusEnclosingDensityTableDensity   ,'density'   )
     call file%writeDataset(self%radiusEnclosingDensityTable          ,'radius'    )
@@ -1559,9 +1599,9 @@ contains
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,readOnly=.false.)
+    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%radiusEnclosingMassTableRadiusCore,'radiusCore')
     call file%writeDataset(self%radiusEnclosingMassTableMass      ,'mass'      )
     call file%writeDataset(self%radiusEnclosingMassTable          ,'radius'    )
@@ -1649,9 +1689,9 @@ contains
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,readOnly=.false.)
+    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%energyTableRadiusCore   ,'radiusCore'   )
     call file%writeDataset(self%energyTableConcentration,'concentration')
     call file%writeDataset(self%energyTable             ,'energy'       )
