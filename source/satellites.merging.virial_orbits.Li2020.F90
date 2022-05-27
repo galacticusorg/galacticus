@@ -313,6 +313,13 @@ contains
     !![
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
+    ! Handle cases of zero mass.
+    if (massHost <= 0.0d0 .or. massSatellite <= 0.0d0) then
+       massHost      =basicHost                     %mass          (    )
+       massSatellite =basic                         %mass          (    )
+       radiusHostSelf=self     %darkMatterHaloScale_%radiusVirial  (host)
+       velocityHost  =self     %darkMatterHaloScale_%velocityVirial(host)
+    end if
     ! Select an orbit.
     foundOrbit=.false.
     attempts  =0
