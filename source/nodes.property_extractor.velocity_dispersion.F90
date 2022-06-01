@@ -315,7 +315,7 @@ contains
              velocityDispersionWeightBy           =  self%radii(i)%integralWeightBy
              velocityDispersionWeightIndex        =  self%radii(i)%integralWeightByIndex
              velocityDispersionRadiusImpact       =  radius
-             velocityDispersionExtract      (i,i) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
+             velocityDispersionExtract      (i,1) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
           case (directionLineOfSightInteriorAverage)
              ! Average over the line-of-sight velocity dispersion within the radius.
              velocityDispersionSelf          => self
