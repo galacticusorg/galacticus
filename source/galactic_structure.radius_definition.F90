@@ -113,15 +113,15 @@ contains
        call String_Split_Words(radiusDefinition,char(descriptors(i)),':',bracketing="{}")
        ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction.
        valueDefinition=radiusDefinition(1)
-       if (extract(valueDefinition,1,21) == 'galacticLightFraction') then
+       if (extract(valueDefinition,1,22) == 'galacticLightFraction{') then
           call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
           radiusDefinition(1)='galacticLightFraction'
        end if
-       if (extract(valueDefinition,1,20) == 'galacticMassFraction' ) then
+       if (extract(valueDefinition,1,21) == 'galacticMassFraction{' ) then
           call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
           radiusDefinition(1)='galacticMassFraction'
        end if
-       if (extract(valueDefinition,1,19) == 'stellarMassFraction'  ) then
+       if (extract(valueDefinition,1,20) == 'stellarMassFraction{'  ) then
           call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
           radiusDefinition(1)='stellarMassFraction'
        end if
