@@ -305,7 +305,7 @@ double precision :: perturbation
     end where
     ! Build the final profile interpolator.
     if (allocated(self%massProfile)) deallocate(self%massProfile)
-    self%isBound=any(isBound(1:countRadii))
+    self%isBound=count(isBound) > 2
     if (self%isBound) then
        allocate(self%massProfile)
        self%massProfile=interpolator(                                                        &
