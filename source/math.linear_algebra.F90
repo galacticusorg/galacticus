@@ -28,9 +28,9 @@ module Linear_Algebra
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_double, c_size_t, c_int
   implicit none
   private
-  public :: vector        , matrix       , matrixRotation, matrixRotationPlusTranslation, &
-       &    matrixLU      , assignment(=), operator(*)   , gsl_vector_get               , &
-       &    gsl_vector_set, gsl_vector_free
+  public :: vector        , matrix         , matrixRotation      , matrixRotationPlusTranslation, &
+       &    matrixLU      , assignment(=)  , operator(*)         , gsl_vector_get               , &
+       &    gsl_vector_set, gsl_vector_free, matrixRotationRandom
 
   type, public :: vector
      !!{
@@ -42,12 +42,12 @@ module Linear_Algebra
    contains
      !![
      <methods>
-       <method description="Compute the magnitude of a vector." method="magnitude" />
-       <method description="Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}." method="operator(.dot.)" />
-       <method description="Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}." method="operator(-)" />
-       <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}." method="operator(+)" />
-       <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)" />
-       <method description="Return a C pointer to the GSL vector object." method="gslObject" />
+       <method description="Compute the magnitude of a vector."                                                method="magnitude"        />
+       <method description="Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}."  method="operator(.dot.)"  />
+       <method description="Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}."          method="operator(-)"      />
+       <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}."          method="operator(+)"      />
+       <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)"/>
+       <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
      </methods>
      !!]
      final     ::                        vectorDestructorRank0, vectorDestructorRank1
@@ -83,21 +83,24 @@ module Linear_Algebra
    contains
      !![
      <methods>
-       <method description="Compute the product of two matrices." method="operator(*)" />
-       <method description="Compute and return the determinant of the matrix." method="determinant" />
-       <method description="Compute and return the logarithm of the determinant of the matrix." method="logarithmicDeterminant" />
-       <method description="Compute and return the sign of the determinant of the matrix." method="signDeterminant" />
-       <method description="Compute and return the matrix inverse." method="inverse" />
-       <method description="Return the transpose of a matrix." method="transpose" />
-       <method description="Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct" />
-       <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector." method="linearSystemSolve" />
-       <method description="Compute eigenvectors and eigenvalues of the matrix." method="eigenSystem" />
-       <method description="Compute the Cholesky decomposition of the matrix in place." method="choleskyDecomposition" />
+       <method description="Compute the product of two matrices."                                                              method="operator(*)"           />
+       <method description="Compute the sum of two matrices."                                                                  method="operator(+)"           />
+       <method description="Compute and return the determinant of the matrix."                                                 method="determinant"           />
+       <method description="Compute and return the logarithm of the determinant of the matrix."                                method="logarithmicDeterminant"/>
+       <method description="Compute and return the sign of the determinant of the matrix."                                     method="signDeterminant"       />
+       <method description="Compute and return the matrix inverse."                                                            method="inverse"               />
+       <method description="Return the transpose of a matrix."                                                                 method="transpose"             />
+       <method description="Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct"     />
+       <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector."     method="linearSystemSolve"     />
+       <method description="Compute eigenvectors and eigenvalues of the matrix."                                               method="eigenSystem"           />
+       <method description="Compute the Cholesky decomposition of the matrix in place."                                        method="choleskyDecomposition" />
      </methods>
      !!]
      final     ::                           matrixDestructorRank0       , matrixDestructorRank1
      procedure ::                           matrixMatrixProduct
+     procedure ::                           matrixMatrixAdd
      generic   :: operator(*)            => matrixMatrixProduct
+     generic   :: operator(+)            => matrixMatrixAdd
      procedure :: determinant            => matrixDeterminant
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
      procedure :: signDeterminant        => matrixSignDeterminant
@@ -154,6 +157,7 @@ module Linear_Algebra
   ! Operator interfaces.
   interface operator(*)
      module procedure matrixVectorMultiply
+     module procedure matrixScalarMultiply
   end interface operator(*)
   
   interface
@@ -308,6 +312,25 @@ module Linear_Algebra
        import c_ptr, c_size_t
        type(c_ptr), value :: p
      end subroutine gsl_permutation_free
+
+     function gsl_matrix_scale(a,x) bind(c,name='gsl_matrix_scale')
+       !!{
+       Template for the GSL matrix scale function.
+       !!}
+       import c_ptr, c_int, c_double
+       integer(c_int   )        :: gsl_matrix_scale
+       type   (c_ptr   ), value :: a
+       real   (c_double), value :: x
+     end function gsl_matrix_scale
+
+     function gsl_matrix_add(a,b) bind(c,name='gsl_matrix_add')
+       !!{
+       Template for the GSL matrix addition function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_matrix_add
+       type   (c_ptr), value :: a             , b
+     end function gsl_matrix_add
 
      function gsl_linalg_LU_decomp(A,p,signum) bind(c,name='gsl_linalg_LU_decomp')
        !!{
@@ -795,6 +818,24 @@ contains
     return
   end function matrixMatrixProduct
   
+  function matrixMatrixAdd(matrix1,matrix2)
+    !!{
+    Sum two matrices, returning a matrix.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (matrix)                :: matrixMatrixAdd
+    class  (matrix), intent(in   ) :: matrix1        , matrix2
+    integer(c_int )                :: status
+
+    if (any(matrix1%size_ /= matrix2%size_)) call Error_Report('matrices can not be summed'//{introspection:location})
+    matrixMatrixAdd=matrix(matrix1)
+    status         =gsl_matrix_add(matrixMatrixAdd%matrix_,matrix2%matrix_)
+    if (status /= GSL_Success) call Error_Report('matrix-matrix summation failed'//{introspection:location})
+    return
+  end function matrixMatrixAdd
+  
   double precision function matrixDeterminant(self)
     !!{
     Compute the determinant of a matrix.
@@ -902,6 +943,26 @@ contains
     call gsl_permutation_free(permutation)
     return
   end function matrixInverse
+
+  !! Scalar-matrix functions.
+  
+  function matrixScalarMultiply(matrix_,scalar_)
+    !!{
+    Multiply a matrix by a scalar, returning a scalar.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type            (matrix)                :: matrixScalarMultiply
+    class           (matrix), intent(in   ) :: matrix_
+    double precision        , intent(in   ) :: scalar_
+    integer         (c_int )                :: status
+
+    matrixScalarMultiply=matrix(matrix_)
+    status              =gsl_matrix_scale(matrixScalarMultiply%matrix_,scalar_)
+    if (status /= GSL_Success) call Error_Report('matrix-scalar multiply failed'//{introspection:location})
+    return
+  end function matrixScalarMultiply
 
   !! Vector-matrix functions.
   
@@ -1145,6 +1206,46 @@ contains
   end subroutine matrixLUUnassignment
   
   !! Geometrical transformations.
+
+  function matrixRotationRandom(randomNumberGenerator_)
+    !!{
+    Generate a random 3-D rotation matrix. ``Random'' here means that the distribution is invariant when composed with an
+    arbitrary rotation (see \href{https://en.wikipedia.org/wiki/Rotation_matrix#Uniform_random_rotation_matrices}{here} for
+    further details).
+    !!}
+    use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    type            (matrix                    )                 :: matrixRotationRandom
+    class           (randomNumberGeneratorClass), intent(inout)  :: randomNumberGenerator_
+    double precision                            , dimension(3,3) :: matrixComponents
+    double precision                                             :: theta                 , phi   , &
+         &                                                          psi                   , x     , &
+         &                                                          y                     , z     , &
+         &                                                          cosPsi                , sinPsi, &
+         &                                                          mcosPsi
+    
+    theta  =+acos(+2.0d0   *randomNumberGenerator_%uniformSample()-1.0d0)
+    phi    =      +2.0d0*Pi*randomNumberGenerator_%uniformSample()
+    psi    =      +2.0d0*Pi*randomNumberGenerator_%uniformSample()
+    x      =+sin(theta)*cos(phi)
+    y      =+sin(theta)*sin(phi)
+    z      =+cos(theta)
+    cosPsi =+cos(psi)
+    sinPsi =+sin(psi)
+    mcosPsi=+1.0d0  &
+         &  -cosPsi
+    matrixComponents=reshape(                                                                    &
+         &                   [                                                                   &
+         &                    +x*x*mcosPsi+  cosPsi,+x*y*mcosPsi-z*sinPsi,+x*z*mcosPsi+y*sinPsi, &
+         &                    +y*x*mcosPsi+z*sinPsi,+y*y*mcosPsi+  cosPsi,+y*z*mcosPsi-x*sinPsi, &
+         &                    +z*x*mcosPsi-y*sinPsi,+z*y*mcosPsi+x*sinPsi,+z*z*mcosPsi+  cosPsi  &
+         &                   ]                                                                 , &
+         &                   [3,3]                                                               &
+         &                  )
+    matrixRotationRandom=matrix(matrixComponents)
+    return
+  end function matrixRotationRandom
   
   function matrixRotation(points,pointsRotated)
     !!{
