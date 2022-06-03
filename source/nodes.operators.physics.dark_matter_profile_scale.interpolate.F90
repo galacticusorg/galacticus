@@ -21,8 +21,6 @@
   Implements a node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
   !!}
 
-  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
-  
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileScaleInterpolate">
    <description>
@@ -39,10 +37,8 @@
      A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
      !!}
      private
-     class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
-     integer                                           :: scaleGrowthRateID
+     integer :: scaleGrowthRateID
    contains
-     final     ::                                        dmpScaleInterpolateConstructorDestructor
      procedure :: nodeInitialize                      => dmpScaleInterpolateNodeInitialize
      procedure :: nodePromote                         => dmpScaleInterpolateNodePromote
      procedure :: differentialEvolutionAnalytics      => dmpScaleInterpolateDifferentialEvolutionAnalytics
@@ -65,50 +61,28 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorDarkMatterProfileScaleInterpolate)                :: self
-    type (inputParameters                              ), intent(inout) :: parameters
-    class(darkMatterProfileScaleRadiusClass            ), pointer       :: darkMatterProfileScaleRadius_
+    type(nodeOperatorDarkMatterProfileScaleInterpolate)                :: self
+    type(inputParameters                              ), intent(inout) :: parameters
 
-    !![
-    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    !!]
-    self=nodeOperatorDarkMatterProfileScaleInterpolate(darkMatterProfileScaleRadius_)
+    self=nodeOperatorDarkMatterProfileScaleInterpolate()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileScaleRadius_"/>
     !!]
     return
   end function dmpScaleInterpolateConstructorParameters
 
-  function dmpScaleInterpolateConstructorInternal(darkMatterProfileScaleRadius_) result(self)
+  function dmpScaleInterpolateConstructorInternal() result(self)
     !!{
     Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
     !!}
     implicit none
-    type (nodeOperatorDarkMatterProfileScaleInterpolate)                        :: self
-    class(darkMatterProfileScaleRadiusClass            ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    !![
-    <constructorAssign variables="*darkMatterProfileScaleRadius_"/>
-    !!]
+    type (nodeOperatorDarkMatterProfileScaleInterpolate) :: self
 
     !![
     <addMetaProperty component="darkMatterProfile" name="scaleGrowthRate" id="self%scaleGrowthRateID" isEvolvable="no" isCreator="yes"/>
     !!]
     return
   end function dmpScaleInterpolateConstructorInternal
-
-  subroutine dmpScaleInterpolateConstructorDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} dark matter halo profile scale radius class.
-    !!}
-    implicit none
-    type(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout) :: self
-
-    !![
-    <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
-    !!]
-    return
-  end subroutine dmpScaleInterpolateConstructorDestructor
 
   subroutine dmpScaleInterpolateNodeInitialize(self,node)
     !!{
