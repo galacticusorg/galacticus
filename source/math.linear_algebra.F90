@@ -1210,7 +1210,7 @@ contains
   function matrixRotationRandom(randomNumberGenerator_)
     !!{
     Generate a random 3-D rotation matrix. ``Random'' here means that the distribution is invariant when composed with an
-    arbitrary rotation (see \href{https://en.wikipedia.org/wiki/Rotation_matrix#Uniform_random_rotation_matrices}{here} for
+    arbitrary rotation (see \href{https://en.wikipedia.org/wiki/Rotation_matrix\#Uniform_random_rotation_matrices}{here} for
     further details).
     !!}
     use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
