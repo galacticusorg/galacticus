@@ -65,7 +65,7 @@
      double precision                                             :: radiusInitialMinimum               , radiusInitialMaximum, &
           &                                                          radiusFinalMinimum                 , radiusFinalMaximum
      type            (interpolator                 ), allocatable :: massProfile
-     logical                                                      :: isBound                            , outerRadiusReached
+     logical                                                      :: isBound
    contains
      !![
      <methods>
@@ -165,7 +165,6 @@ contains
     self%radiusFinalMinimum  =+huge(0.0d0)
     self%radiusFinalMaximum  =-huge(0.0d0)
     self%isBound             =.true.
-    self%outerRadiusReached  =.false.
     return
   end function heatedMonotonicConstructorInternal
 
@@ -210,7 +209,6 @@ contains
     self%lastUniqueID                    =node%uniqueID()
     self%genericLastUniqueID             =node%uniqueID() 
     self%isBound                         =.true.
-    self%outerRadiusReached              =.false.
     self%radiusInitialMinimum            =+huge(0.0d0)
     self%radiusInitialMaximum            =-huge(0.0d0)
     self%radiusFinalMinimum              =+huge(0.0d0)
@@ -234,120 +232,101 @@ contains
     class           (darkMatterProfileDMOHeatedMonotonic), intent(inout)             :: self
     type            (treeNode                           ), intent(inout)             :: node
     double precision                                     , intent(in   )             :: radius
-    double precision                                     , parameter                 :: radiusFractionMinimum=1.0d-6, radiusFractionMaximum=1.0d0
+    double precision                                     , parameter                 :: radiusFractionMinimum=1.0d-6, radiusFractionMaximum=10.0d0
     integer                                              , parameter                 :: countPerDecadeRadius =100
-    double precision                                     , allocatable, dimension(:) :: massEnclosed                , massShell                  , &
-         &                                                                              radiusInitial               , radiusFinal                , &
+    double precision                                     , allocatable, dimension(:) :: massEnclosed                , massShell                   , &
+         &                                                                              radiusInitial               , radiusFinal                 , &
          &                                                                              energyFinal                 , perturbation
     logical                                              , allocatable, dimension(:) :: isBound
     integer                                                                          :: i                           , countRadii
 
     ! Determine if we need to retabulate.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Nothing to do if profile is already tabulated.
+    if (allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.
-    self%radiusInitialMinimum=min(min(radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node),radius/2.0d0),self%radiusInitialMinimum)
-    self%radiusInitialMaximum=max(max(radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node),radius*2.0d0),self%radiusInitialMaximum)
-    ! Nothing to do if radius is already tabulated.
-    do while (                                                                         &
-         &     (                                                                       &
-         &        radius < self%radiusFinalMinimum                                     &
-         &      .or.                                                                   &
-         &       (radius > self%radiusFinalMaximum .and. .not.self%outerRadiusReached) &
-         &     )                                                                       &
-         &    .and.                                                                    &
-         &                 self%isBound                                                &
-         &   )       
-       ! Build grid of radii.
-       countRadii=int(log10(self%radiusInitialMaximum/self%radiusInitialMinimum)*dble(countPerDecadeRadius)+1.0d0)
-       if (allocated(radiusInitial)) then
-          deallocate(radiusInitial)
-          deallocate(radiusFinal  )
-          deallocate(massEnclosed )
-          deallocate(massShell    )
-          deallocate(energyFinal  )
-          deallocate(perturbation )
-       end if
-       allocate(radiusInitial(countRadii))
-       allocate(radiusFinal  (countRadii))
-       allocate(massEnclosed (countRadii))
-       allocate(massShell    (countRadii))
-       allocate(energyFinal  (countRadii))
-       allocate(perturbation (countRadii))
-       radiusInitial=Make_Range(self%radiusInitialMinimum,self%radiusInitialMaximum,countRadii,rangeTypeLogarithmic)
-       ! Evaluate masses and energies of shells.
-       do i=countRadii,1,-1
-          massEnclosed(i)=+self%darkMatterProfileDMO_     %enclosedMass  (node,radiusInitial(i)                           )
-          perturbation(i)=+2.0d0                                                                                            &
-               &          *self%darkMatterProfileHeating_ %specificEnergy(node,radiusInitial(i),self%darkMatterProfileDMO_) &
-               &          /gravitationalConstantGalacticus                                                                  &
-               &          /                                                    massEnclosed (i)                             &
-               &          *                                                    radiusInitial(i)
-          ! Limit the perturbation to avoid shell-crossing.
-          if (i < countRadii)                              &
-               & perturbation(i)=min(                      &
-               &                     +perturbation  (i  ), &
-               &                     +1.0d0                &
-               &                     -radiusInitial (i  )  &
-               &                     /radiusInitial (i+1)  &
-               &                     *(                    &
-               &                       +massEnclosed(i  )  &
-               &                       /massEnclosed(i+1)  &
-               &                      )**(-1.0d0/3.0d0)    &
-               &                     *(                    &
-               &                       +1.0d0              &
-               &                       -perturbation(i+1)  &
-               &                      )                    &
-               &                    )       
-       end do
-       ! Compute the final energy of the heated profile.
-       energyFinal=+gravitationalConstantGalacticus &
-            &      *massEnclosed                    &
-            &      /radiusInitial                   &
-            &      *(                               &
-            &        -1.0d0                         &
-            &        +perturbation                  &
-            &       )    
-       ! Find shell masses.
-       massShell(1           )=+massEnclosed(1             )
-       massShell(2:countRadii)=+massEnclosed(2:countRadii  ) &
-            &                  -massEnclosed(1:countRadii-1)
-       ! Evaluation boundedness.
-       isBound= energyFinal < 0.0d0 &
-            &  .and.                &
-            &   massShell   > 0.0d0
-       ! Find final radii.
-       where (isBound)
-          radiusFinal=-gravitationalConstantGalacticus &
-               &      *massEnclosed                    &
-               &      /energyFinal
-       elsewhere
-          radiusFinal=+huge(0.0d0)
-       end where
-       ! Build the final profile interpolator.
-       self%isBound=count(isBound) > 2
-       if (self%isBound) then
-          self%radiusFinalMinimum =minval(radiusFinal,mask=isBound)
-          self%radiusFinalMaximum =maxval(radiusFinal,mask=isBound)
-          self%outerRadiusReached=.not.isBound(countRadii)
-          ! Adjust radii if necessary.
-          if      (radius < self%radiusFinalMinimum                                   ) then
-             ! Adjust minimum radius downward.
-             self%radiusInitialMinimum=self%radiusInitialMinimum/2.0d0
-          else if (radius > self%radiusFinalMaximum .and. .not.self%outerRadiusReached) then
-             ! Adjust maximum radius upward.
-             self%radiusInitialMaximum=self%radiusInitialMaximum*2.0d0
-          else
-             ! Radius range is sufficient, construct the interpolator.
-             if (allocated(self%massProfile)) deallocate(self%massProfile)
-             allocate(self%massProfile)
-             self%massProfile=interpolator(                                                        &
-                  &                        x                =log(pack(radiusFinal ,mask=isBound)), &
-                  &                        y                =log(pack(massEnclosed,mask=isBound)), &
-                  &                        extrapolationType=extrapolationTypeFix                  &
-                  &                       )
-          end if
-       end if
+    self%radiusInitialMinimum=radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node)
+    self%radiusInitialMaximum=radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node)
+    ! Build grid of radii.
+    countRadii=int(log10(self%radiusInitialMaximum/self%radiusInitialMinimum)*dble(countPerDecadeRadius)+1.0d0)
+    if (allocated(radiusInitial)) then
+       deallocate(radiusInitial)
+       deallocate(radiusFinal  )
+       deallocate(massEnclosed )
+       deallocate(massShell    )
+       deallocate(energyFinal  )
+       deallocate(perturbation )
+    end if
+    allocate(radiusInitial(countRadii))
+    allocate(radiusFinal  (countRadii))
+    allocate(massEnclosed (countRadii))
+    allocate(massShell    (countRadii))
+    allocate(energyFinal  (countRadii))
+    allocate(perturbation (countRadii))
+    radiusInitial=Make_Range(self%radiusInitialMinimum,self%radiusInitialMaximum,countRadii,rangeTypeLogarithmic)
+    ! Evaluate masses and energies of shells.
+    do i=countRadii,1,-1
+       massEnclosed(i)=+self%darkMatterProfileDMO_     %enclosedMass  (node,radiusInitial(i)                           )
+       perturbation(i)=+2.0d0                                                                                            &
+            &          *self%darkMatterProfileHeating_ %specificEnergy(node,radiusInitial(i),self%darkMatterProfileDMO_) &
+            &          /gravitationalConstantGalacticus                                                                  &
+            &          /                                                    massEnclosed (i)                             &
+            &          *                                                    radiusInitial(i)
+       ! Limit the perturbation to avoid shell-crossing.
+       if (i < countRadii)                              &
+            & perturbation(i)=min(                      &
+            &                     +perturbation  (i  ), &
+            &                     +1.0d0                &
+            &                     -radiusInitial (i  )  &
+            &                     /radiusInitial (i+1)  &
+            &                     *(                    &
+            &                       +massEnclosed(i  )  &
+            &                       /massEnclosed(i+1)  &
+            &                      )**(-1.0d0/3.0d0)    &
+            &                     *(                    &
+            &                       +1.0d0              &
+            &                       -perturbation(i+1)  &
+            &                      )                    &
+            &                    )
     end do
+    ! Compute the final energy of the heated profile.
+    energyFinal=+gravitationalConstantGalacticus &
+         &      *massEnclosed                    &
+         &      /radiusInitial                   &
+         &      *(                               &
+         &        -1.0d0                         &
+         &        +perturbation                  &
+         &       )    
+    ! Find shell masses.
+    massShell(1           )=+massEnclosed(1             )
+    massShell(2:countRadii)=+massEnclosed(2:countRadii  ) &
+         &                  -massEnclosed(1:countRadii-1)
+    ! Evaluation boundedness.
+    isBound= energyFinal < 0.0d0 &
+         &  .and.                &
+         &   massShell   > 0.0d0
+    ! Find final radii.
+    where (isBound)
+       radiusFinal=-gravitationalConstantGalacticus &
+            &      *massEnclosed                    &
+            &      /energyFinal
+    elsewhere
+       radiusFinal=+huge(0.0d0)
+    end where
+    ! Build the final profile interpolator.
+    self%isBound=count(isBound) > 2
+    if (self%isBound) then
+       self%radiusFinalMinimum =minval(radiusFinal ,mask=isBound)
+       self%radiusFinalMaximum =maxval(radiusFinal ,mask=isBound)
+       ! Construct the interpolator.
+       if (allocated(self%massProfile)) deallocate(self%massProfile)
+       allocate(self%massProfile)
+       self%massProfile=interpolator(                                                        &
+            &                        x                =log(pack(radiusFinal ,mask=isBound)), &
+            &                        y                =log(pack(massEnclosed,mask=isBound)), &
+            &                        extrapolationType=extrapolationTypeFix                  &
+            &                       )
+    end if
     return
   end subroutine heatedMonotonicComputeSolution
 
@@ -372,7 +351,16 @@ contains
        call self%computeSolution(node,radius)
        ! For bound halos, interpolate to find the enclosed mass. For unbound halos the enclosed mass is zero.
        if (self%isBound) then
-          heatedMonotonicEnclosedMass=exp(self%massProfile%interpolate(log(radius)))
+          if (radius < self%radiusFinalMinimum) then
+             ! Assume constant density below the minimum radius.
+             heatedMonotonicEnclosedMass=+exp(self%massProfile%interpolate(log(self%radiusFinalMinimum))) &
+                  &                      *(                                                               &
+                  &                        +     radius                                                   &
+                  &                        /self%radiusFinalMinimum                                       &
+                  &                       )**3
+          else
+             heatedMonotonicEnclosedMass=+exp(self%massProfile%interpolate(log(radius)))
+          end if
        else
           heatedMonotonicEnclosedMass=0.0d0
        end if
@@ -390,6 +378,7 @@ contains
     class           (darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
     double precision                                     , intent(in   ) :: radius
+    double precision                                                     :: radius_
     
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
        ! No heating - use the unheated solution.
@@ -398,10 +387,11 @@ contains
        call self%computeSolution(node,radius)
        ! For bound halos, interpolate to find the density. For unbound halos the density is zero.
        if (self%isBound) then
-          heatedMonotonicDensity=+    self%massProfile%derivative (log(radius))  &
-               &                *exp(self%massProfile%interpolate(log(radius))) &
-               &                /4.0d0                                          &
-               &                /Pi                                             &
+          radius_               =max(radius,self%radiusFinalMinimum)
+          heatedMonotonicDensity=+   self%massProfile%derivative (log(radius_))  &
+               &                *exp(self%massProfile%interpolate(log(radius_))) &
+               &                /4.0d0                                           &
+               &                /Pi                                              &
                &                /radius**3
        else
           heatedMonotonicDensity=+0.0d0
