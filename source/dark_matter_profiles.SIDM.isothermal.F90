@@ -61,7 +61,8 @@
    contains
      !![
      <methods>
-       <method method="computeSolution"   description="Compute a solution for the isothermal core of a SIDM halo."/>
+       <method method="computeSolution"  description="Compute a solution for the isothermal core of a SIDM halo."/>
+       <method method="calculationReset" description="Reset memoized calculations."                              />
      </methods>
      !!]
      final     ::                                      sidmIsothermalDestructor

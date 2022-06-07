@@ -21,18 +21,18 @@
 Contains a module which implements a dark matter profile method that provides a scale radius and a shape parameter.
 !!}
 
-module Node_Component_Dark_Matter_Profile_Scale_Shape
+module Node_Component_Dark_Matter_Profile_Scale_Triaxial
   !!{
   Implements a dark matter profile method that provides a scale radius and a shape parameter.
   !!}
   implicit none
   private
-  public :: Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set
+  public :: Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set
 
   !![
   <component>
    <class>darkMatterProfile</class>
-   <name>scaleShape</name>
+   <name>scaleTriaxial</name>
    <isDefault>false</isDefault>
    <extends>
     <class>darkMatterProfile</class>
@@ -40,12 +40,12 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
    </extends>
    <properties>
     <property>
-      <name>shape</name>
+      <name>axisRatios</name>
       <type>double</type>
-      <rank>0</rank>
+      <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true"/>
-      <output unitsInSI="0.0d0" comment="Shape parameter of the dark matter profile."/>
-      <classDefault>-1.0d0</classDefault>
+      <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Triaxial axis ratios the dark matter profile."/>
+      <classDefault>[-1.0d0,-1.0d0,-1.0d0]</classDefault>
     </property>
    </properties>
   </component>
@@ -55,27 +55,27 @@ contains
 
   !![
   <scaleSetTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set</unitName>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set</unitName>
   </scaleSetTask>
   !!]
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set(node)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set(node)
     !!{
     Set scales for properties of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleTriaxial, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
 
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
-    ! Ensure it is of the scale+shape class.
+    ! Ensure it is of the scale+triaxial class.
     select type (darkMatterProfile)
-    class is (nodeComponentDarkMatterProfileScaleShape)
+    class is (nodeComponentDarkMatterProfileScaleTriaxial)
        ! Set scale for the scale radius.
-       call darkMatterProfile%shapeScale(darkMatterProfile%shape())
+       call darkMatterProfile%axisRatiosScale([1.0d0,1.0d0,1.0d0])
     end select
     return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set
 
-end module Node_Component_Dark_Matter_Profile_Scale_Shape
+end module Node_Component_Dark_Matter_Profile_Scale_Triaxial

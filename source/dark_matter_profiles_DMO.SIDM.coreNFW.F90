@@ -43,7 +43,8 @@
    contains
      !![
      <methods>
-       <method method="radiusCore" description="Computes the core radius of halo."/>
+       <method method="radiusCore"       description="Computes the core radius of halo."/>
+       <method method="calculationReset" description="Reset memoized calculations."     />
      </methods>
      !!]
      final     ::                                      sidmCoreNFWDestructor

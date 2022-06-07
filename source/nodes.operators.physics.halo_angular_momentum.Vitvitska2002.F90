@@ -102,7 +102,7 @@ contains
     <objectDestructor name="darkMatterProfileDMO_"        />
     <objectDestructor name="darkMatterHaloScale_"         />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
-    <objectDestructor name="darkMatterHaloScale_"         />
+    <objectDestructor name="virialOrbit_"                 />
     <objectDestructor name="mergerTreeMassResolution_"    />
     !!]
     return

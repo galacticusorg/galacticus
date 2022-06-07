@@ -35,6 +35,12 @@ module Binary_Search_Trees
      !!}
      type(binaryTreeNode), pointer :: root => null()
    contains
+     !![
+     <methods>
+       <method method ="insert"  description="Insert a new node into the binary search tree."/>
+       <method method ="bracket" description="Bracket a value in the binary search tree."    />
+     </methods>
+     !!]
      final     ::            binaryTreeDestructor
      procedure :: insert  => binaryTreeInsert
      procedure :: bracket => binaryTreeBracket
@@ -48,6 +54,14 @@ module Binary_Search_Trees
           &                                       parent => null()
      double precision                          :: key             , value
    contains
+     !![
+     <methods>
+       <method method ="successor"   description="Return the successor node in the tree."                    />
+       <method method ="predecessor" description="Return the predescessor node in the tree."                 />
+       <method method ="treeMinimum" description="Return the minimum node in the sub-tree of the given node."/>
+       <method method ="treeMaximum" description="Return the maximum node in the sub-tree of the given node."/>
+     </methods>
+     !!]
      final     ::                binaryTreeNodeDestructor
      procedure :: successor   => binaryTreeNodeSuccessor
      procedure :: predecessor => binaryTreeNodePredecessor
