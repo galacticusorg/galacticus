@@ -508,7 +508,7 @@ contains
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
-      end if
+       end if
        ! Trap negative stellar masses.
        if (spheroid%massStellar() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -554,6 +554,18 @@ contains
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
+       end if
+       ! Trap negative angular momentum.
+       if (spheroid%angularMomentum() < 0.0d0) then
+          ! Estimate a reasonable specific angular momentum.
+          specificAngularMomentum=spheroid%radius()*spheroid%velocity()
+          ! Get the mass of the spheroid.
+          massSpheroid= spheroid%massGas    () &
+               &       +spheroid%massStellar()
+          ! Reset the angular momentum of the spheroid.
+          call spheroid%angularMomentumSet(specificAngularMomentum*massSpheroid)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
