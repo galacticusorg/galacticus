@@ -705,21 +705,28 @@ contains
     !!{
     Integrand function used for computing line-of-sight velocity dispersions.
     !!}
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
+    double precision                :: densitySphericalAverage
 
     if (radius <= velocityDispersionRadiusImpact) then
        velocityDispersionDensityIntegrand=+0.0d0
     else
-       velocityDispersionDensityIntegrand=+velocityDispersionSelf%galacticStructure_%density(                                               &
-            &                                                                                              velocityDispersionNode         , &
-            &                                                                                              [radius,0.0d0,0.0d0]           , &
-            &                                                                                massType     =velocityDispersionMassType     , &
-            &                                                                                componentType=velocityDispersionComponentType, &
-            &                                                                                weightBy     =velocityDispersionWeightBy     , &
-            &                                                                                weightIndex  =velocityDispersionWeightIndex    &
-            &                                                                               )                                               &
-            &                             *     radius                                                                                      &
+       densitySphericalAverage           =+3.0d0                                                                                                 &
+            &                             /4.0d0                                                                                                 &
+            &                             /Pi                                                                                                    &
+            &                             *velocityDispersionSelf%galacticStructure_%massEnclosed(                                               &
+            &                                                                                     velocityDispersionNode                       , &
+            &                                                                                                   radius                         , &
+            &                                                                                     massType     =velocityDispersionMassType     , &
+            &                                                                                     componentType=velocityDispersionComponentType, &
+            &                                                                                     weightBy     =velocityDispersionWeightBy     , &
+            &                                                                                     weightIndex  =velocityDispersionWeightIndex    &
+            &                                                                                    )                                               &
+            &                             /radius**3
+       velocityDispersionDensityIntegrand=+densitySphericalAverage                                                                               &
+            &                             *     radius                                                                                           &
             &                             /sqrt(radius**2-velocityDispersionRadiusImpact**2)
     end if
     return
@@ -746,7 +753,7 @@ contains
     \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_\mathrm{i}^2}\right]_{r_\mathrm{i}}^{r_\mathrm{o}} + \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{d}\over \mathrm{d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     \end{equation}
     The first term is zero at both limits (due to the constraint $\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0$ at $r_\mathrm{o}$ and
-    due to $sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
+    due to $\sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
     eqn.~(\ref{eq:sphericalIsotropicJeans}) to give
     \begin{equation}
     \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
@@ -754,21 +761,28 @@ contains
     !!}
     use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeAll
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
     implicit none
     double precision, intent(in   ) :: radius
+    double precision                :: densitySphericalAverage
 
     if (radius <= velocityDispersionRadiusImpact) then
        velocityDispersionVelocityDensityIntegrand=+0.0d0
     else
-       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                                                                       &
-            &                                     *velocityDispersionSelf%galacticStructure_%density    (                                                &
+       densitySphericalAverage                   =+3.0d0                                                                                                 &
+            &                                     /4.0d0                                                                                                 &
+            &                                     /Pi                                                                                                    &
+            &                                     *velocityDispersionSelf%galacticStructure_%massEnclosed(                                               &
             &                                                                                                           velocityDispersionNode         , &
-            &                                                                                                           [radius,0.0d0,0.0d0]           , &
+            &                                                                                                           radius                         , &
             &                                                                                             massType     =velocityDispersionMassType     , &
             &                                                                                             componentType=velocityDispersionComponentType, &
             &                                                                                             weightBy     =velocityDispersionWeightBy     , &
             &                                                                                             weightIndex  =velocityDispersionWeightIndex    &
             &                                                                                            )                                               &
+            &                                     /radius**3
+       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                                                                       &
+            &                                     *densitySphericalAverage                                                                               &
             &                                     *velocityDispersionSelf%galacticStructure_%massEnclosed(                                               &
             &                                                                                                           velocityDispersionNode         , &
             &                                                                                                           radius                         , &
