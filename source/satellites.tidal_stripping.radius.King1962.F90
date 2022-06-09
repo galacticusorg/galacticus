@@ -309,7 +309,7 @@ contains
        ! If the bound mass of the satellite exceeds the original mass (which can happen during failed ODE steps), simply return
        ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
        basic => node%basic()
-       if (massSatellite > basic%mass()) then
+       if (massSatellite > self%galacticStructure_%massEnclosed(node,radius=self%darkMatterHaloScale_%radiusVirial(node),massType=massTypeDark)) then
           king1962Radius=self%darkMatterHaloScale_%radiusVirial       (node                                                            )
        else
           king1962Radius=self%galacticStructure_  %radiusEnclosingMass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)

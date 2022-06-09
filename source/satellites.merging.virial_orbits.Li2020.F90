@@ -313,6 +313,13 @@ contains
     !![
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
+    ! Handle cases of zero mass.
+    if (massHost <= 0.0d0 .or. massSatellite <= 0.0d0) then
+       massHost      =basicHost                     %mass          (    )
+       massSatellite =basic                         %mass          (    )
+       radiusHostSelf=self     %darkMatterHaloScale_%radiusVirial  (host)
+       velocityHost  =self     %darkMatterHaloScale_%velocityVirial(host)
+    end if
     ! Select an orbit.
     foundOrbit=.false.
     attempts  =0
@@ -322,8 +329,8 @@ contains
        ! Reset the orbit.
        call li2020Orbit%reset()
        ! Set basic properties of the orbit.
-       call li2020Orbit%massesSet(massSatellite,massHost      )
-       call li2020Orbit%radiusSet(              radiusHostSelf)
+       call li2020Orbit%massesSet(min(massSatellite,massHost),massHost      )
+       call li2020Orbit%radiusSet(                            radiusHostSelf)
        ! Select total orbital velocity from a log-normal distribution.
        velocityTotalInternal=exp(self%sigma1*node%hostTree%randomNumberGenerator_%standardNormalSample())*self%mu1
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
@@ -365,7 +372,11 @@ contains
        end if
     end do
     ! If too many iterations were required to find an orbit, abort.
-    if (attempts >= attemptsMaximum) call Error_Report('maximum number of attempts exceeded'//{introspection:location})
+    if (attempts >= attemptsMaximum) then
+       call node%serializeASCII()
+       call host%serializeASCII()
+       call Error_Report('maximum number of attempts exceeded'//{introspection:location})
+    end if
     return
   end function li2020Orbit
 
@@ -748,8 +759,11 @@ contains
     time       =   basic   %time ()
     peakHeight =  +self%criticalOverdensity_     %value       (time=time,mass=massHost) &
          &        /self%cosmologicalMassVariance_%rootVariance(time=time,mass=massHost)
-    massRatio  =  +massSatellite &
-         &        /massHost
+    massRatio  =  min(                &
+         &            +massSatellite  &
+         &            /massHost     , &
+         &            +1.0d0          &
+         &           )
     A          =+self%a1*peakHeight                   &
          &      +self%a2           *massRatio**self%c &
          &      +self%a3*peakHeight*massRatio**self%c

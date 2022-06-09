@@ -42,8 +42,10 @@
      An abstract dark matter halo profile class for SIDM profiles.
      !!}
      private
-     class(darkMatterProfileClass ), pointer :: darkMatterProfile_  => null()
-     class(darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_        => null()
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_       => null()
+     integer         (kind=kind_int8         )          :: uniqueIDPreviousSIDM
+     double precision                                   :: radiusInteractivePrevious
    contains
      !![
      <methods>
@@ -79,37 +81,41 @@ contains
     type            (rootFinder           )                          :: finder
     double precision                       , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     
-    self_         =>  self
-    node_         =>  node
-    if (present(timeAge)) then
-       timeAge_   =         timeAge
-    else
-       basic      =>  node %basic  ()
-       timeAge_   =   basic%time   ()
+    if (node%uniqueID() /= self%uniqueIDPreviousSIDM .or. self%radiusInteractivePrevious < 0.0d0) then
+       self_         =>  self
+       node_         =>  node
+       if (present(timeAge)) then
+          timeAge_   =         timeAge
+       else
+          basic      =>  node %basic  ()
+          timeAge_   =   basic%time   ()
+       end if
+       select type (darkMatterParticle_ => self%darkMatterParticle_)
+          class is (darkMatterParticleSelfInteractingDarkMatter)
+          crossSection_=+darkMatterParticle_%crossSectionSelfInteraction() &
+               &        *centi     **2                                     &
+               &        /megaParsec**2                                     &
+               &        *kilo                                              &
+               &        *massSolar
+          class default
+          call Error_Report('expected self-interacting dark matter particle'//{introspection:location})
+       end select
+       finder=rootFinder(                                             &
+            &            rootFunction     =sidmRadiusInteractionRoot, &
+            &            toleranceAbsolute=toleranceAbsolute        , &
+            &            toleranceRelative=toleranceRelative          &
+            &           )
+       call finder%rangeExpand(                                                             &
+            &                  rangeExpandUpward            =2.0d0                        , &
+            &                  rangeExpandDownward          =0.5d0                        , &
+            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &                  rangeExpandType              =rangeExpandMultiplicative      &
+            &                 )
+       self%radiusInteractivePrevious=finder%find    (rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
+       self%uniqueIDPreviousSIDM     =node  %uniqueID(                                                      )
     end if
-    select type (darkMatterParticle_ => self%darkMatterParticle_)
-    class is (darkMatterParticleSelfInteractingDarkMatter)
-       crossSection_=+darkMatterParticle_%crossSectionSelfInteraction() &
-            &        *centi     **2                                     &
-            &        /megaParsec**2                                     &
-            &        *kilo                                              &
-            &        *massSolar
-    class default
-       call Error_Report('expected self-interacting dark matter particle'//{introspection:location})
-    end select
-    finder=rootFinder(                                             &
-         &            rootFunction     =sidmRadiusInteractionRoot, &
-         &            toleranceAbsolute=toleranceAbsolute        , &
-         &            toleranceRelative=toleranceRelative          &
-         &           )
-    call finder%rangeExpand(                                                             &
-         &                  rangeExpandUpward            =2.0d0                        , &
-         &                  rangeExpandDownward          =0.5d0                        , &
-         &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-         &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                  rangeExpandType              =rangeExpandMultiplicative      &
-         &                 )
-    sidmRadiusInteraction=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
+    sidmRadiusInteraction=self%radiusInteractivePrevious
     return
   end function sidmRadiusInteraction
 

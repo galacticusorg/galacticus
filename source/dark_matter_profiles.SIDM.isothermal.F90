@@ -53,15 +53,16 @@
      A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
      !!}
      private
-     integer         (kind=kind_int8   )              :: uniqueIDPrevious
-     double precision                                 :: velocityDispersionCentral
-     logical                                          :: solutionsTabulated
-     class           (*                ), pointer     :: galacticStructure_        => null()
-     type            (interpolator     ), allocatable :: densityProfile                     , massProfile
+     integer         (kind=kind_int8)              :: uniqueIDPrevious
+     double precision                              :: velocityDispersionCentral
+     logical                                       :: solutionsTabulated
+     class           (*             ), pointer     :: galacticStructure_        => null()
+     type            (interpolator  ), allocatable :: densityProfile                     , massProfile
    contains
      !![
      <methods>
-       <method method="computeSolution"   description="Compute a solution for the isothermal core of a SIDM halo."/>
+       <method method="computeSolution"  description="Compute a solution for the isothermal core of a SIDM halo."/>
+       <method method="calculationReset" description="Reset memoized calculations."                              />
      </methods>
      !!]
      final     ::                                      sidmIsothermalDestructor
@@ -149,8 +150,9 @@ contains
     class default
        call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
     end select
-    self%uniqueIDPrevious   =-1_kind_int8
-    self%genericLastUniqueID=-1_kind_int8
+    self%uniqueIDPrevious    =-1_kind_int8
+    self%genericLastUniqueID =-1_kind_int8
+    self%uniqueIDPreviousSIDM=-1_kind_int8
     return
   end function sidmIsothermalConstructorInternal
 
@@ -193,9 +195,15 @@ contains
     class(darkMatterProfileSIDMIsothermal), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
 
-    self%uniqueIDPrevious         =node%uniqueID()
-    self%genericLastUniqueID      =node%uniqueID()
-    self%velocityDispersionCentral=-1.0d0
+    self%uniqueIDPrevious                            =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%uniqueIDPreviousSIDM                        =node%uniqueID()
+    self%radiusInteractivePrevious                   =-1.0d0
+    self%velocityDispersionCentral                   =-1.0d0
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%densityProfile                         )) deallocate(self%densityProfile                         )
     if (allocated(self%massProfile                            )) deallocate(self%massProfile                            )
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)

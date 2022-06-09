@@ -49,8 +49,8 @@ jobs:
             dynamic/class_public-3.0.2/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \
-            dynamic/c17.02/source/cloudy.exe \
-            dynamic/c17.02/data \
+            dynamic/c17.03/source/cloudy.exe \
+            dynamic/c17.03/data \
             dynamic/fsps-3.2/src/autosps.exe \
             dynamic/fsps-3.2/dust \
             dynamic/fsps-3.2/data \

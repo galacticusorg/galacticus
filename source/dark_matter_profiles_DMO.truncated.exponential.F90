@@ -43,8 +43,10 @@
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )           :: lastUniqueID
      ! Stored values of computed quantities.
-     double precision                                     :: enclosingMassRadiusPrevious                 , kappaPrevious                                          , &
-          &                                                  radialVelocityDispersionVirialRadiusPrevious, radialVelocityDispersionVirialRadiusUntruncatedPrevious
+     double precision                                     :: radialVelocityDispersionVirialRadiusPrevious, radialVelocityDispersionVirialRadiusUntruncatedPrevious, &
+          &                                                  enclosingMassRadiusPrevious                 , kappaPrevious                                          , &
+          &                                                  gammaFunctionIncompletePrevious             , densityNormalizationPrevious                           , &
+          &                                                  massVirialPrevious
    contains
      !![
      <methods>
@@ -211,6 +213,10 @@ contains
     self%enclosingMassRadiusPrevious                            =-1.0d0
     self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
     self%radialVelocityDispersionVirialRadiusUntruncatedPrevious=-1.0d0
+    self%genericEnclosedMassRadiusMinimum                       =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum                       =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum           =+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum           =-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -266,31 +272,40 @@ contains
     !!{
     Recompute parameter kappa in the truncation funciton.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile        , treeNode
+    use :: Gamma_Functions , only : Gamma_Function_Incomplete_Unnormalized
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile
-    double precision                                                          :: radiusVirial     , scaleRadius       , &
+    double precision                                                          :: radiusVirial     , scaleRadius, &
          &                                                                       concentration
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial      =  self             %darkMatterHaloScale_%radiusVirial(node             )
-    darkMatterProfile => node             %darkMatterProfile                (autoCreate=.true.)
-    scaleRadius       =  darkMatterProfile%scale                            (                 )
-    concentration     =  +radiusVirial                &
-         &               /scaleRadius
-    self%kappaPrevious=  -(                           &
-         &                 +self%gamma                &
-         &                 +self%beta                 &
-         &                 *concentration**self%alpha &
-         &                )                           &
-         &               /(                           &
-         &                 +1.0d0                     &
-         &                 +concentration**self%alpha &
-         &                )                           &
-         &               +1.0d0                       &
-         &               /self%radiusFractionalDecay
+    radiusVirial                        =  self             %darkMatterHaloScale_%radiusVirial(node             )
+    darkMatterProfile                   => node             %darkMatterProfile                (autoCreate=.true.)
+    scaleRadius                         =  darkMatterProfile%scale                            (                 )
+    concentration                       =  +radiusVirial                &
+         &                                 /scaleRadius
+    self%kappaPrevious                  =  -(                           &
+         &                                   +self%gamma                &
+         &                                   +self%beta                 &
+         &                                   *concentration**self%alpha &
+         &                                  )                           &
+         &                                 /(                           &
+         &                                   +1.0d0                     &
+         &                                   +concentration**self%alpha &
+         &                                  )                           &
+         &                                 +1.0d0                       &
+         &                                 /self%radiusFractionalDecay
+    self%massVirialPrevious             =+self%darkMatterProfileDMO_%enclosedMass(node                    ,radiusVirial                    )
+    self%densityNormalizationPrevious   =+4.0d0                                                                                              &
+         &                               *Pi                                                                                                 &
+         &                               *self%darkMatterProfileDMO_%density     (node                    ,radiusVirial                    ) &
+         &                               *radiusVirial**3                                                                                    &
+         &                               *self%radiusFractionalDecay**           (3.0d0+self%kappaPrevious                                 ) &
+         &                               *exp                                    (                         1.0d0/self%radiusFractionalDecay)
+    self%gammaFunctionIncompletePrevious=+Gamma_Function_Incomplete_Unnormalized (3.0d0+self%kappaPrevious,1.0d0/self%radiusFractionalDecay)
     return
   end subroutine recomputeKappa
 
@@ -414,15 +429,11 @@ contains
     else
        if (self%kappaPrevious == -huge(0.0d0)) call recomputeKappa(self,node)
        radiusDecay                     =+self%radiusFractionalDecay*radiusVirial
-       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radiusVirial)                                           &
-            &                           +4.0d0*Pi                                                                                             &
-            &                           *self%darkMatterProfileDMO_%density     (node,radiusVirial)                                           &
-            &                           *radiusVirial**3                                                                                      &
-            &                           *self%radiusFractionalDecay**(3.0d0+self%kappaPrevious)                                               &
-            &                           *exp(1.0d0/self%radiusFractionalDecay)                                                                &
-            &                           *(                                                                                                    &
-            &                             +Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappaPrevious,1.0d0 /self%radiusFractionalDecay) &
-            &                             -Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappaPrevious,radius/     radiusDecay          ) &
+       truncatedExponentialEnclosedMass=+self%massVirialPrevious                                                               &
+            &                           +self%densityNormalizationPrevious                                                     &
+            &                           *(                                                                                     &
+            &                             +self%gammaFunctionIncompletePrevious                                                &
+            &                             -Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappaPrevious,radius/radiusDecay) &
             &                            )
     end if
     return

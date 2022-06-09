@@ -189,6 +189,6 @@ contains
     ! Compute the rate of mass loss.
     zentner2005MassLossRate=-self%efficiency    &
          &                  *massOuterSatellite &
-         &                  /periodOrbital    
+         &                  /periodOrbital
     return
   end function zentner2005MassLossRate

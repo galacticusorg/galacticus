@@ -26,20 +26,20 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
    <description>
-    A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
-    \ttfamily darkMatterProfileDMO}. For subhalos, this profile is modified by tidal heating, under the assumption that the
-    energy of a shell of mass before and after heating are related by
-    \begin{equation}
-    { \mathrm{G} M^\prime(r^\prime) \over r^\prime } = { \mathrm{G} M(r) \over r } + Q r^2,
-    \end{equation}
-    where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see
-    \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables
-    indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation
-    can be solved for $r$ given $r^\prime$.
-    
-    Not all methods have anakytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
-    \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
-    unheated profile, otherwise a numerical calculation is performed.
+     A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
+     \ttfamily darkMatterProfileDMO}. This profile is then modified by heating, under the assumption that the
+     energy of a shell of mass before and after heating are related by
+     \begin{equation}
+     -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
+     \end{equation}    
+     where $M(r)$ is the mass enclosed within a radius $r$, and $\epsilon(r)$ represents the specific heating in the shell
+     initially at radius $r$. Primes indicate values after heating, while unprimed variables indicate quantities prior to
+     heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given
+     $r^\prime$ and $\epsilon(r)$.
+     
+     Not all methods have analytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
+     \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+     unheated profile, otherwise a numerical calculation is performed.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -223,9 +223,13 @@ contains
     type (treeNode                  ), intent(inout) :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID       =node%uniqueID()
-    self%genericLastUniqueID=node%uniqueID()
-    self%radiusFinalPrevious=-huge(0.0d0)
+    self%lastUniqueID                                =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%radiusFinalPrevious                         =-huge(0.0d0)
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -266,12 +270,12 @@ contains
                &           /gravitationalConstantGalacticus                                                                           &
                &           /massEnclosed                                                                                              &
                &           *(                                                                                                         &
-               &             +self%darkMatterProfileHeating_%specificEnergyGradient(node,self%darkMatterProfileDMO_,radiusInitial)    &
+               &             +self%darkMatterProfileHeating_%specificEnergyGradient(node,radiusInitial,self%darkMatterProfileDMO_)    &
                &             -4.0d0                                                                                                   &
                &             *Pi                                                                                                      &
                &             *radiusInitial                                                                                       **2 &
                &             *densityInitial                                                                                          &
-               &             *self%darkMatterProfileHeating_%specificEnergy        (node,self%darkMatterProfileDMO_,radiusInitial)    &
+               &             *self%darkMatterProfileHeating_%specificEnergy        (node,radiusInitial,self%darkMatterProfileDMO_)    &
                &             /massEnclosed                                                                                            &
                &            )                                                                                                         &
                &          )
@@ -339,7 +343,7 @@ contains
     double precision                                                    :: energySpecific
 
     radiusInitial            =self%darkMatterProfileDMO_    %radiusEnclosingMass(node,mass                                    )
-    energySpecific           =self%darkMatterProfileHeating_%specificEnergy     (node,self%darkMatterProfileDMO_,radiusInitial)
+    energySpecific           =self%darkMatterProfileHeating_%specificEnergy     (node,radiusInitial,self%darkMatterProfileDMO_)
     heatedRadiusEnclosingMass=+1.0d0                                                      &
          &                    /                                                           &
          &                    (                                                           &
@@ -464,7 +468,7 @@ contains
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
        ! no root exists. In this case shell crossing is likely to be occuring. Simply return a value of zero, which places the
        ! root at the current radius.
-       noShellCrossingIsValid= +  heatedSelf%darkMatterProfileHeating_%specificEnergyGradient(heatedNode,heatedSelf%darkMatterProfileDMO_,radiusInitial) &
+       noShellCrossingIsValid= +  heatedSelf%darkMatterProfileHeating_%specificEnergyGradient(heatedNode,radiusInitial,heatedSelf%darkMatterProfileDMO_) &
             &                 <                                                                                                                          &
             &                  +0.5d0                                                                                                                    &
             &                  *gravitationalConstantGalacticus                                                                                          &
@@ -472,20 +476,20 @@ contains
             &                    +4.0d0                                                                                                                  &
             &                    *Pi                                                                                                                     &
             &                    *radiusInitial**2                                                                                                       &
-            &                    *heatedSelf%darkMatterProfileDMO_    %density               (heatedNode                                 ,radiusInitial) &
+            &                    *heatedSelf%darkMatterProfileDMO_    %density               (heatedNode,radiusInitial                                 ) &
             &                    *(                                                                                                                      &
             &                      +1.0d0/heatedRadiusFinal                                                                                              &
             &                      -1.0d0/radiusInitial                                                                                                  &
             &                     )                                                                                                                      &
-            &                    +massEnclosed                                                                                                             &
-            &                    /radiusInitial**2                                                                                                         &
+            &                    +massEnclosed                                                                                                           &
+            &                    /radiusInitial**2                                                                                                       &
             &                   )
        if (.not.noShellCrossingIsValid) then
           heatedRadiusInitialRoot=0.0d0
           return
        end if
     end if
-    heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%darkMatterProfileDMO_,radiusInitial) &
+    heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,radiusInitial,heatedSelf%darkMatterProfileDMO_) &
          &                  +0.5d0                                                                                                          &
          &                  *gravitationalConstantGalacticus                                                                                &
          &                  *massEnclosed                                                                                                   &
@@ -587,14 +591,14 @@ contains
        heatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else if (self%velocityDispersionApproximate) then
        ! Use the approximate solution for velocity dispersion.
-       radiusInitial                 = self%radiusInitial                                               (node                           ,radius       )
-       energySpecific                = self%darkMatterProfileHeating_%specificEnergy                    (node,self%darkMatterProfileDMO_,radiusInitial)
-       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion          (node                           ,radiusInitial)**2 &
+       radiusInitial                 = self%radiusInitial                                               (node,radius                                  )
+       energySpecific                = self%darkMatterProfileHeating_%specificEnergy                    (node,radiusInitial,self%darkMatterProfileDMO_)
+       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion          (node,radiusInitial                           )**2 &
             &                         -2.0d0/3.0d0*energySpecific
        heatedRadialVelocityDispersion=sqrt(max(0.0d0,velocityDispersionSquare))
     else
        ! Use a numerical solution.
-       heatedRadialVelocityDispersion=+self                           %radialVelocityDispersionNumerical(node                           ,radius       )
+       heatedRadialVelocityDispersion=+self                           %radialVelocityDispersionNumerical(node,radius                                  )
     end if
     return
   end function heatedRadialVelocityDispersion

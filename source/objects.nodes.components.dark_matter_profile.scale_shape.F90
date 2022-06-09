@@ -62,7 +62,7 @@ contains
     !!{
     Set scales for properties of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -71,7 +71,7 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure it is of the scale+shape class.
     select type (darkMatterProfile)
-    class is (nodeComponentDarkMatterProfileScale)
+    class is (nodeComponentDarkMatterProfileScaleShape)
        ! Set scale for the scale radius.
        call darkMatterProfile%shapeScale(darkMatterProfile%shape())
     end select

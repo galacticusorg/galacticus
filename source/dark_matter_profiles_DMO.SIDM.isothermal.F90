@@ -73,16 +73,23 @@
      A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
      !!}
      private
-     integer         (kind=kind_int8)              :: uniqueIDPrevious
-     double precision                              :: velocityDispersionCentral
-     logical                                       :: solutionsTabulated
-     type            (interpolator  ), allocatable :: densityProfile             , massProfile                           , &
-          &                                           densityCentralDimensionless, velocityDispersionCentralDimensionless
+     integer         (kind=kind_int8)                                :: uniqueIDPrevious
+     double precision                                                :: velocityDispersionCentral     , radiusInteraction_                    , &
+          &                                                             densityInteraction            , massInteraction                       , &
+          &                                                             velocityDispersionInteraction
+     logical                                                         :: solutionsTabulated
+     type            (interpolator  ), allocatable                   :: densityCentralDimensionless   , velocityDispersionCentralDimensionless, &
+          &                                                             interpolatorRadiiDimensionless, interpolatorXi
+     double precision                , allocatable, dimension( : ,:) :: densityProfileDimensionless   , massProfileDimensionless
+     double precision                , allocatable, dimension( :   ) :: radiiDimensionless
+     integer         (c_size_t      )                                :: indexXi
+     double precision                             , dimension(0:1  ) :: factorsXi
    contains
      !![
      <methods>
        <method method="tabulateSolutions" description="Tabulate solutions for the isothermal core of a SIDM halo."/>
        <method method="computeSolution"   description="Compute a solution for the isothermal core of a SIDM halo."/>
+       <method method="calculationReset"  description="Reset memoized calculations."                              />
      </methods>
      !!]
      final     ::                                      sidmIsothermalDestructor
@@ -175,9 +182,10 @@ contains
     class default
        call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
     end select
-    self%solutionsTabulated =.false.
-    self%uniqueIDPrevious   =-1_kind_int8
-    self%genericLastUniqueID=-1_kind_int8
+    self%solutionsTabulated  =.false.
+    self%uniqueIDPrevious    =-1_kind_int8
+    self%genericLastUniqueID =-1_kind_int8
+    self%uniqueIDPreviousSIDM=-1_kind_int8
     return
   end function sidmIsothermalConstructorInternal
 
@@ -218,11 +226,19 @@ contains
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
 
-    self%uniqueIDPrevious         =node%uniqueID()
-    self%genericLastUniqueID      =node%uniqueID()
-    self%velocityDispersionCentral=-1.0d0
-    if (allocated(self%densityProfile                         )) deallocate(self%densityProfile                         )
-    if (allocated(self%massProfile                            )) deallocate(self%massProfile                            )
+    self%uniqueIDPrevious                            =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%uniqueIDPreviousSIDM                        =node%uniqueID()
+    self%velocityDispersionCentral                   =-1.0d0
+    self%radiusInteractivePrevious                   =-1.0d0
+    self%radiusInteraction_                          =-1.0d0
+    self%densityInteraction                          =-1.0d0
+    self%massInteraction                             =-1.0d0
+    self%velocityDispersionInteraction               =-1.0d0
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -234,66 +250,132 @@ contains
     !!{
     Tabulate solutions for $y_0(\xi)$, $z_0(\xi)$.
     !!}
+    use :: File_Utilities            , only : Directory_Make , File_Exists        , File_Lock, File_Path, &
+         &                                    File_Unlock    , lockDescriptor
+    use :: Input_Paths               , only : inputPath      , pathTypeDataDynamic
+    use :: HDF5_Access               , only : hdf5Access
+    use :: IO_HDF5                   , only : hdf5Object
     use :: Numerical_Ranges          , only : Make_Range     , rangeTypeLinear
     use :: Multidimensional_Minimizer, only : multiDMinimizer
     implicit none
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)                             :: self
     integer                                             , parameter                                 :: countXi             =1000
+    integer                                             , parameter                                 :: countRadii          =1000
     double precision                                    , parameter                                 :: Y0Minimum           =1.0d+0, Y0Maximum           =1.0d+6
     double precision                                    , parameter                                 :: Z0Minimum           =0.1d+0, Z0Maximum           =3.0d+0
     double precision                                    , parameter                                 :: xiMinimum           =1.1d+0, xiMaximum           =1.0d+1
     double precision                                    , parameter                                 :: x1                  =1.0d+0
     double precision                                    , parameter                                 :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
-    double precision                                    , dimension(propertyCount+1  )              :: propertyScales
+    double precision                                    , dimension(propertyCount+1  )              :: properties                 , propertyScales
     double precision                                    , dimension(propertyCount    )              :: locationMinimum
     double precision                                    , dimension(              :  ), allocatable :: xi                         , y0                         , &
          &                                                                                             z0
+    double precision                                                                                :: x
     type            (multiDMinimizer                   )                              , allocatable :: minimizer_
-    integer         (c_size_t                          )                                            :: i                          , iteration
+    integer         (c_size_t                          )                                            :: i                          , j                          , &
+         &                                                                                             iteration
     logical                                                                                         :: converged
-
+    type            (varying_string                    )                                            :: fileName
+    type            (hdf5Object                        )                                            :: file
+    type            (lockDescriptor                    )                                            :: fileLock
+ 
     ! Return immediately if solutions have been tabulated already.
     if (self%solutionsTabulated) return
     self%solutionsTabulated=.true.
-    ! Construct ranges of the parameter ξ to span.
-    allocate(xi(countXi))
-    allocate(y0(countXi))
-    allocate(z0(countXi))
-    xi=Make_Range(xiMinimum,xiMaximum,countXi,rangeTypeLinear)
-    ! Set absolute property scales for ODE solving.
-    propertyScales=1.0d0
-    ! Start parallel region to solve for halo structure at each value of ξ.
-    !$omp parallel private(i,locationMinimum,iteration,converged,minimizer_)
-    !! Allocate and construct objects needed by each thread.
-    allocate(odeSolver_)
-    allocate(minimizer_)
-    odeSolver_=odeSolver      (propertyCount+1,sidmIsothermalDimensionlessODEs     ,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)
-    minimizer_=multiDMinimizer(propertyCount  ,sidmIsothermalDimensionlessFitMetric                                                                                                   )
-    !$omp do schedule(dynamic)
-    do i=1,countXi
-       xi_=xi(i)
-       ! Seek the low-density solution.
-       call minimizer_%set(x=[0.0d0,1.0d0],stepSize=[0.01d0,0.01d0])
-       iteration=0
-       converged=.false.
-       do while (.not.converged .and. iteration < 100)
-          call minimizer_%iterate()
-          iteration=iteration+1
-          converged=minimizer_%testSize(toleranceAbsolute=1.0d-12)
+    ! Construct a file name for the table.
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'darkMatter/'                 // &
+         &   self%objectType()             // &
+         &   '.hdf5'
+    call Directory_Make(char(File_Path(char(fileName))))
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    if (File_Exists(fileName)) then
+       ! Restore tables from file.
+       !$ call hdf5Access%set()
+       call file%openFile   (char(fileName)                                                )
+       call file%readDataset('xi'                         ,     xi                         )
+       call file%readDataset('radii'                      ,self%radiiDimensionless         )
+       call file%readDataset('y0'                         ,     y0                         )
+       call file%readDataset('z0'                         ,     z0                         )
+       call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
+       call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
+       call file%close      (                                                              )
+       !$ call hdf5Access%unset()
+    else
+       ! No file exists, create it now.
+       ! Construct ranges of the parameter ξ to span.
+       allocate(     xi                         (           countXi))
+       allocate(     y0                         (           countXi))
+       allocate(     z0                         (           countXi))
+       allocate(self%radiiDimensionless         (countRadii        ))
+       allocate(self%densityProfileDimensionless(countRadii,countXi))
+       allocate(self%massProfileDimensionless   (countRadii,countXi))
+       xi                     =Make_Range(xiMinimum,xiMaximum,countXi   ,rangeTypeLinear)
+       self%radiiDimensionless=Make_Range(0.0d0    ,1.0d0    ,countRadii,rangeTypeLinear)
+       ! Set absolute property scales for ODE solving.
+       propertyScales=1.0d0
+       ! Start parallel region to solve for halo structure at each value of ξ.
+       !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged,minimizer_)
+       !! Allocate and construct objects needed by each thread.
+       allocate(odeSolver_)
+       allocate(minimizer_)
+       odeSolver_=odeSolver      (propertyCount+1,sidmIsothermalDimensionlessODEs     ,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)
+       minimizer_=multiDMinimizer(propertyCount  ,sidmIsothermalDimensionlessFitMetric                                                                                                   )
+       !$omp do schedule(dynamic)
+       do i=1,countXi
+          xi_=xi(i)
+          ! Seek the low-density solution.
+          call minimizer_%set(x=[0.0d0,1.0d0],stepSize=[0.01d0,0.01d0])
+          iteration=0
+          converged=.false.
+          do while (.not.converged .and. iteration < 100)
+             call minimizer_%iterate()
+             iteration=iteration+1
+             converged=minimizer_%testSize(toleranceAbsolute=1.0d-12)
+          end do
+          locationMinimum=minimizer_%x()
+          y0(i)=exp(locationMinimum(1))
+          z0(i)=    locationMinimum(2)
+          ! Tabulate solutions for density and mass.
+          do j=1,countRadii
+             x         =0.0d0
+             properties=0.0d0
+             call odeSolver_%solve(x,self%radiiDimensionless(j),properties)
+             self%densityProfileDimensionless(j,i)=+y0(i)                 &
+                  &                                *exp(                  &
+                  &                                     -properties(1)    &
+                  &                                     /z0(i)        **2 &
+                  &                                    )
+             self%massProfileDimensionless   (j,i)=+     properties(3)
+          end do
        end do
-       locationMinimum=minimizer_%x()
-       y0(i)=exp(locationMinimum(1))
-       z0(i)=    locationMinimum(2)
-    end do
-    !$omp end do
-    deallocate(odeSolver_)
-    deallocate(minimizer_)
-    !$omp end parallel
+       !$omp end do
+       deallocate(odeSolver_)
+       deallocate(minimizer_)
+       !$omp end parallel
+       ! Write the data to file.
+       !$ call hdf5Access%set()
+       call file%openFile    (char(     fileName                   )                              ,overWrite=.true.,readOnly=.false.)
+       call file%writeDataset(          xi                          ,'xi'                                                           )
+       call file%writeDataset(     self%radiiDimensionless          ,'radii'                                                        )
+       call file%writeDataset(          y0                          ,'y0'                                                           )
+       call file%writeDataset(          z0                          ,'z0'                                                           )
+       call file%writeDataset(     self%densityProfileDimensionless ,'densityProfileDimensionless'                                  )
+       call file%writeDataset(     self%massProfileDimensionless    ,'massProfileDimensionless'                                     )
+       call file%close       (                                                                                                      )
+       !$ call hdf5Access%unset()
+    end if
+    call File_Unlock(fileLock)
     ! Build the interpolators.
+    allocate(self%interpolatorXi                        )
+    allocate(self%interpolatorRadiiDimensionless        )
     allocate(self%densityCentralDimensionless           )
     allocate(self%velocityDispersionCentralDimensionless)
-    self%densityCentralDimensionless           =interpolator(xi,y0)
-    self%velocityDispersionCentralDimensionless=interpolator(xi,z0)
+    self%densityCentralDimensionless           =interpolator(     xi                ,y0)
+    self%velocityDispersionCentralDimensionless=interpolator(     xi                ,z0)
+    self%interpolatorXi                        =interpolator(     xi                   )
+    self%interpolatorRadiiDimensionless        =interpolator(self%radiiDimensionless   )
     return
   end subroutine sidmIsothermalTabulateSolutions
   
@@ -367,25 +449,17 @@ contains
     !!{
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
-    use :: Numerical_ODE_Solvers           , only : odeSolver
-    use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLinear
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)            :: self
-    type            (treeNode                          ), intent(inout)            :: node
-    integer         (c_size_t                          ), parameter                :: propertyCount                =3
-    integer                                             , parameter                :: countTable                   =1000
-    double precision                                    , parameter                :: odeToleranceAbsolute         =1.0d-3, odeToleranceRelative     =1.0d-3
-    double precision                                    , dimension(propertyCount) :: properties                          , propertyScales
-    double precision                                    , dimension(countTable   ) :: radiusTable                         , densityTable                    , &
-         &                                                                            massTable
-    type            (odeSolver                         )                           :: odeSolver_
-    integer                                                                        :: i
-    double precision                                                               :: densityCentral                      , velocityDispersionCentral       , &
-         &                                                                            densityInteraction                  , massInteraction                 , &
-         &                                                                            radiusInteraction                   , radius                          , &
-         &                                                                            velocityDispersionInteraction       , xi
+    class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    integer                                             , parameter     :: countTable                   =1000
+    double precision                                    , parameter     :: odeToleranceAbsolute         =1.0d-3, odeToleranceRelative     =1.0d-3
+    double precision                                                    :: densityCentral                      , velocityDispersionCentral       , &
+         &                                                                 densityInteraction                  , massInteraction                 , &
+         &                                                                 radiusInteraction                   , xi                              , &
+         &                                                                 velocityDispersionInteraction
 
     ! Ensure dimensionless solutions have been tabulated.
     call self%tabulateSolutions()
@@ -396,7 +470,7 @@ contains
     massInteraction              =self%darkMatterProfileDMO_%enclosedMass            (node,radiusInteraction)
     ! Find the velocity dispersion scale to be applied to the dimensionless solutions.
     velocityDispersionInteraction=sqrt(gravitationalConstantGalacticus*massInteraction/radiusInteraction)
-    ! Compute the
+    ! Compute the ξ parameter.
     xi                           =+massInteraction       &
          &                        *3.0d0                 &
          &                        /4.0d0                 &
@@ -406,68 +480,15 @@ contains
     ! Find the properties at the halo center.
     densityCentral               =self%densityCentralDimensionless           %interpolate(xi)*densityInteraction
     velocityDispersionCentral    =self%velocityDispersionCentralDimensionless%interpolate(xi)*velocityDispersionInteraction
-    ! Set ODE solver  scales.
-    propertyScales               =[velocityDispersionInteraction**2,velocityDispersionInteraction**2/radiusInteraction,massInteraction]
-    ! Construct an ODE solver.
-    odeSolver_                   =odeSolver(propertyCount,sidmIsothermalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)
-    ! Tabulate solutions for density and mass.
-    radiusTable=Make_Range(rangeMinimum=0.0d0,rangeMaximum=radiusInteraction,rangeNumber=countTable,rangeType=rangeTypeLinear)
-    do i=1,countTable
-       radius    =0.0d0
-       properties=0.0d0
-       call odeSolver_%solve(radius,radiusTable(i),properties)
-       densityTable(i)=+densityCentral                    &
-            &          *exp(                              &
-            &               -properties(1)                &
-            &               /velocityDispersionCentral**2 &
-            &              )
-       massTable   (i)=+     properties(3)
-    end do
-    allocate(self%densityProfile)
-    allocate(self%   massProfile)
-    self%           densityProfile=interpolator(radiusTable,             densityTable)
-    self%              massProfile=interpolator(radiusTable,                massTable)
-    self%velocityDispersionCentral=                         velocityDispersionCentral
+    ! Store properties of current profile.
+    self%radiusInteraction_           =radiusInteraction
+    self%densityInteraction           =densityInteraction
+    self%massInteraction              =massInteraction
+    self%velocityDispersionInteraction=velocityDispersionInteraction
+    self%velocityDispersionCentral    =velocityDispersionCentral
+    ! Compute interpolating factors in ξ.
+    call self%interpolatorXi%linearFactors(xi,self%indexXi,self%factorsXi)
     return
-    
-  contains
-
-    integer function sidmIsothermalODEs(radius,properties,propertiesRateOfChange)
-      !!{
-      Define the ODE system to solve for isothermal self-interacting dark matter cores.
-      !!}
-      use :: Interface_GSL                   , only : GSL_Success
-      use :: Numerical_Constants_Math        , only : Pi
-      use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-      implicit none
-      double precision, intent(in  )                :: radius
-      double precision, intent(in   ), dimension(:) :: properties
-      double precision, intent(  out), dimension(:) :: propertiesRateOfChange
-      double precision                              :: density
-      
-      density                         =+densityCentral                    &
-           &                           *exp(                              &
-           &                                -max(properties(1),0.0d0)     &
-           &                                /velocityDispersionCentral**2 &
-           &                               )
-      propertiesRateOfChange       (1)=+properties(2)
-      propertiesRateOfChange       (2)=+4.0d0                             &
-           &                           *Pi                                &
-           &                           *gravitationalConstantGalacticus   &
-           &                           *density
-      if (radius > 0.0d0)                                                 &
-           & propertiesRateOfChange(2)=+propertiesRateOfChange(2)         &
-           &                           -2.0d0                             &
-           &                           *properties            (2)         &
-           &                           /radius
-      propertiesRateOfChange       (3)=+4.0d0                             &
-           &                           *Pi                                &
-           &                           *radius**2                         &
-           &                           *density
-      sidmIsothermalODEs              = GSL_Success
-      return
-    end function sidmIsothermalODEs
-    
   end subroutine sidmIsothermalComputeSolution
   
   double precision function sidmIsothermalDensity(self,node,radius)
@@ -476,16 +497,30 @@ contains
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    double precision                                    , intent(in   ) :: radius
+    class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)  :: self
+    type            (treeNode                          ), intent(inout)  :: node
+    double precision                                    , intent(in   )  :: radius
+    integer         (c_size_t                          )                 :: i            , j, &
+         &                                                                  indexRadius
+    double precision                                    , dimension(0:1) :: factorsRadius
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalDensity=self%darkMatterProfileDMO_%density(node,radius)
     else
        if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
        if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
-       sidmIsothermalDensity=self%densityProfile%interpolate(radius)
+       call self%interpolatorRadiiDimensionless%linearFactors(radius/self%radiusInteraction_,indexRadius,factorsRadius)
+       sidmIsothermalDensity=0.0d0
+       do i=0,1
+          do j=0,1
+             sidmIsothermalDensity=+     sidmIsothermalDensity                                     &
+                  &                +self%densityProfileDimensionless(indexRadius+i,self%indexXi+j) &
+                  &                *     factorsRadius              (           i                ) &
+                  &                *self%factorsXi                  (                           j)
+          end do
+       end do
+       sidmIsothermalDensity=+     sidmIsothermalDensity &
+            &                *self%densityInteraction
     end if
     return
   end function sidmIsothermalDensity
@@ -496,16 +531,24 @@ contains
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    double precision                                    , intent(in   ) :: radius
+    class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)  :: self
+    type            (treeNode                          ), intent(inout)  :: node
+    double precision                                    , intent(in   )  :: radius
+    integer         (c_size_t                          )                 :: indexRadius
+    double precision                                    , dimension(0:1) :: factorsRadius
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalDensityLogSlope=self%darkMatterProfileDMO_%densityLogSlope(node,radius)
     else
        if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
        if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
-       sidmIsothermalDensityLogSlope=self%densityProfile%derivative(radius)*radius/self%densityProfile%interpolate(radius)
+       call self%interpolatorRadiiDimensionless%linearFactors(radius/self%radiusInteraction_,indexRadius,factorsRadius)
+       if (indexRadius > 1) then
+          sidmIsothermalDensityLogSlope=+log(self%densityProfileDimensionless(indexRadius+1,self%indexXi+0)/self%densityProfileDimensionless(indexRadius+0,self%indexXi+0)) &
+               &                        /log(self%radiiDimensionless         (indexRadius+1               )/self%radiiDimensionless         (indexRadius+0               ))
+       else
+          sidmIsothermalDensityLogSlope=+0.0d0
+       end if
     end if
     return
   end function sidmIsothermalDensityLogSlope
@@ -519,13 +562,27 @@ contains
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
     double precision                                    , intent(in   ) :: radius
-
+    integer         (c_size_t                          )                 :: i            , j, &
+         &                                                                  indexRadius
+    double precision                                    , dimension(0:1) :: factorsRadius
+    
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalEnclosedMass=self%darkMatterProfileDMO_%enclosedMass(node,radius)
     else
        if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
        if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
-       sidmIsothermalEnclosedMass=self%massProfile%interpolate(radius)
+       call self%interpolatorRadiiDimensionless%linearFactors(radius/self%radiusInteraction_,indexRadius,factorsRadius)
+       sidmIsothermalEnclosedMass=0.0d0
+       do i=0,1
+          do j=0,1
+             sidmIsothermalEnclosedMass=+     sidmIsothermalEnclosedMass                               &
+                  &                     +self%massProfileDimensionless  (indexRadius+i,self%indexXi+j) &
+                  &                     *     factorsRadius             (            i               ) &
+                  &                     *self%factorsXi                 (                           j)
+          end do
+       end do
+       sidmIsothermalEnclosedMass=+     sidmIsothermalEnclosedMass &
+            &                     *self%massInteraction
     end if
     return
   end function sidmIsothermalEnclosedMass
@@ -589,7 +646,12 @@ contains
     else
        if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
        if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node)
-       sidmIsothermalPotential=self%darkMatterProfileDMO_%potential(node,self%radiusInteraction(node))-self%velocityDispersionCentral**2*log(self%densityProfile%interpolate(radius)/self%densityProfile%interpolate(self%radiusInteraction(node)))
+       sidmIsothermalPotential=+    self%darkMatterProfileDMO_%potential                (node,self%radiusInteraction_)    &
+            &                  -    self                      %velocityDispersionCentral                              **2 &
+            &                  *log(                                                                                      &
+            &                      +self                      %density                  (node,     radius            )    &
+            &                      /self                      %density                  (node,self%radiusInteraction_)    &
+            &                      )
     end if
     return
   end function sidmIsothermalPotential

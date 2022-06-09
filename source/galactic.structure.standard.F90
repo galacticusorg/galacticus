@@ -381,7 +381,7 @@ contains
     end if
     self_ => self
     node_ => node
-    ! If the dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
+    ! If the dark matter component is queried and its density profile is unaffected by baryons, compute the radius from the dark
     ! matter profile. Otherwise, find the radius numerically.
     if     (                                                                                              &
          &   galacticStructureState_(galacticStructureStateCount)%componentType_ == componentTypeDarkHalo &
@@ -960,6 +960,13 @@ contains
     integer                                    , intent(in   ), optional    :: componentType            , massType   , &
          &                                                                     weightBy                 , weightIndex
     type            (galacticStructureState   ), dimension(:) , allocatable :: galacticStructureStateTmp
+    !![
+    <optionalArgument name="componentType" defaultsTo="componentTypeAll" />  
+    <optionalArgument name="massType"      defaultsTo="massTypeAll"      />
+    <optionalArgument name="weightBy"      defaultsTo="weightByMass"     />
+    <optionalArgument name="weightIndex"   defaultsTo="-1"               />
+    <optionalArgument name="radius"        defaultsTo="radiusLarge"      />
+    !!]
 
     ! Expand the state stack if necessary.
     if      (.not.allocated(galacticStructureState_)) then
@@ -973,31 +980,15 @@ contains
     ! Increment stack counter.
     galacticStructureStateCount=galacticStructureStateCount+1
     ! Set defaults.    
-    if (present(radius       )) then
-       galacticStructureState_(galacticStructureStateCount)%radius_        =radius
-    else
-       galacticStructureState_(galacticStructureStateCount)%radius_        =radiusLarge
-    end if
-    if (present(massType     )) then
-       galacticStructureState_(galacticStructureStateCount)%massType_      =massType
-    else
-       galacticStructureState_(galacticStructureStateCount)%massType_      =massTypeAll
-    end if
-    if (present(componentType)) then
-       galacticStructureState_(galacticStructureStateCount)%componentType_ =componentType
-    else
-       galacticStructureState_(galacticStructureStateCount)%componentType_ =componentTypeAll
-    end if
-    if (present(weightBy     )) then
-       galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightBy
-       select case (weightBy)
-       case (weightByLuminosity)
-          if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
-          galacticStructureState_(galacticStructureStateCount)%weightIndex_=weightIndex
-       end select
-    else
-       galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightByMass
-    end if
+    galacticStructureState_(galacticStructureStateCount)%radius_        =radius_
+    galacticStructureState_(galacticStructureStateCount)%massType_      =massType_
+    galacticStructureState_(galacticStructureStateCount)%componentType_ =componentType_
+    galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightBy_
+    select case (weightBy_)
+    case (weightByLuminosity)
+       if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
+       galacticStructureState_(galacticStructureStateCount)%weightIndex_=weightIndex_
+    end select
     return
   end subroutine standardDefaults
 

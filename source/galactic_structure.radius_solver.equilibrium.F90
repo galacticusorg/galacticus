@@ -35,8 +35,8 @@
      Implementation of an ``equilibrium'' solver for galactic structure.
      !!}
      private
-     logical                                              :: includeBaryonGravity                , useFormationHalo, &
-          &                                                  solveForInactiveProperties
+     logical                                              :: includeBaryonGravity                , useFormationHalo         , &
+          &                                                  solveForInactiveProperties          , convergenceFailureIsFatal
      double precision                                     :: solutionTolerance
      class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_         => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
@@ -78,11 +78,17 @@ contains
     class           (darkMatterProfileClass            ), pointer       :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class           (galacticStructureClass            ), pointer       :: galacticStructure_
-    logical                                                             :: useFormationHalo          , includeBaryonGravity, &
-         &                                                                 solveForInactiveProperties
+    logical                                                             :: useFormationHalo          , includeBaryonGravity     , &
+         &                                                                 solveForInactiveProperties, convergenceFailureIsFatal
     double precision                                                    :: solutionTolerance
 
     !![
+    <inputParameter>
+      <name>convergenceFailureIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, failure to achieve convergence in radii results in a fatal error.</description>
+      <source>parameters</source>
+    </inputParameter>
     <inputParameter>
       <name>includeBaryonGravity</name>
       <defaultValue>.true.</defaultValue>
@@ -111,7 +117,7 @@ contains
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_)
+    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfile_"   />
@@ -121,20 +127,20 @@ contains
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
     !!}
     implicit none
     type            (galacticStructureSolverEquilibrium)                        :: self
-    logical                                             , intent(in   )         :: useFormationHalo          , includeBaryonGravity, &
-         &                                                                         solveForInactiveProperties
+    logical                                             , intent(in   )         :: useFormationHalo          , includeBaryonGravity     , &
+         &                                                                         solveForInactiveProperties, convergenceFailureIsFatal
     double precision                                    , intent(in   )         :: solutionTolerance
     class           (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterProfile_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterProfile_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -222,7 +228,7 @@ contains
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     use :: Display            , only : displayMessage
-    use :: Error              , only : Error_Report
+    use :: Error              , only : Error_Report      , Warn
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -230,8 +236,8 @@ contains
     type            (treeNode                          ), intent(inout), target :: node
     logical                                             , parameter             :: specificAngularMomentumRequired=.true.
     integer                                             , parameter             :: iterationMaximum               =  100
-    procedure       (solverGet                         ), pointer               :: radiusGet                              , velocityGet
-    procedure       (solverSet                         ), pointer               :: radiusSet                              , velocitySet
+    procedure       (solverGet                         ), pointer               :: radiusGet                             , velocityGet
+    procedure       (solverSet                         ), pointer               :: radiusSet                             , velocitySet
     logical                                                                     :: componentActive
     double precision                                                            :: specificAngularMomentum
 
@@ -268,9 +274,13 @@ contains
        end do
        ! Check that we found a converged solution.
        if (equilibriumFitMeasure > self%solutionTolerance) then
-          call displayMessage('dumping node for which radii are currently being sought')
-          call node%serializeASCII()
-          call Error_Report('failed to find converged solution'//{introspection:location})
+          if (self%convergenceFailureIsFatal) then
+             call displayMessage('dumping node for which radii are currently being sought')
+             call node%serializeASCII()
+             call Error_Report('failed to find converged solution'//{introspection:location})
+          else
+             call Warn('failed to find converged solution for galactic structure radii')
+          end if
        end if
     end if
     ! Unset structure reversion flag.
@@ -422,7 +432,7 @@ contains
             if (displayVerbosity() < verbosityLevelStandard) call displayVerbositySet(verbosityLevelStandard)
             call node%serializeASCII()
             message='radius has reached zero for node '
-            message=message//node%index()//' - report follows:'//char(10)
+            message=message//node%index()//' - report follows:'       //char(10)
             write (label,'(e12.6)') specificAngularMomentum
             message=message//'  specific angular momentum:    '//label//char(10)
             write (label,'(e12.6)') velocity

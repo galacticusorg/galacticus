@@ -76,6 +76,7 @@ module Locks
        <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function." method="setWrite" />
        <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
        <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
+       <method description="Return true if the current thread owns this lock." method="owned" />
      </methods>
      !!]
      final     ::               ompReadWriteLockDestructor

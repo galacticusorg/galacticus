@@ -229,6 +229,11 @@ contains
          &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
          &                 rangeExpandType              =rangeExpandMultiplicative      &
          &                )
+    ! Initialize memoized values.
+    self%massGasPrevious             =-huge(0.0d0)
+    self%massStellarPrevious         =-huge(0.0d0)
+    self%radiusDiskPrevious          =-huge(0.0d0)
+    self%hydrogenMassFractionPrevious=-huge(0.0d0)
     return
   end function blitz2006ConstructorInternal
 

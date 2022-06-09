@@ -182,6 +182,7 @@ contains
     call node%destroy()
     deallocate(node)
     ! Initialize state.
+    self%specialCase          =specialCaseGeneral
     self%scaleRadiusPrevious  =-1.0d0
     self%normalizationPrevious=-1.0d0
     self%uniqueIDPrevious     =node%uniqueID()
@@ -330,7 +331,7 @@ contains
           ratioVelocityMaximumVelocityScale=self%ratioVelocityMaximumVelocityScaleStripped
        end if
        massScaleOriginal=self%darkMatterProfileUnstripped%enclosedMass(node,darkMatterProfile%scale())
-       massScale=+massScaleOriginal&
+       massScale=+massScaleOriginal                                                      &
             &    *self             %scaleRadius          (node                      )    &
             &    /darkmatterProfile%scale                (                          )    &
             &    *self             %ratioVelocityMaximumVelocityScaleUnstripped      **2 &

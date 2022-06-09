@@ -253,27 +253,29 @@ contains
 
     passCount=0
     failCount=0
-    result => firstResult
-    do while (associated(result))
-       if (.not.(result%beginGroup.or.result%endGroup)) then
-          select case (result%result)
-          case (testFailed)
-             failCount=failCount+1
-             message=" FAILED: "//result%label
-             if (result%note /= "") message=message//" ["//result%note//"]"
-          case (testPassed)
-             passCount=passCount+1
-             message=" passed: "//result%label
-          case (testSkipped)
-             message="skipped: "//result%label//" ["//result%note//"]"
-          end select
-          call displayMessage(message)
-       else
-          if (result%beginGroup) call displayIndent  (result%label)
-          if (result%endGroup  ) call displayUnindent("")
-       end if
-       result => result%nextResult
-    end do
+    if (.not.firstAssert) then
+       result => firstResult
+       do while (associated(result))
+          if (.not.(result%beginGroup.or.result%endGroup)) then
+             select case (result%result)
+             case (testFailed)
+                failCount=failCount+1
+                message=" FAILED: "//result%label
+                if (result%note /= "") message=message//" ["//result%note//"]"
+             case (testPassed)
+                passCount=passCount+1
+                message=" passed: "//result%label
+             case (testSkipped)
+                message="skipped: "//result%label//" ["//result%note//"]"
+             end select
+             call displayMessage(message)
+          else
+             if (result%beginGroup) call displayIndent  (result%label)
+             if (result%endGroup  ) call displayUnindent("")
+          end if
+          result => result%nextResult
+       end do
+    end if
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
     else
@@ -285,7 +287,7 @@ contains
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
     else
-       percentage=100
+       percentage=  0
     end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"
