@@ -73,6 +73,7 @@ contains
      procedure :: besselFactorRotationCurveGradient => exponentialDiskBesselFactorRotationCurveGradient
      procedure :: besselFactorPotential             => exponentialDiskBesselFactorPotential
      procedure :: density                           => exponentialDiskDensity
+     procedure :: densitySphericalAverage           => exponentialDiskDensitySphericalAverage
      procedure :: surfaceDensity                    => exponentialDiskSurfaceDensity
      procedure :: massEnclosedBySphere              => exponentialDiskMassEnclosedBySphere
      procedure :: potential                         => exponentialDiskPotential
@@ -321,9 +322,29 @@ contains
     return
   end function exponentialDiskDensity
 
+  double precision function exponentialDiskDensitySphericalAverage(self,radius)
+    !!{
+    Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass
+    distribution. Note that this assumes the thin-disk approximation.
+    !!}
+    implicit none
+    class           (massDistributionExponentialDisk), intent(inout) :: self
+    double precision                                 , intent(in   ) :: radius
+
+    exponentialDiskDensitySphericalAverage=+0.5d0                              &
+         &                              *     self%surfaceDensityNormalization &
+         &                              /                               radius &
+         &                              *exp(                                  &
+         &                                   -                          radius &
+         &                                   /self                %scaleRadius &
+         &                                  )
+    return
+  end function exponentialDiskDensitySphericalAverage
+
   double precision function exponentialDiskMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass distributions.
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass
+    distributions. Note that this assumes the thin-disk approximation.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

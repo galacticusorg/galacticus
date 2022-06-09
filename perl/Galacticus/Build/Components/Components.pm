@@ -203,6 +203,15 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "densitySphericalAverage"                                                                              ,
+	     function    => "Node_Component_Density_Spherical_Average_Null"                                                        ,
+	     description => "Compute the spherically-averaged density."                                                            ,
+	     mappable    => "summation"                                                                                            ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "surfaceDensity"                                                                                       ,
 	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
 	     description => "Compute the surface density."                                                                         ,

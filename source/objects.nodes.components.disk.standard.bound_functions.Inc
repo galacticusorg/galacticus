@@ -368,6 +368,53 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
    return
 end function Node_Component_Disk_Standard_Density
 
+double precision function Node_Component_Disk_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex)
+  !!{
+  Computes the density at a given position for an standard disk.
+  !!}
+  use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll    , massTypeBaryonic  , &
+          &                                        massTypeGalactic    , massTypeGaseous    , massTypeStellar, weightByLuminosity, &
+          &                                        weightByMass
+  use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
+  implicit none
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  integer                                    , intent(in   ) :: componentType       , massType   , &
+       &                                                        weightBy            , weightIndex
+  double precision                           , intent(in   ) :: radius
+  type            (stellarLuminosities      ), save          :: luminositiesDisk
+  !$omp threadprivate(luminositiesDisk)
+
+  ! Return immediately if disk component is not requested.
+  Node_Component_Disk_Standard_Density_Spherical_Average=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
+  ! Determine mass/luminosity type.
+  select case (weightBy)
+  case (weightByMass      )
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+        Node_Component_Disk_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
+     case (massTypeGaseous)
+        Node_Component_Disk_Standard_Density_Spherical_Average=self%massGas()
+     case (massTypeStellar)
+        Node_Component_Disk_Standard_Density_Spherical_Average=               self%massStellar()
+     end select
+  case (weightByLuminosity)
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+        luminositiesDisk=self%luminositiesStellar()
+        Node_Component_Disk_Standard_Density_Spherical_Average=luminositiesDisk%luminosity(weightIndex)
+     end select
+  end select
+  ! Skip further calculation if mass or radius is zero.
+  if (Node_Component_Disk_Standard_Density_Spherical_Average > 0.0d0 .and. self%radius() > 0.0d0) then
+     ! Compute the actual density.
+      Node_Component_Disk_Standard_Density_Spherical_Average=+Node_Component_Disk_Standard_Density_Spherical_Average                &
+           &                                                 /self                %radius                 (                    )**3 &
+           &                                                 *diskMassDistribution%densitySphericalAverage(radius/self%radius())
+   end if
+   return
+ end function Node_Component_Disk_Standard_Density_Spherical_Average
+
 double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status)
   !!{
   Compute the gravitational potential due to an standard disk.

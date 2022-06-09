@@ -58,6 +58,7 @@ Contains a module which implements the standard galactic structure functions.
      final     ::                                  standardDestructor
      procedure :: autoHook                      => standardAutoHook
      procedure :: density                       => standardDensity
+     procedure :: densitySphericalAverage       => standardDensitySphericalAverage
      procedure :: massEnclosed                  => standardMassEnclosed
      procedure :: radiusEnclosingMass           => standardRadiusEnclosingMass
      procedure :: velocityRotation              => standardVelocityRotation
@@ -293,6 +294,59 @@ contains
     densityComponent=component%density(positionSpherical_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_)
     return
   end function densityComponent
+
+  double precision function standardDensitySphericalAverage(self,node,radius,componentType,massType,weightBy,weightIndex) result(density)
+    !!{
+    Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
+    been computed.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeAll                           , massTypeAll       , weightByLuminosity, weightByMass
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : optimizeForDensitySphericalAverageSummation, reductionSummation, treeNode
+    !![
+    <include directive="densitySphericalAverageTask" type="moduleUse">
+    !!]
+    include 'galactic_structure.density_spherical_average.tasks.modules.inc'
+    !![
+    </include>
+    !!]
+    implicit none
+    class           (galacticStructureStandard       ), intent(inout)           :: self
+    type            (treeNode                        ), intent(inout)           :: node
+    integer                                           , intent(in   ), optional :: componentType                     , massType   , &
+         &                                                                         weightBy                          , weightIndex
+    double precision                                  , intent(in   )           :: radius
+    procedure       (densitySphericalAverageComponent), pointer                 :: densitySphericalAverageComponent_
+    double precision                                                            :: densitySphericalAverageComponent__
+
+    call self%defaults(radius=radius,componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
+    ! Call routines to supply the densities for all components.
+    densitySphericalAverageComponent_ => densitySphericalAverageComponent
+    density                           =  node%mapDouble0(densitySphericalAverageComponent_,reductionSummation,optimizeFor=optimizeForDensitySphericalAverageSummation)
+    !![
+    <include directive="densitySphericalAverageTask" type="functionCall" functionType="function" returnParameter="densitySphericalAverageComponent__">
+     <functionArgs>node,radius,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_</functionArgs>
+     <onReturn>density=density+densitySphericalAverageComponent__</onReturn>
+    !!]
+    include 'galactic_structure.density_spherical_average.tasks.inc'
+    !![
+    </include>
+    !!]
+    call self%restore()
+    return
+  end function standardDensitySphericalAverage
+  
+  double precision function densitySphericalAverageComponent(component)
+    !!{
+    Unary function returning the spherically-averaged density in a component. Suitable for mapping over components.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponent
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+
+    densitySphericalAverageComponent=component%densitySphericalAverage(galacticStructureState_(galacticStructureStateCount)%radius_,galacticStructureState_(galacticStructureStateCount)%componentType_,galacticStructureState_(galacticStructureStateCount)%massType_,galacticStructureState_(galacticStructureStateCount)%weightBy_,galacticStructureState_(galacticStructureStateCount)%weightIndex_)
+    return
+  end function densitySphericalAverageComponent
 
   double precision function standardMassEnclosed(self,node,radius,componentType,massType,weightBy,weightIndex) result(massEnclosed)
     !!{
@@ -910,16 +964,12 @@ contains
     integrator_            =integrator           (integrandVelocityDispersion,toleranceRelative=1.0d-3)
     densityVelocityVariance=integrator_%integrate(radius                     ,radiusOuter             )
     ! Get the density at this radius.
-    densitySphericalAverage=+3.0d0                                                                                                 &
-         &                  /4.0d0                                                                                                 &
-         &                  /Pi                                                                                                    &
-         &                  *self_%massEnclosed(                                                                                   &
-         &                                                    node_                                                              , &
-         &                                                    radius                                                             , & 
-         &                                      componentType=galacticStructureState_(galacticStructureStateCount)%componentType_, &
-         &                                      massType     =galacticStructureState_(galacticStructureStateCount)%massType_       &
-         &                                     )                                                                                   &
-         &                  /radius**3
+    densitySphericalAverage=self_%densitySphericalAverage(                                                                                   &
+         &                                                              node_                                                              , &
+         &                                                              radius                                                             , & 
+         &                                                componentType=galacticStructureState_(galacticStructureStateCount)%componentType_, &
+         &                                                massType     =galacticStructureState_(galacticStructureStateCount)%massType_       &
+         &                                               )
     ! Check for zero density.
     if (densitySphericalAverage <= 0.0d0) then
        velocityDispersion=0.0d0
@@ -935,31 +985,24 @@ contains
     Integrand function used for finding velocity dispersions using Jeans equation.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Math        , only : Pi
     implicit none
     double precision, intent(in   ) :: radius
-    double precision                :: densitySphericalAverage
 
     if (radius == 0.0d0) then
        integrandVelocityDispersion=0.0d0
     else
-       densitySphericalAverage    =+3.0d0                                                                                                 &
-            &                      /4.0d0                                                                                                 &
-            &                      /Pi                                                                                                    &
-            &                      *self_%massEnclosed(                                                                                   &
-            &                                                        node_                                                              , &
-            &                                                        radius                                                             , & 
-            &                                          componentType=galacticStructureState_(galacticStructureStateCount)%componentType_, &
-            &                                          massType     =galacticStructureState_(galacticStructureStateCount)%massType_       &
-            &                                         )                                                                                   &
-            &                      /radius**3
-       integrandVelocityDispersion=+gravitationalConstantGalacticus                                                                       &
-            &                      *self_%massEnclosed(                                                                                   &
-            &                                                         node_                                                             , &
-            &                                                         radius                                                              &
-            &                                         )                                                                                   &
-            &                      /radius**2                                                                                             &
-            &                      *densitySphericalAverage
+       integrandVelocityDispersion=+gravitationalConstantGalacticus                                                                                  &
+            &                      *self_%massEnclosed           (                                                                                   &
+            &                                                                    node_                                                             , &
+            &                                                                    radius                                                              &
+            &                                                    )                                                                                   &
+            &                      /radius**2                                                                                                        &
+            &                      *self_%densitySphericalAverage(                                                                                   &
+            &                                                                   node_                                                              , &
+            &                                                                   radius                                                             , & 
+            &                                                     componentType=galacticStructureState_(galacticStructureStateCount)%componentType_, &
+            &                                                     massType     =galacticStructureState_(galacticStructureStateCount)%massType_       &
+            &                                                    )
     end if
     return
   end function integrandVelocityDispersion
