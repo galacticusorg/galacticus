@@ -148,7 +148,7 @@ contains
     type            (treeNode                      ), pointer                 :: nodeWork
     class           (nodeComponentBasic            ), pointer                 :: basic
     double precision                                                          :: massLow                 , massHigh
-    type            (integrator                    )                          :: integrator_
+    type            (integrator                    )                          :: integrator_             , integratorNormalization_
 
      ! Create a work node.
     nodeWork => treeNode      (                 )
@@ -164,19 +164,28 @@ contains
          &                      )
     ! Perform the convolution integral.
     massLow                             =  max(1.0d-3*mass,mass-rangeIntegralSigma*errorConvolvedErrorMass)
-    massHigh                            =                  mass+rangeIntegralSigma*errorConvolvedErrorMass
+    massHigh                            =                  mass+rangeIntegralSigma*errorConvolvedErrorMass    
     errorConvolvedIntrinsicMassFunction => self%massFunctionIntrinsic
     errorConvolvedTime                  =  time
     errorConvolvedMass                  =  mass
-    integrator_                         =  integrator           (                                             &
-         &                                                                         errorConvolvedConvolution, &
-         &                                                       toleranceAbsolute=1.0d-100                 , &
-         &                                                       toleranceRelative=self%toleranceRelative     &
-         &                                                      )
-    errorConvolvedDifferential          =  integrator_%integrate(                                             &
-         &                                                       massLow                                    , &
-         &                                                       massHigh                                     &
-         &                                                      )
+    integrator_                         =  integrator                         (                                               &
+         &                                                                                       errorConvolvedConvolution  , &
+         &                                                                     toleranceAbsolute=1.0d-100                   , &
+         &                                                                     toleranceRelative=self%toleranceRelative       &
+         &                                                                    )
+    integratorNormalization_            =  integrator                         (                                               &
+         &                                                                                       errorConvolvedNormalization, &
+         &                                                                     toleranceAbsolute=1.0d-100                   , &
+         &                                                                     toleranceRelative=self%toleranceRelative       &
+         &                                                                    )
+    errorConvolvedDifferential          =  +integrator_             %integrate(                                               &
+         &                                                                     massLow                                      , &
+         &                                                                     massHigh                                       &
+         &                                                                    )                                               &
+         &                                 /integratorNormalization_%integrate(                                               &
+         &                                                                     massLow                                      , &
+         &                                                                     massHigh                                       &
+         &                                                                    )
     ! Clean up our work node.
     call nodeWork%destroy()
     deallocate(nodeWork)
@@ -218,5 +227,39 @@ contains
            &                    /errorConvolvedErrorMass
       return
     end function errorConvolvedConvolution
+
+    double precision function errorConvolvedNormalization(massPrime)
+      !!{
+      Integrand function used in normalizing the convolution integral.
+      !!}
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: massPrime
+
+      ! Get the error at this mass scale.
+      call basic%massSet(massPrime)
+      errorConvolvedErrorMass=+massPrime                                                  &
+           &                  *min(                                                       &
+           &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
+           &                       self%errorFractionalMaximum                            &
+           &                      )
+      ! Return the convolution integrand.
+      errorConvolvedNormalization=+exp(                                                   &
+           &                           -0.5d0                                             &
+           &                           *(                                                 &
+           &                             +(                                               &
+           &                               +massPrime                                     &
+           &                               -errorConvolvedMass                            &
+           &                              )                                               &
+           &                             /errorConvolvedErrorMass                         &
+           &                            )**2                                              &
+           &                          )                                                   &
+           &                      /sqrt(                                                  &
+           &                            +2.0d0                                            &
+           &                            *Pi                                               &
+           &                           )                                                  &
+           &                      /errorConvolvedErrorMass
+      return
+    end function errorConvolvedNormalization
 
   end function errorConvolvedDifferential
