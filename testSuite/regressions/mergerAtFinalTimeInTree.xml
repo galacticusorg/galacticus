@@ -173,7 +173,7 @@
     <timescale value="1.0"/>
   </coolingRate>
   <componentSpin value="null"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <outputTimes value="list">
     <redshifts value="0.0700"/>
   </outputTimes>
