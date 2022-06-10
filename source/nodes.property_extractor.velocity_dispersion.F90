@@ -711,15 +711,15 @@ contains
     if (radius <= velocityDispersionRadiusImpact) then
        velocityDispersionDensityIntegrand=+0.0d0
     else
-       velocityDispersionDensityIntegrand=+velocityDispersionSelf%galacticStructure_%density(                                               &
-            &                                                                                              velocityDispersionNode         , &
-            &                                                                                              [radius,0.0d0,0.0d0]           , &
-            &                                                                                massType     =velocityDispersionMassType     , &
-            &                                                                                componentType=velocityDispersionComponentType, &
-            &                                                                                weightBy     =velocityDispersionWeightBy     , &
-            &                                                                                weightIndex  =velocityDispersionWeightIndex    &
-            &                                                                               )                                               &
-            &                             *     radius                                                                                      &
+        velocityDispersionDensityIntegrand=+velocityDispersionSelf%galacticStructure_%densitySphericalAverage(                                               &
+            &                                                                                                 velocityDispersionNode                       , &
+            &                                                                                                               radius                         , &
+            &                                                                                                 massType     =velocityDispersionMassType     , &
+            &                                                                                                 componentType=velocityDispersionComponentType, &
+            &                                                                                                 weightBy     =velocityDispersionWeightBy     , &
+            &                                                                                                 weightIndex  =velocityDispersionWeightIndex    &
+            &                                                                                                )                                               &
+            &                             *     radius                                                                                                       &
             &                             /sqrt(radius**2-velocityDispersionRadiusImpact**2)
     end if
     return
@@ -746,7 +746,7 @@ contains
     \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_\mathrm{i}^2}\right]_{r_\mathrm{i}}^{r_\mathrm{o}} + \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{d}\over \mathrm{d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     \end{equation}
     The first term is zero at both limits (due to the constraint $\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0$ at $r_\mathrm{o}$ and
-    due to $sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
+    due to $\sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
     eqn.~(\ref{eq:sphericalIsotropicJeans}) to give
     \begin{equation}
     \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
@@ -760,22 +760,22 @@ contains
     if (radius <= velocityDispersionRadiusImpact) then
        velocityDispersionVelocityDensityIntegrand=+0.0d0
     else
-       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                                                                       &
-            &                                     *velocityDispersionSelf%galacticStructure_%density    (                                                &
-            &                                                                                                           velocityDispersionNode         , &
-            &                                                                                                           [radius,0.0d0,0.0d0]           , &
-            &                                                                                             massType     =velocityDispersionMassType     , &
-            &                                                                                             componentType=velocityDispersionComponentType, &
-            &                                                                                             weightBy     =velocityDispersionWeightBy     , &
-            &                                                                                             weightIndex  =velocityDispersionWeightIndex    &
-            &                                                                                            )                                               &
-            &                                     *velocityDispersionSelf%galacticStructure_%massEnclosed(                                               &
-            &                                                                                                           velocityDispersionNode         , &
-            &                                                                                                           radius                         , &
-            &                                                                                             massType     =massTypeAll                    , &
-            &                                                                                             componentType=componentTypeAll                 &
-            &                                                                                            )                                               &
-            &                                     /     radius**2                                                                                        &
+       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                                                                                  &
+            &                                     *velocityDispersionSelf%galacticStructure_%densitySphericalAverage(                                               &
+            &                                                                                                                      velocityDispersionNode         , &
+            &                                                                                                                      radius                         , &
+            &                                                                                                        massType     =velocityDispersionMassType     , &
+            &                                                                                                        componentType=velocityDispersionComponentType, &
+            &                                                                                                        weightBy     =velocityDispersionWeightBy     , &
+            &                                                                                                        weightIndex  =velocityDispersionWeightIndex    &
+            &                                                                                                       )                                               &
+            &                                     *velocityDispersionSelf%galacticStructure_%massEnclosed           (                                               &
+            &                                                                                                                      velocityDispersionNode         , &
+            &                                                                                                                      radius                         , &
+            &                                                                                                        massType     =massTypeAll                    , &
+            &                                                                                                        componentType=componentTypeAll                 &
+            &                                                                                                       )                                               &
+            &                                     /     radius**2                                                                                                   &
             &                                     *sqrt(radius**2-velocityDispersionRadiusImpact**2)
     end if
     return

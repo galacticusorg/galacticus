@@ -184,6 +184,7 @@ contains
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+    use :: Numerical_Constants_Math            , only : Pi
     implicit none
     double precision                                     , dimension(:,:), allocatable :: densityProfileExtract
     class           (nodePropertyExtractorDensityProfile), intent(inout) , target      :: self
@@ -248,7 +249,7 @@ contains
             &                                                            node                                 , &
             &                                                            [                                      &
             &                                                             radius                              , &
-            &                                                             0.0d0                               , &
+            &                                                             Pi/2.0d0                            , &
             &                                                             0.0d0                                 &
             &                                                            ]                                    , &
             &                                                            componentType=self%radii(i)%component, &

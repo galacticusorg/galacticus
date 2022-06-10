@@ -47,6 +47,7 @@
      procedure(cylindricalRotationCurve             ), deferred :: rotationCurve
      procedure(cylindricalRotationCurveGradient     ), deferred :: rotationCurveGradient
      procedure(cylindricalSurfaceDensityRadialMoment), deferred :: surfaceDensityRadialMoment
+     procedure(cylindricalDensitySphericalAverage   ), deferred :: densitySphericalAverage
   end type massDistributionCylindrical
 
   abstract interface
@@ -96,6 +97,15 @@
        double precision                             , intent(in   ), optional :: radiusMinimum, radiusMaximum
        logical                                      , intent(  out), optional :: isInfinite
      end function cylindricalSurfaceDensityRadialMoment
+
+     double precision function cylindricalDensitySphericalAverage(self,radius)
+       !!{
+       Interface for cylindrically symmetric mass distribution spherically-averaged density functions.
+       !!}
+       import massDistributionCylindrical
+       class           (massDistributionCylindrical), intent(inout)           :: self
+       double precision                             , intent(in   )           :: radius
+     end function cylindricalDensitySphericalAverage
 
   end interface
 

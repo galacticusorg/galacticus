@@ -29,7 +29,8 @@ module Dark_Matter_Profile_Structure_Tasks
   private
   public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task        , Dark_Matter_Profile_Potential_Task               , &
        &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task          , Dark_Matter_Profile_Chandrasekhar_Integral_Task  , &
-       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore
+       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore, &
+       &    Dark_Matter_Profile_Density_Spherical_Average_Task
 
   class(darkMatterProfileClass), pointer  :: darkMatterProfile_
   !$omp threadprivate(darkMatterProfile_)
@@ -285,6 +286,35 @@ contains
     Dark_Matter_Profile_Density_Task=darkMatterProfile_%density(node,positionSpherical(1))
     return
   end function Dark_Matter_Profile_Density_Task
+
+  !![
+  <densitySphericalAverageTask>
+   <unitName>Dark_Matter_Profile_Density_Spherical_Average_Task</unitName>
+  </densitySphericalAverageTask>
+  !!]
+  double precision function Dark_Matter_Profile_Density_Spherical_Average_Task(node,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    Computes the density at a given position for a dark matter profile.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDarkHalo , massTypeAll, massTypeDark, &
+          &                                   weightByMass
+    use :: Galacticus_Nodes          , only : treeNode
+    implicit none
+    type            (treeNode), intent(inout) :: node
+    integer                   , intent(in   ) :: componentType, massType   , &
+         &                                       weightBy     , weightIndex
+    double precision          , intent(in   ) :: radius
+    !$GLC attributes unused :: weightIndex
+
+    ! Return zero if the component and mass type is not matched.
+    Dark_Matter_Profile_Density_Spherical_Average_Task=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
+    if (.not.(weightBy      == weightByMass                                                )) return
+    ! Compute the density
+    Dark_Matter_Profile_Density_Spherical_Average_Task=darkMatterProfile_%density(node,radius)
+    return
+  end function Dark_Matter_Profile_Density_Spherical_Average_Task
 
   !![
   <rotationCurveGradientTask>
