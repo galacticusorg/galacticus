@@ -12,6 +12,8 @@ use XML::Validator::Schema;
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'directives'} = \&Parse_Directives;
 
+our $parser;
+
 sub Parse_Directives {
     # Get the tree.
     my $tree = shift();
@@ -103,9 +105,11 @@ sub Parse_Directives {
 		    my $directiveName = (keys %{$directive})[0];
 		    # Validate the directive if possible.
 		    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd" ) {
-			my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd");
-			my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
-			eval { $parser->parse_string($strippedDirective) };
+			unless ( exists($parser->{$directiveName}) ) {
+			    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd");
+			    $parser->{'directiveName'} = XML::SAX::ParserFactory->parser(Handler => $validator);
+			}
+			eval { $parser->{'directiveName'}->parse_string($strippedDirective) };
 			if ( $@ ) {
 			    my $nodeParent = $node;
 			    while ( $nodeParent->{'type'} ne "file" ){
