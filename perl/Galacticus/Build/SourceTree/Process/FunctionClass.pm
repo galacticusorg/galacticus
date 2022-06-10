@@ -18,6 +18,7 @@ use Fortran::Utils;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use threads;
+use Thread::Semaphore;
 use Sys::CPU;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
@@ -94,7 +95,8 @@ sub Process_FunctionClass {
 	    my %dependencies;
 	    my %classes;
 	    my %classDependencies;
-	    my @threads = map {threads->create(\&parseFiles,$_,$directive,\%classes,\%classDependencies)} @classLocations;
+	    my $semaphore = Thread::Semaphore->new(&Sys::CPU::cpu_count());
+	    my @threads = map {$semaphore->down();threads->create(\&parseFiles,$_,$semaphore,$directive)} @classLocations;
 	    foreach my $thread ( @threads ) {
 		(my $class, my @classDependencies) = $thread->join();
 		$classes{$class->{'type'}} = $class;
@@ -3708,6 +3710,7 @@ sub stateStoreExplicitFunction {
 
 sub parseFiles {
     my $classLocation = shift();
+    my $semaphore     = shift();
     my $directive     = shift();
     my $classTree     = &Galacticus::Build::SourceTree::ParseFile($classLocation);
     &Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
@@ -3722,6 +3725,7 @@ sub parseFiles {
     # Store to set of all classes.
     die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
 	unless ( defined($class->{'type'}) );
+    $semaphore->up();
     return ($class, @classDependencies);
 }
 
