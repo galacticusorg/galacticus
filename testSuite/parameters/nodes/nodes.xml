@@ -6,5 +6,5 @@
   <componentBasic value="standard"/>
   <componentSpheroid value="standard"/>
   <componentBlackHole value="standard"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
 </parameters>
