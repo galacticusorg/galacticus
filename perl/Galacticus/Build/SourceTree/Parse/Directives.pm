@@ -8,11 +8,14 @@ use Data::Dumper;
 use XML::Simple;
 use XML::SAX::ParserFactory;
 use XML::Validator::Schema;
+use threads;
+use threads::shared;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'directives'} = \&Parse_Directives;
 
 our $parser;
+our $parserLock :shared;
 
 sub Parse_Directives {
     # Get the tree.
@@ -105,6 +108,7 @@ sub Parse_Directives {
 		    my $directiveName = (keys %{$directive})[0];
 		    # Validate the directive if possible.
 		    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd" ) {
+			lock($parserLock);
 			unless ( exists($parser->{$directiveName}) ) {
 			    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd");
 			    $parser->{'directiveName'} = XML::SAX::ParserFactory->parser(Handler => $validator);
