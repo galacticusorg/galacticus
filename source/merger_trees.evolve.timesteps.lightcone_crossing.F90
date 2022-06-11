@@ -39,6 +39,7 @@
      class           (geometryLightconeClass  ), pointer :: geometryLightcone_   => null()
      class           (mergerTreeOutputterClass), pointer :: mergerTreeOutputter_ => null()
      double precision                                    :: timeMinimum
+     integer                                             :: timeMaximumID
     contains
      final     ::                 lightconeCrossingDestructor
      procedure :: timeEvolveTo => lightconeCrossingTimeEvolveTo
@@ -100,6 +101,9 @@ contains
     <constructorAssign variables="timeMinimum, *geometryLightcone_, *mergerTreeOutputter_"/>
     !!]
   
+    !![
+    <addMetaProperty component="position" name="positionInterpolatedTimeMaximum" id="self%timeMaximumID" rank="0" isEvolvable="no" isCreator="no"/>
+    !!]
     return
   end function lightconeCrossingConstructorInternal
 
@@ -142,8 +146,8 @@ contains
     ! Consider only times after the earliest time specified.
     if (timeEnd >= self%timeMinimum) then
        ! Limit the maximum time to the latest time for which the position of the node is known.
-       position    => node    %position                ()
-       timeMaximum =  position%interpolationTimeMaximum()
+       position    => node    %position                 (                  )
+       timeMaximum =  position%floatRank0MetaPropertyGet(self%timeMaximumID)
        if (timeMaximum > 0.0d0) then
           timeMaximum=min(timeMaximum,timeEnd)
        else
@@ -151,8 +155,8 @@ contains
        end if
        ! For satellite nodes also limit the maximum time to the latest time for which the position of the parent node is known.
        if (node%isSatellite()) then
-          positionParent    => node          %parent%position                ()
-          timeMaximumParent =  positionParent       %interpolationTimeMaximum()
+          positionParent    => node          %parent%position                 (                  )
+          timeMaximumParent =  positionParent       %floatRank0MetaPropertyGet(self%timeMaximumID)
           if (timeMaximumParent > 0.0d0) timeMaximum=min(timeMaximum,timeMaximumParent)
        end if
        ! If the maximum time is after the current time, find the time (if any) of lightcone crossing.
