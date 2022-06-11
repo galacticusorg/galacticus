@@ -200,7 +200,7 @@ contains
     !!{
     Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentDisk              , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentDisk              , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
@@ -209,29 +209,36 @@ contains
     ! appears in stability criterion.
     double precision                                              , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                           ), pointer       :: disk
-    double precision                                                              :: massDisk
+    double precision                                                              :: massDisk                          , velocitySelf
     !$GLC attributes unused :: self
 
+    ! Assume an extremely stable disk by default.
+    efstathiou1982Estimator=huge(0.0d0)
     ! Get the disk.
     disk => node%disk()
+    ! Check for a physically-plausible disk.
+    if (disk%radius() <= 0.0d0) return
     ! Compute the disk mass.
     massDisk=disk%massGas()+disk%massStellar()
-    ! Return perfect stability if there is no disk.
-    if (massDisk <= 0.0d0) then
-       efstathiou1982Estimator=huge(0.0d0)
-    else
-       ! Compute the stability estimator for this node.
-       efstathiou1982Estimator=max(                                       &
-            &                      +efstathiou1982StabilityDiskIsolated , &
-            &                      +velocityBoostFactor                   &
-            &                      *      disk%velocity()                 &
-            &                      /sqrt(                                 &
-            &                            +gravitationalConstantGalacticus &
-            &                            *massDisk                        &
-            &                            /disk%radius  ()                 &
-            &                           )                                 &
-            &                     )
-    end if
+    if (massDisk < 0.0d0) return
+    ! Compute the velocity due to the disk's self-gravity.
+    velocitySelf=+sqrt(                                 &
+         &             +gravitationalConstantGalacticus &
+         &             *massDisk                        &
+         &             /disk%radius  ()                 &
+         &            )  
+    if     (                                                                                           &
+         &                                                          velocitySelf  <=            0.0d0  &
+         &  .or.                                                                                       &
+         &   exponent(velocityBoostFactor*disk%velocity())-exponent(velocitySelf) > maxExponent(0.0d0) &
+         & ) return
+    ! Compute the stability estimator for this node.
+    efstathiou1982Estimator=max(                                       &
+         &                      +efstathiou1982StabilityDiskIsolated , &
+         &                      +     velocityBoostFactor              &
+         &                      *disk%velocity          ()             &
+         &                      /     velocitySelf                     &
+         &                     )
     return
   end function efstathiou1982Estimator
 
