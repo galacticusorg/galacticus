@@ -21,7 +21,7 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard"/>
   <componentHotHalo value="standard"/>
-  <componentPosition value="traceDarkMatter"/>
+  <componentPosition value="cartesian"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard"/>
   <componentSpin value="scalar"/>
@@ -265,6 +265,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Positions for subhalos -->
+    <nodeOperator value="positionTraceDarkMatter"/>
   </nodeOperator>
   
   <!-- Numerical tolerances -->
