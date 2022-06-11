@@ -184,6 +184,7 @@ jobs:
           sudo perl -MCPAN -e 'force("install","Regexp::Common")'
           sudo perl -MCPAN -e 'install LaTeX::Encode'
           sudo perl -MCPAN -e 'install Sub::Identify'
+          sudo perl -MCPAN -e 'install Sys::CPU'
       - name: Build Galacticus
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
