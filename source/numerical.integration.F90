@@ -228,9 +228,9 @@ contains
     !!{
     Perform a numerical integration.
     !!}
-    use, intrinsic :: ISO_C_Binding   , only : c_funptr
-    use            :: Error, only : errorStatusSuccess
-    use            :: Interface_GSL   , only : gslSetErrorHandler
+    use, intrinsic :: ISO_C_Binding, only : c_funptr
+    use            :: Error        , only : errorStatusSuccess
+    use            :: Interface_GSL, only : gslSetErrorHandler
     implicit none
     class           (integrator       ), intent(inout)           :: self
     double precision                   , intent(in   )           :: limitLower             , limitUpper
