@@ -17,9 +17,6 @@ use File::Changes;
 use Fortran::Utils;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
-use threads;
-use Thread::Semaphore;
-use Sys::CPU;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 use Galacticus::Build::SourceTree::Process::FunctionClass::Utils;
@@ -94,16 +91,25 @@ sub Process_FunctionClass {
 	    # Parse classes.
 	    my %dependencies;
 	    my %classes;
-	    my %classDependencies;
-	    my $semaphore = Thread::Semaphore->new(&Sys::CPU::cpu_count());
-	    my @threads = map {$semaphore->down();threads->create(\&parseFiles,$_,$semaphore,$directive)} @classLocations;
-	    foreach my $thread ( @threads ) {
-		(my $class, my @classDependencies) = $thread->join();
-		$classes{$class->{'type'}} = $class;
+	    foreach my $classLocation ( @classLocations ) {
+		my $classTree = &Galacticus::Build::SourceTree::ParseFile($classLocation);
+		&Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
+		my $classNode = $classTree;
+		(my $class, my @classDependencies) = &Galacticus::Build::SourceTree::Process::FunctionClass::Utils::Class_Dependencies($classNode,$directive->{'name'});
 		foreach my $classDependency ( @classDependencies ) {
 		    push(@{$dependencies{$classDependency}},$class->{'type'})
 			unless ( $classDependency eq $class->{'type'});
-		}	
+		}
+		# Store tree and file location.
+		$class->{'file'} = $classLocation;
+		$class->{'tree'} = $classTree;
+		# Set defaults.
+		$class->{'abstract'} = "no"
+		    unless ( exists($class->{'abstract'}) );
+	        # Store to set of all classes.
+		die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
+		    unless ( defined($class->{'type'}) );
+		$classes{$class->{'type'}} = $class;
 	    }
 	    # Sort classes. We first impose an alphanumeric sort to ensure that the ordering is always identical for each build,
 	    # and then impose a topological sort to ensure that dependencies are correctly handled.
@@ -3706,27 +3712,6 @@ sub stateStoreExplicitFunction {
 	}
     }
     return ($inputCode,$outputCode,%modules);
-}
-
-sub parseFiles {
-    my $classLocation = shift();
-    my $semaphore     = shift();
-    my $directive     = shift();
-    my $classTree     = &Galacticus::Build::SourceTree::ParseFile($classLocation);
-    &Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
-    my $classNode = $classTree;
-    (my $class, my @classDependencies) = &Galacticus::Build::SourceTree::Process::FunctionClass::Utils::Class_Dependencies($classNode,$directive->{'name'});
-    # Store tree and file location.
-    $class->{'file'} = $classLocation;
-    $class->{'tree'} = $classTree;
-    # Set defaults.
-    $class->{'abstract'} = "no"
-	unless ( exists($class->{'abstract'}) );
-    # Store to set of all classes.
-    die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
-	unless ( defined($class->{'type'}) );
-    $semaphore->up();
-    return ($class, @classDependencies);
 }
 
 1;
