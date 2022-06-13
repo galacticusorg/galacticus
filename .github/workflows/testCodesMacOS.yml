@@ -196,7 +196,7 @@ jobs:
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
           export BUILDPATH=./work/build
-          make -j3 Galacticus.exe 2>&1 | tee build.log
+          make -j3 all 2>&1 | tee build.log
       - name: Upload executables
         uses: actions/upload-artifact@v2
         with:
