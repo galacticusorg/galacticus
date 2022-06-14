@@ -116,7 +116,7 @@ module Input_Parameters
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
           &                                       isNull                 =  .false.
-     type   (integerHash    ), pointer         :: warnedDefaults         => null()
+     type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        )                  :: lock
    contains
      !![
@@ -235,15 +235,16 @@ contains
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
 
-    inputParametersConstructorNull%document   => createDocument    (                                  &
-         &                                                          getImplementation()             , &
-         &                                                          qualifiedName      ="parameters", &
-         &                                                          docType            =null()        &
-         &                                                         )
+    allocate(inputParametersConstructorNull%warnedDefaults)
+    inputParametersConstructorNull%document       => createDocument    (                                  &
+         &                                                              getImplementation()             , &
+         &                                                              qualifiedName      ="parameters", &
+         &                                                              docType            =null()        &
+         &                                                             )
     inputParametersConstructorNull%rootNode       => getDocumentElement(inputParametersConstructorNull%document)
-    inputParametersConstructorNull%parameters     => null   ()
-    inputParametersConstructorNull%warnedDefaults => null   ()
-    inputParametersConstructorNull%lock           =  ompLock()
+    inputParametersConstructorNull%parameters     => null              (                                       )
+    inputParametersConstructorNull%warnedDefaults =  integerHash       (                                       )
+    inputParametersConstructorNull%lock           =  ompLock           (                                       )
     inputParametersConstructorNull%isNull         = .true.
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
@@ -371,7 +372,8 @@ contains
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
     inputParametersConstructorCopy%parent     =>                 parameters%parent
-    if (associated(parameters%warnedDefaults)) then
+    if (allocated(parameters%warnedDefaults)) then
+       if (allocated(inputParametersConstructorCopy%warnedDefaults)) deallocate(inputParametersConstructorCopy%warnedDefaults)
        allocate(inputParametersConstructorCopy%warnedDefaults)
        inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
     end if
@@ -382,11 +384,11 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use :: Display           , only : displayGreen       , displayMessage, displayReset
+    use :: Display           , only : displayGreen                     , displayMessage , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument   , node          , setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)      , char          , operator(//)    , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)                      , operator(/=)
     use :: String_Handling   , only : String_Strip
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
     use :: Display           , only : displayMessage
@@ -678,7 +680,7 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
-    if (associated(self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
        if (self%outputParametersTemporary) then

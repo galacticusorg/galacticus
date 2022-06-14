@@ -134,23 +134,23 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     type            (varying_string               )                :: outputFileName
     integer         (kind_int8                    )                :: idMultiplier
-    double precision                                               :: massParticle         , radiusTruncateOverRadiusVirial   , &
-         &                                                            timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                            lengthSoftening      , toleranceRelativeSmoothing       , &
+    double precision                                               :: massParticle                   , radiusTruncateOverRadiusVirial   , &
+         &                                                            timeSnapshot                   , energyDistributionPointsPerDecade, &
+         &                                                            lengthSoftening                , toleranceRelativeSmoothing       , &
          &                                                            toleranceMass
-    logical                                                        :: satelliteOffset      , nonCosmological                  , &
-         &                                                            positionOffset       , addHubbleFlow                    , &
-         &                                                            haloIdToParticleType , sampleParticleNumber             , &
+    logical                                                        :: satelliteOffset                , nonCosmological                  , &
+         &                                                            positionOffset                 , addHubbleFlow                    , &
+         &                                                            haloIdToParticleType           , sampleParticleNumber             , &
          &                                                            subtractRandomOffset
-    integer                                                        :: selection            , chunkSize                        , &
+    integer                                                        :: selection                      , chunkSize                        , &
          &                                                            kernelSoftening
     class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
     class           (galacticStructureClass       ), pointer       :: galacticStructure_
-    type            (inputParameters              ), pointer       :: parametersRoot
-    type            (varying_string               )                :: selectionText        , kernelSofteningText
+    type            (inputParameters              ), pointer       :: parametersRoot        => null()
+    type            (varying_string               )                :: selectionText                  , kernelSofteningText
 
     !![
     <inputParameter>
