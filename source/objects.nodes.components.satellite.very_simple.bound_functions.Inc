@@ -21,9 +21,9 @@
 Contains custom functions for the very simple satellite component.
 !!}
 
-double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
+double precision function Node_Component_Satellite_Very_Simple_Time_Until_Merging(self)
   !!{
-  Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteVerySimple} component.
+  Return the {\normalfont \ttfamily timeUntilMerging} property of the {\normalfont \ttfamily satelliteVerySimple} component.
   !!}
   implicit none
   class(nodeComponentSatelliteVerySimple), intent(inout) :: self
@@ -31,12 +31,12 @@ double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
 
   selfNode => self%host()
   if (selfNode%isSatellite()) then
-     Node_Component_Satellite_Very_Simple_Merge_Time=self%mergeTimeData
+     Node_Component_Satellite_Very_Simple_Time_Until_Merging=self%timeUntilMergingData
   else
-     Node_Component_Satellite_Very_Simple_Merge_Time=-1.0d0
+     Node_Component_Satellite_Very_Simple_Time_Until_Merging=-1.0d0
   end if
   return
-end function Node_Component_Satellite_Very_Simple_Merge_Time
+end function Node_Component_Satellite_Very_Simple_Time_Until_Merging
 
 double precision function Node_Component_Satellite_Very_Simple_Time_Of_Merging(self)
   !!{
@@ -51,7 +51,7 @@ double precision function Node_Component_Satellite_Very_Simple_Time_Of_Merging(s
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      selfBasicComponent => selfNode%basic()
-     Node_Component_Satellite_Very_Simple_Time_Of_Merging=self%mergeTimeData+selfBasicComponent%time()
+     Node_Component_Satellite_Very_Simple_Time_Of_Merging=self%timeUntilMergingData+selfBasicComponent%time()
   else
      Node_Component_Satellite_Very_Simple_Time_Of_Merging=-1.0d0
   end if

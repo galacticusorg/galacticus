@@ -79,7 +79,7 @@
      double precision                                                     :: lengthReplication                  , angularSize            , &
           &                                                                  solidAngleSubtended
      logical                                                              :: timeEvolvesAlongLightcone          , positionGettableChecked, &
-          &                                                                  mergeTimeGettableChecked
+          &                                                                  timeOfMergingGettableChecked
      integer         (kind_int8              )                            :: nodeUniqueIDCrossing
    contains
      !![
@@ -366,8 +366,8 @@ contains
             &                                         )
     end if
     ! Set property attribute check status.
-    self%positionGettableChecked =.false.
-    self%mergeTimeGettableChecked=.false.
+    self%positionGettableChecked     =.false.
+    self%timeOfMergingGettableChecked=.false.
     ! Initialize lightcone crossing state.
     self%nodeUniqueIDCrossing=-1_kind_int8
     self%nodePositionCrossing=0.0d0
@@ -517,8 +517,8 @@ contains
        ! We need to test if the node is in the lightcone at any point during its existance. Determine for how long this node will
        ! persist. This requires that the merging time be defined. To perform the test also requires that a position exists.  Check
        ! that we can get the time of merging and the position of a node.
-       if (.not.self%mergeTimeGettableChecked) then
-          self%mergeTimeGettableChecked=.true.
+       if (.not.self%timeOfMergingGettableChecked) then
+          self%timeOfMergingGettableChecked=.true.
           if (.not.defaultSatelliteComponent%timeOfMergingIsGettable())                                                                               &
                & call Error_Report                                                                                                                    &
                &      (                                                                                                                               &

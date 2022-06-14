@@ -47,13 +47,13 @@ module Node_Component_Satellite_Preset
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>mergeTime</name>
+      <name>timeUntilMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
       <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Preset_Merge_Time</getFunction>
-      <setFunction>Node_Component_Satellite_Preset_Merge_Time_Set</setFunction>
+      <getFunction>Node_Component_Satellite_Preset_Time_Until_Merging</getFunction>
+      <setFunction>Node_Component_Satellite_Preset_Time_Until_Merging_Set</setFunction>
       <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
     </property>
     <property>
