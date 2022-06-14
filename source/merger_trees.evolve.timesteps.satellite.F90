@@ -116,7 +116,7 @@ contains
     <constructorAssign variables="timeOffsetMaximumAbsolute, timeOffsetMaximumRelative, *nodeOperator_"/>
     !!]
 
-    self%limitTimesteps=defaultSatelliteComponent%mergeTimeIsGettable()
+    self%limitTimesteps=defaultSatelliteComponent%timeUntilMergingIsGettable()
     return
   end function satelliteConstructorInternal
 
@@ -165,8 +165,8 @@ contains
     ! If not limiting timesteps return.
     if (.not.self%limitTimesteps) return
     ! Find the time of merging.
-    satellite        => node     %satellite()
-    timeUntilMerging =  satellite%mergeTime()
+    satellite        => node     %satellite       ()
+    timeUntilMerging =  satellite%timeUntilMerging()
     ! If time is negative, implies this is not a satellite, so return.
     if (timeUntilMerging < 0.0d0) return
     ! Compute the minimum time to which the node we will merge with must have been evolved before merging is allowed.
