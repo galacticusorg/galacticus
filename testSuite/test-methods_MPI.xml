@@ -52,7 +52,7 @@
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
       <componentSatellite value="preset" parameterLevel="top"/>
-      <componentPosition value="preset" parameterLevel="top"/>
+      <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">
 	<allTreesExistAtFinalTime value="false"/>
       </mergerTreeEvolver>

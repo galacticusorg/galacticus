@@ -163,7 +163,7 @@ contains
     class(nodeComponentSatellite)               , pointer :: satellite
 
     satellite => node%satellite()
-    call satellite%mergeTimeSet(0.0d0)
+    call satellite%timeUntilMergingSet(0.0d0)
     return
   end subroutine mergerTrigger
 

@@ -885,15 +885,15 @@
   </randomNumberGenerator>
   
   <!-- Tree node component selection -->
-  <componentBasic             value="standard"       />
-  <componentBlackHole         value="simple"         />
-  <componentDarkMatterProfile value="scale"          />
-  <componentDisk              value="standard"       />
-  <componentHotHalo           value="standard"       />
-  <componentPosition          value="traceDarkMatter"/>
-  <componentSatellite         value="standard"       />
-  <componentSpheroid          value="standard"       />
-  <componentSpin              value="scalar"         />
+  <componentBasic             value="standard" />
+  <componentBlackHole         value="simple"   />
+  <componentDarkMatterProfile value="scale"    />
+  <componentDisk              value="standard" />
+  <componentHotHalo           value="standard" />
+  <componentPosition          value="cartesian"/>
+  <componentSatellite         value="standard" />
+  <componentSpheroid          value="standard" />
+  <componentSpin              value="scalar"   />
 
   <!-- Elements -->
   <elementsToTrack    value="O"    />

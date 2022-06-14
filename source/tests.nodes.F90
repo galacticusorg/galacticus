@@ -130,7 +130,9 @@ program Test_Nodes
   !
 
   ! Establish property offsets.
-  call node%serializationOffsets(propertyTypeAll)
+  call node%serializationOffsets      (propertyTypeAll)
+  call node%odeStepInactivesInitialize(               )
+  call node%odeStepAnalyticsInitialize(               )
 
   ! Check that total count of properties is correct.
   call Assert('Total count of properties in tree node',node%serializeCount(propertyTypeAll),2)

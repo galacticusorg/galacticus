@@ -66,7 +66,7 @@ module Node_Component_Satellite_Orbiting
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
-      <name>mergeTime</name>
+      <name>timeUntilMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
@@ -503,7 +503,7 @@ contains
        call self%positionSet(position)
        call self%velocitySet(velocity)
        ! Set the merging/destruction time to -1 to indicate that we don't know when merging/destruction will occur.
-       call self%mergeTimeSet                (           -1.0d0)
+       call self%timeUntilMergingSet         (           -1.0d0)
        call self%destructionTimeSet          (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
        call self%tidalHeatingNormalizedSet   (            0.0d0)

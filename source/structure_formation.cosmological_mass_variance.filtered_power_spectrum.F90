@@ -505,6 +505,8 @@ contains
     Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
     spherical region containing the given {\normalfont \ttfamily mass} on average.
     !!}
+    use :: Display                 , only : displayGreen, displayBlue, displayYellow, displayReset
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -562,6 +564,21 @@ contains
     ! Scale by the linear growth factor if growth is not mass-dependent.
     if (.not.self%growthIsMassDependent_) rootVariance=+rootVariance                   &
          &                                             *self%linearGrowth_%value(time)
+    ! Validate the logarithmic gradient.
+    if (rootVarianceLogarithmicGradient > 0.0d0) then
+       ! Logarithmic gradient is positive, which should not happen.
+       if (self%monotonicInterpolation) then
+          ! Monotonic interpolation is being used - a positive logarithmic gradient should be impossible.
+          call Error_Report('dlogσ/dlogM > 0 detected, but monotonic interpolation was used - this should not happen'//{introspection:location})
+       else
+          ! Recommend that monotonic interpolation be used.
+          call Error_Report(                                                                                                                                                                                                                  &
+               &            'dlogσ/dlogM > 0 detected'//char(10)//                                                                                                                                                                            &
+               &            displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'monotonicInterpolation'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+               &            'to ensure monotonic interpolation of tabulated σ(M) function'//{introspection:location}                                                                                                                          &
+               &           )
+       end if
+    end if
     return
   end subroutine filteredPowerRootVarianceAndLogarithmicGradient
 
