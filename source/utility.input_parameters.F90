@@ -31,6 +31,8 @@ module Input_Parameters
   use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
+  use :: Hashes            , only : integerHash
+  use :: Locks             , only : ompLock
   private
   public :: inputParameters, inputParameter, inputParameterList
   
@@ -114,7 +116,9 @@ module Input_Parameters
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
           &                                       isNull                 =  .false.
-        contains
+     type   (integerHash    ), pointer         :: warnedDefaults         => null()
+     type   (ompLock        )                  :: lock
+   contains
      !![
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
@@ -134,6 +138,7 @@ module Input_Parameters
        <method description="Add a parameter." method="addParameter" />
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
+       <method description="Return the path to this parameters object." method="path" />
      </methods>
      !!]
      final     ::                        inputParametersFinalize
@@ -157,6 +162,7 @@ module Input_Parameters
      procedure :: serializeToXML      => inputParametersSerializeToXML
      procedure :: addParameter        => inputParametersAddParameter
      procedure :: reset               => inputParametersReset
+     procedure :: path                => inputParametersPath
   end type inputParameters
 
   interface inputParameters
@@ -234,9 +240,11 @@ contains
          &                                                          qualifiedName      ="parameters", &
          &                                                          docType            =null()        &
          &                                                         )
-    inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
-    inputParametersConstructorNull%parameters => null()
-    inputParametersConstructorNull%isNull     = .true.
+    inputParametersConstructorNull%rootNode       => getDocumentElement(inputParametersConstructorNull%document)
+    inputParametersConstructorNull%parameters     => null   ()
+    inputParametersConstructorNull%warnedDefaults => null   ()
+    inputParametersConstructorNull%lock           =  ompLock()
+    inputParametersConstructorNull%isNull         = .true.
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
     !$omp end critical (FoX_DOM_Access)
@@ -363,6 +371,10 @@ contains
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
     inputParametersConstructorCopy%parent     =>                 parameters%parent
+    if (associated(parameters%warnedDefaults)) then
+       allocate(inputParametersConstructorCopy%warnedDefaults)
+       inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
+    end if
     return
   end function inputParametersConstructorCopy
 
@@ -396,11 +408,14 @@ contains
     <optionalArgument name="noBuild"  defaultsTo=".false." />
     !!]
 #include "os.inc"
-    
-    inputParametersConstructorNode%isNull   =  .false.
-    inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
-    inputParametersConstructorNode%rootNode =>                  parametersNode
-    inputParametersConstructorNode%parent   => null            (              )
+
+    allocate(inputParametersConstructorNode%warnedDefaults)
+    inputParametersConstructorNode%isNull         =  .false.
+    inputParametersConstructorNode%document       => getOwnerDocument(parametersNode)
+    inputParametersConstructorNode%rootNode       =>                  parametersNode
+    inputParametersConstructorNode%parent         => null            (              )
+    inputParametersConstructorNode%warnedDefaults =  integerHash     (              )
+    inputParametersConstructorNode%lock           =  ompLock         (              )
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     if (.not.noBuild_) then
@@ -663,6 +678,7 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
+    if (associated(self%warnedDefaults)) deallocate(self%warnedDefaults)
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
        if (self%outputParametersTemporary) then
@@ -929,7 +945,6 @@ contains
           &                            getNodeName                , hasAttribute    , inException                    , node
     use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
-    use :: Hashes             , only : integerHash
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
     class    (inputParameters)              , intent(inout)           :: self
@@ -1373,22 +1388,45 @@ contains
     return
   end function inputParametersSubParameters
 
+  function inputParametersPath(self)
+    !!{
+    Return the path to the given parameters.
+    !!}
+    use :: FoX_dom           , only : getNodeName
+    use :: ISO_Varying_String, only : assignment(=), operator(//)
+    implicit none
+    type (varying_string )                        :: inputParametersPath
+    class(inputParameters), intent(inout), target :: self
+    type (inputParameter ), pointer               :: parameterNode
+    
+    parameterNode       => self%parameters
+    inputParametersPath =  ""
+    do while (associated(parameterNode))
+       if (associated(parameterNode%content)) inputParametersPath=inputParametersPath//getNodeName(parameterNode%content)//"/"
+       parameterNode => parameterNode%parent
+    end do
+    return
+  end function inputParametersPath
+
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !!{
     Return the value of the parameter specified by name.
     !!}
-    use :: FoX_dom    , only : hasAttribute, node
-    use :: Error      , only : Error_Report
-    use :: HDF5_Access, only : hdf5Access
+    use :: FoX_dom           , only : hasAttribute, getNodeName
+    use :: Error             , only : Error_Report, Warn
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : char
     implicit none
-    class           (inputParameters), intent(inout)           :: self
+    class           (inputParameters), intent(inout), target   :: self
     character       (len=*          ), intent(in   )           :: parameterName
     {Type¦intrinsic}                 , intent(  out)           :: parameterValue
     {Type¦intrinsic}                 , intent(in   ), optional :: defaultValue
     integer                          , intent(  out), optional :: errorStatus
     integer                          , intent(in   ), optional :: copyInstance
     logical                          , intent(in   ), optional :: writeOutput
+    type            (inputParameters), pointer                 :: parametersRoot
     type            (inputParameter ), pointer                 :: parameterNode
+    type            (varying_string )                          :: parameterPath
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
     !!]
@@ -1397,6 +1435,17 @@ contains
        parameterNode => self%node(parameterName,copyInstance=copyInstance)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput)
     else if (present(defaultValue)) then
+       parametersRoot => self
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       parameterPath=self%path()
+       call parametersRoot%lock%set()
+       if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
+          call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
+          call parametersRoot%warnedDefaults%set(parameterPath,1)
+       end if
+       call parametersRoot%lock%unset()
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (self%outputParameters%isOpen().and.writeOutput_) then
