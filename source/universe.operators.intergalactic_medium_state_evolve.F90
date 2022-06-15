@@ -479,7 +479,7 @@ contains
            self%densityHelium         (iNow,1:3)=max(properties( 4: 6),0.0d0)
            self%massFilteringComposite(iNow,1:2)=    properties( 7: 8)
            self%opticalDepth          (iNow    )=max(properties( 9   ),0.0d0)
-           self%massFiltering         (iNow    )=properties(10   )
+           self%massFiltering         (iNow    )=    properties(10   )
            ! Compute the filtering mass at this time.
            self%clumpingFactor        (iNow    )=+1.0d0                                                                                    &
                 &                                +self%cosmologicalMassVariance_%rootVariance(self%massFiltering(iNow),self%time(iNow))**2
@@ -558,7 +558,7 @@ contains
      Evaluates the ODEs controlling the evolution temperature.
      !!}
      use :: Interface_GSL                        , only : GSL_Success
-     use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES    , gnedin2000ODEs
+     use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODEs
      use :: Numerical_Constants_Astronomical     , only : gigaYear
      use :: Numerical_Constants_Atomic           , only : massHeliumAtom    , massHydrogenAtom
      use :: Numerical_Constants_Math             , only : Pi
@@ -575,7 +575,8 @@ contains
      double precision                                          , parameter                   :: massFilteringMinimum                      =1.0d2
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
           &                                                                                     massFilteringCompositeRateOfChange
-     double precision                                                         , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
+     double precision                                                         , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange      , &
+          &                                                                                     massFilteringODEsProperties
      type            (integrator                              )                              :: integratorPhotoionization                         , integratorPhotoheating
      integer                                                                                 :: electronNumber                                    , atomicNumber                       , &
           &                                                                                     ionizationState                                   , shellNumber                        , &
@@ -620,20 +621,22 @@ contains
              &            )                                        &
              &           /densityTotal
         ! Evaluate optical depth term.
-        opticalDepthRateOfChange=+speedLight                                                                   &
-             &                   *thomsonCrossSection                                                          &
-             &                   *densityElectron                                                              &
+        opticalDepthRateOfChange=+speedLight                                                                                                                                         &
+             &                   *thomsonCrossSection                                                                                                                                &
+             &                   *densityElectron                                                                                                                                    &
              &                   /intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionRate(intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)) &
-             &                   *                                  intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)  &
+             &                   *                                                                     intergalacticMediumStateEvolveSelf%cosmologyFunctions_%expansionFactor(time)  &
              &                   *gigayear
      else
         massParticleMean        =0.0d0
         opticalDepthRateOfChange=0.0d0
      end if
      ! Evaluate the rates of change for the filtering mass variables.
-     massFilteringODEsRateOfChange     =gnedin2000ODEs(intergalacticMediumStateEvolveSelf%cosmologyParameters_,intergalacticMediumStateEvolveSelf%cosmologyFunctions_,intergalacticMediumStateEvolveSelf%linearGrowth_,time,massParticleMean,temperature,properties)
-     massFilteringCompositeRateOfChange=massFilteringODEsRateOfChange(1:2)
-     massFilteringRateOfChange         =massFilteringODEsRateOfChange(3  )
+     massFilteringODEsProperties       (1:2)=massFilteringComposite_
+     massFilteringODEsProperties       (3  )=massFiltering_
+     massFilteringODEsRateOfChange          =gnedin2000ODEs(intergalacticMediumStateEvolveSelf%cosmologyParameters_,intergalacticMediumStateEvolveSelf%cosmologyFunctions_,intergalacticMediumStateEvolveSelf%linearGrowth_,time,massParticleMean,temperature,massFilteringODEsProperties)
+     massFilteringCompositeRateOfChange     =massFilteringODEsRateOfChange(1:2)
+     massFilteringRateOfChange              =massFilteringODEsRateOfChange(3  )
      ! Compute the clumping factor.
      clumpingFactor=+1.0d0                                                                                             &
           &         +intergalacticMediumStateEvolveSelf%cosmologicalMassVariance_%rootVariance(massFiltering_,time)**2

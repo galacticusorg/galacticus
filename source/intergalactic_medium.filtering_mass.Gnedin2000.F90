@@ -376,8 +376,8 @@ contains
     Compute initial conditions for a system of three variables used to solve for the evolution of the filtering mass. The ODE system to be solved is
     \begin{eqnarray}
      \dot{y}_1 &=& y_2 \\
-     \dot{y}_2 &=& -2 (\dot{a}/a) D(t) (1+r_\mathrm{LSS}(t)) y_2 f_\mathrm{DM} \mathrm{k}_\mathrm{B} T(t)/\mu m_\mathrm{H} a^2 \\
-     \dot{y}_3 &=& 4 \pi^4 \bar{\rho}(t) \dot{k}_\mathrm{F}(t)/ k_\mathrm{F}^4(t)
+     \dot{y}_2 &=& -2 (\dot{a}/a) y_2 + (1+r_\mathrm{LSS}(t)) f_\mathrm{DM} D(t) \mathrm{k}_\mathrm{B} T(t)/\mu m_\mathrm{H} a^{-2} \\
+     \dot{y}_3 &=& - 4 \pi^4 \bar{\rho} \dot{k}_\mathrm{F}(t)/ k_\mathrm{F}^4(t)
     \end{eqnarray}
     with initial conditions
     \begin{eqnarray}
@@ -387,7 +387,7 @@ contains
     \end{eqnarray}
     and where
     \begin{equation}
-     k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
+     k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}]^{1/3}
     \end{equation},
     and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
     !!}
@@ -420,42 +420,33 @@ contains
          &                   /self%cosmologyParameters_%densityCritical() &
          &                  )**(1.0d0/3.0d0)
     ! Evaluate the three ODE variables at the initial time.
-    massFilteringODEs  (1)=+self%linearGrowth_%value                               (time) &
+    massFilteringODEs  (1)=+self%linearGrowth_%value                                 (time) &
          &                 /wavenumberFiltering**2
-    massFilteringODEs  (2)=+self%linearGrowth_%value                               (time) &
-         &                 /time                                                          &
-         &                 *self%linearGrowth_%logarithmicDerivativeExpansionFactor(time) &
-         &                 /wavenumberFiltering**2                                        &
-         &                 +2.0d0                                                         &
-         &                 /3.0d0                                                         &
-         &                 *self%linearGrowth_%value                               (time) &
-         &                 /wavenumberFiltering**2                                        &
-         &                 *(                                                             &
-         &                   -3.0d0                                                       &
-         &                   *coefficients(1)                                             &
-         &                   *log(expansionFactor)**2                                     &
-         &                   +2.0d0                                                       &
-         &                   *coefficients(2)                                             &
-         &                   *log(expansionFactor)                                        &
-         &                   -coefficients(3)                                             &
-         &                  )                                                             &
+    massFilteringODEs  (2)=+(                                                               &
+         &                   +self%linearGrowth_%value                               (time) &
+         &                   *self%linearGrowth_%logarithmicDerivativeExpansionFactor(time) &
+         &                   /wavenumberFiltering**2                                        &
+         &                   +2.0d0                                                         &
+         &                   /3.0d0                                                         &
+         &                   *self%linearGrowth_%value                               (time) &
+         &                   /wavenumberFiltering**2                                        &
+         &                   *(                                                             &
+         &                     -3.0d0                                                       &
+         &                     *coefficients(1)                                             &
+         &                     *log(expansionFactor)**2                                     &
+         &                     +2.0d0                                                       &
+         &                     *coefficients(2)                                             &
+         &                     *log(expansionFactor)                                        &
+         &                     -coefficients(3)                                             &
+         &                    )                                                             &
+         &                  )                                                               &
          &                 *expansionRate
     massFilteringODEs  (3)=+massFiltering
     ! Evaluate suitable absolute tolerance scales for the ODE variables.
     if (present(massFilteringScales)) then
-       massFilteringScales(1)=+self%linearGrowth_%value(time)                              &
-            &                 *(                                                           &
-            &                   +massFiltering                                             &
-            &                   *3.0d0                                                     &
-            &                   /(                                                         &
-            &                     +4.0d0                                                   &
-            &                     *Pi                                                      &
-            &                     *self%cosmologyParameters_%OmegaMatter    ()             &
-            &                     *self%cosmologyParameters_%densityCritical()             &
-            &                     )                                                        &
-            &                  )**(2.0d0/3.0d0)                                            &
-            &                 *Pi**2
-       massFilteringScales(2)=+massFilteringScales(1)                                    &
+       massFilteringScales(1)=+self%linearGrowth_%value(time)                               &
+            &                 /wavenumberFiltering**2
+       massFilteringScales(2)=+massFilteringScales(1)                                       &
             &                 *self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)
        massFilteringScales(3)=+massFiltering
     end if
@@ -482,7 +473,10 @@ contains
 
     ! Compute dark matter mass fraction.
     darkMatterFraction              =1.0d0-cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter()
-    ! Evaluate filtering mass composite terms.
+    ! Evaluate filtering mass composite terms.    
+    !! These represent the 2nd order ODE given in equation 11 of Naoz & Barkana (2007, MNRAS, 377, 667;
+    !! http://adsabs.harvard.edu/abs/2007MNRAS.377..667N), plus an ODE describing the evolution of the filtering mass in terms of
+    !! the evolution of the growth factor and the filtering wavenumber.
     massFilteringODEsRateOfChange(1)=massFilteringODEs(2)
     if (massParticleMean > 0.0d0) then
        massFilteringODEsRateOfChange(2)=-2.0d0                                                                            &
@@ -519,9 +513,9 @@ contains
             &                           *(                                                                                                     &
             &                             +linearGrowth_      %logarithmicDerivativeExpansionFactor                                    (time)  &
             &                             *cosmologyFunctions_%expansionRate                       (cosmologyFunctions_%expansionFactor(time)) &
-            &                             *linearGrowth_%value                                                                         (time)  &
+            &                             *linearGrowth_      %value                                                                   (time)  &
             &                             *massFilteringODEs                                                                           (1   )  &
-            &                             -linearGrowth_%value                                                                         (time)  &
+            &                             -linearGrowth_      %value                                                                   (time)  &
             &                             *massFilteringODEs                                                                           (2   )  &
             &                            )                                                                                                     &
             &                           /massFilteringODEs(1)**2
