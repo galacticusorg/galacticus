@@ -117,7 +117,7 @@ module Input_Parameters
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
           &                                       isNull                 =  .false.
      type   (integerHash    ), allocatable     :: warnedDefaults
-     type   (ompLock        )                  :: lock
+     type   (ompLock        ), pointer         :: lock                   => null()
    contains
      !![
      <methods>
@@ -236,6 +236,7 @@ contains
     type(inputParameters) :: inputParametersConstructorNull
 
     allocate(inputParametersConstructorNull%warnedDefaults)
+    allocate(inputParametersConstructorNull%lock          )
     inputParametersConstructorNull%document       => createDocument    (                                  &
          &                                                              getImplementation()             , &
          &                                                              qualifiedName      ="parameters", &
@@ -377,6 +378,11 @@ contains
        allocate(inputParametersConstructorCopy%warnedDefaults)
        inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
     end if
+    if (associated(parameters%lock)) then
+       nullify(inputParametersConstructorCopy%lock)
+       allocate(inputParametersConstructorCopy%lock)
+       inputParametersConstructorCopy%lock=ompLock()
+    end if
     return
   end function inputParametersConstructorCopy
 
@@ -412,6 +418,7 @@ contains
 #include "os.inc"
 
     allocate(inputParametersConstructorNode%warnedDefaults)
+    allocate(inputParametersConstructorNode%lock          )
     inputParametersConstructorNode%isNull         =  .false.
     inputParametersConstructorNode%document       => getOwnerDocument(parametersNode)
     inputParametersConstructorNode%rootNode       =>                  parametersNode
@@ -680,7 +687,8 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
-    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (allocated (self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (associated(self%lock          )) deallocate(self%lock          )
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
        if (self%outputParametersTemporary) then
@@ -1350,7 +1358,8 @@ contains
     use :: FoX_dom           , only : node
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: ISO_Varying_String, only : assignment(=), char, operator(//)
+    use :: IO_HDF5           , only : ioHDF5AccessInitialize
+    use :: ISO_Varying_String, only : assignment(=)         , char, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
@@ -1361,11 +1370,12 @@ contains
     type     (inputParameter ), pointer                 :: parameterNode
     integer                                             :: copyCount
     type     (varying_string )                          :: groupName
-
     !![
     <optionalArgument name="requirePresent" defaultsTo=".true." />
     !!]
 
+    ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
+    call ioHDF5AccessInitialize()
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
           call Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
