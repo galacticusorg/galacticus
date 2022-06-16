@@ -1004,6 +1004,16 @@ contains
          else if (wavenumberMaximum > wavenumberBAO) then
             integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
             integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            if (integrandHigh <= 0.0d0) then
+               ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
+               ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
+               ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
+               ! evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand are
+               ! placed at small wavenumber.
+               integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
+               integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
+               if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
+            end if
             rootVariance =+(                                                            &
                  &          +integrandLow                                               &
                  &          +integrandHigh                                              &
