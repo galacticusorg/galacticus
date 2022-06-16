@@ -63,10 +63,12 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python

@@ -65,6 +65,7 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v2
@@ -101,6 +102,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-allowed-parameters.pl
@@ -136,6 +138,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-bar-instability.pl
@@ -171,6 +174,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-Bolshoi-tree-builder.pl
@@ -206,6 +210,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-branchlessTrees.pl
@@ -241,6 +246,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-branchSubsampling.pl
@@ -276,6 +282,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-CGM-mass-cooled.pl
@@ -311,6 +318,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-concentration-Ludlow2016.pl
@@ -346,6 +354,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-constraint-deterministic-spins.pl
@@ -381,6 +390,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-constraint-mass-function.pl
@@ -410,7 +420,8 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH/testSuite
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-extract-directives.pl
           ./test-extract-directives.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
@@ -438,7 +449,8 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH/testSuite
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-fortran-utils.pl
           ./test-fortran-utils.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
@@ -472,6 +484,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-halo-mass-functions.pl
@@ -507,6 +520,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-inactive_luminosities.pl
@@ -543,6 +557,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-interoutput-star-formation-rate.pl
@@ -579,6 +594,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-host-maximum.pl
@@ -614,6 +630,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-Millennium-tree-builder.pl
@@ -649,6 +666,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-output.pl
@@ -684,6 +702,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-output-tree-contiguousity.pl
@@ -713,7 +732,8 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH/testSuite
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-parameter-validation.pl
           ./test-parameter-validation.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
@@ -747,7 +767,8 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH/testSuite
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-perl-modules.pl
           ./test-perl-modules.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
@@ -781,6 +802,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-reproducibility.pl
@@ -816,6 +838,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-splitForests.pl
@@ -851,6 +874,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.pl
@@ -886,6 +910,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stateRestore.pl
@@ -921,6 +946,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stellar-mass-weighted-ages.pl
@@ -956,6 +982,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-tidalTracks.pl
@@ -991,6 +1018,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-galacticStructureStateDeallocateBug.pl
@@ -1026,6 +1054,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-inactiveNumerics.pl
@@ -1061,6 +1090,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-impulsiveHeating.pl
@@ -1096,6 +1126,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-haloTriaxiality.pl

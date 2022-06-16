@@ -200,6 +200,7 @@ jobs:
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python

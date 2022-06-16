@@ -231,6 +231,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.cryptographic.exe
           ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
