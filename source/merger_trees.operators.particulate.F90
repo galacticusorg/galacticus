@@ -134,23 +134,23 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     type            (varying_string               )                :: outputFileName
     integer         (kind_int8                    )                :: idMultiplier
-    double precision                                               :: massParticle         , radiusTruncateOverRadiusVirial   , &
-         &                                                            timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                            lengthSoftening      , toleranceRelativeSmoothing       , &
+    double precision                                               :: massParticle                   , radiusTruncateOverRadiusVirial   , &
+         &                                                            timeSnapshot                   , energyDistributionPointsPerDecade, &
+         &                                                            lengthSoftening                , toleranceRelativeSmoothing       , &
          &                                                            toleranceMass
-    logical                                                        :: satelliteOffset      , nonCosmological                  , &
-         &                                                            positionOffset       , addHubbleFlow                    , &
-         &                                                            haloIdToParticleType , sampleParticleNumber             , &
+    logical                                                        :: satelliteOffset                , nonCosmological                  , &
+         &                                                            positionOffset                 , addHubbleFlow                    , &
+         &                                                            haloIdToParticleType           , sampleParticleNumber             , &
          &                                                            subtractRandomOffset
-    integer                                                        :: selection            , chunkSize                        , &
+    integer                                                        :: selection                      , chunkSize                        , &
          &                                                            kernelSoftening
     class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
     class           (galacticStructureClass       ), pointer       :: galacticStructure_
-    type            (inputParameters              ), pointer       :: parametersRoot
-    type            (varying_string               )                :: selectionText        , kernelSofteningText
+    type            (inputParameters              ), pointer       :: parametersRoot        => null()
+    type            (varying_string               )                :: selectionText                  , kernelSofteningText
 
     !![
     <inputParameter>
@@ -521,8 +521,8 @@ contains
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              !$ if (OMP_Get_Thread_Num() == 0) then
-                call displayCounter(max(1,int(100.0d0*dble(counter)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityLevelStandard)
-                isNew=.false.
+             call displayCounter(max(1,int(100.0d0*dble(counter)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityLevelStandard)
+             isNew=.false.
              !$ end if
              !$omp atomic
              counter=counter+1

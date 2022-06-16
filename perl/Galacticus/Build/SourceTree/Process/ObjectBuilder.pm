@@ -182,6 +182,7 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
+		$builderCode .= "      call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
 		$builderCode .= "   end if\n";
 	    }
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
@@ -220,19 +221,25 @@ sub Process_ObjectBuilder {
 		    type      => "moduleUse",
 		    moduleUse =>
 		    {
-			"Input_Parameters" =>
+			"Input_Parameters"   =>
 			{
 			    intrinsic => 0,
 			    only      => {inputParameter => 1}
+			},
+			"Error"              =>
+			{
+			    intrinsic => 0,
+			    only      => {Warn           => 1}
+			},
+			"ISO_Varying_String" =>
+			{
+			    intrinsic => 0,
+			    only      => {char           => 1}
 			}
 		    }
 		};	
-		$usesNode->{'moduleUse'}->{'ISO_Varying_String'} =
-		{
-		    intrinsic => 0,
-		    only      => {var_str => 1}
-		}
-		if ( $parametersDefaultRequired );
+		$usesNode->{'moduleUse'}->{'ISO_Varying_String'}->{'only'}->{'var_str'} = 1
+		    if ( $parametersDefaultRequired );
 		$usesNode->{'moduleUse'}->{$moduleName} =
 		{
 		    intrinsic => 0,

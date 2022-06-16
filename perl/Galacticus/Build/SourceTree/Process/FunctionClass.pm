@@ -999,7 +999,7 @@ CODE
 					    $rankMaximum = $rank
 						if ( $rank > $rankMaximum );					    
 					}
-					foreach my $variableName ( @{$declaration->{'variables'}} ) {
+					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
 						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -1239,7 +1239,7 @@ CODE
 				$rankMaximum = $rank
 				    if ( $rank > $rankMaximum );
 			    }
-			    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 				for(my $i=1;$i<=$rank;++$i) {
 				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
