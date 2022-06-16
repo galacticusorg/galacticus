@@ -107,6 +107,14 @@ module Input_Parameters
      procedure :: get           => inputParameterGet
   end type inputParameter
 
+  !![
+  <deepCopyActions class="inputParameters">
+   <inputParameters>
+    <methodCall method="lockReinitialize"/>
+   </inputParameters>
+  </deepCopyActions>
+  !!]
+    
   type :: inputParameters
      private
      type   (node           ), pointer, public :: document               => null()
@@ -139,6 +147,7 @@ module Input_Parameters
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
        <method description="Return the path to this parameters object." method="path" />
+       <method description="Reinitialize lock." method="lockReinitialize" />
      </methods>
      !!]
      final     ::                        inputParametersFinalize
@@ -163,6 +172,7 @@ module Input_Parameters
      procedure :: addParameter        => inputParametersAddParameter
      procedure :: reset               => inputParametersReset
      procedure :: path                => inputParametersPath
+     procedure :: lockReinitialize    => inputParametersLockReinitialize
   end type inputParameters
 
   interface inputParameters
@@ -1875,5 +1885,20 @@ contains
     call self%parameters%reset(evaluations=.true.)
     return
   end subroutine inputParametersReset
+
+  subroutine inputParametersLockReinitialize(self)
+    !!{
+    Reinitialize the OpenMP lock.
+    !!}
+    implicit none
+    class(inputParameters), intent(inout) :: self
+
+   if (associated(self%lock)) then
+       nullify(self%lock)
+       allocate(self%lock)
+       self%lock=ompLock()
+    end if
+    return
+  end subroutine inputParametersLockReinitialize
 
 end module Input_Parameters
