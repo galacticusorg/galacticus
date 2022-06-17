@@ -60,7 +60,7 @@ contains
     integer(c_size_t             ), allocatable  , dimension(:) :: idSelection
     type   (hdf5Object           )                              :: idFile
 
-    if      (parameters%isPresent('isSelection'        )) then
+    if      (parameters%isPresent('idSelection'        )) then
        allocate(idSelection(parameters%count('idSelection')))
        !![
        <inputParameter>
