@@ -63,8 +63,8 @@ contains
     type            (inputParameters           ), intent(inout) :: parameters
     class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     integer         (c_size_t                  )                :: bootstrapSampleCount
-    double precision                                            :: tolerance           , bootstrapSampleRate
-    logical                                                     :: analyzeAllParticles , useVelocityMostBound
+    double precision                                            :: tolerance             , bootstrapSampleRate
+    logical                                                     :: analyzeAllParticles   , useVelocityMostBound
 
     !![
     <inputParameter>
@@ -166,7 +166,7 @@ contains
          &                                                                              velocityPotentialChange   , sampleWeight
     double precision                        , allocatable  , dimension(:,:)          :: velocityCenterOfMass
     double precision                                       , dimension(3  )          :: velocityRepresentative
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound            , indexVelocityMostBound
+    integer         (c_size_t              ), pointer      , dimension(:  )          :: indexMostBound            , indexVelocityMostBound
     integer         (c_size_t              )                                         :: particleCount             , i                      , &
          &                                                                              k                         , iSample                , &
          &                                                                              current                   , previous
@@ -545,14 +545,16 @@ contains
     end where
     !$omp end parallel workshare
     call displayUnindent('done')
-    ! Store the self bound status.
-    call simulations(current)%propertiesIntegerRank1%set         ('isBound'             ,boundStatus             )
+    ! Store the self bound status and the index of the most bound particle.
+    call simulations(current)%propertiesIntegerRank1%set         ('isBound'               , boundStatus            )
+    call simulations(current)%propertiesInteger     %set         ('indexMostBound'        , indexMostBound         )
+    call simulations(current)%propertiesInteger     %set         ('indexVelocityMostBound', indexVelocityMostBound )
     ! Write indices of most bound particles to file.
-    call simulations(current)%analysis              %writeDataset(indexMostBound        ,'indexMostBound'        )
-    call simulations(current)%analysis              %writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
+    call simulations(current)%analysis              %writeDataset( indexMostBound         ,'indexMostBound'        )
+    call simulations(current)%analysis              %writeDataset( indexVelocityMostBound ,'indexVelocityMostBound')
     ! Write bound status to file.
-    call simulations(current)%analysis              %writeDataset(boundStatus           ,'selfBoundStatus'       )
-    call simulations(current)%analysis              %writeDataset(nint(sampleWeight)    ,'weight'                )
+    call simulations(current)%analysis              %writeDataset( boundStatus            ,'selfBoundStatus'       )
+    call simulations(current)%analysis              %writeDataset( nint(sampleWeight)     ,'weight'                )
     ! Free workspaces.
     nullify   (boundStatus            )
     deallocate(compute                )
@@ -566,8 +568,8 @@ contains
     deallocate(velocityPotentialChange)
     deallocate(sampleWeight           )
     deallocate(velocityCenterOfMass   )
-    deallocate(indexMostBound         )
-    deallocate(indexVelocityMostBound )
+    nullify   (indexMostBound         )
+    nullify   (indexVelocityMostBound )
     deallocate(positionOffset         )
     deallocate(countBound             )
     deallocate(countBoundPrevious     )
