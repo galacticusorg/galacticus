@@ -49,7 +49,7 @@ module Dark_Matter_Profiles_Generic
      class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_                         => null()
      ! Tolerances used in numerical solutions.
      double precision                                                      :: toleranceRelativeVelocityDispersion          =  1.0d-6
-     double precision                                                      :: toleranceRelativeVelocityDispersionMaximum   =  1.0d-3
+     double precision                                                      :: toleranceRelativeVelocityDispersionMaximum   =  1.0d-1
      double precision                                                      :: toleranceRelativePotential                   =  1.0d-6
      ! Unique ID for memoization
      integer         (kind_int8               )                            :: genericLastUniqueID

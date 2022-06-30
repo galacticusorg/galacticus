@@ -1149,7 +1149,7 @@ contains
           angularMomentumAccretionRate =  +spin %angularMomentumGrowthRate() &
                &                          *      rateAccretionMass           &
                &                          /basic%accretionRate            ()
-             if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
+          if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
           call hotHalo%angularMomentumRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
        end if
        ! Next block of tasks occur only if chemicals are being tracked.
@@ -1180,7 +1180,7 @@ contains
           call chemicalMasses%enforcePositive()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
-          ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
+          ! Compute factor converting mass of chemicals in (M☉/mᵤ) to number density in cm⁻³.
           massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
