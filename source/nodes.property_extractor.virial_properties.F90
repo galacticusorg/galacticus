@@ -114,7 +114,7 @@ contains
     double precision                                       , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
-    virialPropertiesElementCount=2
+    virialPropertiesElementCount=3
     return
   end function virialPropertiesElementCount
 
@@ -130,10 +130,11 @@ contains
     type            (multiCounter                         ), intent(inout), optional    :: instance
     !$GLC attributes unused :: time, instance
 
-    allocate(virialPropertiesExtract(2))
-    virialPropertiesExtract=[                                                &
-         &                   self%darkMatterHaloScale_%radiusVirial  (node), &
-         &                   self%darkMatterHaloScale_%velocityVirial(node)  &
+    allocate(virialPropertiesExtract(3))
+    virialPropertiesExtract=[                                                   &
+         &                   self%darkMatterHaloScale_%radiusVirial     (node), &
+         &                   self%darkMatterHaloScale_%velocityVirial   (node), &
+         &                   self%darkMatterHaloScale_%temperatureVirial(node)  &
          &                  ]
     return
   end function virialPropertiesExtract
@@ -148,9 +149,10 @@ contains
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(names(2))
-    names(1)=var_str('darkMatterOnlyRadiusVirial'  )
-    names(2)=var_str('darkMatterOnlyVelocityVirial')
+    allocate(names(3))
+    names(1)=var_str('darkMatterOnlyRadiusVirial'     )
+    names(2)=var_str('darkMatterOnlyVelocityVirial'   )
+    names(3)=var_str('darkMatterOnlyTemperatureVirial')
     return
   end subroutine virialPropertiesNames
 
@@ -164,9 +166,10 @@ contains
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(descriptions(2))
+    allocate(descriptions(3))
     descriptions(1)=var_str('Virial radius of the dark matter only node [Mpc].'   )
     descriptions(2)=var_str('Virial velocity of the dark matter only node [km/s].')
+    descriptions(3)=var_str('Virial temperature of the dark matter only node [K].')
     return
   end subroutine virialPropertiesDescriptions
 
@@ -182,10 +185,11 @@ contains
     double precision                                       , intent(in   )              :: time
    !$GLC attributes unused :: self, time
 
-    allocate(virialPropertiesUnitsInSI(2))
+    allocate(virialPropertiesUnitsInSI(3))
     virialPropertiesUnitsInSI=[            &
          &                     megaParsec, &
-         &                     kilo        &
+         &                     kilo      , &
+         &                     1.0d0       &
          &                    ]
     return
   end function virialPropertiesUnitsInSI
