@@ -46,7 +46,7 @@
      !!}
      private
      class           (coolingFunctionClass), pointer :: coolingFunction_ => null()
-     class           (chemicalStateClass  ), pointer :: chemicalState_ => null()
+     class           (chemicalStateClass  ), pointer :: chemicalState_   => null()
      double precision                                :: degreesOfFreedom
    contains
      final     ::                                   simpleDestructor
