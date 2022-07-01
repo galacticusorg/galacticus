@@ -166,7 +166,7 @@ contains
     integer                                              , intent(in   )         :: nonAnalyticSolver
     double precision                                     , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
-    <constructorAssign variables="nonAnalyticSolver,toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
