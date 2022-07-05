@@ -30,7 +30,7 @@
     A ram pressure stripping class which applies to systems with cylindrical symmetry (e.g. disks), and computes the mass loss
     rate to be:
     \begin{equation}
-     \dot{M}_\mathrm{gas, disk} = \hbox{min}\left({\mathcal{F}_\mathrm{hot, host} \over 2 \pi \mathrm{G}
+     \dot{M}_\mathrm{gas, disk} = \hbox{min}\left({\beta \mathcal{F}_\mathrm{hot, host} \over 2 \pi \mathrm{G}
      \Sigma_\mathrm{gas}(r_\mathrm{half}) \Sigma_\mathrm{total}(r_\mathrm{half})}, R_\mathrm{maximum}\right) {M_\mathrm{gas,
      disk} \over \tau_\mathrm{dyn, disk}},
     \end{equation}
@@ -38,20 +38,9 @@
     selected hot halo ram pressure force method; see \refPhysics{hotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
     surface density in the disk, $\Sigma_\mathrm{total}(r)$ is the total surface density in the disk, $r_\mathrm{half}$ is the
     disk half-mass radius, $M_\mathrm{gas, disk}$ is the total gas mass in the disk, $\tau_\mathrm{dyn, disk} =
-    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, and $R_\mathrm{maximum}=${\normalfont \ttfamily
-    [rateFractionalMaximum]} controls the maximum allowed rate of mass loss. For spheroids the mass loss rate is:
-    \begin{equation}
-    \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
-    \end{equation}
-    where $R_\mathrm{maximum}=${\normalfont \ttfamily [ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
-    \begin{equation}
-    \alpha = \mathcal{F}_\mathrm{hot,host}/F_\mathrm{gravity},
-    \end{equation}
-    and,
-    \begin{equation}
-    F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
-    \end{equation}
-    is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
+    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=${\normalfont \ttfamily [beta]} scales the rate of
+    mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily [rateFractionalMaximum]} controls the maximum allowed rate of mass
+    loss.
    </description>
   </ramPressureStripping>
   !!]

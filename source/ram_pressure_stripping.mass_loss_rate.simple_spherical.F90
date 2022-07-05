@@ -26,7 +26,23 @@
 
   !![
   <ramPressureStripping name="ramPressureStrippingSimpleSpherical">
-   <description>A simple model of ram pressure stripping in spherically-symmetric systems.</description>
+    <description>
+      A simple model of ram pressure stripping in spherically-symmetric systems (e.g. spheroids). The mass loss rate is given by:
+      \begin{equation}
+      \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
+      \end{equation}
+      where $R_\mathrm{maximum}=${\normalfont \ttfamily [ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
+      \begin{equation}
+      \alpha = \beta \mathcal{F}_\mathrm{hot,host}/F_\mathrm{gravity},
+      \end{equation}
+      and,
+      \begin{equation}
+      F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
+      \end{equation}
+      is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984},
+      $\beta=${\normalfont \ttfamily [beta]} scales the rate of mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily
+      [rateFractionalMaximum]} controls the maximum allowed rate of mass loss.
+    </description>
   </ramPressureStripping>
   !!]
   type, extends(ramPressureStrippingClass) :: ramPressureStrippingSimpleSpherical
