@@ -66,6 +66,9 @@
           &                                                          radiusFinalMinimum                 , radiusFinalMaximum
      type            (interpolator                 ), allocatable :: massProfile
      logical                                                      :: isBound
+     double precision                                             :: radiusFractionMinimum, radiusFractionMaximum
+     integer                                                      :: countPerDecadeRadius
+
    contains
      !![
      <methods>
@@ -118,6 +121,8 @@ contains
     class(darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class(darkMatterProfileHeatingClass      ), pointer       :: darkMatterProfileHeating_
     type (varying_string                     )                :: nonAnalyticSolver
+    double precision                                          :: radiusFractionMinimum, radiusFractionMaximum
+    integer                                                      :: countPerDecadeRadius
 
     !![
     <inputParameter>
@@ -125,6 +130,24 @@ contains
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
       <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusFractionMinimum</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>Minimum radius tabulated in units of the virial radius.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusFractionMaximum</name>
+      <defaultValue>10.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Maximum radius tabulated in units of the virial radius.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>countPerDecadeRadius</name>
+      <defaultValue>100</defaultValue>
+      <source>parameters</source>
+      <description>Count per decade radius.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
@@ -232,8 +255,6 @@ contains
     class           (darkMatterProfileDMOHeatedMonotonic), intent(inout)             :: self
     type            (treeNode                           ), intent(inout)             :: node
     double precision                                     , intent(in   )             :: radius
-    double precision                                     , parameter                 :: radiusFractionMinimum=1.0d-6, radiusFractionMaximum=10.0d0
-    integer                                              , parameter                 :: countPerDecadeRadius =100
     double precision                                     , allocatable, dimension(:) :: massEnclosed                , massShell                   , &
          &                                                                              radiusInitial               , radiusFinal                 , &
          &                                                                              energyFinal                 , perturbation
@@ -245,10 +266,10 @@ contains
     ! Nothing to do if profile is already tabulated.
     if (allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.
-    self%radiusInitialMinimum=radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node)
-    self%radiusInitialMaximum=radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node)
+    self%radiusInitialMinimum=self%radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node)
+    self%radiusInitialMaximum=self%radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node)
     ! Build grid of radii.
-    countRadii=int(log10(self%radiusInitialMaximum/self%radiusInitialMinimum)*dble(countPerDecadeRadius)+1.0d0)
+    countRadii=int(log10(self%radiusInitialMaximum/self%radiusInitialMinimum)*dble(self%countPerDecadeRadius)+1.0d0)
     if (allocated(radiusInitial)) then
        deallocate(radiusInitial)
        deallocate(radiusFinal  )
