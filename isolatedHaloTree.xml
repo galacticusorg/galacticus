@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tree initial conditions for a merging pair of halos -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>-1</parent>
+    <firstChild>2</firstChild>
+    <firstSatellite>-1</firstSatellite>
+    <sibling>-1</sibling>
+    <basic>
+      <time>14.001</time>
+      <mass>1.0e10</mass>
+    </basic>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>0.001</time>
+      <mass>1.0e10</mass>
+    </basic>
+  </node>
+</tree>
