@@ -710,11 +710,13 @@ sub Unformat_Variables {
 	    $attributesString      =~ s/^\s*,\s*//
 		if ( defined($attributesString) );	    
 	    my @variables          =  &Extract_Variables($variablesString ,keepQualifiers => 1,removeSpaces => 1);
+	    my @variableNames      =  &Extract_Variables($variablesString ,keepQualifiers => 0,removeSpaces => 1);
 	    my @attributes         =  &Extract_Variables($attributesString,keepQualifiers => 1,removeSpaces => 1);
 	    my $variableDefinition =
 	    {
-		intrinsic => $intrinsicDeclarations{$intrinsicType}->{'intrinsic'},
-		variables => \@variables
+		intrinsic     => $intrinsicDeclarations{$intrinsicType}->{'intrinsic'},
+		variables     => \@variables                                          ,
+		variableNames => \@variableNames
 	    };
 	    $variableDefinition->{'type'      } = $type
 		if ( defined($type      )     );
