@@ -92,6 +92,7 @@
      <methods>
        <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction"/>
        <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}."                     method="velocityScale" />
+       <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMassed"/>
      </methods>
      !!]
      final     ::                           simpleDestructor
@@ -106,6 +107,7 @@
      procedure :: accretedMassChemicals  => simpleAccretedMassChemicals
      procedure :: velocityScale          => simpleVelocityScale
      procedure :: failedFraction         => simpleFailedFraction
+     procedure :: chemicalMasses         => simpleChemicalMasses
   end type accretionHaloSimple
 
   interface accretionHaloSimple
@@ -448,9 +450,9 @@ contains
     ! Return immediately if no chemicals are being tracked.
     if (self%countChemicals == 0) return
     ! Get the total mass accretion rate onto the halo.
-    massAccretionRate=simpleAccretionRate(self,node,accretionMode)
+    massAccretionRate=self%accretionRate(node,accretionMode)
     ! Get the mass accretion rates.
-    simpleAccretionRateChemicals=simpleChemicalMasses(self,node,massAccretionRate)
+    simpleAccretionRateChemicals=self%chemicalMasses(node,massAccretionRate,accretionMode)
     return
   end function simpleAccretionRateChemicals
 
@@ -466,19 +468,18 @@ contains
     integer                              , intent(in   ) :: accretionMode
     double precision                                     :: massAccreted
 
-
     ! Ensure that chemicals are reset to zero.
     call simpleAccretedMassChemicals%reset()
     ! Return if no chemicals are being tracked.
     if (self%countChemicals == 0) return
     ! Total mass of material accreted.
-    massAccreted=simpleAccretedMass(self,node,accretionMode)
+    massAccreted=self%accretedMass(node,accretionMode)
     ! Get the masses of chemicals accreted.
-    simpleAccretedMassChemicals=simpleChemicalMasses(self,node,massAccreted)
+    simpleAccretedMassChemicals=self%chemicalMasses(node,massAccreted,accretionMode)
     return
   end function simpleAccretedMassChemicals
 
-  function simpleChemicalMasses(self,node,massAccreted)
+  function simpleChemicalMasses(self,node,massAccreted,accretionMode)
     !!{
     Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
@@ -493,6 +494,7 @@ contains
     type            (chemicalAbundances )                :: simpleChemicalMasses
     type            (treeNode           ), intent(inout) :: node
     double precision                     , intent(in   ) :: massAccreted
+    integer                              , intent(in   ) :: accretionMode
     class           (nodeComponentBasic ), pointer       :: basic
     type            (chemicalAbundances ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
@@ -511,7 +513,7 @@ contains
     ! Get the chemical densities.
     call self%chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
     ! Convert from densities to masses.
-    call chemicalDensities%numberToMass(simpleChemicalMasses)
+    call chemicalDensities%numberToMass(simpleChemicalMasses)  
     simpleChemicalMasses=simpleChemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
     return
   end function simpleChemicalMasses
