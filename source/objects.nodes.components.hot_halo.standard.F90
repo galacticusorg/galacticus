@@ -83,6 +83,7 @@ module Node_Component_Hot_Halo_Standard
       <type>chemicalAbundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <output unitsInSI="massSolar" comment="Mass of chemicals in the hot phase of the hot halo."/>
     </property>
     <property>
       <name>angularMomentum</name>
@@ -1665,7 +1666,7 @@ contains
                &                  *fractionChemicalsAccreted         &
                &                  *basic           %          mass() &
                &                  /parentBasic     %          mass()
-          !! Reaccrete the metals.
+          !! Reaccrete the chemicals.
           call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
        end if
        ! Determine if starvation is to be applied.
@@ -1853,8 +1854,8 @@ contains
     Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     node} to account for any hot halo already in the parent.
     !!}
-    use :: Abundances_Structure         , only : abundances            , zeroAbundances
-    use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
+    use :: Abundances_Structure         , only : zeroAbundances
+    use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances, chemicalAbundances
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
     implicit none
     class(*                   ), intent(inout) :: self
@@ -1876,8 +1877,8 @@ contains
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
        select type (hotHaloParent)
-          class is (nodeComponentHotHaloStandard)
-             ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
+       class is (nodeComponentHotHaloStandard)
+          ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
           if (hotHalo%         mass() <= 0.0d0) then
              call hotHalo%massSet           (0.0d0                 )
              call hotHalo%angularMomentumSet(0.0d0                 )
