@@ -153,7 +153,7 @@ contains
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeatedMonotonic(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeatedMonotonic(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_, radiusFractionMinimum, radiusFractionMaximum, countPerDecadeRadius)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -163,7 +163,7 @@ contains
     return
   end function heatedMonotonicConstructorParameters
 
-  function heatedMonotonicConstructorInternal(nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedMonotonicConstructorInternal(nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_, radiusFractionMinimum, radiusFractionMaximum, countPerDecadeRadius) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily heatedMonotonic} dark matter profile class.
     !!}
@@ -174,8 +174,10 @@ contains
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileHeatingClass      ), intent(in   ), target :: darkMatterProfileHeating_
     integer                                     , intent(in   )         :: nonAnalyticSolver
+    double precision                            , intent(in   )         :: radiusFractionMinimum, radiusFractionMaximum
+    integer                                     , intent(in   )         :: countPerDecadeRadius
     !![
-    <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_, radiusFractionMinimum, radiusFractionMaximum, countPerDecadeRadius"/>
     !!]
 
     ! Validate.
