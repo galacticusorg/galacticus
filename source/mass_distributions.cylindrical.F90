@@ -38,7 +38,8 @@
        <method description="Returns the $n^\mathrm{th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$." method="surfaceDensityRadialMoment" />
        <method description="Returns the circular velocity at the given {\normalfont \ttfamily radius}." method="rotationCurve" />
        <method description="Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}." method="rotationCurveGradient" />
-       <method description="Returns the surface density at the given {\normalfont \ttfamily coordinates}." method="surfaceDensity" />
+       <method description="Returns the surface density at the given {\normalfont \ttfamily coordinates}." method="surfaceDensity"          />
+       <method description="Returns the spherically-averagef density at the given {\normalfont \ttfamily radius}." method="densitySphericalAverage" />
      </methods>
      !!]
      procedure                                                  :: symmetry                   => cylindricalSymmetry

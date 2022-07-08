@@ -1,3 +1,4 @@
+
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
@@ -72,6 +73,10 @@ module Chemical_Abundances_Structure
        <method description="Dump a chemical abundances object in binary." method="dumpRaw" />
        <method description="Read a chemical abundances object in binary." method="readRaw" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+       <method description="Store a chemical abundances object in the output buffers." method="output" />
+       <method description="Store a chemical abundances object in the output buffers." method="postOutput" />
+       <method description="Specify the count of a chemical abundances object for output." method="outputCount" />
+       <method description="Specify the names of chemical abundance object properties for output." method="outputNames" />
      </methods>
      !!]
      procedure         ::                    Chemical_Abundances_Add
