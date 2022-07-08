@@ -163,7 +163,7 @@ contains
     double precision                                , intent(in   )              :: time
    !$GLC attributes unused :: self, time
 
-    allocate(hierarchyUnitsInSI(1))
+    allocate(hierarchyUnitsInSI(3))
     hierarchyUnitsInSI=0.0d0
     return
   end function hierarchyUnitsInSI
