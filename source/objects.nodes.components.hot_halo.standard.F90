@@ -114,6 +114,13 @@ module Node_Component_Hot_Halo_Standard
       <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
     </property>
     <property>
+      <name>outflowedChemicals</name>
+      <type>chemicalAbundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" comment="Mass of chemicals in the outflowed phase of the hot halo."/>
+    </property>
+    <property>
       <name>outflowingMass</name>
       <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
       <type>double</type>
@@ -154,6 +161,12 @@ module Node_Component_Hot_Halo_Standard
     <property>
       <name>strippedAbundances</name>
       <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+    </property>
+    <property>
+      <name>strippedChemicals</name>
+      <type>chemicalAbundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
     </property>
@@ -634,9 +647,10 @@ contains
     Do processing of the node required after evolution.
     !!}
     use :: Abundances_Structure                 , only : zeroAbundances
-    use :: Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloStandard, nodeComponentSpin, nodeComponentBasic, &
+    use :: Chemical_Abundances_Structure        , only : zeroChemicalAbundances 
+    use :: Galacticus_Nodes                     , only : nodeComponentHotHalo  , nodeComponentHotHaloStandard, nodeComponentSpin, nodeComponentBasic, &
          &                                               treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites    , starveSatellitesOutflowed
+    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites      , starveSatellitesOutflowed
     implicit none
     class(*                   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
@@ -683,6 +697,13 @@ contains
              call hotHalo      %outflowedAbundancesSet     (                                           &
                   &                                         +zeroAbundances                            &
                   &                                        )
+             call hotHaloParent%outflowedChemicalsSet      (                                           &
+                  &                                         +hotHaloParent %outflowedChemicals      () &
+                  &                                         +hotHalo       %outflowedChemicals      () &
+                  &                                        )
+             call hotHalo      %outflowedChemicalsSet      (                                           &
+                  &                                         +zeroChemicalAbundances                    &
+                  &                                        )
           end select
        end if
        ! Check if stripped mass is being tracked.
@@ -709,15 +730,22 @@ contains
                   &                                         +hotHaloParent %outflowedMass           () &
                   &                                         +hotHalo       %strippedMass            () &
                   &                                        )
-             call   hotHalo%strippedMassSet                (                                           &
+             call hotHalo      %strippedMassSet            (                                           &
                   &                                         +0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedAbundancesSet     (                                           &
                   &                                         +hotHaloParent %outflowedAbundances     () &
                   &                                         +hotHalo       %strippedAbundances      () &
                   &                                        )
-             call hotHalo%strippedAbundancesSet            (                                           &
+             call hotHalo      %strippedAbundancesSet      (                                           &
                   &                                         +zeroAbundances                            &
+                  &                                        )
+             call hotHaloParent%outflowedChemicalsSet      (                                           &
+                  &                                         +hotHaloParent %outflowedChemicals      () &
+                  &                                         +hotHalo       %strippedChemicals       () &
+                  &                                        )
+             call hotHalo      %strippedChemicalsSet       (                                           &
+                  &                                         +zeroChemicalAbundances                    &
                   &                                        )
           end select
        end if
@@ -754,6 +782,8 @@ contains
           call hotHalo%      strippedMassRate(                     gasMassRate        ,interrupt,interruptProcedure)
           ! Metal abundances.
           call hotHalo%strippedAbundancesRate(hotHalo%abundances()*gasMassRate/gasMass,interrupt,interruptProcedure)
+          ! Chemical abundances.
+          call hotHalo% strippedChemicalsRate(hotHalo%chemicals ()*gasMassRate/gasMass,interrupt,interruptProcedure)
        end if
     end select
     return
@@ -816,10 +846,11 @@ contains
     !!{
     Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
     !!}
-    use :: Abundances_Structure                 , only : abundances   , max                 , operator(*)
+    use :: Abundances_Structure                 , only : abundances        , operator(*)
+    use :: Chemical_Abundances_Structure        , only : chemicalAbundances, operator(*)
     use :: Error                                , only : Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode  , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
+    use :: Galacticus_Nodes                     , only : interruptTask     , nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode       , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     implicit none
     type            (treeNode                ), intent(inout)          , target  :: node
     double precision                          , intent(in   )                    :: massRate
@@ -828,7 +859,8 @@ contains
     type            (treeNode                )                         , pointer :: nodeCooling
     class           (nodeComponentHotHalo    )                         , pointer :: hotHaloCooling            , hotHalo
     type            (abundances              ), save                             :: abundancesCoolingRate
-    !$omp threadprivate(abundancesCoolingRate)
+    type            (chemicalAbundances      ), save                             :: chemicalsCoolingRate
+    !$omp threadprivate(abundancesCoolingRate,chemicalsCoolingRate)
     double precision                                                             :: angularMomentumCoolingRate, infallRadius
 
     ! Get the hot halo component.
@@ -881,6 +913,11 @@ contains
           ! Pipe the cooling rate to which ever component claimed it.
           if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
                & call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
+          ! Get the rate of change of chemicals.
+          hotHaloCooling => nodeCooling%hotHalo()
+          chemicalsCoolingRate=hotHaloCooling%chemicals()
+          chemicalsCoolingRate=massRate*chemicalsCoolingRate/hotHaloCooling%mass()
+          call    hotHalo%chemicalsRate       (-chemicalsCoolingRate )
        end if
     end select
     return
@@ -920,6 +957,7 @@ contains
        if (node%isSatellite().and.hotHaloTrackStrippedGas) then
           call hotHalo%      strippedMassRate(+massRateLimited)
           call hotHalo%strippedAbundancesRate(+abundancesRates)
+          call hotHalo% strippedChemicalsRate(+ chemicalsRates)
        end if
       ! Trigger an event to allow other processes to respond to this action.
       !![
@@ -966,14 +1004,28 @@ contains
     !!{
     Accept outflowing gas from a galaxy and deposit it into the outflowed and stripped reservoirs.
     !!}
-    use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
+    use :: Abundances_Structure             , only : abundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+    use :: Galacticus_Nodes                 , only : interruptTask                        , nodeComponentHotHalo, nodeComponentHotHaloStandard, nodeComponentBasic, &
+         &                                           treeNode
+    use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
+    use :: Radiation_Fields                 , only : radiationFieldIntergalacticBackground
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                      , intent(in   )                    :: rate
     logical                               , intent(inout), optional          :: interrupt
     procedure       (interruptTask       ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode            )                         , pointer :: node
-    double precision                                                         :: strippedOutflowFraction
+    class           (nodeComponentBasic  )                         , pointer :: basic
+    type            (abundances          ), save                             :: outflowedAbundances
+    !$omp threadprivate(outflowedAbundances)
+    type            (chemicalAbundances  ), save                             :: chemicalDensities      , chemicalMasses         , &
+         &                                                                      chemicalMassesRates
+    !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
+    double precision                                                         :: strippedOutflowFraction, massToDensityConversion, &
+         &                                                                      hydrogenByMass         , numberDensityHydrogen  , &
+         &                                                                      temperature
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     select type (self)
@@ -988,6 +1040,37 @@ contains
        end if
        ! Funnel the outflow gas into the outflowed and stripped reservoirs in the computed proportions.
        call    self%outflowedMassRate(rate*(1.0d0-strippedOutflowFraction))
+       ! If we have a non-zero return rate, compute associated chemical rates.
+       if (chemicalsCount > 0 .and. rate /= 0.0d0 .and. self%outflowedMass() > 0.0d0) then
+          ! Get required objects.
+          basic => node%basic()
+          ! Compute coefficient in conversion of mass to density for this node.
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))/3.0d0
+          ! Get the abundances of the outflowed material.
+          outflowedAbundances    =self%outflowedAbundances()/self%outflowedMass()
+          ! Get the hydrogen mass fraction in outflowed gas.
+          hydrogenByMass         =outflowedAbundances%hydrogenMassFraction()
+          ! Compute the temperature and density of material in the hot halo.
+          temperature            =darkMatterHaloScale_%temperatureVirial(node)
+          numberDensityHydrogen  =hydrogenByMass*self%outflowedMass()*massToDensityConversion/atomicMassHydrogen
+          ! Set the radiation field.
+          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
+          if (associated(radiationIntergalacticBackground)) then
+             select type (radiationIntergalacticBackground)
+             class is (radiationFieldIntergalacticBackground)
+                call radiationIntergalacticBackground%timeSet(basic%time())
+             end select
+          end if
+          ! Get the chemical densities.
+          call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
+          ! Convert from densities to masses.
+          call chemicalDensities%numberToMass(chemicalMasses)
+          chemicalMassesRates=chemicalMasses*rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
+          ! Compute the rate at which chemicals are returned to the hot reservoir.
+          if (hotHaloTrackStrippedGas) &
+               &  call self% strippedChemicalsRate(chemicalMassesRates*       strippedOutflowFraction ,interrupt,interruptProcedure)
+          call         self%outflowedChemicalsRate(chemicalMassesRates*(1.0d0-strippedOutflowFraction),interrupt,interruptProcedure)
+       end if
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate
@@ -1106,9 +1189,8 @@ contains
     class           (nodeComponentHotHalo)                          , pointer :: hotHalo
     class           (nodeComponentBasic  )                          , pointer :: basic
     type            (chemicalAbundances  ), save                              :: chemicalDensitiesRates      , chemicalMasses         , &
-         &                                                                       chemicalMassesRates         , chemicalsCoolingRate   , &
-         &                                                                       chemicalDensities
-    !$omp threadprivate(chemicalMasses,chemicalDensities,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
+         &                                                                       chemicalMassesRates         , chemicalDensities
+    !$omp threadprivate(chemicalMasses,chemicalDensities,chemicalDensitiesRates,chemicalMassesRates)
     double precision                                                          :: angularMomentumAccretionRate, temperature            , &
          &                                                                       densityAtOuterRadius        , rateAccretionMassFailed, &
          &                                                                       massLossRate                , massToDensityConversion, &
@@ -1157,13 +1239,6 @@ contains
        if (chemicalsCount > 0) then
           ! Get the rate at which chemicals are accreted onto this halo.
           call hotHalo%chemicalsRate(accretionHalo_%accretionRateChemicals(node,accretionModeHot),interrupt,interruptProcedure)
-          ! For non-zero cooling rate, adjust the rates of chemical masses.
-          if (rateCooling > 0.0d0) then
-             ! Compute the rate at which chemicals are lost via cooling.
-             chemicalsCoolingRate=hotHalo%chemicals()*rateCooling/hotHalo%mass()
-             ! Adjust the rates of chemical masses accordingly.
-             call hotHalo%chemicalsRate(-chemicalsCoolingRate,interrupt,interruptProcedure)
-          end if
           ! Compute the rates of change of chemical masses due to chemical reactions.
           ! Get the temperature of the hot reservoir.
           temperature=darkMatterHaloScale_%temperatureVirial(node)
@@ -1215,7 +1290,7 @@ contains
                 massLossRate        =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
                 call hotHalo%outerRadiusRate(+outerRadiusGrowthRate,interrupt,interruptProcedure)
                 call hotHalo%   massSinkRate(+         massLossRate,interrupt,interruptProcedure)
-                call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,-massLossRate,interrupt,interruptProcedure)
+                if (hotHaloTrackStrippedGas) call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,-massLossRate,interrupt,interruptProcedure)
              end if
           else
              ! For isolated halos, the outer radius should grow with the virial radius.
@@ -1268,29 +1343,23 @@ contains
     !!}
     use :: Abundances_Structure                 , only : abundances                           , max
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                     , only : interruptTask                        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                     , starveSatellitesOutflowed
-    use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Numerical_Constants_Math             , only : Pi
-    use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     type            (treeNode                    )               , pointer :: node
     class           (nodeComponentBasic          )               , pointer :: basic
-    double precision                                                       :: outflowedMass            , massReturnRate         , &
-         &                                                                    angularMomentumReturnRate, massToDensityConversion, &
-         &                                                                    hydrogenByMass           , temperature            , &
-         &                                                                    numberDensityHydrogen    , densityAtOuterRadius   , &
-         &                                                                    radiusVirial             , outerRadius            , &
+    double precision                                                       :: outflowedMass            , massReturnRate      , &
+         &                                                                    angularMomentumReturnRate, densityAtOuterRadius, &
+         &                                                                    radiusVirial             , outerRadius         , &
          &                                                                    densityMinimum
-    type            (abundances                  ), save                   :: abundancesReturnRate     , outflowedAbundances
-    !$omp threadprivate(abundancesReturnRate,outflowedAbundances)
-    type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses         , &
-         &                                                                    chemicalMassesRates
-    !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
+    type            (abundances                  ), save                   :: abundancesReturnRate
+    !$omp threadprivate(abundancesReturnRate)
+    type            (chemicalAbundances          ), save                   :: chemicalsReturnRate
+    !$omp threadprivate(chemicalsReturnRate)
 
     ! Get the hosting node.
     node => self%hostNode
@@ -1303,10 +1372,13 @@ contains
        if (outflowedMass /= 0.0d0) then
           angularMomentumReturnRate=self%outflowedAngularMomentum()*massReturnRate/outflowedMass
           abundancesReturnRate     =self%outflowedAbundances     ()*massReturnRate/outflowedMass
+          chemicalsReturnRate      =self%outflowedChemicals      ()*massReturnRate/outflowedMass
           call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
           call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
           call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
           call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+          call self%      outflowedChemicalsRate(-      chemicalsReturnRate,interrupt,interruptProcedure)
+          call self%               chemicalsRate(+      chemicalsReturnRate,interrupt,interruptProcedure)
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
@@ -1340,35 +1412,6 @@ contains
                   &                    *radiusVirial          &
                   &                   )
           end if
-       end if
-       ! If we have a non-zero return rate, compute associated chemical rates.
-       if (chemicalsCount > 0 .and. massReturnRate /= 0.0d0) then
-          ! Get required objects.
-          basic => node%basic()
-          ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))/3.0d0
-          ! Get the abundances of the outflowed material.
-          outflowedAbundances    =self%outflowedAbundances()/outflowedMass
-          ! Get the hydrogen mass fraction in outflowed gas.
-          hydrogenByMass         =outflowedAbundances%hydrogenMassFraction()
-          ! Compute the temperature and density of material in the hot halo.
-          temperature            =darkMatterHaloScale_%temperatureVirial(node)
-          numberDensityHydrogen  =hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassHydrogen
-          ! Set the radiation field.
-          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
-          if (associated(radiationIntergalacticBackground)) then
-             select type (radiationIntergalacticBackground)
-             class is (radiationFieldIntergalacticBackground)
-                call radiationIntergalacticBackground%timeSet(basic%time())
-             end select
-          end if
-          ! Get the chemical densities.
-          call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
-          ! Convert from densities to masses.
-          call chemicalDensities%numberToMass(chemicalMasses)
-          chemicalMassesRates=chemicalMasses*massReturnRate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
-          ! Compute the rate at which chemicals are returned to the hot reservoir.
-          call self%chemicalsRate(chemicalMassesRates,interrupt,interruptProcedure)
        end if
     end if
     return
@@ -1472,6 +1515,7 @@ contains
        if (hotHaloTrackStrippedGas) then
           call hotHalo%            strippedMassScale(                       massVirial                               *scaleMassRelative  )
           call hotHalo%      strippedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
+          call hotHalo%       strippedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
        end if
     end select
     return
@@ -1734,6 +1778,13 @@ contains
                   &                                          zeroChemicalAbundances                   &
                   &                                        )
           end if
+          call    hotHaloParent%      outflowedChemicalsSet(                                          &
+               &                                              hotHaloParent%outflowedChemicals     () &
+               &                                             +hotHalo      %outflowedChemicals     () &
+               &                                            )
+          call    hotHalo      %      outflowedChemicalsSet(                                          &
+               &                                             zeroChemicalAbundances                   &
+               &                                           )
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
@@ -1886,9 +1937,10 @@ contains
              call hotHalo%chemicalsSet      (zeroChemicalAbundances)
           end if
           if (hotHalo%outflowedMass() <= 0.0d0) then
-             call hotHalo%outflowedMassSet           (         0.0d0)
-             call hotHalo%outflowedAngularMomentumSet(         0.0d0)
-             call hotHalo%outflowedAbundancesSet     (zeroAbundances)
+             call hotHalo%outflowedMassSet           (                 0.0d0)
+             call hotHalo%outflowedAngularMomentumSet(                 0.0d0)
+             call hotHalo%outflowedAbundancesSet     (        zeroAbundances)
+             call hotHalo%outflowedChemicalsSet      (zeroChemicalAbundances)
           end if
           call    hotHalo%                    massSet(                                          &
                &                                       hotHalo      %mass                    () &
@@ -1917,6 +1969,10 @@ contains
           call    hotHalo%               chemicalsSet(                                          &
                &                                       hotHalo      %chemicals               () &
                &                                      +hotHaloParent%chemicals               () &
+               &                                     )
+          call    hotHalo%      outflowedChemicalsSet(                                          &
+               &                                       hotHalo      %outflowedChemicals      () &
+               &                                      +hotHaloParent%outflowedChemicals      () &
                &                                     )
           call    hotHalo%          unaccretedMassSet(                                          &
                &                                       hotHalo      %unaccretedMass          () &
@@ -2011,9 +2067,9 @@ contains
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
     use :: Abundances_Structure                 , only : abundances                           , zeroAbundances
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances
+    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                   , zeroChemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                   , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
+    use :: Galacticus_Nodes                     , only : nodeComponentBasic                   , nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnOnFormation
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
@@ -2089,6 +2145,9 @@ contains
             &                                  )
        call hotHalo%     outflowedAbundancesSet(                                    &
             &                                    zeroAbundances                     &
+            &                                  )
+       call hotHalo%      outflowedChemicalsSet(                                    &
+            &                                    zeroChemicalAbundances             &
             &                                  )
     end select
 
