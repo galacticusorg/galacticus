@@ -92,7 +92,7 @@
      <methods>
        <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction"/>
        <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}."                     method="velocityScale" />
-       <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMassed"/>
+       <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMasses"/>
      </methods>
      !!]
      final     ::                           simpleDestructor
