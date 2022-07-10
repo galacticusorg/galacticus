@@ -613,12 +613,17 @@ contains
     !!{
     Do processing of the node required after evolution.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
-    use :: Interface_GSL   , only : GSL_Success         , GSL_Continue
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode   , defaultHotHaloComponent
+    use :: Interface_GSL                , only : GSL_Success         , GSL_Continue                , GSL_Failure
     implicit none
-    type   (treeNode            ), intent(inout), pointer :: node
-    integer                      , intent(inout)          :: status
-    class  (nodeComponentHotHalo)               , pointer :: hotHalo
+    type            (treeNode            ), intent(inout), pointer :: node
+    integer                               , intent(inout)          :: status
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    type            (chemicalAbundances  ), save                   :: chemicalMasses
+    !$omp threadprivate(chemicalMasses)
+    integer                                                        :: i
+    double precision                                               :: massChemicals , massChemicalsPositive
 
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
@@ -637,6 +642,34 @@ contains
           call hotHalo%outerRadiusSet(0.0d0)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
+       end if
+       ! Truncate negative chemical species, keeping total mass of chemicals fixed.
+       if (chemicalsCount > 0) then
+          massChemicals        =0.0d0
+          massChemicalsPositive=0.0d0
+          chemicalMasses=hotHalo%chemicals()
+          do i=1,chemicalsCount
+             massChemicals=+massChemicals               &
+                  &        +chemicalMasses%abundance(i)
+             if (chemicalMasses%abundance(i) < 0.0d0) then
+                call chemicalMasses%abundanceSet(i,0.0d0)
+             else
+                massChemicalsPositive=+massChemicalsPositive       &
+                     &                +chemicalMasses%abundance(i)
+             end if
+          end do
+          if (massChemicalsPositive > massChemicals) then
+             ! Mark ODE failure here to force derivatives to be recomputed.
+             status=GSL_Failure
+             if (massChemicalsPositive > 0.0d0) then
+                chemicalMasses=+          chemicalMasses         &
+                     &         *max(0.0d0,massChemicals        ) &
+                     &         /          massChemicalsPositive
+             else
+                call chemicalMasses%reset()
+             end if
+             call hotHalo%chemicalsSet(chemicalMasses)
+          end if
        end if
     end select
     return
