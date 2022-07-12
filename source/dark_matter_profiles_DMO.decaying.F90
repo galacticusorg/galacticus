@@ -34,6 +34,7 @@
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
+     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_         => null()
      integer                                              :: nonAnalyticSolver
      double precision                                     :: lifetime  , massSplitting
    contains
@@ -73,38 +74,36 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (darkMatterProfileDMODecaying)                :: self
+    type            (darkMatterProfileDMODecaying)                 :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
+    class(darkMatterParticleClass                 ), pointer       :: darkMatterParticle_
     type            (varying_string               )                :: nonAnalyticSolver
     double precision                                               :: lifetime, massSplitting
 
     !![
+    <inputParameter>
+      <name>darkMatterParticle_</name>
+      <source>parameters</source>
+      <description>Dark matter particle.</description>
+    </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
       <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
-    <inputParameter>
-      <name>lifetime</name>
-      <source>parameters</source>
-      <description>The lifetime of the dark matter particles.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>massSplitting</name>
-      <source>parameters</source>
-      <description>It is equal to $(M - m) / M$ where $M$ is the mass of the original particle and $m$ is the mass of the daughter particle.</description>
-    </inputParameter>
+    <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMODecaying(lifetime, massSplitting, enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=darkMatterProfileDMODecaying(darkMatterParticle_, enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"  />
     <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="darkMatterParticle_"  />
     !!]
     return
   end function DecayingConstructorParameters
@@ -118,12 +117,21 @@ contains
     type            (darkMatterProfileDMODecaying)                        :: self
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterParticleClass      ), intent(in   ), target :: darkMatterParticle_
     double precision                              , intent(in   )         :: lifetime, massSplitting
     integer                                       , intent(in   )         :: nonAnalyticSolver
     !![
-    <constructorAssign variables="lifetime, massSplitting,nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    <constructorAssign variables="*darkMatterParticle_, nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
-
+    select type (darkMatterParticle_ => self%darkMatterParticle_)
+    class is (darkMatterParticleDecayingDarkMatter)
+       self%lifetime = darkMatterParticle_%lifetime()
+       self%massSplitting = darkMatterParticle_%massSplitting()
+    class default
+       ! No decays.
+       self%lifetime=-1.0d0
+       self%massSplitting=0.0d0
+    end select
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     return
@@ -131,7 +139,7 @@ contains
 
   subroutine decayingDecayingFactor(self, factor)
     !!{
-    Return the chang in mass factor.
+    Return the change in mass factor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
