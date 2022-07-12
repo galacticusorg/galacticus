@@ -1,3 +1,4 @@
+
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
@@ -72,6 +73,10 @@ module Chemical_Abundances_Structure
        <method description="Dump a chemical abundances object in binary." method="dumpRaw" />
        <method description="Read a chemical abundances object in binary." method="readRaw" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+       <method description="Store a chemical abundances object in the output buffers." method="output" />
+       <method description="Store a chemical abundances object in the output buffers." method="postOutput" />
+       <method description="Specify the count of a chemical abundances object for output." method="outputCount" />
+       <method description="Specify the names of chemical abundance object properties for output." method="outputNames" />
      </methods>
      !!]
      procedure         ::                    Chemical_Abundances_Add
@@ -100,6 +105,10 @@ module Chemical_Abundances_Structure
      procedure         :: dump            => Chemicals_Dump
      procedure         :: dumpRaw         => Chemicals_Dump_Raw
      procedure         :: readRaw         => Chemicals_Read_Raw
+     procedure         :: output          => Chemicals_Output
+     procedure         :: postOutput      => Chemicals_Post_Output
+     procedure         :: outputCount     => Chemicals_Output_Count
+     procedure         :: outputNames     => Chemicals_Output_Names
   end type chemicalAbundances
 
   ! Count of the number of elements being tracked.
@@ -641,5 +650,86 @@ contains
     end if
     return
   end function Chemicals_Non_Static_Size_Of
+
+  subroutine Chemicals_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
+    !!{
+    Store an abundances object in the output buffers.
+    !!}
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
+    implicit none
+    class           (chemicalAbundances   ), intent(in   )               :: self
+    double precision                       , intent(in   )               :: time
+    integer                                , intent(inout)               :: doubleBufferCount , doubleProperty , &
+         &                                                                  integerBufferCount, integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter         ), intent(in   )               :: outputInstance
+    integer                                                              :: i
+    !$GLC attributes unused :: time, integerBufferCount, integerProperty, integerProperties, outputInstance
+
+    if (chemicalsCount > 0) then
+       do i=1,chemicalsCount
+          doubleProperties(doubleProperty+i)%scalar(doubleBufferCount)=self%chemicalValue(i)
+       end do
+       doubleProperty=doubleProperty+chemicalsCount
+    end if
+    return
+  end subroutine Chemicals_Output
+
+  subroutine Chemicals_Post_Output(self,time)
+    !!{
+    Perform post-output processing of abundances objects.
+    !!}
+    implicit none
+    class           (chemicalAbundances), intent(in   ) :: self
+    double precision                    , intent(in   ) :: time
+    !$GLC attributes unused :: self, time
+
+    return
+  end subroutine Chemicals_Post_Output
+
+  subroutine Chemicals_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
+    !!{
+    Increment the output count to account for an abundances object.
+    !!}
+    implicit none
+    class           (chemicalAbundances), intent(in   ) :: self
+    integer                             , intent(inout) :: doublePropertyCount, integerPropertyCount
+    double precision                    , intent(in   ) :: time
+    !$GLC attributes unused :: self, integerPropertyCount, time
+
+    doublePropertyCount=doublePropertyCount+chemicalsCount
+    return
+  end subroutine Chemicals_Output_Count
+
+  subroutine Chemicals_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
+    !!{
+    Assign names to output buffers for an abundances object.
+    !!}
+    use :: ISO_Varying_String                , only : char
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+    implicit none
+    class           (chemicalAbundances   )              , intent(in   ) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty    , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    character       (len=*                )              , intent(in   ) :: comment           , prefix
+    double precision                                     , intent(in   ) :: unitsInSI
+    integer                                                              :: i
+    !$GLC attributes unused :: self, time, integerProperty, integerProperties
+
+    if (chemicalsCount > 0) then
+       do i=1,chemicalsCount
+          doubleProperty=doubleProperty+1
+          doubleProperties(doubleProperty)%name     =trim(prefix )//      char(chemicalsToTrack(i))
+          doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//char(chemicalsToTrack(i))//']'
+          doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+       end do
+    end if
+    return
+  end subroutine Chemicals_Output_Names
 
 end module Chemical_Abundances_Structure
