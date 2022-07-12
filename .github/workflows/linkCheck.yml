@@ -26,5 +26,6 @@ jobs:
       - name: Check for broken links
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           ./scripts/aux/linkChecker.pl
       - run: echo "This job's status is ${{ job.status }}."

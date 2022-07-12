@@ -41,11 +41,12 @@
    contains
      !![
      <methods>
-       <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate" />
-       <method description="Initialize the enclosed mass tabulation." method="massEnclosedTabulate" />
+       <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate"/>
+       <method description="Initialize the enclosed mass tabulation."    method="massEnclosedTabulate" />
      </methods>
      !!]
      procedure :: density                    => miyamotoNagaiDensity
+     procedure :: densitySphericalAverage    => miyamotoNagaiDensitySphericalAverage
      procedure :: surfaceDensity             => miyamotoNagaiSurfaceDensity
      procedure :: surfaceDensityTabulate     => miyamotoNagaiSurfaceDensityTabulate
      procedure :: surfaceDensityRadialMoment => miyamotoNagaiSurfaceDensityRadialMoment
@@ -173,7 +174,7 @@ contains
 
   double precision function miyamotoNagaiDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
+    Return the density at the specified {\normalfont \ttfamily coordinates} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
@@ -227,9 +228,22 @@ contains
     return
   end function miyamotoNagaiDensity
 
+  double precision function miyamotoNagaiDensitySphericalAverage(self,radius)
+    !!{
+    Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionMiyamotoNagai), intent(inout) :: self
+    double precision                               , intent(in   ) :: radius
+
+    miyamotoNagaiDensitySphericalAverage=0.0d0
+    call Error_Report('spherically-averaged density profile is not implemented'//{introspection:location})
+    return
+  end function miyamotoNagaiDensitySphericalAverage
+
   double precision function miyamotoNagaiMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass distributions.
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for \citep{miyamoto_three-dimensional_1975} disk mass distributions.
     !!}
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout), target :: self
@@ -541,7 +555,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurveGradient(self,radius)
     !!{
-    Return the mid-plane rotation curve gradient for an exponential disk.
+    Return the mid-plane rotation curve gradient for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -583,7 +597,7 @@ contains
 
   double precision function miyamotoNagaiPotential(self,coordinates)
     !!{
-    Return the gravitational potential for an exponential disk.
+    Return the gravitational potential for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
     use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus

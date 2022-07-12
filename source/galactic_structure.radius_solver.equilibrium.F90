@@ -258,7 +258,6 @@ contains
        end if
        ! Begin iteration to find a converged solution.
        do while (equilibriumIterationCount <= 2 .or. ( equilibriumFitMeasure > self%solutionTolerance .and. equilibriumIterationCount < iterationMaximum ) )
-          call Calculations_Reset(node)
           equilibriumIterationCount      =equilibriumIterationCount+1
           equilibriumActiveComponentCount=0
           if (equilibriumIterationCount > 1) equilibriumFitMeasure=0.0d0
@@ -324,8 +323,9 @@ contains
       if (equilibriumIterationCount == 1) then
          ! If structure is to be reverted, do so now.
          if (equilibriumRevertStructure.and.allocated(equilibriumRadiusStored)) then
-            call   radiusSet(node,  equilibriumRadiusStored(equilibriumActiveComponentCount))
-            call velocitySet(node,equilibriumVelocityStored(equilibriumActiveComponentCount))
+            call          radiusSet(node,  equilibriumRadiusStored(equilibriumActiveComponentCount))
+            call        velocitySet(node,equilibriumVelocityStored(equilibriumActiveComponentCount))
+            call Calculations_Reset(node                                                           )
          end if
          ! On first iteration, see if we have a previous radius set for this component.
          radius=radiusGet(node)
@@ -445,8 +445,9 @@ contains
          end if
       end if
       ! Set the component size to new radius and velocity.
-      call   radiusSet(node,radius  )
-      call velocitySet(node,velocity)
+      call          radiusSet(node,radius  )
+      call        velocitySet(node,velocity)
+      call Calculations_Reset(node         )
       return
     end subroutine radiusSolve
 

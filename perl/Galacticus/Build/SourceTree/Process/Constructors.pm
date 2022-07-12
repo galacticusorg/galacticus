@@ -10,6 +10,7 @@ use Data::Dumper;
 use XML::Simple;
 use List::ExtraUtils;
 use Galacticus::Build::SourceTree::Parse::Declarations;
+$XML::Simple::PREFERRED_PARSER = "XML::Parser";
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'constructors'} = \&Process_Constructors;

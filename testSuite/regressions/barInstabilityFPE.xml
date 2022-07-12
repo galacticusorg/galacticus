@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Galacticus model constrained to match baryonic physics data                        -->
-<!-- See https://github.com/galacticusorg/galacticus/wiki/Constraints:-Baryonic-Physics -->
-<!-- 30-November-2020                                                                   -->
+<!-- Model which triggered a floating point exception in the Efstathiou et al. disk instability class -->
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-
-  <verbosityLevel value="working"/>
-
+  <!-- Task and work control -->
+  <task value="evolveForests">
+    <walltimeMaximum value="-1"/> 
+  </task>
+  <evolveForestsWorkShare value="cyclic"/>
+  
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
@@ -15,7 +16,7 @@
   <componentDisk value="standard"/>
   
   <componentHotHalo value="coldMode"/>
-  <componentSatellite value="preset"/>
+  <componentSatellite value="standard"/>
   <componentSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
@@ -54,34 +55,32 @@
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
-  <!-- Specify that merger trees are to be read from file, and give the name of the file to read -->
-  <mergerTreeConstructor value="read">
-    <presetMergerTimes value="true"/>
-    <treeIndexToRootNodeIndex value="false"/>
-    <!-- Use merger tree node positions to compute orbits at the virial radius -->
-    <presetOrbits value="true"/>
-    <presetOrbitsSetAll value="true"/>
-    <presetOrbitsAssertAllSet value="true"/>
-    <presetOrbitsBoundOnly value="true"/>
-    <fileNames value="testSuite/data/mergerTrees/galacticStructureStateDeallocateBug.hdf5"/>
-    <presetAngularMomenta value="false"/>
-    <presetPositions value="true"/>
-    <outputTimeSnapTolerance value="0.001"/>
-    <presetSubhaloMasses value="true"/>
-    <presetScaleRadii value="true"/>
-    <scaleRadiiFailureIsFatal value="true"/>
-    <presetScaleRadiiConcentrationMinimum value="3"/>
-    <presetScaleRadiiConcentrationMaximum value="60"/>
-    <presetMergerNodes value="true"/>
-    <missingHostsAreFatal value="true"/>
-    <allowSubhaloPromotions value="true"/>
-    <allowBranchJumps value="true"/>
-    <presetSubhaloIndices value="true"/>
-  </mergerTreeConstructor>
-  <componentPosition value="cartesian"/>
-  <mergerTreeReadPresetPositions value="true"/>
-  <componentVelocity value="preset"/>
-  <mergerTreeReadPresetVelocities value="true"/>
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMassDistribution value="powerLaw"/>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e11"/>
+    <massTreeMaximum value="1.0e12"/>
+    <treesPerDecade value="20"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="scaled">
+    <massResolutionMinimum value="5.40e+7"/>
+    <massResolutionFractional value="1.62e-4"/>
+  </mergerTreeMassResolution>
+  
+  <mergerTreeOperator value="sequence">
+    <mergerTreeOperator value="massAccretionHistory"/>
+  </mergerTreeOperator>
   
   <luminosityFilter value="SDSS_g SDSS_r DES_g DES_g"/>
 
@@ -121,7 +120,7 @@
   <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
   <nodePropertyExtractor value="multi">
-    <nodePropertyExtractor value="radiusHalfMass"/>
+   
     <nodePropertyExtractor value="virialProperties"/>
     <nodePropertyExtractor value="mostMassiveProgenitor"/>
     <nodePropertyExtractor value="starFormationRate">
@@ -143,17 +142,16 @@
     <nodePropertyExtractor value="darkMatterProfileScaleRadius"/>
     <nodePropertyExtractor value="indicesTree"/>
     <nodePropertyExtractor value="nodeIndices"/>
-    <nodePropertyExtractor value="velocityDispersion">
-      <radiusSpecifiers value="stellarMassFraction{0.5}:all:galactic:lineOfSight:1.0"/>
-    </nodePropertyExtractor>
+    <nodePropertyExtractor value="radiusHalfMass"/>
+    <!--nodePropertyExtractor value="velocityDispersion">
+      <radiusSpecifiers value="stellarMassFraction{0.5}:all:stellar:lineOfSight:1.0"/>
+    </nodePropertyExtractor-->
     <nodePropertyExtractor value="time"/>
     <nodePropertyExtractor value="densityContrasts">
       <densityContrasts value="200.0"/>
       <darkMatterOnly   value="true"/>
     </nodePropertyExtractor>
-    <nodePropertyExtractor value="massProfile">
-      <radiusSpecifiers value="radius:all:all:150.0e-3"/>
-    </nodePropertyExtractor>
+    
   </nodePropertyExtractor>
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
@@ -239,7 +237,7 @@
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
-  <hotHaloOutflowStrippingEfficiency value="0.01"/>
+  <hotHaloOutflowStrippingEfficiency value="0.1"/>
   <hotHaloTrackStrippedGas value="true"/>
   
    <satelliteTidalField value="sphericalSymmetry"/>
@@ -335,6 +333,9 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+
+    
+
     
     <!-- Cosmological epoch -->
     <nodeOperator value="cosmicTime"/>
@@ -390,12 +391,12 @@
     <nodeOperator value="ramPressureMassLossDisks">
 
     <ramPressureStripping value="simpleCylindrical">
-      <beta value="0.01"/>
+      <beta value="1.00"/>
       </ramPressureStripping>
     </nodeOperator>
     <nodeOperator value="ramPressureMassLossSpheroids">
       <ramPressureStripping value="simpleSpherical">
-      <beta value="0.01"/>
+      <beta value="1.00"/>
       </ramPressureStripping>
     </nodeOperator>
 
@@ -462,6 +463,6 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
- 
-  <outputFileName value="testSuite/outputs/inactiveNumerics.hdf5"/>
+  
+  <outputFileName value="testSuite/outputs/regressions/barInstabilityFPE.hdf5"/>
 </parameters>

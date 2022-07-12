@@ -42,12 +42,12 @@ module Node_Component_Satellite_Very_Simple
    <isDefault>false</isDefault>
    <properties>
     <property>
-      <name>mergeTime</name>
+      <name>timeUntilMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Very_Simple_Merge_Time</getFunction>
+      <getFunction>Node_Component_Satellite_Very_Simple_Time_Until_Merging</getFunction>
       <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
     </property>
     <property>
@@ -203,7 +203,7 @@ contains
     ! Ensure that it is of the standard class.
     select type (satellite)
     class is (nodeComponentSatelliteVerySimple)
-       if (node%isSatellite()) call satellite%mergeTimeRate(-1.0d0)
+       if (node%isSatellite()) call satellite%timeUntilMergingRate(-1.0d0)
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Rate_Compute
@@ -244,7 +244,7 @@ contains
     type            (treeNode              ), pointer       :: nodeHost
     class           (nodeComponentSatellite), pointer       :: satellite
     logical                                                 :: isNewSatellite
-    double precision                                        :: mergeTime
+    double precision                                        :: timeUntilMerging
     type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
@@ -272,8 +272,8 @@ contains
        end if
        orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
        ! Compute and store a time until merging.
-       mergeTime=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
-       if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
+       timeUntilMerging=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
+       if (timeUntilMerging >= 0.0d0) call satellite%timeUntilMergingSet(timeUntilMerging)
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Create

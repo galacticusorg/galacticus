@@ -130,7 +130,7 @@
   <!-- Halo mass resolution -->
   <mergerTreeMassResolution value="fixed">
     <!-- All trees are set to have the same halo mass resolution. -->
-    <massResolution value="1.0e10"/>
+    <massResolution value="3.0e10"/>
   </mergerTreeMassResolution>
 
   <!-- Dark matter only halo structure options -->

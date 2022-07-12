@@ -140,16 +140,17 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes" function="Node_Component_Disk_Standard_Attach_Pipes" description="Attach pipes to the standard disk component." returnType="\void" arguments="" bindsTo="component" />
-    <binding method="enclosedMass"          function="Node_Component_Disk_Standard_Enclosed_Mass"           bindsTo="component" />
-    <binding method="acceleration"          function="Node_Component_Disk_Standard_Acceleration"            bindsTo="component" />
-    <binding method="tidalTensor"           function="Node_Component_Disk_Standard_Tidal_Tensor"            bindsTo="component" />
-    <binding method="chandrasekharIntegral" function="Node_Component_Disk_Standard_Chandrasekhar_Integral"  bindsTo="component" />
-    <binding method="density"               function="Node_Component_Disk_Standard_Density"                 bindsTo="component" />
-    <binding method="potential"             function="Node_Component_Disk_Standard_Potential"               bindsTo="component" />
-    <binding method="rotationCurve"         function="Node_Component_Disk_Standard_Rotation_Curve"          bindsTo="component" />
-    <binding method="rotationCurveGradient" function="Node_Component_Disk_Standard_Rotation_Curve_Gradient" bindsTo="component" />
-    <binding method="surfaceDensity"        function="Node_Component_Disk_Standard_Surface_Density"         bindsTo="component" />
+    <binding method="attachPipes"             function="Node_Component_Disk_Standard_Attach_Pipes"              bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
+    <binding method="enclosedMass"            function="Node_Component_Disk_Standard_Enclosed_Mass"             bindsTo="component"                                                                                           />
+    <binding method="acceleration"            function="Node_Component_Disk_Standard_Acceleration"              bindsTo="component"                                                                                           />
+    <binding method="tidalTensor"             function="Node_Component_Disk_Standard_Tidal_Tensor"              bindsTo="component"                                                                                           />
+    <binding method="chandrasekharIntegral"   function="Node_Component_Disk_Standard_Chandrasekhar_Integral"    bindsTo="component"                                                                                           />
+    <binding method="density"                 function="Node_Component_Disk_Standard_Density"                   bindsTo="component"                                                                                           />
+    <binding method="densitySphericalAverage" function="Node_Component_Disk_Standard_Density_Spherical_Average" bindsTo="component"                                                                                           />
+    <binding method="potential"               function="Node_Component_Disk_Standard_Potential"                 bindsTo="component"                                                                                           />
+    <binding method="rotationCurve"           function="Node_Component_Disk_Standard_Rotation_Curve"            bindsTo="component"                                                                                           />
+    <binding method="rotationCurveGradient"   function="Node_Component_Disk_Standard_Rotation_Curve_Gradient"   bindsTo="component"                                                                                           />
+    <binding method="surfaceDensity"          function="Node_Component_Disk_Standard_Surface_Density"           bindsTo="component"                                                                                           />
    </bindings>
    <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   </component>

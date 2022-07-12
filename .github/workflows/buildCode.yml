@@ -63,6 +63,7 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           make -j2 Galacticus.exe 2>&1 | tee build.log
           grep -v -q Error: build.log

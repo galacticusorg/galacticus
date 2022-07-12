@@ -35,11 +35,13 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 Galacticus.exe
           md5sum Galacticus.exe
       - name: Build tools
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
           ./Galacticus.exe parameters/buildTools.xml
           cd $GALACTICUS_DATA_PATH

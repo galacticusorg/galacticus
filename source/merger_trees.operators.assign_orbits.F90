@@ -218,8 +218,8 @@ contains
              end do
              if (.not.satelliteProgenitorFound) then
                    virialOrbitNode=self%virialOrbit_%orbit(node,node%parent,.false.)
-                   call satellite%  mergeTimeSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
-                   call satellite%virialOrbitSet(                                                       virialOrbitNode )
+                   call satellite%timeUntilMergingSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
+                   call satellite%     virialOrbitSet(                                                       virialOrbitNode )
              end if
           else
              ! The merge target must be reachable at the merge time. If it is not, find a

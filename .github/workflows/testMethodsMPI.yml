@@ -66,6 +66,7 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v2
@@ -102,6 +103,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe_MPI
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
@@ -137,6 +139,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe_MPI
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl

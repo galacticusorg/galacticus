@@ -1423,6 +1423,21 @@ module Galacticus_Nodes
     return
   end function Node_Component_Density_Null
 
+  double precision function Node_Component_Density_Spherical_Average_Null(self,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    A null implementation of the spherically-averaged density in a component. Always returns zero.
+    !!}
+    implicit none
+    class           (nodeComponent), intent(inout) :: self
+    integer                        , intent(in   ) :: componentType, massType, weightBy, &
+         &                                            weightIndex
+    double precision               , intent(in   ) :: radius
+    !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
+
+    Node_Component_Density_Spherical_Average_Null=0.0d0
+    return
+  end function Node_Component_Density_Spherical_Average_Null
+
   double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
     !!{
     A null implementation of the surface density in a component. Always returns zero.

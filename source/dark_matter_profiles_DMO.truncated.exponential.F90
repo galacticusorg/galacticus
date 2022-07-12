@@ -207,7 +207,7 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
 
-    self%lastUniqueID                                           = node%uniqueID()
+    self%lastUniqueID                                           =node%uniqueID()
     self%genericLastUniqueID                                    =node%uniqueID()
     self%kappaPrevious                                          =-huge(0.0d0)
     self%enclosingMassRadiusPrevious                            =-1.0d0

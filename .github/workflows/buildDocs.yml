@@ -64,6 +64,7 @@ jobs:
       - name: Build the docs
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           ./scripts/doc/Build_Documentation.sh -f yes -p 2
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0

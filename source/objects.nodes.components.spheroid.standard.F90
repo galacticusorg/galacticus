@@ -149,14 +149,15 @@ module Node_Component_Spheroid_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           bindsTo="component" />
-    <binding method="acceleration"          function="Node_Component_Spheroid_Standard_Acceleration"            bindsTo="component" />
-    <binding method="tidalTensor"           function="Node_Component_Spheroid_Standard_Tidal_Tensor"            bindsTo="component" />
-    <binding method="chandrasekharIntegral" function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"  bindsTo="component" />
-    <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
-    <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          bindsTo="component" />
-    <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" bindsTo="component" />
-    <binding method="potential"             function="Node_Component_Spheroid_Standard_Potential"               bindsTo="component" />
+    <binding method="enclosedMass"            function="Node_Component_Spheroid_Standard_Enclosed_Mass"             bindsTo="component" />
+    <binding method="acceleration"            function="Node_Component_Spheroid_Standard_Acceleration"              bindsTo="component" />
+    <binding method="tidalTensor"             function="Node_Component_Spheroid_Standard_Tidal_Tensor"              bindsTo="component" />
+    <binding method="chandrasekharIntegral"   function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"    bindsTo="component" />
+    <binding method="density"                 function="Node_Component_Spheroid_Standard_Density"                   bindsTo="component" />
+    <binding method="densitySphericalAverage" function="Node_Component_Spheroid_Standard_Density_Spherical_Average" bindsTo="component" />
+    <binding method="rotationCurve"           function="Node_Component_Spheroid_Standard_Rotation_Curve"            bindsTo="component" />
+    <binding method="rotationCurveGradient"   function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient"   bindsTo="component" />
+    <binding method="potential"               function="Node_Component_Spheroid_Standard_Potential"                 bindsTo="component" />
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>
@@ -508,7 +509,7 @@ contains
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
-      end if
+       end if
        ! Trap negative stellar masses.
        if (spheroid%massStellar() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -554,6 +555,18 @@ contains
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
+       end if
+       ! Trap negative angular momentum.
+       if (spheroid%angularMomentum() < 0.0d0) then
+          ! Estimate a reasonable specific angular momentum.
+          specificAngularMomentum=spheroid%radius()*spheroid%velocity()
+          ! Get the mass of the spheroid.
+          massSpheroid= spheroid%massGas    () &
+               &       +spheroid%massStellar()
+          ! Reset the angular momentum of the spheroid.
+          call spheroid%angularMomentumSet(specificAngularMomentum*massSpheroid)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if

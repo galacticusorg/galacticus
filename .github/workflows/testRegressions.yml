@@ -65,6 +65,7 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v2
@@ -101,6 +102,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug1053153.xml 2>&1 | tee test.log
@@ -135,6 +137,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/bug1066052.pl
@@ -170,6 +173,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug711424.xml 2>&1 | tee test.log
@@ -204,6 +208,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug725315.xml 2>&1 | tee test.log
@@ -238,6 +243,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/coincidentMergerAndBranchJump.xml 2>&1 | tee test.log
@@ -272,6 +278,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml 2>&1 | tee test.log
@@ -306,6 +313,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml 2>&1 | tee test.log
@@ -340,6 +348,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml 2>&1 | tee test.log
@@ -374,6 +383,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/finalTimeBeforeOutputTime.xml 2>&1 | tee test.log
@@ -408,6 +418,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/immediateSubSubMergerThenBranchJump.xml 2>&1 | tee test.log
@@ -442,6 +453,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml 2>&1 | tee test.log
@@ -476,6 +488,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/issue142.xml 2>&1 | tee test.log
@@ -510,6 +523,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/linearGrowthForFutureModel.xml 2>&1 | tee test.log
@@ -544,6 +558,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml 2>&1 | tee test.log
@@ -578,6 +593,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml 2>&1 | tee test.log
@@ -612,6 +628,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/mergerTreeBoxSizeWeight.pl
@@ -647,6 +664,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/particulate.xml 2>&1 | tee test.log
@@ -681,6 +699,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/satellitePresetBoundMassNonZero.pl
@@ -722,6 +741,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/setProperties.pl
@@ -757,6 +777,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml 2>&1 | tee test.log
@@ -791,6 +812,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/subhaloTwoConsecutiveMergers.xml 2>&1 | tee test.log
@@ -825,6 +847,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml 2>&1 | tee test.log
@@ -859,8 +882,44 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/treeWithNoPrimaryProgenitor.xml 2>&1 | tee test.log
+          ! grep -q FAIL test.log
+      - run: echo "This job's status is ${{ job.status }}."
+  Bar-Instability-FPE:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
+          ./Galacticus.exe testSuite/regressions/barInstabilityFPE.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

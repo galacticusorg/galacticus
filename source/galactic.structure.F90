@@ -35,12 +35,20 @@ module Galactic_Structure
    <description>Object providing galactic structure functions.</description>
    <default>standard</default>
    <method name="density">
-    <description>Return the mass enclosed at the given {\normalfont \ttfamily position} in {\normalfont \ttfamily node}.</description>
+    <description>Return the density at the given {\normalfont \ttfamily position} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout)               :: node</argument>
     <argument>double precision          , intent(in   ), dimension(3) :: position</argument>
     <argument>integer                   , intent(in   ), optional     :: coordinateSystem, componentType, massType, weightBy, weightIndex</argument>
+   </method>
+   <method name="densitySphericalAverage">
+    <description>Return the spherically-averaged density at the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   )           :: radius</argument>
+    <argument>integer                   , intent(in   ), optional :: componentType, massType, weightBy, weightIndex</argument>
    </method>
    <method name="massEnclosed">
     <description>Return the mass enclosed within the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
