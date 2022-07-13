@@ -131,13 +131,13 @@ contains
     return
   end function coldModeConstructorParameters
 
-  function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
+  function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
     !!}
     implicit none
     type            (accretionHaloColdMode        )                        :: self
-    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, &
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, metallicityIGM, &
          &                                                                    thresholdStabilityShock , widthTransitionStabilityShock
     logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
@@ -151,7 +151,7 @@ contains
     <constructorAssign variables="thresholdStabilityShock, widthTransitionStabilityShock, *coolingFunction_"/>
     !!]
 
-    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     self%coldFractionComputed=.false.
     self%lastUniqueID        =-1_kind_int8
     return

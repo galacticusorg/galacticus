@@ -83,7 +83,7 @@
      class           (intergalacticMediumStateClass          ), pointer :: intergalacticMediumState_ => null()
      class           (chemicalStateClass                     ), pointer :: chemicalState_            => null()
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
-          &                                                                opticalDepthReionization
+          &                                                                opticalDepthReionization           , metallicityIGM
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals                     , massProgenitorMaximumID
@@ -136,7 +136,7 @@ contains
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
     class           (chemicalStateClass           ), pointer       :: chemicalState_
     double precision                                               :: timeReionization         , velocitySuppressionReionization, &
-         &                                                            opticalDepthReionization , redshiftReionization
+         &                                                            opticalDepthReionization , redshiftReionization           , metallicityIGM
     logical                                                        :: accretionNegativeAllowed , accretionNewGrowthOnly
 
     !![
@@ -177,6 +177,12 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>metallicityIGM</name>
+      <defaultValue>0.01d0</defaultValue>
+      <description>Adding metallicity to IGM.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>accretionNegativeAllowed</name>
       <defaultValue>.true.</defaultValue>
       <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
@@ -189,7 +195,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -202,7 +208,7 @@ contains
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
+  function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
@@ -210,7 +216,7 @@ contains
     use :: Galacticus_Nodes             , only : defaultBasicComponent
     implicit none
     type            (accretionHaloSimple          ), target                :: self
-    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, metallicityIGM
     logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
@@ -219,7 +225,7 @@ contains
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
     !![
-    <constructorAssign variables="timeReionization, velocitySuppressionReionization, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
+    <constructorAssign variables="timeReionization, velocitySuppressionReionization, metallicityIGM, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
     !!]
 
     allocate(self%radiation)
@@ -401,7 +407,8 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Abundances_Structure, only : abundances, zeroAbundances
+    use :: Atomic_Data, only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
     implicit none
     type  (abundances         )                :: simpleAccretionRateMetals
     class (accretionHaloSimple), intent(inout) :: self
@@ -409,8 +416,8 @@ contains
     integer                    , intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
-    ! Assume zero metallicity.
-    simpleAccretionRateMetals=zeroAbundances
+    call simpleAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleAccretionRateMetals=simpleAccretionRateMetals*self%accretionRate(node,accretionMode)
     return
   end function simpleAccretionRateMetals
 
@@ -418,7 +425,8 @@ contains
     !!{
     Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Abundances_Structure, only : abundances, zeroAbundances
+    use :: Atomic_Data, only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
     implicit none
     type   (abundances         )                :: simpleAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
@@ -426,8 +434,8 @@ contains
     integer                     , intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
-    ! Assume zero metallicity.
-    simpleAccretedMassMetals=zeroAbundances
+    call simpleAccretedMassMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleAccretedMassMetals=simpleAccretedMassMetals*self%accretionRate(node,accretionMode)
     return
   end function simpleAccretedMassMetals
 

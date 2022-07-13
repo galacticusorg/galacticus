@@ -146,7 +146,7 @@ contains
     return
   end function naozBarkana2007ConstructorParameters
 
-  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     !!}
@@ -154,7 +154,7 @@ contains
     use :: Error       , only : Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
-    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
+    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, metallicityIGM, &
          &                                                                            rateAdjust                      , massMinimum
     logical                                                , intent(in   )         :: accretionNegativeAllowed        , accretionNewGrowthOnly
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
@@ -170,7 +170,7 @@ contains
     <constructorAssign variables="rateAdjust, massMinimum, *intergalacticMediumFilteringMass_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
-    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     self%filteredFractionComputed    =.false.
     self%filteredFractionRateComputed=.false.
     self%lastUniqueID                =-huge(0_c_size_t)
@@ -543,7 +543,8 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Abundances_Structure, only : zeroAbundances
+    use :: Atomic_Data, only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : abundances, zeroAbundances, metallicityTypeLinearByMassSolar, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     type            (abundances                  )                :: naozBarkana2007AccretionRateMetals
@@ -556,8 +557,8 @@ contains
     !$omp threadprivate(fractionMetals)
     double precision                                              :: rateCorrection
 
-    ! Assume zero metallicity for accreted gas.
-    naozBarkana2007AccretionRateMetals=zeroAbundances
+    call naozBarkana2007AccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    naozBarkana2007AccretionRateMetals=naozBarkana2007AccretionRateMetals*self%accretionRate(node,accretionMode)
     ! Return immediately for cold-mode accretion or satellites.
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
