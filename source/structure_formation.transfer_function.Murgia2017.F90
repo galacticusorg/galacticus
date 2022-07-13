@@ -221,8 +221,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
          &                    )                       &
          &                   *(                       &
          &                     +(                     &
-         &                       +     1.0d0          &
-         &                       /sqrt(2.0d0)         &
+         &                       +1.0d0               &
+         &                       /2.0d0               &
          &                      )**(1.0d0/self%gamma) &
          &                     -1.0d0                 &
          &                    )**(1.0d0/self%beta)    &
