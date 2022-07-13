@@ -316,7 +316,7 @@ contains
     return
   end function fileFuzzyDarkMatterHalfModeMass
 
-  double precision function fileFuzzyDarkMatterQuarterModeMass
+  double precision function fileFuzzyDarkMatterQuarterModeMass(self,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
     suppressed by a factor of four relative to a \gls{cdm} transfer function.
