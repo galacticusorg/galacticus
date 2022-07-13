@@ -46,6 +46,7 @@
      procedure :: value                 => murgia2017Value
      procedure :: logarithmicDerivative => murgia2017LogarithmicDerivative
      procedure :: halfModeMass          => murgia2017HalfModeMass
+     procedure :: quarterModeMass       => murgia2017QuarterModeMass
      procedure :: epochTime             => murgia2017EpochTime
   end type transferFunctionMurgia2017
 
@@ -187,16 +188,18 @@ function murgia2017ConstructorParameters(parameters) result(self)
          &                                 *self%gamma                      &
          &                                 *(                               &
          &                                   +self%alpha                    &
-         &                                   *wavenumber)**self%beta        &
+         &                                   *wavenumber                    &
+         &                                  )**self%beta                    &
          &                                 /(                               &
          &                                   +(                             &
          &                                     +1.0d0                       &
          &                                     +(                           &
          &                                       +self%alpha                &
-         &                                       *wavenumber)**self%beta    &
-         &                                      )                           &
-         &                                     *wavenumber                  &
-         &                                )                             
+         &                                       *wavenumber                &
+         &                                      )**self%beta                &
+         &                                    )                             &
+         &                                   *wavenumber                    &
+         &                                  )
     return
   end function murgia2017LogarithmicDerivative
 
@@ -238,6 +241,45 @@ function murgia2017ConstructorParameters(parameters) result(self)
     if (present(status)) status=errorStatusSuccess
     return
   end function murgia2017HalfModeMass
+
+  double precision function murgia2017QuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function.
+    !!}
+    use :: Error                   , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (transferFunctionMurgia2017), intent(inout), target   :: self
+    integer                                     , intent(  out), optional :: status
+    double precision                                                      :: matterDensity, wavenumberQuarterMode
+
+    matterDensity            =+self%cosmologyParameters_%OmegaMatter    () &
+         &                    *self%cosmologyParameters_%densityCritical()
+    wavenumberQuarterMode    =+(                         &
+         &                      +(                       &
+         &                        +1.0d0                 &
+         &                        /self%alpha            &
+         &                       )                       &
+         &                      *(                       &
+         &                        +(                     &
+         &                          +1.0d0               &
+         &                          /4.0d0               &
+         &                         )**(1.0d0/self%gamma) &
+         &                        -1.0d0                 &
+         &                       )**(1.0d0/self%beta)    &
+         &                     )
+    murgia2017QuarterModeMass=+4.0d0                   &
+         &                    *Pi                      &
+         &                    /3.0d0                   &
+         &                    *matterDensity           &
+         &                    *(                       &
+         &                      +Pi                    &
+         &                      /wavenumberQuarterMode &
+         &                    )**3
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function murgia2017QuarterModeMass
 
   double precision function murgia2017EpochTime(self)
     !!{

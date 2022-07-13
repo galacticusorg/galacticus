@@ -47,6 +47,7 @@
      procedure :: value                 => hu2000FDMValue
      procedure :: logarithmicDerivative => hu2000FDMLogarithmicDerivative
      procedure :: halfModeMass          => hu2000FDMHalfModeMass
+     procedure :: quarterModeMass       => hu2000FDMQuarterModeMass
      procedure :: epochTime             => hu2000FDMEpochTime
   end type transferFunctionHu2000FDM
 
@@ -238,6 +239,35 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function hu2000FDMHalfModeMass
+
+  double precision function hu2000FDMQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function.
+    !!}
+    use :: Error                   , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (transferFunctionHu2000FDM), intent(inout), target   :: self
+    integer                                    , intent(  out), optional :: status
+    double precision                                                     :: matterDensity, wavenumberQuarterMode
+
+    matterDensity           =+self%cosmologyParameters_%OmegaMatter    () &
+         &                   *self%cosmologyParameters_%densityCritical()
+    wavenumberQuarterMode   =+1.230d0                 &
+         &                   *4.5d0                   &
+         &                   *self%m22**(4.0d0/9.0d0)
+    hu2000FDMQuarterModeMass=+4.0d0                   &
+         &                   *Pi                      &
+         &                   /3.0d0                   &
+         &                   *matterDensity           &
+         &                   *(                       &
+         &                     +Pi                    &
+         &                     /wavenumberQuarterMode &
+         &                    )**3
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function hu2000FDMQuarterModeMass
 
   double precision function hu2000FDMEpochTime(self)
     !!{
