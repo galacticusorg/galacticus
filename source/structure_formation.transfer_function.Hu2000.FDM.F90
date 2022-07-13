@@ -78,7 +78,7 @@ contains
     double precision                                           :: redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
