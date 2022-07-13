@@ -28,13 +28,17 @@ program Test_Sort
   use            :: Display      , only : displayVerbositySet, verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
-  use            :: Sorting      , only : sort               , sortByIndex           , sortIndex
+  use            :: Sorting      , only : sort               , sortByIndex           , sortIndex           , sortSmallest     , &
+       &                                  sortLargest        , sortSmallestIndex     , sortLargestIndex
   use            :: Unit_Tests   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer         (kind=c_size_t ), dimension(19) :: indexArray
   integer                         , dimension(19) :: integerArray
   integer         (kind=kind_int8), dimension(19) :: longIntegerArray
   double precision                , dimension(19) :: doubleArray
+  double precision                , dimension( 5) :: doubleArraySort
+  integer         (kind=c_size_t ), dimension( 5) :: indexArraySort
+  logical                         , dimension(19) :: mask
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -107,6 +111,29 @@ program Test_Sort
   doubleArray=[-3.0d0,-9.0d0,-4.0d0,-6.0d0,-7.0d0,-2.0d0,-8.0d0,-5.0d0,-1.0d0,6.0d0,4.0d0,9.0d0,8.0d0,1.0d0,5.0d0,7.0d0,0.0d0,2.0d0,3.0d0]
   call sortByIndex(doubleArray,indexArray)
   call Assert("double sort by index",doubleArray,[-9.0d0,-8.0d0,-7.0d0,-6.0d0,-5.0d0,-4.0d0,-3.0d0,-2.0d0,-1.0d0,0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0])
+
+  ! Test sorting k smallest and largest elements.
+  doubleArray=[-3.0d0,-9.0d0,-4.0d0,-6.0d0,-7.0d0,-2.0d0,-8.0d0,-5.0d0,-1.0d0,6.0d0,4.0d0,9.0d0,8.0d0,1.0d0,5.0d0,7.0d0,0.0d0,2.0d0,3.0d0]
+  doubleArraySort=sortSmallest(doubleArray,5_c_size_t)
+  call Assert("double sort smallest",doubleArraySort,[-9.0d0,-8.0d0,-7.0d0,-6.0d0,-5.0d0])
+  doubleArraySort=sortLargest (doubleArray,5_c_size_t)
+  call Assert("double sort largest" ,doubleArraySort,[ 9.0d0, 8.0d0, 7.0d0, 6.0d0, 5.0d0])
+  indexArraySort=sortSmallestIndex(doubleArray,5_c_size_t)
+  call Assert("double sort smallest index",int(indexArraySort),[2,7,5,4,8])
+  indexArraySort=sortLargestIndex (doubleArray,5_c_size_t)
+  call Assert("double sort largest index" ,int(indexArraySort),[12,13,16,10,15])
+
+  ! Test sorting k smallest and largest elements with mask.
+  doubleArray=[-3.0d0,-9.0d0,-4.0d0,-6.0d0,-7.0d0,-2.0d0,-8.0d0,-5.0d0,-1.0d0,6.0d0,4.0d0,9.0d0,8.0d0,1.0d0,5.0d0,7.0d0,0.0d0,2.0d0,3.0d0]
+  mask=[.true.,.false.,.true.,.false.,.true.,.false.,.true.,.false.,.true.,.false.,.true.,.false.,.true.,.false.,.true.,.false.,.true.,.false.,.true.]
+  doubleArraySort=sortSmallest(doubleArray,5_c_size_t,mask=mask)
+  call Assert("double sort smallest with mask",doubleArraySort,[-8.0d0,-7.0d0,-4.0d0,-3.0d0,-1.0d0])
+  doubleArraySort=sortLargest (doubleArray,5_c_size_t,mask=mask)
+  call Assert("double sort largest with mask" ,doubleArraySort,[ 8.0d0, 5.0d0, 4.0d0, 3.0d0, 0.0d0])
+  indexArraySort=sortSmallestIndex(doubleArray,5_c_size_t,mask=mask)
+  call Assert("double sort smallest index with mask",int(indexArraySort),[7,5,3,1,9])
+  indexArraySort=sortLargestIndex (doubleArray,5_c_size_t,mask=mask)
+  call Assert("double sort largest index with mask" ,int(indexArraySort),[13,15,11,19,17])
 
   ! End unit tests.
   call Unit_Tests_End_Group()
