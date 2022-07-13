@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,8 +63,8 @@ contains
     type            (inputParameters           ), intent(inout) :: parameters
     class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     integer         (c_size_t                  )                :: bootstrapSampleCount
-    double precision                                            :: tolerance           , bootstrapSampleRate
-    logical                                                     :: analyzeAllParticles , useVelocityMostBound
+    double precision                                            :: tolerance             , bootstrapSampleRate
+    logical                                                     :: analyzeAllParticles   , useVelocityMostBound
 
     !![
     <inputParameter>
@@ -142,7 +142,7 @@ contains
     Determine the subset of N-body particles which are self-bound.
     !!}
     use :: Display                         , only : displayIndent                  , displayUnindent, displayMessage
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -167,7 +167,7 @@ contains
     double precision                        , allocatable  , dimension(:,:)          :: velocityCenterOfMass
     double precision                                       , dimension(3  )          :: velocityRepresentative
     integer         (c_size_t              ), pointer      , dimension(:  )          :: indexSorted               , indexSortedPrevious
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound            , indexVelocityMostBound
+    integer         (c_size_t              ), pointer      , dimension(:  )          :: indexMostBound            , indexVelocityMostBound
     integer         (c_size_t              )                                         :: particleCount             , i                      , &
          &                                                                              k                         , iSample                , &
          &                                                                              current                   , previous
@@ -193,14 +193,14 @@ contains
           if (simulations(i)%label == "active"  ) current =i
           if (simulations(i)%label == "previous") previous=i
        end do
-       if (current  == -1) call Galacticus_Error_Report('no "active" simulation found'  //{introspection:location})
-       if (previous == -1) call Galacticus_Error_Report('no "previous" simulation found'//{introspection:location})
+       if (current  == -1) call Error_Report('no "active" simulation found'  //{introspection:location})
+       if (previous == -1) call Error_Report('no "previous" simulation found'//{introspection:location})
        if (.not.simulations(previous)%propertiesIntegerRank1%exists('isBound')) &
-            & call Galacticus_Error_Report('"previous" simulation must provide the "isBound" property'//{introspection:location})
+            & call Error_Report('"previous" simulation must provide the "isBound" property'//{introspection:location})
     else
        current =-1
        previous=-1
-       call Galacticus_Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
+       call Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
     end if
     ! Get simulation attributes.
     lengthSoftening=simulations(current)%attributesReal%value('lengthSoftening')
@@ -241,7 +241,7 @@ contains
        boundStatusPrevious  => simulations(previous)%propertiesIntegerRank1%value('isBound'     )
        sampleWeightPrevious => simulations(previous)%propertiesRealRank1   %value('sampleWeight')
        if (self%bootstrapSampleCount /= size(boundStatusPrevious,dim=2)) &
-            & call Galacticus_Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
+            & call Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
        ! Sort particles according to their particle IDs.
        if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
           indexSortedPrevious => simulations(previous)%propertiesInteger%value('particleOrder')
@@ -256,6 +256,7 @@ contains
           isBound     (indexSorted(i),:)=      boundStatusPrevious(indexSortedPrevious(i),:) > 0
        end do
        !$omp end parallel do
+       nullify(particleIDsPrevious )
        nullify(boundStatusPrevious )
        nullify(sampleWeightPrevious)
        if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
@@ -542,7 +543,7 @@ contains
           message=var_str('sample ')//iSample//' convergence factor = '//trim(adjustl(label))
           call displayMessage(message)
           ! Check for excess iterations.
-          if (countIteration > countIterationMaximum) call Galacticus_Error_Report('maximum iterations exceeded'//{introspection:location})
+          if (countIteration > countIterationMaximum) call Error_Report('maximum iterations exceeded'//{introspection:location})
        end do
        call displayUnindent('done')
        if (count(isConverged)==self%bootstrapSampleCount) exit
@@ -556,10 +557,12 @@ contains
     end where
     !$omp end parallel workshare
     call displayUnindent('done')
-    ! Store the self bound status and the particle order.
-    call simulations(current)%propertiesIntegerRank1%set         ( 'isBound'                ,boundStatus             )
-    call simulations(current)%propertiesRealRank1   %set         ( 'sampleWeight'           ,sampleWeight            )
-    call simulations(current)%propertiesInteger     %set         ( 'particleOrder'          ,indexSorted             )
+    ! Store the self bound status, the particle order and the index of the most bound particle.
+    call simulations(current)%propertiesIntegerRank1%set         ('isBound'                 , boundStatus            )
+    call simulations(current)%propertiesRealRank1   %set         ('sampleWeight'            , sampleWeight           )
+    call simulations(current)%propertiesInteger     %set         ('particleOrder'           , indexSorted            )
+    call simulations(current)%propertiesInteger     %set         ('indexMostBound'          , indexMostBound         )
+    call simulations(current)%propertiesInteger     %set         ('indexVelocityMostBound'  , indexVelocityMostBound )
     ! Write indices of most bound particles to file.
     call simulations(current)%analysis              %writeDataset( indexMostBound           ,'indexMostBound'        )
     call simulations(current)%analysis              %writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
@@ -581,8 +584,8 @@ contains
     deallocate(energyPotentialChange  )
     deallocate(velocityPotentialChange)
     deallocate(velocityCenterOfMass   )
-    deallocate(indexMostBound         )
-    deallocate(indexVelocityMostBound )
+    nullify   (indexMostBound         )
+    nullify   (indexVelocityMostBound )
     deallocate(positionOffset         )
     deallocate(countBound             )
     deallocate(countBoundPrevious     )

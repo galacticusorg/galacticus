@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,6 +140,7 @@ contains
     Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
+    use :: ISO_Varying_String              , only : var_str
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (radiativeTransferMatterAtomic               )                             :: self
@@ -228,6 +229,7 @@ contains
     !!]
     self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
     !![
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="massDistribution_"                       />
     <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
     <objectDestructor name="atomicRecombinationRateRadiative_"       />
@@ -247,7 +249,7 @@ contains
     !!}
     use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : char
     use :: Numerical_Constants_Astronomical, only : massSolar                 , megaParsec                   , metallicitySolar
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
@@ -321,7 +323,7 @@ contains
           self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHelium
        case default ! Metals
           indexElement=Abundances_Index_From_Name(trim(self%elements(i)))
-          if (indexElement <= 0) call Galacticus_Error_Report('unable to find element "'//trim(self%elements(i))//'"'//{introspection:location})
+          if (indexElement <= 0) call Error_Report('unable to find element "'//trim(self%elements(i))//'"'//{introspection:location})
           self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen                          &
                &                                *abundancesRelative                   (           indexElement) &
                &                                *Atomic_Mass                          (shortLabel='H'         ) &
@@ -388,7 +390,7 @@ contains
     !!{
     Populate a computational domain cell with atomic matter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (radiativeTransferMatterAtomic           ), intent(inout) :: self
     class           (radiativeTransferPropertiesMatter       ), intent(inout) :: properties
@@ -431,7 +433,7 @@ contains
                &                            *self       %numberDensityMassDensityRatio
        end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
 
@@ -456,8 +458,8 @@ contains
     !!{
     Broadcast populated computational domain properties to other MPI processes.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: MPI_Utilities   , only : mpiSelf
+    use :: Error        , only : Error_Report
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     integer                                   , intent(in   ) :: sendFromProcess
@@ -468,7 +470,7 @@ contains
     type is (radiativeTransferPropertiesMatterAtomic)
        call mpiSelf%broadcastData(sendFromProcess,properties%elements%densityNumber)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine atomicBroadcastDomain
@@ -478,7 +480,7 @@ contains
     !!{
     Reset a computational domain cell prior to a new iteration.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
@@ -495,7 +497,7 @@ contains
        end do
        properties               %iterationCount             =properties            %iterationCount     +1
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine atomicReset
@@ -576,7 +578,7 @@ contains
     !!{
     Compute the absorption coefficient for the given species and wavelength.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : centi
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
@@ -599,7 +601,7 @@ contains
             &                             *megaParsec
     class default
        atomicAbsorptionCoefficientSpecies=0.0d0
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end function atomicAbsorptionCoefficientSpecies
@@ -608,11 +610,11 @@ contains
     !!{
     Accumulate a photon packet.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Astronomical, only : luminositySolar        , megaParsec
-    use :: Numerical_Constants_Physical    , only : plancksConstant        , speedLight
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Constants_Astronomical, only : luminositySolar  , megaParsec
+    use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Numerical_Constants_Units       , only : angstromsPerMeter      , electronVolt
+    use :: Numerical_Constants_Units       , only : angstromsPerMeter, electronVolt
     implicit none
     class           (radiativeTransferMatterAtomic     ), intent(inout) :: self
     class           (radiativeTransferPropertiesMatter ), intent(inout) :: properties
@@ -659,7 +661,7 @@ contains
           end do
        end do
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine atomicAccumulatePhotonPacket
@@ -683,8 +685,8 @@ contains
     !!{
     Perform reduction of accumulated properaties across MPI processes.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: MPI_Utilities   , only : mpiSelf
+    use :: Error        , only : Error_Report
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout)  :: self
     class  (radiativeTransferPropertiesMatter), intent(inout)  :: properties
@@ -697,7 +699,7 @@ contains
           properties%elements(i)%photoHeatingRate   =mpiSelf%sum(properties%elements(i)%photoHeatingRate   )
        end do
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine atomicAccumulationReduction
@@ -778,10 +780,11 @@ contains
     !!{
     Solve for the state of the matter.
     !!}
-    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA     , recombinationCaseB
-    use :: Display                             , only : displayIndent          , displayMessage    , displayUnindent      , verbosityLevelStandard
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report, errorStatusFail   , errorStatusOutOfRange, errorStatusSuccess
+    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA, recombinationCaseB
+    use :: Display                             , only : displayIndent     , displayMessage    , displayUnindent      , verbosityLevelStandard
+    use :: Error                               , only : Error_Report      , errorStatusFail   , errorStatusOutOfRange, errorStatusSuccess
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
+    use :: ISO_Varying_String                  , only : operator(//)
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
     class           (radiativeTransferPropertiesMatter), intent(inout) , target      :: properties
@@ -1106,7 +1109,7 @@ contains
 #ifdef RADTRANSDEBUG
                 call debugReport()                
 #endif
-                call Galacticus_Error_Report('solution not found'//{introspection:location})
+                call Error_Report('solution not found'//{introspection:location})
              end if
           end if
           ! Check for oscillating temperature or electron density.
@@ -1134,7 +1137,7 @@ contains
        end do
        call self%historyUpdate(properties)       
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
 #ifdef RADTRANSDEBUG
     call Signal(8,handlerPrevious)
@@ -1223,7 +1226,7 @@ contains
     !!{
     Update the ionization state history in a properties object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter), intent(inout) :: properties
@@ -1244,7 +1247,7 @@ contains
           end do
        end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine atomicHistoryUpdate
@@ -1254,8 +1257,8 @@ contains
     !!{
     Broadcast computational domain state to other MPI processes.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: MPI_Utilities   , only : mpiSelf
+    use :: Error        , only : Error_Report
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
     integer                                   , intent(in   ) :: sendFromProcess
@@ -1273,7 +1276,7 @@ contains
        end do
        call    mpiSelf%broadcastData(sendFromProcess,properties            %temperature                )
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine atomicBroadcastState
@@ -1285,7 +1288,7 @@ contains
     !!}
     use :: Arrays_Search   , only : searchArray
     use :: Disparity_Ratios, only : Disparity_Ratio
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout)                          :: self
     class           (radiativeTransferPropertiesMatter), intent(inout)                          :: properties
@@ -1332,7 +1335,7 @@ contains
        atomicConvergenceMeasure=max(convergenceMeasures(1),1.0d0)
        class default
        atomicConvergenceMeasure=0.0d0
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end function atomicConvergenceMeasure
@@ -1341,7 +1344,7 @@ contains
     !!{
     Return a scalar property to be output.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
@@ -1390,15 +1393,15 @@ contains
              atomicOutputProperty=self%absorptionCoefficientSpecies(i,int(output_-offsetAbsorptionCoefficients-1_c_size_t),(1.0d0-1.0d-3)*lymanSeriesLimitWavelengthHydrogen,properties)
           else
              atomicOutputProperty=0.0d0
-             call Galacticus_Error_Report('output is out of range (this should not happen)'//{introspection:location})
+             call Error_Report('output is out of range (this should not happen)'//{introspection:location})
           end if
        else
           atomicOutputProperty=0.0d0
-          call Galacticus_Error_Report('output is out of range'//{introspection:location})
+          call Error_Report('output is out of range'//{introspection:location})
        end if
     class default
        atomicOutputProperty=0.0d0
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end function atomicOutputProperty
@@ -1420,8 +1423,8 @@ contains
     !!{
     Return the name of the scalar property to be output.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: ISO_Varying_String      , only : operator(//)
+    use :: Error                   , only : Error_Report
+    use :: ISO_Varying_String      , only : operator(//)  , var_str
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
     implicit none
     type   (varying_string               )                :: atomicOutputName
@@ -1468,11 +1471,11 @@ contains
           atomicOutputName=var_str('absorptionCoefficient')//trim(adjustl(self%elements(i)))//Roman_Numerals(int(output_-offsetAbsorptionCoefficients))
        else
           atomicOutputName=var_str(''                   )
-          call Galacticus_Error_Report('output is out of range (this should not happen)'//{introspection:location})
+          call Error_Report('output is out of range (this should not happen)'//{introspection:location})
        end if
     else
        atomicOutputName=var_str(''                )
-       call Galacticus_Error_Report('output is out of range'//{introspection:location})
+       call Error_Report('output is out of range'//{introspection:location})
     end if
     return
   end function atomicOutputName
@@ -1482,7 +1485,7 @@ contains
     Return the total recombination rate for the atomic matter.
     !!}
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseB
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Numerical_Constants_Astronomical    , only : megaParsec
     use :: Numerical_Constants_Prefixes        , only : centi
     implicit none
@@ -1512,7 +1515,7 @@ contains
             &                           )**3
     else
        atomicRecombinationRateHydrogen=+0.0d0
-       call Galacticus_Error_Report('hydrogren is not present'//{introspection:location})
+       call Error_Report('hydrogren is not present'//{introspection:location})
     end if
     return
   end function atomicRecombinationRateHydrogen

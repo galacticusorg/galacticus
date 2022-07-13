@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,7 +65,7 @@ contains
     use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
     use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
     use :: FFTLogs                   , only : FFTLogSineTransform              , fftLogForward
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     use :: Geometry_Surveys          , only : surveyGeometryClass
     use :: Halo_Mass_Functions       , only : haloMassFunctionClass
@@ -125,8 +125,8 @@ contains
     type is (nodeComponentDarkMatterProfileScale)
        ! This is acceptable.
     class default
-          ! This is not.
-       call Galacticus_Error_Report('this code expects to use the "scale" dark matter profile component'//{introspection:location})
+       ! This is not.
+       call Error_Report('this code expects to use the "scale" dark matter profile component'//{introspection:location})
     end select
     ! Generate wavenumber range.
     wavenumberCount=int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumberCountPerDecade))+1
@@ -276,7 +276,7 @@ contains
       !!}
       use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
 
-      use :: Galacticus_Error, only : errorStatusSuccess
+      use :: Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -304,20 +304,20 @@ contains
       !!{
       Integrand for the one-halo term in the power spectrum.
       !!}
-      use :: Conditional_Mass_Functions    , only : haloModelGalaxyTypeCentral   , haloModelGalaxyTypeSatellite
-      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+      use :: Conditional_Mass_Functions, only : haloModelGalaxyTypeCentral, haloModelGalaxyTypeSatellite
+      use :: Calculations_Resets       , only : Calculations_Reset
       implicit none
       double precision, intent(in   ) :: massHalo
       double precision                :: darkMatterProfileKSpace, numberCentrals   , &
            &                             numberSatellites       , wavenumberMaximum
 
-      call Galacticus_Calculations_Reset(node)
-      call basic            % massSet(massHalo                           )
-      call Galacticus_Calculations_Reset(node)
+      call Calculations_Reset(node)
+      call basic                % massSet(massHalo                                  )
+      call Calculations_Reset(node)
       call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
-      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%radiusVirial(node)/expansionFactor)
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumOneHaloIntegrand=0.0d0
       else
@@ -354,7 +354,7 @@ contains
       Time integrand for the two-halo term in the power spectrum.
       !!}
       use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
-      use :: Galacticus_Error, only : errorStatusSuccess
+      use :: Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -387,18 +387,18 @@ contains
       !!{
       Integrand for the two-halo term in the power spectrum.
       !!}
-      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+      use :: Calculations_Resets, only : Calculations_Reset
       implicit none
       double precision, intent(in   ) :: massHalo
       double precision                :: wavenumberMaximum
 
-      call Galacticus_Calculations_Reset(node)
-      call basic            % massSet(massHalo                           )
-      call Galacticus_Calculations_Reset(node)
+      call Calculations_Reset(node)
+      call basic                % massSet(massHalo                                  )
+      call Calculations_Reset(node)
       call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
-      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%radiusVirial(node)/expansionFactor)
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumTwoHaloIntegrand=0.0d0
       else

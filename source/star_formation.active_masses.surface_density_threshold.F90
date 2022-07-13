@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,7 @@
   Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
   !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
@@ -33,8 +34,9 @@
      Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-     double precision                                     :: surfaceDensityThreshold, surfaceDensityNormalization, &
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_   => null()
+     class           (galacticStructureClass   ), pointer :: galacticStructure_      => null()
+     double precision                                     :: surfaceDensityThreshold          , surfaceDensityNormalization, &
           &                                                  exponentVelocity
      type            (fastExponentiator        )          :: velocityExponentiator
    contains
@@ -62,6 +64,7 @@ contains
     type            (starFormationActiveMassSurfaceDensityThreshold)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass                        ), pointer       :: galacticStructure_
     double precision                                                                :: surfaceDensityThreshold, exponentVelocity
 
     !![
@@ -78,16 +81,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=starFormationActiveMassSurfaceDensityThreshold(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_)
+    self=starFormationActiveMassSurfaceDensityThreshold(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function surfaceDensityThresholdConstructorParameters
 
-  function surfaceDensityThresholdConstructorInternal(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_) result(self)
+  function surfaceDensityThresholdConstructorInternal(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
     !!}
@@ -95,9 +100,10 @@ contains
     type            (starFormationActiveMassSurfaceDensityThreshold)                        :: self
     double precision                                                , intent(in   )         :: surfaceDensityThreshold        , exponentVelocity
     class           (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass                        ), intent(in   ), target :: galacticStructure_
     double precision                                                , parameter             :: velocityNormalization  =200.0d0
     !![
-    <constructorAssign variables="surfaceDensityThreshold, exponentVelocity, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="surfaceDensityThreshold, exponentVelocity, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
     
     ! Initialize exponentiators.
@@ -116,6 +122,7 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine surfaceDensityThresholdDestructor
@@ -125,12 +132,10 @@ contains
     Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given {\normalfont \ttfamily
     component} as the mass of gas in the ISM above a given surface density threshold
     !!}
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk
-    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCartesian                          , coordinateSystemCylindrical, &
-         &                                              massTypeGaseous                   , weightByMass                                       , weightIndexNull
-    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density, Galactic_Structure_Radius_Enclosing_Surface_Density
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : nodeComponentDisk
+    use :: Galactic_Structure_Options, only : componentTypeDisk, coordinateSystemCartesian, coordinateSystemCylindrical, massTypeGaseous, &
+          &                                   weightByMass     , weightIndexNull
     implicit none
     class           (starFormationActiveMassSurfaceDensityThreshold), intent(inout) :: self
     class           (nodeComponent                                 ), intent(inout) :: component
@@ -144,16 +149,16 @@ contains
             &                  *self%velocityExponentiator      %exponentiate(self%darkMatterProfileDMO_ %circularVelocityMaximum(component%hostNode))
        ! We assume a monotonically decreasing surface density. So, if the central density is below threshold then the active mass
        ! is zero.
-       densitySurfaceCentral               =Galactic_Structure_Surface_Density                 (component%hostNode,[0.0d0,0.0d0,0.0d0]    ,coordinateSystemCylindrical,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)
+       densitySurfaceCentral               =self%galacticStructure_%surfaceDensity              (component%hostNode,[0.0d0,0.0d0,0.0d0]    ,coordinateSystemCylindrical,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)
        if (densitySurfaceCentral < surfaceDensityThreshold) then
           surfaceDensityThresholdMassActive=0.0d0
        else
-          radiusBounding                   =Galactic_Structure_Radius_Enclosing_Surface_Density(component%hostNode,surfaceDensityThreshold                            ,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)
-          surfaceDensityThresholdMassActive=Galactic_Structure_Enclosed_Mass                   (component%hostNode,radiusBounding                                     ,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)
+          radiusBounding                   =self%galacticStructure_%radiusEnclosingSurfaceDensity(component%hostNode,surfaceDensityThreshold                            ,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)
+          surfaceDensityThresholdMassActive=self%galacticStructure_%massEnclosed                 (component%hostNode,radiusBounding                                     ,componentTypeDisk,massTypeGaseous,weightByMass,weightIndexNull)
        end if
     class default
        surfaceDensityThresholdMassActive=0.0d0
-       call Galacticus_Error_Report('unsupported class'//{introspection:location})
+       call Error_Report('unsupported class'//{introspection:location})
     end select
     return
   end function surfaceDensityThresholdMassActive

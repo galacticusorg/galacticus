@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@ program Test_Integration2
   !!}
   use :: Display                    , only : displayIndent                   , displayMessage                             , displayUnindent                                 , displayVerbositySet                            , &
           &                                  verbosityLevelStandard
-  use :: Galacticus_Error           , only : Galacticus_Error_Report
+  use :: Error                      , only : Error_Report
   use :: ISO_Varying_String         , only : assignment(=)                   , char                                       , len
   use :: Kind_Numbers               , only : kind_int8
   use :: Numerical_Integration2     , only : integrator1D                    , integrator2                                , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
@@ -38,7 +38,7 @@ program Test_Integration2
   use :: Numerical_Integration      , only : integrator1                      => integrator, GSL_Integ_Gauss15                          , GSL_Integ_Gauss61
   use :: Display                    , only : displayIndent                   , displayMessage                             , displayUnindent                                 , displayVerbositySet                            , &
           &                                  verbosityLevelStandard
-  use :: Galacticus_Error           , only : Galacticus_Error_Report
+  use :: Error                      , only : Error_Report
   use :: ISO_Varying_String         , only : assignment(=)                   , char                                       , len
   use :: Kind_Numbers               , only : kind_int8
   use :: Numerical_Integration2     , only : integrator1D                    , integrator2                                , integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
@@ -138,7 +138,7 @@ program Test_Integration2
            call integrator_%initialize  (24               ,integrators(i)%order)
            call integrator_%toleranceSet(toleranceAbsolute,toleranceRelative   )
         class default
-           call Galacticus_Error_Report('unknown integrator class [1]'//{introspection:location})
+           call Error_Report('unknown integrator class [1]'//{introspection:location})
         end select
      end do
      ! Assign functions.
@@ -149,7 +149,7 @@ program Test_Integration2
         class is (integratorVectorized1D)
            call integrator_%integrandSet(testFunctions(iFunction)%vector)
         class default
-           call Galacticus_Error_Report('unknown integrator class [2]'//{introspection:location})
+           call Error_Report('unknown integrator class [2]'//{introspection:location})
         end select
      end do
      ! Initialize times to zero.
@@ -171,8 +171,8 @@ program Test_Integration2
               call System_Clock(countEnd  ,countRate)
               time(i)=time(i)+(countEnd-countStart)
            class default
-              call Galacticus_Error_Report('unknown integrator class [3]'//{introspection:location})
-          end select
+              call Error_Report('unknown integrator class [3]'//{introspection:location})
+           end select          
         end do
         ! Evaluate GSL integrators.
         do i=1,2
@@ -289,7 +289,7 @@ program Test_Integration2
            deallocate(tolerancesAbsolute)
            deallocate(tolerancesRelative)
         class default
-           call Galacticus_Error_Report('unknown integrator class [1.m]'//{introspection:location})
+           call Error_Report('unknown integrator class [1.m]'//{introspection:location})
         end select
      end do
       ! Assign functions.
@@ -298,7 +298,7 @@ program Test_Integration2
          class is (integratorMultiVectorized1D)
             call integrator_%integrandSet(size(testFunctionsMulti(iFunction)%solution),testFunctionsMulti(iFunction)%vector)
          class default
-            call Galacticus_Error_Report('unknown integrator class [2.m]'//{introspection:location})
+            call Error_Report('unknown integrator class [2.m]'//{introspection:location})
          end select
       end do
       ! Initialize times to zero.
@@ -314,7 +314,7 @@ program Test_Integration2
                call System_Clock(countEnd  ,countRate)
                timeMulti(i)=timeMulti(i)+(countEnd-countStart)
                class default
-               call Galacticus_Error_Report('unknown integrator class [3.m]'//{introspection:location})
+               call Error_Report('unknown integrator class [3.m]'//{introspection:location})
             end select
          end do
       end do

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,7 @@ Contains a program to test calculations for generic dark matter profiles.
 
 program Test_Dark_Matter_Profiles_Generic
   !!{
-  Tests that numerical differentiation functions work.
+  Tests calculations for generic dark matter profiles.
   !!}
   use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters        , only : cosmologyParametersSimple
@@ -188,8 +188,8 @@ program Test_Dark_Matter_Profiles_Generic
   call basic_            %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %massSet            (massVirial                           )
-  radiusVirial =+darkMatterHaloScale_%virialRadius      (node_)
-  timeDynamical=+darkMatterHaloScale_%dynamicalTimescale(node_)
+  radiusVirial =+darkMatterHaloScale_%radiusVirial      (node_)
+  timeDynamical=+darkMatterHaloScale_%timescaleDynamical(node_)
   radiusScale  =+radiusVirial &
        &        /concentration
   call darkMatterProfile_%scaleSet(radiusScale )
@@ -268,7 +268,6 @@ program Test_Dark_Matter_Profiles_Generic
   potential         =potential         -potential         (1)
   potentialNumerical=potentialNumerical-potentialNumerical(1)
   call Assert("Energy                          , E   ",darkMatterProfileNFW__       %energyNumerical                 (node_                         ),darkMatterProfileNFW__       %energy                 (node_                         ),relTol=1.0d-3              )
-  call Assert("Energy growth rate              , ̇E   ",darkMatterProfileNFW__      %energyGrowthRateNumerical       (node_                         ),darkMatterProfileNFW__       %energyGrowthRate       (node_                         ),relTol=1.0d-2              )
   call Assert("Radial moment                   , ℛ₁ ",darkMatterProfileNFW__       %radialMomentNumerical           (node_,1.0d0,0.0d0,radiusVirial),darkMatterProfileNFW__       %radialMoment           (node_,1.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₂ ",darkMatterProfileNFW__       %radialMomentNumerical           (node_,2.0d0,0.0d0,radiusVirial),darkMatterProfileNFW__       %radialMoment           (node_,2.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₃ ",darkMatterProfileNFW__       %radialMomentNumerical           (node_,3.0d0,0.0d0,radiusVirial),darkMatterProfileNFW__       %radialMoment           (node_,3.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
@@ -458,7 +457,6 @@ program Test_Dark_Matter_Profiles_Generic
   potential         =potential         -potential         (1)
   potentialNumerical=potentialNumerical-potentialNumerical(1)
   call Assert("Energy                          , E   ",darkMatterProfileNFW__%energy                          (node_                         ),darkMatterProfileZhao1996__  %energy                 (node_                         ),relTol=1.0d-3              )
-  call Assert("Energy growth rate              , ̇E   ",darkMatterProfileNFW__%energyGrowthRate                (node_                         ),darkMatterProfileZhao1996__  %energyGrowthRate       (node_                         ),relTol=1.0d-2              )
   call Assert("Radial moment                   , ℛ₁ ",darkMatterProfileNFW__%radialMoment                    (node_,1.0d0,0.0d0,radiusVirial),darkMatterProfileZhao1996__  %radialMoment           (node_,1.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₂ ",darkMatterProfileNFW__%radialMoment                    (node_,2.0d0,0.0d0,radiusVirial),darkMatterProfileZhao1996__  %radialMoment           (node_,2.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₃ ",darkMatterProfileNFW__%radialMoment                    (node_,3.0d0,0.0d0,radiusVirial),darkMatterProfileZhao1996__  %radialMoment           (node_,3.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )

@@ -414,6 +414,10 @@ sub Node_Event_Deserialize_Raw_Polymorphic {
 	type        => "class(nodeEvent), pointer => event",
 	name        => "nodeEventBuildFromRaw",
 	description => "Build a {\\normalfont \\ttfamily nodeEvent} class object from a raw dump file.",
+	modules     =>
+	    [
+	     "Error"
+	     ],
 	variables   =>
 	    [
 	     {
@@ -441,7 +445,7 @@ CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 case default
-   call Galacticus_Error_Report('unknown class type'//\{introspection:location\})
+   call Error_Report('unknown class type'//\{introspection:location\})
 end select
 call event%deserializeRaw(fileUnit)
 CODE

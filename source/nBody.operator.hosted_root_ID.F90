@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -93,7 +93,7 @@ contains
     use    :: Arrays_Search     , only : searchIndexed
     use    :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
           &                              verbosityLevelStandard
-    use    :: Galacticus_Error  , only : Galacticus_Error_Report
+    use    :: Error             , only : Error_Report
     use    :: ISO_Varying_String, only : var_str
     !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     use    :: Sorting           , only : sortIndex
@@ -133,7 +133,7 @@ contains
              else if (descendentID  (j) > 0_c_size_t) then
                 l=descendentID  (j)
              else
-                call Galacticus_Error_Report('no host or descendent - this should not happen'//{introspection:location})
+                call Error_Report('no host or descendent - this should not happen'//{introspection:location})
              end if
              k=searchIndexed(particleIDs,indexID,l)
              if     (                                 &
@@ -143,7 +143,7 @@ contains
                   & )                                 &
                   & then
                 if (self%missingHalosAreFatal) then
-                   call Galacticus_Error_Report('failed to find next halo'//{introspection:location})
+                   call Error_Report('failed to find next halo'//{introspection:location})
                 else
                    j=-1_c_size_t
                    exit
@@ -155,7 +155,7 @@ contains
                   & )                                 &
                   & then
                 if (self%missingHalosAreFatal) then
-                   call Galacticus_Error_Report(var_str('failed to find next halos [')//l//'] of ['//particleIDs(j)//']'//{introspection:location})
+                   call Error_Report(var_str('failed to find next halos [')//l//'] of ['//particleIDs(j)//']'//{introspection:location})
                 else
                    j=-1_c_size_t
                    exit

@@ -4,7 +4,7 @@
 
   <verbosityLevel value="working"/>
 
-  <galacticusOutputFileName value="testSuite/outputs/radiativeTransfer-StromgrenSphere.hdf5"/>
+  <outputFileName value="testSuite/outputs/radiativeTransfer-StromgrenSphere.hdf5"/>
 
   <randomNumberGenerator value="GSL">
     <seed value="830"/>

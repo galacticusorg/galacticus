@@ -2,11 +2,10 @@
 use strict;
 use warnings;
 use Cwd;
-use lib $ENV{'GALACTICUS_EXEC_PATH'         }."/perl";
-use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
-use Galacticus::HDF5;
+use PDL::IO::HDF5;
 
 # Test inactive luminosity calculations give results identical to active luminosity calculations.
 # Andrew Benson (14-May-2019)
@@ -49,7 +48,7 @@ for(my $i=1;$i<=4;++$i) {
 	}
 	my $errorFractional = abs($property->{'inactive'}-$property->{'active'})/$property->{'active'};
 	my $status = "SUCCESS";
-	if ( $errorFractional->((0)) > 1.0e-3 ) {
+	if ( $errorFractional->((0)) > 1.5e-3 ) {
 	    $status  = "FAILED";
 	    $success = 0;
 	}

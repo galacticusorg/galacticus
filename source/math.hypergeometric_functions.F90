@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -106,7 +106,7 @@ contains
     !!{
     Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
+    use :: Error           , only : Error_Report  , GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
     use :: Gamma_Functions , only : Gamma_Function
     implicit none
     double precision               , intent(in   )           :: a(2)              , b(1)             , &
@@ -123,7 +123,7 @@ contains
 
     ! Use our own error handler.
     if (present(status)) then
-       call Galacticus_GSL_Error_Handler_Abort_Off()
+       call GSL_Error_Handler_Abort_Off()
        statusActual=GSL_Success
     end if
     if (present(toleranceRelative)) then
@@ -210,14 +210,14 @@ contains
        end if
     else
        Hypergeometric_2F1=0.0d0
-       call Galacticus_Error_Report('function cannot be evaluated for x>1'//{introspection:location})
+       call Error_Report('function cannot be evaluated for x>1'//{introspection:location})
     end if
     if (present(status)) then
        status=statusActual
        ! Reset error handler.
-       call Galacticus_GSL_Error_Handler_Abort_On()
+       call GSL_Error_Handler_Abort_On()
     else if (statusActual /= GSL_Success) then
-       call Galacticus_Error_Report('GSL failed'//{introspection:location})
+       call Error_Report('GSL failed'//{introspection:location})
     end if
     return
   end function Hypergeometric_2F1
@@ -287,7 +287,7 @@ contains
     !!{
     Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Gamma_Functions , only : Gamma_Function
     implicit none
     double precision, intent(in   ), dimension(:) :: a                    , b
@@ -383,7 +383,7 @@ contains
           Hypergeometric_pFq_Real=bMulti/aMulti*Hypergeometric_pFq_Real
        else
           Hypergeometric_pFq_Real=0.0d0
-          call Galacticus_Error_Report('not implemented yet'//{introspection:location})
+          call Error_Report('not implemented yet'//{introspection:location})
        end if
     end if
     return
@@ -394,9 +394,9 @@ contains
     Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ by direct summation.
     Shanks transformation (\cite{shanks_non_linear_1955}) is used to accelerate the calculations.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Display           , only : displayMessage         , verbosityLevelWarn
-    use :: ISO_Varying_String, only : varying_string         , assignment(=)     , operator(//)
+    use :: Error             , only : Error_Report
+    use :: Display           , only : displayMessage, verbosityLevelWarn
+    use :: ISO_Varying_String, only : varying_string, assignment(=)     , operator(//)
     implicit none
     double precision                , intent(in   ), dimension(:) :: a                 , b
     double precision                , intent(in   )               :: x
@@ -480,7 +480,7 @@ contains
        end if
     else
        Hypergeometric_pFq_approx_series=0.0d0
-       call Galacticus_Error_Report('maximum number of iterations is reached before the relative tolerence is satisfied. Try to increase the value of [nMax]'//{introspection:location})
+       call Error_Report('maximum number of iterations is reached before the relative tolerence is satisfied. Try to increase the value of [nMax]'//{introspection:location})
     end if
     return
   end function Hypergeometric_pFq_approx_series

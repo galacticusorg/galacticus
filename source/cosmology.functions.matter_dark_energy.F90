@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -76,7 +76,7 @@
   end type cosmologyFunctionsMatterDarkEnergy
 
   ! Module scope pointer to the current object.
-  class(cosmologyFunctionsMatterDarkEnergy), pointer :: matterDarkEnergySelfGlobal
+  class(cosmologyFunctionsMatterDarkEnergy), pointer :: matterDarkEnergySelfGlobal => null()
   !$omp threadprivate(matterDarkEnergySelfGlobal)
 
   interface cosmologyFunctionsMatterDarkEnergy
@@ -143,8 +143,14 @@ contains
     !![
     <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
     !!]
-
-    self%enableRangeChecks=.true.
+    
+    self%collapsingUniverse                  =.false.
+    self%enableRangeChecks                   =.true.
+    self%expansionFactorMaximum              =0.0d0
+    self%timeTurnaround                      =0.0d0
+    self%timeMaximum                         =0.0d0
+    self%expansionRatePrevious               =-1.0d0
+    self%expansionRateExpansionFactorPrevious=-1.0d0
     ! Build root finder for epoch of matter domination.
     if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0)                             &
          & self%finderDomination=rootFinder(                                              &
@@ -194,7 +200,7 @@ contains
     !!{
     Return the cosmological matter density in units of the critical density at the present day.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   )           :: expansionFactor
@@ -212,7 +218,7 @@ contains
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
     if (collapsingPhaseActual) then
        ! We assume that the universe does not collapse.
-       call Galacticus_Error_Report('non-collapsing universe assumed'//{introspection:location})
+       call Error_Report('non-collapsing universe assumed'//{introspection:location})
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
        do while (self%ageTableExpansionFactor(                        1) > expansionFactor)
@@ -234,7 +240,7 @@ contains
     Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -324,7 +330,7 @@ contains
     Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -366,7 +372,6 @@ contains
     !!{
     Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -663,14 +668,14 @@ contains
     !!{
     Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: comovingDistance
     !$GLC attributes unused :: self, comovingDistance
 
     matterDarkEnergyTimeAtDistanceComoving=0.0d0
-    call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
+    call Error_Report('functionality not implemented'//{introspection:location})
     return
   end function matterDarkEnergyTimeAtDistanceComoving
 
@@ -678,14 +683,14 @@ contains
     !!{
     Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
     !$GLC attributes unused :: self, time
 
     matterDarkEnergyDistanceComoving=0.0d0
-    call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
+    call Error_Report('functionality not implemented'//{introspection:location})
     return
    end function matterDarkEnergyDistanceComoving
 
@@ -693,7 +698,7 @@ contains
     !!{
     Convert bewteen different measures of distance.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     integer                                             , intent(in   )           :: output
@@ -702,7 +707,7 @@ contains
     !$GLC attributes unused :: self, output, distanceModulus, distanceModulusKCorrected, redshift, distanceLuminosity
 
     matterDarkEnergyDistanceComovingConvert=0.0d0
-    call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
+    call Error_Report('functionality not implemented'//{introspection:location})
     return
   end function matterDarkEnergyDistanceComovingConvert
 
@@ -710,7 +715,7 @@ contains
     !!{
     Return the dark energy equation of state.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -723,7 +728,7 @@ contains
        else if (present(time)) then
           expansionFactorActual=self%expansionFactor(time)
        else
-          call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
+          call Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
           expansionFactorActual=1.0d0
        end if
        matterDarkEnergyEquationOfStateDarkEnergy=+matterDarkEnergyEquationOfStateDarkEnergy &
@@ -738,7 +743,7 @@ contains
     !!{
     Return the dark energy exponent.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -751,7 +756,7 @@ contains
        else if (present(time           )) then
           expansionFactorActual=self%expansionFactor(time)
        else
-          call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
+          call Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
           expansionFactorActual=1.0d0
        end if
        if (expansionFactorActual /= 1.0d0) &
@@ -764,7 +769,7 @@ contains
     !!{
     Return the derivative of the dark energy exponent with respect to expansion factor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
@@ -775,7 +780,7 @@ contains
     else if (present(time           )) then
        expansionFactorActual=self%expansionFactor(time)
     else
-       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
        expansionFactorActual=1.0d0
     end if
     if (expansionFactorActual == 1.0d0) then

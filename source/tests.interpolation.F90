@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,7 +71,7 @@ program Test_Interpolation
 
   ! Test linear extrapolation.
   allocate(interpolator_)
-  interpolator_=interpolator(xArray,yArray,extrapolationType=extrapolationTypeExtrapolate)
+  interpolator_=interpolator(xArray,yArray,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
   x=15.0d0
   y=interpolator_%interpolate(x)
   deallocate(interpolator_)

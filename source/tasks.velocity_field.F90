@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -151,18 +151,18 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use            :: Display                         , only : displayIndent                , displayUnindent     , displayCounter, displayCounterClear, &
+    use            :: Display                         , only : displayIndent        , displayUnindent     , displayCounter, displayCounterClear, &
          &                                                     verbosityLevelWorking
-    use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset
-    use            :: Galacticus_Error                , only : errorStatusSuccess
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic           , treeNode
+    use            :: Calculations_Resets             , only : Calculations_Reset
+    use            :: Error                           , only : errorStatusSuccess
+    use            :: Output_HDF5                     , only : outputFile
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic   , treeNode
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
-    use            :: Numerical_Ranges                , only : Make_Range                   , rangeTypeLogarithmic
+    use            :: Numerical_Ranges                , only : Make_Range           , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskVelocityField ), intent(inout), target           :: self
@@ -220,10 +220,10 @@ contains
              call displayCounter(int(100.0d0*dble(countProgress)/dble(countTotal)),isNew=countProgress==0,verbosity=verbosityLevelWorking)
              countProgress=countProgress+1          
               call basic%massSet(max(mass(iMass),mass(jMass)))
-              call Galacticus_Calculations_Reset(node)
-              radiusVirial                                         =+  self%darkMatterHaloScale_      %virialRadius                    (           node                                             )
+              call Calculations_Reset(node)
+              radiusVirial                                         =+  self%darkMatterHaloScale_      %radiusVirial                    (           node                                             )
               radiusVirialLagrangian                               =+(                                                                                                                                &
-                   &                                                  +self%darkMatterHaloScale_      %meanDensity                     (           node                                             ) &
+                   &                                                  +self%darkMatterHaloScale_      %densityMean                     (           node                                             ) &
                    &                                                  /self%cosmologyFunctions_       %matterDensityEpochal            (           epochTime                               (iOutput)) &
                    &                                                 )**(1.0d0/3.0d0)                                                                                                                 &
                    &                                                *radiusVirial
@@ -242,10 +242,10 @@ contains
     deallocate(node)
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing velocity field data.'              )
-       outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       containerGroup=outputFile    %openGroup(char(self%outputGroup),'Group containing velocity field data.'              )
+       outputsGroup  =containerGroup%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Iterate over output times and output data.
     do iOutput=1,outputCount

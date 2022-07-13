@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -230,9 +230,11 @@ contains
     implicit none
     type(atomicRecombinationRateDielectronicArnaud1985)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateDielectronicArnaud1985()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function arnaud1985ConstructorParameters
 
@@ -243,7 +245,7 @@ contains
     {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons;
     {\normalfont \ttfamily temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (atomicRecombinationRateDielectronicArnaud1985), intent(inout) :: self
     double precision                                               , intent(in   ) :: temperature
@@ -255,8 +257,8 @@ contains
     ! Return on unphysical temperature.
     if (temperature <= 0.0) return
     ! Abort on unphysical conditions.
-    if (atomicNumber   < 1 .or. atomicNumber   >           28) call Galacticus_Error_Report('atomic number is unphysical or too large'  //{introspection:location})
-    if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('electron number is unphysical or too large'//{introspection:location})
+    if (atomicNumber   < 1 .or. atomicNumber   >           28) call Error_Report('atomic number is unphysical or too large'  //{introspection:location})
+    if (electronNumber < 1 .or. electronNumber > atomicNumber) call Error_Report('electron number is unphysical or too large'//{introspection:location})
     ! Evaluate the fitting function.
     arnaud1985Rate=+       arnaud1985Coefficients(1,atomicNumber,electronNumber)              &
          &         *exp  (-arnaud1985Coefficients(3,atomicNumber,electronNumber)/temperature) &

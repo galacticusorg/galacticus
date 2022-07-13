@@ -21,10 +21,10 @@ use Galacticus::Build::Components::DataTypes;
 	     [
 	      \&Gather_Classes
 	     ],
-	      types =>
-	      [
-	       \&Build_Component_Classes
-	      ]
+	 types =>
+	     [
+	      \&Build_Component_Classes
+	     ]
      }
     );
 
@@ -174,6 +174,19 @@ sub Build_Component_Classes {
 				    ||
 				                                    $property->{'attributes'}->{'createIfNeeded'}
 				);
+			    # Do not create a analytic function if it is to be deferred, or if it binds at the top level.
+			    push(
+				@typeBoundFunctions,
+				{
+				    type        => "procedure"  ,
+				    name        => $property->{'name'}."Analytic",
+				    function    => &createNullFunction($build,{selfType => $className, attribute => "analytic", property => $property, intent => "inout"}),
+				    returnType  => "\\void"     ,
+				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
+				    description => "Mark the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component as analtyically-solvable."
+				}
+				)
+				unless ( $property->{'attributes'}->{'isVirtual'} );
 			    # Create a "scale" function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,

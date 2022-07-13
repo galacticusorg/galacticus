@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@ Contains a module which implements an N-body dark matter halo mass error class u
      ! Parameters of the correlation model.
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
      double precision                                   :: correlationNormalization             , correlationMassExponent, &
-          &                                                correlationRedshiftExponent
+          &                                                correlationRedshiftExponent          , massParticle
    contains
      final     ::                trenti2010Destructor
      procedure :: correlation => trenti2010Correlation
@@ -110,7 +110,7 @@ contains
     comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
     normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                                  :: self
     double precision                              , intent(in   )                   :: massParticle
@@ -121,15 +121,16 @@ contains
     double precision                              , parameter                       :: normalization           =+0.135d0
     double precision                              , parameter                       :: particleNumberReference =+1.000d3
 
+    self%massParticle                  =massParticle
     self%normalizationSquared          =(normalization*(powerLawMassReference/particleNumberReference/massParticle)**exponent)**2
     self%exponent                      =                                                                             exponent
     self%fractionalErrorHighMassSquared=+0.0d0
     ! Set correlation properties.
     if (present(correlationNormalization).or.present(correlationMassExponent).or.present(correlationRedshiftExponent)) then
        if (.not.(present(correlationNormalization).and.present(correlationMassExponent).and.present(correlationRedshiftExponent))) &
-            & call Galacticus_Error_Report('all parameters of correlation model must be provided'//{introspection:location})
+            & call Error_Report('all parameters of correlation model must be provided'//{introspection:location})
        if (.not.present(cosmologyFunctions_)) &
-            & call Galacticus_Error_Report('cosmology functions must be provided for correlation model'//{introspection:location})
+            & call Error_Report('cosmology functions must be provided for correlation model'//{introspection:location})
        self%correlationNormalization    =  correlationNormalization
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent
@@ -188,4 +189,3 @@ contains
          &                *         expansionFactorRatio**self%correlationRedshiftExponent
     return
   end function trenti2010Correlation
-

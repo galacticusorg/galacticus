@@ -17,12 +17,15 @@ use Storable;
 # Andrew Benson (06-February-2020)
 
 # Get the name of the executable to compute source digests for.
-die("Usage: sourceDigests.pl <sourceDirectory> <executable>")
+die("Usage: sourceDigests.pl <sourceDirectory> <target>")
     unless ( scalar(@ARGV) == 2 );
 my $sourceDirectoryName = $ARGV[0];
-my $executableName      = $ARGV[1];
-# Include files to exclude from parameter search.
-my @includeFilesExcluded = ( "fftw3.f03" );
+my $targetName          = $ARGV[1];
+# Include files to exclude from MD5 construction:
+#  fftw3.f03 is part of the FFTW3 library, so not relevant to us;
+#  galacticus.output.build.environment.inc - contains compiler information so can change depending on, e.g. MPI vs. non-MPI build
+#  galacticus.output.version.revision.inc - contains revision number and build time
+my @includeFilesExcluded = ( "fftw3.f03", "galacticus.output.build.environment.inc", "galacticus.output.version.revision.inc" );
 # Specify a work directory.
 my $workDirectoryName = $ENV{'BUILDPATH'}."/";
 # Get an XML parser.
@@ -46,10 +49,10 @@ if ( exists($stateStorables->{'functionClassTypes'}->{'name'}) ) {
     push(@allowedNames,sort(keys(%{$stateStorables->{'functionClassTypes'}          })));
 }
 # Build a list of object file dependencies.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executableName) =~ s/\.exe/\.d/;
+(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$targetName) =~ s/\.(exe|o)$/\.d/;
 my @objectFiles = map { $_ =~ /^$ENV{'BUILDPATH'}\/(.+\.o)$/ ? $1 : () } read_file($dependencyFileName, chomp => 1);
 # Initialize structure to hold record of parameters from each source file.
-(my $blobFileName = $executableName) =~ s/\.exe/.md5.blob/;
+(my $blobFileName = $targetName) =~ s/\.(exe|o)$/.md5.blob/;
 my $digestsPerFile;
 my $havePerFile = -e $ENV{'BUILDPATH'}."/".$blobFileName;
 my $updateTime;
@@ -57,11 +60,13 @@ if ( $havePerFile ) {
     $digestsPerFile = retrieve($ENV{'BUILDPATH'}."/".$blobFileName);
     $updateTime     = -M       $ENV{'BUILDPATH'}."/".$blobFileName ;
 }
-# List of types which were updated.
-my @updatedTypes;
+# Hash of types which were updated.
+my %updatedTypes;
 # Open the source diretory, finding F90 and cpp files.
 opendir(my $sourceDirectory,$sourceDirectoryName."/source");
-while ( my $fileName = readdir($sourceDirectory) ) {
+my @fileNames = sort(readdir($sourceDirectory));
+close($sourceDirectory);
+foreach my $fileName ( @fileNames ) {
     # Skip junk files.
     next
 	if ( $fileName =~ m/^\.\#/ );
@@ -107,9 +112,9 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    my @sourceDigests = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'sourceDigest');
 	    foreach my $sourceDigest ( @sourceDigests ) {
 		my $hashName = $sourceDigest->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ();
-		push(@updatedTypes,$hashName);		
+		$updatedTypes{$hashName} = 1;
 	    }
 	}
 	## functionClassType directive.
@@ -117,9 +122,9 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    my @functionClassTypes = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClassType');
 	    foreach my $functionClassType ( @functionClassTypes ) {
 		my $hashName = $functionClassType->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass" );
-		push(@updatedTypes,$hashName);
+		$updatedTypes{$hashName} = 1;
 	    }
 	}
 	## functionClass directive.
@@ -127,13 +132,13 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    my @functionClasses = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClass');
 	    foreach my $functionClass ( @functionClasses ) {
 		my $hashName = $functionClass->{'name'}."Class";
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		if ( exists($functionClass->{'extends'}) ) {
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( $functionClass->{'extends'} );
 		} else {
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass"             );
 		}
-		push(@updatedTypes,$hashName);
+		$updatedTypes{$hashName} = 1;
 	    }
 	}
 	# Walk the source code tree.
@@ -150,31 +155,36 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		    # For self-referencing types, remove the self-reference here.
 		    @classDependencies = map {$_ eq $class->{'type'} ? () : $_} @classDependencies;
 		    # Store hash and dependencies.
-		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = @classDependencies;
-		    push(@updatedTypes,$hashName);
+		    $updatedTypes{$hashName} = 1;
 		}
 		$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
 	    }
 	}
     }
 }
-close($sourceDirectory);
 # Manually add the base "functionClass" type.
 my $functionClassFileName = "objects.function_class.F90";
 if ( ! $updateTime || ( -M "source/".$functionClassFileName < $updateTime ) ) {
-    $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName]);
+    $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName],includeFilesExcluded => \@includeFilesExcluded);
     @{$digestsPerFile->{'types'}->{'functionClass'}->{'dependencies'}} = ();
     delete($digestsPerFile->{'types'}->{'functionClass'}->{'compositeMD5'});
-    push(@updatedTypes,"functionClass");
+    $updatedTypes{'functionClass'} = 1;
 }
 # Recursively remove the composite hash for this type, and any dependent type.
-while ( scalar(@updatedTypes) > 0 ) {
-    my $hashNameReset = pop(@updatedTypes);
-    foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
-	push(@updatedTypes,$hashName)
-	    if ( (! grep {$_ eq $hashName} @updatedTypes) && (grep {$_ eq $hashNameReset} @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}}) );
-    }    
+my %dependenciesInverted;
+foreach my $hashName ( keys(%{$digestsPerFile->{'types'}}) ) {
+    foreach my $hashNameDependent ( @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} ) {
+	push(@{$dependenciesInverted{$hashNameDependent}},$hashName);
+    }
+}
+while ( scalar(keys(%updatedTypes)) > 0 ) {
+    my ($hashNameReset) = %updatedTypes;
+    delete($updatedTypes{$hashNameReset});
+    foreach ( @{$dependenciesInverted{$hashNameReset}} ) {
+ 	$updatedTypes{$_} = 1;
+    }
     delete($digestsPerFile->{'types'}->{$hashNameReset}->{'compositeMD5'})
 	if ( exists($digestsPerFile->{'types'}->{$hashNameReset}->{'compositeMD5'}) );
 }
@@ -210,7 +220,7 @@ while ( ! $resolved ) {
 # Output the per file digest data.
 store($digestsPerFile,$ENV{'BUILDPATH'}."/".$blobFileName);
 # Output the results.
-(my $outputFileName = $executableName) =~ s/\.exe/.md5s.c/;
+(my $outputFileName = $targetName) =~ s/\.(exe|o)$/.md5s.c/;
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/".$outputFileName);
 foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
     print $outputFile "char ".$hashName."MD5[]=\"".$digestsPerFile->{'types'}->{$hashName}->{'compositeMD5'}."\";\n"

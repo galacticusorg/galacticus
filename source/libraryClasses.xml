@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library>
+  <classes>
+    <!-- List of classes which should be built into libgalacticus -->
+    <darkMatterParticle/>
+    <cosmologyParameters/>
+    <cosmologyFunctions/>
+    <powerSpectrumPrimordial/>
+    <powerSpectrumWindowFunction/>
+    <transferFunction/>
+    <powerSpectrumPrimordialTransferred/>
+    <linearGrowth/>
+    <intergalacticMediumState/>
+    <intergalacticMediumFilteringMass/>
+    <cosmologicalMassVariance/>
+    <haloEnvironment/>
+    <criticalOverdensity/>
+    <virialDensityContrast>
+      <virialDensityContrastPercolation>
+	<constructor>
+	  <!-- The percolation virial density contrast class uses an unlimited polymorphic object in the constructor. We must
+	       provide a concrete type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="percolationObjects_" type="percolationObjects" module="Virial_Density_Contrast_Percolation_Utilities"/>
+	</constructor>
+      </virialDensityContrastPercolation>
+    </virialDensityContrast>
+    <excursionSetBarrier/>
+    <excursionSetFirstCrossing/>
+    <nbodyHaloMassError/>
+    <darkMatterHaloScale/>
+    <darkMatterProfileDMO>
+      <darkMatterProfileDMOAccretionFlow>
+	<constructor>
+	  <!-- The accretion flow DMO density profile class uses an unlimited polymorphic object in the constructor. We must
+	       provide a concrete type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="accretionFlows_" type="accretionFlowsClass" module="Spherical_Collapse_Accretion_Flows"/>
+	</constructor>
+      </darkMatterProfileDMOAccretionFlow>
+    </darkMatterProfileDMO>
+    <darkMatterProfileHeating>
+      <darkMatterProfileHeatingImpulsiveOutflow>
+	<constructor>
+	  <!-- The impulsive outflow DMO density profile heating class uses an unlimited polymorphic object in the constructor. We must
+	       provide a concrete type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="galacticStructure_" type="galacticStructureClass" module="Galactic_Structure"/>
+	</constructor>
+      </darkMatterProfileHeatingImpulsiveOutflow>
+    </darkMatterProfileHeating>
+    <haloMassFunction/>
+  </classes>
+</library>

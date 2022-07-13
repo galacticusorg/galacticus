@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,7 +156,7 @@ contains
           ! It is not, so return zero rate.
           intgrtdSurfaceDensityRate=0.0d0
        else
-          ! Set a pointer to self and to the node that is accessible by integral function.
+          ! Set a pointer to self and to the node that is accessible by the integrand function.
           intgrtdSurfaceDensitySelf => self
           intgrtdSurfaceDensityNode => node
           ! Compute suitable limits for the integration.

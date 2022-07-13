@@ -2,7 +2,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+/* The crypt function is defined in crypt.h under Linux, but in unistd.h under MacOS */
+#ifdef __linux__
 #include <crypt.h>
+#endif
+#ifdef __APPLE__
+#include <unistd.h>
+#endif
 #include <string.h>
 #include <errno.h>
 
@@ -10,7 +16,11 @@
 void md5(int textLength, char *text, char *hash)
 {
   /* Hash the text. */
+#ifdef __APPLE__
+  char salt[] = "_...9glcs";
+#else
   char salt[] = "$1$........";
+#endif
   /* Maximum length of input to the hash algorithm */
 #ifdef CRYPT_MAX_PASSPHRASE_SIZE
   /* Use the maximum passphrase size specified for the crypt library */
@@ -18,8 +28,12 @@ void md5(int textLength, char *text, char *hash)
 #else
   /* No maximum size specified, so just adopt something plausible */
   int maxLen   = 512;
-#endif  
+#endif
+#ifdef __APPLE__
+  int hashLen  = 20;
+#else
   int hashLen  = 22;            /* Length of the returned hash */
+#endif
   int splitLen = maxLen-hashLen-1; /* Maximum size into which we can chunk the input text such that, when prepended with the previous hash, we are under the maximum size limit */
   /* Use a temporary hash which we evaluate for each chunk of text,
      and then append to the subsequent chunk. Initialize this to an
@@ -77,7 +91,13 @@ void md5(int textLength, char *text, char *hash)
       }
     } else {
       /* Extract the hash of this chunk for use in the next round */
-      strncpy(tmpHash,encrypted+13,hashLen);
+#ifdef __APPLE__
+      /* On MacOS the returned string is the salt followed by the encrypted string. */
+      strncpy(tmpHash,encrypted+strlen(salt)  ,hashLen);
+#else
+      /* On Linux the returned string is the salt, followed by a "$", followed by the encrypted string. */
+      strncpy(tmpHash,encrypted+strlen(salt)+1,hashLen);
+#endif
     }
     free(concat);
     i += splitLen;

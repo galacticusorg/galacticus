@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of calculation of stellar mass-weighted ages -->
+<!-- 23-July-2021                                      -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+    <disk>
+      <massStellar>0.0</massStellar>
+      <massGas>1.0e11</massGas>
+      <radius>8.0e-3</radius>
+      <velocity>200.0</velocity>
+      <angularMomentum>1.6e11</angularMomentum>
+    </disk>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.8</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+ </node>
+</tree>

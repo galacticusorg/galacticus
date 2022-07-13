@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,12 +82,12 @@ contains
     !!{
     Internal constructor for the prune-hierarchy merger tree operator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorInternal
     integer                                  , intent(in   ) :: hierarchyDepth
 
-    if (hierarchyDepth < 1) call Galacticus_Error_Report('[hierarchyDepth] > 0 is required'//{introspection:location})
+    if (hierarchyDepth < 1) call Error_Report('[hierarchyDepth] > 0 is required'//{introspection:location})
     pruneHierarchyConstructorInternal%hierarchyDepth=hierarchyDepth
     return
   end function pruneHierarchyConstructorInternal

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,7 @@ contains
     !!{
     Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (coolingTimeAvailableWhiteFrenk1991)                        :: self
     double precision                                    , intent(in   )         :: ageFactor
@@ -105,7 +105,7 @@ contains
          &   ageFactor < 0.0d0 &
          &  .or.               &
          &   ageFactor > 1.0d0 &
-         & ) call Galacticus_Error_Report('0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required'//{introspection:location})
+         & ) call Error_Report('0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required'//{introspection:location})
     return
   end function whiteFrenk1991ConstructorInternal
 
@@ -139,13 +139,13 @@ contains
        whiteFrenk1991TimeAvailable =  basic%time ()
     else if (self%ageFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
-       whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%dynamicalTimescale(node)
+       whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%timescaleDynamical(node)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
        basic                       =>  node%basic()
        whiteFrenk1991TimeAvailable =  +exp(                                                                                 &
             &                              +log(basic                     %time              (    ))*       self%ageFactor  &
-            &                              +log(self %darkMatterHaloScale_%dynamicalTimescale(node))*(1.0d0-self%ageFactor) &
+            &                              +log(self %darkMatterHaloScale_%timescaleDynamical(node))*(1.0d0-self%ageFactor) &
             &                             )
     end if
     return

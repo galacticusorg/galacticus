@@ -11,7 +11,7 @@
   </task>
   <!-- Output control -->
   <verbosityLevel value="standard"/>
-  <galacticusOutputFileName value="testSuite/outputs/test-splitForests/unsplit.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-splitForests/unsplit.hdf5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -22,7 +22,7 @@
   <componentSatellite value="preset"/>
   <componentSpheroid value="null"/>
   <componentSpin value="scalar"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
@@ -212,10 +212,15 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

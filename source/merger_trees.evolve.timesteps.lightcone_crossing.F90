@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,6 +39,7 @@
      class           (geometryLightconeClass  ), pointer :: geometryLightcone_   => null()
      class           (mergerTreeOutputterClass), pointer :: mergerTreeOutputter_ => null()
      double precision                                    :: timeMinimum
+     integer                                             :: timeMaximumID
     contains
      final     ::                 lightconeCrossingDestructor
      procedure :: timeEvolveTo => lightconeCrossingTimeEvolveTo
@@ -100,6 +101,9 @@ contains
     <constructorAssign variables="timeMinimum, *geometryLightcone_, *mergerTreeOutputter_"/>
     !!]
   
+    !![
+    <addMetaProperty component="position" name="positionInterpolatedTimeMaximum" id="self%timeMaximumID" rank="0" isEvolvable="no" isCreator="no"/>
+    !!]
     return
   end function lightconeCrossingConstructorInternal
 
@@ -133,7 +137,7 @@ contains
     type            (treeNode                                 ), intent(  out), pointer, optional :: lockNode
     type            (varying_string                           ), intent(  out)         , optional :: lockType
     class           (nodeComponentPosition                    )               , pointer           :: position         , positionParent
-    class           (nodecomponentBasic                       )               , pointer           :: basic
+    class           (nodeComponentBasic                       )               , pointer           :: basic
     double precision                                                                              :: timeCrossing     , timeMaximum   , &
          &                                                                                           timeMaximumParent
     
@@ -142,8 +146,8 @@ contains
     ! Consider only times after the earliest time specified.
     if (timeEnd >= self%timeMinimum) then
        ! Limit the maximum time to the latest time for which the position of the node is known.
-       position    => node    %position                ()
-       timeMaximum =  position%interpolationTimeMaximum()
+       position    => node    %position                 (                  )
+       timeMaximum =  position%floatRank0MetaPropertyGet(self%timeMaximumID)
        if (timeMaximum > 0.0d0) then
           timeMaximum=min(timeMaximum,timeEnd)
        else
@@ -151,8 +155,8 @@ contains
        end if
        ! For satellite nodes also limit the maximum time to the latest time for which the position of the parent node is known.
        if (node%isSatellite()) then
-          positionParent    => node          %parent%position                ()
-          timeMaximumParent =  positionParent       %interpolationTimeMaximum()
+          positionParent    => node          %parent%position                 (                  )
+          timeMaximumParent =  positionParent       %floatRank0MetaPropertyGet(self%timeMaximumID)
           if (timeMaximumParent > 0.0d0) timeMaximum=min(timeMaximum,timeMaximumParent)
        end if
        ! If the maximum time is after the current time, find the time (if any) of lightcone crossing.
@@ -182,7 +186,7 @@ contains
     !!{
     Process a lightconeCrossing node which has undergone a merger with its host node.
     !!}
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use mpi_utilities
     implicit none
@@ -198,7 +202,7 @@ contains
        ! The tree was changed, so mark that it is not deadlocked.
        deadlockStatus=deadlockStatusIsNotDeadlocked
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine lightconeCrossingProcess

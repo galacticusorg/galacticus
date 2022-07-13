@@ -97,8 +97,8 @@ foreach my $simulation ( @simulations ) {
     my $parameters = $xml->XMLin($outputDirectory."/haloMassFunctionBase.xml");
 
     # Modify particle mass and output file name.
-    $parameters->{'nbodyHaloMassErrorMethod'}->{'massParticle'}->{'value'} =                                       $simulation->{'massParticle'}        ;
-    $parameters->{'galacticusOutputFileName'}                  ->{'value'} = $outputDirectory."/haloMassFunction_".$simulation->{'label'       }.".hdf5";
+    $parameters->{'nbodyHaloMassError'      }->{'massParticle'}->{'value'} =                                       $simulation->{'massParticle'}        ;
+    $parameters->{'outputFileName'}                  ->{'value'} = $outputDirectory."/haloMassFunction_".$simulation->{'label'       }.".hdf5";
 
     # Write parmeter file.
     my $parameterFileName = $outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.".xml";

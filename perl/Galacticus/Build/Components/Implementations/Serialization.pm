@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw($fullyQualifiedNameLengthMax $implementationPropertyNameLengthMax &isIntrinsic);
 use Galacticus::Build::Components::DataTypes;
+use Galacticus::Build::Components::Classes::MetaProperties;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -55,7 +56,7 @@ sub Implementation_Serialize_ASCII {
 	    ],
 	content     => ""
     };
-    # Add character variables for non-null members.
+    # Add character variables.
     push
 	(
 	 @{$function->{'variables'}},
@@ -69,18 +70,16 @@ sub Implementation_Serialize_ASCII {
 	     type       => "len=22",
 	     variables  => [ "label" ]
 	 }
-	)
-	unless ( $code::member->{'name'} eq "null" );
-    # Add a counter variable if there are any rank-1 properties.
+	);
+    # Add counter variables for any rank-1 and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
-	     variables  => [ "i" ]
+	     variables  => [ "i", "j" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
+	);
     # Define format labels for different data types.
     %code::formatLabel = 
 	(
@@ -89,12 +88,8 @@ sub Implementation_Serialize_ASCII {
 	 "longInteger" => "'(i16)'"   ,
 	 "logical"     => "'(l1)'"
 	);
-    # Handle null components separately.
-    if ( $code::member->{'name'} eq "null" ) {
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!$GLC attributes unused :: self
-CODE
-    } else {
+    # Skip null components.
+    unless ( $code::member->{'name'} eq "null" ) {
 	# Serialize the parent type if necessary.
 	if ( exists($code::member->{'extends'}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -106,12 +101,12 @@ CODE
 call displayIndent('{$class->{'name'}}: {$padding.$member->{'name'}}')
 CODE
 	foreach $code::property ( map {! $_->{'attributes'}->{'isVirtual'} ? $_ : ()} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-	    $code::padding = " " x ($implementationPropertyNameLengthMax-length($code::property->{'name'}));
+	    $code::nameLength = length($code::property->{'name'});
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data
-message='{$property->{'name'}}: {$padding}'//label
+message='{$property->{'name'}}: '//repeat(' ',propertyNameLengthMax-{$nameLength})//label
 call displayMessage(message)
 CODE
 		} else {
@@ -127,7 +122,7 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%{$property->{'name'}}Data)
    write (label,'(i3)') i
-   message='{$property->{'name'}}: {$padding} '//trim(label)
+   message='{$property->{'name'}}: '//repeat(' ',propertyNameLengthMax-{$nameLength})//trim(label)
    write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data(i)
    message=message//': '//label
    call displayMessage(message)
@@ -137,13 +132,57 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%{$property->{'name'}}Data)
    write (label,'(i3)') i
-   message='{$property->{'name'}}: {$padding} '//trim(label)
+   message='{$property->{'name'}}: '//repeat(' ',propertyNameLengthMax-{$nameLength})//trim(label)
    call displayIndent(message)
    call self%{$property->{'name'}}Data(i)%dump()
    call displayUnindent('end')
 end do
 CODE
 		}
+	    }
+	}
+    }
+    # Serialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	    if      ( $metaPropertyType->{'label'} eq "float"   ) {
+		$code::format = $code::formatLabel{'double'};
+	    } elsif ( $metaPropertyType->{'label'} eq "integer" ) {
+		$code::format = $code::formatLabel{'integer'};
+	    } elsif ( $metaPropertyType->{'label'} eq "longInteger" ) {
+		$code::format = $code::formatLabel{'longInteger'};
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_ASCII: unknown meta-property type");
+	    }
+	    if      ( $metaPropertyType->{'rank'} == 0 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  write (label,{$format}) self%{$prefix}MetaProperties(i)
+  message=trim({$class->{'name'}.$prefix}MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}.$prefix}MetaPropertyNames(i)))//label
+  call displayMessage(message)
+ end do
+end if
+CODE
+	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  do j=1,size( self%{$prefix}MetaProperties(i)%values)
+   write (label,'(i3)') j
+   message=trim({$class->{'name'}.$prefix}MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}.$prefix}MetaPropertyNames(i)))//trim(label)
+   write (label,{$format}) self%{$prefix}MetaProperties(i)%values(j)
+   message=message//': '//label
+   call displayMessage(message)
+  end do
+ end do
+end if
+CODE
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_ASCII: unsupported meta-property rank")
 	    }
 	}
     }
@@ -172,6 +211,10 @@ sub Implementation_Serialize_XML {
 	type        => "void",
 	name        => $implementationTypeName."SerializeXML",
 	description => "Serialize the contents of a ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component to XML.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -188,40 +231,14 @@ sub Implementation_Serialize_XML {
 	    ],
 	content     => ""
     };
-    # Add a counter variable if there are any rank-1 properties.
+    # Add counter variables for any rank-1 and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
-	     variables  => [ "i" ]
+	     variables  => [ "i", "j" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
-    # Determine if arguments are unused.
-    @code::unused = ();
-    push
-	(
-	 @code::unused,
-	 "fileHandle"
-	)
-	unless ( $code::member->{'name'} eq "null" );
-    push
-	(
-	 @code::unused,
-	 "self"
-	)
-	unless 
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 grep
-	 {
-	   ! $_->{'attributes'}->{'isVirtual'}
-	  ||
-	     $_->{'data'      }->{'rank'     } == 0
-	 }
-	 &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
 	);
     # Define format labels for different data types.
     %code::formatLabel = 
@@ -281,6 +298,44 @@ write (fileHandle,'(a,{$formatLabel{$property->{'data'}->{'type'}}},a)') '   <{$
 CODE
 	}
     }
+    # Serialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	    if      ( $metaPropertyType->{'label'} eq "float"   ) {
+		$code::format = $code::formatLabel{'double'};
+	    } elsif ( $metaPropertyType->{'label'} eq "integer" ) {
+		$code::format = $code::formatLabel{'integer'};
+	    } elsif ( $metaPropertyType->{'label'} eq "longInteger" ) {
+		$code::format = $code::formatLabel{'longInteger'};
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_XML: unknown meta-property type");
+	    }
+	    if      ( $metaPropertyType->{'rank'} == 0 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  write (fileHandle,'(a,a,a,{$format},a,a,a)') '   <'//char({$class->{'name'}.$prefix}MetaPropertyNames(i))//'>',self%{$prefix}MetaProperties(i),'</'//char({$class->{'name'}.$prefix}MetaPropertyNames(i))//'>'
+ end do
+end if
+CODE
+	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  do j=1,size(self%{$prefix}MetaProperties(i)%values)
+   write (fileHandle,'(a,a,a,{$format},a,a,a)') '   <'//char({$class->{'name'}.$prefix}MetaPropertyNames(i))//'>',self%{$prefix}MetaProperties(i)%values(j),'</'//char({$class->{'name'}.$prefix}MetaPropertyNames(i))//'>'
+  end do
+ end do
+end if
+CODE
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_XML: unsupported meta-property rank")
+	    }
+	}
+    }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (fileHandle,'(a)') '  </{$class->{'name'}}>'
 CODE
@@ -322,7 +377,7 @@ sub Implementation_Serialize_Raw {
 	    ],
 	content     => ""
     };
-    # Add a counter variable if there are any rank-1 properties.
+    # Add a counter variable for any rank-1 properties and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
@@ -330,19 +385,7 @@ sub Implementation_Serialize_Raw {
 	     intrinsic  => "integer",
 	     variables  => [ "i" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && ! &isIntrinsic($_->{'data'}->{'type'}) && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
-    # Determine if arguments are unused.
-    @code::unused = 
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 grep {! $_->{'attributes'}->{'isVirtual'}} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
-	)
-	?
-	() 
-	: 
-	( "fileHandle", "self" );    
+	);
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -388,6 +431,39 @@ end if
 CODE
 	}
     }
+    # Serialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	    if      ( $metaPropertyType->{'label'} eq "float"   ) {
+		$code::format = $code::formatLabel{'double'};
+	    } elsif ( $metaPropertyType->{'label'} eq "integer" ) {
+		$code::format = $code::formatLabel{'integer'};
+	    } elsif ( $metaPropertyType->{'label'} eq "longInteger" ) {
+		$code::format = $code::formatLabel{'longInteger'};
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_Raw: unknown meta-property type");
+	    }
+	    if      ( $metaPropertyType->{'rank'} == 0 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) write (fileHandle) self%{$prefix}MetaProperties
+CODE
+	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
+  write (fileHandle) size(self%{$prefix}MetaProperties(i)%values)
+  write (fileHandle) self%{$prefix}MetaProperties(i)%values
+ end do
+end if
+CODE
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_Raw: unsupported meta-property rank")
+	    }
+	}
+    }
     # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
@@ -430,16 +506,15 @@ sub Implementation_Deserialize_Raw {
 	    ],
 	content     => ""
     };
-    # Add a counter variable if there are any rank-1 properties.
+    # Add a counter variable for any rank-1 properties and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
-	     variables  => [ "i" ]
+	     variables  => [ "i", "metaPropertySize" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && ! &isIntrinsic($_->{'data'}->{'type'}) && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
+	);
     # Add variables required for array reads.
     push
 	(
@@ -454,17 +529,6 @@ sub Implementation_Deserialize_Raw {
 	 }
 	)
 	if ( grep {! $_->{'attributes'}->{'isVirtual'} && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
-    # Determine if arguments are unused.
-    @code::unused = 
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 grep {! $_->{'attributes'}->{'isVirtual'}} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
-	)
-	?
-	() 
-	: 
-	( "fileHandle", "self" );    
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -510,6 +574,40 @@ CODE
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end if
 CODE
+	}
+    }
+    # Deserialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	    if      ( $metaPropertyType->{'label'} eq "float"   ) {
+		$code::format = $code::formatLabel{'double'};
+	    } elsif ( $metaPropertyType->{'label'} eq "integer" ) {
+		$code::format = $code::formatLabel{'integer'};
+	    } elsif ( $metaPropertyType->{'label'} eq "longInteger" ) {
+		$code::format = $code::formatLabel{'longInteger'};
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_Raw: unknown meta-property type");
+	    }
+	    if      ( $metaPropertyType->{'rank'} == 0 ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) read (fileHandle) self%{$prefix}MetaProperties
+CODE
+	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames  )) then
+ do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
+  read (fileHandle) metaPropertySize
+  allocate(self%{$prefix}MetaProperties(i)%values(metaPropertySize))
+  read (fileHandle) self%{$prefix}MetaProperties(i)%values
+ end do
+end if
+CODE
+	    } else {
+		die("Galacticus::Build::Components::Implementations::Serialization::Implementation_Serialize_Raw: unsupported meta-property rank")
+	    }
 	}
     }
     # Insert a type-binding for this function.

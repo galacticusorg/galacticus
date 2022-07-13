@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -123,7 +123,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
     !!}
-    !$ use :: IO_HDF5         , only : hdf5Access
+    !$ use :: HDF5_Access, only : hdf5Access
     implicit none
     type(nodeOperatorGalaxyMergersOutput), intent(inout) :: self
 
@@ -141,9 +141,9 @@ contains
     !!{
     Act on a merger between galaxies.
     !!}
-    use    :: Galacticus_HDF5 , only : galacticusOutputFile
+    use    :: Output_HDF5     , only : outputFile
     use    :: Galacticus_Nodes, only : nodeComponentBasic
-    !$ use :: IO_HDF5         , only : hdf5Access
+    !$ use :: HDF5_Access     , only : hdf5Access
     implicit none
     class(nodeOperatorGalaxyMergersOutput), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
@@ -155,7 +155,7 @@ contains
     basicHost => nodeHost%basic     ()
     if (.not.(self%galacticFilterSatellite_%passes(node).and.self%galacticFilterCentral_%passes(nodeHost))) return
     !$ call hdf5Access%set  ()
-    if (.not.self%mergersGroup%isOpen()) self%mergersGroup=galacticusOutputFile%openGroup(char(self%mergersGroupName),"Satellite mergers data.")
+    if (.not.self%mergersGroup%isOpen()) self%mergersGroup=outputFile%openGroup(char(self%mergersGroupName),"Satellite mergers data.")
     call self%mergersGroup%writeDataset([node              %index()],"indexSatellite","Index of the satellite."               ,appendTo=.true.)
     call self%mergersGroup%writeDataset([nodeHost          %index()],"indexCentral"  ,"Index of the central."                 ,appendTo=.true.)
     call self%mergersGroup%writeDataset([node     %hostTree%index  ],"indexTree"     ,"Index of the tree."                    ,appendTo=.true.)

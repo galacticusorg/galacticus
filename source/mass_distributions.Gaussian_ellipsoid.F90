@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,7 +143,7 @@ contains
     !!{
     Constructor for ``gaussianEllipsoid'' convergence class.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Linear_Algebra      , only : vector
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -166,7 +166,7 @@ contains
     ! If dimensionless, then maximum mass should be 1.0.
     if (self%dimensionless) then
        if (present(mass)) then
-          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
+          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
        end if
        self%mass=1.0d0
     end if
@@ -181,8 +181,8 @@ contains
     !!{
     (Re)initialize properties of a Gaussian ellipsoid mass distribution.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : assignment(=)          , matrixRotation, vector
+    use :: Error                   , only : Error_Report
+    use :: Linear_Algebra          , only : assignment(=), matrixRotation, vector
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -195,18 +195,18 @@ contains
 
     ! If dimensionless, then maximum scale length should be 1.0.
     if (self%dimensionless) then
-       if (Values_Differ(maxval(scaleLength),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('maximum scaleRadius should be unity for a dimensionless profile'                   //{introspection:location})
+       if (Values_Differ(maxval(scaleLength),1.0d0,absTol=1.0d-6)) call Error_Report('maximum scaleRadius should be unity for a dimensionless profile'                   //{introspection:location})
     end if
     ! Assign scalelengths.
     self%scaleLength=scaleLength
     ! Assert that axis vectors are unit vectors and are orthogonal.
     if (present(axes)) then
        do i=1,3
-          if (Values_Differ(axes(i)%magnitude(),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be unit vectors'//{introspection:location})
+          if (Values_Differ(axes(i)%magnitude(),1.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be unit vectors'//{introspection:location})
        end do
-       if (Values_Differ(axes(1).dot.axes(2),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
-       if (Values_Differ(axes(1).dot.axes(3),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
-       if (Values_Differ(axes(2).dot.axes(3),0.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(1).dot.axes(2),0.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(1).dot.axes(3),0.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be orthogonal'//{introspection:location})
+       if (Values_Differ(axes(2).dot.axes(3),0.0d0,absTol=1.0d-6)) call Error_Report('axis vectors must be orthogonal'//{introspection:location})
     end if
     ! Compute the central density.
     self%density_=+        self%mass         &
@@ -234,7 +234,7 @@ contains
     else if (present(rotation)) then
        self%rotationIn=rotation
     else
-       call Galacticus_Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
+       call Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
     self%rotationOut=self%rotationIn%inverse()
     return
@@ -252,13 +252,14 @@ contains
     type            (coordinateCartesian              )                :: position
     double precision                                   , dimension(3)  :: positionComponents
     double precision                                                   :: mSquared
-    type           (vector                            )                :: positionVector
+    type           (vector                            )                :: positionVectorUnrotated, positionVector
 
     ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
     positionComponents      = position
-    positionVector          = positionComponents
-    positionVector          = self%rotationIn*positionVector
+    positionVectorUnrotated = positionComponents
+    positionVector          = self%rotationIn         &
+         &                   *positionVectorUnrotated
     positionComponents      = positionVector
     position                = positionComponents
     ! Evaluate the density.
@@ -298,19 +299,21 @@ contains
     class           (massDistributionGaussianEllipsoid), intent(inout)  :: self
     class           (coordinate                       ), intent(in   )  :: coordinates
     type            (coordinateCartesian              )                 :: coordinatesCartesian
-    double precision                                   , dimension(3)   :: positionCartesian            , positionCartesianScaleFree, &
+    double precision                                   , dimension(3)   :: positionCartesian            , positionCartesianScaleFree , &
          &                                                                 accelerationScaleFree
     integer                                                             :: i
-    type            (vector                            )                :: positionVector               , accelerationVector
+    type            (vector                            )                :: positionVector               , positionVectorUnrotated    , &
+         &                                                                 accelerationVector           , accelerationVectorUnrotated
     
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.
-    coordinatesCartesian=coordinates
-    positionCartesian   =coordinatesCartesian
-    positionVector      =positionCartesian
-    positionVector      =self%rotationIn*positionVector
-    positionCartesian   =positionVector
+    coordinatesCartesian    = coordinates
+    positionCartesian       = coordinatesCartesian
+    positionVectorUnrotated = positionCartesian
+    positionVector          = self%rotationIn         &
+         &                   *positionVectorUnrotated
+    positionCartesian       = positionVector
     do i=1,3
        positionCartesianScaleFree(self%axesMapIn(i))=positionCartesian(i)
     end do
@@ -322,9 +325,10 @@ contains
     do i=1,3
        gaussianEllipsoidAcceleration(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
-    accelerationVector           =gaussianEllipsoidAcceleration
-    accelerationVector           =self%rotationOut*accelerationVector
-    gaussianEllipsoidAcceleration=accelerationVector
+    accelerationVector           = gaussianEllipsoidAcceleration
+    accelerationVectorUnrotated  = self%rotationOut              &
+         &                        *accelerationVector
+    gaussianEllipsoidAcceleration= accelerationVectorUnrotated
     if (.not.self%isDimensionless())                                      &
          & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration   &
          &                               *gravitationalConstantGalacticus &
@@ -460,8 +464,9 @@ contains
           &                                 verbosityLevelWorking
     use :: File_Utilities          , only : Directory_Make       , File_Exists         , File_Lock     , File_Path      , &
           &                                 File_Unlock          , lockDescriptor
-    use :: Galacticus_Paths        , only : galacticusPath       , pathTypeDataDynamic
-    use :: IO_HDF5                 , only : hdf5Access           , hdf5Object
+    use :: Input_Paths             , only : inputPath            , pathTypeDataDynamic
+    use :: HDF5_Access             , only : hdf5Access
+    use :: IO_HDF5                 , only : hdf5Object
     use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -488,9 +493,9 @@ contains
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
     ! Construct a file name for the table.
-    fileName=galacticusPath(pathTypeDataDynamic)// &
-         &   'galacticStructure/'               // &
-         &   self%objectType()                  // &
+    fileName=inputPath(pathTypeDataDynamic)// &
+         &   'galacticStructure/'          // &
+         &   self%objectType()             // &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.

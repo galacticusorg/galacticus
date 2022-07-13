@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,8 +29,8 @@
      Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
      !!}
      private
-     integer(c_size_t                   )          :: stride                 , offset
-     class  (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
+     integer(c_size_t                   )          :: stride                           , offset
+     class  (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_ => null()
    contains
      final     ::                 strideDestructor
      procedure :: forestNumber => strideForestNumber
@@ -83,7 +83,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (evolveForestsWorkShareStride)                        :: self
     integer(c_size_t                    ), intent(in   )         :: stride                 , offset
@@ -92,7 +92,7 @@ contains
     <constructorAssign variables="stride, offset, *evolveForestsWorkShare_"/>
     !!]
 
-    if (offset < 0_c_size_t .or. offset >= stride) call Galacticus_Error_Report('0 ≤ [offset] < [stride]'//{introspection:location})
+    if (offset < 0_c_size_t .or. offset >= stride) call Error_Report('0 ≤ [offset] < [stride]'//{introspection:location})
     return
   end function strideConstructorInternal
 

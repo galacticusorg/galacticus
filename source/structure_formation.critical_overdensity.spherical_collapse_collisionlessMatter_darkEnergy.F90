@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,9 +49,9 @@ contains
     Constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class
     which takes a parameter set as input.
     !!}
-    use :: Dark_Matter_Particles, only : darkMatterParticle     , darkMatterParticleClass
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Input_Parameters     , only : inputParameter         , inputParameters
+    use :: Dark_Matter_Particles, only : darkMatterParticle, darkMatterParticleClass
+    use :: Error                , only : Error_Report
+    use :: Input_Parameters     , only : inputParameter    , inputParameters
     implicit none
     type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy)                :: self
     type            (inputParameters                                        ), intent(inout) :: parameters
@@ -96,7 +96,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily sphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class.
     !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
+    use :: Error                     , only : Error_Report
     use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined, sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none
     type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy)                          :: self
@@ -124,7 +124,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
     return
   end function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
 Contains a module which implements satellite orbital extrema property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
    <description>
@@ -34,10 +36,12 @@ Contains a module which implements satellite orbital extrema property extractor 
      A satellite orbital extrema property extractor class.
      !!}
      private
-     integer :: offsetPericenter , offsetApocenter , &
-          &     elementCount_
-     logical :: extractPericenter, extractApocenter
+     class  (galacticStructureClass), pointer :: galacticStructure_ => null()
+     integer                                  :: offsetPericenter            , offsetApocenter , &
+          &                                      elementCount_
+     logical                                  :: extractPericenter           , extractApocenter
    contains
+     final     ::                 satelliteOrbitalExtremaDestructor
      procedure :: elementCount => satelliteOrbitalExtremaElementCount
      procedure :: extract      => satelliteOrbitalExtremaExtract
      procedure :: names        => satelliteOrbitalExtremaNames
@@ -64,7 +68,8 @@ contains
     implicit none
     type   (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
-    logical                                                              :: extractPericenter, extractApocenter
+    class  (galacticStructureClass                      ), pointer       :: galacticStructure_
+    logical                                                              :: extractPericenter , extractApocenter
 
     !![
     <inputParameter>
@@ -79,24 +84,27 @@ contains
       <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter)
+    self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function satelliteOrbitalExtremaConstructorParameters
 
-  function satelliteOrbitalExtremaConstructorInternal(extractPericenter, extractApocenter) result(self)
+  function satelliteOrbitalExtremaConstructorInternal(extractPericenter,extractApocenter,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
-    type (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
-    logical                                            , intent(in   ) :: extractPericenter, extractApocenter
+    type   (nodePropertyExtractorSatelliteOrbitalExtrema)                        :: self
+    logical                                              , intent(in   )         :: extractPericenter , extractApocenter
+    class  (galacticStructureClass                      ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="extractPericenter, extractApocenter"/>
+    <constructorAssign variables="extractPericenter, extractApocenter, *galacticStructure_"/>
     !!]
 
     self%elementCount_=0
@@ -108,10 +116,23 @@ contains
        self%offsetApocenter =self%elementCount_+1
        self%elementCount_   =self%elementCount_+2
     end if
-    if (self%elementCount_ == 0) call Galacticus_Error_Report('no properties selected for extraction'//{introspection:location})
+    if (self%elementCount_ == 0) call Error_Report('no properties selected for extraction'//{introspection:location})
     return
   end function satelliteOrbitalExtremaConstructorInternal
 
+  subroutine satelliteOrbitalExtremaDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} node property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine satelliteOrbitalExtremaDestructor
+  
   integer function satelliteOrbitalExtremaElementCount(self,time)
     !!{
     Return the number of elements in the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
@@ -150,7 +171,7 @@ contains
           nodeHost  => node     %parent
           satellite => node     %satellite  ()
           orbit     =  satellite%virialOrbit()
-          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital)
+          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%galacticStructure_)
        else
           radiusOrbital  =0.0d0
           velocityOrbital=0.0d0
@@ -162,7 +183,7 @@ contains
           nodeHost  => node     %parent
           satellite => node     %satellite  ()
           orbit     =  satellite%virialOrbit()
-          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumApocenter ,radiusOrbital,velocityOrbital)
+          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumApocenter ,radiusOrbital,velocityOrbital,self%galacticStructure_)
        else
           radiusOrbital  =0.0d0
           velocityOrbital=0.0d0
@@ -172,37 +193,49 @@ contains
     return
   end function satelliteOrbitalExtremaExtract
 
-  function satelliteOrbitalExtremaNames(self,time)
+  subroutine satelliteOrbitalExtremaNames(self,time,names)
     !!{
     Return the name of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaNames
-    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(satelliteOrbitalExtremaNames(self%elementCount_))
-    if (self%extractPericenter) satelliteOrbitalExtremaNames(self%offsetPericenter:self%offsetPericenter+1)=[var_str('satellitePericenterRadius'),var_str('satellitePericenterVelocity')]
-    if (self%extractApocenter ) satelliteOrbitalExtremaNames(self%offsetApocenter :self%offsetApocenter +1)=[var_str('satelliteApocenterRadius'),var_str('satelliteApocenterVelocity')]
+    allocate(names(self%elementCount_))
+    if (self%extractPericenter) then
+       names(self%offsetPericenter+0)=var_str('satellitePericenterRadius'  )
+       names(self%offsetPericenter+1)=var_str('satellitePericenterVelocity')
+    end if
+    if (self%extractApocenter ) then
+       names(self%offsetApocenter +0)=var_str('satelliteApocenterRadius'   )
+       names(self%offsetApocenter +1)=var_str('satelliteApocenterVelocity' )
+    end if
     return
-  end function satelliteOrbitalExtremaNames
+  end subroutine satelliteOrbitalExtremaNames
 
-  function satelliteOrbitalExtremaDescriptions(self,time)
+  subroutine satelliteOrbitalExtremaDescriptions(self,time,descriptions)
     !!{
     Return a description of the satelliteOrbitalExtrema property.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaDescriptions
-    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(satelliteOrbitalExtremaDescriptions(self%elementCount_))
-    if (self%extractPericenter) satelliteOrbitalExtremaDescriptions(self%offsetPericenter:self%offsetPericenter+1)=[var_str('Pericenteric radius of satellite orbit [Mpc].'),var_str('Pericenteric velocity of satellite orbit [km/s].')]
-    if (self%extractApocenter ) satelliteOrbitalExtremaDescriptions(self%offsetApocenter :self%offsetApocenter +1)=[var_str('Apocenteric radius of satellite orbit [Mpc].' ),var_str('Apocenteric velocity of satellite orbit [km/s].' )]
+    allocate(descriptions(self%elementCount_))
+    if (self%extractPericenter) then
+       descriptions(self%offsetPericenter+0)=var_str('Pericenteric radius of satellite orbit [Mpc].'   )
+       descriptions(self%offsetPericenter+1)=var_str('Pericenteric velocity of satellite orbit [km/s].')
+    end if
+    if (self%extractApocenter ) then
+       descriptions(self%offsetApocenter +0)=var_str('Apocenteric radius of satellite orbit [Mpc].'    )
+       descriptions(self%offsetApocenter +1)=var_str('Apocenteric velocity of satellite orbit [km/s].' )
+    end if
     return
-  end function satelliteOrbitalExtremaDescriptions
+  end subroutine satelliteOrbitalExtremaDescriptions
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
     !!{

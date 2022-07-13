@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,11 +41,12 @@
    contains
      !![
      <methods>
-       <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate" />
-       <method description="Initialize the enclosed mass tabulation." method="massEnclosedTabulate" />
+       <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate"/>
+       <method description="Initialize the enclosed mass tabulation."    method="massEnclosedTabulate" />
      </methods>
      !!]
      procedure :: density                    => miyamotoNagaiDensity
+     procedure :: densitySphericalAverage    => miyamotoNagaiDensitySphericalAverage
      procedure :: surfaceDensity             => miyamotoNagaiSurfaceDensity
      procedure :: surfaceDensityTabulate     => miyamotoNagaiSurfaceDensityTabulate
      procedure :: surfaceDensityRadialMoment => miyamotoNagaiSurfaceDensityRadialMoment
@@ -121,7 +122,7 @@ contains
     !!{
     Internal constructor for ``miyamotoNagai'' mass distribution class.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -138,20 +139,20 @@ contains
     end if
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
-       if (.not.present(b))                            call Galacticus_Error_Report('"b" must be specified for dimensionless profiles'                                  //{introspection:location})
+       if (.not.present(b))                            call Error_Report('"b" must be specified for dimensionless profiles'                                  //{introspection:location})
        if (present(a   )) then
-          if (Values_Differ(a   ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('"a" should be unity for a dimensionless profile (or simply do not specify it)'     //{introspection:location})
+          if (Values_Differ(a   ,1.0d0,absTol=1.0d-6)) call Error_Report('"a" should be unity for a dimensionless profile (or simply do not specify it)'     //{introspection:location})
        end if
        if (present(mass)) then
-          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
+          if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
        end if
        self%a                   =1.0d0
        self%b                   =b
        self%mass                =1.0d0
     else
-       if (.not.present(a   )) call Galacticus_Error_Report('"a" must be specified for dimensionful profiles' //{introspection:location})
-       if (.not.present(b   )) call Galacticus_Error_Report('"b" must be specified for dimensionful profiles' //{introspection:location})
-       if (.not.present(mass)) call Galacticus_Error_Report('mass must be specified for dimensionful profiles'//{introspection:location})
+       if (.not.present(a   )) call Error_Report('"a" must be specified for dimensionful profiles' //{introspection:location})
+       if (.not.present(b   )) call Error_Report('"b" must be specified for dimensionful profiles' //{introspection:location})
+       if (.not.present(mass)) call Error_Report('mass must be specified for dimensionful profiles'//{introspection:location})
        self%a                   =a
        self%b                   =b
        self%mass                =mass
@@ -173,7 +174,7 @@ contains
 
   double precision function miyamotoNagaiDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
+    Return the density at the specified {\normalfont \ttfamily coordinates} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
@@ -227,9 +228,22 @@ contains
     return
   end function miyamotoNagaiDensity
 
+  double precision function miyamotoNagaiDensitySphericalAverage(self,radius)
+    !!{
+    Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionMiyamotoNagai), intent(inout) :: self
+    double precision                               , intent(in   ) :: radius
+
+    miyamotoNagaiDensitySphericalAverage=0.0d0
+    call Error_Report('spherically-averaged density profile is not implemented'//{introspection:location})
+    return
+  end function miyamotoNagaiDensitySphericalAverage
+
   double precision function miyamotoNagaiMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass distributions.
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for \citep{miyamoto_three-dimensional_1975} disk mass distributions.
     !!}
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout), target :: self
@@ -433,8 +447,8 @@ contains
     !!{
     Compute radial moments of the Miyamoto-Nagai mass distribution surface density profile.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Tables          , only : tablesIntegrationWeightFunction
+    use :: Error , only : Error_Report
+    use :: Tables, only : tablesIntegrationWeightFunction
     implicit none
     class           (massDistributionMiyamotoNagai   ), intent(inout)           :: self
     double precision                                 , intent(in   )           :: moment
@@ -469,7 +483,7 @@ contains
           isInfinite=.true.
           return
        else
-          call Galacticus_Error_Report('-1 < momemnt < 2 is required for finite moment'//{introspection:location})
+          call Error_Report('-1 < momemnt < 2 is required for finite moment'//{introspection:location})
        end if
     end if
     ! Perform the integration.
@@ -541,7 +555,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurveGradient(self,radius)
     !!{
-    Return the mid-plane rotation curve gradient for an exponential disk.
+    Return the mid-plane rotation curve gradient for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -583,7 +597,7 @@ contains
 
   double precision function miyamotoNagaiPotential(self,coordinates)
     !!{
-    Return the gravitational potential for an exponential disk.
+    Return the gravitational potential for an \citep{miyamoto_three-dimensional_1975} disk.
     !!}
     use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus

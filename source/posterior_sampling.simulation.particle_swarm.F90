@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,11 +81,11 @@ contains
     Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
-    use :: Display         , only : displayMessage         , displayVerbosity      , verbosityLevelInfo
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter      , inputParameters
     use :: MPI_Utilities   , only : mpiSelf
-    use :: Model_Parameters, only : modelParameterActive   , modelParameterInactive
+    use :: Model_Parameters, only : modelParameterActive, modelParameterInactive
     use :: String_Handling , only : operator(//)
     implicit none
     type            (posteriorSampleSimulationParticleSwarm        )                              :: self
@@ -211,7 +211,7 @@ contains
        <objectDestructor name="modelParameter_"/>
        !!]
     end do
-    if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
+    if (activeParameterCount < 1) call Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
     if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo) then
        message='Found '
        message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
@@ -246,7 +246,7 @@ contains
     end do
     self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,appendLogs,char(logFilePreviousRoot))
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     <objectDestructor name="posteriorSampleLikelihood_"       />
     <objectDestructor name="posteriorSampleConvergence_"      />
     <objectDestructor name="posteriorSampleStoppingCriterion_"/>
@@ -331,16 +331,20 @@ contains
     <objectDestructor name="self%posteriorSampleStateInitialize_"  />
     <objectDestructor name="self%randomNumberGenerator_"           />
     !!]
-    do i=1,size(self%modelParametersActive_  )
-       !![
-       <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
-       !!]
-    end do
-    do i=1,size(self%modelParametersInactive_)
-       !![
-       <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
-       !!]
-    end do
+    if (associated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          !![
+	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+          !!]
+       end do
+    end if
+    if (associated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          !![
+	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+          !!]
+       end do
+    end if
     return
   end subroutine particleSwarmDestructor
 
@@ -348,11 +352,11 @@ contains
     !!{
     Perform a particle swarm simulation.
     !!}
-    use :: Display                     , only : displayIndent          , displayMessage, displayUnindent, displayMagenta, &
-         &                                      displayReset
-    use :: File_Utilities              , only : File_Exists            , File_Remove
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: MPI_Utilities               , only : mpiBarrier             , mpiSelf
+    use :: Display                     , only : displayIndent  , displayMagenta, displayMessage, displayReset, &
+          &                                     displayUnindent
+    use :: File_Utilities              , only : File_Exists    , File_Remove
+    use :: Error                       , only : Error_Report
+    use :: MPI_Utilities               , only : mpiBarrier     , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: String_Handling             , only : operator(//)
     implicit none
@@ -380,7 +384,7 @@ contains
     character       (len=32                                )                                              :: label
 
     ! Check that the random number generator is independent across MPI processes.
-    if (.not.self%randomNumberGenerator_%mpiIndependent()) call Galacticus_Error_Report('random number generator produces same sequence on all MPI processes'//{introspection:location})
+    if (.not.self%randomNumberGenerator_%mpiIndependent()) call Error_Report('random number generator produces same sequence on all MPI processes'//{introspection:location})
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
@@ -630,7 +634,7 @@ contains
     Return the log of the posterior for the current state.
     !!}
     use            :: Display                     , only : displayIndent             , displayMessage, displayUnindent
-    use            :: Galacticus_Error            , only : Galacticus_Error_Report
+    use            :: Error                       , only : Error_Report
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: Kind_Numbers                , only : kind_int4
     use            :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
@@ -713,7 +717,7 @@ contains
              end do
              if (processToProcess(timesevaluateorder(i)) >= 0) exit
           end do
-          if (processToProcess(timesevaluateorder(i)) < 0) call Galacticus_Error_Report('failed to assign task to process'//{introspection:location})
+          if (processToProcess(timesevaluateorder(i)) < 0) call Error_Report('failed to assign task to process'//{introspection:location})
        end do
        ! Report.
        if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then

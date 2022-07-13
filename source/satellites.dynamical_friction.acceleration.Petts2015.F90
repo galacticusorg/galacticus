@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,6 +64,7 @@ contains
     class  (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     class  (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    class  (galacticStructureClass             ), pointer       :: galacticStructure_
     logical                                                     :: logarithmCoulombApproximate
     
     !![
@@ -76,18 +77,20 @@ contains
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="cosmologyParameters_" />
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function petts2015ConstructorParameters
 
-  function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
     !!}
@@ -96,9 +99,10 @@ contains
     class  (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
+    class  (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     logical                                     , intent(in   )         :: logarithmCoulombApproximate
     !![
-    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -121,11 +125,10 @@ contains
     !!{
     Evaluate the Coulomb logarithm for the \cite{petts_semi-analytic_2015} dynamical friction model.
     !!}
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic              , nodeComponentSatellite                  , treeNode
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll                                                          , massTypeDark
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-    use :: Vectors                           , only : Vector_Magnitude
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite, treeNode
+    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeDark
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (satelliteDynamicalFrictionPetts2015), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -158,12 +161,12 @@ contains
          &                          massSatellite, &
          &                          basic%mass()   &
          &                         )
-    radiusHalfMassSatellite =  Galactic_Structure_Radius_Enclosing_Mass(                                 &
-         &                                                              node                           , &
-         &                                                              mass         =massHalfSatellite, &
-         &                                                              componentType=componentTypeAll , &
-         &                                                              massType     =massTypeDark       &
-         &                                                             )
+    radiusHalfMassSatellite =  self%galacticStructure_%radiusEnclosingMass(                                 &
+         &                                                                 node                           , &
+         &                                                                 mass         =massHalfSatellite, &
+         &                                                                 componentType=componentTypeAll , &
+         &                                                                 massType     =massTypeDark       &
+         &                                                                )
     densitySlopeLogarithmic =  abs(self%darkMatterProfileDMO_%densityLogSlope(nodeHost,radiusOrbital))
     ! Evaluate the minimum and maximum impact parameters.
     if (densitySlopeLogarithmic > 1.0d0) then

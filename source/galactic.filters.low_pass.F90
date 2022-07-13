@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ Contains a module which implements a low-pass filter on any node property.
      A low-pass galactic filter class on any node property.
      !!}
      private
-     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
+     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
      double precision                                       :: threshold
    contains
      final     ::           lowPassDestructor
@@ -54,7 +54,7 @@ contains
     !!{
     Constructor for the ``lowPass'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass
     implicit none
@@ -75,7 +75,7 @@ contains
     class is (nodePropertyExtractorScalar)
        self=galacticFilterLowPass(threshold,nodePropertyExtractor_)
      class default
-       call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
+       call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>

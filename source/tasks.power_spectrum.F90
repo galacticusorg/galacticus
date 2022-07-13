@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@
   use :: Power_Spectra                  , only : powerSpectrumClass
   use :: Power_Spectra_Nonlinear        , only : powerSpectrumNonlinearClass
   use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionClass
+  use :: Transfer_Functions             , only : transferFunctionClass
 
   !![
   <task name="taskPowerSpectra">
@@ -39,6 +40,7 @@
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_          => null()
      class           (linearGrowthClass                ), pointer :: linearGrowth_                => null()
+     class           (transferFunctionClass            ), pointer :: transferFunction_            => null()
      class           (powerSpectrumClass               ), pointer :: powerSpectrum_               => null()
      class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_      => null()
      class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_ => null()
@@ -74,6 +76,7 @@ contains
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     class           (linearGrowthClass               ), pointer       :: linearGrowth_
+    class           (transferFunctionClass           ), pointer       :: transferFunction_
     class           (powerSpectrumClass              ), pointer       :: powerSpectrum_
     class           (powerSpectrumNonlinearClass     ), pointer       :: powerSpectrumNonlinear_
     class           (powerSpectrumWindowFunctionClass), pointer       :: powerSpectrumWindowFunction_
@@ -118,6 +121,7 @@ contains
     <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
     <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
     <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
+    <objectBuilder class="transferFunction"            name="transferFunction_"            source="parameters"/>
     <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
     <objectBuilder class="powerSpectrumNonlinear"      name="powerSpectrumNonlinear_"      source="parameters"/>
     <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
@@ -133,6 +137,7 @@ contains
          &                 cosmologyParameters_        , &
          &                 cosmologyFunctions_         , &
          &                 linearGrowth_               , &
+         &                 transferFunction_           , &
          &                 powerSpectrum_              , &
          &                 powerSpectrumNonlinear_     , &
          &                 powerSpectrumWindowFunction_, &
@@ -144,6 +149,7 @@ contains
     <objectDestructor name="cosmologyParameters_"        />
     <objectDestructor name="cosmologyFunctions_"         />
     <objectDestructor name="linearGrowth_"               />
+    <objectDestructor name="transferFunction_"           />
     <objectDestructor name="powerSpectrum_"              />
     <objectDestructor name="powerSpectrumNonlinear_"     />
     <objectDestructor name="powerSpectrumWindowFunction_"/>
@@ -162,6 +168,7 @@ contains
        &                                    cosmologyParameters_        , &
        &                                    cosmologyFunctions_         , &
        &                                    linearGrowth_               , &
+       &                                    transferFunction_           , &
        &                                    powerSpectrum_              , &
        &                                    powerSpectrumNonlinear_     , &
        &                                    powerSpectrumWindowFunction_, &
@@ -176,6 +183,7 @@ contains
     class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     class           (linearGrowthClass               ), intent(in   ), target :: linearGrowth_
+    class           (transferFunctionClass           ), intent(in   ), target :: transferFunction_
     class           (powerSpectrumClass              ), intent(in   ), target :: powerSpectrum_
     class           (powerSpectrumNonlinearClass     ), intent(in   ), target :: powerSpectrumNonlinear_
     class           (powerSpectrumWindowFunctionClass), intent(in   ), target :: powerSpectrumWindowFunction_
@@ -186,7 +194,7 @@ contains
     logical                                           , intent(in   )         :: includeNonLinear
     type            (varying_string                  ), intent(in   )         :: outputGroup
     !![
-    <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
+    <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*transferFunction_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
     !!]
 
     return
@@ -203,6 +211,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"        />
     <objectDestructor name="self%cosmologyFunctions_"         />
     <objectDestructor name="self%linearGrowth_"               />
+    <objectDestructor name="self%transferFunction_"           />
     <objectDestructor name="self%powerSpectrum_"              />
     <objectDestructor name="self%powerSpectrumNonlinear_"     />
     <objectDestructor name="self%powerSpectrumWindowFunction_"/>
@@ -216,16 +225,16 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use            :: Display                         , only : displayIndent       , displayUnindent
-    use            :: Galacticus_Error                , only : errorStatusSuccess
-    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Display                         , only : displayIndent     , displayUnindent
+    use            :: Error                           , only : errorStatusSuccess
+    use            :: Output_HDF5                     , only : outputFile
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : allocateArray
-    use            :: Numerical_Constants_Astronomical, only : massSolar           , megaParsec
+    use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15   , integrator
-    use            :: Numerical_Ranges                , only : Make_Range          , rangeTypeLogarithmic
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15 , integrator
+    use            :: Numerical_Ranges                , only : Make_Range        , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskPowerSpectra          ), intent(inout), target         :: self
@@ -237,7 +246,7 @@ contains
     double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear   , sigmaNonLinear     , &
          &                                                                         sigma                    , sigmaGradient      , &
          &                                                                         powerSpectrumLinear      , growthFactor       , &
-         &                                                                         growthFactorLogDerivative
+         &                                                                         growthFactorLogDerivative, transferFunction
     double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
     type            (integrator                )                                :: integrator_
     type            (hdf5Object                )                                :: outputsGroup             , outputGroup        , &
@@ -252,6 +261,7 @@ contains
     ! Allocate arrays for power spectra.
     call    allocateArray(wavenumber               ,[wavenumberCount            ])
     call    allocateArray(powerSpectrumLinear      ,[wavenumberCount,outputCount])
+    call    allocateArray(transferFunction         ,[wavenumberCount,outputCount])
     call    allocateArray(massScale                ,[wavenumberCount            ])
     call    allocateArray(sigma                    ,[wavenumberCount,outputCount])
     call    allocateArray(sigmaGradient            ,[wavenumberCount,outputCount])
@@ -288,6 +298,8 @@ contains
           growthFactorLogDerivative(iWavenumber,iOutput)=self%linearGrowth_             %logarithmicDerivativeExpansionFactor(time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))
           ! Compute power spectrum.
           powerSpectrumLinear      (iWavenumber,iOutput)=+self%powerSpectrum_           %power                               (time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))
+          ! Compute transfer function.
+          transferFunction         (iWavenumber,iOutput)=+self%transferFunction_        %value                               (                                     wavenumber=wavenumber(iWavenumber))
           ! Compute fluctuation on this mass scale.
           sigma                    (iWavenumber,iOutput)=+self%cosmologicalMassVariance_%rootVariance                        (time=self%outputTimes_%time(iOutput),mass      =massScale (iWavenumber))
           ! Compute gradient of mass fluctuations.
@@ -308,10 +320,10 @@ contains
     end do
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing power spectrum data.'              )
-       outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       containerGroup=outputFile    %openGroup(char(self%outputGroup),'Group containing power spectrum data.'              )
+       outputsGroup  =containerGroup%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Iterate over output times and output data.
     do iOutput=1,outputCount
@@ -333,6 +345,7 @@ contains
        call outputGroup   %writeDataset  (powerSpectrumLinear      (:,iOutput),'powerSpectrum'            ,'The power spectrum.'                                                                   ,datasetReturned=dataset)
        call dataset       %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
        call dataset       %close         (                                                                                                                                                                                 )
+       call outputGroup   %writeDataset  (transferFunction         (:,iOutput),'transferFunction'         ,'The transfer function.'                                                                                        )
        call outputGroup   %writeDataset  (sigma                    (:,iOutput),'sigma'                    ,'The mass fluctuation on this scale.'                                                                           )
        call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic deriative of the mass flucation with respect to mass.'                                             )
        if (self%includeNonLinear) then

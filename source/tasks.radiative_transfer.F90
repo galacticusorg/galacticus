@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,12 +43,12 @@
      class           (radiativeTransferOutputterClass   ), pointer                   :: radiativeTransferOutputter_    => null()
      class           (randomNumberGeneratorClass        ), pointer                   :: randomNumberGenerator_         => null()
      integer                                                                         :: wavelengthCountPerDecade
-     integer         (c_size_t                          )                            :: countPhotonsPerWavelength               , countIterationsMaximum                 , &
+     integer         (c_size_t                          )                            :: countPhotonsPerWavelength               , countIterationsMaximum                         , &
           &                                                                             countIterationsMinimum                  , countPhotonsPerWavelengthFinalIteration
      double precision                                                                :: wavelengthMinimum                       , wavelengthMaximum
-     double precision                                    , allocatable, dimension(:) :: wavelengthsMinimum                      , wavelengthsMaximum                     , &
+     double precision                                    , allocatable, dimension(:) :: wavelengthsMinimum                      , wavelengthsMaximum                             , &
           &                                                                             wavelengths
-     logical                                                                         :: outputIterations
+     logical                                                                         :: outputIterations                        , nodeComponentsInitialized              =.false.
    contains
      final     ::            radiativeTransferDestructor
      procedure :: perform => radiativeTransferPerform
@@ -101,6 +101,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>wavelengthMinimum</name>
@@ -229,7 +230,7 @@ contains
     <objectDestructor name="self%radiativeTransferOutputter_"   />
     <objectDestructor name="self%randomNumberGenerator_"        />
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine radiativeTransferDestructor
 
@@ -238,8 +239,8 @@ contains
     Perform radiative transfer and output results.
     !!}
     use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard
-    use :: Galacticus_Error        , only : Galacticus_Error_Report                  , errorStatusSuccess
-    use :: Galacticus_HDF5         , only : galacticusOutputFile
+    use :: Error                   , only : Error_Report                             , errorStatusSuccess
+    use :: Output_HDF5             , only : outputFile
     use :: IO_HDF5                 , only : hdf5Object
     use :: MPI_Utilities           , only : mpiBarrier                               , mpiSelf
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential
@@ -270,7 +271,7 @@ contains
     timerTotal_    =timer()
     timerIteration_=timer()
     ! Open group for output of our model data.
-    if (mpiSelf%isMaster()) outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
+    if (mpiSelf%isMaster()) outputGroup=outputFile%openGroup(char(self%outputGroupName),'Radiative transfer model.')
     call timerTotal_%start()
     ! Initialize the computational domain.
     call self%computationalDomain_       %initialize      (                                         )
@@ -367,7 +368,7 @@ contains
              ! Photon packet propagation is done - determine how to handle it. If the packet is no longer alive, there's nothing to do.
              if (photonPacketAlive) then
                 ! Photon packet is still alive - it should have left the domain.
-                if (photonPacketInDomain) call Galacticus_Error_Report('photon packet propagation stopped while still in computational domain'//{introspection:location})
+                if (photonPacketInDomain) call Error_Report('photon packet propagation stopped while still in computational domain'//{introspection:location})
                 call self%radiativeTransferOutputter_  %photonPacketEscapes(self%radiativeTransferPhotonPacket_)
                 call self%radiativeTransferConvergence_%photonPacketEscapes(self%radiativeTransferPhotonPacket_)
              end if

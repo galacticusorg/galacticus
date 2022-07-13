@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -218,8 +218,8 @@ contains
              end do
              if (.not.satelliteProgenitorFound) then
                    virialOrbitNode=self%virialOrbit_%orbit(node,node%parent,.false.)
-                   call satellite%  mergeTimeSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
-                   call satellite%virialOrbitSet(                                                       virialOrbitNode )
+                   call satellite%timeUntilMergingSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
+                   call satellite%     virialOrbitSet(                                                       virialOrbitNode )
              end if
           else
              ! The merge target must be reachable at the merge time. If it is not, find a

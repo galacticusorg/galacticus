@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,6 @@ module Galacticus_Nodes
   !!}
   use            :: Abundances_Structure            , only : abundances
   use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
-  use            :: Galacticus_Error                , only : Galacticus_Error_Report
   use            :: Hashes                          , only : doubleHash                , genericHash
   use            :: Histories                       , only : history                   , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
@@ -43,7 +42,8 @@ module Galacticus_Nodes
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
   use            :: Tensors                         , only : tensorNullR2D3Sym         , tensorRank2Dimension3Symmetric
   private
-  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
+  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
+       &    nodeEventBuildFromRaw       , propertyEvaluate          , propertyActive                , propertyInactive
   
   type, public :: treeNodeList
      !!{
@@ -67,10 +67,10 @@ module Galacticus_Nodes
      integer         (kind=kind_int8            )                  :: index
      type            (hdf5Object                )                  :: hdf5Group
      double precision                                              :: volumeWeight                    , initializedUntil
-     type            (treeNode                  ), pointer         :: baseNode               => null()
+     type            (treeNode                  ), pointer         :: nodeBase               => null()
      type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()
-     type            (treeEvent                 ), pointer, public :: event
+     type            (treeEvent                 ), pointer, public :: event                  => null()
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
      type            (doubleHash                )                  :: properties
    contains
@@ -140,7 +140,7 @@ module Galacticus_Nodes
      !!}
      type   (mergerTreeList), pointer         :: trees         => null()
      logical                                  :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer, public :: event
+     type   (universeEvent ), pointer, public :: event         => null()
      type   (genericHash   )                  :: attributes
      integer(kind_int8     )                  :: uniqueID
    contains
@@ -187,9 +187,22 @@ module Galacticus_Nodes
      end function universeEventTask
   end interface
 
+  ! Meta-property types.
+  type :: floatRank1MetaProperty
+     !!{
+     Type used to store float rank-1 meta-properties.
+     !!}
+     double precision, allocatable, dimension(:) :: values
+  end type floatRank1MetaProperty
+
+  type :: integerRank1MetaProperty
+     !!{
+     Type used to store integer rank-1 meta-properties.
+     !!}
+     integer, allocatable, dimension(:) :: values
+  end type integerRank1MetaProperty
+  
   ! Zero dimension arrays to be returned as defaults.
-  integer                                            , dimension(0) :: nullInteger1d
-  integer         (kind_int8)                        , dimension(0) :: nullLongInteger1d
   double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
@@ -206,11 +219,16 @@ module Galacticus_Nodes
   integer         (kind=kind_int8)                                  :: universeUniqueIdCount=0
 
   ! Enumeration for active/inactive properties.
-  integer, parameter, public :: propertyTypeAll     =0
-  integer, parameter, public :: propertyTypeActive  =1
-  integer, parameter, public :: propertyTypeInactive=2
-  integer, parameter, public :: propertyTypeNone    =3
+  integer, parameter, public :: propertyTypeAll       =0
+  integer, parameter, public :: propertyTypeActive    =1
+  integer, parameter, public :: propertyTypeInactive  =2
+  integer, parameter, public :: propertyTypeNumerics  =3
+  integer, parameter, public :: propertyTypeNone      =4
 
+  ! Enumeration for analytically/numerically-solved properties.
+  integer, parameter, public :: solutionTypeNumerical =0
+  integer, parameter, public :: solutionTypeAnalytical=1
+  
   ! State for rate computations.
   integer           , public :: rateComputeState    =propertyTypeActive
   !$omp threadprivate(rateComputeState)
@@ -248,6 +266,7 @@ module Galacticus_Nodes
     !!{
     Return a pointer to a newly created and initialized {\normalfont \ttfamily treeNode}.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type   (treeNode      ), pointer                         :: Tree_Node_Constructor
     integer(kind=kind_int8), intent(in   ), optional         :: index
@@ -256,7 +275,7 @@ module Galacticus_Nodes
 
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
-    if (allocErr/=0) call Galacticus_Error_Report('unable to allocate node'//{introspection:location})
+    if (allocErr/=0) call Error_Report('unable to allocate node'//{introspection:location})
     !![
     <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
      <description>
@@ -289,7 +308,7 @@ module Galacticus_Nodes
     !!{
     Returns the index of a {\normalfont \ttfamily treeNode}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -300,7 +319,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
+       call Error_Report('treeNode of unknown class'//{introspection:location})
     end select
     if (associated(workNode)) then
        Tree_Node_Index=workNode%indexValue
@@ -326,7 +345,7 @@ module Galacticus_Nodes
     !!{
     Returns the unique ID of a {\normalfont \ttfamily treeNode}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -337,7 +356,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
+       call Error_Report('treeNode of unknown class'//{introspection:location})
     end select
     if (associated(workNode)) then
        Tree_Node_Unique_ID=workNode%uniqueIdValue
@@ -351,6 +370,7 @@ module Galacticus_Nodes
     !!{
     Sets the index of a {\normalfont \ttfamily treeNode}.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -360,7 +380,7 @@ module Galacticus_Nodes
     else
        !$omp critical(UniqueID_Assign)
        uniqueIDCount=uniqueIDCount+1
-       if (uniqueIDCount <= 0) call Galacticus_Error_Report('ran out of unique ID numbers'//{introspection:location})
+       if (uniqueIDCount <= 0) call Error_Report('ran out of unique ID numbers'//{introspection:location})
        self%uniqueIdValue=uniqueIDCount
        !$omp end critical(UniqueID_Assign)
     end if
@@ -422,9 +442,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID       =  eventID+1
     newEvent%ID   =  eventID
+    !$omp end critical (nodeEventIncrement)
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -442,6 +463,7 @@ module Galacticus_Nodes
     !!{
     Removed a paired event from {\normalfont \ttfamily self}. Matching is done on the basis of event ID.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class  (treeNode ), intent(inout) :: self
     class  (nodeEvent), intent(in   ) :: event
@@ -471,7 +493,7 @@ module Galacticus_Nodes
           eventPaired => eventPaired%next
        end if
     end do
-    if (.not.pairMatched) call Galacticus_Error_Report('unable to find paired event'//{introspection:location})
+    if (.not.pairMatched) call Error_Report('unable to find paired event'//{introspection:location})
     return
   end subroutine Tree_Node_Remove_Paired_Event
 
@@ -479,7 +501,7 @@ module Galacticus_Nodes
     !!{
     Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(inout) :: self
 
@@ -492,7 +514,7 @@ module Galacticus_Nodes
        end if
     class default
        Tree_Node_Is_Primary_Progenitor=.false.
-       call Galacticus_Error_Report('treeNode is of unknown class'//{introspection:location})
+       call Error_Report('treeNode is of unknown class'//{introspection:location})
     end select
     return
   end function Tree_Node_Is_Primary_Progenitor
@@ -501,7 +523,7 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -513,7 +535,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
+       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
@@ -530,7 +552,7 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -542,7 +564,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
+       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
@@ -559,7 +581,7 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -571,7 +593,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
+       call Error_Report('treeNode of unknown class'//{introspection:location})
     end select
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
@@ -587,7 +609,7 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -599,7 +621,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
+       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
@@ -615,7 +637,7 @@ module Galacticus_Nodes
     !!{
     Returns true if {\normalfont \ttfamily self} is on the main branch.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(inout), target :: self
     type (treeNode), pointer               :: workNode
@@ -626,7 +648,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
+       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode%parent))
        if (.not.workNode%isPrimaryProgenitor()) return
@@ -640,7 +662,7 @@ module Galacticus_Nodes
     !!{
     Returns true if {\normalfont \ttfamily self} is a satellite.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(in   ), target :: self
     type (treeNode), pointer               :: childNode, parentNode, selfActual
@@ -650,7 +672,7 @@ module Galacticus_Nodes
        selfActual => self
     class default
        selfActual => null()
-       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
+       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     parentNode => selfActual%parent
     select case (associated(parentNode))
@@ -690,7 +712,7 @@ module Galacticus_Nodes
     !!{
     Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (treeNode), pointer       :: progenitorNode
     class(treeNode), intent(inout) :: self
@@ -703,7 +725,7 @@ module Galacticus_Nodes
        end do
     class default
        progenitorNode => null()
-       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
+       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     return
   end function Tree_Node_Get_Earliest_Progenitor
@@ -731,9 +753,9 @@ module Galacticus_Nodes
     !!{
     Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     !!}
-    use :: Display           , only : displayMessage         , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -745,7 +767,7 @@ module Galacticus_Nodes
        selfActual => self
     class default
        selfActual => null()
-       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
+       call Error_Report('treeNode of unknown class'//{introspection:location})
     end select
 
     ! Remove from the parent node satellite list.
@@ -778,9 +800,9 @@ module Galacticus_Nodes
     !!{
     Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     !!}
-    use :: Display           , only : displayMessage         , verbosityLevelInfo
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Display           , only : displayMessage, verbosityLevelInfo
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -792,7 +814,7 @@ module Galacticus_Nodes
        selfActual => self
     class default
        selfActual => null()
-       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
+       call Error_Report('treeNode of unknown class'//{introspection:location})
     end select
 
     ! Remove from the mergee list of any merge target.
@@ -1015,6 +1037,95 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
+  integer function Node_Component_Generic_Add_Float_Rank0_Meta_Property(self,label,name,isEvolvable,isCreator)
+    !!{
+    Add a meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isEvolvable, isCreator
+    !$GLC attributes unused :: self, label, name, isEvolvable, isCreator
+
+    Node_Component_Generic_Add_Float_Rank0_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Float_Rank0_Meta_Property
+
+  integer function Node_Component_Generic_Add_Float_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a rank-1 meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Float_Rank1_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Float_Rank1_Meta_Property
+
+  integer function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a long integer meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property
+  
+  integer function Node_Component_Generic_Add_Integer_Rank0_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a long integer meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Rank0_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Rank0_Meta_Property
+  
+  integer function Node_Component_Generic_Add_Integer_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add an integer meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Rank1_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Rank1_Meta_Property
+  
+  !![
+  <metaPropertyDatabase/>
+  !!]
+  
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
     !!{
     Initialize a generic tree node component for an ODE solver step.
@@ -1312,6 +1423,21 @@ module Galacticus_Nodes
     return
   end function Node_Component_Density_Null
 
+  double precision function Node_Component_Density_Spherical_Average_Null(self,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    A null implementation of the spherically-averaged density in a component. Always returns zero.
+    !!}
+    implicit none
+    class           (nodeComponent), intent(inout) :: self
+    integer                        , intent(in   ) :: componentType, massType, weightBy, &
+         &                                            weightIndex
+    double precision               , intent(in   ) :: radius
+    !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
+
+    Node_Component_Density_Spherical_Average_Null=0.0d0
+    return
+  end function Node_Component_Density_Spherical_Average_Null
+
   double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
     !!{
     A null implementation of the surface density in a component. Always returns zero.
@@ -1397,8 +1523,8 @@ module Galacticus_Nodes
     having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
     called a very large number of times).
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//), varying_string
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     character(len=*         ), intent(in   ) :: nameComponent
@@ -1407,7 +1533,7 @@ module Galacticus_Nodes
 
     message='"'//nameComponent//'" component is not allocated in node '
     message=message//indexNode
-    call Galacticus_Error_Report(message//{introspection:location})
+    call Error_Report(message//{introspection:location})
     return
   end subroutine nodeComponentGetError
   
@@ -1450,9 +1576,9 @@ module Galacticus_Nodes
     select type (tree)
     type is (mergerTree)
        ! Destroy all nodes.
-       if (associated(tree%baseNode)) then
-          call tree%baseNode%destroyBranch()
-          deallocate(tree%baseNode)
+       if (associated(tree%nodeBase)) then
+          call tree%nodeBase%destroyBranch()
+          deallocate(tree%nodeBase)
        end if
        ! Destroy the HDF5 group associated with this tree.
        call tree%hdf5Group%destroy()
@@ -1486,7 +1612,7 @@ module Galacticus_Nodes
     Merger_Tree_Node_Get => null()
     treeCurrent => tree
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (node%index() == nodeIndex) then
              Merger_Tree_Node_Get => node
@@ -1509,9 +1635,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     eventNew%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1570,7 +1697,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time =  timeInfinity
     treeCurrent               => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild)) then
              basic                     =>                               node %basic()
@@ -1597,7 +1724,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time_Evolving =  timeInfinity
     treeCurrent                        => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild).and.(associated(node%parent).or..not.associated(node%firstSatellite))) then
              basic                              =>                                        node %basic()
@@ -1617,14 +1744,14 @@ module Galacticus_Nodes
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     type            (mergerTree        ), pointer               :: treeCurrent
-    class           (nodeComponentBasic), pointer               :: baseBasic
+    class           (nodeComponentBasic), pointer               :: basicBase
 
     Merger_Tree_Latest_Time =  -1.0d0
     treeCurrent             => self
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%baseNode)) then
-          baseBasic               =>                             treeCurrent%baseNode%basic()
-          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
+       if (associated(treeCurrent%nodeBase)) then
+          basicBase               =>                             treeCurrent%nodeBase%basic()
+          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,basicBase  %time          ())
        end if
        treeCurrent => treeCurrent%nextTree
     end do
@@ -1674,9 +1801,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     newEvent%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1697,13 +1825,15 @@ module Galacticus_Nodes
     class  (universe     ), intent(inout) :: self
     type   (universeEvent), intent(in   ) :: event
     type   (universeEvent), pointer       :: eventLast, eventNext, event_
-
+    integer(kind_int8    )                :: eventID
+    
     ! Destroy the event.
+    eventID   =  event%ID
     eventLast => null()
     event_    => self%event
     do while (associated(event_))
        ! Match the event.
-       if (event_%ID == event%ID) then
+       if (event_%ID == eventID) then
           if (associated(event_,self%event)) then
              self     %event => event_%next
              eventLast       => self  %event
@@ -1765,4 +1895,44 @@ module Galacticus_Nodes
     return
   end subroutine universePushTree
 
+  logical function propertyActive(propertyType)
+    !!{
+    Returns true if active property evaulate is underway.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+
+    propertyActive=propertyType == propertyTypeActive
+    return
+  end function propertyActive
+  
+  logical function propertyInactive(propertyType)
+    !!{
+    Returns true if inactive property evaulate is underway.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+
+    propertyInactive=propertyType == propertyTypeInactive
+    return
+  end function propertyInactive
+  
+  logical function propertyEvaluate(propertyType,propertyIsInactive)
+    !!{
+    Returns true if a property should be evaulated during the current stage of evolution.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+    logical, intent(in   ) :: propertyIsInactive
+
+    propertyEvaluate= (propertyType == propertyTypeAll                                   ) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeActive   .and. .not.propertyIsInactive) &
+         &           .or.                                                                  &
+         &             propertyType == propertyTypeNumerics                                &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeInactive .and.      propertyIsInactive)
+    return
+  end function propertyEvaluate
+  
 end module Galacticus_Nodes

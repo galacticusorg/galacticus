@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,22 +29,21 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   !!}
   use :: Cosmology_Parameters        , only : cosmologyParametersSimple
   use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                                           , darkMatterHaloScaleClass                , darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                                           , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated         , darkMatterProfileDMONFW       , &
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated                        , darkMatterProfileDMONFW       , &
           &                                   darkMatterProfileDMOTruncated                                 , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
   use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversFallThrough
   use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Events_Hooks                , only : eventsHooksInitialize
   use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Galacticus_Error            , only : Galacticus_Error_Report
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize            , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+  use :: Error                       , only : Error_Report
+  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize            , nodeComponentBasic                                , nodeComponentDarkMatterProfile, &
           &                                   nodeComponentSatellite                                        , treeNode
   use :: ISO_Varying_String          , only : assignment(=)                                                 , varying_string
   use :: Input_Parameters            , only : inputParameters
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize               , Node_Components_Uninitialize
+  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                              , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      )               :: node
   class           (nodeComponentBasic                                            ), pointer      :: basic
@@ -133,15 +132,15 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
    </constructor>
   </referenceConstruct>  
   !!]
-  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (velocityDispersionUseSeriesExpansion,                                                                                             darkMatterHaloScale_ )
-  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                                  darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                    &
-       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_,darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,alpha                          ,beta                               ,gamma                   ,                       &
-       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_,darkMatterHaloScale_ )
-  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,correlationVelocityRadius                                                                                         )
-  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,darkMatterProfileDMONFW_,darkMatterHaloScale_,  &
-       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                         )
+  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (velocityDispersionUseSeriesExpansion,                                                                                              darkMatterHaloScale_ )
+  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                                   darkMatterHaloScale_ )
+  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                     &
+       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
+  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,alpha                          ,beta                               ,gamma                    ,                       &
+       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
+  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder             ,correlationVelocityRadius                      )
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,darkMatterProfileDMONFW_ ,darkMatterHaloScale_,  &
+       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
   satellite => node%satellite             (autoCreate=.true.)
@@ -151,7 +150,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   call basic    %timeLastIsolatedSet      (time             )
   call satellite%tidalHeatingNormalizedSet(heatingSpecific  )
   ! Get the virial raidus.
-  radiusVirial=darkMatterHaloScale_%virialRadius(node)
+  radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   ! Compute scale radius.
   radiusScale =radiusVirial/concentration
   call dmProfile%scaleSet(radiusScale)
@@ -179,7 +178,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
         darkMatterProfileDMO_ => darkMatterProfileDMOHeated_
         toleranceRelative     =  3.0d-5
      case default
-        call Galacticus_Error_Report('unknown profile'//{introspection:location})
+        call Error_Report('unknown profile'//{introspection:location})
      end select
      do j=1,7
         mass      (j)=darkMatterProfileDMO_%enclosedMass       (node, radius(j))

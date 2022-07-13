@@ -7,6 +7,8 @@
   <task value="multi">
     <task value="buildToolFSPS"/>
     <task value="buildToolCAMB"/>
+    <task value="buildToolAxionCAMB"/>
+    <task value="buildToolCLASS"/>
     <task value="buildToolRecFast"/>
     <task value="buildToolCloudy"/>
   </task>

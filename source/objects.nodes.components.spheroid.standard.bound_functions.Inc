@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
   !!{
   Return the half-mass radius of the standard spheroid.
   !!}
-  use :: Galacticus_Error                     , only : Galacticus_Error_Report
+  use :: Error                                , only : Error_Report
   use :: Mass_Distributions                   , only : massDistributionSpherical
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
@@ -36,7 +36,7 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
      Node_Component_Spheroid_Standard_Half_Mass_Radius=self%radius()*spheroidMassDistribution%radiusHalfMass()
   class default
      Node_Component_Spheroid_Standard_Half_Mass_Radius=0.0d0
-     call Galacticus_Error_Report('mass distribution should be spherical'//{introspection:location})
+     call Error_Report('mass distribution should be spherical'//{introspection:location})
   end select
   return
 end function Node_Component_Spheroid_Standard_Half_Mass_Radius
@@ -51,9 +51,9 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType   , massType      , weightBy, weightIndex
+  integer                                        , intent(in   ) :: componentType       , massType      , weightBy, weightIndex
   double precision                               , intent(in   ) :: radius
-  double precision                                               :: fractionalRadius, spheroidRadius
+  double precision                                               :: fractionalRadius    , radiusSpheroid
   type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
 
@@ -83,9 +83,9 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   ! Return if mass is zero.
   if (Node_Component_Spheroid_Standard_Enclosed_Mass <=       0.0d0) return
   ! Compute actual mass.
-  spheroidRadius=self%radius()
-  if (spheroidRadius > 0.0d0) then
-     fractionalRadius=radius/spheroidRadius
+  radiusSpheroid=self%radius()
+  if (radiusSpheroid > 0.0d0) then
+     fractionalRadius=radius/radiusSpheroid
      Node_Component_Spheroid_Standard_Enclosed_Mass   =Node_Component_Spheroid_Standard_Enclosed_Mass*spheroidMassDistribution%massEnclosedBySphere(fractionalRadius)
   end if
   return
@@ -130,7 +130,7 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull, &
        &                                               radiusLarge
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
-  use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   use :: Tensors                              , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym    , operator(*)
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Spheroid_Standard_Tidal_Tensor
@@ -320,11 +320,71 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   return
 end function Node_Component_Spheroid_Standard_Density
 
+double precision function Node_Component_Spheroid_Standard_Density_Spherical_Average(self,radius,componentType,massType,weightBy,weightIndex)
+  !!{
+  Computes the spherically-averaged density at a given radius for an standard spheroid.
+  !!}
+  use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
+  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic  , &
+          &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, weightByLuminosity, &
+          &                                            weightByMass
+  use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
+  implicit none
+  class           (nodeComponentSpheroidStandard), intent(inout) :: self
+  integer                                        , intent(in   ) :: componentType                , massType   , &
+       &                                                            weightBy                     , weightIndex
+  double precision                               , intent(in   ) :: radius
+  double precision                               , parameter     :: radiusHuge          =1.0d+100
+  type            (coordinateSpherical          )                :: position
+  type            (stellarLuminosities          ), save          :: luminositiesSpheroid
+  !$omp threadprivate(luminositiesSpheroid)
+
+  Node_Component_Spheroid_Standard_Density_Spherical_Average=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+
+  ! Get the spheroid component and check that it is of the standard class.
+  select type (self)
+     class is (nodeComponentSpheroidStandard)
+
+     if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
+     select case (weightBy)
+     case (weightByMass      )
+        select case (massType)
+        case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+           Node_Component_Spheroid_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
+        case (massTypeGaseous)
+           Node_Component_Spheroid_Standard_Density_Spherical_Average=self%massGas()
+        case (massTypeStellar)
+           Node_Component_Spheroid_Standard_Density_Spherical_Average=               self%massStellar()
+        end select
+     case (weightByLuminosity)
+        select case (massType)
+        case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+           luminositiesSpheroid=self%luminositiesStellar()
+           Node_Component_Spheroid_Standard_Density_Spherical_Average=luminositiesSpheroid%luminosity(weightIndex)
+        end select
+     end select
+     ! Return if density is zero.
+     if (Node_Component_Spheroid_Standard_Density_Spherical_Average <= 0.0d0) then
+        Node_Component_Spheroid_Standard_Density_Spherical_Average=0.0d0
+        return
+     end if
+     ! Compute actual density.
+     position=[radius/self%radius(),0.0d0,0.0d0]
+     Node_Component_Spheroid_Standard_Density_Spherical_Average       =+Node_Component_Spheroid_Standard_Density_Spherical_Average     &
+          &                                                            *spheroidMassDistribution                %density(position)
+     if (Node_Component_Spheroid_Standard_Density_Spherical_Average > 0.0d0)                                                           &
+          & Node_Component_Spheroid_Standard_Density_Spherical_Average=+Node_Component_Spheroid_Standard_Density_Spherical_Average     &
+          &                                                             /self                                    %radius (        )**3
+  end select
+  return
+end function Node_Component_Spheroid_Standard_Density_Spherical_Average
+
 double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status)
   use :: Coordinates                          , only : assignment(=)                  , coordinateSpherical
   use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass       , weightIndexNull
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
-  use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   !!{
   Return the potential due to the standard spheroid.
   !!}

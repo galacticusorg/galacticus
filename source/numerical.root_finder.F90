@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -324,7 +324,7 @@ contains
     !!{
     Internal constructor for root finders.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (rootFinder                    )                          :: self
     double precision                                , intent(in   ), optional :: toleranceAbsolute            , toleranceRelative
@@ -365,9 +365,9 @@ contains
     if (present(rootFunction)) then
        if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
           if      (.not.present(rootFunctionDerivative)) then
-             call Galacticus_Error_Report('missing "rootFunctionDerivative"'//{introspection:location})
+             call Error_Report('missing "rootFunctionDerivative"'//{introspection:location})
           else if (.not.present(rootFunctionBoth      )) then
-             call Galacticus_Error_Report('missing "rootFunctionBoth"'      //{introspection:location})
+             call Error_Report('missing "rootFunctionBoth"'      //{introspection:location})
           else
              call self%rootFunctionDerivative(rootFunction,rootFunctionDerivative,rootFunctionBoth)
           end if
@@ -375,11 +375,11 @@ contains
           call self%rootFunction(rootFunction)
        end if
     else if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
-       call Galacticus_Error_Report('missing "rootFunction"'//{introspection:location})
+       call Error_Report('missing "rootFunction"'//{introspection:location})
     end if
     ! Validate stopping criterion.
     if (self%useDerivative .and. self%stoppingCriterion == stoppingCriterionInterval) &
-         & call Galacticus_Error_Report('"interval" stopping criteria is not valid when using a derivative-based method'//{introspection:location})
+         & call Error_Report('"interval" stopping criteria is not valid when using a derivative-based method'//{introspection:location})
     ! If a solver type is provided, set that.
     if (present(solverType)) call self%type(solverType)
     ! If tolerances are provided, set them.
@@ -437,11 +437,11 @@ contains
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
-    use            :: Display           , only : displayMessage         , verbosityLevelWarn
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusOutOfRange, errorStatusSuccess
+    use            :: Display           , only : displayMessage, verbosityLevelWarn
+    use            :: Error             , only : Error_Report  , errorStatusOutOfRange, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
-    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)         , varying_string
-    use            :: Interface_GSL     , only : GSL_Success            , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
+    use            :: ISO_Varying_String, only : assignment(=) , operator(//)         , varying_string
+    use            :: Interface_GSL     , only : GSL_Success   , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
@@ -455,9 +455,9 @@ contains
     integer                                                                       :: iteration                   , statusActual
     double precision                                                              :: xHigh                       , xLow                   , xRoot               , &
          &                                                                           xRootPrevious               , fLow                   , fHigh
-    type            (varying_string      )                                        :: message
+    type            (varying_string      ), save                                  :: message
+    !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
-    !$GLC attributes initialized :: xRoot
 
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
     currentFinderIndex=currentFinderIndex+1
@@ -511,7 +511,7 @@ contains
        xHigh=rootGuess
     else
        rootFinderFind=0.0d0
-       call Galacticus_Error_Report('either "rootGuess" or "rootRange" must be specified'//{introspection:location})
+       call Error_Report('either "rootGuess" or "rootRange" must be specified'//{introspection:location})
     end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
@@ -663,10 +663,11 @@ contains
              if (present(status)) then
                 call displayMessage(message,verbosityLevelWarn)
                 status=errorStatusOutOfRange
+                currentFinderIndex=currentFinderIndex-1
                 return
              else
                 rootFinderFind=0.0d0
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           end if
        end do
@@ -691,10 +692,11 @@ contains
        if (present(status)) then
           status=statusActual
        else
-          call Galacticus_Error_Report('failed to initialize solver'//{introspection:location})
+          call Error_Report('failed to initialize solver'//{introspection:location})
        end if
     else
        iteration=0
+       xRoot    =0.0d0
        do
           iteration=iteration+1
           if (self%useDerivative) then
@@ -703,27 +705,29 @@ contains
              statusActual=GSL_Root_fSolver_Iterate  (self%solver)
           end if
           if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
-          select case (self%stoppingCriterion)
-          case (stoppingCriterionDelta   )
-             xRootPrevious=xRoot
-             xRoot        =GSL_Root_fdfSolver_Root(self%solver)
-             statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
-          case (stoppingCriterionInterval)
-             xRoot =GSL_Root_fSolver_Root   (self%solver)
-             xLow  =GSL_Root_fSolver_x_Lower(self%solver)
-             xHigh =GSL_Root_fSolver_x_Upper(self%solver)
-             statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
-          case default
-             call Galacticus_Error_Report('unknown stopping criterion'//{introspection:location})
-          end select
-          if (statusActual == GSL_Success) exit
+          if (iteration > 1) then
+             select case (self%stoppingCriterion)
+             case (stoppingCriterionDelta   )
+                xRootPrevious=xRoot
+                xRoot        =GSL_Root_fdfSolver_Root(self%solver)
+                statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
+             case (stoppingCriterionInterval)
+                xRoot =GSL_Root_fSolver_Root   (self%solver)
+                xLow  =GSL_Root_fSolver_x_Lower(self%solver)
+                xHigh =GSL_Root_fSolver_x_Upper(self%solver)
+                statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+             case default
+                call Error_Report('unknown stopping criterion'//{introspection:location})
+             end select
+             if (statusActual == GSL_Success) exit
+          end if
        end do
        if (statusActual /= GSL_Success) then
           rootFinderFind=0.0d0
           if (present(status)) then
              status=statusActual
           else
-             call Galacticus_Error_Report('failed to find root'//{introspection:location})
+             call Error_Report('failed to find root'//{introspection:location})
           end if
        else
           if (present(status)) status=GSL_Success
@@ -793,7 +797,7 @@ contains
     !!{
     Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (rootFinder), intent(inout) :: self
     integer            , intent(in   ) :: solverType
@@ -806,10 +810,10 @@ contains
     case (gsl_root_fdfsolver_newton ,gsl_root_fdfsolver_secant,gsl_root_fdfsolver_steffenson)
        self%solverType=gsl_fdfsolver_type_get(self%solverTypeID)
     case default
-       call Galacticus_Error_Report('unknown solver type'//{introspection:location})
+       call Error_Report('unknown solver type'//{introspection:location})
     end select
     self%resetRequired=.true.
-    if (.not.self%solverTypeIsValid()) call Galacticus_Error_Report('invalid solver type'//{introspection:location})
+    if (.not.self%solverTypeIsValid()) call Error_Report('invalid solver type'//{introspection:location})
     return
   end subroutine rootFinderType
 
@@ -830,7 +834,6 @@ contains
     !!{
     Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (rootFinder), intent(inout)           :: self
     integer                     , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &

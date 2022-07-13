@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,8 +89,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteStatus} node property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultPositionComponent , defaultSatelliteComponent
+    use :: Error           , only : Component_List          , Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
     implicit none
     type   (nodePropertyExtractorSatelliteStatus)                :: self
     integer                                      , intent(in   ) :: discriminator
@@ -100,34 +100,34 @@ contains
 
     select case (discriminator)
     case (satelliteStatusDiscriminatorBoundMass)
-       if     (                                                                                                                    &
-            &  .not.                                                                                                               &
-            &       (                                                                                                              &
-            &        defaultSatelliteComponent% boundMassHistoryIsGettable()                                                       &
-            &       )                                                                                                              &
-            & ) call Galacticus_Error_Report                                                                                       &
-            &        (                                                                                                             &
-            &         'this method requires that boundMassHistory property must be gettable for the satellite component.'       // &
-            &         Galacticus_Component_List(                                                                                   &
-            &                                   'satellite'                                                                     ,  &
-            &                                   defaultSatelliteComponent%boundMassHistoryAttributeMatch(requireGettable=.true.)   &
-            &                                  )                                                                                // &
-            &         {introspection:location}                                                                                     &
+       if     (                                                                                                             &
+            &  .not.                                                                                                        &
+            &       (                                                                                                       &
+            &        defaultSatelliteComponent% boundMassHistoryIsGettable()                                                &
+            &       )                                                                                                       &
+            & ) call Error_Report                                                                                           &
+            &        (                                                                                                      &
+            &         'this method requires that boundMassHistory property must be gettable for the satellite component.'// &
+            &         Component_List(                                                                                       &
+            &                        'satellite'                                                                         ,  &
+            &                        defaultSatelliteComponent%boundMassHistoryAttributeMatch(requireGettable=.true.)       &
+            &                       )                                                                                    // &
+            &         {introspection:location}                                                                              &
             &        )
     case (satelliteStatusDiscriminatorPosition )
-       if     (                                                                                                                    &
-            &  .not.                                                                                                               &
-            &       (                                                                                                              &
-            &        defaultPositionComponent %  positionHistoryIsGettable()                                                       &
-            &       )                                                                                                              &
-            & ) call Galacticus_Error_Report                                                                                       &
-            &        (                                                                                                             &
-            &         'this method requires that positionHistory property must be gettable for the position component.'         // &
-            &         Galacticus_Component_List(                                                                                   &
-            &                                   'position'                                                                      ,  &
-            &                                   defaultPositionComponent%positionHistoryAttributeMatch  (requireGettable=.true.)   &
-            &                                  )                                                                                // &
-            &         {introspection:location}                                                                                     &
+       if     (                                                                                                             &
+            &  .not.                                                                                                        &
+            &       (                                                                                                       &
+            &        defaultPositionComponent %  positionHistoryIsGettable()                                                &
+            &       )                                                                                                       &
+            & ) call Error_Report                                                                                           &
+            &        (                                                                                                      &
+            &         'this method requires that positionHistory property must be gettable for the position component.'  // &
+            &         Component_List(                                                                                       &
+            &                        'position'                                                                          ,  &
+            &                        defaultPositionComponent%positionHistoryAttributeMatch  (requireGettable=.true.)       &
+            &                       )                                                                                    // &
+            &         {introspection:location}                                                                              &
             &        )
     end select
     return

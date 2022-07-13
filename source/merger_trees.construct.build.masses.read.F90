@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,8 +75,8 @@ contains
        call allocateArray(massMinimum,shape(mass))
        call allocateArray(massMaximum,shape(mass))
        do i=1,size(mass)
-          massMinimum(i)=+mass(i)/sqrt(self%massIntervalFractional)
-          massMaximum(i)=+mass(i)*sqrt(self%massIntervalFractional)
+          massMinimum(i)=+mass(i)/sqrt(1.0d0+self%massIntervalFractional)
+          massMaximum(i)=+mass(i)*sqrt(1.0d0+self%massIntervalFractional)
           if (i > 1 .and. massMinimum(i) < massMaximum(i-1)) then
              massMinimum(i  )=sqrt(           &
                   &                +mass(i-1) &

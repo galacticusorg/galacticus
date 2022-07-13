@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,12 +32,18 @@
      A merger tree walker for trees under construction.
      !!}
      private
-     type   (mergerTree), pointer :: tree => null()
-     type   (treeNode  ), pointer :: node => null()
+     type   (mergerTree), pointer :: tree         => null()
+     type   (treeNode  ), pointer :: node         => null()
      logical                      :: nodesRemain_
    contains
+     !![
+     <methods>
+       <method description="Set the walker to the given node." method="setNode"/>
+     </methods>
+     !!]
      procedure :: next        => treeConstructionNext
      procedure :: nodesRemain => treeConstructionNodesRemain
+     procedure :: setNode     => treeConstructionSetNode
   end type mergerTreeWalkerTreeConstruction
 
   interface mergerTreeWalkerTreeConstruction
@@ -54,14 +60,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self
-    type(inputParameters         ), intent(inout) :: parameters
+    type(inputParameters                 ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
-    call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
+    call Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function treeConstructionParameters
 
@@ -126,7 +132,7 @@ contains
           end if
        end if
     else
-       self%node => self%tree%baseNode
+       self%node => self%tree%nodeBase
     end if
     node => self%node
     return
@@ -142,3 +148,18 @@ contains
     treeConstructionNodesRemain=self%nodesRemain_
     return
   end function treeConstructionNodesRemain
+
+  subroutine treeConstructionSetNode(self,node)
+    !!{
+    Set the current node for the walker.
+    !!}
+    implicit none
+    class(mergerTreeWalkerTreeConstruction), intent(inout)         :: self
+    type (treeNode                        ), intent(in   ), target :: node
+
+    self%nodesRemain_ =  .true.
+    self%node         => node
+    self%tree         => node%hostTree
+    return
+  end subroutine treeConstructionSetNode
+

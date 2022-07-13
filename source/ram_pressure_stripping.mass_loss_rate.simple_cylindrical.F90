@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,7 @@
   !!}
 
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
+  use :: Galactic_Structure          , only : galacticStructureClass
 
   !![
   <ramPressureStripping name="ramPressureStrippingSimpleCylindrical">
@@ -29,7 +30,7 @@
     A ram pressure stripping class which applies to systems with cylindrical symmetry (e.g. disks), and computes the mass loss
     rate to be:
     \begin{equation}
-     \dot{M}_\mathrm{gas, disk} = \hbox{min}\left({\mathcal{F}_\mathrm{hot, host} \over 2 \pi \mathrm{G}
+     \dot{M}_\mathrm{gas, disk} = \hbox{min}\left({\beta \mathcal{F}_\mathrm{hot, host} \over 2 \pi \mathrm{G}
      \Sigma_\mathrm{gas}(r_\mathrm{half}) \Sigma_\mathrm{total}(r_\mathrm{half})}, R_\mathrm{maximum}\right) {M_\mathrm{gas,
      disk} \over \tau_\mathrm{dyn, disk}},
     \end{equation}
@@ -37,20 +38,9 @@
     selected hot halo ram pressure force method; see \refPhysics{hotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
     surface density in the disk, $\Sigma_\mathrm{total}(r)$ is the total surface density in the disk, $r_\mathrm{half}$ is the
     disk half-mass radius, $M_\mathrm{gas, disk}$ is the total gas mass in the disk, $\tau_\mathrm{dyn, disk} =
-    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, and $R_\mathrm{maximum}=${\normalfont \ttfamily
-    [rateFractionalMaximum]} controls the maximum allowed rate of mass loss. For spheroids the mass loss rate is:
-    \begin{equation}
-    \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
-    \end{equation}
-    where $R_\mathrm{maximum}=${\normalfont \ttfamily [ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
-    \begin{equation}
-    \alpha = \mathcal{F}_\mathrm{hot,host}/F_\mathrm{gravity},
-    \end{equation}
-    and,
-    \begin{equation}
-    F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
-    \end{equation}
-    is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
+    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=${\normalfont \ttfamily [beta]} scales the rate of
+    mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily [rateFractionalMaximum]} controls the maximum allowed rate of mass
+    loss.
    </description>
   </ramPressureStripping>
   !!]
@@ -60,6 +50,7 @@
      !!}
      private
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
+     class           (galacticStructureClass      ), pointer :: galacticStructure_       => null()
      double precision                                        :: rateFractionalMaximum             , beta
    contains
      final     ::                 simpleCylindricalDestructor
@@ -86,6 +77,7 @@ contains
     type            (ramPressureStrippingSimpleCylindrical)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (hotHaloRamPressureForceClass         ), pointer       :: hotHaloRamPressureForce_
+    class           (galacticStructureClass               ), pointer       :: galacticStructure_
     double precision                                                       :: rateFractionalMaximum   , beta
 
     !![
@@ -102,16 +94,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=ramPressureStrippingSimpleCylindrical(rateFractionalMaximum,beta,hotHaloRamPressureForce_)
+    self=ramPressureStrippingSimpleCylindrical(rateFractionalMaximum,beta,hotHaloRamPressureForce_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloRamPressureForce_"/>
+    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function simpleCylindricalConstructorParameters
 
-  function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
+  function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simpleCylindrical} model of ram pressure stripping class.
     !!}
@@ -119,8 +113,9 @@ contains
     type            (ramPressureStrippingSimpleCylindrical)                        :: self
     double precision                                       , intent(in   )         :: rateFractionalMaximum   , beta
     class           (hotHaloRamPressureForceClass         ), intent(in   ), target :: hotHaloRamPressureForce_
+    class           (galacticStructureClass               ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_"/>
+    <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_, *galacticStructure_"/>
     !!]
 
     return
@@ -135,6 +130,7 @@ contains
 
     !![
     <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine simpleCylindricalDestructor
@@ -156,13 +152,12 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeAll, massTypeGaseous
-    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gigaYear                          , megaParsec
-    use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes        , only : kilo
+    use :: Display                         , only : displayGreen     , displayBlue                    , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeDisk, coordinateSystemCylindrical    , massTypeAll   , massTypeGaseous
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear         , gravitationalConstantGalacticus, megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleCylindrical), intent(inout) :: self
     class           (nodeComponent                        ), intent(inout) :: component
@@ -196,23 +191,26 @@ contains
        radiusHalfMass=0.0d0
        velocity      =0.
        massGas       =0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report(                                                                                                                                                                                                                                        &
+            &            'only "'//displayBlue()//'disk'//displayReset()//'" components are supported by the "'//displayGreen()//'simpleCylindrical'//displayReset()//'" '//displayBlue()//'ramPressureStripping'//displayReset()//' class'//char(10)//          &
+            &            displayGreen()//'HELP:'//displayReset()//' see '//displayMagenta()//'https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Component-not-supported-by-ramPressureStripping-class'//displayReset()//{introspection:location} &
+            &           )
     end select
     ! Compute the surface densities at the half mass radius.
-    surfaceDensityGas   =  Galactic_Structure_Surface_Density(                                              &
-         &                                                    node                                        , &
-         &                                                    [radiusHalfMass,0.0d0,0.0d0]                , &
-         &                                                    coordinateSystem=coordinateSystemCylindrical, &
-         &                                                    massType        =massTypeGaseous            , &
-         &                                                    componentType   =componentType                &
-         &                                                   )
-    surfaceDensityTotal =  Galactic_Structure_Surface_Density(                                              &
-         &                                                    node                                        , &
-         &                                                    [radiusHalfMass,0.0d0,0.0d0]                , &
-         &                                                    coordinateSystem=coordinateSystemCylindrical, &
-         &                                                    massType        =massTypeAll                , &
-         &                                                    componentType   =componentType                &
-         &                                                   )
+    surfaceDensityGas   =  self%galacticStructure_%surfaceDensity(                                              &
+         &                                                        node                                        , &
+         &                                                        [radiusHalfMass,0.0d0,0.0d0]                , &
+         &                                                        coordinateSystem=coordinateSystemCylindrical, &
+         &                                                        massType        =massTypeGaseous            , &
+         &                                                        componentType   =componentType                &
+         &                                                       )
+    surfaceDensityTotal =  self%galacticStructure_%surfaceDensity(                                              &
+         &                                                        node                                        , &
+         &                                                        [radiusHalfMass,0.0d0,0.0d0]                , &
+         &                                                        coordinateSystem=coordinateSystemCylindrical, &
+         &                                                        massType        =massTypeAll                , &
+         &                                                        componentType   =componentType                &
+         &                                                       )
     ! Compute the gravitational restoring force in the midplane.
     forceGravitational  =  +2.0d0                           &
          &                 *Pi                              &

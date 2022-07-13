@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -205,14 +205,15 @@ contains
     return
   end subroutine inSituRate
 
-  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
     !!{
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Output_HDF5               , only : outputFile
     use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: HDF5_Access               , only : hdf5Access
+    use :: IO_HDF5                   , only : hdf5Object
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)         :: self
@@ -222,6 +223,7 @@ contains
     integer         (c_size_t                  ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8            ), intent(in   )         :: indexTree
     integer                                     , intent(in   )         :: componentType
+    type            (ompLock                   ), intent(inout)         :: treeLock
     class           (nodeComponentBasic        ), pointer               :: basicParent
     type            (treeNode                  ), pointer               :: nodeParent
     double precision                                                    :: timeBegin           , timeEnd
@@ -229,11 +231,12 @@ contains
     type            (hdf5Object                )                        :: historyGroup        , outputGroup, &
          &                                                                 treeGroup
     type            (history                   )                        :: newHistory
+    !$GLC attributes unused :: treeLock
 
     if (.not.historyStarFormation%exists()) return
     if (nodePassesFilter) then
        !$ call hdf5Access%set()
-       historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data.")
+       historyGroup=outputFile%openGroup("starFormationHistories","Star formation history data.")
        groupName   ="Output"
        groupName   =groupName//indexOutput
        outputGroup =historyGroup%openGroup(char(groupName),"Star formation histories for all trees at each output.")
@@ -298,8 +301,8 @@ contains
     !!{
     Create the history required for storing star formation history.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLinear
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLinear
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)                         :: self
     type            (history                   ), intent(inout)                         :: historyStarFormation
@@ -322,9 +325,9 @@ contains
     ! If we have a set of times tabulated already, do some sanity checks.
     if (present(timesCurrent)) then
        ! Complain if the beginning time is before the given list of times.
-       if (timeBegin < timesCurrent(1                 )) call Galacticus_Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
+       if (timeBegin < timesCurrent(1                 )) call Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
        ! Complain if the end time is less than the maximum tabulated time.
-       if (timeEnd   < timesCurrent(size(timesCurrent))) call Galacticus_Error_Report('requested end time is within currently tabulated times'  //{introspection:location})
+       if (timeEnd   < timesCurrent(size(timesCurrent))) call Error_Report('requested end time is within currently tabulated times'  //{introspection:location})
     end if
 
     ! Step through time, creating a set of timesteps as needed.
@@ -439,8 +442,8 @@ contains
     !!{
     Zero any in-situ star formation history for galaxy about to merge.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentDisk      , nodeComponentSpheroid, treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class(starFormationHistoryInSitu), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -463,7 +466,7 @@ contains
           call spheroid%starFormationHistorySet(historyStarFormationSpheroid)
        end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine inSituSatelliteMerger

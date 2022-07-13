@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -119,7 +119,7 @@ module Intergalactic_Medium_State
     <description>Return the electron scattering optical depth from the present day back to the given {\normalfont \ttfamily time} in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <modules>Galacticus_Error</modules>
+    <modules>Error</modules>
     <argument>double precision, intent(in   )           :: time</argument>
     <argument>logical         , intent(in   ), optional :: assumeFullyIonized</argument>
     <code>
@@ -127,11 +127,11 @@ module Intergalactic_Medium_State
      ! Ensure that the table is initialized.
      call intergalacticMediumStateElectronScatteringTabulate(self,time)
      ! Check for invalid input.
-     if (time &gt; self%electronScatteringTableTimeMaximum)                                &amp;
-        &amp; call Galacticus_Error_Report(                                             &amp;
-        &amp;                              'time exceeds present age of the universe'// &amp;
-        &amp;                              {introspection:location}                     &amp;
-        &amp;                             )
+     if (time &gt; self%electronScatteringTableTimeMaximum)                  &amp;
+        &amp; call Error_Report(                                             &amp;
+        &amp;                   'time exceeds present age of the universe'// &amp;
+        &amp;                   {introspection:location}                     &amp;
+        &amp;                  )
      assumeFullyIonizedActual=.false.
      if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
      if (assumeFullyIonizedActual) then
@@ -145,14 +145,14 @@ module Intergalactic_Medium_State
     <description>Return the cosmological time at which the given electron scattering {\normalfont \ttfamily opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <modules>Galacticus_Error</modules>
+    <modules>Error</modules>
     <argument>double precision, intent(in   )           :: opticalDepth</argument>
     <argument>logical         , intent(in   ), optional :: assumeFullyIonized</argument>
     <code>
      logical                                            :: assumeFullyIonizedActual
      double precision                                   :: time
      ! Check for invalid input.
-     if (opticalDepth &lt; 0.0d0) call Galacticus_Error_Report('optical depth must be non-negative'//{introspection:location})
+     if (opticalDepth &lt; 0.0d0) call Error_Report('optical depth must be non-negative'//{introspection:location})
      ! Determine which optical depth to use.
      assumeFullyIonizedActual=.false.
      if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
@@ -193,6 +193,7 @@ contains
     !!{
     Construct a table of electron scattering optical depth as a function of cosmological time.
     !!}
+    use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
@@ -202,7 +203,9 @@ contains
     logical                                                                :: fullyIonized
 
     if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
-      ! Find minimum and maximum times to tabulate.
+       ! Validate cosmological parameters.
+       if (self%cosmologyParameters_%OmegaBaryon() <= 0.0d0) call Error_Report('can not compute electron scattering optical depths in a universe with no baryons'//{introspection:location})
+       ! Find minimum and maximum times to tabulate.
        self%electronScatteringTableTimeMaximum=    self%cosmologyFunctions_%cosmicTime(1.0d0)
        self%electronScatteringTableTimeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time)/2.0d0
        ! Decide how many points to tabulate and allocate table arrays.

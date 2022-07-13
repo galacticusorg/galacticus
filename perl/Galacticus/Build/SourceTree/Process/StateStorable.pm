@@ -409,7 +409,7 @@ subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedSha
  !!\{
  Restore the class of this object from file.
  !!\}
- use Galacticus_Error
+ use            :: Error        , only : Error_Report
  use, intrinsic :: ISO_C_Binding, only : c_size_t
  implicit none
  class  ({$parentClassName}), intent(inout), allocatable{$dimensions} :: self
@@ -434,7 +434,7 @@ CODE
 		    }
 		    $classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
  case default
-  call Galacticus_Error_Report('serialized object is of incorrect class')
+  call Error_Report('serialized object is of incorrect class')
  end select
  return
 end subroutine {$parentClassName}ClassRestore{$rankSuffix}

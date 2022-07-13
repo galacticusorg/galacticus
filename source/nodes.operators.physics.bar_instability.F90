@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,10 +121,10 @@ contains
     !!{
     Implement the effects of global bar instability on the galactic disk.
     !!}
-    use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk  , nodeComponentSpheroid
-    use :: Abundances_Structure          , only : operator(*)         , abundances         , zeroAbundances         , max
-    use :: Histories                     , only : operator(*)         , history
-    use :: Stellar_Luminosities_Structure, only : operator(*)         , stellarLuminosities, zeroStellarLuminosities, max
+    use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentDisk  , nodeComponentSpheroid
+    use :: Abundances_Structure          , only : operator(*)     , abundances         , zeroAbundances         , max
+    use :: Histories                     , only : operator(*)     , history
+    use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
     implicit none
     class           (nodeOperatorBarInstability), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout)          :: node
@@ -142,7 +142,7 @@ contains
     type            (history                   )                         :: historyTransferRate
 
     ! Do nothing during inactive property solving.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Check for a realistic disk, return immediately if disk is unphysical.
     disk => node%disk()
     if     (     disk%angularMomentum() < 0.0d0 &
@@ -210,9 +210,9 @@ contains
     call historyTransferRate%destroy()
     ! Additional external torque.
     if     (                                                                                                                                                                      &
-         &   spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%virialRadius(node)*self%darkMatterHaloScale_%virialVelocity(node) &
+         &   spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%radiusVirial(node)*self%darkMatterHaloScale_%velocityVirial(node) &
          &  .and.                                                                                                                                                                 &
-         &   spheroid%radius         () <                                             self%darkMatterHaloScale_%virialRadius(node)                                                &
+         &   spheroid%radius         () <                                             self%darkMatterHaloScale_%radiusVirial(node)                                                &
          & ) then
        call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,functionInterrupt)
     end if

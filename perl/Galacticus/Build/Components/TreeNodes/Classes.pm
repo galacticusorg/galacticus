@@ -36,7 +36,7 @@ sub Tree_Node_Class_Count {
 	description => "Returns the number of {\\normalfont \\ttfamily ".$code::class->{'name'}."} components in the node.",
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	    ],
 	variables   =>
 	    [
@@ -64,14 +64,14 @@ class is (treeNode)
  end if
 class default
  treeNode{ucfirst($class->{'name'})}Count=0
- call Galacticus_Error_Report('treeNode of unknown class'//\{introspection:location\})
+ call Error_Report('treeNode of unknown class'//\{introspection:location\})
 end select
 CODE
     } else {
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 treeNode{ucfirst($class->{'name'})}Count=0
-call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
+call Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
     }
     # Insert a type-binding for this function into the treeNode type.
@@ -97,7 +97,7 @@ sub Tree_Node_Class_Get {
 	recursive   => 1,
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Error"
 	    ],
 	variables   =>
 	    [
@@ -158,7 +158,7 @@ if (present(autoCreate)) autoCreateActual=autoCreate
 if (autoCreateActual) then
  ! Support for this component was not compiled, so we can not create it.
  component => null()
- call Galacticus_Error_Report('Galacticus was compiled without support for this class'//\{introspection:location\})
+ call Error_Report('Galacticus was compiled without support for this class'//\{introspection:location\})
 else
  ! Support for this component was not compiled, return the default of the class - and trust that the user knows what they are doing.
  component => default{ucfirst($class->{'name'})}Component

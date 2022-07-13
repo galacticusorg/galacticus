@@ -41,7 +41,7 @@ sub Class_Move {
 	    description => "Move instances of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component, from one node to another.",
 	    modules     =>
 		[
-		 "Galacticus_Error"
+		 "Error"
 		],
 	    variables   =>
 		[
@@ -135,7 +135,7 @@ CODE
 	} else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self, targetNode, overwrite, instanceCount, targetCount, i, instancesTemporary, overwrite_
-call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
+call Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
 	}
 	# Insert a type-binding for this function into the treeNode type.
@@ -165,7 +165,7 @@ sub Class_Remove {
 	    description => "Remove an instance of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component from a node.",
 	    modules     =>
 		[
-		 "Galacticus_Error"
+		 "Error"
 		],
 	    variables   =>
 		[
@@ -195,7 +195,7 @@ sub Class_Remove {
 	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 instanceCount=self%{$class->{'name'}}count()
-if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('instance out of range'//\{introspection:location\})
+if (instance < 1 .or. instance > instanceCount) call Error_Report('instance out of range'//\{introspection:location\})
 call self%component{ucfirst($class->{'name'})}(instance)%destroy()
 if (instanceCount == 1) then
   ! Only one instance of this component. Deallocate it and reallocate with generic type.
@@ -225,7 +225,7 @@ CODE
 	} else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self, instance, instanceCount, instancesTemporary
-call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
+call Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
 	}
 	# Insert a type-binding for this function into the treeNode type.

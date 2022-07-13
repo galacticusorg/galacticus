@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a property extractor class for the mass enclosed by a set of radii.
-!!}
+  !!{
+  Contains a module which implements a property extractor class for the enclosed mass at a set of radii.
+  !!}
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure                  , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
-   <description>
-    A node property extractor class which extracts the mass enclosed within specified radii. A list of radii, $r$ (in Mpc),
-    must be specified via the {\normalfont \ttfamily [radii]} parameter. For each specified radius, the total (dark + baryonic)
-    mass will be extracted as {\normalfont \ttfamily massProfile}$r$.
-   </description>
+   <description>A property extractor class for the enclosed mass at a set of radii.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile
      !!{
-     A property extractor class for the mass enclosed within a specified list of radii.
+     A property extractor class for the enclosed mass at a set fo radii.
      !!}
      private
-     integer         (c_size_t)                            :: radiiCount
-     double precision          , allocatable, dimension(:) :: radii
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
+     class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
+     integer                                                      :: radiiCount                             , elementCount_
+     logical                                                      :: includeRadii
+     type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
+     type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
+     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
    contains
+     final     ::                       massProfileDestructor
      procedure :: columnDescriptions => massProfileColumnDescriptions
      procedure :: size               => massProfileSize
      procedure :: elementCount       => massProfileElementCount
@@ -64,40 +70,83 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nodePropertyExtractorMassProfile)                              :: self
-    type            (inputParameters                 ), intent(inout)               :: parameters
-    double precision                                  , allocatable  , dimension(:) :: radii
+    type   (nodePropertyExtractorMassProfile)                              :: self
+    type   (inputParameters                 ), intent(inout)               :: parameters
+    type   (varying_string                  ), allocatable  , dimension(:) :: radiusSpecifiers
+    class  (darkMatterHaloScaleClass        ), pointer                     :: darkMatterHaloScale_
+    class  (galacticStructureClass          ), pointer                     :: galacticStructure_
+    logical                                                                :: includeRadii
 
-    allocate(radii(parameters%count('radii')))
+    allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
     <inputParameter>
-      <name>radii</name>
-      <description>A list of radii at which to output the mass profile.</description>
+      <name>radiusSpecifiers</name>
+      <description>A list of radius specifiers at which to output the enclosed mass profile.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>includeRadii</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not the radii at which enclosed mass data are output should also be included in the output file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorMassProfile(radii)
+    self=nodePropertyExtractorMassProfile(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function massProfileConstructorParameters
 
-  function massProfileConstructorInternal(radii) result(self)
+  function massProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily massProfile} property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : massTypeAll, massTypeDark
+    use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
-    type            (nodePropertyExtractorMassProfile)                              :: self
-    double precision                                  , intent(in   ), dimension(:) :: radii
+    type   (nodePropertyExtractorMassProfile)                              :: self
+    type   (varying_string                  ), intent(in   ), dimension(:) :: radiusSpecifiers
+    class  (darkMatterHaloScaleClass        ), intent(in   ), target       :: darkMatterHaloScale_
+    class  (galacticStructureClass          ), intent(in   ), target       :: galacticStructure_
+    logical                                  , intent(in   )               :: includeRadii
     !![
-    <constructorAssign variables="radii"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
-    self%radiiCount=size(radii)
+    if (includeRadii) then
+       self%elementCount_=2
+    else
+       self%elementCount_=1
+    end if
+    self%radiiCount      =size(radiusSpecifiers)
+    call Galactic_Structure_Radii_Definition_Decode(                                    &
+         &                                          radiusSpecifiers                  , &
+         &                                          self%radii                        , &
+         &                                          self%diskIsNeeded                 , &
+         &                                          self%spheroidIsNeeded             , &
+         &                                          self%virialRadiusIsNeeded         , &
+         &                                          self%darkMatterScaleRadiusIsNeeded  &
+         &                                         )
     return
   end function massProfileConstructorInternal
+
+  subroutine massProfileDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massProfile} property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorMassProfile), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%galacticStructure_"  />
+    !!]
+    return
+  end subroutine massProfileDestructor
 
   integer function massProfileElementCount(self,time)
     !!{
@@ -106,9 +155,9 @@ contains
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !$GLC attributes unused :: self, time
+    !$GLC attributes unused :: time
 
-    massProfileElementCount=1
+    massProfileElementCount=self%elementCount_
     return
   end function massProfileElementCount
 
@@ -128,89 +177,148 @@ contains
 
   function massProfileExtract(self,node,time,instance)
     !!{
-    Implement a last isolated redshift output analysis.
+    Implement a {\normalfont \ttfamily massProfile} property extractor.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
+    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
+          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
     double precision                                  , dimension(:,:), allocatable :: massProfileExtract
     class           (nodePropertyExtractorMassProfile), intent(inout) , target      :: self
     type            (treeNode                        ), intent(inout) , target      :: node
     double precision                                  , intent(in   )               :: time
     type            (multiCounter                    ), intent(inout) , optional    :: instance
-    integer         (c_size_t                        )                              :: i
+    class           (nodeComponentDisk               ), pointer                     :: disk
+    class           (nodeComponentSpheroid           ), pointer                     :: spheroid
+    class           (nodeComponentDarkMatterProfile  ), pointer                     :: darkMatterProfile
+    integer                                                                         :: i
+    double precision                                                                :: radius             , radiusVirial
     !$GLC attributes unused :: time, instance
 
-    allocate(massProfileExtract(self%radiiCount,1_c_size_t))
+    allocate(massProfileExtract(self%radiiCount,self%elementCount_))
+    radiusVirial                                              =  0.0d0
+    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
+    if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
+    if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
+    if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
     do i=1,self%radiiCount
-       massProfileExtract(i,1)=Galactic_Structure_Enclosed_Mass(node,self%radii(i),componentType=componentTypeAll,massType=massTypeAll)
+       radius=self%radii(i)%value
+       select case (self%radii(i)%type)
+       case   (radiusTypeRadius                )
+          ! Nothing to do.
+       case   (radiusTypeVirialRadius          )
+          radius=+radius*radiusVirial
+       case   (radiusTypeDarkMatterScaleRadius )
+          radius=+radius*darkMatterProfile%         scale()
+       case   (radiusTypeDiskRadius            )
+          radius=+radius*disk             %        radius()
+       case   (radiusTypeSpheroidRadius        )
+          radius=+radius*spheroid         %        radius()
+       case   (radiusTypeDiskHalfMassRadius    )
+          radius=+radius*disk             %halfMassRadius()
+       case   (radiusTypeSpheroidHalfMassRadius)
+          radius=+radius*spheroid         %halfMassRadius()
+       case   (radiusTypeGalacticMassFraction ,  &
+            &  radiusTypeGalacticLightFraction )
+          radius=+radius                                           &
+               & *self%galacticStructure_%radiusEnclosingMass      &
+               &  (                                                &
+               &   node                                         ,  &
+               &   massFractional=self%radii(i)%fraction        ,  &
+               &   massType      =              massTypeGalactic,  &
+               &   componentType =              componentTypeAll,  &
+               &   weightBy      =self%radii(i)%weightBy        ,  &
+               &   weightIndex   =self%radii(i)%weightByIndex      &
+               &  )
+        case   (radiusTypeStellarMassFraction  )
+          radius=+radius                                           &
+               & *self%galacticStructure_%radiusEnclosingMass      &
+               &  (                                                &
+               &   node                                         ,  &
+               &   massFractional=self%radii(i)%fraction        ,  &
+               &   massType      =              massTypeStellar ,  &
+               &   componentType =              componentTypeAll,  &
+               &   weightBy      =self%radii(i)%weightBy        ,  &
+               &   weightIndex   =self%radii(i)%weightByIndex      &
+               &  )
+       end select
+       massProfileExtract       (i,1)=self%galacticStructure_%massEnclosed(                                       &
+            &                                                              node                                 , &
+            &                                                              radius                               , &
+            &                                                              componentType=self%radii(i)%component, &
+            &                                                              massType     =self%radii(i)%mass       &
+            &                                                             )
+       if (self%includeRadii)                                                                                     &
+            & massProfileExtract(i,2)=                                     radius
     end do
     return
   end function massProfileExtract
 
-  function massProfileNames(self,time)
+  subroutine massProfileNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily massProfile} properties.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: massProfileNames
-    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(massProfileNames(1))
-    massProfileNames(1)='massProfile'
+    allocate(names(self%elementCount_))
+    names(1)="massProfile"
+    if (self%includeRadii) names(2)="massProfileRadius"
     return
-  end function massProfileNames
+  end subroutine massProfileNames
 
-  function massProfileDescriptions(self,time)
+  subroutine massProfileDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily massProfile} property.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: massProfileDescriptions
-    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(massProfileDescriptions(1))
-    massProfileDescriptions(1)='Mass enclosed within each radius'
+    allocate(descriptions(self%elementCount_))
+    descriptions       (1)="Enclosed mass at a given radius [M☉]."
+    if (self%includeRadii)                                                  &
+         & descriptions(2)="Radius at which enclosed mass is output [Mpc]."
     return
-  end function massProfileDescriptions
+  end subroutine massProfileDescriptions
 
-  function massProfileColumnDescriptions(self,time)
+  subroutine massProfileColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily massProfile} property.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: massProfileColumnDescriptions
-    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
-    integer         (c_size_t                        )                             :: i
-    character       (len=22                          )                             :: name
+    class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
-    
-    allocate(massProfileColumnDescriptions(self%radiiCount))
-    do i=1,self%radiiCount
-       write (name,'(a,e9.3,a)') 'r = ',self%radii(i),' Mpc'       
-       massProfileColumnDescriptions(i)=trim(adjustl(name))
-    end do
+
+    allocate(descriptions(self%radiiCount))
+    descriptions=self%radii%name
     return
-  end function massProfileColumnDescriptions
-  
+  end subroutine massProfileColumnDescriptions
+
   function massProfileUnitsInSI(self,time)
     !!{
     Return the units of the {\normalfont \ttfamily massProfile} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
     double precision                                  , allocatable  , dimension(:) :: massProfileUnitsInSI
     class           (nodePropertyExtractorMassProfile), intent(inout)               :: self
     double precision                                  , intent(in   )               :: time
     !$GLC attributes unused :: time
 
-    allocate(massProfileUnitsInSI(1))
-    massProfileUnitsInSI(1)=massSolar
+    allocate(massProfileUnitsInSI(self%elementCount_))
+    massProfileUnitsInSI       (1)=massSolar
+    if (self%includeRadii)                    &
+         & massProfileUnitsInSI(2)=megaParsec
     return
   end function massProfileUnitsInSI
 

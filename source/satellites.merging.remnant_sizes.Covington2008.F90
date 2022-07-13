@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -162,8 +162,8 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"       />
     <objectDestructor name="self%mergerProgenitorProperties_"/>
     !!]
-    call calculationResetEvent%detach(self,covington2008CalculationReset)
-    call satelliteMergerEvent %detach(self,covington2008GetHook         )
+    if (calculationResetEvent%isAttached(self,covington2008CalculationReset)) call calculationResetEvent%detach(self,covington2008CalculationReset)
+    if (satelliteMergerEvent %isAttached(self,covington2008GetHook         )) call satelliteMergerEvent %detach(self,covington2008GetHook         )
     return
   end subroutine covington2008Destructor
 
@@ -171,7 +171,7 @@ contains
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -181,7 +181,7 @@ contains
        self%propertiesCalculated=.false.
        self%lastUniqueID       =node%uniqueID()
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine covington2008CalculationReset
@@ -190,7 +190,7 @@ contains
     !!{
     Hookable wrapper around the get function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (*       ), intent(inout)         :: self
     type            (treeNode), intent(inout), target :: node
@@ -201,7 +201,7 @@ contains
     type is (mergerRemnantSizeCovington2008)
        call self%get(node,radius,velocityCircular,angularMomentumSpecific)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine covington2008GetHook
@@ -210,9 +210,9 @@ contains
     !!{
     Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
     !!}
-    use :: Display                         , only : displayMessage                 , displayVerbosity, verbosityLevelWarn, displayMagenta, &
-         &                                          displayReset
-    use :: Galacticus_Error                , only : Galacticus_Error_Report        , Galacticus_Warn
+    use :: Display                         , only : displayMagenta                 , displayMessage, displayReset, displayVerbosity, &
+          &                                         verbosityLevelWarn
+    use :: Error                           , only : Error_Report                   , Warn
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: String_Handling                 , only : operator(//)
@@ -293,7 +293,7 @@ contains
                 message=message//trim(joinString)//'negative spheroid mass'
                 joinString=", "
              end if
-             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
              call displayMessage(message)
              errorCondition=.true.
           end if
@@ -323,14 +323,14 @@ contains
                 message=message//trim(joinString)//'negative spheroid mass'
                 joinString=", "
              end if
-             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
              call displayMessage(message)
              errorCondition=.true.
           end if
           if (errorCondition) then
              call node    %serializeASCII()
              call nodeHost%serializeASCII()
-             call Galacticus_Error_Report('error condition detected'//{introspection:location})
+             call Error_Report('error condition detected'//{introspection:location})
           end if
           ! Apply the Covington et al. (2008) algorithm to compute the size of the new remnant.
           ! Check that remnant has finite mass.
@@ -353,7 +353,7 @@ contains
              if (energyFinal <= 0.0d0) then
                 write (dataString,'(e12.6,":",e12.6)') energyProgenitors,energyRadiated
                 message='remnant becomes unbound (energyProgenitors:energyRadiated='//trim(dataString)//')'
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              ! Compute the remnant radius.
              self%radius=(massSpheroidSatellite+massSpheroidHost)**2/(energyProgenitors+energyRadiated)
@@ -362,15 +362,15 @@ contains
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
              if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then
-                radiusVirial  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
-                velocityVirial=self%darkMatterHaloScale_%virialVelocity(nodeHost)
+                radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
+                velocityVirial=self%darkMatterHaloScale_%velocityVirial(nodeHost)
                 if (angularMomentumSpecific < fractionAngularMomentumSpecificSmall*radiusVirial*velocityVirial) then
                    message=displayMagenta()//'WARNING:'//displayReset()//' the specific angular momentum for node '
                    message=message//nodeHost%index()//' has become very small'//char(10)
                    message=message//' --> this will likely lead to a crash soon'
                    message=message//'NOTE: this can happen with the covington2008 implementation of the mergerRemnantSize class'//char(10)
                    message=message//' --> an alternative choice (e.g. the cole2000 implementation) may avoid this problem'//{introspection:location}
-                   call Galacticus_Warn(message)
+                   call Warn(message)
                    self%warningIssued=.true.
                 end if
              end if

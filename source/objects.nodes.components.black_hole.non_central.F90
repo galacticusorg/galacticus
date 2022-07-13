@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,11 +29,13 @@ module Node_Component_Black_Hole_Noncentral
   use :: Black_Hole_Binary_Recoil_Velocities, only : blackHoleBinaryRecoilClass
   use :: Black_Hole_Binary_Separations      , only : blackHoleBinarySeparationGrowthRateClass
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
+  use :: Galactic_Structure                 , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Noncentral_Rate_Compute       , Node_Component_Black_Hole_Noncentral_Scale_Set        , &
        &    Node_Component_Black_Hole_Noncentral_Initialize         , Node_Component_Black_Hole_Noncentral_Thread_Initialize, &
-       &    Node_Component_Black_Hole_Noncentral_Thread_Uninitialize
+       &    Node_Component_Black_Hole_Noncentral_Thread_Uninitialize, Node_Component_Black_Hole_Noncentral_State_Store      , &
+       &    Node_Component_Black_Hole_Noncentral_State_Restore
 
   !![
   <component>
@@ -61,7 +63,8 @@ module Node_Component_Black_Hole_Noncentral
   class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
-  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_)
+  class(galacticStructureClass                  ), pointer :: galacticStructure_
+  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,galacticStructure_)
 
   ! Option specifying whether the triple black hole interaction should be used.
   logical :: tripleBlackHoleInteraction
@@ -120,6 +123,7 @@ contains
        <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
        <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
        <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
+       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="parameters_"/>
        !!]
     end if
     return
@@ -143,6 +147,7 @@ contains
        <objectDestructor name="blackHoleBinaryRecoil_"              />
        <objectDestructor name="blackHoleBinaryMerger_"              />
        <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       <objectDestructor name="galacticStructure_"                  />
        !!]
     end if
     return
@@ -157,7 +162,7 @@ contains
     !!{
     Compute the black hole node mass rate of change.
     !!}
-    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
+    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyInactive, &
           &                                         treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -174,7 +179,7 @@ contains
     logical                                                          :: binaryRadiusFound
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     if (defaultBlackHoleComponent%noncentralIsActive()) then
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
@@ -192,7 +197,7 @@ contains
                &            )                                                &
                &           /(                                                &
                &              4.0d0                                          &
-               &             *  darkMatterHaloScale_%virialVelocity(node)**2 &
+               &             *  darkMatterHaloScale_%velocityVirial(node)**2 &
                &            )
           ! Places a new black hole in the center of the galaxy in case there is no central one.
           if     (                                                       &
@@ -251,7 +256,7 @@ contains
                      &            )                                              &
                      &           /(                                              &
                      &              4.0d0                                        &
-                     &             *darkMatterHaloScale_%virialVelocity(node)**2 &
+                     &             *darkMatterHaloScale_%velocityVirial(node)**2 &
                      &            )
                 ! Search for a third black hole.
                 do iInstance=2,instanceCount
@@ -326,9 +331,9 @@ contains
     type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
          &                                                              blackHolePrimary, blackHoleSecondary
-    double precision                                                 :: blackHoleMassNew, blackHoleSpinNew  , &
+    double precision                                                 :: massBlackHoleNew, spinBlackHoleNew  , &
          &                                                              massBlackHole1  , massBlackHole2    , &
-         &                                                              recoilVelocity  , spinBlackHole1    , &
+         &                                                              velocityRecoil  , spinBlackHole1    , &
          &                                                              spinBlackHole2
 
     ! Get the black holes.
@@ -339,8 +344,8 @@ contains
          &                            blackHole1%mass(), &
          &                            blackHole2%spin(), &
          &                            blackHole1%spin(), &
-         &                            blackHoleMassNew , &
-         &                            blackHoleSpinNew   &
+         &                            massBlackHoleNew , &
+         &                            spinBlackHoleNew   &
          &                           )
     ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
     if (blackHole1%mass() >= blackHole2%mass()) then
@@ -355,15 +360,15 @@ contains
     spinBlackHole1=blackHolePrimary  %spin()
     spinBlackHole2=blackHoleSecondary%spin()
     ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
-    recoilVelocity=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
+    velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
-    if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
-       blackHoleMassNew=blackHole1%massSeed()
-       blackHoleSpinNew=blackHole1%spinSeed()
+    if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+       massBlackHoleNew=blackHole1%massSeed()
+       spinBlackHoleNew=blackHole1%spinSeed()
     end if
     ! Set the mass and spin of the central black hole.
-    call blackHole1%massSet(blackHoleMassNew)
-    call blackHole1%spinSet(blackHoleSpinNew)
+    call blackHole1%massSet(massBlackHoleNew)
+    call blackHole1%spinSet(spinBlackHoleNew)
     ! Remove the merging black hole from the list.
     call node%blackHoleRemove(mergingInstance)
     return
@@ -474,27 +479,26 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction
 
-  logical function Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
+  logical function Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
-    use :: Galactic_Structure_Options   , only : componentTypeBlackHole
-    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
-    use :: Galacticus_Nodes             , only : treeNode
+    use :: Galactic_Structure_Options, only : componentTypeBlackHole
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: recoilVelocity        , radius
+    double precision          , intent(in   ) :: velocityRecoil        , radius
     logical                   , intent(in   ) :: ignoreCentralBlackHole
     double precision                          :: potentialCentral      , potentialCentralSelf, &
          &                                       potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
-    potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )
-    potentialHalo   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
+    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
-       potentialCentralSelf=Galactic_Structure_Potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+       potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
+       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node),componentType=componentTypeBlackHole)
     else
        ! No correction for central black hole as it is to be included.
        potentialCentralSelf=0.0d0
@@ -502,7 +506,7 @@ contains
     end if
     ! Evaluate the escape condition.
     Node_Component_Black_Hole_Noncentral_Recoil_Escapes= &
-         &  +0.5d0*recoilVelocity      **2               &
+         &  +0.5d0*velocityRecoil      **2               &
          &  +      potentialCentral                      &
          &  -      potentialCentralSelf                  &
          & >                                             &
@@ -510,5 +514,51 @@ contains
          &  -      potentialHaloSelf
     return
   end function Node_Component_Black_Hole_Noncentral_Recoil_Escapes
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Black_Hole_NonCentral_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Black_Hole_NonCentral_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentBlackHole -> nonCentral',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_NonCentral_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Black_Hole_NonCentral_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Black_Hole_NonCentral_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentBlackHole -> nonCentral',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_NonCentral_State_Restore
 
 end module Node_Component_Black_Hole_Noncentral

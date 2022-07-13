@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,7 +86,7 @@ contains
     Constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
     !!}
     use :: Array_Utilities                 , only : Array_Reverse
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : magnitudesPerOpticalDepth
     use :: Numerical_Constants_Units       , only : angstromsPerMicron
     use :: Table_Labels                    , only : extrapolationTypeExtrapolate
@@ -95,7 +95,7 @@ contains
     integer                                             , intent(in   ) :: model
 
     ! Initialize fitting function parameters for the chosen model.
-    if (.not.enumerationWittGordon2000ModelIsValid(model)) call Galacticus_Error_Report('invalid model'//{introspection:location})
+    if (.not.enumerationWittGordon2000ModelIsValid(model)) call Error_Report('invalid model'//{introspection:location})
     call self%attenuationTable%create(angstromsPerMicron/Array_Reverse([ 1000.0d0,   1142.0d0,   1285.0d0,   1428.0d0,   1571.0d0,  1714.0d0,  1857.0d0,  2000.0d0,   2142.0d0,  2285.0d0,   2428.0d0,   2571.0d0,   2714.0d0,   2857.0d0,   3000.0d0,   3776.0d0,   4754.0d0,   5985.0d0,   7535.0d0,   9487.0d0,  11943.0d0,  15036.0d0,  18929.0d0,  23830.0d0,  30001.0d0]),tableCount=1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
      select case (model)
      case (wittGordon2000ModelMilkyWayShellTau3)

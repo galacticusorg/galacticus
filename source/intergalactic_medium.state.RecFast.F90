@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,9 +86,9 @@ contains
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: File_Utilities                  , only : Count_Lines_in_File         , Directory_Make     , File_Exists, File_Lock, &
           &                                         File_Unlock                 , File_Name_Temporary, File_Remove
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
-    use :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
+    use :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use :: System_Command                  , only : System_Command_Do
@@ -117,7 +117,7 @@ contains
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
     ! Construct the file name.
-    self%fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    self%fileName=char(inputPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
     !![
     <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
@@ -143,7 +143,7 @@ contains
     !$omp end critical(gfortranInternalIO)
 #endif
     ! Create directory for output.
-    call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
+    call Directory_Make(inputPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
@@ -162,9 +162,6 @@ contains
     end if
     ! Build file if necessary.
     if (buildFile) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Unlock(                    self%fileLock                     )
-       call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Initialize RecFast.
        call Interface_RecFast_Initialize(recfastPath,recfastVersion)
        ! Build RecFast parameter file.

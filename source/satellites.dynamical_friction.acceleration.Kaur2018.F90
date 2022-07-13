@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Numerical_Interpolation , only : interpolator
+  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionKaur2018">
@@ -53,9 +54,10 @@
      to another dynamical friction class.
      !!}
      private
-     class           (satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_        => null()
-     class           (darkMatterProfileDMOClass      ), pointer :: darkMatterProfileDMO_              => null()
-     type            (interpolator                   )          :: factorSuppressionLeadingLogarithmic         , factorSuppressionTrailingLogarithmic
+     class           (satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_         => null()
+     class           (darkMatterProfileDMOClass      ), pointer :: darkMatterProfileDMO_               => null()
+     class           (galacticStructureClass         ), pointer :: galacticStructure_                  => null()
+     type            (interpolator                   )          :: factorSuppressionLeadingLogarithmic          , factorSuppressionTrailingLogarithmic
      double precision                                           :: radiusDimensionlessMaximum
    contains
      final     ::                 kaur2018Destructor
@@ -70,6 +72,10 @@
      module procedure kaur2018ConstructorInternal
   end interface satelliteDynamicalFrictionKaur2018
 
+  ! Submodule-scope variables used in root finding.
+  class(satelliteDynamicalFrictionKaur2018), pointer :: self_
+  !$omp threadprivate(self_)
+  
 contains
 
   function kaur2018ConstructorParameters(parameters) result(self)
@@ -82,21 +88,24 @@ contains
     type (inputParameters                   ), intent(inout) :: parameters
     class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class(satelliteDynamicalFrictionClass   ), pointer       :: satelliteDynamicalFriction_
+    class(galacticStructureClass            ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
+    <objectBuilder class="galacticStructure"          name="galacticStructure_"          source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionKaur2018(satelliteDynamicalFriction_,darkMatterProfileDMO_)
+    self=satelliteDynamicalFrictionKaur2018(satelliteDynamicalFriction_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteDynamicalFriction_"/>
     <objectDestructor name="darkMatterProfileDMO_"      />
+    <objectDestructor name="galacticStructure_"         />
     !!]
     return
   end function kaur2018ConstructorParameters
 
-  function kaur2018ConstructorInternal(satelliteDynamicalFriction_,darkMatterProfileDMO_) result(self)
+  function kaur2018ConstructorInternal(satelliteDynamicalFriction_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class.
     !!}
@@ -105,8 +114,9 @@ contains
     type (satelliteDynamicalFrictionKaur2018)                        :: self
     class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class(satelliteDynamicalFrictionClass   ), intent(in   ), target :: satelliteDynamicalFriction_
+    class(galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*satelliteDynamicalFriction_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*satelliteDynamicalFriction_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
     
     ! Build interpolators for the suppression factor as a function of radius. These are extracted directly from the arXiv source
@@ -170,6 +180,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"      />
     <objectDestructor name="self%satelliteDynamicalFriction_"/>
+    <objectDestructor name="self%galacticStructure_"         />
     !!]
     return
   end subroutine kaur2018Destructor
@@ -179,24 +190,23 @@ contains
     Return an acceleration for satellites due to dynamical friction using the core-stalling model of \cite{kaur_stalling_2018}.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentSatellite
-    use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
     use :: Galactic_Structure_Options  , only : coordinateSystemCartesian
     use :: Root_Finder                 , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    double precision                                    , dimension(3)  :: kaur2018Acceleration
-    class           (satelliteDynamicalFrictionKaur2018), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    class           (nodeComponentSatellite            ), pointer       :: satellite
-    type            (treeNode                          ), pointer       :: nodeHost
-    double precision                                    , dimension(3)  :: position
-    double precision                                    , parameter     :: toleranceAbsolute   =0.0d+0, toleranceRelative                   =1.0d-3
-    double precision                                                    :: massSatellite              , densityHostCentral                         , &
-         &                                                                 factorSuppression          , logSlopeDensityProfileDarkMatterHost       , &
-         &                                                                 radiusOrbital              , radiusStalling                             , &
-         &                                                                 radiusDimensionless
-    type            (rootFinder                        )                :: finder
+    double precision                                    , dimension(3)          :: kaur2018Acceleration
+    class           (satelliteDynamicalFrictionKaur2018), intent(inout), target :: self
+    type            (treeNode                          ), intent(inout)         :: node
+    class           (nodeComponentSatellite            ), pointer               :: satellite
+    type            (treeNode                          ), pointer               :: nodeHost
+    double precision                                    , dimension(3)          :: position
+    double precision                                    , parameter             :: toleranceAbsolute   =0.0d+0, toleranceRelative                   =1.0d-3
+    double precision                                                            :: massSatellite              , densityHostCentral                         , &
+         &                                                                         factorSuppression          , logSlopeDensityProfileDarkMatterHost       , &
+         &                                                                         radiusOrbital              , radiusStalling                             , &
+         &                                                                         radiusDimensionless
+    type            (rootFinder                        )                        :: finder
     
-    ! Compute the base acceleration.
+    ! Compute the base acceleration.    
     kaur2018Acceleration=+self%satelliteDynamicalFriction_%acceleration(node)
     ! Get host node and satellite component.
     nodeHost      => node     %mergesWith()
@@ -211,7 +221,8 @@ contains
     logSlopeDensityProfileDarkMatterHost=self%darkMatterProfileDMO_%densityLogSlope(nodeHost,radius=0.0d0)
     if (logSlopeDensityProfileDarkMatterHost < 0.0d0) return
     ! Find the stalling radius.
-    densityHostCentral=Galactic_Structure_Density(nodeHost,[0.0d0,0.0d0,0.0d0],coordinateSystemCartesian)
+    self_ => self
+    densityHostCentral=self%galacticStructure_%density(nodeHost,[0.0d0,0.0d0,0.0d0],coordinateSystemCartesian)
     finder=rootFinder(                                                             &
          &            rootFunction                 =radiusStallingRoot           , &
          &            toleranceAbsolute            =toleranceAbsolute            , &
@@ -243,17 +254,16 @@ contains
       !!{
       Root function used in finding the stalling radius.
       !!}
-      use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-      use :: Numerical_Constants_Math          , only : Pi
+      use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: radiusStalling
       
-      radiusStallingRoot=+4.0d0                                                     &
-           &             *Pi                                                        &
-           &             /3.0d0                                                     &
-           &             *densityHostCentral                                        &
-           &             *radiusStalling    **3                                     &
-           &             -Galactic_Structure_Enclosed_Mass(nodeHost,radiusStalling) &
+      radiusStallingRoot=+4.0d0                                                          &
+           &             *Pi                                                             &
+           &             /3.0d0                                                          &
+           &             *densityHostCentral                                             &
+           &             *radiusStalling    **3                                          &
+           &             -self_%galacticStructure_%massEnclosed(nodeHost,radiusStalling) &
            &             -massSatellite
       return
     end function radiusStallingRoot

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +39,8 @@ module Node_Component_Disk_Very_Simple
   public :: Node_Component_Disk_Very_Simple_Scale_Set   , Node_Component_Disk_Very_Simple_Thread_Uninitialize, &
        &    Node_Component_Disk_Very_Simple_Initialize  , Node_Component_Disk_Very_Simple_Pre_Evolve         , &
        &    Node_Component_Disk_Very_Simple_Rates       , Node_Component_Disk_Very_Simple_Analytic_Solver    , &
-       &    Node_Component_Disk_Very_Simple_Post_Step   , Node_Component_Disk_Very_Simple_Thread_Initialize
+       &    Node_Component_Disk_Very_Simple_Post_Step   , Node_Component_Disk_Very_Simple_Thread_Initialize  , &
+       &    Node_Component_Disk_Very_Simple_State_Store , Node_Component_Disk_Very_Simple_State_Restore
 
   !![
   <component>
@@ -247,8 +248,8 @@ contains
        <objectDestructor name="starFormationRateDisks_"     />
        <objectDestructor name="mergerMassMovements_"        />
        !!]
-       call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
@@ -310,7 +311,7 @@ contains
 
   !![
   <postStepTask>
-  <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
+    <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
   </postStepTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
@@ -320,8 +321,8 @@ contains
     use :: Abundances_Structure          , only : abs                 , zeroAbundances
     use :: Display                       , only : displayMessage      , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk      , nodeComponentDiskVerySimple, treeNode
+    use :: Interface_GSL                 , only : GSL_Success         , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)       , operator(//)           , varying_string
-    use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                 , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
@@ -329,7 +330,7 @@ contains
     integer                             , intent(inout)          :: status
     class           (nodeComponentDisk )               , pointer :: disk
     double precision                    , save                   :: fractionalErrorMaximum=0.0d0
-    double precision                                             :: diskMass                    , fractionalError
+    double precision                                             :: massDisk                    , fractionalError
     character       (len=20            )                         :: valueString
     type            (varying_string    ), save                   :: message
     !$omp threadprivate(message)
@@ -341,6 +342,9 @@ contains
     ! Check if a very simple disk component exists.
     select type (disk)
     class is (nodeComponentDiskVerySimple)
+       ! Note that "status" is not set to failure as these changes in state of the disk should not change any calculation of
+       ! differential evolution rates as a negative gas mass was unphysical anyway.
+       !
        ! Trap negative gas masses.
        if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -373,9 +377,9 @@ contains
           end if
           !$omp end critical (Very_Simple_Disk_Post_Evolve_Check)
           ! Get the total mass of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
              call disk%luminositiesStellarSet(zeroStellarLuminosities)
@@ -383,8 +387,8 @@ contains
           ! Reset the gas mass of the disk.
           call disk%      massGasSet(         0.0d0)
           call disk%abundancesGasSet(zeroAbundances)
-          ! Record that state was changed.
-          status=GSL_Failure
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
        end if
     end select
     return
@@ -427,12 +431,12 @@ contains
   </analyticSolverTask>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Analytic_Solver(node,timeStart,timeEnd,solved)
-    use :: Abundances_Structure          , only : abundances             , max                , operator(*)
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentBasic     , nodeComponentDisk  , nodeComponentHotHalo, nodeComponentSatellite, &
+    use :: Abundances_Structure          , only : abundances        , max                , operator(*)
+    use :: Error                         , only : Error_Report
+    use :: Galacticus_Nodes              , only : nodeComponentBasic, nodeComponentDisk  , nodeComponentHotHalo, nodeComponentSatellite, &
           &                                       treeNode
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : max                    , stellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : max               , stellarLuminosities
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     double precision                        , intent(in   )            :: timeStart              , timeEnd
@@ -463,7 +467,7 @@ contains
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
           ! Luminosities can not be computed analytically.
-          if (diskVerySimpleTrackLuminosities) call Galacticus_Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
+          if (diskVerySimpleTrackLuminosities) call Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
           ! Calculate analytic solution.
           timeStep          =timeEnd-timeStart
           massGasInitial          =disk%massGas          ()
@@ -629,8 +633,8 @@ contains
           if (associated(node)) then
              basic     => node%basic    ()
              satellite => node%satellite()
-             call basic    %     timeSet(                      timeEnd )
-             call satellite%mergeTimeSet(satellite%mergeTime()-timeStep)
+             call basic    %            timeSet(                             timeEnd )
+             call satellite%timeUntilMergingSet(satellite%timeUntilMerging()-timeStep)
           end if
           ! Record that we solved this system analytically.
           solved=.true.
@@ -748,7 +752,7 @@ contains
     Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
@@ -799,10 +803,10 @@ contains
                &                                 +disk        %abundancesGas() &
                &                                )
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        call    disk%massGasSet                  (                                        &
             &                                                             0.0d0          &
@@ -839,10 +843,10 @@ contains
                &                                   +disk        %luminositiesStellar() &
                &                                  )
        case default
-          call Galacticus_Error_Report(                                    &
-               &                       'unrecognized movesTo descriptor'// &
-               &                       {introspection:location}            &
-               &                      )
+          call Error_Report(                                    &
+               &            'unrecognized movesTo descriptor'// &
+               &            {introspection:location}            &
+               &           )
        end select
        call    disk%         massStellarSet(                       &
             &                                                0.0d0 &
@@ -856,5 +860,51 @@ contains
     end select
     return
   end subroutine satelliteMerger
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Disk_Very_Simple_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Disk_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ darkMatterProfileDMO_ mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Disk_Very_Simple_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Disk_Very_Simple_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Disk_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyFunctions_ stellarPopulationProperties_ darkMatterHaloScale_ stellarFeedbackOutflows_ starFormationRateDisks_ darkMatterProfileDMO_ mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Disk_Very_Simple_State_Restore
 
 end module Node_Component_Disk_Very_Simple

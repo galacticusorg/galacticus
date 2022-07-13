@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@ program Test_Root_Finding
   Tests that routine finding routines work.
   !!}
   use :: Display                    , only : displayVerbositySet    , verbosityLevelStandard
-  use :: Galacticus_Error           , only : errorStatusDivideByZero
+  use :: Error           , only : errorStatusDivideByZero
   use :: Root_Finder                , only : rangeExpandAdditive    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
        &                                     stoppingCriterionDelta
   use :: Test_Root_Finding_Functions, only : Root_Function_1        , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &

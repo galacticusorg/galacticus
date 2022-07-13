@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,7 +100,8 @@ program Tests_Sigma
      &amp;                                    index_                             =+0.9649d0                             , &amp;
      &amp;                                    running                            =+0.0000d0                             , &amp;
      &amp;                                    runningRunning                     =+0.0000d0                             , &amp;
-     &amp;                                    wavenumberReference                =+1.0000d0                               &amp;
+     &amp;                                    wavenumberReference                =+1.0000d0                             , &amp;
+     &amp;                                    runningSmallScalesOnly             =.false.                                 &amp;
      &amp;                                   )
    </constructor>
   </referenceConstruct>
@@ -149,12 +150,18 @@ program Tests_Sigma
    </constructor>
   </referenceConstruct>
   !!]
-  ! Check that converting from mass to sigma and back to mass gives consistent answers.
+  ! Check that converting from mass to sigma and back to mass gives consistent answers at z=0.
   do iMass=1,massCount
-     sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0))
-     massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0               ))
+     massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0               ))
   end do
-  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-2)
+  call Assert('M -> σ(M) -> M conversion loop at z=0 ',mass,massFromSigma,relTol=1.0d-2)
+  ! Check that converting from mass to sigma and back to mass gives consistent answers at z=10.
+  do iMass=1,massCount
+     sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+10.0d0)))
+     massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+10.0d0)))
+  end do
+  call Assert('M -> σ(M) -> M conversion loop at z=10',mass,massFromSigma,relTol=1.0d-2)
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0   /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
   mass8  =4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
@@ -167,7 +174,8 @@ program Tests_Sigma
        &                                                                             index_                             =-1.0d0                                   , &
        &                                                                             running                            =+0.0d0                                   , &
        &                                                                             runningRunning                     =+0.0d0                                   , &
-       &                                                                             wavenumberReference                =+1.0d0                                     &
+       &                                                                             wavenumberReference                =+1.0d0                                   , &
+       &                                                                             runningSmallScalesOnly             =.false.                                    &
        &                                                                            )
   transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
        &                                                                             time                               =13.8d0                                     &

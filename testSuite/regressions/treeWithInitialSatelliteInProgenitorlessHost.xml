@@ -20,7 +20,7 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   <componentSpin value="scalar"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
@@ -62,13 +62,13 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetPositions value="false"/>
     <presetOrbits value="false"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetMergerTimes value="true"/>
     <presetMergerNodes value="true"/>
     <presetScaleRadii value="false"/>
     <presetSubhaloMasses value="false"/>
   </mergerTreeConstructor>
-  <galacticusOutputFileName value="testSuite/outputs/regressions/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
   <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
     <timestepHostAbsolute value="1.0"/>
@@ -220,12 +220,18 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

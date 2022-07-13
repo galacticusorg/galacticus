@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,8 @@
   use :: Merger_Tree_Branching             , only : mergerTreeBranchingProbabilityClass
   use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   use :: Statistics_Distributions          , only : distributionFunction1DNegativeExponential
-
+  use :: Merger_Tree_Build_Controllers     , only : mergerTreeBuildControllerClass
+  
   !![
   <mergerTreeBuilder name="mergerTreeBuilderCole2000">
    <description>
@@ -87,6 +88,7 @@
      class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_                     => null()
      class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_          => null()
      class           (cosmologicalMassVarianceClass            ), pointer :: cosmologicalMassVariance_                => null()
+     class           (mergerTreeBuildControllerClass           ), pointer :: mergerTreeBuildController_               => null()
      logical                                                              :: timeParameterIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                                    , timeEarliest             , &
@@ -101,16 +103,12 @@
    contains
      !![
      <methods>
-       <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort"              />
-       <method description="Return true if the branch should be followed."                     method="shouldFollowBranch"       />
-       <method description="Set the critical overdensity object."                              method="criticalOverdensitySet"   />
-       <method description="Set the critical overdensity object."                              method="criticalOverdensityUpdate"/>
+       <method description="Set the critical overdensity object." method="criticalOverdensitySet"   />
+       <method description="Set the critical overdensity object." method="criticalOverdensityUpdate"/>
      </methods>
      !!]
      final     ::                              cole2000Destructor
      procedure :: build                     => cole2000Build
-     procedure :: shouldAbort               => cole2000ShouldAbort
-     procedure :: shouldFollowBranch        => cole2000ShouldFollowBranch
      procedure :: timeEarliestSet           => cole2000TimeEarliestSet
      procedure :: criticalOverdensitySet    => cole2000CriticalOverdensitySet
      procedure :: criticalOverdensityUpdate => cole2000CriticalOverdensityUpdate
@@ -138,6 +136,7 @@ contains
     class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
     class           (mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
     class           (cosmologicalMassVarianceClass      ), pointer       :: cosmologicalMassVariance_
+    class           (mergerTreeBuildControllerClass     ), pointer       :: mergerTreeBuildController_
     double precision                                                     :: mergeProbability               , accretionLimit         , &
          &                                                                  redshiftMaximum                , toleranceResolutionSelf, &
          &                                                                  toleranceResolutionParent
@@ -186,6 +185,7 @@ contains
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
     <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    <objectBuilder class="mergerTreeBuildController"      name="mergerTreeBuildController_"      source="parameters"/>
     !!]
     self   =mergerTreeBuilderCole2000(                                                                                                                  &
          &                                                                                                           mergeProbability                 , &
@@ -198,7 +198,8 @@ contains
          &                                                                                                           mergerTreeMassResolution_        , &
          &                                                                                                           cosmologyFunctions_              , &
          &                                                                                                           criticalOverdensity_             , &
-         &                                                                                                           cosmologicalMassVariance_          &
+         &                                                                                                           cosmologicalMassVariance_        , &
+         &                                                                                                           mergerTreeBuildController_         &
          &                           )
     !![
     <inputParametersValidate source="parameters"/>
@@ -207,15 +208,16 @@ contains
     <objectDestructor name="cosmologyFunctions_"            />
     <objectDestructor name="criticalOverdensity_"           />
     <objectDestructor name="cosmologicalMassVariance_"      />
+    <objectDestructor name="mergerTreeBuildController_"     />
     !!]
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (mergerTreeBuilderCole2000          )                        :: self
     double precision                                     , intent(in   )         :: mergeProbability               , accretionLimit         , &
@@ -227,8 +229,9 @@ contains
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (mergerTreeBuildControllerClass     ), intent(in   ), target :: mergerTreeBuildController_
     !![
-    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
     ! Initialize state.
@@ -238,7 +241,7 @@ contains
          &                                         self%cosmologicalMassVariance_%growthIsMassDependent(     )
     self%timeNow                                 = self%cosmologyFunctions_      %cosmicTime           (1.0d0)
     ! Validate parameters.
-    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('accretionLimit < 1 required'//{introspection:location})
+    if (self%accretionLimit >= 1.0d0) call Error_Report('accretionLimit < 1 required'//{introspection:location})
     return
   end function cole2000ConstructorInternal
 
@@ -255,6 +258,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"            />
     <objectDestructor name="self%criticalOverdensity_"           />
     <objectDestructor name="self%cosmologicalMassVariance_"      />
+    <objectDestructor name="self%mergerTreeBuildController_"     />
     !!]
     return
   end subroutine cole2000Destructor
@@ -263,7 +267,8 @@ contains
     !!{
     Build a merger tree.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Display                 , only : displayReset                 , displayMagenta
+    use :: Error                   , only : Error_Report                 , Warn
     use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
     use :: ISO_Varying_String      , only : varying_string
     use :: Kind_Numbers            , only : kind_int8
@@ -273,31 +278,32 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
     type            (mergerTree                      ), intent(inout), target :: tree
-    type            (treeNode                        ), pointer               :: nodeNew1                  , nodeNew2                   , node
-    class           (nodeComponentBasic              ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
-         &                                                                       basicParent
+    type            (treeNode                        ), pointer               :: nodeNew1                     , nodeNew2                   , node                      , &
+         &                                                                       nodeChild
+    class           (nodeComponentBasic              ), pointer               :: basicNew1                    , basicNew2                  , basic                     , &
+         &                                                                       basicParent                  , basicChild
     double precision                                  , parameter             :: toleranceTimeEarliest =2.0d-6
     double precision                                  , parameter             :: toleranceDeltaCritical=1.0d-6
     double precision                                  , parameter             :: toleranceTime         =1.0d-6
     type            (mergerTreeWalkerTreeConstruction)                        :: treeWalkerConstruction
     type            (mergerTreeWalkerIsolatedNodes   )                        :: treeWalkerIsolated
     integer         (kind=kind_int8                  )                        :: nodeIndex
-    double precision                                                          :: accretionFraction         , baseNodeTime               , branchingProbability      , &
-         &                                                                       collapseTime              , deltaCritical              , deltaCritical1            , &
-         &                                                                       deltaCritical2            , deltaW                     , nodeMass1                 , &
-         &                                                                       nodeMass2                 , deltaCriticalEarliest      , uniformRandom             , &
-         &                                                                       massResolution            , accretionFractionCumulative, branchMassCurrent         , &
-         &                                                                       branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                       branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                       collapseTimeTruncate      , rootVarianceGrowthFactor   , time
-    logical                                                                   :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
+    double precision                                                          :: accretionFraction            , timeNodeBase               , branchingProbability      , &
+         &                                                                       collapseTime                 , deltaCritical              , deltaCritical1            , &
+         &                                                                       deltaCritical2               , deltaW                     , nodeMass1                 , &
+         &                                                                       nodeMass2                    , deltaCriticalEarliest      , uniformRandom             , &
+         &                                                                       massResolution               , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                                       branchDeltaCriticalCurrent   , branchingInterval          , branchingIntervalScaleFree, &
+         &                                                                       branchingProbabilityRate     , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                       collapseTimeTruncate         , rootVarianceGrowthFactor   , time
+    logical                                                                   :: doBranch                     , branchIsDone               , snapAccretionFraction     , &
          &                                                                       snapEarliestTime
     type            (varying_string                  )                        :: message
     character       (len=20                          )                        :: label
 
     ! Begin construction.
     nodeIndex =  1               ! Initialize the node index counter to unity.
-    node      => tree%baseNode   ! Point to the base node.
+    node      => tree%nodeBase   ! Point to the base node.
     basic     => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
        ! Note that we use a unit rate - we will scale the results to the actual rate required.
@@ -312,19 +318,21 @@ contains
     ! critical overdensity classes which rely on tabulation and which have to retabulate themselves should ensure that they simply
     ! expand their range without changing any of the previous computed values (as we do for expansion factor vs. time in the
     ! cosmology function class).
-    deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest,mass=basic%mass(),node=node) &
-         &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow     ,mass=basic%mass()          ) &
-         &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=basic%mass()          )
+    deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
+         &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow           ,mass=basic%mass()          ) &
+         &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest/2.0d0,mass=basic%mass()          )
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this class).
-    baseNodeTime            =                                                  basic%time        ()
-    rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      baseNodeTime  ,mass=basic%mass()          ) &
+    timeNodeBase            =                                                  basic%time        ()
+    rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      timeNodeBase  ,mass=basic%mass()          ) &
          &                   /self%cosmologicalMassVariance_%rootVariance(time=self %timeNow       ,mass=basic%mass()          )
     deltaCritical           =+self%criticalOverdensity_     %value       (time=basic%time        (),mass=basic%mass(),node=node) &
          &                   /rootVarianceGrowthFactor
     call basic%timeSet(deltaCritical)
     ! Begin tree build loop.
     treeWalkerConstruction=mergerTreeWalkerTreeConstruction(tree)
-    do while (treeWalkerConstruction%next(node).and..not.self%shouldAbort(tree))
+    do while (treeWalkerConstruction%next(node))
+       ! Apply control.
+       if (.not.self%mergerTreeBuildController_%control(node,treeWalkerConstruction)) exit
        ! Get the basic component of the node.
        basic                       => node %basic()
        ! Initialize the state for this branch.
@@ -342,8 +350,6 @@ contains
                &   branchMassCurrent <= massResolution                                  &
                &  .or.                                                                  &
                &   time              <  self%timeEarliest*(1.0d0+toleranceTimeEarliest) &
-               &  .or.                                                                  &
-               &   .not.self%shouldFollowBranch(tree,node)                              &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
@@ -388,7 +394,7 @@ contains
                 collapseTime        =self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
                 collapseTimeTruncate=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1            ,mass=nodeMass1        ,node=nodeNew1)
                 if (collapseTimeTruncate > collapseTime*(1.0d0+toleranceTime)) then
-                   call Galacticus_Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
+                   call Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
                 else
                    do while (collapseTimeTruncate > collapseTime*(1.0d0-toleranceTime))
                       deltaCritical1      =deltaCritical1*(1.0d0+toleranceTime)
@@ -609,15 +615,32 @@ contains
        collapseTime =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic%time(),mass=basic%mass(),node=node)
        call basic%timeSet(collapseTime)
     end do
-    basic => tree%baseNode%basic()
-    call basic%timeSet(baseNodeTime)
+    basic => tree%nodeBase%basic()
+    call basic%timeSet(timeNodeBase)
+    ! Check for mis-ordering of the base node and its child node(s). This can happen because we force the time of the base node to
+    ! be precisely the base time, but for other nodes the time is computed by inverting the w(t)=delta_crit(t)/D(t)
+    ! relation. Numerical inaccuracies in the inversion can lead to small mis-ordering in the tree times.
+    if (associated(tree%nodeBase%firstChild)) then
+       basicChild => tree%nodeBase%firstChild%basic()
+       if (basic%time() <= basicChild%time()) then
+          ! Base node is mis-ordered. Simply shift and child nodes to be slightly earlier. If this leads to mis-ordering of those
+          ! child nodes it will be detected below.
+          call Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered at base node - fixing')
+          nodeChild => tree%nodeBase%firstChild
+          do while (associated(nodeChild))
+             basicChild => nodeChild%basic()
+             call basicChild%timeSet(basic%time())
+             nodeChild => nodeChild%sibling
+          end do
+       end if
+    end if
     ! Check for well-ordering in time.
     treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
     do while (treeWalkerIsolated%next(node))
        if (associated(node%parent)) then
           basic       => node       %basic()
           basicParent => node%parent%basic()
-          if (basicParent%time() <= basic%time()) then
+          if (basicParent%time() < basic%time()) then
              if     (                                                                            &
                   &   basicParent%mass() < massResolution*(1.0d0+self%toleranceResolutionParent) &
                   &  .and.                                                                       &
@@ -648,50 +671,20 @@ contains
                 message=message//" ->         node δc = "//label        //char(10)
                 write (label,'(e20.14)') self%criticalOverdensity_%value(time=basicParent%time(),mass=basicParent%mass(),node=node%parent)
                 message=message//" ->       parent δc = "//label        //char(10)
-                basic => tree%baseNode%basic()
+                basic => tree%nodeBase%basic()
                 write (label,'(e20.14)')                                   basic%time()
                 message=message//" ->       tree time = "//label//" Gyr"//char(10)
                 write (label,'(e20.14)')                                                               basic      %mass()
                 message=message//" ->       tree mass = "//label//" M☉" //char(10)
                 write (label,'(e20.14)') massResolution
                 message=message//" -> mass resolution = "//label//" M☉"
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
           end if
        end if
     end do
     return
   end subroutine cole2000Build
-
-  logical function cole2000ShouldAbort(self,tree)
-    !!{
-    Return {\normalfont \ttfamily true} if tree construction should be aborted. In the {\normalfont \ttfamily cole2000} tree
-    builder we never abort.
-    !!}
-    implicit none
-    class(mergerTreeBuilderCole2000), intent(inout) :: self
-    type (mergerTree               ), intent(in   ) :: tree
-    !$GLC attributes unused :: self, tree
-
-    cole2000ShouldAbort=.false.
-    return
-  end function cole2000ShouldAbort
-
-  logical function cole2000ShouldFollowBranch(self,tree,node)
-    !!{
-    Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
-    \ttfamily cole2000} tree builder we always continue.
-    !!}
-    use :: Galacticus_Nodes, only : mergerTree, treeNode
-    implicit none
-    class(mergerTreeBuilderCole2000), intent(inout) :: self
-    type (mergerTree               ), intent(in   ) :: tree
-    type (treeNode                 ), intent(inout) :: node
-    !$GLC attributes unused :: self, tree, node
-
-    cole2000ShouldFollowBranch=.true.
-    return
-  end function cole2000ShouldFollowBranch
 
   subroutine cole2000TimeEarliestSet(self,timeEarliest)
     !!{

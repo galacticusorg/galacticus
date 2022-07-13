@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@ module Node_Component_Disk_Standard_Data
   Stores data for the standard disk node component.
   !!}
   use :: Kind_Numbers      , only : kind_int8
-  use :: Mass_Distributions, only : massDistributionClass
+  use :: Mass_Distributions, only : massDistributionClass, massDistributionCylindrical
   implicit none
   public
 
@@ -46,8 +46,9 @@ module Node_Component_Disk_Standard_Data
   !$omp threadprivate(radiusScaleDisk)
 
   ! The mass distribution object.
-  class           (massDistributionClass), pointer :: diskMassDistribution
-  !$omp threadprivate(diskMassDistribution)
+  class           (massDistributionClass      ), pointer :: diskMassDistribution_
+  class           (massDistributionCylindrical), pointer :: diskMassDistribution
+  !$omp threadprivate(diskMassDistribution_,diskMassDistribution)
 
 contains
 

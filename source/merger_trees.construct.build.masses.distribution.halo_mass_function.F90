@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -163,23 +163,23 @@ contains
     !$GLC attributes unused :: massMinimum, massMaximum
 
     ! Create a work node.
-    tree %baseNode          => treeNode               (-1_kind_int8,tree)
-    tree %baseNode%hostTree => tree
-    basic                   => tree    %baseNode%basic(autoCreate=.true.)
+    tree %nodeBase          => treeNode               (-1_kind_int8,tree)
+    tree %nodeBase%hostTree => tree
+    basic                   => tree    %nodeBase%basic(autoCreate=.true.)
     call tree %properties         %initialize          (                               )
-    call self %haloEnvironment_   %overdensityLinearSet(tree%baseNode,overdensity=0.0d0)
+    call self %haloEnvironment_   %overdensityLinearSet(tree%nodeBase,overdensity=0.0d0)
     call basic%timeSet                                 (time                           )
     call basic%timeLastIsolatedSet                     (time                           )
     call basic%massSet                                 (mass                           )
     ! Construct sampling rate.
     haloMassFunctionSample=+                                         mass                &
-         &                 *self%haloMassFunction_%differential(time,mass,tree%baseNode) &
+         &                 *self%haloMassFunction_%differential(time,mass,tree%nodeBase) &
          &                 *10.0d0**(                                                    &
          &                           +self%modifier1*log10(mass/massZeroPoint)           &
          &                           +self%modifier2*log10(mass/massZeroPoint)**2        &
          &                          )
-    call tree%baseNode%destroy()
-    deallocate(tree%baseNode)
+    call tree%nodeBase%destroy()
+    deallocate(tree%nodeBase)
     ! Limit sampling rate.
     if (self%abundanceMinimum > 0.0d0)  &
          & haloMassFunctionSample       &

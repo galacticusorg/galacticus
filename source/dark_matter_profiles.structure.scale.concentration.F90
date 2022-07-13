@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,10 +31,13 @@
 
   !![
   <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
-   <description>Dark matter halo scale radii are computed from the concentration.</description>
-   <deepCopy>
-    <functionClass variables="darkMatterHaloScaleDefinition"/>
-   </deepCopy>
+    <description>Dark matter halo scale radii are computed from the concentration.</description>
+    <deepCopy>
+      <functionClass variables="darkMatterHaloScaleDefinition"/>
+    </deepCopy>
+    <stateStorable>
+      <functionClass variables="darkMatterHaloScaleDefinition"/>
+    </stateStorable>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusConcentration
@@ -185,9 +188,9 @@ contains
     !!{
     Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Numerical_Comparison          , only : Values_Differ
-    use :: Root_Finder                   , only : rangeExpandMultiplicative    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Calculations_Resets , only : Calculations_Reset
+    use :: Numerical_Comparison, only : Values_Differ
+    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileScaleRadiusConcentration), intent(inout), target        :: self
     type            (treeNode                                 ), intent(inout), target        :: node
@@ -235,11 +238,12 @@ contains
             &               )                                                                                        &
             & ) then
           ! Create a node and set the mass and time.
-          concentrationState_(concentrationStateCount)%self              => self
-          concentrationState_(concentrationStateCount)%node              => node
-          concentrationState_(concentrationStateCount)%nodeWork          => treeNode                                                               (                 )
-          concentrationState_(concentrationStateCount)%basic             => concentrationState_(concentrationStateCount)%nodeWork%basic            (autoCreate=.true.)
-          concentrationState_(concentrationStateCount)%darkMatterProfile => concentrationState_(concentrationStateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
+          concentrationState_(concentrationStateCount)%self                       => self
+          concentrationState_(concentrationStateCount)%node                       => node
+          concentrationState_(concentrationStateCount)%nodeWork                   => treeNode                                                               (                 )
+          concentrationState_(concentrationStateCount)%nodeWork         %hostTree => node%hostTree
+          concentrationState_(concentrationStateCount)%basic                      => concentrationState_(concentrationStateCount)%nodeWork%basic            (autoCreate=.true.)
+          concentrationState_(concentrationStateCount)%darkMatterProfile          => concentrationState_(concentrationStateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
           call concentrationState_(concentrationStateCount)%basic%timeSet            (basic%time())
           call concentrationState_(concentrationStateCount)%basic%timeLastIsolatedSet(basic%time())
           ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
@@ -271,7 +275,7 @@ contains
           end if
           ! Update the work node properties and computed concentration.
           call concentrationState_(concentrationStateCount)%basic%massSet(massDefinition)
-          call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+          call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
           ! Find the concentration.
           if (self%useMeanConcentration) then
              ! We are simply using the mean concentration-mass relation here.
@@ -284,16 +288,16 @@ contains
                   &        *self%darkMatterProfileConcentration_%concentrationMean(concentrationState_(concentrationStateCount)%nodeWork             ) &
                   &        /self%darkMatterProfileConcentration_%concentrationMean(                                             node                 )
           end if
-          concentrationRadius=+self%darkMatterHaloScaleDefinition%virialRadius (concentrationState_(concentrationStateCount)%nodeWork) &
+          concentrationRadius=+self%darkMatterHaloScaleDefinition%radiusVirial (concentrationState_(concentrationStateCount)%nodeWork) &
                &              /                                   concentration
           call concentrationState_(concentrationStateCount)%nodeWork%destroy()
           deallocate(concentrationState_(concentrationStateCount)%nodeWork)
        else
-          concentrationRadius=+self%darkMatterHaloScale_%virialRadius(node) &
+          concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &
                &              /concentrationState_(concentrationStateCount)%concentrationOriginal
        end if
     else
-       concentrationRadius=+self%darkMatterHaloScale_%virialRadius(node) &
+       concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &
             &              /concentrationState_(concentrationStateCount)%concentrationOriginal
     end if
     ! Release stack.
@@ -310,7 +314,7 @@ contains
     !!{
     Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
     !!}
-    use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use :: Calculations_Resets, only : Calculations_Reset
     implicit none
     double precision, intent(in   ) :: massDefinitionTrial
     double precision                :: radiusOuterDefinition, concentrationDefinition, &
@@ -319,9 +323,9 @@ contains
 
     ! Set the mass of the worker node.
     call concentrationState_(concentrationStateCount)%basic%massSet(massDefinitionTrial)
-    call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+    call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
     ! Get outer radius for this trial definition mass.
-    radiusOuterDefinition=concentrationState_(concentrationStateCount)%self%darkMatterHaloScaleDefinition%virialRadius(concentrationState_(concentrationStateCount)%nodeWork)
+    radiusOuterDefinition=concentrationState_(concentrationStateCount)%self%darkMatterHaloScaleDefinition%radiusVirial(concentrationState_(concentrationStateCount)%nodeWork)
     ! Get concentration for this a trial definition mass.
     if (concentrationState_(concentrationStateCount)%self%useMeanConcentration) then
        ! We are simply using the mean concentration-mass relation here.
@@ -337,7 +341,7 @@ contains
     ! Get core radius.
     radiusCore=radiusOuterDefinition/concentrationDefinition
     call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleSet(radiusCore)
-    call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
+    call Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
     ! Find the non-alt density.
     densityOuter=+concentrationState_(concentrationStateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          concentrationState_(concentrationStateCount)%basic%time()) &
          &       *concentrationState_(concentrationStateCount)%self%virialDensityContrast_%densityContrast     (concentrationState_(concentrationStateCount)%basic%mass(),concentrationState_(concentrationStateCount)%basic%time())

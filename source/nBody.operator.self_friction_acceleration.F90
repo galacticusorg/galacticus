@@ -113,7 +113,7 @@ contains
     Determine the acceleration of bound particles from unbound ones.
     !!}
     use :: Display                         , only : displayIndent                  , displayUnindent
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear       , megaParsec
@@ -151,9 +151,9 @@ contains
              allocate(sampleRate(1))
              sampleRate=1.0d0
           end if
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+          call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
        end if
        allocate(unBoundStatus(particleCount,self%bootstrapSampleCount))
        do i=1,self%bootstrapSampleCount

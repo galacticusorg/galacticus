@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,9 +56,11 @@ contains
     implicit none
     type(satelliteMergingTimescalesPreset)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesPreset()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function presetConstructorParameters
 
@@ -76,7 +78,7 @@ contains
     !$GLC attributes unused :: self, orbit
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
-    satellite              => node     %satellite()
-    presetTimeUntilMerging =  satellite%mergeTime()
+    satellite              => node     %satellite       ()
+    presetTimeUntilMerging =  satellite%timeUntilMerging()
     return
   end function presetTimeUntilMerging

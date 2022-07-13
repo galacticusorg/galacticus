@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,24 +25,23 @@ program Test_Cooling_Functions
   !!{
   Tests cooling function functionality.
   !!}
-  use :: Abundances_Structure                , only : abundances                             , metallicityTypeLinearByMassSolar
-  use :: Chemical_Abundances_Structure       , only : chemicalAbundances                     , zeroChemicalAbundances
-  use :: Chemical_States                     , only : chemicalStateAtomicCIECloudy
-  use :: Cooling_Functions                   , only : coolingFunctionSummation               , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList
-  use :: Cosmology_Parameters                , only : cosmologyParametersSimple
-  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
-  use :: Display                             , only : displayVerbositySet                    , verbosityLevelStandard
-  use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize           , nodeComponentBasic               , treeNode
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-  use :: Input_Parameters                    , only : inputParameters
-  use :: Node_Components                     , only : Node_Components_Initialize             , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Numerical_Constants_Astronomical    , only : gigaYear
-  use :: Numerical_Constants_Physical        , only : boltzmannsConstant
-  use :: Numerical_Constants_Units           , only : ergs
-  use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
-  use :: Unit_Tests                          , only : Assert                                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Abundances_Structure            , only : abundances                             , metallicityTypeLinearByMassSolar
+  use :: Chemical_Abundances_Structure   , only : chemicalAbundances                     , zeroChemicalAbundances
+  use :: Chemical_States                 , only : chemicalStateAtomicCIECloudy
+  use :: Cooling_Functions               , only : coolingFunctionSummation               , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList
+  use :: Cosmology_Parameters            , only : cosmologyParametersSimple
+  use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
+  use :: Display                         , only : displayVerbositySet                    , verbosityLevelStandard
+  use :: Events_Hooks                    , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities      , only : Functions_Global_Set
+  use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize           , nodeComponentBasic               , treeNode
+  use :: Input_Parameters                , only : inputParameters
+  use :: Node_Components                 , only : Node_Components_Initialize             , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Numerical_Constants_Astronomical, only : gigaYear
+  use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+  use :: Numerical_Constants_Units       , only : ergs
+  use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
+  use :: Unit_Tests                      , only : Assert                                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (coolantList                            ), pointer :: coolants
   type            (treeNode                               ), pointer :: node
@@ -172,5 +171,4 @@ program Test_Cooling_Functions
   ! Clean up.
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Cooling_Functions

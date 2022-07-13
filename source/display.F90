@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,8 @@ module Display
   private
   public :: displayMessage     , displayIndent , displayUnindent    , displayVerbosity, &
        &    displayVerbositySet, displayCounter, displayCounterClear, displayRed      , &
-       &    displayMagenta     , displayGreen  , displayBold        , displayReset
+       &    displayMagenta     , displayGreen  , displayBlue        , displayYellow   , &
+       &    displayBold        , displayReset
 
   !![
   <enumeration>
@@ -216,7 +217,7 @@ contains
     integer         , intent(in   ), optional :: verbosity
     integer                                   :: threadNumber
 
-    !$omp critical(Galacticus_Message_Lock)
+    !$omp critical(Display_Lock)
     call initialize()
     if (showMessage(verbosity)) then
        !![
@@ -246,7 +247,7 @@ contains
        !$ end if
        call formatIndentationCreate()
     end if
-    !$omp end critical(Galacticus_Message_Lock)
+    !$omp end critical(Display_Lock)
     return
   end subroutine displayIndentChar
 
@@ -273,7 +274,7 @@ contains
     integer         , intent(in   ), optional :: verbosity
     integer                                   :: threadNumber
 
-    !$omp critical(Galacticus_Message_Lock)
+    !$omp critical(Display_Lock)
     call initialize()
     if (showMessage(verbosity)) then
        !$ if (omp_in_parallel()) then
@@ -303,7 +304,7 @@ contains
        !$omp end critical(gfortranInternalIO)
 #endif
     end if
-    !$omp end critical(Galacticus_Message_Lock)
+    !$omp end critical(Display_Lock)
     return
   end subroutine displayUnindentChar
 
@@ -317,7 +318,7 @@ contains
     integer         , intent(in   ), optional :: verbosity
     integer                                   :: threadNumber
 
-    !$omp critical(Galacticus_Message_Lock)
+    !$omp critical(Display_Lock)
     call initialize()
     if (showMessage(verbosity)) then
        if (barVisible) call counterClearLockless()
@@ -342,7 +343,7 @@ contains
 #endif
        if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
-    !$omp end critical(Galacticus_Message_Lock)
+    !$omp end critical(Display_Lock)
     return
   end subroutine displayMessageChar
 
@@ -357,7 +358,7 @@ contains
     integer                , intent(in   ), optional :: verbosity
     integer                                          :: threadNumber
 
-    !$omp critical(Galacticus_Message_Lock)
+    !$omp critical(Display_Lock)
     call initialize()
     if (showMessage(verbosity)) then
        if (barVisible) call counterClearLockless()
@@ -382,7 +383,7 @@ contains
 #endif
        if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
-    !$omp end critical(Galacticus_Message_Lock)
+    !$omp end critical(Display_Lock)
     return
   end subroutine displayMessageVarStr
 
@@ -436,9 +437,9 @@ contains
     logical, intent(in   )           :: isNew
     integer, intent(in   ), optional :: verbosity
 
-    !$omp critical(Galacticus_Message_Lock)
+    !$omp critical(Display_Lock)
     call displayCounterLockless(percentageComplete,isNew,verbosity)
-    !$omp end critical(Galacticus_Message_Lock)
+    !$omp end critical(Display_Lock)
     return
   end subroutine displayCounter
 
@@ -488,11 +489,11 @@ contains
     implicit none
     integer, intent(in   ), optional :: verbosity
 
-    !$omp critical(Galacticus_Message_Lock)
+    !$omp critical(Display_Lock)
     call counterClearLockless(verbosity)
     barVisible   =.false.
     barPercentage=0
-    !$omp end critical(Galacticus_Message_Lock)
+    !$omp end critical(Display_Lock)
     return
   end subroutine displayCounterClear
 
@@ -555,6 +556,38 @@ contains
     end if
     return
   end function displayRed
+
+  function displayBlue()
+    !!{
+    Return the ANSI escape code for blue text.
+    !!}
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayBlue
+
+    if (stdOutIsATTY()) then
+       displayBlue=ESC//"[34m"
+    else
+       displayBlue=""
+    end if
+    return
+  end function displayBlue
+  
+  function displayYellow()
+    !!{
+    Return the ANSI escape code for blue text.
+    !!}
+    use :: System_Output, only : stdOutIsATTY
+    implicit none
+    character(len=:), allocatable :: displayYellow
+
+    if (stdOutIsATTY()) then
+       displayYellow=ESC//"[33m"
+    else
+       displayYellow=""
+    end if
+    return
+  end function displayYellow
   
   function displayMagenta()
     !!{

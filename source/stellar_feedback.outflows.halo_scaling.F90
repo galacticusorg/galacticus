@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,7 +59,7 @@ contains
     !!{
     Constructor for the halo scaling fraction stellar feedback class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (stellarFeedbackOutflowsHaloScaling)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -158,7 +158,7 @@ contains
     ! Get the basic component.
     basic => component%hostNode%basic()
     ! Get virial velocity and expansion factor.
-    velocityVirial =self%darkMatterHaloScale_%virialVelocity (component%hostNode  )
+    velocityVirial =self%darkMatterHaloScale_%velocityVirial (component%hostNode  )
     expansionFactor=self%cosmologyFunctions_ %expansionFactor(basic    %time    ())
     ! Compute the velocity factor.
     if (velocityVirial /= self%velocityPrevious) then

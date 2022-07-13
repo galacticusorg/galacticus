@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,12 +43,12 @@
      private
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_            => null()
      class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_            => null()
-     double precision                                        :: coreRadiusOverScaleRadius                , coreRadiusOverVirialRadiusMaximum
-     double precision                                        :: coreRadiusMaximum                        , coreRadiusMinimum
-     double precision                                        :: hotGasFractionSaved                      , coreRadiusOverVirialRadiusInitialSaved, &
+     double precision                                        :: coreRadiusOverScaleRadius                 , coreRadiusOverVirialRadiusMaximum
+     double precision                                        :: coreRadiusMaximum                         , coreRadiusMinimum
+     double precision                                        :: hotGasFractionSaved                       , coreRadiusOverVirialRadiusInitialSaved, &
           &                                                     coreRadiusOverVirialRadiusSaved
      integer                                                 :: coreRadiusTableCount
-     logical                                                 :: coreRadiusTableInitialized
+     logical                                                 :: coreRadiusTableInitialized      =  .false.
      type            (table1DLogarithmicLinear)              :: coreRadiusTable
      class           (table1D                 ), allocatable :: coreRadiusTableInverse
    contains
@@ -110,7 +110,7 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
+    use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                        :: self
@@ -122,15 +122,15 @@ contains
     !!]
 
     ! Ensure that the dark matter profile supports the scale property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                           &
-         & call Galacticus_Error_Report                                                                                     &
-         &      (                                                                                                           &
-         &       'method requires a dark matter profile component that provides a gettable "scale" property.'//             &
-         &       Galacticus_Component_List(                                                                                 &
-         &                                 'darkMatterProfile'                                                           ,  &
-         &                                  defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                              // &
-         &       {introspection:location}                                                                                   &
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                &
+         & call Error_Report                                                                                     &
+         &      (                                                                                                &
+         &       'method requires a dark matter profile component that provides a gettable "scale" property.'//  &
+         &       Component_List(                                                                                 &
+         &                      'darkMatterProfile'                                                           ,  &
+         &                       defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
+         &                     )                                                                              // &
+         &       {introspection:location}                                                                        &
          &      )
     ! Initialize memoized values and table status.
     self%hotGasFractionSaved                   =-huge(0.0d0)
@@ -147,7 +147,7 @@ contains
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
 
-    call self%coreRadiusTable%destroy()
+    if (self%coreRadiusTableInitialized) call self%coreRadiusTable%destroy()
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%cosmologyParameters_"/>
@@ -187,7 +187,7 @@ contains
     ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
     coreRadiusOverVirialRadiusInitial=+self                     %coreRadiusOverScaleRadius       &
          &                            *     darkMatterProfile   %scale                    (    ) &
-         &                            /self%darkMatterHaloScale_%virialRadius             (node)
+         &                            /self%darkMatterHaloScale_%radiusVirial             (node)
     ! Check if the initial core radius and hot gas fraction equal the previously stored values.
     if     (                                                                                        &
          &  .not.                                                                                   &
@@ -226,7 +226,7 @@ contains
     end if
     ! Compute the resulting core radius.
     growingRadius=+self                     %coreRadiusOverVirialRadiusSaved       &
-         &        *self%darkMatterHaloScale_%virialRadius                   (node)
+         &        *self%darkMatterHaloScale_%radiusVirial                   (node)
     return
   end function growingRadius
 

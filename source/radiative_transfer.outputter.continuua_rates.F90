@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -165,7 +165,7 @@ contains
     Compute and output the Lyman continuum photon emission rate.
     !!}
     use :: Atomic_Data             , only : Atomic_Number, Atomic_Short_Label
-    use :: IO_HDF5                 , only : hdf5Access
+    use :: HDF5_Access             , only : hdf5Access
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
     use :: MPI_Utilities           , only : mpiSelf
@@ -298,7 +298,7 @@ contains
     Output the Lyman continuum photon escape rate.
     !!}
     use :: Atomic_Data             , only : Atomic_Number          , Atomic_Short_Label
-    use :: IO_HDF5                 , only : hdf5Access
+    use :: HDF5_Access             , only : hdf5Access
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
     use :: String_Handling         , only : String_Upper_Case_First
     implicit none

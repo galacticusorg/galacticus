@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,8 @@ module Hashes_Cryptographic
   private
   public :: Hash_MD5
 
+#include "os.inc"
+
   interface
      subroutine md5(textLength,text,hash) bind(c,name='md5')
        !!{
@@ -32,7 +34,11 @@ module Hashes_Cryptographic
        !!}
        import
        integer  (kind=c_int ), value :: textLength
+#ifdef __APPLE__
+       character(kind=c_char)        :: hash      (21        )
+#else
        character(kind=c_char)        :: hash      (35        )
+#endif
        character(kind=c_char)        :: text      (textLength)
      end subroutine md5
   end interface
@@ -44,12 +50,17 @@ contains
           &                           varying_string
     use :: String_Handling   , only : String_C_to_Fortran, char
     implicit none
-    type     (varying_string)                               :: Hash_MD5
-    type     (varying_string), intent(in   )                :: text
-    character(kind=c_char   ), allocatable  , dimension(:)  :: textC
-    character(kind=c_char   )               , dimension(35) :: hash
-    integer  (kind=c_int    )                               :: textLen
-    integer                                                 :: i
+    type     (varying_string)                                           :: Hash_MD5
+    type     (varying_string), intent(in   )                            :: text
+#ifdef __APPLE__
+    integer                  , parameter                                :: encryptedStart=10, encryptedEnd=20
+#else
+    integer                  , parameter                                :: encryptedStart=13, encryptedEnd=34
+#endif
+    character(kind=c_char   ), allocatable  , dimension(:             ) :: textC
+    character(kind=c_char   )               , dimension(encryptedEnd+1) :: hash
+    integer  (kind=c_int    )                                           :: textLen
+    integer                                                             :: i
 
     textLen=len(text)+1
     allocate(textC(textLen))
@@ -61,11 +72,11 @@ contains
     !$omp critical(md5Hash)
     call md5(textLen,textC,hash)
     !$omp end critical(md5Hash)
-    deallocate(textC)
-    do i=13,34
+    deallocate(textC)  
+    do i=encryptedStart,encryptedEnd
        if (hash(i) == "/") hash(i)="@"
     end do
-    Hash_MD5=String_C_to_Fortran(hash(13:34))
+    Hash_MD5=String_C_to_Fortran(hash(encryptedStart:encryptedEnd))
     return
   end function Hash_MD5
 

@@ -34,7 +34,7 @@
       <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
         <sigma_8 value="0.9"/>
       </cosmologicalMassVariance>
-      <componentPosition value="preset" parameterLevel="top"/>
+      <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
         <exportFormat value="irate"/>
@@ -46,7 +46,7 @@
       <presetSubhaloMasses value="false"/>
       <presetPositions value="true"/>
       <presetScaleRadii value="false"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
     </mergerTreeConstructor>
   </parameters>
 </parameterGrid>

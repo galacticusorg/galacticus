@@ -30,6 +30,7 @@ my %options =
      submitSleepDuration =>  1,
      waitSleepDuration   => 10
     );
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 print "\n\n:--> Running regression test cases...\n";
 &Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsJobs)
@@ -90,7 +91,7 @@ sub testRegressions {
     my $failed  = 0;
     if ( $status == 0 ) {
 	# Job completed, check the output log.
-	system("grep -q -i fatal ".$logFile);
+	system("grep -q -i -e fatal -e aborted ".$logFile);
 	$failed = 1
 	    if ( $? == 0 );
 	system("grep -q FAIL ".$logFile);

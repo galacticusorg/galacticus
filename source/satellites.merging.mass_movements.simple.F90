@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <mergerMassMovements name="mergerMassMovementsSimple">
@@ -44,12 +45,13 @@
      A merger mass movements class which uses a simple calculation.
      !!}
      private
-     double precision                 :: massRatioMajorMerger
-     integer                          :: destinationGasMinorMerger, destinationStarsMinorMerger
-     integer         (kind=kind_int8) :: lastUniqueID
-     integer                          :: destinationGasSatellite  , destinationStarsSatellite  , &
-          &                              destinationGasHost       , destinationStarsHost
-     logical                          :: mergerIsMajor            , movementsCalculated
+     class           (galacticStructureClass), pointer :: galacticStructure_        => null()
+     double precision                                  :: massRatioMajorMerger
+     integer                                           :: destinationGasMinorMerger          , destinationStarsMinorMerger
+     integer         (kind=kind_int8        )          :: lastUniqueID
+     integer                                           :: destinationGasSatellite            , destinationStarsSatellite  , &
+          &                                               destinationGasHost                 , destinationStarsHost
+     logical                                           :: mergerIsMajor                      , movementsCalculated
    contains
      final     ::             simpleDestructor
      procedure :: autoHook => simpleAutoHook
@@ -74,6 +76,7 @@ contains
     implicit none
     type            (mergerMassMovementsSimple)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
+    class           (galacticStructureClass   ), pointer       :: galacticStructure_
     double precision                                           :: massRatioMajorMerger
     type            (varying_string           )                :: destinationGasMinorMerger, destinationStarsMinorMerger
 
@@ -96,24 +99,27 @@ contains
       <description>The component to which satellite galaxy stars move to as a result of a minor merger.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=mergerMassMovementsSimple(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),enumerationDestinationMergerEncode(char(destinationStarsMinorMerger),includesPrefix=.false.))
+    self=mergerMassMovementsSimple(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),enumerationDestinationMergerEncode(char(destinationStarsMinorMerger),includesPrefix=.false.),galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,destinationStarsMinorMerger) result(self)
+  function simpleConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,destinationStarsMinorMerger,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} merger mass movements class.
     !!}
     implicit none
-    type            (mergerMassMovementsSimple)                :: self
-    double precision                           , intent(in   ) :: massRatioMajorMerger
-    integer                                    , intent(in   ) :: destinationGasMinorMerger, destinationStarsMinorMerger
+    type            (mergerMassMovementsSimple)                        :: self
+    class           (galacticStructureClass   ), intent(in   ), target :: galacticStructure_
+    double precision                           , intent(in   )         :: massRatioMajorMerger
+    integer                                    , intent(in   )         :: destinationGasMinorMerger, destinationStarsMinorMerger
     !![
-    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, destinationStarsMinorMerger"/>
+    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, destinationStarsMinorMerger, *galacticStructure_"/>
     !!]
 
     self%lastUniqueID             =-huge(0_kind_int8)
@@ -130,7 +136,7 @@ contains
     !!{
     Attach to the calculation reset event.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerMassMovementsSimple), intent(inout) :: self
 
@@ -147,8 +153,11 @@ contains
     implicit none
     type(mergerMassMovementsSimple), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,simpleCalculationReset)
-    call satelliteMergerEvent %detach(self,simpleGetHook         )
+    if (calculationResetEvent%isAttached(self,simpleCalculationReset)) call calculationResetEvent%detach(self,simpleCalculationReset)
+    if (satelliteMergerEvent %isAttached(self,simpleGetHook         )) call satelliteMergerEvent %detach(self,simpleGetHook         )
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
     return
   end subroutine simpleDestructor
 
@@ -156,7 +165,7 @@ contains
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -166,7 +175,7 @@ contains
        self%movementsCalculated=.false.
        self%lastUniqueID       =node%uniqueID()
        class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleCalculationReset
@@ -175,7 +184,7 @@ contains
     !!{
     Hookable wrapper around the get function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -187,7 +196,7 @@ contains
     type is (mergerMassMovementsSimple)
        call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine simpleGetHook
@@ -196,8 +205,7 @@ contains
     !!{
     Determine where stars and gas move as the result of a merger event using a simple algorithm.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic                , componentTypeDisk, componentTypeSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeGalactic
     implicit none
     class           (mergerMassMovementsSimple), intent(inout)         :: self
     type            (treeNode                 ), intent(inout), target :: node
@@ -216,8 +224,8 @@ contains
     if (.not.self%movementsCalculated) then
        self%movementsCalculated =  .true.
        nodeHost                 => node%mergesWith()
-       massSatellite            =  Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic)
-       massHost                 =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)
+       massSatellite            =  self%galacticStructure_%massEnclosed(node    ,massType=massTypeGalactic)
+       massHost                 =  self%galacticStructure_%massEnclosed(nodeHost,massType=massTypeGalactic)
        self%mergerIsMajor       =  massSatellite > 0.0d0 .and. massHost > 0.0d0 .and. min(massSatellite,massHost) >= self%massRatioMajorMerger*max(massSatellite,massHost)
        if (self%mergerIsMajor) then
           self%destinationGasSatellite  =     destinationMergerSpheroid
@@ -231,8 +239,8 @@ contains
              else
                 nodeMajor => node
              end if
-             massDisk    =Galactic_Structure_Enclosed_Mass(nodeMajor,massType=massTypeGalactic,componentType=componentTypeDisk    )
-             massSpheroid=Galactic_Structure_Enclosed_Mass(nodeMajor,massType=massTypeGalactic,componentType=componentTypeSpheroid)
+             massDisk    =self%galacticStructure_%massEnclosed(nodeMajor,massType=massTypeGalactic,componentType=componentTypeDisk    )
+             massSpheroid=self%galacticStructure_%massEnclosed(nodeMajor,massType=massTypeGalactic,componentType=componentTypeSpheroid)
              if (massDisk > massSpheroid) then
                 destinationDominant=destinationMergerDisk
              else

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !!{
   Contains a module which implements a prune-by-lightcone operator on merger trees.
   !!}
@@ -136,8 +136,8 @@ contains
     Validate the lightcone pruning operator.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultPositionComponent , defaultSatelliteComponent
+    use :: Error           , only : Component_List          , Error_Report
+    use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
     implicit none
     class(mergerTreeOperatorPruneLightcone), intent(inout) :: self
 
@@ -153,15 +153,15 @@ contains
             &         defaultSatelliteComponent%timeOfMergingIsSettable()                                                                     &
             &       )                                                                                                                         &
             & )                                                                                                                               &
-            & call Galacticus_Error_Report                                                                                                    &
+            & call Error_Report                                                                                                               &
             &      (                                                                                                                          &
             &       'buffering isolated halos requires that the timeOfMerging property of the satellite component be gettable and settable'// &
-            &       Galacticus_Component_List(                                                                                                &
-            &                                 'satellite'                                                                                  ,  &
-            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                 &
-            &                                  .intersection.                                                                                 &
-            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                 &
-            &                                 )                                                                                            // &
+            &       Component_List(                                                                                                           &
+            &                      'satellite'                                                                                             ,  &
+            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                            &
+            &                       .intersection.                                                                                            &
+            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                            &
+            &                      )                                                                                                       // &
             &       {introspection:location}                                                                                                  &
             &      )
     end if
@@ -277,7 +277,7 @@ contains
     if (.not.treeIntersectsLightcone) then
        ! Entire forest is outside lightcone. Destroy all but the base node in the first tree. (Leaving just the base node makes the
        ! tree inert - i.e. it can not do anything.) Destroy any additional trees in the forest.
-       node => tree%baseNode%firstChild
+       node => tree%nodeBase%firstChild
        do while (associated(node))
           nodeNext => node%sibling
           call Merger_Tree_Prune_Clean_Branch(node)
@@ -397,7 +397,7 @@ contains
           forestRootsOriginalLast => forestRootsOriginalLast%next
        end do
        ! Replace the first tree in the forest.
-       tree %baseNode => forestRootsNewHead%node
+       tree %nodeBase => forestRootsNewHead%node
        tree %nextTree => null()
        basic          => forestRootsNewHead%node%basic()
        write (labelIndex,'(i16)' ) forestRootsNewHead%node%index()
@@ -407,7 +407,7 @@ contains
        treeCurrent => tree%nextTree
        do while (associated(treeCurrent))
           treeNext             => treeCurrent%nextTree
-          treeCurrent%baseNode => null()
+          treeCurrent%nodeBase => null()
           call treeCurrent%destroy()
           deallocate(treeCurrent)
           treeCurrent          => treeNext
@@ -419,8 +419,8 @@ contains
           allocate(treeCurrent%nextTree)
           treeCurrent%nextTree%nextTree         => null()
           treeCurrent%nextTree%event            => null()
-          treeCurrent%nextTree%baseNode         => forestRootsNewLast                  %node
-          treeCurrent%nextTree%index            =  treeCurrent       %nextTree%baseNode%index       ()
+          treeCurrent%nextTree%nodeBase         => forestRootsNewLast                  %node
+          treeCurrent%nextTree%index            =  treeCurrent       %nextTree%nodeBase%index       ()
           treeCurrent%nextTree%firstTree        => tree
           treeCurrent%nextTree%volumeWeight     =  tree                                %volumeWeight
           treeCurrent%nextTree%initializedUntil =  0.0d0
@@ -434,7 +434,7 @@ contains
           !$omp end critical(mergerTreeOperatorLightconeDeepCopyReset)
           call treeCurrent%nextTree%randomNumberGenerator_%seedSet(seed=treeCurrent%nextTree%index,offset=.true.)
           basic => forestRootsNewLast%node%basic()
-          write (labelIndex,'(i16)' ) treeCurrent%nextTree%baseNode%index()
+          write (labelIndex,'(i16)' ) treeCurrent%nextTree%nodeBase%index()
           write (labelTime ,'(f9.3)') basic                        %time ()
           call displayMessage('Create new tree from ['//trim(adjustl(labelIndex))//'] at '//trim(adjustl(labelTime))//' Gyr',verbosityLevelInfo)
           treeCurrent        => treeCurrent       %nextTree          
@@ -464,7 +464,7 @@ contains
        end do
     else
        ! This should not happen.
-       call Galacticus_Error_Report('unknown state'//{introspection:location})
+       call Error_Report('unknown state'//{introspection:location})
     end if
     call displayUnindent('done',verbosityLevelInfo)
     return

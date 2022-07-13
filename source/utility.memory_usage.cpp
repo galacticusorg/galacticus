@@ -56,8 +56,8 @@ long Memory_Usage_Get_C() {
 
   stat_stream.close();
 
-  long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // Get page size so we can convert result to kb.
-  rss *= page_size_kb;
+  long page_size_b = sysconf(_SC_PAGE_SIZE); // Get page size so we can convert result to bytes.
+  rss *= page_size_b;
   return rss;
 }
 #endif

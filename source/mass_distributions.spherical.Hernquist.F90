@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -106,7 +106,7 @@ contains
     !!{
     Internal constructor for ``hernquist'' mass distribution class.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -120,13 +120,13 @@ contains
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
        if (present(scaleLength         )) then
-          if (Values_Differ(scaleLength         ,1.0d0   ,absTol=1.0d-6)) call Galacticus_Error_Report('scaleLength should be unity for a dimensionless profile (or simply do not specify a scale length)'                //{introspection:location})
+          if (Values_Differ(scaleLength         ,1.0d0   ,absTol=1.0d-6)) call Error_Report('scaleLength should be unity for a dimensionless profile (or simply do not specify a scale length)'                //{introspection:location})
        end if
        if (present(mass                )) then
-          if (Values_Differ(mass                ,1.0d0   ,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'                               //{introspection:location})
+          if (Values_Differ(mass                ,1.0d0   ,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'                               //{introspection:location})
        end if
        if (present(densityNormalization)) then
-          if (Values_Differ(densityNormalization,0.5d0/Pi,absTol=1.0d-6)) call Galacticus_Error_Report('densityNormalization should be 1/2π for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
+          if (Values_Differ(densityNormalization,0.5d0/Pi,absTol=1.0d-6)) call Error_Report('densityNormalization should be 1/2π for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
        end if
        self%scaleLength         =1.0d0
        self%mass                =1.0d0
@@ -135,7 +135,7 @@ contains
        if      (present(scaleLength         )) then
           self%scaleLength=scaleLength
        else
-          call Galacticus_Error_Report('"scaleLength" must be specified'//{introspection:location})
+          call Error_Report('"scaleLength" must be specified'//{introspection:location})
        end if
        if      (present(densityNormalization)) then
           self%densityNormalization=densityNormalization
@@ -144,7 +144,7 @@ contains
           self%densityNormalization=mass                /2.0d0/Pi/scaleLength**3
           self%mass                =mass
        else
-          call Galacticus_Error_Report('one of "densityNormalization" or "mass" must be specified'//{introspection:location})
+          call Error_Report('one of "densityNormalization" or "mass" must be specified'//{introspection:location})
        end if
     end if
     return
@@ -176,7 +176,7 @@ contains
     !!{
     Returns a radial density moment for the Hernquist mass distribution.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Agree
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -186,7 +186,7 @@ contains
     logical                                    , intent(  out), optional :: isInfinite
 
     ! Abort on limited ranges.
-    if (present(radiusMinimum).or.present(radiusMaximum)) call Galacticus_Error_Report('ranges are not supported'//{introspection:location})
+    if (present(radiusMinimum).or.present(radiusMaximum)) call Error_Report('ranges are not supported'//{introspection:location})
     if (moment <= 0.0d0 .or. moment >= 3.0d0) then
        ! Handle cases where the moment is infinite.
        if (present(isInfinite)) then
@@ -195,7 +195,7 @@ contains
           return
        else
           hernquistDensityRadialMoment=0.0d0
-          call Galacticus_Error_Report('requested radial density moment is infinite'//{introspection:location})
+          call Error_Report('requested radial density moment is infinite'//{introspection:location})
        end if
     else if (                                              &
          &   Values_Agree(moment,1.0d0,absTol=1.0d-3) .or. &
@@ -240,7 +240,7 @@ contains
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
     !!}
-    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(massDistributionHernquist), intent(inout) :: self

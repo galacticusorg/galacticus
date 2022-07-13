@@ -5,20 +5,23 @@
 # Build option.
 GALACTICUS_BUILD_OPTION ?= default
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'default'
-export BUILDPATH = ./work/build
-export SUFFIX =
+export BUILDPATH ?= ./work/build
+export SUFFIX ?=
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
-export BUILDPATH = ./work/buildMPI
-export SUFFIX =
+export BUILDPATH ?= ./work/buildMPI
+export SUFFIX ?=
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+export BUILDPATH ?= ./work/buildLib
+export SUFFIX ?=_lib
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
-export BUILDPATH = ./work/buildGProf
-export SUFFIX = _gprof
+export BUILDPATH ?= ./work/buildGProf
+export SUFFIX ?= _gprof
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
-export BUILDPATH = ./work/buildODEProf
-export SUFFIX = _odeProf
+export BUILDPATH ?= ./work/buildODEProf
+export SUFFIX ?= _odeProf
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
-export BUILDPATH = ./work/build
-export SUFFIX =
+export BUILDPATH ?= ./work/build
+export SUFFIX ?=
 endif
 
 # Preprocessor:
@@ -56,7 +59,7 @@ CONDORLINKER =
 #CONDORLINKER = condor_compile
 
 # Fortran compiler flags:
-FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
+FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -pthread
 # Fortran77 compiler flags:
 F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
@@ -71,11 +74,20 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 FCFLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
+CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
 export CFLAGS
 
 # C++ compiler flags:
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}
+
+# Detect library compile.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+FCFLAGS       += -fPIC
+FCFLAGS_NOOPT += -fPIC
+F77FLAGS      += -fPIC
+CFLAGS        += -fPIC
+CPPFLAGS      += -fPIC
+endif
 
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
@@ -128,7 +140,7 @@ FCFLAGS += -DOBJECTDEBUG
 endif
 
 # List of additional Makefiles which contain dependency information
-MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
+MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies
 
 # List of files which must always be checked for update.
 UPDATE_DEPS = $(BUILDPATH)/allocatableArrays.xml.up
@@ -166,6 +178,10 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
          fi \
 	done
 
+# Rule for building include file with preprocessor directives to detect OS. For some reason gfortran does not define these automatically.
+$(BUILDPATH)/os.inc:
+	$(CCOMPILER) -dM -E - < /dev/null | grep -e __APPLE__ -e __linux__ > $(BUILDPATH)/os.inc
+
 # Rules for building HDF5 C interoperability types data file.
 $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe
 	$(BUILDPATH)/hdf5FCInterop.exe  >  $(BUILDPATH)/hdf5FCInterop.dat
@@ -175,6 +191,21 @@ $(BUILDPATH)/hdf5FCInterop.exe  : source/hdf5FCInterop.F90
 	$(FCCOMPILER) source/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
 $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
+
+# Configuration of proc filesystem.
+-include $(BUILDPATH)/Makefile_Config_Proc
+$(BUILDPATH)/Makefile_Config_Proc: source/proc_config.c
+	@mkdir -p $(BUILDPATH)
+	@touch $(BUILDPATH)/Makefile_Config_Proc
+	$(CCOMPILER) source/proc_config.c -o $(BUILDPATH)/proc_config $(CFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 $(BUILDPATH)/proc_config > /dev/null 2>&1 ; \
+	 if [ $$? -eq 0 ] ; then \
+	  echo "FCFLAGS  += -DPROCPS"   >  $(BUILDPATH)/Makefile_Config_Proc ; \
+	  echo "CFLAGS   += -DPROCPS"   >> $(BUILDPATH)/Makefile_Config_Proc ; \
+	  echo "CPPFLAGS += -DPROCPS"   >> $(BUILDPATH)/Makefile_Config_Proc ; \
+	 fi \
+	fi
 
 # Configuration of file locking implementation.
 -include $(BUILDPATH)/Makefile_Config_OFD
@@ -216,6 +247,19 @@ $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
 	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
 	fi
 
+# Configuration for availability of qhull.
+-include $(BUILDPATH)/Makefile_Config_QHull
+$(BUILDPATH)/Makefile_Config_QHull: source/qhull_config.cpp
+	@mkdir -p $(BUILDPATH)
+	$(CPPCOMPILER) -c source/qhull_config.cpp -o $(BUILDPATH)/qhull_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DQHULLAVAIL"   >  $(BUILDPATH)/Makefile_Config_QHull ; \
+	 echo "CPPFLAGS += -DQHULLAVAIL"   >> $(BUILDPATH)/Makefile_Config_QHull ; \
+	else \
+	 echo "FCFLAGS  += -DQHULLUNAVAIL" >  $(BUILDPATH)/Makefile_Config_QHull ; \
+	 echo "CPPFLAGS += -DQHULLUNAVAIL" >> $(BUILDPATH)/Makefile_Config_QHull ; \
+	fi
+
 # Configuration for availability of libmatheval.
 -include $(BUILDPATH)/Makefile_Config_MathEval
 $(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
@@ -244,7 +288,11 @@ source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFT
 source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	mkdir -p $(BUILDPATH)/FFTlog
-	wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -
+	if command -v wget &> /dev/null; then \
+	 wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -; \
+	else \
+	 curl --insecure -L http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz --output - | tar xvz -C source/FFTlog -f -;\
+	fi
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
 	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
 	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
@@ -404,6 +452,26 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
 
+# Library.
+-include $(BUILDPATH)/Makefile_Library_Dependencies 
+$(BUILDPATH)/Makefile_Library_Dependencies:
+	./scripts/build/libraryInterfacesDependencies.pl
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
+	./scripts/build/libraryInterfaces.pl
+$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
+$(BUILDPATH)/libgalacticus.p.Inc : | $(BUILDPATH)/libgalacticus.p.Inc.up
+	@true
+$(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
+	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
+	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
+libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
+	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
+	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
+	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o
+	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
+	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.pl libgalacticus.o $(FCFLAGS)`
+
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
 
@@ -440,30 +508,30 @@ $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCritical
 	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
 
 # Rules for version routines.
-$(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .git/refs/heads/master)
-	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
+$(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
+	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/output.version.revision.inc; fi
+	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/output.version.revision.inc; fi
+	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/output.version.revision.inc
 
 # Rules for build information routines.
-$(BUILDPATH)/galacticus.output.build.environment.inc:
-	@echo PREPROCESSOR=\"$(PREPROCESSOR)\" > $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCCOMPILER=\"$(FCCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CCOMPILER=\"$(CCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCFLAGS=\"$(FCFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCFLAGS_NOOPT=\"$(FCFLAGS_NOOPT)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CFLAGS=\"$(CFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CPPFLAGS=\"$(CPPFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo LIBS=\"$(LIBS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
+$(BUILDPATH)/output.build.environment.inc:
+	@echo PREPROCESSOR=\"$(PREPROCESSOR)\" > $(BUILDPATH)/output.build.environment.inc
+	@echo FCCOMPILER=\"$(FCCOMPILER)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CCOMPILER=\"$(CCOMPILER)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo FCFLAGS=\"$(FCFLAGS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo FCFLAGS_NOOPT=\"$(FCFLAGS_NOOPT)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CFLAGS=\"$(CFLAGS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CPPFLAGS=\"$(CPPFLAGS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo LIBS=\"$(LIBS)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
+	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
 
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle
 $(BUILDPATH)/galacticus.git.patch:
-	git diff > $(BUILDPATH)/galacticus.git.patch || echo unknown > $(BUILDPATH)/galacticus.git.patch
+	git diff > $(BUILDPATH)/galacticus.git.patch 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.patch
 $(BUILDPATH)/galacticus.git.bundle:
 	git bundle create $(BUILDPATH)/galacticus.git.bundle HEAD ^origin > /dev/null 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.bundle
 
@@ -483,7 +551,7 @@ $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 

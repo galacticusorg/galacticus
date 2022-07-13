@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,6 +34,7 @@
      A halo total accretion class which assumes the accretion corresponds to the Bertschinger mass.
      !!}
      private
+     integer :: massBertschingerID, accretionRateBertschingerID
    contains
      procedure :: accretionRate => bertschingerAccretionRate
      procedure :: accretedMass  => bertschingerAccretedMass
@@ -44,6 +45,7 @@
      Constructors for the bertschinger total halo accretion class.
      !!}
      module procedure bertschingerConstructorParameters
+     module procedure bertschingerConstructorInternal
   end interface accretionHaloTotalBertschinger
 
 contains
@@ -56,11 +58,27 @@ contains
     implicit none
     type(accretionHaloTotalBertschinger)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=accretionHaloTotalBertschinger()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function bertschingerConstructorParameters
+
+  function bertschingerConstructorInternal() result (self)
+    !!{
+    Internal constructor for the Bertschinger total halo accretion state class
+    !!}
+    implicit none
+    type(accretionHaloTotalBertschinger) :: self
+
+    !![
+    <addMetaProperty component="basic" name="massBertschinger"          id="self%massBertschingerID"          isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="basic" name="accretionRateBertschinger" id="self%accretionRateBertschingerID" isEvolvable="no"  isCreator="no"/>
+    !!]
+    return
+  end function bertschingerConstructorInternal
 
   double precision function bertschingerAccretionRate(self,node)
     !!{
@@ -73,8 +91,8 @@ contains
     class(nodeComponentBasic            ), pointer       :: basic
     !$GLC attributes unused :: self
 
-    basic                     => node %basic                    ()
-    bertschingerAccretionRate =  basic%accretionRateBertschinger()
+    basic                     => node %basic                    (                                )
+    bertschingerAccretionRate =  basic%floatRank0MetaPropertyGet(self%accretionRateBertschingerID)
     return
   end function bertschingerAccretionRate
 
@@ -89,7 +107,7 @@ contains
     class(nodeComponentBasic            ), pointer       :: basic
     !$GLC attributes unused :: self
 
-    basic                    => node %basic           ()
-    bertschingerAccretedMass =  basic%massBertschinger()
+    basic                    => node %basic                    (                       )
+    bertschingerAccretedMass =  basic%floatRank0MetaPropertyGet(self%massBertschingerID)
     return
   end function bertschingerAccretedMass

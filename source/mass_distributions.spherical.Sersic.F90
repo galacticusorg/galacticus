@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,17 +33,17 @@
      !!{
      The S\'ersic density profile.
      !!}
-     double precision                                               :: densityNormalization , mass              , &
-          &                                                            radiusHalfMass_      , index
+     double precision                                               :: densityNormalization         , mass              , &
+          &                                                            radiusHalfMass_              , index
      ! Tabulation of the Sérsic profile.
-     double precision                                               :: coefficient          , radiusStart
-     logical                                                        :: tableInitialized
+     double precision                                               :: coefficient                  , radiusStart
+     logical                                                        :: tableInitialized     =.false.
      integer                                                        :: tableCount
-     double precision                                               :: tableRadiusMaximum   , tableRadiusMinimum
+     double precision                                               :: tableRadiusMaximum           , tableRadiusMinimum
      double precision                                               :: table3dRadiusHalfMass
      double precision                                               :: table2dRadiusHalfMass
-     double precision                   , allocatable, dimension(:) :: tableDensity         , tableEnclosedMass , &
-          &                                                            tablePotential       , tableRadius
+     double precision                   , allocatable, dimension(:) :: tableDensity                 , tableEnclosedMass , &
+          &                                                            tablePotential               , tableRadius
      type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
@@ -134,7 +134,7 @@ contains
     !!{
     Internal constructor for ``sersic'' mass distribution class.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type            (massDistributionSersic)                          :: self
@@ -159,10 +159,10 @@ contains
     ! If dimensionless, then set scale length and mass to unity.
     if (self%dimensionless) then
        if (present(radiusHalfMass      )) then
-          if (Values_Differ(radiusHalfMass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('radiusHalfMass should be unity for a dimensionless profile (or simply do not specify a half mass radius)'//{introspection:location})
+          if (Values_Differ(radiusHalfMass,1.0d0,absTol=1.0d-6)) call Error_Report('radiusHalfMass should be unity for a dimensionless profile (or simply do not specify a half mass radius)'//{introspection:location})
        end if
        if (present(mass                )) then
-          if (Values_Differ(mass          ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'                      //{introspection:location})
+          if (Values_Differ(mass          ,1.0d0,absTol=1.0d-6)) call Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'                      //{introspection:location})
        end if
        self%radiusHalfMass_=1.0d0
        self%mass          =1.0d0
@@ -170,12 +170,12 @@ contains
        if (present(radiusHalfMass)) then
           self%radiusHalfMass_=radiusHalfMass
        else
-          call Galacticus_Error_Report('"radiusHalfMass" must be specified'//{introspection:location})
+          call Error_Report('"radiusHalfMass" must be specified'//{introspection:location})
        end if
        if (present(mass)) then
           self%mass          =mass
        else
-          call Galacticus_Error_Report('"mass" must be specified'          //{introspection:location})
+          call Error_Report('"mass" must be specified'          //{introspection:location})
        end if
     end if
     return
@@ -210,7 +210,6 @@ contains
     !!{
     Returns a radial density moment for the S\'ersic mass distribution.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionSersic), intent(inout)           :: self
     double precision                        , intent(in   )           :: moment

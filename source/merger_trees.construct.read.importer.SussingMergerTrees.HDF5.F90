@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,7 +100,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
 
@@ -119,10 +119,10 @@ contains
     Validate a {\normalfont \ttfamily sussing} HDF5 format merger tree file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
-    use :: Display                         , only : displayMessage         , verbosityLevelWarn
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access
-    use :: Memory_Management               , only : allocateArray          , deallocateArray
+    use :: Display                         , only : displayMessage    , verbosityLevelWarn
+    use :: Error                           , only : Error_Report
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: Memory_Management               , only : allocateArray     , deallocateArray
     use :: Numerical_Comparison            , only : Values_Differ
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: String_Handling                 , only : operator(//)
@@ -176,7 +176,7 @@ contains
        write (valueString,'(e14.8)') localOmegaBaryon
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           call displayMessage(message,verbosityLevelWarn)
        end if
@@ -188,7 +188,7 @@ contains
        write (valueString,'(e14.8)') localOmegaMatter-localOmegaBaryon
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           call displayMessage(message,verbosityLevelWarn)
        end if
@@ -200,7 +200,7 @@ contains
        write (valueString,'(e14.8)') localOmegaDE
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           call displayMessage(message,verbosityLevelWarn)
        end if
@@ -212,7 +212,7 @@ contains
        write (valueString,'(e14.8)') localLittleH0
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           call displayMessage(message,verbosityLevelWarn)
        end if
@@ -224,7 +224,7 @@ contains
        write (valueString,'(e14.8)') localSigma8
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           call displayMessage(message,verbosityLevelWarn)
        end if
@@ -239,7 +239,7 @@ contains
     use            :: Arrays_Search    , only : searchIndexed
     use            :: Display          , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
           &                                     verbosityLevelWorking
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Kind_Numbers     , only : kind_int8
     use            :: Memory_Management, only : allocateArray          , deallocateArray
@@ -282,7 +282,7 @@ contains
        nodeCount=nodeCount+nodeCountSnapshot
     end do
     ! Abort if subvolumes are requested.
-    if (self%subvolumeCount > 1) call Galacticus_Error_Report('this importer does not yet support subvolumes'//{introspection:location})
+    if (self%subvolumeCount > 1) call Error_Report('this importer does not yet support subvolumes'//{introspection:location})
     ! Allocate nodes arrays.
     allocate(self%nodes(nodeCount))
     ! Read snapshots.
@@ -307,7 +307,7 @@ contains
                 propertyUnits=decodeUnits(propertyUnitsText(j))
                 if (propertyUnits%status) then
                    if (massUnitsAssigned    ) then
-                      if (propertyUnits /= massUnits    ) call Galacticus_Error_Report('mismatch in mass units'//{introspection:location})
+                      if (propertyUnits /= massUnits    ) call Error_Report('mismatch in mass units'//{introspection:location})
                    else
                       massUnits            =propertyUnits
                       massUnitsAssigned    =.true.
@@ -317,7 +317,7 @@ contains
                 propertyUnits=decodeUnits(propertyUnitsText(j))
                 if (propertyUnits%status) then
                    if (lengthUnitsAssigned  ) then
-                      if (propertyUnits /= lengthUnits  ) call Galacticus_Error_Report('mismatch in length units'//{introspection:location})
+                      if (propertyUnits /= lengthUnits  ) call Error_Report('mismatch in length units'//{introspection:location})
                    else
                       lengthUnits          =propertyUnits
                       lengthUnitsAssigned  =.true.
@@ -327,7 +327,7 @@ contains
                 propertyUnits=decodeUnits(propertyUnitsText(j))
                 if (propertyUnits%status) then
                    if (velocityUnitsAssigned) then
-                      if (propertyUnits /= velocityUnits) call Galacticus_Error_Report('mismatch in velocity units'//{introspection:location})
+                      if (propertyUnits /= velocityUnits) call Error_Report('mismatch in velocity units'//{introspection:location})
                    else
                       velocityUnits        =propertyUnits
                       velocityUnitsAssigned=.true.
@@ -393,9 +393,9 @@ contains
     call displayCounterClear(       verbosityLevelWorking)
     call displayUnindent     ('done',verbosityLevelWorking)
     ! Check that units were set.
-    if (.not.    massUnitsAssigned) call Galacticus_Error_Report('mass units were not determined'    //{introspection:location})
-    if (.not.  lengthUnitsAssigned) call Galacticus_Error_Report('length units were not determined'  //{introspection:location})
-    if (.not.velocityUnitsAssigned) call Galacticus_Error_Report('velocity units were not determined'//{introspection:location})
+    if (.not.    massUnitsAssigned) call Error_Report('mass units were not determined'    //{introspection:location})
+    if (.not.  lengthUnitsAssigned) call Error_Report('length units were not determined'  //{introspection:location})
+    if (.not.velocityUnitsAssigned) call Error_Report('velocity units were not determined'//{introspection:location})
     ! Check for bad values.
     do j=1,size(self%nodes)
        if     (                                          &
@@ -442,7 +442,7 @@ contains
     do i=1,size(mergerTreeHaloIndices)
        call displayCounter(int(100.0d0*dble(i-1)/dble(size(mergerTreeHaloIndices))),i==1,verbosityLevelWorking)
        iHalo=searchIndexed(nodeSelfIndices,nodeIndexRanks,mergerTreeHaloIndices(i))
-       if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Galacticus_Error_Report('mismatch in halo ID lookup'//{introspection:location})
+       if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Error_Report('mismatch in halo ID lookup'//{introspection:location})
        if (mergerTreeDescendentIndices(i) < 0) then
           self%nodes(iHalo)%descendentIndex=-1
        else
@@ -459,7 +459,7 @@ contains
        if (self%nodes(i)%descendentIndex > 0) then
           iProgenitor=searchIndexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%descendentIndex)
           nodeDescendentLocations(i)=iProgenitor
-          if (self%nodes(nodeDescendentLocations(i))%nodeIndex /= self%nodes(i)%descendentIndex) call Galacticus_Error_Report('mismatch in descendant ID lookup'//{introspection:location})
+          if (self%nodes(nodeDescendentLocations(i))%nodeIndex /= self%nodes(i)%descendentIndex) call Error_Report('mismatch in descendant ID lookup'//{introspection:location})
        else
           nodeDescendentLocations(i)=-1
        end if
@@ -480,9 +480,9 @@ contains
       !!{
       Decode a textual unit definition and construct an importer units object from it.
       !!}
-      use :: Display                         , only : displayMagenta         , displayReset
-      use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
-      use :: Numerical_Constants_Astronomical, only : kiloParsec             , massSolar
+      use :: Display                         , only : displayMagenta, displayReset
+      use :: Error                           , only : Error_Report  , Warn
+      use :: Numerical_Constants_Astronomical, only : kiloParsec    , massSolar
       use :: Numerical_Constants_Prefixes    , only : kilo
       implicit none
       type     (importerUnits)                :: decodeUnits
@@ -492,7 +492,7 @@ contains
       ! Check for trailing question mark.
       if (unitString(len_trim(unitString):len_trim(unitString)) == "?") then
          unitWork=trim(unitString(1:len_trim(unitString)-1))
-         call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' file seems to be unsure about units "'//trim(unitString)//'"')
+         call Warn(displayMagenta()//'WARNING:'//displayReset()//' file seems to be unsure about units "'//trim(unitString)//'"')
       else
          unitWork=trim(unitString)
       end if
@@ -510,7 +510,7 @@ contains
          case ('kpc' )
             decodeUnits=importerUnits(.true.,kiloParsec,-1,+1) ! Assume h^-1 and comoving.
          case default
-            call Galacticus_Error_Report('unknown unit specifier'//{introspection:location})
+            call Error_Report('unknown unit specifier'//{introspection:location})
          end select
       end if
       return

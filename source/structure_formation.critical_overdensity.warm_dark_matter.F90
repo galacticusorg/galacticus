@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,8 +143,8 @@ contains
     use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles  , only : darkMatterParticleWDMThermal
     use :: FoX_DOM                , only : destroy                     , node                             , parseFile
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Galacticus_Paths       , only : galacticusPath              , pathTypeDataStatic
+    use :: Error                  , only : Error_Report
+    use :: Input_Paths            , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML                 , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
     use :: Numerical_Interpolation, only : GSL_Interp_CSpline
     use :: Table_Labels           , only : extrapolationTypeFix
@@ -184,12 +184,12 @@ contains
             &         /(darkMatterParticleWDMThermal_%degreesOfFreedomEffective()/1.5d0)         &
             &         /(darkMatterParticleWDMThermal_%mass                     ()/1.0d0) **4
     class default
-       call Galacticus_Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
+       call Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Read in the tabulated critical overdensity scaling.
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(galacticusPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('unable to find or parse the tabulated data'//{introspection:location})
+    doc => parseFile(char(inputPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
+    if (ioStatus /= 0) call Error_Report('unable to find or parse the tabulated data'//{introspection:location})
     ! Extract the datum lists.
     element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )
     call XML_Array_Read(element,"datum",self%deltaTableMass )
@@ -230,7 +230,7 @@ contains
     assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call $B_0$)
     scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                         , expansionFactor
@@ -244,7 +244,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Validate.
-    if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
+    if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     ! Determine the scale-free mass.
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
@@ -327,7 +327,7 @@ contains
     !!{
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                    , expansionFactor
@@ -341,7 +341,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Validate.
-    if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
+    if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     ! Determine the scale-free mass.
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
@@ -425,6 +425,7 @@ contains
     end if
     ! Include gradient from CDM critical overdensity.
     barkana2001WDMGradientMass=+barkana2001WDMGradientMass                                                     &
+         &                     *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
          &                     +self                       %value       (time,expansionFactor,collapsing,mass) &
          &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
          &                     *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)

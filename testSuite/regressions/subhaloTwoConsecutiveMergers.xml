@@ -20,6 +20,10 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
@@ -155,7 +159,7 @@
     <outputReferences value="false"/>
   </mergerTreeOutputter>
   <stellarPopulationProperties value="instantaneous"/>
-  <galacticusOutputFileName value="testSuite/outputs/regressions/subhaloTwoConsecutiveMergers.hdf5"/>
+  <outputFileName value="testSuite/outputs/regressions/subhaloTwoConsecutiveMergers.hdf5"/>
   <coolingSpecificAngularMomentum value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
@@ -168,7 +172,7 @@
   </randomNumberGenerator>
 
   <componentSpin value="null"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <outputTimes value="list">
     <redshifts value="0.0700"/>
   </outputTimes>
@@ -181,7 +185,7 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetOrbits value="true"/>
     <fileNames value="testSuite/data/mergerTrees/subhaloTwoConsecutiveMergers.hdf5"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetPositions value="true"/>
     <outputTimeSnapTolerance value="0.001"/>
     <presetSubhaloMasses value="false"/>
@@ -191,5 +195,6 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
+    <virialDensityContrastDefinition value="kitayamaSuto1996"/>
   </virialOrbit>
 </parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   ! Add dependency on GSL library.
   !; gsl
 
-  use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr
+  use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr, c_null_ptr
   
   !![
   <randomNumberGenerator name="randomNumberGeneratorGSL">
@@ -37,8 +37,8 @@
      !!}
      private
      integer(c_long) :: seed
-     logical         :: ompThreadOffset         , mpiRankOffset
-     type   (c_ptr ) :: gslRandomNumberGenerator
+     logical         :: ompThreadOffset                    , mpiRankOffset
+     type   (c_ptr ) :: gslRandomNumberGenerator=c_null_ptr
    contains
      final     ::                         gslDestructor
      procedure :: mpiIndependent       => gslMPIIndependent
@@ -247,7 +247,8 @@ contains
     implicit none
     type(randomNumberGeneratorGSL), intent(inout) :: self
 
-    call GSL_RNG_Free(self%gslRandomNumberGenerator)
+    if (c_associated(self%gslRandomNumberGenerator))        &
+         & call GSL_RNG_Free(self%gslRandomNumberGenerator)
     return
   end subroutine gslDestructor
 
@@ -316,7 +317,7 @@ contains
     !!{
     Perform a deep copy for the {\normalfont \ttfamily GSL} random number generator class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(randomNumberGeneratorGSL  ), intent(inout) :: self
     class(randomNumberGeneratorClass), intent(inout) :: destination
@@ -329,7 +330,7 @@ contains
        destination%mpiRankOffset           =              self%mpiRankOffset
        destination%gslRandomNumberGenerator=GSL_Rng_Clone(self%gslRandomNumberGenerator)
     class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+       call Error_Report('destination and source types do not match'//{introspection:location})
     end select
     return
   end subroutine gslDeepCopy
@@ -340,7 +341,7 @@ contains
     !!}
     use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
           &                                      verbosityLevelWorking
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : var_str
     use            :: Interface_GSL     , only : gsl_success
@@ -374,7 +375,7 @@ contains
     end if
     write (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
     status=GSL_Rng_FWrite(gslStateFile,self%gslRandomNumberGenerator)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('failed to store GSL random number generator state'//{introspection:location})
     call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
   end subroutine gslStateStore
@@ -385,7 +386,7 @@ contains
     !!}
     use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
           &                                      verbosityLevelWorking
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
+    use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : var_str
     use            :: Interface_GSL     , only : gsl_success
@@ -409,7 +410,7 @@ contains
     call displayMessage('restoring "mpirankoffset"'             ,verbosity=verbosityLevelWorking)
     read (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
     status=GSL_Rng_FRead(gslStateFile,self%gslRandomNumberGenerator)
-    if (status /= GSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('failed to store GSL random number generator state'//{introspection:location})
     call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
   end subroutine gslStateRestore

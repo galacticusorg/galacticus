@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,61 +35,69 @@ module Error_Functions
 
   interface Error_Function
      module procedure Error_Function_Real
+     module procedure Error_Function_Quad
      module procedure Error_Function_Complex
   end interface Error_Function
 
   interface Error_Function_Complementary
      module procedure Error_Function_Complementary_Real
+     module procedure Error_Function_Complementary_Quad
      module procedure Error_Function_Complementary_Complex
   end interface Error_Function_Complementary
 
   interface erfApproximate
      module procedure erfApproximateQuad
   end interface erfApproximate
-
-  interface
-     function gsl_sf_erf(x) bind(c,name='gsl_sf_erf')
-       !!{
-       Template for the GSL error function.
-       !!}
-       import
-       real(c_double)        :: gsl_sf_erf
-       real(c_double), value :: x
-     end function gsl_sf_erf
-
-     function gsl_sf_erfc(x) bind(c,name='gsl_sf_erfc')
-       !!{
-       Template for the GSL error function.
-       !!}
-       import
-       real(c_double)        :: gsl_sf_erfc
-       real(c_double), value :: x
-     end function gsl_sf_erfc
-  end interface
   
 contains
 
-  double precision function Error_Function_Real(argument)
+  elemental double precision function Error_Function_Real(argument)
     !!{
     Computes the error function.
     !!}
     implicit none
     double precision, intent(in   ) :: argument
 
-    Error_Function_Real=GSL_SF_Erf(argument)
+    Error_Function_Real=erf(argument)
     return
   end function Error_Function_Real
 
-  double precision function Error_Function_Complementary_Real(argument)
+  elemental function Error_Function_Quad(argument)
+    !!{
+    Computes the error function with quad precision.
+    !!}
+    use :: Kind_Numbers, only : kind_quad
+    implicit none
+    real(kind=kind_quad)                :: Error_Function_Quad
+    real(kind=kind_quad), intent(in   ) :: argument
+
+    Error_Function_Quad=erf(argument)
+    return
+  end function Error_Function_Quad
+
+  elemental double precision function Error_Function_Complementary_Real(argument)
     !!{
     Computes the complementary error function.
     !!}
     implicit none
     double precision, intent(in   ) :: argument
 
-    Error_Function_Complementary_Real=GSL_SF_ErfC(argument)
+    Error_Function_Complementary_Real=erfc(argument)
     return
   end function Error_Function_Complementary_Real
+
+  elemental function Error_Function_Complementary_Quad(argument)
+    !!{
+    Computes the complementary error function.
+    !!}
+    use :: Kind_Numbers, only : kind_quad
+    implicit none
+    real(kind=kind_quad)                :: Error_Function_Complementary_Quad
+    real(kind=kind_quad), intent(in   ) :: argument
+
+    Error_Function_Complementary_Quad=erfc(argument)
+    return
+  end function Error_Function_Complementary_Quad
 
   elemental double complex function Error_Function_Complex(argument)
     !!{

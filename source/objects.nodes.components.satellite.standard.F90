@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,8 @@ module Node_Component_Satellite_Standard
        &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize       , &
        &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize  , &
        &    Node_Component_Satellite_Standard_Inactive           , Node_Component_Satellite_Standard_Thread_Initialize, &
-       &    Node_Component_Satellite_Standard_Thread_Uninitialize
+       &    Node_Component_Satellite_Standard_Thread_Uninitialize, Node_Component_Satellite_Standard_State_Store      , &
+       &    Node_Component_Satellite_Standard_State_Restore
 
   !![
   <component>
@@ -43,12 +44,12 @@ module Node_Component_Satellite_Standard
    <isDefault>true</isDefault>
    <properties>
     <property>
-      <name>mergeTime</name>
+      <name>timeUntilMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Standard_Merge_Time</getFunction>
+      <getFunction>Node_Component_Satellite_Standard_Time_Until_Merging</getFunction>
       <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
     </property>
     <property>
@@ -223,7 +224,6 @@ contains
   !![
   <mergerTreeInitializeTask>
    <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
-   <after>darkMatterProfile</after>
   </mergerTreeInitializeTask>
   !!]
   subroutine Node_Component_Satellite_Standard_Tree_Initialize(node)
@@ -257,8 +257,8 @@ contains
     !!{
     Compute the time until satellite merging rate of change.
     !!}
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyTypeActive, &
-          &                         propertyTypeAll          , propertyTypeInactive  , treeNode
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyEvaluate, &
+          &                         treeNode
     implicit none
     type            (treeNode              ), intent(inout)          :: node
     logical                                 , intent(inout)          :: interrupt
@@ -276,15 +276,9 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        if (node%isSatellite()) then
-          call satellite%mergeTimeRate(-1.0d0      )
+          call satellite%timeUntilMergingRate(-1.0d0)
           ! Compute mass loss rate if necessary.
-          if     (                                                                                &
-               &   (propertyType == propertyTypeActive   .and. .not.satelliteBoundMassIsInactive) &
-               &  .or.                                                                            &
-               &   (propertyType == propertyTypeInactive .and.      satelliteBoundMassIsInactive  &
-               &  .or.                                                                            &
-               &    propertyType == propertyTypeAll)                                              &
-               & ) then
+          if (propertyEvaluate(propertyType,satelliteBoundMassIsInactive)) then
              massLossRate=darkMatterHaloMassLossRate_%rate(node)
              call satellite%boundMassRate(massLossRate)
           end if
@@ -335,7 +329,7 @@ contains
     class           (nodeComponentSatellite         ), intent(inout) :: self
     type            (keplerOrbit                    ), intent(in   ) :: orbit
     type            (treeNode                       ), pointer       :: selfNode
-    double precision                                                 :: mergeTime
+    double precision                                                 :: timeUntilMerging
     type            (keplerOrbit                    )                :: virialOrbit
 
     select type (self)
@@ -346,8 +340,8 @@ contains
        selfNode => self%host()
        ! Update the stored time until merging to reflect the new orbit.
        virialOrbit=orbit
-       mergeTime  =satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
-       if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
+       timeUntilMerging  =satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
+       if (timeUntilMerging >= 0.0d0) call self%timeUntilMergingSet(timeUntilMerging)
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
     end select
@@ -378,7 +372,7 @@ contains
        ! Get the basic component.
        basic => node%basic()
        ! Set scale for time.
-       call satellite%mergeTimeScale(timeScale                       )
+       call satellite%timeUntilMergingScale(timeScale                       )
        ! Set scale for bound mass.
        call satellite%boundMassScale(massScaleFractional*basic%mass())
     end select
@@ -438,7 +432,7 @@ contains
     class           (nodeComponentSatellite), pointer       :: satellite
     class           (nodeComponentBasic    ), pointer       :: basic
     logical                                                 :: isNewSatellite
-    double precision                                        :: mergeTime
+    double precision                                        :: timeUntilMerging
     type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
@@ -484,10 +478,56 @@ contains
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
-       mergeTime=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
-       if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
+       timeUntilMerging=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
+       if (timeUntilMerging >= 0.0d0) call satellite%timeUntilMergingSet(timeUntilMerging)
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Create
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Satellite_Standard_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentSatellite -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloMassLossRate_ virialOrbit_ satelliteMergingTimescales_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Standard_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Satellite_Standard_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentSatellite -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloMassLossRate_ virialOrbit_ satelliteMergingTimescales_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Standard_State_Restore
 
 end module Node_Component_Satellite_Standard

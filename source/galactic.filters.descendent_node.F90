@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@ Contains a module which implements a galactic filter which applies another filte
      A galactic filter which applies another filter to a descendent node of the given node.
      !!}
      private
-     class           (galacticFilterClass), pointer :: galacticFilter_
+     class           (galacticFilterClass), pointer :: galacticFilter_ => null()
      double precision                               :: timeDescendent
      logical                                        :: allowSelf
    contains
@@ -119,7 +119,7 @@ contains
     !!{
     Implement a filter on descendent node properties.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -143,6 +143,6 @@ contains
        end if
        nodeDescendent => nodeDescendent%parent
     end do
-    call Galacticus_Error_Report('failed to find descendent node'//{introspection:location})
+    call Error_Report('failed to find descendent node'//{introspection:location})
     return
   end function descendentNodePasses

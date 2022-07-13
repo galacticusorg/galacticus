@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -131,9 +131,11 @@ contains
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingFunctionMolecularHydrogenGalliPalla()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function molecularHydrogenGalliPallaConstructorParameters
 
@@ -143,13 +145,14 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
-    type(coolingFunctionMolecularHydrogenGalliPalla) :: self
-
+    type   (coolingFunctionMolecularHydrogenGalliPalla) :: self
+    integer                                             :: status
+    
     ! Get the indices of chemicals that will be used.
-    self%electronIndex               =Chemicals_Index("Electron"               )
-    self%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         )
-    self%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation")
-    self%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      )
+    self%electronIndex               =Chemicals_Index("Electron"               ,status)
+    self%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         ,status)
+    self%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation",status)
+    self%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      ,status)
     ! Initialized stored calculations to unphysical values.
     self%temperaturePrevious1             =-1.0d0
     self%temperaturePrevious2             =-1.0d0
@@ -198,7 +201,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
@@ -211,7 +214,7 @@ contains
     !$GLC attributes unused :: self, node, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
 
     molecularHydrogenGalliPallaCoolingFunctionFractionInBand=0.0d0
-    call Galacticus_Error_Report('fraction in band is not supported'//{introspection:location})
+    call Error_Report('fraction in band is not supported'//{introspection:location})
     return
   end function molecularHydrogenGalliPallaCoolingFunctionFractionInBand
 
@@ -583,6 +586,15 @@ contains
     double precision                                                            :: electronDensity               , logarithmic10Temperature, &
          &                                                                         molecularHydrogenCationDensity
 
+    ! Set to zero if species are not present.
+    if     (                                       &
+         &   self%molecularHydrogenCationIndex < 0 &
+         &  .or.                                   &
+         &   self%electronIndex                < 0 &
+         & ) then
+       molecularHydrogenGalliPallaCoolingFunctionH2Plus_Electron=0.0d0
+       return
+    end if
     ! Get the relevant densities.
     electronDensity               =chemicalDensities%abundance(self%electronIndex               )
     molecularHydrogenCationDensity=chemicalDensities%abundance(self%molecularHydrogenCationIndex)
@@ -622,6 +634,15 @@ contains
     double precision                                                            :: atomicHydrogenDensity         , logarithmic10Temperature, &
          &                                                                         molecularHydrogenCationDensity
 
+    ! Set to zero if species are not present.
+    if     (                                       &
+         &   self%molecularHydrogenCationIndex < 0 &
+         &  .or.                                   &
+         &   self%atomicHydrogenIndex          < 0 &
+         & ) then
+       molecularHydrogenGalliPallaCoolingFunctionH_H2Plus=0.0d0
+       return
+    end if
     ! Get the relevant densities.
     atomicHydrogenDensity         =chemicalDensities%abundance(self%atomicHydrogenIndex         )
     molecularHydrogenCationDensity=chemicalDensities%abundance(self%molecularHydrogenCationIndex)
@@ -661,6 +682,15 @@ contains
          &                                                                         coolingFunctionLowDensityLimit                , molecularHydrogenDensity                    , &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen
 
+    ! Set to zero if species are not present.
+    if     (                                 &
+         &   self%molecularHydrogenIndex < 0 &
+         &  .or.                             &
+         &   self%atomicHydrogenIndex    < 0 &
+         & ) then
+       molecularHydrogenGalliPallaCoolingFunctionH_H2=0.0d0
+       return
+    end if
     ! Get the relevant densities.
     atomicHydrogenDensity   =chemicalDensities%abundance(self%atomicHydrogenIndex   )
     molecularHydrogenDensity=chemicalDensities%abundance(self%molecularHydrogenIndex)

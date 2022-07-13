@@ -28,7 +28,7 @@ my @tests =
      		  name              => "hot halo mass"            ,
      		  output            => 1                          ,
      		  property          => "hotHaloMass"              ,
-     		  values            => pdl ( 8.00146698124138e10 ),
+                  values            => pdl ( 8.00140056433672e10 ),
      		  toleranceRelative => 4.0e-6
      	      }
      	     ]
@@ -180,7 +180,7 @@ my @tests =
 # Run tests.
 foreach my $test ( @tests ) {
     print "Running test \"".$test->{'name'}."\": Galacticus.exe ".$test->{'parameters'}."\n";
-    system("cd ..; Galacticus.exe ".$test->{'parameters'});
+    system("cd ..; ./Galacticus.exe ".$test->{'parameters'});
     if ( $? == 0 ) {
 	my $model   = new PDL::IO::HDF5("../".$test->{'outputFileName'});
 	my $outputs = $model->group('Outputs');
@@ -193,7 +193,7 @@ foreach my $test ( @tests ) {
 		$values      = $property->get    (                        );
 	    } elsif ( exists($assertion->{'expression'}) ) {
 		my %propertyNames;
-		while ( my @matches = $assertion->{'expression'} =~ m/%\[([^%]+?)({(\d+)})??\]/ ) {
+		while ( my @matches = $assertion->{'expression'} =~ m/%\[([^%]+?)(\{(\d+)\})??\]/ ) {
 		    my $propertyName  = $matches[0];
 		    my $propertyIndex = $matches[2];
 		    my $replacement = "\$properties{'$1'}";

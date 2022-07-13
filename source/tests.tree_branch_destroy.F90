@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,7 +45,7 @@ program Tests_Tree_Branch_Destroy
   do iNode=1,5
      nodes(iNode)%node => treeNode()
   end do
-  tree%baseNode => nodes(1)%node
+  tree%nodeBase => nodes(1)%node
   tree%event    => null()
 
   ! Set indices of nodes.

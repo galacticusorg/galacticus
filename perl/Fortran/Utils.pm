@@ -228,6 +228,9 @@ sub read_file {
     my $fileName = shift;
     (my %options) = @_
 	if ( scalar(@_) > 1 );
+    # Set default set of include files to exclude.
+    @{$options{'includeFilesExcluded'}} = ()
+	unless ( exists($options{'includeFilesExcluded'}) );
     # Determine what to return.
     my $returnType = "raw";
     $returnType = $options{'state'}
@@ -269,20 +272,22 @@ sub read_file {
 	    if ( $followIncludes == 1 && $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
 		my $includeFileLeaf  = $1;
 		my $includeFileFound = 0;
-		foreach my $suffix ( ".inc", ".Inc" ) {
-		    foreach my $includeLocation ( @includeLocations ) {
-			(my $includePath = $fileNames[0]) =~ s/\/[^\/]+$/\//;
-			(my $includeFile = $includePath.$includeLocation."/".$includeFileLeaf) =~ s/\.inc$/$suffix/;
-			if ( -e $includeFile ) {
+		unless ( grep {$_ eq $includeFileLeaf} @{$options{'includeFilesExcluded'}} ) {
+		    foreach my $suffix ( ".inc", ".Inc" ) {
+			foreach my $includeLocation ( @includeLocations ) {
+			    (my $includePath = $fileNames[0]) =~ s/\/[^\/]+$/\//;
+			    (my $includeFile = $includePath.$includeLocation."/".$includeFileLeaf) =~ s/\.inc$/$suffix/;
+			    if ( -e $includeFile ) {
 			    $filePositions[0] = tell($fileHandle);
 			    unshift(@fileNames,$includeFile);
 			    unshift(@filePositions,-1);
 			    $includeFileFound = 1;
 			    last;
+			    }
 			}
+			last
+			    if ( $includeFileFound == 1 );
 		    }
-		    last
-			if ( $includeFileFound == 1 );
 		}
 		last
 		    if ( $includeFileFound == 1 );
@@ -343,7 +348,7 @@ sub Get_Fortran_Line {
 	    $commentPosition = -1;
 	} elsif ( $tmpLine =~ m/^([^'"\{]+)![^\$]/ ) {
 	    ## This regex checks for a "!" prior to any of "'{, and not followed by a "$" (which indicates an OpenMP directive). If found, this must be the start of a comment.
-	    $commentPosition = length($1)+1;
+	    $commentPosition = length($1);
 	} else {
 	    # General case. Comments begin with a "!" symbol, but not if it is found inside a string literal, or inside braces, "{}".
 	    my $removedCount = 0;
@@ -361,15 +366,15 @@ sub Get_Fortran_Line {
 	    	    my $depth = 0;
 	    	    while ( $iChar < length($tmpLine) ) {
 	    		++$depth
-	    		    if ( substr($tmpLine,$iChar+1,1) eq "{" );
+	    		    if ( substr($tmpLine,$iChar,1) eq "{" );
 	    		--$depth
-	    		    if ( substr($tmpLine,$iChar+1,1) eq "}" );
+	    		    if ( substr($tmpLine,$iChar,1) eq "}" );
 	    		last
 	    		    if ( $depth == 0 );
 	    		++$iChar;
 	    	    }
-	    	    $removedCount += $iChar+1;
-	    	    $tmpLine = substr($tmpLine,$iChar+1);
+	    	    $removedCount += $iChar;
+	    	    $tmpLine = substr($tmpLine,$iChar);
 	    	} else {
 	    	    # Quotes are not nested, so can be removed by regex.
 	    	    my $quote = $1;
@@ -705,11 +710,13 @@ sub Unformat_Variables {
 	    $attributesString      =~ s/^\s*,\s*//
 		if ( defined($attributesString) );	    
 	    my @variables          =  &Extract_Variables($variablesString ,keepQualifiers => 1,removeSpaces => 1);
+	    my @variableNames      =  &Extract_Variables($variablesString ,keepQualifiers => 0,removeSpaces => 1);
 	    my @attributes         =  &Extract_Variables($attributesString,keepQualifiers => 1,removeSpaces => 1);
 	    my $variableDefinition =
 	    {
-		intrinsic => $intrinsicDeclarations{$intrinsicType}->{'intrinsic'},
-		variables => \@variables
+		intrinsic     => $intrinsicDeclarations{$intrinsicType}->{'intrinsic'},
+		variables     => \@variables                                          ,
+		variableNames => \@variableNames
 	    };
 	    $variableDefinition->{'type'      } = $type
 		if ( defined($type      )     );

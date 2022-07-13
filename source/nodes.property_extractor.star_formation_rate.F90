@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,19 +59,6 @@ Contains a module which implements a star formation rate property extractor clas
      module procedure starFormationRateConstructorInternal
   end interface nodePropertyExtractorStarFormationRate
 
-  ! Enumerations for galactic components.
-  !![
-  <enumeration>
-   <name>galacticComponent</name>
-   <description>Specifies the galactic component for star formation rate calculations.</description>
-   <visibility>private</visibility>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="disk"    />
-   <entry label="spheroid"/>
-   <entry label="total"   />
-  </enumeration>
-  !!]
-
 contains
 
   function starFormationRateConstructorParameters(parameters) result(self)
@@ -123,7 +110,7 @@ contains
     !!{
     Internal constructor for the ``starFormationRate'' property extractor class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationRate)                        :: self
     class(starFormationRateDisksClass           ), intent(in   ), target :: starFormationRateDisks_
@@ -142,7 +129,7 @@ contains
        self%name_       ="spheroidStarFormationRate"
        self%description_="Spheroid star formation rate [M☉ Gyr⁻¹]."
     else
-       call Galacticus_Error_Report('No star formation rate specified.'//{introspection:location})
+       call Error_Report('No star formation rate specified.'//{introspection:location})
     end if
     return
   end function starFormationRateConstructorInternal

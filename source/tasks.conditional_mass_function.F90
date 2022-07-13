@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,19 +33,19 @@
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
-     class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_
-     class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_
-     class           (massFunctionIncompletenessClass), pointer                   :: massFunctionIncompleteness_
-     class           (haloMassFunctionClass          ), pointer                   :: haloMassFunction_
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_         => null()
+     class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_    => null()
+     class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_             => null()
+     class           (massFunctionIncompletenessClass), pointer                   :: massFunctionIncompleteness_ => null()
+     class           (haloMassFunctionClass          ), pointer                   :: haloMassFunction_           => null()
      integer                                                                      :: countMass
-     double precision                                                             :: massHalo                   , massMinimum                  , &
-          &                                                                          massMaximum                , timeMinimum                  , &
-          &                                                                          timeMaximum                , massHaloMinimum              , &
+     double precision                                                             :: massHalo                             , massMinimum                  , &
+          &                                                                          massMaximum                          , timeMinimum                  , &
+          &                                                                          timeMaximum                          , massHaloMinimum              , &
           &                                                                          massHaloMaximum
-     logical                                                                      :: useSurveyLimits            , integrateOverHaloMassFunction
+     logical                                                                      :: useSurveyLimits                      , integrateOverHaloMassFunction
      type            (varying_string                 )                            :: outputGroupName
-     double precision                                 , allocatable, dimension(:) :: massBinCenters             , massLogarithmDelta
+     double precision                                 , allocatable, dimension(:) :: massBinCenters                       , massLogarithmDelta
    contains
      final     ::            conditionalMassFunctionDestructor
      procedure :: perform => conditionalMassFunctionPerform
@@ -65,8 +65,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (taskConditionalMassFunction    )                              :: self
     type            (inputParameters                ), intent(inout)               :: parameters
@@ -116,14 +116,14 @@ contains
             &   .not.parameters%isPresent('massBinCenters'    ) &
             &  .or.                                             &
             &   .not.parameters%isPresent('massLogarithmDelta') &
-            & ) call Galacticus_Error_Report('both [massBinCenters] and [massLogarithmDelta] must be specified if either is specified'   //{introspection:location})
+            & ) call Error_Report('both [massBinCenters] and [massLogarithmDelta] must be specified if either is specified'   //{introspection:location})
        if     (                                                 &
             &        parameters%isPresent('massMinimum'       ) &
             &  .or.                                             &
             &        parameters%isPresent('massMaximum'       ) &
             &  .or.                                             &
             &        parameters%isPresent('countMass'         ) &
-            & ) call Galacticus_Error_Report('ambigous mass specification'                                                               //{introspection:location})
+            & ) call Error_Report('ambigous mass specification'                                                               //{introspection:location})
        !![
        <inputParameter>
          <name>massBinCenters</name>
@@ -141,14 +141,14 @@ contains
             &        parameters%isPresent('massBinCenters'    ) &
             &  .or.                                             &
             &        parameters%isPresent('massLogarithmDelta') &
-            & ) call Galacticus_Error_Report('ambigous mass specification'                                                               //{introspection:location})
+            & ) call Error_Report('ambigous mass specification'                                                               //{introspection:location})
        if     (                                                 &
             &   .not.parameters%isPresent('massMinimum'       ) &
             &  .or.                                             &
             &   .not.parameters%isPresent('massMaximum'       ) &
             &  .or.                                             &
             &   .not.parameters%isPresent('countMass'         ) &
-            & ) call Galacticus_Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
+            & ) call Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
        !![
        <inputParameter>
          <name>massMinimum</name>
@@ -238,9 +238,9 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: Memory_Management, only : allocateArray
-    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
+    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (taskConditionalMassFunction    )                                        :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target                 :: cosmologyFunctions_
@@ -262,9 +262,9 @@ contains
     !!]
 
     if (present(massHalo)) then
-       if (     present(massHaloMinimum).or.     present(massHaloMaximum)) call Galacticus_Error_Report('ambiguous halo mass selection'//{introspection:location})
+       if (     present(massHaloMinimum).or.     present(massHaloMaximum)) call Error_Report('ambiguous halo mass selection'//{introspection:location})
     else
-       if (.not.present(massHaloMinimum).or..not.present(massHaloMaximum)) call Galacticus_Error_Report('ambiguous halo mass selection'//{introspection:location})
+       if (.not.present(massHaloMinimum).or..not.present(massHaloMaximum)) call Error_Report('ambiguous halo mass selection'//{introspection:location})
     end if
     self%integrateOverHaloMassFunction=.not.present(massHalo)
     if (present(massBinCenters)) then
@@ -299,11 +299,11 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use :: Display              , only : displayIndent          , displayUnindent
-    use :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
-    use :: Galacticus_HDF5      , only : galacticusOutputFile
+    use :: Display              , only : displayIndent, displayUnindent
+    use :: Error                , only : Error_Report , errorStatusSuccess
+    use :: Output_HDF5          , only : outputFile
     use :: IO_HDF5              , only : hdf5Object
-    use :: ISO_Varying_String   , only : char                   , var_str           , varying_string
+    use :: ISO_Varying_String   , only : char         , var_str           , varying_string
     use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
@@ -385,7 +385,7 @@ contains
              if (volumeIntegrand <= 0.0d0) then
                 write (label,'(e12.6)') self%massBinCenters(iMass)
                 message=var_str("zero volume for conditional mass function integral in mass bin ")//iMass//" (mass = "//trim(adjustl(label))//" M☉) - check your redshift interval"
-                call Galacticus_Error_Report(message//{introspection:location})
+                call Error_Report(message//{introspection:location})
              end if
              conditionalMassFunction(iMass)=massFunctionIntegrand/volumeIntegrand
           end if
@@ -408,7 +408,7 @@ contains
             &                                   *self%massFunctionIncompleteness_%completeness(self%massBinCenters(iMass))
     end do
     ! Write the data to file.
-    outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName))
+    outputGroup=outputFile%openGroup(char(self%outputGroupName))
     call outputGroup%writeDataset(self%massBinCenters,"mass" ,commentText="mass in units of M☉")
     if (self%integrateOverHaloMassFunction) then
        call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,commentText="Mass function in units of Mpc⁻³ per log(mass)."                 )

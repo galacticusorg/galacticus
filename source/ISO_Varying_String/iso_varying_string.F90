@@ -61,6 +61,7 @@ module iso_varying_string
        <method method="stateRestore" description="Restore the state of a varying string from file."     />
      </methods>
      !!]
+     final     ::                 destructor_VS
      procedure :: destroy      => destroy_VS
      procedure :: loadFromFile => load_from_file_VS
      procedure :: stateStore   => vsStateStore
@@ -2680,6 +2681,16 @@ contains
     return
 
   end subroutine split_CH
+  
+  elemental subroutine destructor_VS (string)
+    !!{
+    Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
+    !!}
+    type(varying_string), intent(inout) :: string
+
+    if (allocated(string%chars)) deallocate(string%chars)
+    return
+  end subroutine destructor_VS
 
   subroutine destroy_VS (string)
     !!{

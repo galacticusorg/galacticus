@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +39,7 @@
   integer, parameter :: adiabaticGnedin2004StoreCount=10
 
   !![
-  <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004">
+  <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004" recursive="yes">
    <description>
     A dark matter profile class which applies adiabatic contraction to the halo as it responds to the presence of
     baryons. Adiabatic contraction follows the algorithm of \cite{gnedin_response_2004}. The parameters $A$ and $\omega$ of
@@ -83,6 +83,12 @@
     \end{equation}
     and which can then be solved numerically for $r^\prime_\mathrm{i}$.
    </description>
+   <deepCopy>
+     <ignore variables="recursiveSelf"/>
+   </deepCopy>
+   <stateStore>
+     <stateStore variables="galacticStructure_" store="galacticStructureStateStore_" restore="galacticStructureStateRestore_" module="Functions_Global"/>
+   </stateStore>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileAdiabaticGnedin2004
@@ -90,25 +96,26 @@
      A dark matter halo profile class implementing adiabaticGnedin2004 dark matter halos.
      !!}
      private
-     class           (cosmologyParametersClass ), pointer                                  :: cosmologyParameters_            => null()
-     class           (darkMatterProfileDMOClass), pointer                                  :: darkMatterProfileDMO_           => null()
-     integer                                                                               :: nonAnalyticSolver
-     type            (rootFinder               )                                           :: finder
+     logical                                                                                          :: isRecursive                              , parentDeferred
+     class           (darkMatterProfileAdiabaticGnedin2004), pointer                                  :: recursiveSelf                   => null()
+     class           (cosmologyParametersClass            ), pointer                                  :: cosmologyParameters_            => null()
+     class           (darkMatterProfileDMOClass           ), pointer                                  :: darkMatterProfileDMO_           => null()
+     class           (*                                   ), pointer                                  :: galacticStructure_              => null()
+     integer                                                                                          :: nonAnalyticSolver
+     type            (rootFinder                          )                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
-     double precision                                                                      :: A                                        , omega
+     double precision                                                                                 :: A                                        , omega
      ! Stored solutions for reuse.
-     integer         (kind=kind_int8           )                                           :: lastUniqueID
-     integer                                                                               :: radiusPreviousIndex                      , radiusPreviousIndexMaximum
-     double precision                           , dimension(adiabaticGnedin2004StoreCount) :: radiusPrevious                           , radiusInitialPrevious
-     type            (fastExponentiator        )                                           :: radiusExponentiator
+     integer         (kind=kind_int8                      )                                           :: lastUniqueID
+     integer                                                                                          :: radiusPreviousIndex                      , radiusPreviousIndexMaximum
+     double precision                                      , dimension(adiabaticGnedin2004StoreCount) :: radiusPrevious                           , radiusInitialPrevious
+     type            (fastExponentiator                   )                                           :: radiusExponentiator
      ! Quantities used in solving the initial radius root function.
-     double precision                                                                      :: baryonicFinalTerm                        , baryonicFinalTermDerivative, &
-          &                                                                                   darkMatterDistributedFraction            , initialMassFraction        , &
-          &                                                                                   radiusFinal                              , radiusFinalMean            , &
-          &                                                                                   radiusFinalMeanSelfDerivative            , radiusInitial_             , &
-          &                                                                                   radiusInitialMeanSelfDerivative          , radiusShared               , &
-          &                                                                                   radiusVirial                             , darkMatterFraction
-     logical                                                                               :: massesComputed
+     double precision                                                                                 :: baryonicFinalTerm                        , baryonicFinalTermDerivative, &
+          &                                                                                              darkMatterDistributedFraction            , initialMassFraction        , &
+          &                                                                                              radiusFinal                              , radiusFinalMean            , &
+          &                                                                                              darkMatterFraction                       , radiusVirial
+     logical                                                                                          :: massesComputed
    contains
      !![
      <methods>
@@ -136,7 +143,6 @@
      procedure :: radiusFromSpecificAngularMomentum => adiabaticGnedin2004RadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => adiabaticGnedin2004RotationNormalization
      procedure :: energy                            => adiabaticGnedin2004Energy
-     procedure :: energyGrowthRate                  => adiabaticGnedin2004EnergyGrowthRate
      procedure :: kSpace                            => adiabaticGnedin2004KSpace
      procedure :: freefallRadius                    => adiabaticGnedin2004FreefallRadius
      procedure :: freefallRadiusIncreaseRate        => adiabaticGnedin2004FreefallRadiusIncreaseRate
@@ -145,6 +151,9 @@
      procedure :: computeFactors                    => adiabaticGnedin2004ComputeFactors
      procedure :: radiusOrbitalMean                 => adiabaticGnedin2004RadiusOrbitalMean
      procedure :: radiusOrbitalMeanDerivative       => adiabaticGnedin2004RadiusOrbitalMeanDerivative
+     procedure :: deepCopy                          => adiabaticGnedin2004DeepCopy
+     procedure :: deepCopyReset                     => adiabaticGnedin2004DeepCopyReset
+     procedure :: deepCopyFinalize                  => adiabaticGnedin2004DeepCopyFinalize
   end type darkMatterProfileAdiabaticGnedin2004
 
   interface darkMatterProfileAdiabaticGnedin2004
@@ -163,22 +172,29 @@
   class           (darkMatterProfileAdiabaticGnedin2004), pointer   :: adiabaticGnedin2004Self
   !$omp threadprivate(adiabaticGnedin2004Self,adiabaticGnedin2004Node)
     
-  contains
+contains
 
-  function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
+  recursive function adiabaticGnedin2004ConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameters
+    use :: Functions_Global, only : galacticStructureConstruct_, galacticStructureDestruct_
     implicit none
-    type            (darkMatterProfileAdiabaticGnedin2004)                :: self
-    type            (inputParameters                     ), intent(inout) :: parameters
-    class           (cosmologyParametersClass            ), pointer       :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass           ), pointer       :: darkMatterProfileDMO_
-    type            (varying_string                      )                :: nonAnalyticSolver
-    double precision                                                      :: A                    , omega
-
+    type            (darkMatterProfileAdiabaticGnedin2004)                          :: self
+    type            (inputParameters                     ), intent(inout)           :: parameters
+    logical                                               , intent(in   ), optional :: recursiveConstruct
+    class           (darkMatterProfileClass              ), intent(in   ), optional :: recursiveSelf
+    class           (cosmologyParametersClass            ), pointer                 :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass           ), pointer                 :: darkMatterProfileDMO_
+    class           (*                                   ), pointer                 :: galacticStructure_
+    type            (varying_string                      )                          :: nonAnalyticSolver
+    double precision                                                                :: A                    , omega
+    !![
+    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
+    !!]
+    
     !![
     <inputParameter>
       <name>A</name>
@@ -204,34 +220,44 @@
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=darkMatterProfileAdiabaticGnedin2004(A,omega,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
+    if (recursiveConstruct_) then
+       galacticStructure_ => null()
+    else
+       call galacticStructureConstruct_(parameters,galacticStructure_)
+    end if
+    self=darkMatterProfileAdiabaticGnedin2004(A,omega,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="cosmologyParameters_" />
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
+    if (associated(galacticStructure_)) call galacticStructureDestruct_(galacticStructure_)
     return
   end function adiabaticGnedin2004ConstructorParameters
 
-  function adiabaticGnedin2004ConstructorInternal(A,omega,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function adiabaticGnedin2004ConstructorInternal(A,omega,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
-    type            (darkMatterProfileAdiabaticGnedin2004)                        :: self
-    double precision                                      , intent(in   )         :: A                    , omega
-    class           (cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
-    class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
-    integer                                               , intent(in   )         :: nonAnalyticSolver
+    type            (darkMatterProfileAdiabaticGnedin2004)                                  :: self
+    double precision                                      , intent(in   )                   :: A                    , omega
+    class           (cosmologyParametersClass            ), intent(in   ), target           :: cosmologyParameters_
+    class           (darkMatterProfileDMOClass           ), intent(in   ), target           :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass            ), intent(in   ), target           :: darkMatterHaloScale_
+    class           (*                                   ), intent(in   ), target           :: galacticStructure_
+    integer                                               , intent(in   )                   :: nonAnalyticSolver
+    logical                                               , intent(in   )        , optional :: recursiveConstruct
+    class           (darkMatterProfileClass              ), intent(in   ), target, optional :: recursiveSelf
     !![
-    <constructorAssign variables="A, omega, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
+    <constructorAssign variables="A, omega, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
-
+    
     ! Validate.
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct the object.
     self%lastUniqueID       =-1_kind_int8
     self%genericLastUniqueID=-1_kind_int8
@@ -247,6 +273,18 @@
          &                 toleranceAbsolute=toleranceAbsolute        , &
          &                 toleranceRelative=toleranceRelative          &
          &                )
+    ! Handle recursive construction.
+    self%isRecursive=recursiveConstruct_
+    if (recursiveConstruct_) then
+       if (.not.present(recursiveSelf)) call Error_Report('recursiveSelf not present'//{introspection:location})
+       select type (recursiveSelf)
+       class is (darkMatterProfileAdiabaticGnedin2004)
+          self%recursiveSelf => recursiveSelf
+       class default
+          call Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
+       end select
+    end if
+    self%parentDeferred=.false.
     return
   end function adiabaticGnedin2004ConstructorInternal
 
@@ -266,7 +304,8 @@
     !!{
     Destructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent
+    use :: Events_Hooks    , only : calculationResetEvent
+    use :: Functions_Global, only : galacticStructureDestruct_
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
@@ -275,7 +314,8 @@
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call calculationResetEvent%detach(self,adiabaticGnedin2004CalculationReset)
+    if (associated                      (self%galacticStructure_                 )) call galacticStructureDestruct_  (self%galacticStructure_                 )
+    if (calculationResetEvent%isAttached(self,adiabaticGnedin2004CalculationReset)) call calculationResetEvent%detach(self,adiabaticGnedin2004CalculationReset)
     return
   end subroutine adiabaticGnedin2004Destructor
 
@@ -288,12 +328,16 @@
     type (treeNode                            ), intent(inout) :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID              =node%uniqueID()
-    self%genericLastUniqueID       =node%uniqueID()
-    self%radiusPreviousIndex       = 0
-    self%radiusPreviousIndexMaximum= 0
-    self%radiusPrevious            =-1.0d0
-    self%massesComputed            =.false.
+    self%lastUniqueID                                =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%radiusPreviousIndex                         = 0
+    self%radiusPreviousIndexMaximum                  = 0
+    self%radiusPrevious                              =-1.0d0
+    self%massesComputed                              =.false.
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -311,6 +355,11 @@
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004EnclosedMass=self%recursiveSelf%enclosedMass(node,radius)
+       return
+    end if
     adiabaticGnedin2004EnclosedMass=+self%darkMatterFraction                                                       &
          &                          *self%darkMatterProfileDMO_%enclosedMass(node,self%radiusInitial(node,radius))
     return
@@ -328,6 +377,11 @@
     double precision                                                      :: radiusInitial , radiusInitialDerivative, &
          &                                                                   densityInitial
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004Density=self%recursiveSelf%density(node,radius)
+       return
+    end if
     radiusInitial =self                      %radiusInitial(node,radius       )
     densityInitial=self%darkMatterProfileDMO_%density      (node,radiusInitial)
     if (radius == radiusInitial) then
@@ -357,6 +411,11 @@
     double precision                                      , intent(in   ) :: radius
     logical                                                               :: fallThrough
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004DensityLogSlope=self%recursiveSelf%densityLogSlope(node,radius)
+       return
+    end if
     fallThrough=self%nonAnalyticSolver == nonAnalyticSolversFallThrough
     if (.not.fallThrough) fallThrough=radius == self%radiusInitial(node,radius)
     if (fallThrough) then
@@ -377,6 +436,11 @@
     type            (treeNode                            ), intent(inout), target :: node
     double precision                                      , intent(in   )         :: density
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004RadiusEnclosingDensity=self%recursiveSelf%radiusEnclosingDensity(node,density)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node,density)
     else
@@ -395,6 +459,11 @@
     type            (treeNode                            ), intent(inout), target :: node
     double precision                                      , intent(in   )         :: mass
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004RadiusEnclosingMass=self%recursiveSelf%radiusEnclosingDensity(node,mass)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
@@ -414,6 +483,11 @@
     double precision                                      , intent(in   )           :: moment
     double precision                                      , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004RadialMoment=self%recursiveSelf%radialMoment(node,moment,radiusMinimum,radiusMaximum)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum)
     else
@@ -434,6 +508,11 @@
     integer                                               , intent(  out), optional :: status
     logical                                                                         :: fallThrough
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004Potential=self%recursiveSelf%potential(node,radius,status)
+       return
+    end if
     fallThrough=self%nonAnalyticSolver == nonAnalyticSolversFallThrough
     if (.not.fallThrough) fallThrough=radius == self%radiusInitial(node,radius)
     if (fallThrough) then
@@ -457,6 +536,11 @@
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004CircularVelocity=self%recursiveSelf%circularVelocity(node,radius)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004CircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius)
     else
@@ -491,6 +575,11 @@
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004RadialVelocityDispersion=self%recursiveSelf%radialVelocityDispersion(node,radius)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion         (node,radius)
     else
@@ -509,6 +598,11 @@
     type            (treeNode                            ), intent(inout)         :: node
     double precision                                      , intent(in   )         :: specificAngularMomentum
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004RadiusFromSpecificAngularMomentum=self%recursiveSelf%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
     else
@@ -525,6 +619,11 @@
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004RotationNormalization=self%recursiveSelf%rotationNormalization(node)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RotationNormalization=self%darkMatterProfileDMO_%rotationNormalization         (node)
     else
@@ -541,6 +640,11 @@
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004Energy=self%recursiveSelf%energy(node)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004Energy=self%darkMatterProfileDMO_%energy         (node)
     else
@@ -548,22 +652,6 @@
     end if
     return
   end function adiabaticGnedin2004Energy
-
-  double precision function adiabaticGnedin2004EnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a adiabaticGnedin2004 halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
-    type (treeNode                            ), intent(inout) :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       adiabaticGnedin2004EnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       adiabaticGnedin2004EnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function adiabaticGnedin2004EnergyGrowthRate
 
   double precision function adiabaticGnedin2004KSpace(self,node,waveNumber)
     !!{
@@ -575,6 +663,11 @@
     type            (treeNode                            ), intent(inout), target :: node
     double precision                                      , intent(in   )         :: waveNumber
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004KSpace=self%recursiveSelf%kSpace(node,wavenumber)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004KSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
     else
@@ -593,6 +686,11 @@
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: time
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004FreefallRadius=self%recursiveSelf%freefallRadius(node,time)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004FreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
     else
@@ -611,6 +709,11 @@
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: time
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       adiabaticGnedin2004FreefallRadiusIncreaseRate=self%recursiveSelf%freefallRadiusIncreaseRate(node,time)
+       return
+    end if
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004FreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)
     else
@@ -629,9 +732,9 @@
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    integer                                                               :: i                      , j                       , &
+    integer                                                               :: i               , j           , &
          &                                                                   iMod
-    double precision                                                      :: radiusUpperBound
+    double precision                                                      :: radiusUpperBound, massEnclosed
 
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -647,7 +750,7 @@
        return
     end if
     ! Get the virial radius of the node.
-    self%radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    self%radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Return radius unchanged if larger than the virial radius.
     if (radius >= self%radiusVirial) then
        adiabaticGnedin2004RadiusInitial=radius
@@ -655,11 +758,9 @@
     end if
     ! Compute the various factors needed by this calculation.
     call self%computeFactors(node,radius,computeGradientFactors=.false.)
-    ! If no baryons present at this radius, so initial radius is unchanged.
-    if (self%baryonicFinalTerm <= 0.0d0) then
-       adiabaticGnedin2004RadiusInitial=radius
-       return
-    end if
+    !! Note that even if no baryons are present at this radius we can not assume that the initial radius is unchanged because it
+    !! is possible that the initial fraction of baryons and the fraction of mass distributed as the dark matter are not equal, fᵢ
+    !! ≠ fᵪ.
     ! Check that solution is within bounds.
     if (adiabaticGnedin2004Solver(self%radiusVirial) < 0.0d0) then
        adiabaticGnedin2004RadiusInitial=self%radiusVirial
@@ -685,14 +786,19 @@
        ! approximation. Furthermore, since it will underestimate the actual mass within the initial mean radius it gives
        ! an overestimate of the initial radius. This means that we have a bracketing of the initial radius which we can
        ! use in the solver.
-       radiusUpperBound   =  +(                                                                                        &
-            &                  +self%baryonicFinalTerm                                                                 &
-            &                  /self%darkMatterProfileDMO_%enclosedMass(node,self%radiusOrbitalMean(self%radiusFinal)) &
-            &                  +self%darkMatterDistributedFraction                                                     &
-            &                  *self%radiusFinal                                                                       &
-            &                 )                                                                                        &
-            &                /  self%initialMassFraction
-       if (radiusUpperBound < radius) radiusUpperBound=radius
+       massEnclosed=+self%darkMatterProfileDMO_%enclosedMass(node,self%radiusOrbitalMean(self%radiusFinal))
+       if (massEnclosed > 0.0d0) then
+          radiusUpperBound=+(                                    &
+               &             +self%baryonicFinalTerm             &
+               &             /     massEnclosed                  &
+               &             +self%darkMatterDistributedFraction &
+               &             *self%radiusFinal                   &
+               &            )                                    &
+               &           /  self%initialMassFraction
+          if (radiusUpperBound < radius) radiusUpperBound=radius
+       else
+          radiusUpperBound=radius
+       end if
        call self%finder%rangeExpand(                                                             &
             &                       rangeExpandUpward            =1.1d0                        , &
             &                       rangeExpandDownward          =0.9d0                        , &
@@ -730,28 +836,15 @@
     Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     \cite{gnedin_response_2004}.
     !!}
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder                          ), save          :: finder
-    !$omp threadprivate(finder)
+    double precision                                                      :: radiusInitial                  , radiusInitialMean            , &
+         &                                                                   massDarkMatterInitial          , densityDarkMatterInitial     , &
+         &                                                                   radiusInitialMeanSelfDerivative, radiusFinalMeanSelfDerivative
 
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeDownwardLimit           =0.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%rootFunction(adiabaticGnedin2004DerivativeSolver                  )
-       call finder%tolerance   (toleranceAbsolute                  ,toleranceRelative)
-    end if
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Compute the various factors needed by this calculation.
@@ -762,12 +855,38 @@
        return
     end if
     ! Compute initial radius, and derivatives of initial and final mean radii.
-    self%radiusFinal                    =                                           radius
-    self%radiusInitial_                 =self%radiusInitial              (node,     radius        )
-    self%radiusInitialMeanSelfDerivative=self%radiusOrbitalMeanDerivative(     self%radiusInitial_)
-    self%radiusFinalMeanSelfDerivative  =self%radiusOrbitalMeanDerivative(          radius        )
-    ! Find the solution for initial radius.
-    adiabaticGnedin2004RadiusInitialDerivative=finder%find(rootGuess=1.0d0)
+    radiusInitial                  =self                      %radiusInitial              (node,radius           )
+    radiusInitialMeanSelfDerivative=self                      %radiusOrbitalMeanDerivative(     radiusInitial    )
+    radiusFinalMeanSelfDerivative  =self                      %radiusOrbitalMeanDerivative(     radius           )
+    ! Find the initial mean orbital radius.
+    radiusInitialMean              =self                      %radiusOrbitalMean          (     radiusInitial    )
+    ! Get the mass of dark matter inside the initial radius.
+    massDarkMatterInitial          =self%darkMatterProfileDMO_%enclosedMass               (node,radiusInitialMean)
+    ! Get the mass of dark matter inside the initial radius.
+    densityDarkMatterInitial       =self%darkMatterProfileDMO_%density                    (node,radiusInitialMean)
+    ! Find the solution for the derivtive of the initial radius.
+    adiabaticGnedin2004RadiusInitialDerivative=+(                                                      &
+         &                                       +massDarkMatterInitial                                &
+         &                                       *self%darkMatterDistributedFraction                   &
+         &                                       +self%baryonicFinalTerm                               &
+         &                                       *(                                                    &
+         &                                         +1.0d0                        /     radius          &
+         &                                         +radiusFinalMeanSelfDerivative/self%radiusFinalMean &
+         &                                        )                                                    &
+         &                                       +self%baryonicFinalTermDerivative                     &
+         &                                      )                                                      &
+         &                                     /(                                                      &
+         &                                       +massDarkMatterInitial*self%initialMassFraction       &
+         &                                       +(                                                    &
+         &                                         +self%initialMassFraction          *radiusInitial   &
+         &                                         -self%darkMatterDistributedFraction*radius          &
+         &                                        )                                                    &
+         &                                       *4.0d0                                                &
+         &                                       *Pi                                                   &
+         &                                       *radiusInitialMean**2                                 &
+         &                                       *densityDarkMatterInitial                             &
+         &                                       *radiusInitialMeanSelfDerivative                      &
+         &                                      )
     return
   end function adiabaticGnedin2004RadiusInitialDerivative
 
@@ -776,42 +895,20 @@
     Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     algorithm of \cite{gnedin_response_2004}.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , optimizeForEnclosedMassSummation, optimizeForRotationCurveGradientSummation, optimizeForRotationCurveSummation, &
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , optimizeForEnclosedMassSummation  , optimizeForRotationCurveGradientSummation , optimizeForRotationCurveSummation, &
           &                                         reductionSummation             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    !![
-    <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
-    <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
-    !!]
-    include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.rotation_curve.tasks.modules.inc'
-    !![
-    </include>
-    <include directive="rotationCurveGradientTask" name="radiusSolverRotationCurveGradientTask" type="moduleUse">
-    <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
-    !!]
-    include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.rotation_curve_gradient.tasks.modules.inc'
-    !![
-    </include>
-    <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="moduleUse">
-    <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
-    !!]
-    include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.enclosed_mass.tasks.modules.inc'
-    !![
-    </include>
-    !!]
+    use :: Functions_Global                , only : galacticStructureMassEnclosed_ , galacticStructureVelocityRotation_, galacticStructureVelocityRotationGradient_
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout), target  :: self
     type            (treeNode                            ), intent(inout), target  :: node
     double precision                                      , intent(in   )          :: radius
     logical                                               , intent(in   )          :: computeGradientFactors
-    type            (treeNode                            )               , pointer :: nodeCurrent                           , nodeHost
+    type            (treeNode                            )               , pointer :: nodeCurrent                    , nodeHost
     class           (nodeComponentBasic                  )               , pointer :: basic
-    double precision                                      , parameter              :: toleranceAbsolute               =0.0d0, toleranceRelative   =1.0d-3
-    procedure       (adiabaticGnedin2004MassEnclosed     )               , pointer :: mapFunction
-    double precision                                                               :: massBaryonicSelfTotal                 , massBaryonicTotal          , &
-         &                                                                            massComponent                         , velocityComponent          , &
-         &                                                                            velocityComponentSquaredGradient      , velocityCircularSquared    , &
-         &                                                                            velocityCircularSquaredGradient
+    double precision                                                               :: massBaryonicSelfTotal          , massBaryonicTotal      , &
+         &                                                                            velocityCircularSquaredGradient, velocityCircularSquared, &
+         &                                                                            
 
     ! Set module-scope pointers to node and self.
     adiabaticGnedin2004Node => node
@@ -819,36 +916,19 @@
     ! Store the final radius and its orbit-averaged mean.
     self%radiusFinal    =                       radius
     self%radiusFinalMean=self%radiusOrbitalMean(radius)
-    self%radiusShared   =self%radiusFinalMean
     ! Compute the baryonic contribution to the rotation curve.
-    mapFunction             => adiabaticGnedin2004VelocityCircularSquared
-    velocityCircularSquared =  node%mapDouble0(mapFunction,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
-    !![
-    <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="functionCall" functionType="function" returnParameter="velocityComponent">
-     <exclude>Dark_Matter_Profile_Rotation_Curve_Task</exclude>
-     <functionArgs>node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType</functionArgs>
-     <onReturn>velocityCircularSquared=velocityCircularSquared+velocityComponent**2</onReturn>
-    !!]
-    include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.rotation_curve.tasks.inc'
-    !![
-    </include>
-    !!]
+    velocityCircularSquared=galacticStructureVelocityRotation_(self%galacticStructure_,node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType)**2
     self%baryonicFinalTerm=velocityCircularSquared*self%radiusFinalMean*self%radiusFinal/gravitationalConstantGalacticus
     ! Compute the baryonic contribution to the rotation curve.
     if (computeGradientFactors) then
-       mapFunction                     => adiabaticGnedin2004VelocityCircularSquaredGradient
-       velocityCircularSquaredGradient =  node%mapDouble0(mapFunction,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
-       !![
-       <include directive="rotationCurveGradientTask" name="radiusSolverRotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="velocityComponentSquaredGradient">
-        <exclude>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</exclude>
-        <functionArgs>node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType</functionArgs>
-        <onReturn>velocityCircularSquaredGradient=velocityCircularSquaredGradient+velocityComponentSquaredGradient</onReturn>
-       !!]
-       include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.rotation_curve_gradient.tasks.inc'
-       !![
-       </include>
-       !!]
-       self%baryonicFinalTermDerivative=velocityCircularSquaredGradient*self%radiusOrbitalMeanDerivative(self%radiusFinal)*self%radiusFinalMean*self%radiusFinal/gravitationalConstantGalacticus
+       velocityCircularSquaredGradient =+galacticStructureVelocityRotationGradient_(self%galacticStructure_,node,self%radiusFinalMean,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType) &
+            &                           *2.0d0                                                                                                                                                      &
+            &                           *sqrt(velocityCircularSquared)
+       self%baryonicFinalTermDerivative=+     velocityCircularSquaredGradient                                                                                                                       &
+            &                           *self%radiusOrbitalMeanDerivative(self%radiusFinal)                                                                                                         &
+            &                           *self%radiusFinalMean                                                                                                                                       &
+            &                           *self%radiusFinal                                                                                                                                           &
+            &                           /     gravitationalConstantGalacticus
     end if
     ! Compute the initial baryonic contribution from this halo, and any satellites.
     if (.not.self%massesComputed) then
@@ -857,18 +937,16 @@
        nodeCurrent           => node
        nodeHost              => node
        do while (associated(nodeCurrent))
-          mapFunction       => adiabaticGnedin2004MassEnclosed
-          massBaryonicTotal =  massBaryonicTotal+nodeCurrent%mapDouble0(mapFunction,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
-          !![
-          <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="functionCall" functionType="function" returnParameter="massComponent">
-           <exclude>Dark_Matter_Profile_Enclosed_Mass_Task</exclude>
-           <functionArgs>nodeCurrent,radiusLarge,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType,adiabaticGnedin2004WeightBy,adiabaticGnedin2004WeightIndex</functionArgs>
-           <onReturn>massBaryonicTotal=massBaryonicTotal+massComponent</onReturn>
-          !!]
-          include 'dark_matter_profiles.nonDMO.adiabatic_Gnedin2004.enclosed_mass.tasks.inc'
-          !![
-          </include>
-          !!]
+          massBaryonicTotal=+massBaryonicTotal                                                &
+               &            +galacticStructureMassEnclosed_(                                  &
+               &                                            self%galacticStructure_         , &
+               &                                            nodeCurrent                     , &
+               &                                            radiusLarge                     , &
+               &                                            adiabaticGnedin2004ComponentType, &
+               &                                            adiabaticGnedin2004MassType     , &
+               &                                            adiabaticGnedin2004WeightBy     , &
+               &                                            adiabaticGnedin2004WeightIndex    &
+               &                                           )
           if (associated(nodeCurrent,nodeHost)) then
              massBaryonicSelfTotal=massBaryonicTotal
              do while (associated(nodeCurrent%firstSatellite))
@@ -926,64 +1004,13 @@
     double precision                                      , intent(in   ) :: radius
 
     adiabaticGnedin2004RadiusOrbitalMeanDerivative=+self%A                &
+         &                                         *self%omega            &
          &                                         *(                     &
          &                                           +     radius         &
          &                                           /self%radiusVirial   &
          &                                          )**(self%omega-1.0d0)
     return
   end function adiabaticGnedin2004RadiusOrbitalMeanDerivative
-
-  double precision function adiabaticGnedin2004MassEnclosed(component)
-    !!{
-    Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
-    profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    select type (component)
-    class is (nodeComponentDarkMatterProfile)
-       adiabaticGnedin2004MassEnclosed=0.0d0
-    class default
-       adiabaticGnedin2004MassEnclosed=component%enclosedMass(radiusLarge,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType,adiabaticGnedin2004WeightBy,adiabaticGnedin2004WeightIndex)
-    end select
-    return
-  end function adiabaticGnedin2004MassEnclosed
-
-  double precision function adiabaticGnedin2004VelocityCircularSquared(component)
-    !!{
-    Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    select type (component)
-    class is (nodeComponentDarkMatterProfile)
-       adiabaticGnedin2004VelocityCircularSquared=0.0d0
-    class default
-       adiabaticGnedin2004VelocityCircularSquared=component%rotationCurve(adiabaticGnedin2004Self%radiusShared,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType)**2
-    end select
-    return
-  end function adiabaticGnedin2004VelocityCircularSquared
-
-  double precision function adiabaticGnedin2004VelocityCircularSquaredGradient(component)
-    !!{
-    Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    select type (component)
-    class is (nodeComponentDarkMatterProfile)
-       adiabaticGnedin2004VelocityCircularSquaredGradient=0.0d0
-    class default
-       adiabaticGnedin2004VelocityCircularSquaredGradient=component%rotationCurveGradient(adiabaticGnedin2004Self%radiusShared,adiabaticGnedin2004ComponentType,adiabaticGnedin2004MassType)
-    end select
-    return
-  end function adiabaticGnedin2004VelocityCircularSquaredGradient
 
   double precision function adiabaticGnedin2004Solver(radiusInitial)
     !!{
@@ -1007,44 +1034,182 @@
     return
   end function adiabaticGnedin2004Solver
 
-  double precision function adiabaticGnedin2004DerivativeSolver(radiusInitialDerivative)
+  subroutine adiabaticGnedin2004DeepCopyReset(self)
     !!{
-    Root function used in finding the derivative of the initial radius in the dark matter halo when solving for adiabatic
-    contraction.
+    Perform a deep copy reset of the object.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Functions_Global, only : galacticStructureDeepCopyReset_
     implicit none
-    double precision, intent(in   ) :: radiusInitialDerivative
-    double precision                :: densityDarkMatterInitial, massDarkMatterInitial, &
-         &                             radiusInitialMean
-
-    ! Find the initial mean orbital radius.
-    radiusInitialMean       =adiabaticGnedin2004Self                      %radiusOrbitalMean(                        adiabaticGnedin2004Self%radiusInitial_   )
-    ! Get the mass of dark matter inside the initial radius.
-    massDarkMatterInitial   =adiabaticGnedin2004Self%darkMatterProfileDMO_%enclosedMass     (adiabaticGnedin2004Node,                        radiusInitialMean)
-    ! Get the mass of dark matter inside the initial radius.
-    densityDarkMatterInitial=adiabaticGnedin2004Self%darkMatterProfileDMO_%density          (adiabaticGnedin2004Node,                        radiusInitialMean)
-    ! Compute the root function.
-    adiabaticGnedin2004DerivativeSolver=+massDarkMatterInitial                                                                                   &
-         &                              *(                                                                                                       &
-         &                                +adiabaticGnedin2004Self%initialMassFraction*                                  radiusInitialDerivative &
-         &                                -adiabaticGnedin2004Self%darkMatterDistributedFraction                                                 &
-         &                               )                                                                                                       &
-         &                              +(                                                                                                       &
-         &                                +adiabaticGnedin2004Self%initialMassFraction          *adiabaticGnedin2004Self%radiusInitial_          &
-         &                                -adiabaticGnedin2004Self%darkMatterDistributedFraction*adiabaticGnedin2004Self%radiusFinal             &
-         &                               )                                                                                                       &
-         &                              *4.0d0                                                                                                   &
-         &                              *Pi                                                                                                      &
-         &                              *radiusInitialMean**2                                                                                    &
-         &                              *densityDarkMatterInitial                                                                                &
-         &                              *adiabaticGnedin2004Self%radiusInitialMeanSelfDerivative                                                 &
-         &                              *               radiusInitialDerivative                                                                  &
-         &                              -adiabaticGnedin2004Self%baryonicFinalTerm                                                               &
-         &                              *(                                                                                                       &
-         &                                +1.0d0                                                /adiabaticGnedin2004Self%radiusFinal             &
-         &                                +adiabaticGnedin2004Self%radiusFinalMeanSelfDerivative/adiabaticGnedin2004Self%radiusFinalMean         &
-         &                               )                                                                                                       &
-         &                              -adiabaticGnedin2004Self%baryonicFinalTermDerivative
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    
+    self                           %   copiedSelf => null()
+    if (.not.self%isRecursive) self%recursiveSelf => null()
+    if (associated(self%cosmologyParameters_ )) call self%cosmologyParameters_ %deepCopyReset()
+    if (associated(self%darkMatterHaloScale_ )) call self%darkMatterHaloScale_ %deepCopyReset()
+    if (associated(self%darkMatterProfileDMO_)) call self%darkMatterProfileDMO_%deepCopyReset()
+    if (associated(self%galacticStructure_   )) call galacticStructureDeepCopyReset_(self%galacticStructure_)
     return
-  end function adiabaticGnedin2004DerivativeSolver
+  end subroutine adiabaticGnedin2004DeepCopyReset
+  
+  subroutine adiabaticGnedin2004DeepCopyFinalize(self)
+    !!{
+    Finalize a deep reset of the object.
+    !!}
+    use :: Functions_Global, only : galacticStructureDeepCopyFinalize_
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+
+    if (self%isRecursive) call adiabaticGnedin2004FindParent(self)
+    if (associated(self%cosmologyParameters_ )) call self%cosmologyParameters_ %deepCopyFinalize()
+    if (associated(self%darkMatterHaloScale_ )) call self%darkMatterHaloScale_ %deepCopyFinalize()
+    if (associated(self%darkMatterProfileDMO_)) call self%darkMatterProfileDMO_%deepCopyFinalize()
+    if (associated(self%galacticStructure_   )) call galacticStructureDeepCopyFinalize_(self%galacticStructure_)
+    return
+  end subroutine adiabaticGnedin2004DeepCopyFinalize
+  
+  subroutine adiabaticGnedin2004DeepCopy(self,destination)
+    !!{
+    Perform a deep copy of the object.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Functions_Global, only : galacticStructureDeepCopy_
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    class(darkMatterProfileClass              ), intent(inout) :: destination
+
+    call self%darkMatterProfileClass%deepCopy(destination)
+    select type (destination)
+    type is (darkMatterProfileAdiabaticGnedin2004)
+       destination%finder                         =self%finder                          
+       destination%A                              =self%A                                       
+       destination%omega                          =self%omega                           
+       destination%lastUniqueID                   =self%lastUniqueID                    
+       destination%radiusPreviousIndex            =self%radiusPreviousIndex                     
+       destination%radiusPreviousIndexMaximum     =self%radiusPreviousIndexMaximum      
+       destination%radiusPrevious                 =self%radiusPrevious                          
+       destination%radiusInitialPrevious          =self%radiusInitialPrevious           
+       destination%radiusExponentiator            =self%radiusExponentiator             
+       destination%baryonicFinalTerm              =self%baryonicFinalTerm                       
+       destination%baryonicFinalTermDerivative    =self%baryonicFinalTermDerivative
+       destination%darkMatterDistributedFraction  =self%darkMatterDistributedFraction           
+       destination%initialMassFraction            =self%initialMassFraction             
+       destination%radiusFinal                    =self%radiusFinal                             
+       destination%radiusFinalMean                =self%radiusFinalMean                 
+       destination%radiusVirial                   =self%radiusVirial                            
+       destination%darkMatterFraction             =self%darkMatterFraction              
+       destination%massesComputed                 =self%massesComputed                  
+       destination%isRecursive                    =self%isRecursive
+       destination%parentDeferred                 =.false.
+       if (self%isRecursive) then
+          if (associated(self%recursiveSelf%recursiveSelf)) then
+             ! If the parent self's recursiveSelf pointer is set, it indicates that it was deep-copied, and the pointer points to
+             ! that copy. In that case we set the parent self of our destination to that copy.
+             destination%recursiveSelf  => self%recursiveSelf%recursiveSelf
+          else
+             ! The parent self does not appear to have been deep-copied yet. Retain the same parent self pointer in our copy, but
+             ! indicate that we need to look for the new parent later.
+             destination%recursiveSelf  => self%recursiveSelf
+             destination%parentDeferred =  .true.
+          end if
+       else
+          ! This is a parent of a recursively-constructed object. Record the location of our copy so that it can be used to set
+          ! the parent in deep copies of the child object.
+          call adiabaticGnedin2004DeepCopyAssign(self,destination)
+          destination%recursiveSelf     => null()
+       end if
+       nullify(destination%cosmologyParameters_)
+       if (associated(self%cosmologyParameters_)) then
+          if (associated(self%cosmologyParameters_%copiedSelf)) then
+             select type(s => self%cosmologyParameters_%copiedSelf)
+                class is (cosmologyParametersClass)
+                destination%cosmologyParameters_ => s
+                class default
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
+             call self%cosmologyParameters_%deepCopy(destination%cosmologyParameters_)
+             self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
+             call destination%cosmologyParameters_%autoHook()
+          end if
+       end if
+       nullify(destination%darkMatterProfileDMO_)
+       if (associated(self%darkMatterProfileDMO_)) then
+          if (associated(self%darkMatterProfileDMO_%copiedSelf)) then
+             select type(s => self%darkMatterProfileDMO_%copiedSelf)
+                class is (darkMatterProfileDMOClass)
+                destination%darkMatterProfileDMO_ => s
+                class default
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%darkMatterProfileDMO_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%darkMatterProfileDMO_,mold=self%darkMatterProfileDMO_)
+             call self%darkMatterProfileDMO_%deepCopy(destination%darkMatterProfileDMO_)
+             self%darkMatterProfileDMO_%copiedSelf => destination%darkMatterProfileDMO_
+             call destination%darkMatterProfileDMO_%autoHook()
+          end if
+       end if
+       nullify(destination%galacticStructure_)
+       if (associated(self%galacticStructure_)) then
+          allocate(destination%galacticStructure_,mold=self%galacticStructure_)
+          call galacticStructureDeepCopy_(self%galacticStructure_,destination%galacticStructure_)
+       end if
+       nullify(destination%darkMatterHaloScale_)
+       if (associated(self%darkMatterHaloScale_)) then
+          if (associated(self%darkMatterHaloScale_%copiedSelf)) then
+             select type(s => self%darkMatterHaloScale_%copiedSelf)
+                class is (darkMatterHaloScaleClass)
+                destination%darkMatterHaloScale_ => s
+                class default
+                call Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%darkMatterHaloScale_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%darkMatterHaloScale_,mold=self%darkMatterHaloScale_)
+             call self%darkMatterHaloScale_%deepCopy(destination%darkMatterHaloScale_)
+             self%darkMatterHaloScale_%copiedSelf => destination%darkMatterHaloScale_
+             call destination%darkMatterHaloScale_%autoHook()
+          end if
+       end if
+       call destination%finder%deepCopyActions()
+    class default
+       call Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine adiabaticGnedin2004DeepCopy
+
+  subroutine adiabaticGnedin2004DeepCopyAssign(self,destination)
+    !!{
+    Perform pointer assignment during a deep copy of the object.
+    !!}
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
+    class(darkMatterProfileClass              ), intent(inout), target :: destination
+
+    select type (destination)
+    type is (darkMatterProfileAdiabaticGnedin2004)
+       self%recursiveSelf => destination
+    end select
+    return
+  end subroutine adiabaticGnedin2004DeepCopyAssign
+
+  subroutine adiabaticGnedin2004FindParent(self)
+    !!{
+    Find the deep-copied parent of a recursive child.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+
+    if (self%parentDeferred) then
+       if (associated(self%recursiveSelf%recursiveSelf)) then
+          self%recursiveSelf => self%recursiveSelf%recursiveSelf
+       else
+         call Error_Report("recursive child's parent was not copied"//{introspection:location})
+       end if
+       self%parentDeferred=.false.
+    end if
+    return
+  end subroutine adiabaticGnedin2004FindParent

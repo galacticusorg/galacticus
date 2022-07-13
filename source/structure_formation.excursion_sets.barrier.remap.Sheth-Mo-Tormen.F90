@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,7 +70,8 @@ contains
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-
+    integer                                                                :: applyTo
+    
     ! Check and read parameters.
     !![
     <inputParameter>
@@ -103,7 +104,8 @@ contains
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
-    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
+    applyTo=enumerationExcursionSetRemapEncode(self%applyToText,includesPrefix=.false.)
+    self   =excursionSetBarrierRemapShethMoTormen(a,b,c,applyTo,excursionSetBarrier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"/>
@@ -115,7 +117,7 @@ contains
     !!{
     Internal constructor for the critical overdensity excursion set class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (excursionSetBarrierRemapShethMoTormen)                        :: self
     class           (excursionSetBarrierClass             ), intent(in   ), target :: excursionSetBarrier_
@@ -126,7 +128,7 @@ contains
     <constructorAssign variables="a, b, c, applyTo, *excursionSetBarrier_"/>
     !!]
 
-    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('applyTo is invalid'//{introspection:location})
+    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Error_Report('applyTo is invalid'//{introspection:location})
     self%applyToText=enumerationExcursionSetRemapDecode(applyTo,includePrefix=.false.)
     return
   end function remapShethMoTormenConstructorInternal

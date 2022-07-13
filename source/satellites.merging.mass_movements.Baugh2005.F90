@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
   Implements a merger mass movements class using the \cite{baugh_can_2005} model.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <mergerMassMovements name="mergerMassMovementsBaugh2005">
@@ -50,13 +51,14 @@
      A merger mass movements class which uses the \cite{baugh_can_2005} calculation.
      !!}
      private
-     double precision                 :: massRatioMajorMerger     , ratioMassBurst           , &
-          &                              fractionGasCriticalBurst
-     integer                          :: destinationGasMinorMerger
-     integer         (kind=kind_int8) :: lastUniqueID
-     integer                          :: destinationGasSatellite  , destinationStarsSatellite, &
-          &                              destinationGasHost       , destinationStarsHost
-     logical                          :: mergerIsMajor            , movementsCalculated
+     class           (galacticStructureClass), pointer :: galacticStructure_        => null()
+     double precision                                  :: massRatioMajorMerger               , ratioMassBurst           , &
+          &                                               fractionGasCriticalBurst
+     integer                                           :: destinationGasMinorMerger
+     integer         (kind=kind_int8        )          :: lastUniqueID
+     integer                                           :: destinationGasSatellite            , destinationStarsSatellite, &
+          &                                               destinationGasHost                 , destinationStarsHost
+     logical                                           :: mergerIsMajor                      , movementsCalculated
    contains
      final     ::             baugh2005Destructor
      procedure :: autoHook => baugh2005AutoHook
@@ -81,6 +83,7 @@ contains
     implicit none
     type            (mergerMassMovementsBaugh2005)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
+    class           (galacticStructureClass      ), pointer       :: galacticStructure_
     double precision                                              :: massRatioMajorMerger     , ratioMassBurst, &
          &                                                           fractionGasCriticalBurst
     type            (varying_string              )                :: destinationGasMinorMerger
@@ -110,25 +113,28 @@ contains
       <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst)
+    self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function baugh2005ConstructorParameters
 
-  function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst) result(self)
+  function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily baugh2005} merger mass movements.
     !!}
     implicit none
-    type            (mergerMassMovementsBaugh2005)                :: self
-    double precision                              , intent(in   ) :: massRatioMajorMerger     , ratioMassBurst, &
-         &                                                           fractionGasCriticalBurst
-    integer                                       , intent(in   ) :: destinationGasMinorMerger
+    type            (mergerMassMovementsBaugh2005)                        :: self
+    class           (galacticStructureClass      ), intent(in   ), target :: galacticStructure_
+    double precision                              , intent(in   )         :: massRatioMajorMerger     , ratioMassBurst, &
+         &                                                                   fractionGasCriticalBurst
+    integer                                       , intent(in   )         :: destinationGasMinorMerger
     !![
-    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
+    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst, *galacticStructure_"/>
     !!]
 
     self%lastUniqueID             =-huge(0_kind_int8)
@@ -145,7 +151,7 @@ contains
     !!{
     Attach to the calculation reset event.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerMassMovementsBaugh2005), intent(inout) :: self
 
@@ -162,8 +168,11 @@ contains
     implicit none
     type(mergerMassMovementsBaugh2005), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,baugh2005CalculationReset)
-    call satelliteMergerEvent %detach(self,baugh2005GetHook         )
+    if (calculationResetEvent%isAttached(self,baugh2005CalculationReset)) call calculationResetEvent%detach(self,baugh2005CalculationReset)
+    if (satelliteMergerEvent %isAttached(self,baugh2005GetHook         )) call satelliteMergerEvent %detach(self,baugh2005GetHook         )
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
     return
   end subroutine baugh2005Destructor
 
@@ -171,7 +180,7 @@ contains
     !!{
     Reset the dark matter profile calculation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
@@ -181,7 +190,7 @@ contains
        self%movementsCalculated=.false.
        self%lastUniqueID       =node%uniqueID()
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine baugh2005CalculationReset
@@ -190,7 +199,7 @@ contains
     !!{
     Hookable wrapper around the get function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
@@ -202,7 +211,7 @@ contains
     type is (mergerMassMovementsBaugh2005)
        call self%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine baugh2005GetHook
@@ -212,8 +221,7 @@ contains
     Determine how different mass components should be redistributed as the result of a merger according to the model of
     \cite{baugh_can_2005}.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeGalactic, massTypeGaseous
+    use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeGalactic, massTypeGaseous
     implicit none
     class           (mergerMassMovementsBaugh2005), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
@@ -232,10 +240,10 @@ contains
     if (.not.self%movementsCalculated) then
        self%movementsCalculated =  .true.
        nodeHost           => node%mergesWith()
-       massSatellite      =  Galactic_Structure_Enclosed_Mass(node                                        ,massType=massTypeGalactic)
-       massHost           =  Galactic_Structure_Enclosed_Mass(nodeHost                                    ,massType=massTypeGalactic)
-       massGasHost        =  Galactic_Structure_Enclosed_Mass(nodeHost                                    ,massType=massTypeGaseous )
-       massSpheroidHost   =  Galactic_Structure_Enclosed_Mass(nodeHost,componentType=componentTypeSpheroid,massType=massTypeGalactic)
+       massSatellite      =  self%galacticStructure_%massEnclosed(node                                        ,massType=massTypeGalactic)
+       massHost           =  self%galacticStructure_%massEnclosed(nodeHost                                    ,massType=massTypeGalactic)
+       massGasHost        =  self%galacticStructure_%massEnclosed(nodeHost                                    ,massType=massTypeGaseous )
+       massSpheroidHost   =  self%galacticStructure_%massEnclosed(nodeHost,componentType=componentTypeSpheroid,massType=massTypeGalactic)
        self%mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
        triggersBurst      =   self%mergerIsMajor                                          &
             &                .or.                                                         &

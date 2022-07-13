@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,8 +38,8 @@
    contains
      !![
      <methods>
-       <method description="Step back to the previously visited node (if possible)." method="previous" />
-       <method description="Set the walker to the given node." method="setNode" />
+       <method description="Step back to the previously visited node (if possible)."                     method="previous"/>
+       <method description="Set the walker to the given node."                                           method="setNode" />
        <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
      </methods>
      !!]
@@ -64,14 +64,14 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily allNodes} merger tree walker class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerAllNodes)                :: self
     type(inputParameters         ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
-    call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
+    call Error_Report('this class can not be built from parameters'//{introspection:location})
     return
   end function allNodesParameters
 
@@ -121,12 +121,12 @@ contains
     self%nodePrevious => self%node
     ! If the node is currently pointing to the base node of the tree, then attempt to move to the next tree (if we are spanning
     ! forests) - if this fails the tree walk is complete.
-    if (associated(self%node,self%tree%baseNode)) then
+    if (associated(self%node,self%tree%nodeBase)) then
        if (self%spanForest) then
           do while (associated(self%tree))
              self%tree => self%tree%nextTree
              if (associated(self%tree)) then
-                if (associated(self%tree%baseNode)) exit
+                if (associated(self%tree%nodeBase)) exit
              end if
           end do
        else
@@ -145,8 +145,8 @@ contains
     end if
     ! If the node is currently null, set to the base node of the tree.
     if (.not.associated(self%node)) then
-       if (associated(self%tree%baseNode)) then
-          self%node => self%tree%baseNode
+       if (associated(self%tree%nodeBase)) then
+          self%node => self%tree%nodeBase
        else
           self%nodesRemain_ =  .false.
           node              => null()
@@ -155,7 +155,7 @@ contains
        end if
     end if
     ! Walk to the next node in the tree.
-    if (associated(self%node,self%tree%baseNode)) then
+    if (associated(self%node,self%tree%nodeBase)) then
        ! This is the base of the merger tree.
        ! Descend through satellites and children.
        call self%descend()
@@ -192,7 +192,7 @@ contains
     !!{
     Step back to the previously visited node.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
@@ -204,7 +204,7 @@ contains
        self%treePrevious => null()
        self%nodePrevious => null()
     else
-       call Galacticus_Error_Report('no previous node is available'//{introspection:location})
+       call Error_Report('no previous node is available'//{introspection:location})
     end if
     return
   end subroutine allNodesPrevious
@@ -240,7 +240,7 @@ contains
 
   subroutine allNodesSetNode(self,node)
     !!{
-    Returns true if more nodes remain to be walked to.
+    Set the current node for the walker.
     !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)         :: self

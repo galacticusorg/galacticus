@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -270,7 +270,7 @@ contains
     !!{
     Return the excursion set barrier at the given variance and time. This method is not implemented.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: variance, varianceProgenitor, &
@@ -279,7 +279,7 @@ contains
     !$GLC attributes unused :: self, time, variance, varianceProgenitor, node
 
     zhangHuiRate=0.0d0
-    call Galacticus_Error_Report('barrier crossing rates are not implemented for this method [too slow]'//{introspection:location})
+    call Error_Report('barrier crossing rates are not implemented for this method [too slow]'//{introspection:location})
     return
   end function zhangHuiRate
 
@@ -287,7 +287,7 @@ contains
     !!{
     Return the rate for excursion set non-crossing. This method is not implemented.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, variance
@@ -295,7 +295,7 @@ contains
     !$GLC attributes unused :: self, time, variance, node
 
     zhangHuiRateNonCrossing=0.0d0
-    call Galacticus_Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})
+    call Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})
     return
   end function zhangHuiRateNonCrossing
 

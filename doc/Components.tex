@@ -208,47 +208,6 @@ where $\epsilon_{\bullet wind}=${\normalfont \ttfamily [blackHoleWindEfficiency]
 
 If the {\normalfont \ttfamily [blackHoleOutputAccretion]}\index{black holes!accretion}\index{accretion!black holes} input parameter is set to true, then rest mass accretion rate (in $M_\odot$ Gyr$^{-1}$) is output as {\normalfont \ttfamily blackHoleAccretionRate}.
 
-\section{Dynamics Statistics}
-
-This class collects statistics related to galaxy dynamics.
-
-\subsection{``Bars'' Implementation}
-
-\subsubsection{Properties}
-
-The ``bars'' dynamics statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily time}] An array of times at which bar statistics are recorded.
- \item [{\normalfont \ttfamily barInstabilityTimescale}] The timescale of bar instability at each tabulated time.
- \item [{\normalfont \ttfamily adiabaticRatio}] The adiabatic ratio, $a$, of the galaxy at each tabulated time defined as:
-   \begin{equation}
-     a = \left( {r_\mathrm{peri} \over v_\mathrm{peri}} \right) \left( {2 \pi r_\mathrm{disk} \over v_\mathrm{disk}} \right)^{-1},
-   \end{equation}
-   where $r_\mathrm{peri}$ is the pericentric distance of the galaxies orbit, $v_\mathrm{peri}$ is the orbital velocity at pericenter, $r_\mathrm{disk}$ is the characteristic radius of the disk, and $v_\mathrm{disk}$ is the circular velocity at that radius. For non-satellite galaxies the adiabatic ratio is set to $-1$.
-\end{description}
-
-Bar statistics are recorded at a frequency given by {\normalfont \ttfamily [dynamicsStatisticsBarsFrequency]} times the host halo dynamical time.
-
-\subsubsection{Initialization}
-
-Component is not initialized, it is created as soon as a disk exists.
-
-\subsubsection{Differential Evolution}
-
-N/A.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\subsubsection{Additional Output}
-
-Bar statistics time series are output for each node to a group {\normalfont \ttfamily Outputs/Output\textless O\textgreater/dynamicsStatistics/tree\textless T\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number and {\normalfont \ttfamily \textless T\textgreater} is the tree index) into datasets named {\normalfont \ttfamily time\textless N\textgreater}, {\normalfont \ttfamily timeScale\textless N\textgreater}, and {\normalfont \ttfamily adiabaticRatio\textless N\textgreater} (where {\normalfont \ttfamily \textless N\textgreater} is the node index).
-
 \section{Hot Halo}
 
 \subsection{``Very Simple'' Implementation}
@@ -409,7 +368,7 @@ A fraction $1-${\normalfont \ttfamily [hotHaloAngularMomentumLossFraction]} of t
 
 \noindent\emph{Node promotion:} Any hot halo properties of the parent \gls{node} are added to those of the \gls{node} prior to promotion.\\
 
-\noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.HaloFormationEvents}{halo formation events}.\\
+\noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.HaloFormationEvents}{halo formation events}.\\
 
 \subsection{``Outflow Tracking'' Implementation}
 
@@ -511,7 +470,7 @@ N/A---disk radii are computed using the selected galactic structure solver.
 
 \noindent\emph{Node promotion:} None\\
 
-\subsection{``Standard Implementation}\label{sec:DiskStandard}
+\subsection{``Standard'' Implementation}\label{sec:DiskStandard}
 
 This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a \protect\refClass{massDistributionClass} object. As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
 \begin{description}
@@ -754,71 +713,6 @@ which is just the usual production of starlight due to star formation. As the fu
 
 If the {\normalfont \ttfamily [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid (in units of $M_\odot$~Gyr$^{-1}$) will be included in the output, as {\normalfont \ttfamily spheroidStarFormationRate}.
 
-\section{Host History}
-
-This component class tracks various properties of the host halo of each \gls{node} over time.
-
-\subsection{``Standard'' Implemenation}
-
-\subsubsection{Properties}
-
-The standard host history implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily hostMassMaximum}] The maximum mass of the host halo in which this node has ever been hosted: $M_\mathrm{host, maximum}$ [{\normalfont \ttfamily hostHistoryHostMassMaximum}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The maximum host mass is initialized to the initial host mass, or to $-1$ for initially isolated nodes.
-
-\subsubsection{Differential Evolution}
-
-N/A.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Post evolution:} Immediately after evolution of the node, the maximum host mass is set to the maximum of the current host mass and the previous maximum host mass.\\
-
-\noindent\emph{Node mergers:} As for ``post evolution''.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} As for ``post evolution''.\\
-
-\section{Mass Flow Statistics}
-
-This component class tracks the flow of mass between different components of a \gls{node}.
-
-\subsection{``Standard'' Implemenation}
-
-\subsubsection{Properties}
-
-The standard mass flow statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily cooledMass}] The cumulative mass of has which has cooled directly onto this galaxy: $M_\mathrm{cooled}$ [{\normalfont \ttfamily massFlowStatisticsCooledMass}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The cooled mass is initialized to zero.
-
-\subsubsection{Differential Evolution}
-
-The cooled mass increases at a rate equal to the cooling rate onto the galaxy:
-\begin{equation}
-  \dot{M_\mathrm{cooled}} = \dot{M}_\mathrm{cool}.
-\end{equation}
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Post evolution:} None.\\
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
-
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 
 Basic properties are the total mass of a \gls{node} and the cosmic time at which it currently exists.
@@ -886,31 +780,6 @@ where the ``parent'' subscript indicates a property of the parent \gls{node} in 
 
 \noindent\emph{Node promotion:} $M_\mathrm{node}$ is updated to the \gls{node} mass of the parent prior to promotion.\\
 
-\subsection{``Standard-Tracking Implemenation}
-
-\subsubsection{Properties}
-
-The standard-tracking basic properties implementation extends the standard implementation and defines the following additional properties:
-\begin{description}
- \item [{\normalfont \ttfamily massMaximum}] The maximum total mass of the node achieved prior to the current time along this node's branch: $M_\mathrm{node, maximum}$ [{\normalfont \ttfamily basicMassMaximum}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The maximum mass along each branch is computed from the merger tree structure at initialization time.
-
-\subsubsection{Differential Evolution}
-
-None.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} $M_\mathrm{node, maximum}$ is updated to the \gls{node} maximum mass of the parent prior to promotion.\\
-
 \subsection{``Standard-Extended Implemenation}
 
 \subsubsection{Properties}
@@ -942,11 +811,11 @@ None.
 
 The position \gls{component} implements the position and velocity of each galaxy. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
 
-\subsection{``Preset'' Implemenation}
+\subsection{``cartesian'' Implemenation}
 
 \subsubsection{Properties}
 
-The preset position implementation defines the following properties:
+The Cartesian position implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily position}] The 3-D position of the node: $\mathbf{x}$ [{\normalfont \ttfamily positionPosition[X|Y|Z]}].
  \item [{\normalfont \ttfamily velocity}] The 3-D velocity of the node: $\mathbf{v}$ [{\normalfont \ttfamily positionVelocity[X|Y|Z]}].
@@ -983,7 +852,7 @@ The preset satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily timeOfMerging}] The cosmological time at which the satellite will merge with its host: $T_\mathrm{satellite, merge}$.
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite (this property is read only---it is determined from the {\normalfont \ttfamily boundMassHistory} property).
  \item [{\normalfont \ttfamily boundMassHistory}] A history time-series of the total bound mass of the satellite.
- \item [{\normalfont \ttfamily virialOrbit}] The orbit (a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at virial orbit crossing.
+ \item [{\normalfont \ttfamily virialOrbit}] The orbit (a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at virial orbit crossing.
 \end{description}
 
 Note that the {\normalfont \ttfamily mergeTime} and {\normalfont \ttfamily timeOfMerging} effectively provide the same information. For that reason, setting one of them will automatically set the other accordingly.
@@ -1040,7 +909,7 @@ The simple satellite orbit implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
- \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
 \end{description}
 
 \subsubsection{Initialization}
@@ -1057,7 +926,7 @@ with $\dot{M}_\mathrm{node,bound}$ set to the rate given by the \refClass{darkMa
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\normalfont \ttfamily satelliteOrbitStoreOrbitalParameters}$=${\normalfont \ttfamily true} then a virial orbit is selected (unless one has already been set for the node) using the {\normalfont \ttfamily virialOrbits} (see \refPhysics{virialOrbit}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\normalfont \ttfamily [satelliteOrbitResetOnHaloFormation]}$=${\normalfont \ttfamily true} then satellite orbits will be reset on halo formation events (see \S\ref{sec:ComponentFormationTimes}).\\
+\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\normalfont \ttfamily satelliteOrbitStoreOrbitalParameters}$=${\normalfont \ttfamily true} then a virial orbit is selected (unless one has already been set for the node) using the {\normalfont \ttfamily virialOrbits} (see \refPhysics{virialOrbit}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\normalfont \ttfamily [satelliteOrbitResetOnHaloFormation]}$=${\normalfont \ttfamily true} then satellite orbits will be reset on halo formation events.\\
 
 \noindent\emph{Satellite merging:} None.\\
 
@@ -1073,7 +942,7 @@ The orbiting satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily velocity}] The 3-dimensional velocity of the satellite relative to its host: $\mathbf{v}=(v_x,v_y,v_z)$.
  \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
- \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
  \item[{\normalfont \ttfamily tidalTensorPathIntegrated}] The time integral of the tidal tensor along the orbit of the satellite from initialization: $G_{ij}$.
  \item[{\normalfont \ttfamily tidalHeatingNormalized}] The tidal heating energy per radius squared desposited into the satellite: $Q_\mathrm{tidal}$.
 \end{description}
@@ -1104,37 +973,6 @@ with $R$ being the node's half-mass radius, $M_\mathrm{node,basic}$ being the no
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
-
-\section{N-body Halo Properties}
-
-This component is intended for tracking of miscellaneous properties derived from N-body simulation merger trees.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard N-body component implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily particleCount}] The number of particles in the N-body halo [{\normalfont \ttfamily nbodyParticleCount}].
- \item [{\normalfont \ttfamily velocityMaximum}] The maximum of the N-body halo's rotation curve (in units of km/s) [{\normalfont \ttfamily nbodyVelocityMaximum}].
- \item [{\normalfont \ttfamily velocityDispersion}] The velocity dispersion of the N-body halo (in units of km/s) [{\normalfont \ttfamily nbodyVelocityDispersion}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The N-body properties of each \gls{node} are assumed to have been preset prior to merger tree initialization. They are assumed to remain constant along each branch of the tree.
-
-\subsubsection{Differential Evolution}
-
-None.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} The properties are updated to equal those of the parent node.\\
 
 \section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}\hyperdef{sec}{DarkMatterHaloSpinComponent}{}
 
@@ -1329,219 +1167,3 @@ The scale radius and shape parameter of each node grow linearly with time to int
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} None.\\
-
-
-\section{Merging Statistics}
-
-This \gls{component} records statistics associated with galaxy merging.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily galaxyMajorMergerTime}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\normalfont \ttfamily mergingStatisticsGalaxyMajorMergerTime}];
- \item [{\normalfont \ttfamily nodeMajorMergerTime}] The time of the last major merger (as defined by the {\normalfont \ttfamily [nodeMajorMergerFraction]} parameter) between this \gls{node} and another, output as the time \emph{since} the last major merger [{\normalfont \ttfamily mergingStatisticsNodeMajorMergerTime}];
- \item [{\normalfont \ttfamily nodeFormationTime}] The time at which the \gls{node} is judged to have ``formed'', defined as the time at which its main branch progenitor had a mass equal to a fraction {\normalfont \ttfamily [nodeFormationMassFraction]} of the node's initial mass in the merger tree [{\normalfont \ttfamily mergingStatisticsNodeFormationTime}];
- \item [{\normalfont \ttfamily nodeHierarchyLevel}] The depth of this node in the initial merger tree hierarchy. For example, a node on the main branch has level 0. A node which merges directly onto the main branch has level 1. A node that merges onto a node that merges directly onto the main branch has level 2, etc. [{\normalfont \ttfamily mergingStatisticsNodeHierarchyLevel}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The times of the last mergers are stored each time a major merger occurrs and this \gls{component} is created (if necessary) the first time such a merger occurs. Formation times and hierarchy levels are computed during merger tree initialization.
-
-\subsubsection{Differential Evolution}
-
-The times of the last mergers do not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} The time of the last \gls{node} merger in the parent \gls{node} is reset to the current time if the merger is major.\\
-
-\noindent\emph{Satellite merging:} The time of the last merger is reset to the current time if the merger is major.\\
-
-\noindent\emph{Node promotion:} The time of the last major \gls{node} merger is updated to that of the parent if that time is more recent.\\
-
-\subsection{``Recent'' Implementation}
-
-\subsubsection{Properties}
-
-The recent merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily recentMajorMergerTime}] The number of node major mergers (defined as a merger with mass ratio in excess of {\normalfont \ttfamily [nodeMajorMergerFraction]}) occuring within a recent interval, $\Delta t$ where $\Delta t = ${\normalfont \ttfamily [nodeRecentMajorMergerInterval]}~Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or $\Delta t = ${\normalfont \ttfamily [nodeRecentMajorMergerInterval]}$\tau_\mathrm{dyn}$ (where $\tau_\mathrm{dyn}$ is the halo dynamical time) if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynamical}. [{\normalfont \ttfamily mergingStatisticsRecentMajorMergerTime}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The number of recent mergers for each output time are initialized to zero.
-
-\subsubsection{Differential Evolution}
-
-The number of recent mergers do not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} If the merger is major and occurs within $\Delta t$ of an output time, the number of recent major mergers is increased by one.\\
-
-\noindent\emph{Satellite merging:} N/A.\\
-
-\noindent\emph{Node promotion:} N/A.\\
-
-\subsection{``Major'' Implementation}
-
-\subsubsection{Properties}
-
-The major merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. If non-empty, the merger times are output to a dataset {\normalfont \ttfamily majorMergers/Output\textless O\textgreater/mergerTree\textless T\textgreater/node\textless N\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number, {\normalfont \ttfamily \textless T\textgreater} is the tree index, and {\normalfont \ttfamily \textless N\textgreater} is the node index) in the \glc\ output file.
-\end{description}
-
-\subsubsection{Initialization}
-
-The times are initialized to an empty list.
-
-\subsubsection{Differential Evolution}
-
-N/A.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} N/A.\\
-
-\noindent\emph{Satellite merging:} If the merger is major, the time of the merger is appended to the list of merging times for the host node.\\
-
-\noindent\emph{Node promotion:} Times recorded from the parent node are appended to those of the child node prior to promotion.\\
-
-\section{Age Statistics}
-
-This \gls{component} records statistics associated with galaxy or halo age.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard age statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily (disk|spheroid)TimeWeightedIntegratedSFR}] A time-weighted integral over the star formation rate of the specified component [{\normalfont \ttfamily ageStatistics(Disk|Spheroid)TimeWeightedIntegratedSFR}];
- \item [{\normalfont \ttfamily (disk|spheroid)IntegratedSFR}] A unweighted integral over the star formation rate of the specified component [{\normalfont \ttfamily ageStatistics(Disk|Spheroid)IntegratedSFR}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The integrals are all initialized to zero.
-
-\subsubsection{Differential Evolution}
-
-The time-weighted integrals evolve as:
-\begin{equation}
-{\mathrm{d}({M\tau})_\star\over\mathrm{d}t} = t \phi(t),
-\end{equation}
-where $t$ is cosmic time and $\phi(t)$ is the star formation rate in the component. The unweighted integrals evolve as:
-\begin{equation}
-{\mathrm{d}{M}_\star\over\mathrm{d}t} = \phi(t).
-\end{equation}
-The mean cosmic time of formation for the stars in either component can be found by taking the ratio of time-weighted to unweighted integrals. The mean age can then be found by subtracting the mean cosmic time of formation from the present time.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} N/A.\\
-
-\noindent\emph{Satellite merging:} The values of the integrals are removed from the merging galaxy and transferred to the appropriate component of the target galaxy. Additionally, in a major merger, the values of the integral are transferred between components in the target galaxy as dictated by the merging rules.\\
-
-\noindent\emph{Node promotion:} N/A.\\
-
-\section{Formation Times}\label{sec:ComponentFormationTimes}
-
-This \gls{component} implements ``formation times'' of dark matter halos.
-
-\subsection{``Cole2000'' Implementation}
-
-\subsubsection{Properties}
-
-The ``Cole2000' formation times implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily formationTime}] The time at which the halo last ``formed''. Formation is defined as an increase in the mass of the halo by a factor {\normalfont \ttfamily [haloReformationMassFactor]}.
-\end{description}
-
-\subsubsection{Initialization}
-
-The formation time is set to the current time and this \gls{component} is created the first time such a merger occurs.
-
-\subsubsection{Differential Evolution}
-
-The formation time does not evolve. When the \gls{node} mass exceeds the mass at the formation time by a factor {\normalfont \ttfamily [haloReformationMassFactor]} evolution is interrupted and the formation time reset to the current time.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\section{Indices}\label{sec:ComponentIndices}
-
-This \gls{component} tracks various indices associated with nodes.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The ``standard' indices implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily branchTip}] The index of the node at the tip of the branch to which the node belongs.
-\end{description}
-
-\subsubsection{Initialization}
-
-The branch tip index is set to equal the index of each branch tip node in the tree.
-
-\subsubsection{Differential Evolution}
-
-The indices do not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\section{Inter-Output Quantities}\label{sec:ComponentInterOutput}
-
-This \gls{component} tracks various quantities averaged between successive outputs.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The ``standard' inter-output implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily diskStarFormationRate}] The mean star formation rate (in units of $M_\odot$~Gyr$^{-1}$) in the disk between the previous and current output times.
- \item [{\normalfont \ttfamily spheroidStarFormationRate}] The mean star formation rate (in units of $M_\odot$~Gyr$^{-1}$) in the spheroid between the previous and current output times.
-\end{description}
-
-\subsubsection{Initialization}
-
-No initialization is carried out---component is created as needed.
-
-\subsubsection{Differential Evolution}
-
-The disk and spheroid star formation rates, $\langle \dot{M}_\star \rangle$, evolve according to:
-\begin{equation}
-{\mathrm{d} \over \mathrm{d} t} \langle \dot{M}_\star \rangle = {\dot{M}_\star \over \Delta t},
-\end{equation}
-where $\dot{M}_\star$ is the instantaneous star formation rate in the corresponding component and $\Delta t$ is the time between the previous and next output times.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} The mean star formation rates from the satellite are added to those of the parent.\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\noindent\emph{Output:} All quantities are zeroed after each output.\\
-

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,26 +27,26 @@ program Test_Files
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: File_Utilities    , only : File_Exists        , File_Rename           , File_Remove
-  use :: Galacticus_Paths  , only : galacticusPath     , pathTypeExec
+  use :: Input_Paths       , only : inputPath          , pathTypeExec
   use :: ISO_Varying_String, only : operator(//)       , var_str
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer :: i
   
-  call displayVerbositySet(verbosityLevelStandard                                                                                 )
-  call Unit_Tests_Begin_Group        ("File utilities"                                                                                  )
+  call displayVerbositySet   (verbosityLevelStandard                                                                       )
+  call Unit_Tests_Begin_Group("File utilities"                                                                             )
   ! File existance.
-  call Assert                        ('file exists'        ,File_Exists(galacticusPath(pathTypeExec)//'source/tests.files.F90' ),.true. )
-  call Assert                        ('file does not exist',File_Exists(galacticusPath(pathTypeExec)//'source/tests.bork.crump'),.false.)
+  call Assert                ('file exists'        ,File_Exists(inputPath(pathTypeExec)//'source/tests.files.F90' ),.true. )
+  call Assert                ('file does not exist',File_Exists(inputPath(pathTypeExec)//'source/tests.bork.crump'),.false.)
   ! File renaming.
   open(newunit=i,file='tmp.file',status='unknown',form='formatted')
   write (i,*) "test file"
   close(i)
   call File_Rename(var_str('tmp.file'),var_str('mvd.file'))
-  call Assert                        ('file rename'        ,File_Exists('mvd.file') .and. .not.File_Exists('tmp.file'),.true. )
+  call Assert                ('file rename'        ,File_Exists('mvd.file') .and. .not.File_Exists('tmp.file'),.true. )
   ! File removal.
   call File_Remove('mvd.file')
-  call Assert                        ('file removal'       ,                                   File_Exists('tmp.file'),.false.)
-  call Unit_Tests_End_Group          (                                                                                        )
-  call Unit_Tests_Finish             (                                                                                        )
+  call Assert                ('file removal'       ,                                   File_Exists('tmp.file'),.false.)
+  call Unit_Tests_End_Group  (                                                                                        )
+  call Unit_Tests_Finish     (                                                                                        )
 end program Test_Files

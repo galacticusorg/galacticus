@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ module Node_Component_Hot_Halo_Standard_Data
   ! Controls on cooling.
   double precision            :: hotHaloAngularMomentumLossFraction
   ! Controls on accretion.
-  logical                     :: hotHaloNodeMergerLimitBaryonFraction  , hotHaloOutflowAngularMomentumAlwaysGrows
+  logical                     :: hotHaloNodeMergerLimitBaryonFraction  , hotHaloAngularMomentumAlwaysGrows
   ! Control for starvation of satellites.
   logical                     :: starveSatellites
   logical                     :: starveSatellitesOutflowed

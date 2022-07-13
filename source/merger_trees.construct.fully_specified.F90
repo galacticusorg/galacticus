@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -149,7 +149,7 @@
      !!}
      private
      type   (node), pointer :: doc       => null()
-     integer                :: copyCount
+     integer                :: copyCount =  0
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
@@ -184,18 +184,18 @@ contains
     self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
-     <objectDestructor name="randomNumberGenerator_"/>
-     !!]
-   return
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
+    return
   end function fullySpecifiedConstructorParameters
 
   function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
     !!}
-    use :: FoX_DOM         , only : parseFile
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
+    use :: FoX_DOM, only : parseFile
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name
     implicit none
     type   (mergerTreeConstructorFullySpecified)                        :: self
     type   (varying_string                     ), intent(in   )         :: fileName
@@ -209,13 +209,13 @@ contains
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
     self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
+    if (ioErr /= 0) call Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
     self%document%copyCount = 1
     ! Get the list of trees.
     call XML_Get_Elements_By_Tag_Name(self%document%doc,"tree",self%trees)
     ! Count the number of trees.
     self%treeCount=size(self%trees)
-    if (self%treeCount <= 0) call Galacticus_Error_Report('no trees were specified'//{introspection:location})
+    if (self%treeCount <= 0) call Error_Report('no trees were specified'//{introspection:location})
     !$omp end critical (FoX_DOM_Access)
     return
   end function fullySpecifiedConstructorInternal
@@ -229,14 +229,16 @@ contains
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
 
     ! Reduce the count of document copies.
-    !$omp atomic
-    self%document%copyCount=self%document%copyCount-1
-    ! Destroy the XML document only if the count of document copies decreases to 0.
-    if (self%document%copyCount == 0) then
-       !$omp critical (FoX_DOM_Access)
-       call destroy(self%document%doc)
-       if (associated(self%document)) deallocate(self%document)
-       !$omp end critical (FoX_DOM_Access)
+    if (associated(self%document)) then
+       !$omp atomic
+       self%document%copyCount=self%document%copyCount-1
+       ! Destroy the XML document only if the count of document copies decreases to 0.
+       if (self%document%copyCount == 0) then
+          !$omp critical (FoX_DOM_Access)
+          call destroy(self%document%doc)
+          if (associated(self%document)) deallocate(self%document)
+          !$omp end critical (FoX_DOM_Access)
+       end if
     end if
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
@@ -250,7 +252,7 @@ contains
     !!}
     use            :: Display          , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
     use            :: FoX_DOM          , only : node
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Error            , only : Error_Report
     use            :: Galacticus_Nodes , only : mergerTree                  , treeNode       , treeNodeList
     use            :: IO_XML           , only : XML_Get_Elements_By_Tag_Name
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -275,7 +277,7 @@ contains
        ! Get the list of nodes in this tree.
        call XML_Get_Elements_By_Tag_Name(treeDefinition,"node",nodes)
        nodeCount=size(nodes)
-       if (nodeCount <= 0) call Galacticus_Error_Report('no nodes were specified'//{introspection:location})
+       if (nodeCount <= 0) call Error_Report('no nodes were specified'//{introspection:location})
        ! Create the tree.
        allocate(tree)
        ! Create an array of nodes.
@@ -295,7 +297,7 @@ contains
        tree%index            =  int(treeNumber)
        tree%initializedUntil =  0.0d0
        tree%firstTree        => tree
-       tree%baseNode         => null()
+       tree%nodeBase         => null()
        tree%event            => null()
        call tree%properties%initialize()
        ! Restart the random number sequence.
@@ -330,8 +332,8 @@ contains
           !$omp end critical (FoX_DOM_Access)
           ! Assign the tree root node if this node has no parent.
           if (.not.associated(nodeArray(i)%node%parent)) then
-             if (associated(tree%baseNode)) call Galacticus_Error_Report('multiple root nodes found in the tree'//{introspection:location})
-             tree%baseNode => nodeArray(i)%node
+             if (associated(tree%nodeBase)) call Error_Report('multiple root nodes found in the tree'//{introspection:location})
+             tree%nodeBase => nodeArray(i)%node
           end if
           ! Build components.
           call nodeArray(i)%node%componentBuilder(nodeDefinition)
@@ -343,7 +345,7 @@ contains
        ! Destroy the node array.
        deallocate(nodeArray)
        ! Check that we found a root node.
-       if (.not.associated(tree%baseNode)) call Galacticus_Error_Report('no root node was found'//{introspection:location})
+       if (.not.associated(tree%nodeBase)) call Error_Report('no root node was found'//{introspection:location})
     else
        nullify(tree)
     end if
@@ -356,13 +358,10 @@ contains
       !!{
       Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       !!}
-      use :: FoX_Dom         , only : node
-      use :: Galacticus_Error, only : Galacticus_Error_Report
-      use :: Kind_Numbers    , only : kind_int8
-      use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
-      use :: FoX_Dom         , only : node
-      use :: Galacticus_Error, only : Galacticus_Error_Report
-      use :: Kind_Numbers    , only : kind_int8
+      use :: FoX_Dom     , only : node
+      use :: Kind_Numbers, only : kind_int8
+      use :: IO_XML      , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
+      use :: Error       , only : Error_Report
       implicit none
       integer  (kind=kind_int8)                             :: indexNode
       type     (node          ), intent(in   ), pointer     :: nodeDefinition
@@ -377,10 +376,10 @@ contains
       
       ! Find all matching tags.
       call XML_Get_Elements_By_Tag_Name(nodeDefinition,indexType,indexElements)
-      if (size(indexElements) > 1) call Galacticus_Error_Report('multiple indices specified'//{introspection:location})
+      if (size(indexElements) > 1) call Error_Report('multiple indices specified'//{introspection:location})
       if (size(indexElements) < 1) then
          if (required_) then
-            call Galacticus_Error_Report('required index not specified'//{introspection:location})
+            call Error_Report('required index not specified'//{introspection:location})
          else
             indexNode=-1
             return
@@ -399,8 +398,8 @@ contains
       !!{
       Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
       !!}
-      use :: Galacticus_Error, only : Galacticus_Error_Report
-      use :: Galacticus_Nodes, only : treeNode               , treeNodeList
+      use :: Error           , only : Error_Report
+      use :: Galacticus_Nodes, only : treeNode    , treeNodeList
       use :: Kind_Numbers    , only : kind_int8
       implicit none
       type   (treeNode      ), pointer                     :: node
@@ -416,7 +415,7 @@ contains
             exit
          end if
       end do
-      if (.not.associated(node)) call Galacticus_Error_Report('unable to find requested node'//{introspection:location})
+      if (.not.associated(node)) call Error_Report('unable to find requested node'//{introspection:location})
       return
     end function nodeLookup
 

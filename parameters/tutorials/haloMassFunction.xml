@@ -43,7 +43,7 @@
   <darkMatterProfileConcentration value="gao2008"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="haloMassFunction.hdf5"/>
+  <outputFileName value="haloMassFunction.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0 1.0"/>
   </outputTimes>

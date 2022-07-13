@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,12 +61,6 @@ module Dark_Matter_Profiles
    </method>
    <method name="energy" >
     <description>Return the total energy for the given {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-2}$.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
-   </method>
-   <method name="energyGrowthRate" >
-    <description>Return the rate of change of total energy for the given {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
@@ -192,7 +186,7 @@ module Dark_Matter_Profiles
      if (node%uniqueID()     == uniqueIDPrevious) then
         radiusGuess     =radiusPrevious
      else
-        radiusGuess     =self%darkMatterHaloScale_%virialRadius(node)
+        radiusGuess     =self%darkMatterHaloScale_%radiusVirial(node)
         uniqueIDPrevious=node                     %uniqueID    (    )
      end if
      radiusPrevious=finder%find(rootGuess=radiusGuess)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,6 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Kind_Numbers, only : kind_int8
+  use :: Hashes      , only : doubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
@@ -32,18 +33,20 @@
    contains
      !![
      <methods>
-       <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
-       <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
-       <method description="Return the names of the properties extracted." method="names" pass="yes" />
-       <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
-       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+       <method method="elementCount" description="Return the number of properties in the tuple."                      />
+       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="names"        description="Return the names of the properties extracted."                      />
+       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
      procedure(integerTupleElementCount), deferred :: elementCount
      procedure(integerTupleExtract     ), deferred :: extract
      procedure(integerTupleNames       ), deferred :: names
-     procedure(integerTupleNames       ), deferred :: descriptions
+     procedure(integerTupleDescriptions), deferred :: descriptions
      procedure(integerTupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                                     :: metaData    => integerTupleMetaData
   end type nodePropertyExtractorIntegerTuple
 
   abstract interface
@@ -61,15 +64,27 @@
   end interface
 
   abstract interface
-     function integerTupleNames(self,time)
+     subroutine integerTupleNames(self,time,names)
        !!{
        Interface for {\normalfont \ttfamily integerTuple} property names.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
-       type            (varying_string                   ), dimension(:) , allocatable :: integerTupleNames
-       class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
-       double precision                                   , intent(in   )              :: time
-     end function integerTupleNames
+       class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
+       double precision                                   , intent(in   )                             :: time
+       type            (varying_string                   ), intent(inout), dimension(:) , allocatable :: names
+     end subroutine integerTupleNames
+  end interface
+
+  abstract interface
+     subroutine integerTupleDescriptions(self,time,descriptions)
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple} property descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorIntegerTuple
+       class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
+       double precision                                   , intent(in   )                             :: time
+       type            (varying_string                   ), intent(inout), dimension(:) , allocatable :: descriptions
+     end subroutine integerTupleDescriptions
   end interface
 
   abstract interface
@@ -78,7 +93,7 @@
        Interface for {\normalfont \ttfamily integerTuple property units.
        !!}
        import nodePropertyExtractorIntegerTuple
-       double precision                                    , dimension(:) , allocatable :: integerTupleUnitsInSI
+       double precision                                   , dimension(:) , allocatable :: integerTupleUnitsInSI
        class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
        double precision                                   , intent(in   )              :: time
      end function integerTupleUnitsInSI
@@ -94,3 +109,18 @@
        double precision                                   , intent(in   ) :: time
      end function integerTupleElementCount
   end interface
+
+contains
+
+  subroutine integerTupleMetaData(self,indexProperty,metaData)
+    !!{
+    Interface for integerTuple property meta-data.
+    !!}
+    implicit none
+    class  (nodePropertyExtractorIntegerTuple), intent(inout) :: self
+    integer                                   , intent(in   ) :: indexProperty
+    type   (doubleHash                       ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, indexProperty, metaData
+    
+    return
+  end subroutine integerTupleMetaData

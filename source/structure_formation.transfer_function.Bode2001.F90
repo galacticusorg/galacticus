@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,6 +62,7 @@ Contains a module which implements a transfer function class based on the therma
      procedure :: logarithmicDerivative   => bode2001LogarithmicDerivative
      procedure :: halfModeMass            => bode2001HalfModeMass
      procedure :: quarterModeMass         => bode2001QuarterModeMass
+     procedure :: fractionModeMass        => bode2001FractionModeMass
      procedure :: epochTime               => bode2001EpochTime
      procedure :: wavenumberAtSuppression => bode2001WavenumberAtSupression
   end type transferFunctionBode2001
@@ -82,7 +83,7 @@ contains
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
-    use :: Galacticus_Error              , only : Galacticus_Error_Report
+    use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter            , inputParameters
     implicit none
     type            (transferFunctionBode2001)                :: self
@@ -95,7 +96,7 @@ contains
          &                                                       nu                  , redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <inputParameter>
@@ -147,7 +148,7 @@ contains
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     implicit none
     type            (transferFunctionBode2001)                           :: self
     class           (transferFunctionClass   ), target   , intent(in   ) :: transferFunctionCDM
@@ -180,7 +181,7 @@ contains
             &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
             &           /(particle%mass                     ()/            massReference)**1.15d0
     class default
-       call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     return
   end function bode2001ConstructorInternal
@@ -274,10 +275,10 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionBode2001), intent(inout)           :: self
+    class           (transferFunctionBode2001), intent(inout), target   :: self
     integer                                   , intent(  out), optional :: status
     double precision                                                    :: matterDensity
 
@@ -300,10 +301,10 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionBode2001), intent(inout)           :: self
+    class           (transferFunctionBode2001), intent(inout), target   :: self
     integer                                   , intent(  out), optional :: status
     double precision                                                    :: matterDensity
 
@@ -320,6 +321,33 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function bode2001QuarterModeMass
+
+  double precision function bode2001FractionModeMass(self,fraction,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is reduced by {\normalfont \ttfamily fraction} relative
+    to a \gls{cdm} transfer function.
+    !!}
+    use :: Error                   , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (transferFunctionBode2001), intent(inout), target   :: self
+    double precision                          , intent(in   )           :: fraction
+    integer                                   , intent(  out), optional :: status
+    double precision                                                    :: matterDensity
+
+    matterDensity           =+self%cosmologyParameters_%OmegaMatter    ()    &
+         &                   *self%cosmologyParameters_%densityCritical()
+    bode2001FractionModeMass=+4.0d0                                          &
+         &                   *Pi                                             &
+         &                   /3.0d0                                          &
+         &                   *matterDensity                                  &
+         &                   *(                                              &
+         &                     +Pi                                           &
+         &                     /self%wavenumberAtSuppression(1.0d0/fraction) &
+         &                   )**3
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function bode2001FractionModeMass
 
   double precision function bode2001EpochTime(self)
     !!{

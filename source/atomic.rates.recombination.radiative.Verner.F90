@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -553,9 +553,11 @@ contains
     implicit none
     type(atomicRecombinationRateRadiativeVerner1996)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateRadiativeVerner1996()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function verner1996ConstructorParameters
 
@@ -577,7 +579,7 @@ contains
     Based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
     passed to this function should be that of the atom/ion post recombination.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (atomicRecombinationRateRadiativeVerner1996), intent(inout)           :: self
     integer                                                     , intent(in   )           :: atomicNumber     , ionizationState
@@ -609,11 +611,11 @@ contains
     select case (level_)
     case (recombinationCaseA)
        ! Ensure atomic number is in range.
-       if (atomicNumber  < 1 .or. atomicNumber    > 30          ) call Galacticus_Error_Report('atomic number is out of range'  //{introspection:location})
+       if (atomicNumber  < 1 .or. atomicNumber    > 30          ) call Error_Report('atomic number is out of range'  //{introspection:location})
        ! Compute number of electrons.
        electronNumber=atomicNumber-ionizationState+1
        ! Ensure electron number is in range.
-       if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('electron number is out of range'//{introspection:location})
+       if (electronNumber < 1 .or. electronNumber > atomicNumber) call Error_Report('electron number is out of range'//{introspection:location})
        ! Compute rate using the relevant fitting function.
        if     (                                                  &
             &    electronNumber <=  3                            &
@@ -714,7 +716,7 @@ contains
                 verner1996Rate=0.0d0
              end if
           case default
-             call Galacticus_Error_Report('ionization state invalid for hydrogen'//{introspection:location})
+             call Error_Report('ionization state invalid for hydrogen'//{introspection:location})
           end select
        case (2) ! Helium
           select case (ionizationState)
@@ -759,14 +761,14 @@ contains
                      &          )**0.392685d0
              end if
           case default
-             call Galacticus_Error_Report('ionization state invalid for helium'//{introspection:location})
+             call Error_Report('ionization state invalid for helium'//{introspection:location})
           end select
        case default
-          call Galacticus_Error_Report('case B coefficients unavailable for requested atomic number'//{introspection:location})
+          call Error_Report('case B coefficients unavailable for requested atomic number'//{introspection:location})
        end select
     case default
        ! Recombination coefficient for an individual level was requested. We can not compute it, so report an error.
-       call Galacticus_Error_Report('coefficients for individual levels are not available'//{introspection:location})
+       call Error_Report('coefficients for individual levels are not available'//{introspection:location})
     end select
     return
   end function verner1996Rate

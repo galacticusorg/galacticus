@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,10 +34,9 @@ program Test_DiemerKravtsov2014_Concentration
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : File_Exists
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Error                    , only : Galacticus_Error_Report
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use :: Error                               , only : Error_Report
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                    , nodeComponentBasic                                          , treeNode
-  use :: Galacticus_Paths                    , only : galacticusPath                                  , pathTypeExec
+  use :: Input_Paths                         , only : inputPath                                       , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                                   , char                                                        , operator(//)                       , varying_string
   use :: Input_Parameters                    , only : inputParameters
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
@@ -48,7 +47,7 @@ program Test_DiemerKravtsov2014_Concentration
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: System_Command                      , only : System_Command_Do
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
-  use :: Unit_Tests                          , only : Assert                                          , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                                          , Unit_Tests_Finish
+  use :: Unit_Tests                          , only : Assert                                          , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                    ), pointer :: node
   class           (nodeComponentBasic                                          ), pointer :: basic
@@ -88,14 +87,14 @@ program Test_DiemerKravtsov2014_Concentration
   call Node_Components_Thread_Initialize(parameters)
 
   ! Get the data file if we don't have it.
-  if (.not.File_Exists(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
+  if (.not.File_Exists(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
      call System_Command_Do(                                                                           &
           &                 "wget http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt -O "// &
-          &                 galacticusPath(pathTypeExec)                                            // &
+          &                 inputPath(pathTypeExec)                                                 // &
           &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                       &
           &                )
-     if (.not.File_Exists(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
-          & call Galacticus_Error_Report('unable to retrieve reference dataset'//{introspection:location})
+     if (.not.File_Exists(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
+          & call Error_Report('unable to retrieve reference dataset'//{introspection:location})
   end if
   ! Create a node.
   node                            => treeNode                                        (                 )
@@ -141,7 +140,8 @@ program Test_DiemerKravtsov2014_Concentration
      &amp;                                                        index_                             =+0.968d0                           , &amp;
      &amp;                                                        running                            =+0.000d0                           , &amp;
      &amp;                                                        runningRunning                     =+0.000d0                           , &amp;
-     &amp;                                                        wavenumberReference                =+1.000d0                             &amp;
+     &amp;                                                        wavenumberReference                =+1.000d0                           , &amp;
+     &amp;                                                        runningSmallScalesOnly             =.false.                              &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -226,7 +226,7 @@ program Test_DiemerKravtsov2014_Concentration
        &                                                                          )
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0
-  open(newUnit=referenceUnit,file=char(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
+  open(newUnit=referenceUnit,file=char(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
   do i=1,7
      read (referenceUnit,*,ioStat=ioStatus) ! Skip header.
   end do
@@ -253,5 +253,4 @@ program Test_DiemerKravtsov2014_Concentration
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_DiemerKravtsov2014_Concentration

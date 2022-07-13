@@ -16,20 +16,20 @@ use Storable;
 # Andrew Benson (18-October-2011)
 
 # Get the name of the executable to find parameters for.
-die("Usage: parameterDependencies.pl <sourceDirectory> <executable>")
+die("Usage: parameterDependencies.pl <sourceDirectory> <target>")
     unless ( scalar(@ARGV) == 2 );
 my $sourceDirectoryName = $ARGV[0];
-my $executableName      = $ARGV[1];
+my $targetName          = $ARGV[1];
 
 # Include files to exclude from parameter search.
 my @includeFilesExcluded = ( "fftw3.f03" );
 
 # Build a list of object file dependencies.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executableName) =~ s/\.exe/\.d/;
+(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$targetName) =~ s/\.(exe|o)$/\.d/;
 my @objectFiles = map { $_ =~ /^$ENV{'BUILDPATH'}\/(.+\.o)$/ ? $1 : () } read_file($dependencyFileName, chomp => 1);
 
 # Initialize structure to hold record of parameters from each source file.
-(my $blobFileName = $executableName) =~ s/\.exe/.blob/;
+(my $blobFileName = $targetName) =~ s/\.(exe|o)$/.blob/;
 my $parametersPerFile;
 my $havePerFile = -e $ENV{'BUILDPATH'}."/".$blobFileName;
 my $updateTime;
@@ -130,7 +130,7 @@ my $output;
 @{$output->{'parameter'}} = uniq({sort => 1}, @{$output->{'parameter'}});
 
 # Output the results.
-(my $outputFileName = $executableName) =~ s/\.exe/.parameters.F90/;
+(my $outputFileName = $targetName) =~ s/\.(exe|o)$/.parameters.F90/;
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/".$outputFileName);
 print $outputFile "subroutine knownParameterNames(names)\n";
 print $outputFile "  use ISO_Varying_String\n";

@@ -99,7 +99,7 @@ contains
     Determine the subset of N-body particles which are self-bound.
     !!}
     use :: Display                         , only : displayIndent                  , displayUnindent, displayMessage
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -148,14 +148,14 @@ contains
           if (simulations(i)%label == "active"  ) current =i
           if (simulations(i)%label == "previous") previous=i
        end do
-       if (current  == -1) call Galacticus_Error_Report('no "active" simulation found'  //{introspection:location})
-       if (previous == -1) call Galacticus_Error_Report('no "previous" simulation found'//{introspection:location})
+       if (current  == -1) call Error_Report('no "active" simulation found'  //{introspection:location})
+       if (previous == -1) call Error_Report('no "previous" simulation found'//{introspection:location})
        if (.not.simulations(previous)%propertiesIntegerRank1%exists('isBound')) &
-            & call Galacticus_Error_Report('"previous" simulation must provide the "isBound" property'//{introspection:location})
+            & call Error_Report('"previous" simulation must provide the "isBound" property'//{introspection:location})
     else
        current =-1
        previous=-1
-       call Galacticus_Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
+       call Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
     end if
     ! Get simulation attributes.
     lengthSoftening=simulations(current)%attributesReal%value('lengthSoftening')
@@ -193,7 +193,7 @@ contains
        boundStatusPrevious  => simulations(previous)%propertiesIntegerRank1%value('isBound'     )
        sampleWeightPrevious => simulations(previous)%propertiesRealRank1   %value('sampleWeight')
        if (self%bootstrapSampleCount /= size(boundStatusPrevious,dim=2)) &
-            & call Galacticus_Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
+            & call Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
        ! Sort particles according to their particle IDs.
        if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
           indexSortedPrevious => simulations(previous)%propertiesInteger%value('particleOrder')
@@ -360,7 +360,7 @@ contains
           message=var_str('iteration ')//countIteration//' convergence factor = '//trim(adjustl(label))
           call displayMessage(message)
           ! Check for excess iterations.
-          if (countIteration > countIterationMaximum) call Galacticus_Error_Report('maximum iterations exceeded'//{introspection:location})
+          if (countIteration > countIterationMaximum) call Error_Report('maximum iterations exceeded'//{introspection:location})
           if (isConverged(iSample)) exit
        end do
        call displayUnindent('done')

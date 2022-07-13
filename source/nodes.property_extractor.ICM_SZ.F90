@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,6 +24,7 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
   use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
   use :: Cosmology_Parameters         , only : cosmologyParameters      , cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
+  use :: Galactic_Structure           , only : galacticStructureClass
   use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
@@ -62,6 +63,7 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
      class           (hotHaloMassDistributionClass         ), pointer :: hotHaloMassDistribution_   => null()
      class           (hotHaloTemperatureProfileClass       ), pointer :: hotHaloTemperatureProfile_ => null()
      class           (chemicalStateClass                   ), pointer :: chemicalState_             => null()
+     class           (galacticStructureClass               ), pointer :: galacticStructure_         => null()
      type            (nodePropertyExtractorDensityContrasts), pointer :: densityContrastExtractor_  => null()
      double precision                                                 :: densityContrast                     , distanceAngular
      logical                                                          :: useDensityContrast                  , useFixedDistance
@@ -101,6 +103,7 @@ contains
     class           (hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
     class           (hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
     class           (chemicalStateClass            ), pointer       :: chemicalState_
+    class           (galacticStructureClass        ), pointer       :: galacticStructure_
     double precision                                                :: densityContrast           , distanceAngular
     type            (varying_string                )                :: densityContrastRelativeTo
 
@@ -111,6 +114,7 @@ contains
     <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
     <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
     <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
+    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
     if (parameters%isPresent('densityContrast')) then
        !![
@@ -138,7 +142,7 @@ contains
     end if
     !![
     <conditionalCall>
-     <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_{conditions})</call>
+     <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_{conditions})</call>
      <argument name="densityContrast"           value="densityContrast"                                                                              parameterPresent="parameters"                                />
      <argument name="densityContrastRelativeTo" value="enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.)" parameterPresent="parameters" parameterName="densityContrast"/>
      <argument name="distanceAngular"           value="distanceAngular"                                                                              parameterPresent="parameters"                                />
@@ -150,11 +154,12 @@ contains
     <objectDestructor name="hotHaloMassDistribution_"  />
     <objectDestructor name="hotHaloTemperatureProfile_"/>
     <objectDestructor name="chemicalState_"            />
+    <objectDestructor name="galacticStructure_"        />
     !!]
     return
   end function icmSZConstructorParameters
 
-  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
+  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,galacticStructure_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily icmSZ} property extractor class.
     !!}
@@ -169,11 +174,12 @@ contains
     class           (hotHaloMassDistributionClass  ), intent(in   ), target   :: hotHaloMassDistribution_
     class           (hotHaloTemperatureProfileClass), intent(in   ), target   :: hotHaloTemperatureProfile_
     class           (chemicalStateClass            ), intent(in   ), target   :: chemicalState_
+    class           (galacticStructureClass        ), intent(in   ), target   :: galacticStructure_
     double precision                                , intent(in   ), optional :: densityContrast           , distanceAngular
     integer                                         , intent(in   ), optional :: densityContrastRelativeTo
     character       (len=8                         )                          :: label
     !![
-    <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_"/>
+    <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
     !!]
 
     self%useDensityContrast=present(densityContrast)
@@ -190,7 +196,8 @@ contains
           &amp;                                densityContrastRelativeTo=densityContrastRelativeTo, &amp;
           &amp;                                cosmologyparameters_     =cosmologyParameters_     , &amp;
           &amp;                                cosmologyFunctions_      =cosmologyFunctions_      , &amp;
-          &amp;                                darkMatterHaloScale_     =darkMatterHaloScale_       &amp;
+          &amp;                                darkMatterHaloScale_     =darkMatterHaloScale_     , &amp;
+          &amp;                                galacticStructure_       =galacticStructure_         &amp;
           &amp;                               )
         </constructor>
        </referenceConstruct>
@@ -217,6 +224,7 @@ contains
     <objectDestructor name="self%hotHaloMassDistribution_"  />
     <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     <objectDestructor name="self%chemicalState_"            />
+    <objectDestructor name="self%galacticStructure_"        />
     !!]
     if (self%useDensityContrast) then
        !![
@@ -231,7 +239,7 @@ contains
     Implement a Sunyaev-Zeldovich effect property extractor.
     !!}
     use :: Numerical_Integration           , only : integrator
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentHotHalo                   , nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : degreesToRadians                       , arcminutesToDegrees
     use :: Numerical_Constants_Math        , only : Pi
@@ -260,7 +268,7 @@ contains
        densityContrastProperties=reshape(self%densityContrastExtractor_%extract     (node,time,instance),[2])
        radiusOuter              =             densityContrastProperties             (1                 )
     else
-       radiusOuter              =        self%darkMatterHaloScale_     %virialRadius(node              )
+       radiusOuter              =        self%darkMatterHaloScale_     %radiusVirial(node              )
     end if
     ! Find the angular diameter distance to use.
     if (self%useFixedDistance) then
@@ -268,7 +276,7 @@ contains
     else
        distanceAngular=self%cosmologyFunctions_%distanceAngular(time)
     end if
-    if (distanceAngular <= 0.0d0) call Galacticus_Error_Report('non-positive angular diameter distance'//{introspection:location})
+    if (distanceAngular <= 0.0d0) call Error_Report('non-positive angular diameter distance'//{introspection:location})
     ! Compute the integrated Compton-y parameter within this radius, divided by the angular diameter distance squared, and
     ! converted to units of arcmin².
     integrator_ = integrator           (integrandComptonY,toleranceRelative=1.0d-3)

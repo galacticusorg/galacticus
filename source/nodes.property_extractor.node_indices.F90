@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -90,9 +90,11 @@ contains
     implicit none
     type(nodePropertyExtractorNodeIndices)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorNodeIndices()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nodeIndicesConstructorParameters
 
@@ -137,47 +139,43 @@ contains
     return
   end function nodeIndicesExtract
 
-  function nodeIndicesNames(self,time)
+  subroutine nodeIndicesNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily nodeIndices} properties.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: nodeIndicesNames
-    class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorNodeIndices), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(nodeIndicesNames(5))
-    nodeIndicesNames=[                           &
-         &            var_str('nodeIndex'     ), &
-         &            var_str('parentIndex'   ), &
-         &            var_str('siblingIndex'  ), &
-         &            var_str('satelliteIndex'), &
-         &            var_str('nodeIsIsolated')  &
-         &           ]
+    allocate(names(5))
+    names(1)=var_str('nodeIndex'     )
+    names(2)=var_str('parentIndex'   )
+    names(3)=var_str('siblingIndex'  )
+    names(4)=var_str('satelliteIndex')
+    names(5)=var_str('nodeIsIsolated')
     return
-  end function nodeIndicesNames
+  end subroutine nodeIndicesNames
 
-  function nodeIndicesDescriptions(self,time)
+  subroutine nodeIndicesDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily nodeIndices} properties.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: nodeIndicesDescriptions
-    class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorNodeIndices), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(nodeIndicesDescriptions(5))
-    nodeIndicesDescriptions=[                                          &
-         &                   var_str('Tree-unique ID for this node.'), &
-         &                   var_str('ID of parent node.'           ), &
-         &                   var_str('ID of sibling node.'          ), &
-         &                   var_str('ID of first satellite node.'  ), &
-         &                   var_str('Is the node isolated (0|1)?'  )  &
-         &                  ]
+    allocate(descriptions(5))
+    descriptions(1)=var_str('Tree-unique ID for this node.')
+    descriptions(2)=var_str('ID of parent node.'           )
+    descriptions(3)=var_str('ID of sibling node.'          )
+    descriptions(4)=var_str('ID of first satellite node.'  )
+    descriptions(5)=var_str('Is the node isolated (0|1)?'  )
     return
-  end function nodeIndicesDescriptions
+  end subroutine nodeIndicesDescriptions
 
   function nodeIndicesUnitsInSI(self,time)
     !!{

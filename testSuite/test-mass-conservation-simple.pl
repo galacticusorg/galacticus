@@ -7,18 +7,36 @@ use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use Galacticus::HDF5;
+use Galacticus::Options;
 
 # Run a simple model to test mass conservation.
 # Andrew Benson (28-April-2016)
 
+# Read in any configuration options.
+my $config = &Galacticus::Options::LoadConfig();
+
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
+
+# Set default options.
+my %options =
+    (
+     'pbsJobMaximum' => (defined($queueConfig) && exists($queueConfig->{'jobMaximum'})) ? $queueConfig->{'jobMaximum'} : 100,
+    );
+
+# Get any command line options.
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
 # Run the model.
-system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-simple.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-simple.xml ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)));
 
 # Check for failed models.
-system("grep -q -i fatal outputs/test-mass-conservation-simple/galacticus_*/galacticus.log");
+system("grep -q -i -e fatal -e aborted outputs/test-mass-conservation-simple/galacticus_*/galacticus.log");
 if ( $? == 0 ) {
     # Failures were found. Output their reports.
-    my @failures = split(" ",`grep -l -i fatal outputs/test-mass-conservation-simple/galacticus_*/galacticus.log`);
+    my @failures = split(" ",`grep -l -i -e fatal -e aborted outputs/test-mass-conservation-simple/galacticus_*/galacticus.log`);
     foreach my $failure ( @failures ) {
 	print "FAILED: log from ".$failure.":\n";
 	system("cat ".$failure);
@@ -35,7 +53,7 @@ $galacticus->{'tree' } = "all";
 &Galacticus::HDF5::Get_Parameters($galacticus    );
 &Galacticus::HDF5::Count_Trees   ($galacticus    );
 &Galacticus::HDF5::Select_Output ($galacticus,0.0);
-&Galacticus::HDF5::Get_Dataset($galacticus,['mergerTreeWeight','diskMassStellar','diskMassGas','hotHaloMass','hotHaloOutflowedMass','nodeIsIsolated','basicMassBertschinger','hotHaloUnaccretedMass','mergerTreeIndex']);
+&Galacticus::HDF5::Get_Dataset($galacticus,['mergerTreeWeight','diskMassStellar','diskMassGas','hotHaloMass','hotHaloOutflowedMass','nodeIsIsolated','massBertschinger','hotHaloUnaccretedMass','mergerTreeIndex']);
 my $properties = $galacticus->{'dataSets'  };
 my $parameters = $galacticus->{'parameters'};
 # Find centrals.
@@ -57,38 +75,38 @@ for(my $i=0;$i<nelem($centrals);++$i) {
 		+$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
 		/$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
 	    )
-	    /$properties->{'basicMassBertschinger'}->($centrals)->(($i));
+	    /$properties->{'massBertschinger'}->($centrals)->(($i));
 }
 $properties->{'diskMassStellar'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'};
+    *$properties->{'massBertschinger'};
 $properties->{'diskMassGas'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 $properties->{'hotHaloMass'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 $properties->{'hotHaloOutflowedMass'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 $properties->{'hotHaloUnaccretedMass'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 my $massTotal =
     +$properties    ->{'diskMassStellar'      }->($centrals)
     +$properties    ->{'diskMassGas'          }->($centrals)

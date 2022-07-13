@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,8 +23,10 @@
   An implementation of accretion from the \gls{igm} onto halos using filtering mass of the \gls{igm}
   calculated from an equation from \cite{naoz_formation_2007}.
   !!}
-
+  
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
+  use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast              , only : virialDensityContrastClass
 
   !![
   <accretionHalo name="accretionHaloNaozBarkana2007">
@@ -70,13 +72,16 @@
      logical                                                          :: filteredFractionRateComputed               , filteredFractionComputed
      integer         (kind=kind_int8                       )          :: lastUniqueID
      class           (intergalacticMediumFilteringMassClass), pointer :: intergalacticMediumFilteringMass_ => null()
+     class           (darkMatterProfileDMOClass            ), pointer :: darkMatterProfileDMO_             => null()
+     class           (virialDensityContrastClass           ), pointer :: virialDensityContrast_            => null()
    contains
      !![
      <methods>
-       <method description="Reset memoized calculations." method="calculationReset" />
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded." method="filteredFraction" />
-       <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds." method="filteredFractionRate" />
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute" />
+       <method description="Reset memoized calculations."                                                                                                    method="calculationReset"       />
+       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded."                                     method="filteredFraction"       />
+       <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds."                                 method="filteredFractionRate"   />
+       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute"/>
+       <method description="Compute the rate (in units of Gyr$^{-1}$) for the corrective flow of mass between accreted and unaccreted reservoirs."           method="rateCorrection"         />
      </methods>
      !!]
      final     ::                            naozBarkana2007Destructor
@@ -87,9 +92,12 @@
      procedure :: accretedMass            => naozBarkana2007AccretedMass
      procedure :: failedAccretionRate     => naozBarkana2007FailedAccretionRate
      procedure :: failedAccretedMass      => naozBarkana2007FailedAccretedMass
+     procedure :: accretionRateMetals     => naozBarkana2007AccretionRateMetals
+     procedure :: accretionRateChemicals  => naozBarkana2007AccretionRateChemicals
      procedure :: filteredFraction        => naozBarkana2007FilteredFraction
      procedure :: filteredFractionRate    => naozBarkana2007FilteredFractionRate
      procedure :: filteredFractionCompute => naozBarkana2007FilteredFractionCompute
+     procedure :: rateCorrection          => naozBarkana2007RateCorrection
   end type accretionHaloNaozBarkana2007
 
   interface accretionHaloNaozBarkana2007
@@ -111,9 +119,9 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (accretionHaloNaozBarkana2007)                :: self
-    type (inputParameters             ), intent(inout) :: parameters
-
+    type(accretionHaloNaozBarkana2007)                :: self
+    type(inputParameters             ), intent(inout) :: parameters
+ 
     self%accretionHaloSimple=accretionHaloSimple(parameters)
     !![
     <inputParameter>
@@ -131,16 +139,19 @@ contains
       <variable>self%massMinimum</variable>
     </inputParameter>
     <objectBuilder class="intergalacticMediumFilteringMass" name="self%intergalacticMediumFilteringMass_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"             name="self%darkMatterProfileDMO_"             source="parameters"/>
+    <objectBuilder class="virialDensityContrast"            name="self%virialDensityContrast_"            source="parameters"/>
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function naozBarkana2007ConstructorParameters
 
-  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_) result(self)
+  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Kind_Numbers, only : kind_int8
+    use :: Error       , only : Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
     double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
@@ -153,11 +164,16 @@ contains
     class           (chemicalStateClass                   ), intent(in   ), target :: chemicalState_
     class           (intergalacticMediumStateClass        ), intent(in   ), target :: intergalacticMediumState_
     class           (intergalacticMediumFilteringMassClass), intent(in   ), target :: intergalacticMediumFilteringMass_
+    class           (darkMatterProfileDMOClass            ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass           ), intent(in   ), target :: virialDensityContrast_
     !![
-    <constructorAssign variables="rateAdjust, massMinimum, *intergalacticMediumFilteringMass_"/>
+    <constructorAssign variables="rateAdjust, massMinimum, *intergalacticMediumFilteringMass_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%filteredFractionComputed    =.false.
+    self%filteredFractionRateComputed=.false.
+    self%lastUniqueID                =-huge(0_c_size_t)
     return
   end function naozBarkana2007ConstructorInternal
 
@@ -181,7 +197,7 @@ contains
     implicit none
     type(accretionHaloNaozBarkana2007), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
+    if (calculationResetEvent%isAttached(self,naozBarkana2007CalculationReset)) call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
     !![
     <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
     !!]
@@ -251,9 +267,16 @@ contains
     ! the original work by Gnedin (2000; http://adsabs.harvard.edu/abs/2000ApJ...542..535G) based on the discussion of halo
     ! definition in Naoz, Yoshida, & Gnedin (2013; http://adsabs.harvard.edu/abs/2013ApJ...763...27N).
     if (.not.self%filteredFractionComputed) then
-       basic                         => node                                  %basic        (                                                 )
-       massFiltering                 =  self%intergalacticMediumFilteringMass_%massFiltering(basic%time()                                     )
-       massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (node        ,naozBarkana2007VirialDensityContrast)
+       basic                         => node                                  %basic        (                                                                   )
+       massFiltering                 =  self%intergalacticMediumFilteringMass_%massFiltering(                       basic%time                                ())
+       massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (                                                                     &
+            &                                                                                                             node                                  , &
+            &                                                                                                             naozBarkana2007VirialDensityContrast  , &
+            &                                                                                cosmologyParameters_  =self %cosmologyParameters_                  , &
+            &                                                                                cosmologyFunctions_   =self %cosmologyFunctions_                   , &
+            &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_                 , &
+            &                                                                                virialDensityContrast_=self %virialDensityContrast_                  &
+            &                                                                               )
        self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
        self%filteredFractionComputed =  .true.
     end if
@@ -282,9 +305,16 @@ contains
     ! definition in Naoz, Yoshida, & Gnedin (2013; http://adsabs.harvard.edu/abs/2013ApJ...763...27N). The rate of change here
     ! assumes that the filtering mass is constant in time.
     if (.not.self%filteredFractionRateComputed) then
-       basic          => node                                  %basic        (                                                  )
-       massFiltering  =  self%intergalacticMediumFilteringMass_%massFiltering(basic%time()                                      )
-       massHalo       =  Dark_Matter_Profile_Mass_Definition                 (node         ,naozBarkana2007VirialDensityContrast)
+       basic         => node                                  %basic        (                                                                   )
+       massFiltering =  self%intergalacticMediumFilteringMass_%massFiltering(                       basic%time                                ())
+       massHalo      =  Dark_Matter_Profile_Mass_Definition                 (                                                                     &
+            &                                                                                             node                                  , &
+            &                                                                                             naozBarkana2007VirialDensityContrast  , &
+            &                                                                cosmologyParameters_  =self %cosmologyParameters_                  , &
+            &                                                                cosmologyFunctions_   =self %cosmologyFunctions_                   , &
+            &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_                 , &
+            &                                                                virialDensityContrast_=self %virialDensityContrast_                  &
+            &                                                               )
        if (.not.self%filteredFractionComputed) then
           self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
           self%filteredFractionComputed =  .true.
@@ -329,6 +359,35 @@ contains
     return
   end function naozBarkana2007FilteredFractionCompute
 
+  double precision function naozBarkana2007RateCorrection(self,node) result(rateCorrection)
+    !!{
+    Compute the rate (in units of Gyr$^{-1}$) for the corrective flow of mass between accreted and unaccreted reservoirs.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo
+    implicit none
+    class           (accretionHaloNaozBarkana2007), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    double precision                                              :: fractionFiltered, fractionAccreted, &
+         &                                                           growthRate
+
+    hotHalo          =>  node                     %hotHalo           (    )
+    growthRate       =  +self                     %rateAdjust               &
+         &              /self%darkMatterHaloScale_%timescaleDynamical(node)
+    fractionFiltered =  +self                     %filteredFraction  (node)
+    fractionAccreted =  +  hotHalo                %          mass    (    ) &
+         &              /(                                                  &
+         &                +hotHalo                %          mass    (    ) &
+         &                +hotHalo                %unaccretedMass    (    ) &
+         &               )
+    rateCorrection   =  +(                                                  &
+         &                +fractionAccreted                                 &
+         &                -fractionFiltered                                 &
+         &               )                                                  &
+         &              *growthRate
+    return
+  end function naozBarkana2007RateCorrection
+  
   double precision function naozBarkana2007AccretionRate(self,node,accretionMode)
     !!{
     Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
@@ -340,8 +399,7 @@ contains
     integer                                       , intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
-    double precision                                              :: growthRate          , filteredFraction, &
-         &                                                           filteredFractionRate, fractionAccreted
+    double precision                                              :: filteredFractionRate
 
     naozBarkana2007AccretionRate=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -363,27 +421,15 @@ contains
     else
        ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
        ! differs from that expected given the filtering mass.
-       growthRate                  =+self                     %rateAdjust               &
-            &                       /self%darkMatterHaloScale_%dynamicalTimescale(node)
-       filteredFraction            =+self                     %filteredFraction  (node)
-       fractionAccreted            =+  hotHalo                %          mass    (    ) &
-            &                       /(                                                  &
-            &                         +hotHalo                %          mass    (    ) &
-            &                         +hotHalo                %unaccretedMass    (    ) &
-            &                        )
-       naozBarkana2007AccretionRate=+naozBarkana2007AccretionRate                       &
-            &                       -(                                                  &
-            &                         +hotHalo                %          mass    (    ) &
-            &                         +hotHalo                %unaccretedMass    (    ) &
-            &                        )                                                  &
-            &                       *(                                                  &
-            &                         +fractionAccreted                                 &
-            &                         -filteredFraction                                 &
-            &                        )                                                  &
-            &                       *growthRate
+       naozBarkana2007AccretionRate=+naozBarkana2007AccretionRate                   &
+            &                       -(                                              &
+            &                         +hotHalo                %          mass(    ) &
+            &                         +hotHalo                %unaccretedMass(    ) &
+            &                        )                                              &
+            &                       *  self                   %rateCorrection(node)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
-    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) naozBarkana2007AccretionRate=0.0d0
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007AccretionRate=0.0d0
     return
   end function naozBarkana2007AccretionRate
 
@@ -425,8 +471,7 @@ contains
     integer                                       , intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
-    double precision                                              :: growthRate          , filteredFraction, &
-         &                                                           filteredFractionRate, fractionAccreted
+    double precision                                              :: filteredFractionRate
 
     naozBarkana2007FailedAccretionRate=0.0d0
     if (accretionMode               == accretionModeCold) return
@@ -452,27 +497,15 @@ contains
             &                              )
        ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
        ! differs from that expected given the filtering mass.
-       growthRate                        =+self                     %rateAdjust               &
-            &                             /self%darkMatterHaloScale_%dynamicalTimescale(node)
-       filteredFraction                  =+self                     %filteredFraction  (node)
-       fractionAccreted                  =+  hotHalo                %          mass    (    ) &
-            &                             /(                                                  &
-            &                               +hotHalo                %          mass    (    ) &
-            &                               +hotHalo                %unaccretedMass    (    ) &
-            &                              )
-       naozBarkana2007FailedAccretionRate=+naozBarkana2007FailedAccretionRate                 &
-            &                             +(                                                  &
-            &                               +hotHalo                %          mass    (    ) &
-            &                               +hotHalo                %unaccretedMass    (    ) &
-            &                              )                                                  &
-            &                             *(                                                  &
-            &                               +fractionAccreted                                 &
-            &                               -filteredFraction                                 &
-            &                              )                                                  &
-            &                             *growthRate
+       naozBarkana2007FailedAccretionRate=+naozBarkana2007FailedAccretionRate             &
+            &                             +(                                              &
+            &                               +hotHalo                %          mass(    ) &
+            &                               +hotHalo                %unaccretedMass(    ) &
+            &                              )                                              &
+            &                             *  self                   %rateCorrection(node)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
-    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) naozBarkana2007FailedAccretionRate=0.0d0
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007FailedAccretionRate=0.0d0
     return
   end function naozBarkana2007FailedAccretionRate
 
@@ -495,7 +528,7 @@ contains
     basic => node%basic()
     ! Get the failed fraction.
     filteredFraction=self%filteredFraction(node)
-    ! Get the default cosmology.
+    ! Compute the mass of failed accretion.
     naozBarkana2007FailedAccretedMass = +self%cosmologyParameters_%OmegaBaryon (    ) &
          &                              /self%cosmologyParameters_%OmegaMatter (    ) &
          &                              *self%accretionHaloTotal_ %accretedMass(node) &
@@ -506,3 +539,139 @@ contains
     return
   end function naozBarkana2007FailedAccretedMass
 
+  function naozBarkana2007AccretionRateMetals(self,node,accretionMode)
+    !!{
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Abundances_Structure, only : zeroAbundances
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
+    implicit none
+    type            (abundances                  )                :: naozBarkana2007AccretionRateMetals
+    class           (accretionHaloNaozBarkana2007), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    integer                                       , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    type            (abundances                  ), save          :: fractionMetals
+    !$omp threadprivate(fractionMetals)
+    double precision                                              :: rateCorrection
+
+    ! Assume zero metallicity for accreted gas.
+    naozBarkana2007AccretionRateMetals=zeroAbundances
+    ! Return immediately for cold-mode accretion or satellites.
+    if (accretionMode      == accretionModeCold) return
+    if (node%isSatellite()                     ) return
+    ! Get required objects.
+    basic   => node%basic  ()
+    hotHalo => node%hotHalo()
+    ! Test for negative accretion.
+    if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+       ! Accretion rate is negative, and not allowed. Return zero accretion rate.
+       naozBarkana2007AccretionRateMetals=zeroAbundances
+    else
+       ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
+       ! differs from that expected given the filtering mass.
+       rateCorrection=self%rateCorrection(node)
+       if (rateCorrection > 0.0d0) then
+          ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
+          ! halo.
+          if (hotHalo%mass() > 0.0d0) then
+             fractionMetals=+hotHalo%abundances() &
+                  &         /hotHalo%mass      ()
+          else
+             fractionMetals=zeroAbundances
+          end if
+       else
+          ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
+          ! unaccreted gas.
+          fractionMetals=zeroAbundances
+       end if
+       naozBarkana2007AccretionRateMetals=+naozBarkana2007AccretionRateMetals                     &
+            &                             -fractionMetals                                         &
+            &                             *(                                                      &
+            &                               +hotHalo                            %          mass() &
+            &                               +hotHalo                            %unaccretedMass() &
+            &                              )                                                      &
+            &                             *rateCorrection
+    end if
+    ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007AccretionRateMetals=zeroAbundances
+    return
+  end function naozBarkana2007AccretionRateMetals
+
+  function naozBarkana2007AccretionRateChemicals(self,node,accretionMode)
+    !!{
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
+    primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
+    temperature.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
+    implicit none
+    type            (chemicalAbundances          )                :: naozBarkana2007AccretionRateChemicals
+    class           (accretionHaloNaozBarkana2007), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    integer                                       , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    type            (chemicalAbundances          ), save          :: fractionChemicals
+    !$omp threadprivate(fractionChemicals)
+    double precision                                              :: massAccretionRate                    , rateCorrection, &
+         &                                                           filteredFractionRate
+
+    ! Ensure that chemicals are reset to zero.
+    call naozBarkana2007AccretionRateChemicals%reset()
+    ! Return immediately for cold-mode accretion, satellites, or no chemicals being tracked.
+    if (accretionMode                  == accretionModeCold) return
+    if (node         %isSatellite   ()                     ) return
+    if (self         %countChemicals   ==                 0) return
+    ! Get required objects.
+    basic   => node%basic  ()
+    hotHalo => node%hotHalo()
+    ! Find the post-filtering accretion rate fraction.
+    filteredFractionRate=self%filteredFractionRate(node)
+    ! Compute the mass accretion rate onto the halo.
+    massAccretionRate=+self%cosmologyParameters_%OmegaBaryon  (    ) &
+         &            /self%cosmologyParameters_%OmegaMatter  (    ) &
+         &            *self%accretionHaloTotal_ %accretionRate(node) &
+         &            *filteredFractionRate
+    ! Get the mass accretion rates.
+    naozBarkana2007AccretionRateChemicals=self%chemicalMasses(node,massAccretionRate,accretionMode)
+    ! Test for negative accretion.
+    if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+       ! Accretion rate is negative, and not allowed. Return zero accretion rate.
+       call naozBarkana2007AccretionRateChemicals%reset()
+    else
+       ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
+       ! differs from that expected given the filtering mass.
+       rateCorrection=self%rateCorrection(node)
+       if (rateCorrection > 0.0d0) then
+          ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of chemicals in the hot
+          ! halo.
+          if (hotHalo%mass() > 0.0d0) then
+             fractionChemicals=+hotHalo%chemicals() &
+                  &            /hotHalo%mass     ()
+          else
+             call fractionChemicals%reset()
+          end if
+       else
+          ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of chemicals in the
+          ! unaccreted gas.
+          if (hotHalo%unaccretedMass() > 0.0d0) then
+             fractionChemicals=+self   %chemicalMasses(node,hotHalo%unaccretedMass(),accretionMode) &
+                  &            /hotHalo%unaccretedMass(                                           )
+          else
+             call fractionChemicals%reset()
+          end if
+       end if
+       naozBarkana2007AccretionRateChemicals=+naozBarkana2007AccretionRateChemicals                  &
+            &                                -fractionChemicals                                      &
+            &                                *(                                                      &
+            &                                  +hotHalo                            %          mass() &
+            &                                  +hotHalo                            %unaccretedMass() &
+            &                                 )                                                      &
+            &                                *rateCorrection
+    end if
+    ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) call naozBarkana2007AccretionRateChemicals%reset()
+    return
+  end function naozBarkana2007AccretionRateChemicals

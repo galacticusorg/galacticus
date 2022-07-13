@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,7 +134,7 @@ subroutine xermsg(a,b,c,i,j)
   !!{
   Error message function required by {\normalfont \ttfamily dotbvabs}.
   !!}
-  use :: Galacticus_Error, only : Galacticus_Error_Report
+  use :: Error, only : Error_Report
   implicit none
   character(len=*), intent(in   ) :: a, b, c
   integer         , intent(in   ) :: i, j
@@ -142,7 +142,7 @@ subroutine xermsg(a,b,c,i,j)
   write (0,*) a
   write (0,*) b
   write (0,*) c
-  call Galacticus_Error_Report('error thrown by XSpec functions'//{introspection:location})
+  call Error_Report('error thrown by XSpec functions'//{introspection:location})
   return
 end subroutine xermsg
 
@@ -150,7 +150,7 @@ real function fgabnd(c)
   !!{
   Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
   !!}
-  use :: Galacticus_Error, only : Galacticus_Error_Report
+  use :: Error, only : Error_Report
   implicit none
   character(len=2), intent(in   ) :: c
 
@@ -173,7 +173,7 @@ real function fgabnd(c)
   if (c == 'Fe') fgabnd= 7.43 ! Fe
   if (c == 'Co') fgabnd= 4.92 ! Co
   if (c == 'Ni') fgabnd= 6.05 ! Ni
-  if (fgabnd == 0.0) call Galacticus_Error_Report('unknown element'//{introspection:location})
+  if (fgabnd == 0.0) call Error_Report('unknown element'//{introspection:location})
   fgabnd=10.0**(fgabnd-12.00)
   return
 end function fgabnd

@@ -3,7 +3,9 @@
   <!-- Schema used to validate inputParametersValidate directives -->
 
   <xs:element name="inputParametersValidate" type="xs:string">
-    <xs:attribute name="source" use="required"/>
+    <xs:attribute name="source"          use="required"/>
+    <xs:attribute name="multiParameters"               />
+    <xs:attribute name="extraAllowedNames"             />
   </xs:element>
   
 </xs:schema>

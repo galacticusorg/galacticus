@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,8 +40,8 @@
      A linear growth of cosmological structure contrast class in models consisting only of collisionless matter.
      !!}
      private
-     logical                                                 :: tableInitialized
-     double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
+     logical                                                 :: tableInitialized             =  .false.
+     double precision                                        :: tableTimeMinimum                       , tableTimeMaximum, &
           &                                                     normalizationMatterDominated
      class           (table1D                 ), allocatable :: growthFactor
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
@@ -147,7 +147,7 @@ contains
     !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
-    use :: Tables                , only : table1DLogarithmicLinear
+    use :: Tables               , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout) :: self
     double precision                                 , intent(in   ) :: time
@@ -302,7 +302,7 @@ contains
     !!{
     Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,6 +37,7 @@ Contains a module which implements an identity transfer function class.
      procedure :: value                 => identityValue
      procedure :: logarithmicDerivative => identityLogarithmicDerivative
      procedure :: halfModeMass          => identityHalfModeMass
+     procedure :: quarterModeMass       => identityQuarterModeMass
      procedure :: epochTime             => identityEpochTime
      procedure :: descriptor            => identityDescriptor
   end type transferFunctionIdentity
@@ -137,9 +138,9 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function. Not supported in this implementation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionIdentity), intent(inout)           :: self
+    class  (transferFunctionIdentity), intent(inout), target   :: self
     integer                          , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
@@ -147,10 +148,30 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       call Error_Report('not supported by this implementation'//{introspection:location})
     end if
     return
   end function identityHalfModeMass
+
+  double precision function identityQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
+    use :: Error, only : Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionIdentity), intent(inout), target   :: self
+    integer                          , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    identityQuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function identityQuarterModeMass
 
   double precision function identityEpochTime(self)
     !!{

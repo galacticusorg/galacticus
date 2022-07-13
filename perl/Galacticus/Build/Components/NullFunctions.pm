@@ -87,7 +87,7 @@ sub createNullFunction {
 	     },
 	     $propertyDescriptor
 	    );
-	@modules = ( "Galacticus_Error" );
+	@modules = ( "Error" );
     } elsif ( $descriptor->{'attribute'} eq "get" ) {
 	$propertyDescriptor->{'variables' } = [ "setValue" ];
 	$propertyDescriptor->{'attributes'} = [ "intent(in   )", ($descriptor->{'property'}->{'rank'} > 0 ? "dimension(".join(",",(":") x $descriptor->{'property'}->{'rank'}).")" : ()) ];
@@ -95,6 +95,17 @@ sub createNullFunction {
 	    (exists($propertyDescriptor->{'type'}) ? "type(".$propertyDescriptor->{'type'}.")" : $propertyDescriptor->{'intrinsic'}).
 	    ($descriptor->{'property'}->{'rank'} > 0 ? ", dimension(".join(",",(":") x $descriptor->{'property'}->{'rank'})."), allocatable" : "").
 	    " => getValue";
+	@variables =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => $selfType,
+		 attributes => [ "intent(".$descriptor->{'intent'}.")" ],
+		 variables  => [ "self" ]
+	     }
+	    );
+    } elsif ( $descriptor->{'attribute'} eq "analytic" ) {
+	$returnType = "void";
 	@variables =
 	    (
 	     {
@@ -134,7 +145,7 @@ sub createNullFunction {
     }
     # Add error for set functions.
     if ( $descriptor->{'attribute'} eq "set" ) {
-	$function->{'content'} .= "call Galacticus_Error_Report('attempt to set value in null component'//{introspection:location})\n";
+	$function->{'content'} .= "call Error_Report('attempt to set value in null component'//{introspection:location})\n";
     }  
     # Insert into the function list (if it is used).
     push(

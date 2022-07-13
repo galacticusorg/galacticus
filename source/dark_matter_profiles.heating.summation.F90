@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,12 @@
    <deepCopy>
     <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
+   </stateStore>
+   <allowedParameters>
+    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
+   </allowedParameters>
   </darkMatterProfileHeating>
   !!]
 
@@ -82,6 +88,9 @@ contains
        <objectBuilder class="darkMatterProfileHeating" name="heatSource%heatSource" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="darkMatterProfileHeating"/>
+    !!]
     return
   end function summationConstructorParameters
 
@@ -125,7 +134,7 @@ contains
     return
   end subroutine summationDestructor
 
-  double precision function summationSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
+  double precision function summationSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
@@ -142,22 +151,22 @@ contains
        summationSpecificEnergy=+summationSpecificEnergy                                     &
             &                  +heatSource%heatSource%specificEnergy(                       &
             &                                                        node                 , &
-            &                                                        darkMatterProfileDMO_, &
-            &                                                        radius                 &
+            &                                                        radius               , &
+            &                                                        darkMatterProfileDMO_  &
             &                                                       )
        heatSource => heatSource%next
     end do
     return
   end function summationSpecificEnergy
 
-  double precision function summationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
+  double precision function summationSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
     double precision                                   , intent(in   ) :: radius
     type            (heatSourceList                   ), pointer       :: heatSource
 
@@ -167,8 +176,8 @@ contains
        summationSpecificEnergyGradient=+summationSpecificEnergyGradient                                     &
             &                          +heatSource%heatSource%specificEnergyGradient(                       &
             &                                                                        node                 , &
-            &                                                                        darkMatterProfileDMO_, &
-            &                                                                        radius                 &
+            &                                                                        radius               , &
+            &                                                                        darkMatterProfileDMO_  &
             &                                                                       )
        heatSource => heatSource%next
     end do

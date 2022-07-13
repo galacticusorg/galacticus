@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,12 @@
    <deepCopy>
     <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
+   </stateStore>
+   <allowedParameters>
+    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
+   </allowedParameters>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMulti
@@ -49,8 +55,13 @@
      procedure :: galaxiesMerge                       => multiGalaxiesMerge
      procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
      procedure :: differentialEvolution               => multiDifferentialEvolution
+     procedure :: differentialEvolutionScales         => multiDifferentialEvolutionScales
+     procedure :: differentialEvolutionAnalytics      => multiDifferentialEvolutionAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => multiDifferentialEvolutionSolveAnalytics
+     procedure :: differentialEvolutionInactives      => multiDifferentialEvolutionInactives
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
+     procedure :: differentialEvolutionPostStep       => multiDifferentialEvolutionPostStep
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
@@ -88,6 +99,9 @@ contains
        <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nodeOperator"/>
+    !!]
     return
   end function multiConstructorParameters
 
@@ -138,7 +152,7 @@ contains
     Perform node tree initialization.
     !!}
     implicit none
-    class(nodeOperatorMulti), intent(inout)          :: self
+    class(nodeOperatorMulti), intent(inout), target  :: self
     type (treeNode         ), intent(inout), target  :: node
     type (multiProcessList )               , pointer :: process_
 
@@ -235,6 +249,57 @@ contains
     return
   end subroutine multiDifferentialEvolutionPre
 
+  subroutine multiDifferentialEvolutionScales(self,node)
+    !!{
+    Set absolute ODE solver scales prior to differential evolution.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionScales(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionScales
+
+  subroutine multiDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Mark (meta-)properties as analytically solved for the ODE solver prior to differential evolution.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionAnalytics(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionAnalytics
+
+  subroutine multiDifferentialEvolutionInactives(self,node)
+    !!{
+    Mark (meta-)properties as inactive for the ODE solver prior to differential evolution.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionInactives(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionInactives
+
   subroutine multiDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Act on a node during differential evolution.
@@ -254,6 +319,24 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolution
+
+  subroutine multiDifferentialEvolutionSolveAnalytics(self,node,time)
+    !!{
+    Set the values of analytically-solvable properties of a node during differential evolution.
+    !!}
+    implicit none
+    class           (nodeOperatorMulti), intent(inout) :: self
+    type            (treeNode         ), intent(inout) :: node
+    double precision                   , intent(in   ) :: time
+    type            (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionSolveAnalytics(node,time)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionSolveAnalytics
 
   subroutine multiDifferentialEvolutionStepFinalState(self,node)
     !!{
@@ -288,3 +371,21 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionPost
+
+  subroutine multiDifferentialEvolutionPostStep(self,node,status)
+    !!{
+    Act on a node after a differential evolution step.
+    !!}
+    implicit none
+    class  (nodeOperatorMulti), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(inout) :: status
+    type   (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionPostStep(node,status)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionPostStep

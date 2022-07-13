@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -149,7 +149,7 @@ contains
     !!{
     Compute the density of the accretion flow at the given radius.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (accretionFlowsLam2013), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
@@ -157,7 +157,7 @@ contains
     !$GLC attributes unused :: self, node, radius
     
     lam2013Density=0.0d0
-    call Galacticus_Error_Report('density is unsupported'//{introspection:location})
+    call Error_Report('density is unsupported'//{introspection:location})
     return
   end function lam2013Density
 
@@ -179,7 +179,7 @@ contains
     basic                    =>  node                      %basic               (    )
     time                     =   basic                     %time                (    )
     overdensityCritical      =   self %criticalOverdensity_%value               (time)
-    radiusVirial             =   self %darkMatterHaloScale_%virialRadius        (node)
+    radiusVirial             =   self %darkMatterHaloScale_%radiusVirial        (node)
     ! Evaluate the mass in the shell outside the halo virial radius using equation (B4) of Lam et al. (2013).
     if (radius > radiusVirial) then
        massShell             =  +self %cosmologyFunctions_ %matterDensityEpochal(time)                                                                                                     &

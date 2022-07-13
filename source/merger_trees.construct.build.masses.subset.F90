@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,8 +33,8 @@
      Implementation of a merger tree masses class which constructs a subset of another class.
      !!}
      private
-     class  (mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_
-     integer(c_size_t                  )          :: subsetBegin           , subsetEnd
+     class  (mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_ => null()
+     integer(c_size_t                  )          :: subsetBegin                     , subsetEnd
    contains
      final     ::              subsetDestructor
      procedure :: construct => subsetConstruct

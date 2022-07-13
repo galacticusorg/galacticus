@@ -85,10 +85,11 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	    }
 	}
 	$buildData->{'content'} .= " ".$opener." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null(".join(",",@names).")\n";
-	$buildData->{'content'} .= "  use Galacticus_Error\n";
+	$buildData->{'content'} .= "  use Error\n";
 	if ( exists($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
 	    foreach my $module ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
-		$buildData->{'content'} .= "use :: ".$module."\n";
+		(my $moduleName = $module) =~ s/,.*//;
+		$buildData->{'content'} .= "use".($moduleName eq "ISO_C_Binding" ? ", intrinsic" : "")." :: ".$module."\n";
 	    }
 	}
 	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} ne "void" ) {
@@ -104,7 +105,7 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	} elsif ( $buildData->{'functionGlobals'}->{$_}->{'type'} =~ m/,\s*pointer/ ) {
 	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null => null()\n";
 	}
-	$buildData->{'content'} .= "  call Galacticus_Error_Report('global functions have not been initialized'//{introspection:location})\n";
+	$buildData->{'content'} .= "  call Error_Report('global functions have not been initialized'//{introspection:location})\n";
 	$buildData->{'content'} .= " end ".$closer." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
     }
 }

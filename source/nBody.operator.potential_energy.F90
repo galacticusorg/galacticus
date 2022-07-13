@@ -134,7 +134,7 @@ contains
     !!{
     Determine the acceleration of bound particles from stripped ones.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Octree_Data_Structure           , only : octreeData
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -169,9 +169,9 @@ contains
                 allocate(sampleRate(1))
                 sampleRate=1.0d0
              end if
-             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
           else
-             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+             call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
           allocate(selfBoundStatus(particleCount,self%bootstrapSampleCount))

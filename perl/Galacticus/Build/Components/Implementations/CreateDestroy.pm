@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw(&isIntrinsic %intrinsicNulls);
 use Galacticus::Build::Components::DataTypes;
+use Galacticus::Build::Components::Classes::MetaProperties;
 use Data::Dumper;
 
 # Insert hooks for our functions.
@@ -46,6 +47,10 @@ sub Implementation_Creation {
 		 type       => $code::implementationTypeName,
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
 	     }
 	    ]
     };
@@ -153,6 +158,42 @@ CODE
 	    }
 	}
     }
+    # Allocate and initialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'};
+	    if ( $metaPropertyType->{'rank'} == 0 ) {
+		$code::initializer = " self%".$code::prefix."MetaProperties=";
+		if      ( $metaPropertyType->{'intrinsic'} eq "double precision" ) {
+		    $code::initializer .= "0.0";
+		} elsif ( $metaPropertyType->{'intrinsic'} eq "integer"          ) {
+		    $code::initializer .= "0";
+		} else {
+		    die("Galacticus::Build::Components::Implementations::CreateDestroy::Implementation_Creation: unknown meta-property type");
+		}
+		if      ( exists($metaPropertyType->{'type'})                   ) {
+		    $code::initializer .= "_".$metaPropertyType->{'type'};
+		} elsif ( $metaPropertyType->{'intrinsic'} eq "double precision" ) {
+		    $code::initializer .= "d0";
+		}
+	    } else {
+		$code::initializer = fill_in_string(<<'CODE', PACKAGE => 'code');
+ do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
+  allocate(self%{$prefix}MetaProperties(i)%values(0))
+ end do
+CODE
+	    }	    
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames).and..not.allocated(self%{$prefix}MetaProperties)) then
+ allocate(self%{$prefix}MetaProperties(size({$class->{'name'}.$prefix}MetaPropertyNames)))
+{$initializer}
+end if
+CODE
+	}
+    }
+    # Add required modules to function.
     push(@{$function->{'modules'}},keys(%modules))
 	if ( %modules );
     # Insert a type-binding for this function.
@@ -258,9 +299,10 @@ sub Implementation_Builder {
 	description => "Build a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component from a supplied XML definition.",
 	modules     =>
 	    [
-	     "Galacticus_Error",
-	     "FoX_DOM",
-	     "Memory_Management"
+	     "Error, only : Error_Report",
+	     "FoX_DOM, only : node, nodeList, getLength, extractDataContent, getElementsByTagName, item",
+	     "Memory_Management",
+	     "ISO_Varying_String"
 	    ],
 	variables   =>
 	    [
@@ -275,41 +317,29 @@ sub Implementation_Builder {
 		 type       => "node",
 		 attributes => [ "intent(in   )", "pointer" ],
 		 variables  => [ "componentDefinition" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "pointer" ],
+		 variables  => [ "property" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "nodeList",
+		 attributes => [ "pointer" ],
+		 variables  => [ "propertyList" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i", "j" ]
 	     }
 	    ]
 	};
-    # Add variables needed for non-null implementations.
-    push(
-	@{$function->{'variables'}},
-	{
-	    intrinsic  => "type",
-	    type       => "node",
-	    attributes => [ "pointer" ],
-	    variables  => [ "property" ]
-	},
-	{
-	    intrinsic  => "type",
-	    type       => "nodeList",
-	    attributes => [ "pointer" ],
-	    variables  => [ "propertyList" ]
-	}
-	) unless ( $code::member->{'name'} eq "null" );
-    # Add a counter variable if needed.
-    push(
-	@{$function->{'variables'}},
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	) if (
-	      grep
-	       {$_->{'data'}->{'rank'} == 1 && ! $_->{'attributes'}->{'isVirtual'}}
-	       &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) 
-	     );
     # Build the function code.
     if ( $code::member->{'name'} eq "null" ) {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!$GLC attributes unused :: self, componentDefinition
+!$GLC attributes unused :: componentDefinition
 CODE
     } else {
 	# Initialize the component.
@@ -334,7 +364,7 @@ propertyList => getElementsByTagName(componentDefinition,'{$property->{'name'}}'
 CODE
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (getLength(propertyList) > 1) call Galacticus_Error_Report('scalar property must have precisely one value'//\{introspection:location\})
+if (getLength(propertyList) > 1) call Error_Report('scalar property must have precisely one value'//\{introspection:location\})
 if (getLength(propertyList) == 1) then
   property => item(propertyList,0)
 CODE
@@ -350,7 +380,7 @@ CODE
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -380,7 +410,7 @@ CODE
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -399,6 +429,60 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$omp end critical (FoX_DOM_Access)
 CODE
+    }
+    # Build any meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ !$omp critical (FoX_DOM_Access)
+ do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  propertyList => getElementsByTagName(componentDefinition,char({$class->{'name'}.$prefix}MetaPropertyNames(i)))
+CODE
+	    if      ( $metaPropertyType->{'rank'} == 0 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (getLength(propertyList) > 1) call Error_Report('meta-property must have precisely one value'//\{introspection:location\})
+CODE
+		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+CODE
+		} else {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (getLength(propertyList) == 1) then
+    property => item(propertyList,0)
+    call extractDataContent(property,self%{$prefix}MetaProperties(i))
+  end if
+CODE
+		}
+	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
+		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  call Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+CODE
+		} else {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (getLength(propertyList) >= 1) then
+    allocate(self%{$prefix}MetaProperties(i)%values(getLength(propertyList)))
+    do j=1,getLength(propertyList)
+     property => item(propertyList,j-1)
+     call extractDataContent(property,self%{$prefix}MetaProperties(i)%values(j))
+    end do
+  end if
+CODE
+		}
+	    } else {
+		die("Galacticus::Build::Components::Implementations::CreateDestroy::Implementation_Builder: unsupported meta-property rank");
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ end do
+ !$omp end critical (FoX_DOM_Access)
+end if
+CODE
+	}
     }
     # Insert a type-binding for this function.
     push(

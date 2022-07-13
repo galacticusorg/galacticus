@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -99,7 +99,7 @@ contains
     !!{
     Assign a unique ID to a stellar population. Populations are distinguished based on the hash of their descriptor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class(stellarPopulationClass), intent(inout) :: self
     type (varying_string        )                :: hashedDescriptor
@@ -112,7 +112,7 @@ contains
     end if
     if (.not.descriptors%exists(hashedDescriptor)) then
        uniqueID_=uniqueID_+1_c_size_t
-       if (uniqueID_ < 0_c_size_t) call Galacticus_Error_Report('ran out of unique IDs for stellar populations'//{introspection:location})
+       if (uniqueID_ < 0_c_size_t) call Error_Report('ran out of unique IDs for stellar populations'//{introspection:location})
        call descriptors%set(hashedDescriptor,uniqueID_)
     end if
     self%uniqueID_=descriptors%value(hashedDescriptor)
