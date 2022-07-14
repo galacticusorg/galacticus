@@ -145,7 +145,7 @@ contains
     <inputParameter>
       <name>timeCountPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of time to use for calculations of tge cosmic background radiation.</description>
+      <description>The number of bins per decade of time to use for calculations of the cosmic background radiation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

@@ -1,4 +1,4 @@
-name: Builder-Library-MacOS
+name: Test-Codes-MacOS
 on:
   workflow_dispatch:
   pull_request:
@@ -41,12 +41,12 @@ on:
       - 'perl/Fortran/**'
       - 'scripts/build/**'
       - 'schema/**'
+concurrency:
+  group: test-codes-MacOS-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  Build-Executable:
+  Build-Executables:
     runs-on: macos-11
-    concurrency:
-      group: build-library-macos-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -54,17 +54,12 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib\"" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
-          echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Install MacPorts
         run: |
@@ -103,7 +98,7 @@ jobs:
           make -j3
           sudo make install
           cd ..
-          rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz 
+          rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz
       - name: Install FoX
         run: |
           curl -L https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
@@ -150,13 +145,13 @@ jobs:
           make -j3
           sudo make install
           cd ..
-          cd ..
           curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
           tar xvfz Sys-CPU-0.52.tar.gz
           cd Sys-CPU-0.52
           perl Makefile.PL
           make -j3
           sudo make install
+          cd ..
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
@@ -200,34 +195,44 @@ jobs:
           export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib"
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
-          make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
-      - name: Package the code
+          export BUILDPATH=./work/build
+          make -j3 all 2>&1 | tee build.log
+      - name: Upload executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: galacticus-macos-execs
+          path: '**.exe'
+      - run: echo "This job's status is ${{ job.status }}."
+  Tests-Hashes-Cryptographic:
+    runs-on: macos-11
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-macos-execs
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir galacticus
-          mkdir galacticus/lib
-          mkdir galacticus/python
-          # Find all dynamic libraries needed (filtering out any non-"local" ones) and copy to our folder.
-          otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local | xargs -n 1 -I{} cp {} galacticus/lib/
-          mv galacticus.py galacticus/python/
-          mv libgalacticus.so galacticus/lib/
-          zip -r libgalacticusMacOS.zip galacticus
-      - name: Update release
-        if: ${{ steps.extract_branch.outputs.branch }} == 'master'
-        uses: johnwbyrd/update-release@v1.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./libgalacticusMacOS.zip
-          release: bleeding-edge
-          prerelease: true
-          message: Bleeding edge release
-          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
-      - name: Update release tag
-        if: ${{ steps.extract_branch.outputs.branch }} == 'master'
-        uses: richardsimko/update-tag@v1
-        with:
-          tag_name: bleeding-edge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          chmod u=wrx ./tests.hashes.cryptographic.exe
+          ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

@@ -505,6 +505,8 @@ contains
     Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
     spherical region containing the given {\normalfont \ttfamily mass} on average.
     !!}
+    use :: Display                 , only : displayGreen, displayBlue, displayYellow, displayReset
+    use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -562,6 +564,21 @@ contains
     ! Scale by the linear growth factor if growth is not mass-dependent.
     if (.not.self%growthIsMassDependent_) rootVariance=+rootVariance                   &
          &                                             *self%linearGrowth_%value(time)
+    ! Validate the logarithmic gradient.
+    if (rootVarianceLogarithmicGradient > 0.0d0) then
+       ! Logarithmic gradient is positive, which should not happen.
+       if (self%monotonicInterpolation) then
+          ! Monotonic interpolation is being used - a positive logarithmic gradient should be impossible.
+          call Error_Report('dlogσ/dlogM > 0 detected, but monotonic interpolation was used - this should not happen'//{introspection:location})
+       else
+          ! Recommend that monotonic interpolation be used.
+          call Error_Report(                                                                                                                                                                                                                  &
+               &            'dlogσ/dlogM > 0 detected'//char(10)//                                                                                                                                                                            &
+               &            displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'monotonicInterpolation'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+               &            'to ensure monotonic interpolation of tabulated σ(M) function'//{introspection:location}                                                                                                                          &
+               &           )
+       end if
+    end if
     return
   end subroutine filteredPowerRootVarianceAndLogarithmicGradient
 
@@ -987,6 +1004,16 @@ contains
          else if (wavenumberMaximum > wavenumberBAO) then
             integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
             integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            if (integrandHigh <= 0.0d0) then
+               ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
+               ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
+               ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
+               ! evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand are
+               ! placed at small wavenumber.
+               integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
+               integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
+               if (integrandHigh <= 0.0d0) call Error_Report('no power above BAO scale - unexpected'//{introspection:location})
+            end if
             rootVariance =+(                                                            &
                  &          +integrandLow                                               &
                  &          +integrandHigh                                              &

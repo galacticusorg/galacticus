@@ -150,6 +150,13 @@ jobs:
           make -j3
           sudo make install
           cd ..
+          cd ..
+          curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
+          tar xvfz Sys-CPU-0.52.tar.gz
+          cd Sys-CPU-0.52
+          perl Makefile.PL
+          make -j3
+          sudo make install
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
@@ -197,6 +204,7 @@ jobs:
       - name: Relocate library
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python

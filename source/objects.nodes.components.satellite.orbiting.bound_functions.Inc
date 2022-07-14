@@ -33,7 +33,7 @@ double precision function Node_Component_Satellite_Orbiting_Time_Of_Merging(self
   class(nodeComponentBasic            ), pointer       :: selfBasicComponent
 
 
-  if (self%mergeTimeData < 0.0d0) then
+  if (self%timeUntilMergingData < 0.0d0) then
      Node_Component_Satellite_Orbiting_Time_Of_Merging=-1.0d0
   else
      selfNode           => self%host()

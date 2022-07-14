@@ -30,10 +30,10 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
   use :: Dark_Matter_Halo_Scales              , only : darkMatterHaloScaleClass
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task, &
-       &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task       , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task           , Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task  , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
+  public :: Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task          , Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task     , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task            , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task           , Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task       , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral      , Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task
 
   type (massDistributionBetaProfile  ), public          :: coldModeMassDistribution
   class(hotHaloColdModeCoreRadiiClass), public, pointer :: hotHaloColdModeCoreRadii_
@@ -96,7 +96,7 @@ contains
   !!]
   function Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task(node,positionCartesian,componentType,massType)
     !!{
-    Computes the acceleration due to a dark matter profile.
+    Computes the acceleration due to a cold-mode profile.
     !!}
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : treeNode
@@ -228,7 +228,7 @@ contains
   !!]
   double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
-    Computes the density at a given position for a dark matter profile.
+    Computes the density at a given position for a cold-mode profile.
     !!}
     use :: Coordinates               , only : assignment(=)          , coordinateSpherical
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
@@ -266,13 +266,57 @@ contains
   end function Node_Component_Hot_Halo_Cold_Mode_Density_Task
 
   !![
+  <densitySphericalAverageTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task</unitName>
+  </densitySphericalAverageTask>
+  !!]
+  double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task(node,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    Computes the spherically-averaged density at a given position for a cold-mode profile.
+    !!}
+    use :: Coordinates               , only : assignment(=)          , coordinateSpherical
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
+          &                                   massTypeGaseous        , weightByMass
+    use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
+    implicit none
+    type            (treeNode            ), intent(inout)           :: node
+    integer                               , intent(in   )           :: componentType, massType   , &
+         &                                                             weightBy     , weightIndex
+    double precision                      , intent(in   )           :: radius
+    class           (nodeComponentHotHalo)               , pointer  :: hotHalo
+    type            (coordinateSpherical )                          :: position
+    double precision                                                :: radiusOuter  , radiusCore
+    !$GLC attributes unused :: weightIndex
+
+    Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task=0.0d0
+    if (.not.defaultHotHaloComponent%coldModeIsActive()                                                                     ) return
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeColdHalo                                )) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+    if (.not.(weightBy      == weightByMass                                                                                )) return
+    ! Get the hot halo component.
+    hotHalo => node%hotHalo()
+    ! Get the outer radius.
+    radiusOuter =  hotHalo%outerRadius()
+    if (radiusOuter <= 0.0d0) return
+    ! Compute the enclosed mass.
+    ! Find the scale length of the cold mode halo.
+    radiusCore=hotHaloColdModeCoreRadii_%radius(node)
+    ! Initialize the mass profile
+    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=hotHalo%massCold(),outerRadius=hotHalo%outerRadius())
+    ! Compute the density.
+    position=[radius/radiusCore,0.0d0,0.0d0]
+    Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task=coldModeMassDistribution%density(position)
+    return
+  end function Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task
+
+  !![
   <chandrasekharIntegralTask>
    <unitName>Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral</unitName>
   </chandrasekharIntegralTask>
   !!]
   function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,componentType,massType)
     !!{
-    Computes the Chandrasekhar integral due to a dark matter profile.
+    Computes the Chandrasekhar integral due to a cold-mode profile.
     !!}
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale, darkMatterHaloScaleClass
     use :: Galactic_Structure_Options, only : weightByMass       , weightIndexNull

@@ -4136,7 +4136,7 @@ contains
           relativeVelocity   =  positionSatellite%velocity()-positionHost%velocity()
           orbit              =  readOrbitConstruct(basicSatellite%mass(),basicHost%mass(),relativePosition,relativeVelocity)
           timeUntilMerging   =  self%satelliteMergingTimescales_%timeUntilMerging(nodeSatellite,orbit)
-          call satelliteSatellite%mergeTimeSet(timeUntilMerging)
+          call satelliteSatellite%timeUntilMergingSet(timeUntilMerging)
           ! Set target node.
           nodeTarget => nodeHost
           do while (.true.)

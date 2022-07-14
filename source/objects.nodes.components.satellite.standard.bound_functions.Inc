@@ -21,9 +21,9 @@
 Contains custom functions for the standard satellite component.
 !!}
 
-double precision function Node_Component_Satellite_Standard_Merge_Time(self)
+double precision function Node_Component_Satellite_Standard_Time_Until_Merging(self)
   !!{
-  Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteStandard} component.
+  Return the {\normalfont \ttfamily timeUntilMerging} property of the {\normalfont \ttfamily satelliteStandard} component.
   !!}
   implicit none
   class(nodeComponentSatelliteStandard), intent(inout) :: self
@@ -31,12 +31,12 @@ double precision function Node_Component_Satellite_Standard_Merge_Time(self)
 
   selfNode => self%host()
   if (selfNode%isSatellite()) then
-     Node_Component_Satellite_Standard_Merge_Time=self%mergeTimeData
+     Node_Component_Satellite_Standard_Time_Until_Merging=self%timeUntilMergingData
   else
-     Node_Component_Satellite_Standard_Merge_Time=-1.0d0
+     Node_Component_Satellite_Standard_Time_Until_Merging=-1.0d0
   end if
   return
-end function Node_Component_Satellite_Standard_Merge_Time
+end function Node_Component_Satellite_Standard_Time_Until_Merging
 
 double precision function Node_Component_Satellite_Standard_Time_Of_Merging(self)
   !!{
@@ -50,7 +50,7 @@ double precision function Node_Component_Satellite_Standard_Time_Of_Merging(self
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      selfBasicComponent => selfNode%basic()
-     Node_Component_Satellite_Standard_Time_Of_Merging=self%mergeTimeData+selfBasicComponent%time()
+     Node_Component_Satellite_Standard_Time_Of_Merging=self%timeUntilMergingData+selfBasicComponent%time()
   else
      Node_Component_Satellite_Standard_Time_Of_Merging=-1.0d0
   end if
@@ -70,9 +70,9 @@ subroutine Node_Component_Satellite_Standard_Time_Of_Merging_Set(self,setValue)
   selfNode           => self    %host ()
   selfBasicComponent => selfNode%basic()
   if (setValue >= 0.0d0) then
-     self%mergeTimeData=setValue-selfBasicComponent%time()
+     self%timeUntilMergingData=setValue-selfBasicComponent%time()
   else
-     self%mergeTimeData=-1.0d0
+     self%timeUntilMergingData=-1.0d0
   end if
   return
 end subroutine Node_Component_Satellite_Standard_Time_Of_Merging_Set

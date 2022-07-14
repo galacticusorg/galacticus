@@ -34,6 +34,7 @@
      double precision :: scaleHeight, densityCentral
    contains
      procedure :: density                    => gaussianSlabDensity
+     procedure :: densitySphericalAverage    => gaussianSlabDensitySphericalAverage
      procedure :: rotationCurve              => gaussianSlabRotationCurve
      procedure :: rotationCurveGradient      => gaussianSlabRotationCurveGradient
      procedure :: surfaceDensity             => gaussianSlabSurfaceDensity
@@ -150,6 +151,19 @@ contains
     gaussianSlabDensity=self%densityCentral*exp(-0.5d0*z**2)
     return
   end function gaussianSlabDensity
+
+  double precision function gaussianSlabDensitySphericalAverage(self,radius)
+    !!{
+    Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in a Gaussian slab mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionGaussianSlab), intent(inout) :: self
+    double precision                              , intent(in   ) :: radius
+
+    gaussianSlabDensitySphericalAverage=0.0d0
+    call Error_Report('spherically-averaged density profile is not implemented'//{introspection:location})
+    return
+  end function gaussianSlabDensitySphericalAverage
 
   double precision function gaussianSlabRotationCurve(self,radius)
     !!{

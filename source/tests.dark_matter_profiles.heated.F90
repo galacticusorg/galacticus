@@ -50,16 +50,17 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Numerical_Constants_Math        , only : Pi
   use :: Unit_Tests                      , only : Assert                                                        , Unit_Tests_Begin_Group             , Unit_Tests_End_Group           , Unit_Tests_Finish
   implicit none
-  double precision                                                                , parameter    :: time                                    =13.8d+00
-  double precision                                                                , parameter    :: massVirial                              = 1.0d+10
-  double precision                                                                , parameter    :: heatingSpecific                         = 1.0d+07
-  double precision                                                                , parameter    :: coefficientSecondOrder                  = 0.0d+00
-  double precision                                                                , parameter    :: correlationVelocityRadius               =-0.3d+00
-  double precision                                                                , parameter    :: toleranceRelativeVelocityDispersion     = 1.0d-06
-  logical                                                                         , parameter    :: velocityDispersionApproximate           =.true.
+  double precision                                                                , parameter    :: time                                        =13.8d+00
+  double precision                                                                , parameter    :: massVirial                                  = 1.0d+10
+  double precision                                                                , parameter    :: heatingSpecific                             = 1.0d+07
+  double precision                                                                , parameter    :: coefficientSecondOrder                      = 0.0d+00
+  double precision                                                                , parameter    :: correlationVelocityRadius                   =-0.3d+00
+  double precision                                                                , parameter    :: toleranceRelativeVelocityDispersion         = 1.0d-06
+  double precision                                                                , parameter    :: toleranceRelativeVelocityDispersionMaximum  = 1.0d-03
+  logical                                                                         , parameter    :: velocityDispersionApproximate               =.true.
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentSatellite                                        ), pointer      :: satellite
-  double precision                                                                , dimension(3) :: radiusVirialFractional                  =[0.1d0,0.5d0,1.0d0]
+  double precision                                                                , dimension(3) :: radiusVirialFractional                      =[0.1d0,0.5d0,1.0d0]
   type            (cosmologyParametersSimple                                     )               :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )               :: cosmologyFunctions_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )               :: darkMatterHaloScale_
@@ -74,12 +75,12 @@ program Test_Dark_Matter_Profiles_Heated
   type            (darkMatterProfileHeatingTidal                                 )               :: darkMatterProfileHeatingTidal_
   type            (darkMatterParticleCDM                                         )               :: darkMatterParticleCDM_
   type            (darkMatterParticleSelfInteractingDarkMatter                   )               :: darkMatterParticleSelfInteractingDarkMatter_
-  double precision                                                                               :: radiusVirial                                                , radiusHeated         , &
-       &                                                                                            density                                                     , densityAnalytic      , &
-       &                                                                                            radiusInitial                                               , radiusInitialAnalytic, &
-       &                                                                                            massEnclosed                                                , massEnclosedAnalytic , &
-       &                                                                                            radius                                                      , toleranceRelative
-  integer                                                                                        :: i                                                           , profileType
+  double precision                                                                               :: radiusVirial                                                    , radiusHeated         , &
+       &                                                                                            density                                                         , densityAnalytic      , &
+       &                                                                                            radiusInitial                                                   , radiusInitialAnalytic, &
+       &                                                                                            massEnclosed                                                    , massEnclosedAnalytic , &
+       &                                                                                            radius                                                          , toleranceRelative
+  integer                                                                                        :: i                                                               , profileType
   character       (len=5                                                         )               :: radiusLabel
   character       (len=128                                                       )               :: profileName
 
@@ -142,10 +143,10 @@ program Test_Dark_Matter_Profiles_Heated
    </constructor>
   </referenceConstruct>
   !!]
-  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder       ,coefficientSecondOrder       ,coefficientSecondOrder             ,correlationVelocityRadius                                                           )
-  darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                 darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversFallThrough,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMOIsothermal_ ,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
-  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversFallThrough,                                                                  darkMatterProfileDMOIsothermal_ ,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder       ,coefficientSecondOrder       ,coefficientSecondOrder                                                        ,correlationVelocityRadius                                                          )
+  darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                           darkMatterHaloScale_                               )
+  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversFallThrough,velocityDispersionApproximate,toleranceRelativeVelocityDispersion                                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversFallThrough                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)

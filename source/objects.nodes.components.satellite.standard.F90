@@ -44,12 +44,12 @@ module Node_Component_Satellite_Standard
    <isDefault>true</isDefault>
    <properties>
     <property>
-      <name>mergeTime</name>
+      <name>timeUntilMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Standard_Merge_Time</getFunction>
+      <getFunction>Node_Component_Satellite_Standard_Time_Until_Merging</getFunction>
       <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
     </property>
     <property>
@@ -276,7 +276,7 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        if (node%isSatellite()) then
-          call satellite%mergeTimeRate(-1.0d0)
+          call satellite%timeUntilMergingRate(-1.0d0)
           ! Compute mass loss rate if necessary.
           if (propertyEvaluate(propertyType,satelliteBoundMassIsInactive)) then
              massLossRate=darkMatterHaloMassLossRate_%rate(node)
@@ -329,7 +329,7 @@ contains
     class           (nodeComponentSatellite         ), intent(inout) :: self
     type            (keplerOrbit                    ), intent(in   ) :: orbit
     type            (treeNode                       ), pointer       :: selfNode
-    double precision                                                 :: mergeTime
+    double precision                                                 :: timeUntilMerging
     type            (keplerOrbit                    )                :: virialOrbit
 
     select type (self)
@@ -340,8 +340,8 @@ contains
        selfNode => self%host()
        ! Update the stored time until merging to reflect the new orbit.
        virialOrbit=orbit
-       mergeTime  =satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
-       if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
+       timeUntilMerging  =satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
+       if (timeUntilMerging >= 0.0d0) call self%timeUntilMergingSet(timeUntilMerging)
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
     end select
@@ -372,7 +372,7 @@ contains
        ! Get the basic component.
        basic => node%basic()
        ! Set scale for time.
-       call satellite%mergeTimeScale(timeScale                       )
+       call satellite%timeUntilMergingScale(timeScale                       )
        ! Set scale for bound mass.
        call satellite%boundMassScale(massScaleFractional*basic%mass())
     end select
@@ -432,7 +432,7 @@ contains
     class           (nodeComponentSatellite), pointer       :: satellite
     class           (nodeComponentBasic    ), pointer       :: basic
     logical                                                 :: isNewSatellite
-    double precision                                        :: mergeTime
+    double precision                                        :: timeUntilMerging
     type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
@@ -478,8 +478,8 @@ contains
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
-       mergeTime=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
-       if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
+       timeUntilMerging=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
+       if (timeUntilMerging >= 0.0d0) call satellite%timeUntilMergingSet(timeUntilMerging)
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Create

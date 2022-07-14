@@ -33,7 +33,7 @@ module Hot_Halo_Mass_Distributions
        &    hotHaloMassDistributionAcceleration         , hotHaloMassDistributionAccelerationTidalTensor, &
        &    hotHaloMassDistributionChandrasekharIntegral, hotHaloMassDistributionThreadInitialize       , &
        &    hotHaloMassDistributionThreadUninitialize   , hotHaloMassDistributionDefaultStateStore      , &
-       &    hotHaloMassDistributionDefaultStateRestore
+       &    hotHaloMassDistributionDefaultStateRestore  , hotHaloMassDistributionDensitySphericalAverage
 
   !![
   <functionClass>
@@ -93,7 +93,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   subroutine hotHaloMassDistributionThreadInitialize(parameters_)
     !!{
-    Initializes the dark matter profile structure tasks module.
+    Initializes the hot halo profile structure tasks module.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -113,7 +113,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   subroutine hotHaloMassDistributionThreadUninitialize()
     !!{
-    Uninitializes the dark matter profile structure tasks module.
+    Uninitializes the hot halo profile structure tasks module.
     !!}
     implicit none
 
@@ -131,7 +131,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   double precision function hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightBy,weightIndex)
     !!{
-    Computes the mass within a given radius for a dark matter profile.
+    Computes the mass within a given radius for a hot halo profile.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll    , componentTypeHotHalo, massTypeAll , massTypeBaryonic, &
           &                                   massTypeGaseous     , radiusLarge         , weightByMass
@@ -166,7 +166,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   function hotHaloMassDistributionAcceleration(node,positionCartesian,componentType,massType)
     !!{
-    Computes the acceleration due to a dark matter profile.
+    Computes the acceleration due to a hot halo profile.
     !!}
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : treeNode
@@ -352,7 +352,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   double precision function hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
-    Computes the density at a given position for a dark matter profile.
+    Computes the density at a given position for a hot halo profile.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeHotHalo, massTypeAll, massTypeBaryonic, &
           &                                   massTypeGaseous , weightByMass
@@ -371,6 +371,33 @@ module Hot_Halo_Mass_Distributions
     hotHaloMassDistributionDensity=max(hotHaloMassDistribution_%density(node,positionSpherical(1)),0.0d0)
     return
   end function hotHaloMassDistributionDensity
+
+  !![
+  <densitySphericalAverageTask>
+   <unitName>hotHaloMassDistributionDensitySphericalAverage</unitName>
+  </densitySphericalAverageTask>
+  !!]
+  double precision function hotHaloMassDistributionDensitySphericalAverage(node,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    Computes the sphreically-averaged density at a given radius for a hot halo profile.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeHotHalo, massTypeAll, massTypeBaryonic, &
+          &                                   massTypeGaseous , weightByMass
+    implicit none
+    type            (treeNode), intent(inout) :: node
+    integer                   , intent(in   ) :: componentType, massType, weightBy, &
+         &                                       weightIndex
+    double precision          , intent(in   ) :: radius
+    !$GLC attributes unused :: weightIndex
+
+    hotHaloMassDistributionDensitySphericalAverage=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+    if (.not.(weightBy      == weightByMass                                                                                )) return
+
+    hotHaloMassDistributionDensitySphericalAverage=max(hotHaloMassDistribution_%density(node,radius),0.0d0)
+    return
+  end function hotHaloMassDistributionDensitySphericalAverage
 
   !![
   <stateStoreTask>

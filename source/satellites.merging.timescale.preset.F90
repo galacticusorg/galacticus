@@ -78,7 +78,7 @@ contains
     !$GLC attributes unused :: self, orbit
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
-    satellite              => node     %satellite()
-    presetTimeUntilMerging =  satellite%mergeTime()
+    satellite              => node     %satellite       ()
+    presetTimeUntilMerging =  satellite%timeUntilMerging()
     return
   end function presetTimeUntilMerging

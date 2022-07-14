@@ -34,6 +34,21 @@
    <description>
     A node operator class that initializes halo angular momenta using the model of \cite[][see also
     \protect\citealt{benson_random-walk_2020}]{vitvitska_origin_2002}.
+
+    In addition to the mean angular momentum vector of unresolved accretion accounted for by \cite{benson_random-walk_2020}, an
+    optional stochastic contribution to the angular momentum from unresolved accretion is allowed for. This represents the fact
+    that the angular momentum vector of a halo will diffuse away from zero in a random walk even if the mean angular momentum
+    contributed by unresolved accretion is zero. The three components of the angular momentum vector of unresolved accretion are
+    treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum
+    vector obeys:
+    \begin{equation}
+     J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \left\{ \frac{M(t_1)-M_\mathrm{u}}{M(t_2)} \right\}^2 \right) \right]^{1/2} N(0,1)
+    \end{equation}    
+    where $J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)$ is the characteristic virial angular momentum,
+    $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
+    $M_\mathrm{u}$ is the unresolved mass between times $t_1$ and $t_2$ $\sigma^2$ represents the variance in angular momentum per
+    unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random variable distributed as a standard normal. The parameter
+    $\sigma=${\normalfont \ttfamily [angularMomentumVarianceSpecific]}.
    </description>
   </nodeOperator>
   !!]
@@ -49,7 +64,7 @@
      class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_     => null()
-     double precision                                             :: exponentMass
+     double precision                                             :: exponentMass                           , angularMomentumVarianceSpecific
    contains
      final     ::                       haloAngularMomentumVitvitska2002Destructor
      procedure :: nodeTreeInitialize => haloAngularMomentumVitvitska2002NodeTreeInitialize
@@ -79,7 +94,7 @@ contains
     class           (darkMatterHaloScaleClass                    ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileScaleRadiusClass           ), pointer       :: darkMatterProfileScaleRadius_
     class           (mergerTreeMassResolutionClass               ), pointer       :: mergerTreeMassResolution_
-    double precision                                                              :: exponentMass
+    double precision                                                              :: exponentMass                 , angularMomentumVarianceSpecific
 
     !![
     <inputParameter>
@@ -88,6 +103,12 @@ contains
       <source>parameters</source>
       <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska model.</description>
     </inputParameter>
+    <inputParameter>
+      <name>angularMomentumVarianceSpecific</name>
+      <description>The variance in the difference in the angular momentum of a halo per unit angular momentum scale growth.</description>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="haloSpinDistribution"         name="haloSpinDistribution_"         source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
@@ -95,7 +116,7 @@ contains
     <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
     <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
     !!]
-    self=nodeOperatorHaloAngularMomentumVitvitska2002(exponentMass,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_,mergerTreeMassResolution_)
+    self=nodeOperatorHaloAngularMomentumVitvitska2002(exponentMass,angularMomentumVarianceSpecific,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_,mergerTreeMassResolution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloSpinDistribution_"        />
@@ -108,7 +129,7 @@ contains
     return
   end function haloAngularMomentumVitvitska2002ConstructorParameters
 
-  function haloAngularMomentumVitvitska2002ConstructorInternal(exponentMass,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_,mergerTreeMassResolution_) result(self)
+  function haloAngularMomentumVitvitska2002ConstructorInternal(exponentMass,angularMomentumVarianceSpecific,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_,mergerTreeMassResolution_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily haloAngularMomentumVitvitska2002} node operator class.
     !!}
@@ -120,9 +141,9 @@ contains
     class           (darkMatterHaloScaleClass                    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileScaleRadiusClass           ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (mergerTreeMassResolutionClass               ), intent(in   ), target :: mergerTreeMassResolution_
-    double precision                                              , intent(in   )         :: exponentMass
+    double precision                                              , intent(in   )         :: exponentMass                 , angularMomentumVarianceSpecific
     !![
-    <constructorAssign variables="exponentMass, *darkMatterProfileScaleRadius_, *haloSpinDistribution_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *virialOrbit_, *mergerTreeMassResolution_"/>
+    <constructorAssign variables="exponentMass, angularMomentumVarianceSpecific, *darkMatterProfileScaleRadius_, *haloSpinDistribution_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *virialOrbit_, *mergerTreeMassResolution_"/>
     !!]
 
     return
@@ -156,6 +177,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Vectors                 , only : Vector_Magnitude
     use :: Merger_Tree_Walkers     , only : mergerTreeWalkerAllNodes
+    use :: kind_numbers, only : kind_int8
     implicit none
     class           (nodeOperatorHaloAngularMomentumVitvitska2002), intent(inout), target    :: self
     type            (treeNode                                    ), intent(inout), target    :: node
@@ -173,8 +195,11 @@ contains
          &                                                                                      theta                             , phi                               , &
          &                                                                                      massUnresolved                    , radiusScaleUnresolved             , &
          &                                                                                      massResolution                    , angularMomentumSubresolutionFactor, &
-         &                                                                                      a                                 , b
+         &                                                                                      a                                 , b                                 , &
+         &                                                                                      angularMomentumScale              , angularMomentumScaleChild         , &
+         &                                                                                      angularMomentumRootVariance
     type            (mergerTreeWalkerAllNodes                    )                           :: treeWalker
+    integer                                                                                  :: i
 
     spin => node%spin(autoCreate=.true.)
     if (spin%angularMomentum() == 0.0d0) then
@@ -185,7 +210,7 @@ contains
        do while (treeWalker%next(nodeWork))
           basic => nodeWork%basic(                 )
           spin  => nodeWork%spin (autoCreate=.true.)
-         ! If this node has no children, draw its spin from a distribution, and assign a direction which is isotropically
+          ! If this node has no children, draw its spin from a distribution, and assign a direction which is isotropically
           ! distributed.
           if (.not.associated(nodeWork%firstChild)) then
              theta               =acos(2.0d0   *nodeWork%hostTree%randomNumberGenerator_%uniformSample()-1.0d0)
@@ -227,7 +252,8 @@ contains
              ! Add in the spin angular momentum of the primary child.
              angularMomentumTotal=+           angularMomentumTotal   &
                   &               +spinChild%angularMomentumVector()
-             ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular momentum averaged over the distribution of virial orbits.
+             ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular
+             ! momentum averaged over the distribution of virial orbits.
              nodeUnresolved                       => treeNode                                                      (                         )
              nodeUnresolved             %hostTree => node%hostTree
              basicUnresolved                      => nodeUnresolved                              %basic            (autoCreate=.true.        )
@@ -256,7 +282,7 @@ contains
                      &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
                      &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
              end if
-             ! Accumulate the angular momentum of the unresolved mass.
+             ! Accumulate the mean angular momentum of the unresolved mass.
              angularMomentumUnresolved=+                  massUnresolved                                               &
                   &                    *self%virialOrbit_%angularMomentumVectorMean         (nodeUnresolved,nodeChild) &
                   &                    *                  angularMomentumSubresolutionFactor      
@@ -264,6 +290,30 @@ contains
                   &                    +                  angularMomentumUnresolved
              call nodeUnresolved%destroy()
              deallocate(nodeUnresolved)
+             ! Account for stochastic variations in the angular momentum contributed by the unresolved mass.
+             angularMomentumScale       =+self      %darkMatterHaloScale_%radiusVirial  (nodeWork ) &
+                  &                      *self      %darkMatterHaloScale_%velocityVirial(nodeWork ) &
+                  &                      *basic                          %mass          (         )
+             angularMomentumScaleChild  =+self      %darkMatterHaloScale_%radiusVirial  (nodeChild) &
+                  &                      *self      %darkMatterHaloScale_%velocityVirial(nodeChild) &
+                  &                      *basicChild                     %mass          (         )
+             angularMomentumRootVariance=+sqrt(                                      &
+                  &                            +self%angularMomentumVarianceSpecific &
+                  &                            *(                                    &
+                  &                              +angularMomentumScale       **2     &
+                  &                              -angularMomentumScaleChild  **2     &
+                  &                              *(                                  &
+                  &                                +basic   %mass          ()        &
+                  &                                -         massUnresolved          &
+                  &                               )                          **2     &
+                  &                              /basicChild%mass          ()**2     &
+                  &                             )                                    &
+                  &                           )
+             do i=1,3
+                angularMomentumTotal(i)=+angularMomentumTotal       (i)                                  &
+                     &                  +angularMomentumRootVariance                                     &
+                     &                  *nodeWork%hostTree%randomNumberGenerator_%standardNormalSample()
+             end do
              ! Compute the magnitude of the angular momentum.
              angularMomentumValue=Vector_Magnitude(angularMomentumTotal)
           end if

@@ -150,6 +150,7 @@
    contains
      procedure :: readFile        => fileFuzzyDarkMatterReadFile
      procedure :: halfModeMass    => fileFuzzyDarkMatterHalfModeMass
+     procedure :: quarterModeMass => fileFuzzyDarkMatterQuarterModeMass
   end type transferFunctionFileFuzzyDarkMatter
 
   interface transferFunctionFileFuzzyDarkMatter
@@ -314,3 +315,48 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function fileFuzzyDarkMatterHalfModeMass
+
+  double precision function fileFuzzyDarkMatterQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of four relative to a \gls{cdm} transfer function.
+    !!}
+    use :: Error                       , only : errorStatusSuccess
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Prefixes, only : kilo
+    implicit none
+    class           (transferFunctionFileFuzzyDarkMatter), intent(inout), target   :: self
+    integer                                              , intent(  out), optional :: status
+    double precision                                                               :: matterDensity, wavenumberQuarterMode
+    double precision                                                               :: m22
+
+    fileFuzzyDarkMatterQuarterModeMass=0.0d0
+    select type (darkMatterParticle_ => self%darkMatterParticle_)
+    class is (darkMatterParticleFuzzyDarkMatter)
+       if (darkMatterParticle_%densityFraction() == 1.0d0) then
+          matterDensity=+self%cosmologyParameters_%OmegaMatter    () &
+               &        *self%cosmologyParameters_%densityCritical()
+          ! Particle mass in units of $10^{-22}$~eV.
+          m22                               =+darkMatterParticle_%mass() &
+               &                             *kilo                       &
+               &                             /1.0d-22
+          wavenumberQuarterMode             =+1.230d0                 &
+               &                             *4.5d0                   &
+               &                             *m22**(4.0d0/9.0d0)
+          fileFuzzyDarkMatterQuarterModeMass=+4.0d0                   &
+               &                             *Pi                      &
+               &                             /3.0d0                   &
+               &                             *matterDensity           &
+               &                             *(                       &
+               &                               +Pi                    &
+               &                               /wavenumberQuarterMode &
+               &                              )**3
+       else
+          call Error_Report('quarter-mode mass is not well defined for a mixed CDM and fuzzy dark matter model'//{introspection:location})
+       end if
+    class default
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+    end select
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function fileFuzzyDarkMatterQuarterModeMass
