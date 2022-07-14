@@ -68,6 +68,7 @@ module Chemical_Abundances_Structure
        <method description="Converts from abundances by number to abundances by mass." method="numberToMass" />
        <method description="Converts from abundances by mass to abundances by number." method="massToNumber" />
        <method description="Enforces all chemical values to be positive." method="enforcePositive" />
+       <method description="Returns the sum over all chemicals." method="sumOver" />
        <method description="Build a chemical abundances object from an XML definition." method="builder" />
        <method description="Dump a chemical abundances object." method="dump" />
        <method description="Dump a chemical abundances object in binary." method="dumpRaw" />
@@ -101,6 +102,7 @@ module Chemical_Abundances_Structure
      procedure         :: numberToMass    => Chemicals_Number_To_Mass
      procedure         :: massToNumber    => Chemicals_Mass_To_Number
      procedure         :: enforcePositive => Chemicals_Enforce_Positive
+     procedure         :: sumOver         => Chemicals_Sum_Over
      procedure         :: builder         => Chemicals_Builder
      procedure         :: dump            => Chemicals_Dump
      procedure         :: dumpRaw         => Chemicals_Dump_Raw
@@ -446,18 +448,46 @@ contains
     return
   end subroutine Chemicals_Enforce_Positive
 
+  double precision function Chemicals_Sum_Over(chemicals)
+    !!{
+    Return the sum over all chemicals.
+    !!}
+    implicit none
+    class(chemicalAbundances), intent(inout) :: chemicals
+
+    if (allocated(chemicals%chemicalValue)) then
+       Chemicals_Sum_Over=sum(chemicals%chemicalValue)
+    else
+       Chemicals_Sum_Over=0.0d0
+    end if
+    return
+  end function Chemicals_Sum_Over
+
   subroutine Chemicals_Builder(self,chemicalsDefinition)
     !!{
     Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
     !!}
-    use :: FoX_DOM, only : node
-    use :: Error  , only : Error_Report
+    use :: FoX_DOM           , only : node
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: ISO_Varying_String, only : char
     implicit none
-    class(chemicalAbundances), intent(inout) :: self
-    type (node              ), pointer       :: chemicalsDefinition
-    !$GLC attributes unused :: self, chemicalsDefinition
+    class  (chemicalAbundances), intent(inout)              :: self
+    type   (node              ), pointer                    :: chemicalsDefinition
+    type   (node              )               , pointer     :: chemical
+    type   (xmlNodeList       ), dimension(:) , allocatable :: chemicalAbundanceList
+    integer                                                 :: i
 
-    call Error_Report('building of chemicalAbundances objects is not yet supported'//{introspection:location})
+    if (chemicalsCount > 0) then
+       do i=1,chemicalsCount
+          call XML_Get_Elements_By_Tag_Name(chemicalsDefinition,char(chemicalsToTrack(i)),chemicalAbundanceList)
+          if (size(chemicalAbundanceList) >  1) call Error_Report('multiple '//char(chemicalsToTrack(i))//' values specified'//{introspection:location})
+          if (size(chemicalAbundanceList) == 1) then
+             chemical => chemicalAbundanceList(0)%element
+             call extractDataContent(chemical,self%chemicalValue(i))
+          end if
+       end do
+    end if
     return
   end subroutine Chemicals_Builder
 
