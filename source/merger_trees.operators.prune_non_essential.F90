@@ -141,16 +141,16 @@ contains
                 ! Return to the previous node.
                 call treeWalker%previous(nodePrevious)
                 ! Decouple from other nodes.
-                call Merger_Tree_Prune_Unlink_Parent(                                                    &
-                     &                               node                                              , &
-                     &                               node%parent                                       , &
-                     &                               .not.                                               &
-                     &                                    (                                              &
-                     &                                      nodePrevious %isProgenitorOf(nodeEssential)  &
-                     &                                     .or.                                          &
-                     &                                      nodeEssential%isProgenitorOf(nodePrevious )  &
-                     &                                    )                                            , &
-                     &                               .true.                                              &
+                call Merger_Tree_Prune_Unlink_Parent(                                                                  &
+                     &                               node                                                            , &
+                     &                               node%parent                                                     , &
+                     &                               .not.                                                             &
+                     &                                    (                                                            &
+                     &                                      node         %parent%isProgenitorOf(nodeEssential       )  &
+                     &                                     .or.                                                        &
+                     &                                      nodeEssential       %isProgenitorOf(node         %parent)  &
+                     &                                    )                                                          , &
+                     &                               .true.                                                            &
                      &                              )
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch(node)

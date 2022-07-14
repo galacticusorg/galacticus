@@ -654,7 +654,7 @@ contains
        if (chemicalsCount > 0) then
           massChemicals        =0.0d0
           massChemicalsPositive=0.0d0
-          chemicalMasses=hotHalo%chemicals()
+          chemicalMasses       =hotHalo%chemicals()
           do i=1,chemicalsCount
              massChemicals=+massChemicals               &
                   &        +chemicalMasses%abundance(i)
@@ -676,6 +676,15 @@ contains
                 call chemicalMasses%reset()
              end if
              call hotHalo%chemicalsSet(chemicalMasses)
+          end if
+          if (chemicalMasses%sumOver() > hotHalo%mass()) then
+             ! Ensure total mass of chemicals can not exceed the mass of the hot halo gas.
+             chemicalMasses=+chemicalMasses           &
+                  &         *hotHalo       %mass   () &
+                  &         /chemicalMasses%sumOver()
+             call hotHalo%chemicalsSet(chemicalMasses)
+             ! Mark ODE failure here to force derivatives to be recomputed.
+             status=GSL_Failure
           end if
        end if
     end select
@@ -1235,7 +1244,7 @@ contains
          &                                                                       densityAtOuterRadius        , rateAccretionMassFailed, &
          &                                                                       massLossRate                , massToDensityConversion, &
          &                                                                       outerRadius                 , outerRadiusGrowthRate  , &
-         &                                                                       rateAccretionMass
+         &                                                                       rateAccretionMass           , massChemicals
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -1295,6 +1304,14 @@ contains
           chemicalMasses=hotHalo%chemicals()
           ! Truncate masses to zero to avoid unphysical behavior.
           call chemicalMasses%enforcePositive()
+          massChemicals=chemicalMasses%sumOver()
+          if     (                                          &
+               &   massChemicals > 0.0d0                    &
+               &  .and.                                     &
+               &   massChemicals > hotHalo%mass()           &
+               & ) chemicalMasses=+        chemicalMasses   &
+               &                  *hotHalo%mass          () &
+               &                  /        massChemicals
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M☉/mᵤ) to number density in cm⁻³.
