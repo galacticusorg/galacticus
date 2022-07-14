@@ -66,3 +66,4 @@ jobs:
           context: .
           push: true
           tags: galacticusorg/galacticus:latest
+          labels: ${{ steps.meta.outputs.labels }}
