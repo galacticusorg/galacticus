@@ -71,19 +71,21 @@
        <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction" />
      </methods>
      !!]
-     final     ::                           coldModeDestructor
-     procedure :: autoHook               => coldModeAutoHook
-     procedure :: calculationReset       => coldModeCalculationReset
-     procedure :: accretionRate          => coldModeAccretionRate
-     procedure :: accretedMass           => coldModeAccretedMass
-     procedure :: failedAccretionRate    => coldModeFailedAccretionRate
-     procedure :: failedAccretedMass     => coldModeFailedAccretedMass
-     procedure :: accretionRateMetals    => coldModeAccretionRateMetals
-     procedure :: accretedMassMetals     => coldModeAccretedMassMetals
-     procedure :: accretionRateChemicals => coldModeAccretionRateChemicals
-     procedure :: accretedMassChemicals  => coldModeAccretedMassChemicals
-     procedure :: chemicalMasses         => coldModeChemicalMasses
-     procedure :: coldModeFraction       => coldModeColdModeFraction
+     final     ::                              coldModeDestructor
+     procedure :: autoHook                  => coldModeAutoHook
+     procedure :: calculationReset          => coldModeCalculationReset
+     procedure :: accretionRate             => coldModeAccretionRate
+     procedure :: accretedMass              => coldModeAccretedMass
+     procedure :: failedAccretionRate       => coldModeFailedAccretionRate
+     procedure :: failedAccretedMass        => coldModeFailedAccretedMass
+     procedure :: accretionRateMetals       => coldModeAccretionRateMetals
+     procedure :: accretedMassMetals        => coldModeAccretedMassMetals
+     procedure :: failedAccretionRateMetals => coldModeAccretionRateMetals
+     procedure :: failedAccretedMassMetals  => coldModeAccretedMassMetals
+     procedure :: accretionRateChemicals    => coldModeAccretionRateChemicals
+     procedure :: accretedMassChemicals     => coldModeAccretedMassChemicals
+     procedure :: chemicalMasses            => coldModeChemicalMasses
+     procedure :: coldModeFraction          => coldModeColdModeFraction
   end type accretionHaloColdMode
 
   interface accretionHaloColdMode
@@ -283,6 +285,36 @@ contains
     return
   end function coldModeAccretedMassMetals
 
+  function coldModeFailedAccretionRateMetals(self,node,accretionMode)
+    !!{
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    implicit none
+    type  (abundances           )                :: coldModeFailedAccretionRateMetals
+    class (accretionHaloColdMode), intent(inout) :: self
+    type  (treeNode             ), intent(inout) :: node
+    integer                      , intent(in   ) :: accretionMode
+
+    coldModeFailedAccretionRateMetals=+self%accretionHaloSimple%failedAccretionRateMetals(node,accretionMode) &
+         &                            *self                    %coldModeFraction         (node,accretionMode)
+    return
+  end function coldModeFailedAccretionRateMetals
+
+  function coldModeFailedAccretedMassMetals(self,node,accretionMode)
+    !!{
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    implicit none
+    type   (abundances           )                :: coldModeFailedAccretedMassMetals
+    class  (accretionHaloColdMode), intent(inout) :: self
+    type   (treeNode             ), intent(inout) :: node
+    integer                       , intent(in   ) :: accretionMode
+
+    coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionMode) &
+         &                           *self                    %coldModeFraction        (node,accretionMode)
+    return
+  end function coldModeFailedAccretedMassMetals
+  
   function coldModeAccretionRateChemicals(self,node,accretionMode)
     !!{
     Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a

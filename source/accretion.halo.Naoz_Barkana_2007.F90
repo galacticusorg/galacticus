@@ -84,20 +84,21 @@
        <method description="Compute the rate (in units of Gyr$^{-1}$) for the corrective flow of mass between accreted and unaccreted reservoirs."           method="rateCorrection"         />
      </methods>
      !!]
-     final     ::                            naozBarkana2007Destructor
-     procedure :: autoHook                => naozBarkana2007AutoHook
-     procedure :: calculationReset        => naozBarkana2007CalculationReset
-     procedure :: branchHasBaryons        => naozBarkana2007BranchHasBaryons
-     procedure :: accretionRate           => naozBarkana2007AccretionRate
-     procedure :: accretedMass            => naozBarkana2007AccretedMass
-     procedure :: failedAccretionRate     => naozBarkana2007FailedAccretionRate
-     procedure :: failedAccretedMass      => naozBarkana2007FailedAccretedMass
-     procedure :: accretionRateMetals     => naozBarkana2007AccretionRateMetals
-     procedure :: accretionRateChemicals  => naozBarkana2007AccretionRateChemicals
-     procedure :: filteredFraction        => naozBarkana2007FilteredFraction
-     procedure :: filteredFractionRate    => naozBarkana2007FilteredFractionRate
-     procedure :: filteredFractionCompute => naozBarkana2007FilteredFractionCompute
-     procedure :: rateCorrection          => naozBarkana2007RateCorrection
+     final     ::                              naozBarkana2007Destructor
+     procedure :: autoHook                  => naozBarkana2007AutoHook
+     procedure :: calculationReset          => naozBarkana2007CalculationReset
+     procedure :: branchHasBaryons          => naozBarkana2007BranchHasBaryons
+     procedure :: accretionRate             => naozBarkana2007AccretionRate
+     procedure :: accretedMass              => naozBarkana2007AccretedMass
+     procedure :: failedAccretionRate       => naozBarkana2007FailedAccretionRate
+     procedure :: failedAccretedMass        => naozBarkana2007FailedAccretedMass
+     procedure :: accretionRateMetals       => naozBarkana2007AccretionRateMetals
+     procedure :: failedAccretionRateMetals => naozBarkana2007FailedAccretionRateMetals
+     procedure :: accretionRateChemicals    => naozBarkana2007AccretionRateChemicals
+     procedure :: filteredFraction          => naozBarkana2007FilteredFraction
+     procedure :: filteredFractionRate      => naozBarkana2007FilteredFractionRate
+     procedure :: filteredFractionCompute   => naozBarkana2007FilteredFractionCompute
+     procedure :: rateCorrection            => naozBarkana2007RateCorrection
   end type accretionHaloNaozBarkana2007
 
   interface accretionHaloNaozBarkana2007
@@ -154,8 +155,9 @@ contains
     use :: Error       , only : Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
-    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, metallicityIGM, &
-         &                                                                            rateAdjust                      , massMinimum
+    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
+         &                                                                            rateAdjust                      , massMinimum                    , &
+         &                                                                            metallicityIGM
     logical                                                , intent(in   )         :: accretionNegativeAllowed        , accretionNewGrowthOnly
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
@@ -543,9 +545,9 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data, only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : abundances, zeroAbundances, metallicityTypeLinearByMassSolar, adjustElementsReset
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentHotHalo
     implicit none
     type            (abundances                  )                :: naozBarkana2007AccretionRateMetals
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
@@ -557,11 +559,13 @@ contains
     !$omp threadprivate(fractionMetals)
     double precision                                              :: rateCorrection
 
-    call naozBarkana2007AccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
-    naozBarkana2007AccretionRateMetals=naozBarkana2007AccretionRateMetals*self%accretionRate(node,accretionMode)
     ! Return immediately for cold-mode accretion or satellites.
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
+    ! Get the rate of mass accretion and multiply by the IGM metallicity.
+    call naozBarkana2007AccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    naozBarkana2007AccretionRateMetals=+     naozBarkana2007AccretionRateMetals                     &
+         &                             *self%accretionRate                     (node,accretionMode)
     ! Get required objects.
     basic   => node%basic  ()
     hotHalo => node%hotHalo()
@@ -599,6 +603,69 @@ contains
     if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007AccretionRateMetals=zeroAbundances
     return
   end function naozBarkana2007AccretionRateMetals
+
+  function naozBarkana2007FailedAccretionRateMetals(self,node,accretionMode)
+    !!{
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentHotHalo
+    implicit none
+    type            (abundances                  )                :: naozBarkana2007FailedAccretionRateMetals
+    class           (accretionHaloNaozBarkana2007), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    integer                                       , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    type            (abundances                  ), save          :: fractionMetals
+    !$omp threadprivate(fractionMetals)
+    double precision                                              :: rateCorrection
+
+    ! Return immediately for cold-mode accretion or satellites.
+    if (accretionMode      == accretionModeCold) return
+    if (node%isSatellite()                     ) return
+    ! Get the rate of failed mass accretion, and multiply by the IGM metallicity.
+    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    naozBarkana2007FailedAccretionRateMetals=+     naozBarkana2007FailedAccretionRateMetals                     &
+         &                                   *self%failedAccretionRate                     (node,accretionMode)
+    ! Get required objects.
+    basic   => node%basic  ()
+    hotHalo => node%hotHalo()
+    ! Test for negative accretion.
+    if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+       ! Accretion rate is negative, and not allowed. Return zero accretion rate.
+       naozBarkana2007FailedAccretionRateMetals=zeroAbundances
+    else
+       ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
+       ! differs from that expected given the filtering mass.
+       rateCorrection=self%rateCorrection(node)
+       if (rateCorrection > 0.0d0) then
+          ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
+          ! halo.
+          if (hotHalo%mass() > 0.0d0) then
+             fractionMetals=+hotHalo%abundances() &
+                  &         /hotHalo%mass      ()
+          else
+             fractionMetals=zeroAbundances
+          end if
+       else
+          ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
+          ! unaccreted gas.
+          fractionMetals=zeroAbundances
+       end if
+       naozBarkana2007FailedAccretionRateMetals=+naozBarkana2007FailedAccretionRateMetals                     &
+            &                                   +fractionMetals                                               &
+            &                                   *(                                                            &
+            &                                     +hotHalo                                  %          mass() &
+            &                                     +hotHalo                                  %unaccretedMass() &
+            &                                    )                                                            &
+            &                                   *rateCorrection
+    end if
+    ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007FailedAccretionRateMetals=zeroAbundances
+    return
+  end function naozBarkana2007FailedAccretionRateMetals
 
   function naozBarkana2007AccretionRateChemicals(self,node,accretionMode)
     !!{

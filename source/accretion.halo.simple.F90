@@ -95,19 +95,21 @@
        <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMasses"/>
      </methods>
      !!]
-     final     ::                           simpleDestructor
-     procedure :: branchHasBaryons       => simpleBranchHasBaryons
-     procedure :: accretionRate          => simpleAccretionRate
-     procedure :: accretedMass           => simpleAccretedMass
-     procedure :: failedAccretionRate    => simpleFailedAccretionRate
-     procedure :: failedAccretedMass     => simpleFailedAccretedMass
-     procedure :: accretionRateMetals    => simpleAccretionRateMetals
-     procedure :: accretedMassMetals     => simpleAccretedMassMetals
-     procedure :: accretionRateChemicals => simpleAccretionRateChemicals
-     procedure :: accretedMassChemicals  => simpleAccretedMassChemicals
-     procedure :: velocityScale          => simpleVelocityScale
-     procedure :: failedFraction         => simpleFailedFraction
-     procedure :: chemicalMasses         => simpleChemicalMasses
+     final     ::                              simpleDestructor
+     procedure :: branchHasBaryons          => simpleBranchHasBaryons
+     procedure :: accretionRate             => simpleAccretionRate
+     procedure :: accretedMass              => simpleAccretedMass
+     procedure :: failedAccretionRate       => simpleFailedAccretionRate
+     procedure :: failedAccretedMass        => simpleFailedAccretedMass
+     procedure :: accretionRateMetals       => simpleAccretionRateMetals
+     procedure :: accretedMassMetals        => simpleAccretedMassMetals
+     procedure :: failedAccretionRateMetals => simpleFailedAccretionRateMetals
+     procedure :: failedAccretedMassMetals  => simpleFailedAccretedMassMetals
+     procedure :: accretionRateChemicals    => simpleAccretionRateChemicals
+     procedure :: accretedMassChemicals     => simpleAccretedMassChemicals
+     procedure :: velocityScale             => simpleVelocityScale
+     procedure :: failedFraction            => simpleFailedFraction
+     procedure :: chemicalMasses            => simpleChemicalMasses
   end type accretionHaloSimple
 
   interface accretionHaloSimple
@@ -136,7 +138,8 @@ contains
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
     class           (chemicalStateClass           ), pointer       :: chemicalState_
     double precision                                               :: timeReionization         , velocitySuppressionReionization, &
-         &                                                            opticalDepthReionization , redshiftReionization           , metallicityIGM
+         &                                                            opticalDepthReionization , redshiftReionization           , &
+         &                                                            metallicityIGM
     logical                                                        :: accretionNegativeAllowed , accretionNewGrowthOnly
 
     !![
@@ -179,7 +182,7 @@ contains
     <inputParameter>
       <name>metallicityIGM</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>Adding metallicity to IGM.</description>
+      <description>Specifies the metallicity (in units of $Z_\odot$) of gas accreted from the IGM.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -213,10 +216,10 @@ contains
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Nodes             , only : defaultBasicComponent
     implicit none
     type            (accretionHaloSimple          ), target                :: self
-    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, metallicityIGM
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, &
+         &                                                                    metallicityIGM
     logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
@@ -407,7 +410,7 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data, only : Abundance_Pattern_Lookup
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
     implicit none
     type  (abundances         )                :: simpleAccretionRateMetals
@@ -417,7 +420,8 @@ contains
     !$GLC attributes unused :: self, node, accretionMode
 
     call simpleAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
-    simpleAccretionRateMetals=simpleAccretionRateMetals*self%accretionRate(node,accretionMode)
+    simpleAccretionRateMetals=+     simpleAccretionRateMetals                     &
+         &                    *self%accretionRate            (node,accretionMode)
     return
   end function simpleAccretionRateMetals
 
@@ -425,7 +429,7 @@ contains
     !!{
     Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data, only : Abundance_Pattern_Lookup
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
     implicit none
     type   (abundances         )                :: simpleAccretedMassMetals
@@ -435,10 +439,49 @@ contains
     !$GLC attributes unused :: self, node, accretionMode
 
     call simpleAccretedMassMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
-    simpleAccretedMassMetals=simpleAccretedMassMetals*self%accretionRate(node,accretionMode)
+    simpleAccretedMassMetals=+     simpleAccretedMassMetals                     &
+         &                   *self%accretionRate           (node,accretionMode)
     return
   end function simpleAccretedMassMetals
 
+  function simpleFailedAccretionRateMetals(self,node,accretionMode)
+    !!{
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
+    implicit none
+    type  (abundances         )                :: simpleFailedAccretionRateMetals
+    class (accretionHaloSimple), intent(inout) :: self
+    type  (treeNode           ), intent(inout) :: node
+    integer                    , intent(in   ) :: accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
+
+    call simpleFailedAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleFailedAccretionRateMetals=+     simpleFailedAccretionRateMetals                     &
+         &                          *self%failedAccretionRate            (node,accretionMode)
+    return
+  end function simpleFailedAccretionRateMetals
+
+  function simpleFailedAccretedMassMetals(self,node,accretionMode)
+    !!{
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
+    implicit none
+    type   (abundances         )                :: simpleFailedAccretedMassMetals
+    class  (accretionHaloSimple), intent(inout) :: self
+    type   (treeNode           ), intent(inout) :: node
+    integer                     , intent(in   ) :: accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
+
+    call simpleFailedAccretedMassMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleFailedAccretedMassMetals=+     simpleFailedAccretedMassMetals                     &
+         &                         *self%accretionRate                 (node,accretionMode)
+    return
+  end function simpleFailedAccretedMassMetals
+  
   function simpleAccretionRateChemicals(self,node,accretionMode)
     !!{
     Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
