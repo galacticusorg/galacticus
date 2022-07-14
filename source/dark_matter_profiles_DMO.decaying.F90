@@ -303,9 +303,9 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: radius
-    double precision                                               :: factor
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: factor
     
     call self%decayingDecayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
