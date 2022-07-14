@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,14 +53,14 @@
      A property extractor which extracts lightcone properties.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_
-     integer                                                              :: elementCount_           , redshiftObservedOffset   , &
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_      => null()
+     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_       => null()
+     integer                                                              :: elementCount_                     , redshiftObservedOffset   , &
           &                                                                  angularCoordinatesOffset
      integer         (c_size_t               )                            :: instanceIndex
-     type            (varying_string         ), allocatable, dimension(:) :: names_                  , descriptions_
+     type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
-     logical                                                              :: includeObservedRedshift , includeAngularCoordinates, &
+     logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
           &                                                                  atCrossing
    contains
      final     ::                 lightconeDestructor
@@ -226,7 +226,7 @@ contains
     !!{
     Implement a lightcone output extractor.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : degreesToRadians
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -237,9 +237,10 @@ contains
     type            (treeNode                      ), intent(inout), target      :: node
     double precision                                , intent(in   )              :: time
     type            (multiCounter                  ), intent(inout), optional    :: instance
+    double precision                                                             :: velocityBeta
     !$GLC attributes unused :: time
 
-    if (.not.present(instance).and..not.self%atCrossing) call Galacticus_Error_Report('instance is required'//{introspection:location})
+    if (.not.present(instance).and..not.self%atCrossing) call Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
     if (self%atCrossing) then
        lightconeExtract(1:3)=self%geometryLightcone_%positionLightconeCrossing(node                                   )
@@ -257,11 +258,24 @@ contains
          &                                                                          )
     lightconeExtract   (8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
     if (self%includeObservedRedshift) then
-       lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
-            &                                            +Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
+       ! Compute the relativistic velocity β=v/c.
+       velocityBeta                                     =+Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
             &                                            /Vector_Magnitude(                      lightconeExtract(1:3)) &
             &                                            *kilo                                                          &
             &                                            /speedLight
+       ! Compute the observed redshift. This is given by:
+       !  1 + zₒ = (1 + zₕ) (1 + zₚ),
+       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the pecular redshift,
+       ! given by
+       !  1 + zₚ = √[(1+βₚ)/(1-βₚ)]
+       ! where βₚ=vₚ/c is the dimensionless peculiar velocity (e.g. Davis et al.; 2011; ApJ; 741; 67; eqn. 4;
+       ! https://ui.adsabs.harvard.edu/abs/2011ApJ...741...67D).
+       lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
+            &                                            +    (+1.0d0                           +lightconeExtract(7  )) &
+            &                                            *sqrt(                                                         &
+            &                                                  +(+1.0d0+velocityBeta)                                   &
+            &                                                  /(+1.0d0-velocityBeta)                                   &
+            &                                                 )
     end if
     if (self%includeAngularCoordinates) then
        lightconeExtract(self%angularCoordinatesOffset+1)=atan2(                              &
@@ -283,8 +297,8 @@ contains
     !!{
     Implement adding of instances to a lightcone property extractor.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: String_Handling , only : operator(//)
+    use :: Error          , only : Error_Report
+    use :: String_Handling, only : operator(//)
     implicit none
     class    (nodePropertyExtractorLightcone), intent(inout) :: self
     type     (treeNode                      ), intent(inout) :: node
@@ -304,7 +318,7 @@ contains
              label="false"
           end if
           message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        end if
        call instance%append(replicationCount)
        self%instanceIndex=instance%count()
@@ -312,35 +326,35 @@ contains
     return
   end subroutine lightconeAddInstances
 
-  function lightconeNames(self,time)
+  subroutine lightconeNames(self,time,names)
     !!{
     Return the names of the lightconeple properties.
     !!}
     implicit none
-    type            (varying_string                ), dimension(:) , allocatable :: lightconeNames
-    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
-    double precision                                , intent(in   )              :: time
+    class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
+    double precision                                , intent(in   )                             :: time
+    type            (varying_string                ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(lightconeNames(self%elementCount_))
-    lightconeNames=self%names_
+    allocate(names(self%elementCount_))
+    names=self%names_
     return
-  end function lightconeNames
+  end subroutine lightconeNames
 
-  function lightconeDescriptions(self,time)
+  subroutine lightconeDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the lightconeple properties.
     !!}
     implicit none
-    type            (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
-    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
-    double precision                                , intent(in   )              :: time
+    class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
+    double precision                                , intent(in   )                             :: time
+    type            (varying_string                ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(lightconeDescriptions(self%elementCount_))
-    lightconeDescriptions=self%descriptions_
+    allocate(descriptions(self%elementCount_))
+    descriptions=self%descriptions_
     return
-  end function lightconeDescriptions
+  end subroutine lightconeDescriptions
 
   function lightconeUnitsInSI(self,time)
     !!{

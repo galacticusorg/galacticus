@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,16 +54,16 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily binary} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(darkMatterProfileScaleRadiusClass ), pointer       :: darkMatterProfileScaleRadiusAccept_, darkMatterProfileScaleRadiusReject_
      class(galacticFilterClass              ), pointer       :: galacticFilter_
 
-    if (.not.parameters%isPresent('darkMatterProfileScaleRadiusAccept')) call Galacticus_Error_Report('a scale radius class for accepted nodes must be given'//{introspection:location})
-    if (.not.parameters%isPresent('darkMatterProfileScaleRadiusReject')) call Galacticus_Error_Report('a scale radius class for rejected nodes must be given'//{introspection:location})
+    if (.not.parameters%isPresent('darkMatterProfileScaleRadiusAccept')) call Error_Report('a scale radius class for accepted nodes must be given'//{introspection:location})
+    if (.not.parameters%isPresent('darkMatterProfileScaleRadiusReject')) call Error_Report('a scale radius class for rejected nodes must be given'//{introspection:location})
     !![
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadiusAccept_" parameterName="darkMatterProfileScaleRadiusAccept" source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadiusReject_" parameterName="darkMatterProfileScaleRadiusReject" source="parameters"/>
@@ -83,7 +83,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily binary} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                        :: self
     class(darkMatterProfileScaleRadiusClass ), intent(in   ), target :: darkMatterProfileScaleRadiusAccept_, darkMatterProfileScaleRadiusReject_

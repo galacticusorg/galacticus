@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,10 +39,10 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   !!}
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-  double precision                                , parameter     :: blackHoleSpinMaximum=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
+  double precision                                , parameter     :: spinMaximumBlackHole=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
 
   ! Keep the spin in range.
-  Node_Component_Black_Hole_Standard_Spin=min(max(self%spinData,0.0d0),blackHoleSpinMaximum)
+  Node_Component_Black_Hole_Standard_Spin=min(max(self%spinData,0.0d0),spinMaximumBlackHole)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 
@@ -52,7 +52,7 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
   !!}
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
-          &                                 weightByMass
+          &                                 weightByMass    , massTypeGalactic
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   integer                                         , intent(in   ) :: componentType, massType, weightBy, weightIndex
@@ -62,10 +62,10 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
   ! Return if mass is not to be counted, or if radius is negative.
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
-  if (.not.(weightBy      == weightByMass                                                 )) return
-  if (      radius        <  0.0d0                                                         ) return
+  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
+  if (.not.(weightBy      == weightByMass                                                                                   )) return
+  if (      radius        <  0.0d0                                                                                           ) return
   ! Set the mass if the black hole is at the galactic center.
   if (self%radialPosition() <= 0.0d0) Node_Component_Black_Hole_Standard_Enclosed_Mass=self%mass()
   return
@@ -75,9 +75,9 @@ end function Node_Component_Black_Hole_Standard_Enclosed_Mass
   !!{
   Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   !!}
-  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
-  use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+   use :: Galactic_Structure_Options     , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
+        &                                         massTypeGalactic
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear              , megaParsec
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                               , dimension(3) :: Node_Component_Black_Hole_Standard_Acceleration
@@ -89,10 +89,10 @@ end function Node_Component_Black_Hole_Standard_Enclosed_Mass
   ! Set zero enclosed acceleration by default.
   Node_Component_Black_Hole_Standard_Acceleration=0.0d0
   ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
   radius=sqrt(sum(positionCartesian**2))
-  if (      radius        <  0.0d0                                                         ) return
+  if (      radius        <  0.0d0                                                                                           ) return
   ! Compute the acceleration.
   if (self%radialPosition() <= 0.0d0)                                                     &
        & Node_Component_Black_Hole_Standard_Acceleration=-kilo                            &
@@ -109,12 +109,13 @@ function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,
   !!{
   Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   !!}
-  use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
-  use :: Numerical_Constants_Math    , only : Pi
+  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole, &
+       &                                          massTypeGalactic
+  use :: Numerical_Constants_Math        , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-  use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
-       &                                     operator(*)  
-  use :: Vectors                     , only : Vector_Outer_Product
+  use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
+       &                                          operator(*)  
+  use :: Vectors                         , only : Vector_Outer_Product
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Black_Hole_Standard_Tidal_Tensor
   class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
@@ -126,10 +127,10 @@ function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,
   ! Set zero enclosed acceleration by default.
   Node_Component_Black_Hole_Standard_Tidal_Tensor=tensorNullR2D3Sym
   ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
   radius=sqrt(sum(positionCartesian**2))
-  if (      radius        <  0.0d0                                                         ) return
+  if (      radius        <  0.0d0                                                                                           ) return
   ! Compute the tidal tensor.
   if (self%radialPosition() <= 0.0d0) then
      positionTensor                                 = Vector_Outer_Product(positionCartesian,symmetrize=.true.)

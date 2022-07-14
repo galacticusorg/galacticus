@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,7 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
@@ -45,6 +46,7 @@
      private
      class          (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class          (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class          (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      double precision                                    :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
      double precision                                    :: scatter
@@ -67,17 +69,18 @@ contains
     !!{
     Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultBasicComponent
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter       , inputParameters
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: scatter              , timescaleMultiplier
 
-    if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
+    if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !![
     <inputParameter>
       <name>timescaleMultiplier</name>
@@ -93,17 +96,19 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function jiang2008ConstructorParameters
 
-  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Constructor for the \cite{jiang_fitting_2008} merging timescale class.
     !!}
@@ -112,8 +117,9 @@ contains
     double precision                                     , intent(in   )         :: timescaleMultiplier  , scatter
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -129,6 +135,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine jiang2008Destructor
@@ -137,7 +144,7 @@ contains
     !!{
     Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
     use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
@@ -162,7 +169,7 @@ contains
        nodeHost => node%parent%firstChild
     end if
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,self%galacticStructure_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -174,11 +181,11 @@ contains
        return
     case (errorCodeSuccess          )
     case default
-       call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
+       call Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Get velocity scale.
-    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Compute orbital circularity.
     orbitalCircularity= orbit%angularMomentum()                                                             &
          &             /equivalentCircularOrbitRadius                                                       &
@@ -201,7 +208,7 @@ contains
     else
        ! Compute dynamical friction timescale.
        jiang2008TimeUntilMerging=+self%timescaleMultiplier                               &
-            &                    *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            &                    *self%darkMatterHaloScale_%timescaleDynamical(nodeHost) &
             &                    *sqrt(equivalentCircularOrbitRadius/radialScale)        &
             &                    *((a*(orbitalCircularity**b)+d)/2.0d0/C)                &
             &                    *          massRatio                                    &

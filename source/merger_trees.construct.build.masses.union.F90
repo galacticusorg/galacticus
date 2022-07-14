@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -73,6 +73,9 @@ contains
        end if
        mergerTreeBuildMasses_%mergerTreeBuildMasses_ => mergerTreeBuildMasses(parameters,i)
     end do
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function unionConstructorParameters
 
@@ -114,9 +117,9 @@ contains
     !!{
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
-    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray          , deallocateArray
+    use            :: Memory_Management, only : allocateArray, deallocateArray
     use            :: Sorting          , only : sortIndex
     implicit none
     class           (mergerTreeBuildMassesUnion), intent(inout)                            :: self
@@ -139,7 +142,7 @@ contains
        call mergerTreeBuildMasses_%mergerTreeBuildMasses_%construct(time,massMember,massMinimumMember,massMaximumMember,weightMember)
        if (allocated(mass)) then
           if (useWeight.and..not.allocated(weightMember)) &
-               & call Galacticus_Error_Report('all members must provide weights, or mass intervals - a mixture of the two is not permitted'//{introspection:location})
+               & call Error_Report('all members must provide weights, or mass intervals - a mixture of the two is not permitted'//{introspection:location})
           call move_alloc(mass,massTmp)
           call allocateArray(mass,shape(massTmp)+shape(massMember))
           mass(1:size(massTmp))=massTmp

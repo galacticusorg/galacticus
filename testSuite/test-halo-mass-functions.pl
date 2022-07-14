@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib $ENV{'GALACTICUS_EXEC_PATH'         }."/perl";
-use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
@@ -79,7 +78,7 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
     $parameters->{'virialDensityContrast'   }->{'densityContrastValue'}->{'value'} =      $parametersHMFCalc{'delta_h'};
     $parameters->{'transferFunction'        }->{'fileName'            }->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_Tk.hdf5" ;
     $parameters->{'haloMassFunction'        }                          ->{'value'} = $massFunctionType->{'method'};
-    $parameters->{'galacticusOutputFileName'}                          ->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_HMF.hdf5";
+    $parameters->{'outputFileName'}                          ->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_HMF.hdf5";
     open(my $parameterOutputFile,">","outputs/HMFcalc/".$massFunctionType->{'label'}.".xml");
     print $parameterOutputFile $xml->XMLout($parameters, RootName => "parameters");
     close($parameterOutputFile);
@@ -99,7 +98,7 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
     undef($transferFunctionFile);
 
     # Run Galacticus to generate the mass function.
-    system("cd ..; Galacticus.exe testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}.".xml");
+    system("cd ..; ./Galacticus.exe testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}.".xml");
     unless ( $? == 0 ) {
     	print "FAILED: Galacticus failed\n";
     	exit 0;

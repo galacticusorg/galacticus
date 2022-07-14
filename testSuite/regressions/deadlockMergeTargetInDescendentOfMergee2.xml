@@ -29,11 +29,11 @@
     <presetOrbitsSetAll value="true"/>
     <presetPositions value="true"/>
     <presetScaleRadii value="true"/>
-    <presetSpins value="true"/>
-    <presetSpins3D value="true"/>
+    <presetAngularMomenta value="true"/>
+    <presetAngularMomenta3D value="true"/>
     <presetSubhaloIndices value="true"/>
     <presetSubhaloMasses value="true"/>
-    <presetUnphysicalSpins value="true"/>
+    <presetUnphysicalAngularMomenta value="true"/>
     <satelliteMergingTimescalesSubresolution value="boylanKolchin2008"/>
     <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
   </mergerTreeConstructor>
@@ -61,12 +61,12 @@
     <dimensionless value="true"/>
   </diskMassDistribution>
   <componentHotHalo value="standard"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <componentSatellite value="preset"/>
   <componentSpheroid value="standard"/>
   <componentSpin value="vector"/>
   <verbosityLevel value="standard"/>
-  <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
+  <outputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
 
   <!-- Halo scale radii and concentrations -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">
@@ -77,12 +77,15 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spin -->
-    <nodeOperator value="haloSpinInterpolate">
-      <factorReset value="2.0"/>
-    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,7 +116,6 @@
      type            (timeIntervals   ), allocatable, dimension(:      ) :: intervals
      double precision                  , allocatable, dimension(:,:,:,:) :: starFormationHistoryBuffer
      integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
-     logical                                                             :: finalized
    contains
      !![
      <methods>
@@ -124,7 +123,6 @@
      </methods>
      !!]
      final     ::                                adaptiveDestructor
-     procedure :: autoHook                    => adaptiveAutoHook
      procedure :: create                      => adaptiveCreate
      procedure :: rate                        => adaptiveRate
      procedure :: output                      => adaptiveOutput
@@ -132,7 +130,7 @@
      procedure :: scales                      => adaptiveScales
      procedure :: outputBuffers               => adaptiveOutputBuffers
      procedure :: metallicityBoundaries       => adaptiveMetallicityBoundaries
-     procedure :: perOutputTabualtionIsStatic => adapativePerOutputTabualtionIsStatic
+     procedure :: perOutputTabualtionIsStatic => adaptivePerOutputTabualtionIsStatic
      procedure :: descriptor                  => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
@@ -239,9 +237,9 @@ contains
     !!{
     Internal constructor for the ``adaptive'' star formation history class.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeMin       , componentTypeMax
-    use :: Numerical_Ranges          , only : Make_Range             , rangeTypeLogarithmic
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
+    use :: Numerical_Ranges          , only : Make_Range      , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryAdaptive)                                        :: self
     double precision                              , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -270,27 +268,27 @@ contains
             &   present(metallicityMinimum   ) &
             &  .or.                            &
             &   present(metallicityMaximum   ) &
-            & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
+            & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        allocate(self%metallicityTable(size(metallicityBoundaries)))
        self%metallicityTable  =     metallicityBoundaries
        self%countMetallicities=size(metallicityBoundaries)-1
     else
        if     (                                &
             &   present(metallicityBoundaries) &
-            & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
+            & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        if     (                                     &
             &   .not.present(countMetallicities   ) &
             &  .or.                                 &
             &   .not.present(metallicityMinimum   ) &
             &  .or.                                 &
             &   .not.present(metallicityMaximum   ) &
-            & ) call Galacticus_Error_Report('metallicity range is incompletely specified'//{introspection:location})
+            & ) call Error_Report('metallicity range is incompletely specified'//{introspection:location})
        ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
        ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
        ! resolution is required.
        select case (countMetallicities)
        case (:-1,1)
-          call Galacticus_Error_Report('number of bins must be 0, or greater than 1'//{introspection:location})
+          call Error_Report('number of bins must be 0, or greater than 1'//{introspection:location})
        case default
           allocate(self%metallicityTable(countMetallicities+1))
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,int(countMetallicities),rangeType=rangeTypeLogarithmic)
@@ -370,7 +368,7 @@ contains
                 iCombine=iInterval
              end if
           end do
-          if (iCombine == -1) call Galacticus_Error_Report('no interval found - this should not happen'//{introspection:location})
+          if (iCombine == -1) call Error_Report('no interval found - this should not happen'//{introspection:location})
           ! Combine the intervals.
           allocate(timesNewTmp(size(timesNew)-1))
           allocate(indexMapTmp(size(timesNew)-1))
@@ -393,37 +391,21 @@ contains
        call move_alloc(indexMap,self%intervals(iOutput)%indexMap)
     end do
     ! Construct output buffers.
-    allocate(self%starFormationHistoryBuffer(self%countOutputBuffer,self%countTimeStepsMaximum,size(self%metallicityTable),componentTypeMin:componentTypeMax))
+    allocate(self%starFormationHistoryBuffer(self%countTimeStepsMaximum,size(self%metallicityTable),self%countOutputBuffer,componentTypeMin:componentTypeMax))
     allocate(self%         indexOutputBuffer(                                                                              componentTypeMin:componentTypeMax))
     allocate(self%         indexOutput      (                                                                              componentTypeMin:componentTypeMax))
     self%indexOutput      =-1_c_size_t
     self%indexOutputBuffer= 0_c_size_t
-    self%finalized        =.false.
     return
   end function adaptiveConstructorInternal
-
-  subroutine adaptiveAutoHook(self)
-    !!{
-    Create a hook to the HDF5 pre-close event to allow us to finalize writing of our data.
-    !!}
-    use :: Events_Hooks, only : hdf5PreCloseEvent
-    implicit none
-    class(starFormationHistoryAdaptive), intent(inout) :: self
-
-    call hdf5PreCloseEvent%attach(self,adaptiveFinalize)
-    return
-  end subroutine adaptiveAutoHook
 
   subroutine adaptiveDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily adaptive} star formation histories class.
     !!}
-    use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     type(starFormationHistoryAdaptive), intent(inout) :: self
 
-    call hdf5PreCloseEvent%detach(self,adaptiveFinalize)
-    if (.not.self%finalized) call adaptiveFinalize(self)
     !![
     <objectDestructor name="self%outputTimes_"/>
     !!]
@@ -458,10 +440,10 @@ contains
     !!{
     Set the rate the star formation history for {\normalfont \ttfamily node}.
     !!}
-    use :: Abundances_Structure, only : abundances             , metallicityTypeLinearByMassSolar
+    use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
-    use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
+    use :: Error               , only : Error_Report
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -493,12 +475,12 @@ contains
        historyStarFormation%data(iHistory,iMetallicity)=rateStarFormation
     else
        ! No history exists - this is acceptable only if the star formation rate is zero.
-       if (rateStarFormation > 0.0d0) call Galacticus_Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
+       if (rateStarFormation > 0.0d0) call Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
     end if
     return
   end subroutine adaptiveRate
 
-  subroutine adaptiveOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+  subroutine adaptiveOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
     !!{
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
@@ -510,6 +492,7 @@ contains
     integer         (c_size_t                    ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8              ), intent(in   )         :: indexTree
     integer                                       , intent(in   )         :: componentType
+    type            (ompLock                     ), intent(inout)         :: treeLock
     integer         (c_size_t                    )                        :: iStart              , iEnd, &
          &                                                                   i
     type            (history                     )                        :: newHistory
@@ -517,17 +500,17 @@ contains
     ! If the node is to be output, accumulate its star formation history to the output buffers.
     if (nodePassesFilter) then
        ! If the current output is not the same as the previous, output any buffered data.
-       if (self%indexOutput(componentType) /= indexOutput) call self%outputBuffers(componentType)
+       if (self%indexOutput(componentType) /= indexOutput) call self%outputBuffers(componentType,treeLock)
        self%indexOutput(componentType)=indexOutput
        ! Accumulate the current node to the output buffer.
        self   %indexOutputBuffer         (                                                                                 componentType)=self                %indexOutputBuffer(componentType)+1_c_size_t
-       if (historyStarFormation%exists()) then
-          self%starFormationHistoryBuffer(self%indexOutputBuffer(componentType),1:size(self%intervals(indexOutput)%time),:,componentType)=historyStarFormation%data             (:,:          )
-       else
-          self%starFormationHistoryBuffer(self%indexOutputBuffer(componentType),1:size(self%intervals(indexOutput)%time),:,componentType)=0.0d0
+       if (historyStarFormation%exists()) then                                                                                          
+          self%starFormationHistoryBuffer(1:size(self%intervals(indexOutput)%time),:,self%indexOutputBuffer(componentType),componentType)=historyStarFormation%data             (:,:          )
+       else                                                                                                                             
+          self%starFormationHistoryBuffer(1:size(self%intervals(indexOutput)%time),:,self%indexOutputBuffer(componentType),componentType)=0.0d0
        end if
        ! If the buffer is full, output it.
-       if (self%indexOutputBuffer(componentType) == self%countOutputBuffer) call self%outputBuffers(componentType)
+       if (self%indexOutputBuffer(componentType) == self%countOutputBuffer) call self%outputBuffers(componentType,treeLock)
     end if
     ! If another output exists map the existing star formation history to the time bins of the next output.
     if (historyStarFormation%exists() .and. indexOutput < size(self%intervals)) then
@@ -553,15 +536,16 @@ contains
     return
   end subroutine adaptiveOutput
 
-  subroutine adaptiveOutputFlush(self,componentType)
+  subroutine adaptiveOutputFlush(self,componentType,treeLock)
     !!{
-    Flush any buffered star formation history data.
+    Flush any buffered star formation history data.x
     !!}
     implicit none
     class  (starFormationHistoryAdaptive), intent(inout) :: self
     integer                              , intent(in   ) :: componentType
+    type   (ompLock                     ), intent(inout) :: treeLock
 
-    call self%outputBuffers(componentType)     
+    call self%outputBuffers(componentType,treeLock)     
     return
   end subroutine adaptiveOutputFlush
   
@@ -588,37 +572,41 @@ contains
     return
   end subroutine adaptiveScales
 
-  subroutine adaptiveOutputBuffers(self,componentType)
+  subroutine adaptiveOutputBuffers(self,componentType,treeLock)
     !!{
     Output all star formation history data in the output buffers.
     !!}
-    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Output_HDF5               , only : outputFile
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: HDF5_Access               , only : hdf5Access
+    use :: IO_HDF5                   , only : hdf5Object
     use :: String_Handling           , only : operator(//)
     implicit none
     class  (starFormationHistoryAdaptive), intent(inout) :: self
     integer                              , intent(in   ) :: componentType
+    type   (ompLock                     ), intent(inout) :: treeLock
     type   (hdf5Object                  )                :: historyGroup   , outputGroup
     type   (varying_string              )                :: nameOutputGroup, nameStarFormationHistory
     
     ! Return immediately if there is no buffered output.
     if (self%indexOutputBuffer(componentType) <= 0_c_size_t) return
+    if (.not.treeLock%ownedByThread()) call treeLock%set()
     nameOutputGroup         =var_str                       ("Output"                           )//self%indexOutput(componentType)
     nameStarFormationHistory=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"StarFormationHistory"
     !$ call hdf5Access%set()
-    historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data."                          )
-    outputGroup =historyGroup        %openGroup(char(nameOutputGroup)   ,"Star formation histories for all trees at each output.")
+    historyGroup=outputFile  %openGroup("starFormationHistories","Star formation history data."                          )
+    outputGroup =historyGroup%openGroup(char(nameOutputGroup)   ,"Star formation histories for all trees at each output.")
     if (.not.outputGroup%hasDataset('time')) then
        call outputGroup%writeDataset(self%intervals(self%indexOutput(componentType))%time            ,"time"       ,"Times at which the star formation history is tabulated [Gyr]."       )
        call outputGroup%writeDataset(self                                           %metallicityTable,"metallicity","Metallicities at which the star formation history is tabulated [Z☉].")
     end if
-    call outputGroup%writeDataset(                                                                                                                                                                 &
-         &                                  self%starFormationHistoryBuffer(1:self%indexOutputBuffer(componentType),1:size(self%intervals(self%indexOutput(componentType))%time),:,componentType), &
-         &                                                                    char(nameStarFormationHistory                                           )                                          , &
-         &                                  "Star formation history of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component."                           , &
-         &                        appendTo =.true.                                                                                                                                               , &
-         &                        chunkSize=self%countOutputBuffer                                                                                                                                 &
+    call outputGroup%writeDataset(                                                                                                                                                                       &
+         &                                        self%starFormationHistoryBuffer(1:size(self%intervals(self%indexOutput(componentType))%time),:,1:self%indexOutputBuffer(componentType),componentType), &
+         &                                                                          char(nameStarFormationHistory                                           )                                          , &
+         &                                        "Star formation history of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component."                           , &
+         &                        appendTo       =.true.                                                                                                                                               , &
+         &                        appendDimension=3                                                                                                                                                    , &
+         &                        chunkSize      =self%countOutputBuffer                                                                                                                                 &
          &                       )
     call  outputGroup%close()
     call historyGroup%close()
@@ -627,28 +615,6 @@ contains
     return
   end subroutine adaptiveOutputBuffers
   
-  subroutine adaptiveFinalize(self)
-    !!{
-    Flush any buffered data prior to closing the HDF5 file.
-    !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeMin       , componentTypeMax
-    implicit none
-    class  (*), intent(inout) :: self
-    integer                   :: componentType
-
-    select type (self)
-    class is (starFormationHistoryAdaptive)
-       do componentType=componentTypeMin,componentTypeMax
-          call self%outputBuffers(componentType)
-       end do
-       self%finalized=.true.
-    class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
-    end select
-    return
-  end subroutine adaptiveFinalize
-
   function adaptiveMetallicityBoundaries(self)
     !!{
     Return the boundaries of the metallicities used in this tabulation.
@@ -662,23 +628,23 @@ contains
     return
   end function adaptiveMetallicityBoundaries
 
-  logical function adapativePerOutputTabualtionIsStatic(self)
+  logical function adaptivePerOutputTabualtionIsStatic(self)
     !!{
     Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
     !!}
     implicit none
     class(starFormationHistoryAdaptive), intent(inout) :: self
 
-    adapativePerOutputTabualtionIsStatic=.true.
+    adaptivePerOutputTabualtionIsStatic=.true.
     return
-  end function adapativePerOutputTabualtionIsStatic
+  end function adaptivePerOutputTabualtionIsStatic
 
   subroutine adaptiveDescriptor(self,descriptor,includeClass)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters  , only : inputParameters
-    use :: ISO_Varying_String, only : assignment(=)  , operator(//), char
+    use :: ISO_Varying_String, only : assignment(=)  , char, operator(//)
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor

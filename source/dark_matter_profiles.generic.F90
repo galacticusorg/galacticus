@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,6 +50,7 @@ module Dark_Matter_Profiles_Generic
      ! Tolerances used in numerical solutions.
      double precision                                                      :: toleranceRelativeVelocityDispersion          =  1.0d-6
      double precision                                                      :: toleranceRelativeVelocityDispersionMaximum   =  1.0d-3
+     double precision                                                      :: toleranceRelativePotential                   =  1.0d-6
      ! Unique ID for memoization
      integer         (kind_int8               )                            :: genericLastUniqueID
      ! Memoized solutions for the radial velocity dispersion.
@@ -76,7 +77,6 @@ module Dark_Matter_Profiles_Generic
        <method description="Return the normalization of the rotation velocity vs. specific angular momentum relation." method="rotationNormalizationNumerical" />
        <method description="Returns the Fourier transform of the density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)." method="kSpaceNumerical" />
        <method description="Return the energy of the dark matter density profile." method="energyNumerical" />
-       <method description="Return the rate of growth of the energy of the dark matter density profile." method="energyGrowthRateNumerical" />
        <method description="Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusNumerical" />
        <method description="Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusIncreaseRateNumerical" />
        <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$)." method="radiusEnclosingDensityNumerical" />
@@ -102,7 +102,6 @@ module Dark_Matter_Profiles_Generic
      procedure                                         :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
      procedure                                         :: kSpaceNumerical                            => genericKSpaceNumerical
      procedure                                         :: energyNumerical                            => genericEnergyNumerical
-     procedure                                         :: energyGrowthRateNumerical                  => genericEnergyGrowthRateNumerical
      procedure                                         :: freefallRadiusNumerical                    => genericFreefallRadiusNumerical
      procedure                                         :: freefallRadiusIncreaseRateNumerical        => genericFreefallRadiusIncreaseRateNumerical
      procedure                                         :: radiusEnclosingDensityNumerical            => genericRadiusEnclosingDensityNumerical
@@ -183,7 +182,7 @@ contains
     use            :: Numerical_Ranges       , only : Make_Range                  , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeExtrapolate
     use            :: Numerical_Interpolation, only : gsl_interp_linear
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
+    use            :: Error                  , only : Error_Report
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target      :: self
     type            (treeNode                ), intent(inout), target      :: node
@@ -202,7 +201,7 @@ contains
          &                                                                    radiusVirial
 
     ! Validate input.
-    if (radiusUpper < radiusLower) call Galacticus_Error_Report('radiusUpper ≥ radiusLower is required'//{introspection:location})
+    if (radiusUpper < radiusLower) call Error_Report('radiusUpper ≥ radiusLower is required'//{introspection:location})
     if (radiusUpper <= 0.0d0) then
        genericEnclosedMassDifferenceNumerical=0.0d0
        return
@@ -226,7 +225,7 @@ contains
     end if
        ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
        call self%solverSet  (node)
-       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
        !! Set an initial range of radii that brackets the requested radii.
        if (radiusLower <= 0.0d0) then
           radiusMinimum=max(0.5d0*radiusUpper,radiusVirial*radiusVirialFractionSmall)
@@ -332,12 +331,12 @@ contains
 
     if (present(status)) status=structureErrorCodeSuccess
     if (.not.initialized) then
-       integrator_=integrator(integrandPotential,toleranceRelative=1.0d-6)
+       integrator_=integrator(integrandPotential,toleranceRelative=self%toleranceRelativePotential)
        initialized=.true.
     end if
     call self%solverSet  (node)
     radiusMaximum             =  +radiusMaximumFactor                          &
-         &                       *self%darkMatterHaloScale_%virialRadius(node)
+         &                       *self%darkMatterHaloScale_%radiusVirial(node)
     genericPotentialNumerical =   integrator_%integrate(               &
          &                                              radius       , &
          &                                              radiusMaximum  &
@@ -416,28 +415,29 @@ contains
     return
   end function genericCircularVelocityNumerical
  
-  double precision function genericRadialVelocityDispersionNumerical(self,node,radius)
+  double precision function genericRadialVelocityDispersionNumerical(self,node,radius,radiusOuter)
     !!{
     Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess
+    use            :: Error                  , only : Error_Report        , errorStatusSuccess
     use            :: Numerical_Integration  , only : integrator
-    use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLogarithmic
+    use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeFix
     use            :: Numerical_Interpolation, only : gsl_interp_linear
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target      :: self
     type            (treeNode                ), intent(inout), target      :: node
     double precision                          , intent(in   )              :: radius
+    double precision                          , intent(in   ), optional    :: radiusOuter
     double precision                                         , parameter   :: radiusTinyFactor     =1.0d-9 , radiusLargeFactor=5.0d2
     double precision                                         , parameter   :: countPointsPerOctave =2.0d0
     double precision                                         , parameter   :: toleranceFactor      =2.0d0
     double precision                          , dimension(:) , allocatable :: velocityDispersions          , radii
     double precision                                                       :: radiusMinimum                , radiusMaximum          , &
          &                                                                    radiusVirial                 , density                , &
-         &                                                                    jeansIntegral                , radiusOuter            , &
+         &                                                                    jeansIntegral                , radiusOuter_           , &
          &                                                                    radiusLower                  , radiusUpper            , &
          &                                                                    jeansIntegralPrevious        , toleranceRelative
     integer         (c_size_t                )                             :: countRadii                   , iMinimum               , &
@@ -467,10 +467,10 @@ contains
        end if
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
        call self%solverSet  (node)
-       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
        !! Set an initial range of radii that brackets the requested radius, but avoids tiny radii.
        radiusMinimum=max(0.5d0*radius,radiusTinyFactor*radiusVirial)
-       radiusMaximum=    2.0d0*radius
+       radiusMaximum=max(2.0d0*radius,           2.0d0*radiusVirial)
        !! Round to the nearest factor of 2.
        radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
        radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
@@ -480,7 +480,11 @@ contains
           radiusMaximum=max(radiusMaximum,self%genericVelocityDispersionRadialRadiusMaximum)
        end if
        !! Set a suitable outer radius for integration.
-       radiusOuter=max(10.0d0*radiusMaximum,radiusLargeFactor*radiusVirial)
+       if (present(radiusOuter)) then
+          radiusOuter_=radiusOuter
+       else
+          radiusOuter_=max(10.0d0*radiusMaximum,radiusLargeFactor*radiusVirial)
+       end if
        !! Construct arrays.
        countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
        allocate(radii              (countRadii))
@@ -494,7 +498,7 @@ contains
        if (allocated(self%genericVelocityDispersionRadialRadius)) then
           !! Check that the outer radius for integration has not changed - if it has we need to recompute the full solution for
           !! consistency.
-          if (radiusOuter == self%genericVelocityDispersionRadialRadiusOuter) then
+          if (radiusOuter_ == self%genericVelocityDispersionRadialRadiusOuter) then
              iMinimum=nint(log(self%genericVelocityDispersionRadialRadiusMinimum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
              iMaximum=nint(log(self%genericVelocityDispersionRadialRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
              velocityDispersions(iMinimum:iMaximum)=self%genericVelocityDispersionRadialVelocity
@@ -507,7 +511,7 @@ contains
           if (i >= iMinimum .and. i <= iMaximum) cycle
           ! Find the limits for the integral.
           if (i == countRadii) then
-             radiusUpper=radiusOuter
+             radiusUpper=radiusOuter_
           else
              radiusUpper=radii(i+1)
           end if
@@ -515,39 +519,46 @@ contains
           ! Reset the accumulated Jeans integral if necessary.
           if (i == iMinimum-1) jeansIntegralPrevious=+     velocityDispersions(           iMinimum )**2 &
                &                                     *self%density            (node,radii(iMinimum))
-          ! Evaluate the integral.
-          density      =self       %density  (node,radiusLower                   )
-          jeansIntegral=integrator_%integrate(     radiusLower,radiusUpper,status)
-          if (status /= errorStatusSuccess) then
-             ! Integration failed.
-             toleranceRelative=+     toleranceFactor                     &
-                  &            *self%toleranceRelativeVelocityDispersion
-             do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
-                call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
-                jeansIntegral=integrator_%integrate(radiusLower,radiusUpper,status)
-                if (status == errorStatusSuccess) then
-                   exit
-                else
-                   toleranceRelative=+toleranceFactor   &
-                        &            *toleranceRelative
-                end if
-             end do
-             if (status /= errorStatusSuccess) call Galacticus_Error_Report('integration of Jeans equation failed'//{introspection:location})
-          end if
-          if (density <= 0.0d0) then
-             ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
-             ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
-             ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
+          ! If the interval is wholly outside of the outer radius, the integral is zero.
+          if (radiusLower > radiusOuter_) then
+             jeansIntegral         =0.0d0
              velocityDispersions(i)=0.0d0
-             if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Galacticus_Error_Report('undefined velocity dispersion'//{introspection:location})
-          else
-             velocityDispersions(i)=sqrt(                         &
-                  &                      +(                       &
-                  &                        +jeansIntegral         &
-                  &                        +jeansIntegralPrevious &
-                  &                       )                       &
-                  &                      /density                 &
-                  &                     )
+         else
+             ! Evaluate the integral.
+             density      =self       %density  (node,radiusLower                   )
+             jeansIntegral=integrator_%integrate(     radiusLower,radiusUpper,status)
+             if (status /= errorStatusSuccess) then
+                ! Integration failed.
+                toleranceRelative=+     toleranceFactor                     &
+                     &            *self%toleranceRelativeVelocityDispersion
+                do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                   call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                  jeansIntegral=integrator_%integrate(radiusLower,radiusUpper,status)
+                  if (status == errorStatusSuccess) then
+                      exit
+                   else
+                      toleranceRelative=+toleranceFactor   &
+                           &            *toleranceRelative
+                   end if
+                end do
+                if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+             end if
+             if (density <= 0.0d0) then
+                ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
+                ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
+                ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
+                velocityDispersions(i)=0.0d0
+                if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Error_Report('undefined velocity dispersion'//{introspection:location})
+             else
+                velocityDispersions(i)=sqrt(                         &
+                     &                      +(                       &
+                     &                        +jeansIntegral         &
+                     &                        +jeansIntegralPrevious &
+                     &                       )                       &
+                     &                      /density                 &
+                     &                     )
+             end if
           end if
           jeansIntegralPrevious=+jeansIntegralPrevious &
                &                +jeansIntegral
@@ -566,7 +577,7 @@ contains
        self%genericVelocityDispersionRadialVelocity     =velocityDispersions
        self%genericVelocityDispersionRadialRadiusMinimum=radiusMinimum
        self%genericVelocityDispersionRadialRadiusMaximum=radiusMaximum
-       self%genericVelocityDispersionRadialRadiusOuter  =radiusOuter
+       self%genericVelocityDispersionRadialRadiusOuter  =radiusOuter_
     end if
     ! Interpolate in the table to find the velocity dispersion.
     genericRadialVelocityDispersionNumerical=self%genericVelocityDispersionRadial%interpolate(log(radius))
@@ -575,17 +586,17 @@ contains
   
   double precision function genericJeansEquationIntegrand(radius)
     !!{
-    Integrand for generic drak matter profile Jeans equation.
+    Integrand for generic dark matter profile Jeans equation.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
-    
+
     if (radius > 0.0d0) then
-       genericJeansEquationIntegrand=+gravitationalConstantGalacticus                                            &
-            &                        *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius) &
-            &                        *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius) &
-            &                        /radius**2
+       genericJeansEquationIntegrand=+gravitationalConstantGalacticus                                               &
+            &                        *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
+            &                        *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius)    &
+            &                        /                           radius                                         **2
     else
        genericJeansEquationIntegrand=0.0d0
     end if
@@ -607,7 +618,7 @@ contains
     double precision                                                    :: radiusMinimumActual, radiusMaximumActual
 
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%radiusVirial(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     integrator_=integrator(integrandRadialMoment,toleranceRelative=1.0d-3)
@@ -644,7 +655,7 @@ contains
     type            (treeNode                ), intent(inout) :: node
     double precision                                          :: radiusVirial
 
-    radiusVirial                         =+self%darkMatterHaloScale_%virialRadius         (                            &
+    radiusVirial                         =+self%darkMatterHaloScale_%radiusVirial         (                            &
          &                                                                                               node          &
          &                                                                                )
     genericRotationNormalizationNumerical=+self                     %enclosedMass         (                            &
@@ -675,7 +686,7 @@ contains
     type            (integrator              )                        :: integrator_
     double precision                                                  :: radiusVirial
 
-    radiusVirial          =+self       %darkMatterHaloScale_%virialRadius(node                                              )
+    radiusVirial          =+self       %darkMatterHaloScale_%radiusVirial(node                                              )
     integrator_           = integrator                                   (integrandFourierTransform,toleranceRelative=1.0d-3)
     genericKSpaceNumerical=+integrator_%integrate                        (0.0d0                    ,radiusVirial            ) &
          &                 /self                            %enclosedMass(node                     ,radiusVirial            )
@@ -726,7 +737,7 @@ contains
     integratorPotential=integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
     integratorKinetic  =integrator(integrandEnergyKinetic  ,toleranceRelative=1.0d-3)
     integratorPressure =integrator(integrandPseudoPressure ,toleranceRelative=1.0d-3)
-    radiusVirial          =+self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial          =+self%darkMatterHaloScale_%radiusVirial(node)
     radiusLarge           =+multiplierRadius                                          &
          &                 *radiusVirial
     energyPotential       =+integratorPotential%integrate(0.0d0       ,radiusVirial)
@@ -805,48 +816,11 @@ contains
 
   end function genericEnergyNumerical
 
-  double precision function genericEnergyGrowthRateNumerical(self,node)
-    !!{
-    Returns the rate of growth of the energy if the dark matter density profile.
-    !!}
-    use :: Numerical_Differentiation, only : differentiator
-    implicit none
-    class           (darkMatterProfileGeneric), intent(inout), target :: self
-    type            (treeNode                ), intent(inout), target :: node
-    double precision                          , parameter             :: timeLogarithmicStep=0.1d0
-    type            (differentiator          )                        :: differentiator_
-    double precision                                                  :: timeLastIsolated
-
-    call self%solverSet  (node)
-    differentiator_                  =   differentiator                            (genericEnergyEvaluate                    )
-    genericBasic                     =>  node                    %basic            (                                         )
-    genericDarkMatterProfile         =>  node                    %darkMatterProfile(                                         )
-    genericTime                      =   genericBasic            %time             (                                         )
-    timeLastIsolated                 =   genericBasic            %timeLastIsolated (                                         )
-    genericMass                      =   genericBasic            %mass             (                                         )
-    genericMassGrowthRate            =   genericBasic            %accretionRate    (                                         )
-    genericScale                     =   genericDarkMatterProfile%scale            (                                         )
-    genericScaleGrowthRate           =   genericDarkMatterProfile%scaleGrowthRate  (                                         )
-    genericShape                     =   genericDarkMatterProfile%shape            (                                         )
-    genericShapeGrowthRate           =   genericDarkMatterProfile%shapeGrowthRate  (                                         )
-    genericEnergyGrowthRateNumerical =  +differentiator_         %derivative       (log(genericTime)     ,timeLogarithmicStep) &
-         &                              /                                               genericTime
-    call genericBasic%timeSet                       (genericTime           )
-    call genericBasic%timeLastIsolatedSet           (timeLastIsolated      )
-    call genericBasic%massSet                       (genericMass           )
-    call genericDarkMatterProfile%scaleSet          (genericScale          )
-    call genericDarkMatterProfile%scaleGrowthRateSet(genericScaleGrowthRate)
-    call genericDarkMatterProfile%shapeSet          (genericShape          )
-    call genericDarkMatterProfile%shapeGrowthRateSet(genericShapeGrowthRate)
-    call self%solverUnset(   )
-    return
-  end function genericEnergyGrowthRateNumerical
-
   double precision function genericEnergyEvaluate(timeLogarithmic)
     !!{
     GSL-callable function to evaluate the energy of the dark matter profile.
     !!}
-    use :: Functions_Global, only : Galacticus_Calculations_Reset_
+    use :: Functions_Global, only : Calculations_Reset_
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
     double precision                       :: time
@@ -857,7 +831,7 @@ contains
     call genericBasic            %massSet            (genericMass +genericMassGrowthRate *(time-genericTime))
     call genericDarkMatterProfile%scaleSet           (genericScale+genericScaleGrowthRate*(time-genericTime))
     call genericDarkMatterProfile%shapeSet           (genericShape+genericShapeGrowthRate*(time-genericTime))
-    call Galacticus_Calculations_Reset_(solvers(solversCount)%node)
+    call Calculations_Reset_(solvers(solversCount)%node)
     genericEnergyEvaluate=solvers(solversCount)%self%energyNumerical(solvers(solversCount)%node)
     return
   end function genericEnergyEvaluate
@@ -887,7 +861,7 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                   )
-    genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     call self%solverUnset(   )
     return
   end function genericFreefallRadiusNumerical
@@ -977,8 +951,8 @@ contains
     type            (rootFinder              )                        :: finder
 
     call self%solverSet  (node)
-    genericDensity =  density
-    finder      =  rootFinder(                                                             &
+    genericDensity=density
+    finder        =rootFinder(                                                             &
          &                    rootFunction                 =rootDensity                  , &
          &                    toleranceAbsolute            =toleranceAbsolute            , &
          &                    toleranceRelative            =toleranceRelative            , &
@@ -988,7 +962,7 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                   )
-    genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     call self%solverUnset(   )
     return
   end function genericRadiusEnclosingDensityNumerical
@@ -1001,11 +975,11 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootDensity=+3.0d0                                           &
+    rootDensity=+3.0d0                                                                         &
          &      *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
-         &      /4.0d0                                           &
-         &      /Pi                                              &
-         &      /                                     radius **3 &
+         &      /4.0d0                                                                         &
+         &      /Pi                                                                            &
+         &      /                                                                   radius **3 &
          &      -genericDensity
     return
   end function rootDensity
@@ -1034,7 +1008,7 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                   )
-    genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
+    genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
     call self%solverUnset(   )
     return
   end function genericRadiusEnclosingMassNumerical
@@ -1082,36 +1056,36 @@ contains
     basic => node%basic()
     if     (                                                                                                        &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(1.0d+0*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          &  .and. &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          &  .and. &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          &  .and. &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          & ) then
-       genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%virialRadius(node)
+       genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%radiusVirial(node)
     else
-       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     end if
     call self%solverUnset(   )
     return
@@ -1173,7 +1147,7 @@ contains
          &                                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &                                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                                      )
-    genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
+    genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
     call self%solverUnset(   )
     return
   end function genericRadiusFromSpecificAngularMomentumNumerical

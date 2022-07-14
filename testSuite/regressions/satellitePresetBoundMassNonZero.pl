@@ -9,7 +9,7 @@ use PDL::IO::HDF5;
 # Andrew Benson (20-September-2016)
 
 # Run the model and check for successful completion.
-system("Galacticus.exe testSuite/regressions/satellitePresetBoundMassNonZero.xml");
+system("./Galacticus.exe testSuite/regressions/satellitePresetBoundMassNonZero.xml");
 die("FAILED: satellitePresetBoundMassNonZero.pl model failed to complete") 
     unless ( $? == 0 );
 

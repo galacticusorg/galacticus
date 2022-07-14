@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,9 +55,11 @@ contains
     implicit none
     type(atomicExcitationRateCollisionalScholzWalters1991)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicExcitationRateCollisionalScholzWalters1991()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function scholzWalters1991ConstructorParameters
 
@@ -66,7 +68,7 @@ contains
     Return collisional excitation cooling rates, in units of J m$^3$ s$^{-1}$, for ion {\normalfont \ttfamily Ion} at
     temperature {\normalfont \ttfamily T} (in Kelvin) using the fitting functions of \cite{scholz_collisional_1991}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (atomicExcitationRateCollisionalScholzWalters1991), intent(inout) :: self
     double precision                                                  , intent(in   ) :: temperature

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,7 +112,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyImporterMillenniumCSV)                        :: self
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
@@ -147,8 +146,10 @@ contains
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
           &                             verbosityLevelStandard
+    use :: Error               , only : Error_Report
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash
+    use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash, &
+         &                              doubleHash            , integerSizeTHash        , varyingStringHash , genericHash
     use :: String_Handling     , only : String_Count_Words    , String_Split_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
@@ -243,13 +244,13 @@ contains
                    columns     (j)%index =countReal
                 end select
              end do
-             if (.not.gotID       ) call Galacticus_Error_Report('particle ID is missing'//{introspection:location})
-             if (.not.gotPositionX) call Galacticus_Error_Report('x position is missing' //{introspection:location})
-             if (.not.gotPositionY) call Galacticus_Error_Report('y position is missing' //{introspection:location})
-             if (.not.gotPositionZ) call Galacticus_Error_Report('z position is missing' //{introspection:location})
-             if (.not.gotVelocityX) call Galacticus_Error_Report('x velocity is missing' //{introspection:location})
-             if (.not.gotVelocityY) call Galacticus_Error_Report('y velocity is missing' //{introspection:location})
-             if (.not.gotVelocityZ) call Galacticus_Error_Report('z velocity is missing' //{introspection:location})
+             if (.not.gotID       ) call Error_Report('particle ID is missing'//{introspection:location})
+             if (.not.gotPositionX) call Error_Report('x position is missing' //{introspection:location})
+             if (.not.gotPositionY) call Error_Report('y position is missing' //{introspection:location})
+             if (.not.gotPositionZ) call Error_Report('z position is missing' //{introspection:location})
+             if (.not.gotVelocityX) call Error_Report('x velocity is missing' //{introspection:location})
+             if (.not.gotVelocityY) call Error_Report('y velocity is missing' //{introspection:location})
+             if (.not.gotVelocityZ) call Error_Report('z velocity is missing' //{introspection:location})
              deallocate(propertiesReal   )
              deallocate(propertiesInteger)
              allocate(propertiesReal   (countReal   ))
@@ -295,6 +296,10 @@ contains
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
     simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesInteger     =integerSizeTHash        ()
+    simulations(1)%attributesReal        =doubleHash              ()
+    simulations(1)%attributesText        =varyingStringHash       ()
+    simulations(1)%attributesGeneric     =genericHash             ()
     call simulations(1)%propertiesRealRank1%set('position'  ,position  )
     call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity  )
     call simulations(1)%propertiesInteger  %set('particleID',particleID)

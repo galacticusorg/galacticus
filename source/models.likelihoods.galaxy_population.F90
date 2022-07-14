@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,37 +21,23 @@
   Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
   !!}
 
-  use :: FoX_DOM         , only : node
-  use :: Input_Parameters, only : inputParameter, inputParameters
-  use :: Output_Analyses , only : outputAnalysis, outputAnalysisClass
-
-  type :: parameterList
-     !!{
-     Type used to maintain a list of pointers to parameters to be modified.
-     !!}
-     type   (inputParameter), pointer :: parameter_
-     integer                          :: indexElement
-     type   (varying_string)          :: definition
-     logical                          :: resolved
-  end type parameterList
+  use :: Output_Analyses, only : outputAnalysis, outputAnalysisClass
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
    <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
   </posteriorSampleLikelihood>
   !!]
-  type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGalaxyPopulation
+  type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodGalaxyPopulation
      !!{
      Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
      !!}
      private
-     type   (varying_string     )                            :: baseParametersFileName          , failedParametersFileName
-     logical                                                 :: randomize
-     integer                                                 :: evolveForestsVerbosity
-     type   (inputParameters    ), pointer                   :: parametersModel        => null()
-     class  (*                  ), pointer                   :: task_
-     class  (outputAnalysisClass), pointer                   :: outputAnalysis_        => null()
-     type   (parameterList      ), dimension(:), allocatable :: modelParametersActive_          , modelParametersInactive_
+     type   (varying_string     )         :: failedParametersFileName
+     logical                              :: randomize
+     integer                              :: evolveForestsVerbosity
+     class  (*                  ), pointer:: task_
+     class  (outputAnalysisClass), pointer:: outputAnalysis_          => null()
    contains
      final     ::                    galaxyPopulationDestructor
      procedure :: evaluate        => galaxyPopulationEvaluate
@@ -143,8 +129,10 @@ contains
     implicit none
     type(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
 
-    call self%parametersModel%destroy()
-    deallocate(self%parametersModel)
+    if (associated(self%parametersModel)) then
+       call self%parametersModel%destroy()
+       deallocate(self%parametersModel)
+    end if
     return
   end subroutine galaxyPopulationDestructor
 
@@ -155,7 +143,7 @@ contains
     use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
           &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
-    use :: Galacticus_Error              , only : Galacticus_Error_Report        , errorStatusSuccess
+    use :: Error                         , only : errorStatusSuccess
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
     use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
@@ -176,26 +164,12 @@ contains
     logical                                                    , intent(inout), optional       :: forceAcceptance
     double precision                                           , allocatable  , dimension(:  ) :: logPriorsProposed
     double precision                                           , allocatable  , dimension(:,:) :: stateVector
-    type            (varying_string                           ), allocatable  , dimension(:  ) :: parameterNames
-    integer                                                                                    :: iRank                 , parameterCount          , &
-         &                                                                                        i                     , j                       , &
-         &                                                                                        instance              , indexElement            , &
-         &                                                                                        verbosityLevel        , status
-#ifdef MATHEVALAVAIL
-    integer         (kind_int8                                )                                :: evaluator
-#endif
+    integer                                                                                    :: iRank                 , status                  , &
+         &                                                                                        verbosityLevel
     real                                                                                       :: timeBegin             , timeEnd
-    double precision                                                                           :: logLikelihoodProposed , valueDerived
-    type            (inputParameters                          )                                :: parameters_
-    character       (len=10                                   )                                :: labelIndex
+    double precision                                                                           :: logLikelihoodProposed
     character       (len=24                                   )                                :: valueText
-    logical                                                                                    :: firstIteration        , dependenciesResolved    , &
-         &                                                                                        dependenciesUpdated
-    type            (varying_string                           )                                :: parameterText         , message
-    ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                                ), external                      :: Evaluator_Create_
-    double precision                                           , external                      :: Evaluator_Evaluate_
-    external                                                                                   :: Evaluator_Destroy_
+    type            (varying_string                           )                                :: message
     !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
     ! Switch verbosity level.
@@ -210,205 +184,28 @@ contains
     ! Get states for all chains.
     allocate(stateVector(simulationState%dimension(),0:mpiSelf%count()-1))
     stateVector=mpiSelf%gather(simulationState%get())
-    ! On first call we must build pointers to all parameter nodes which will be modified as a function of chain state.
-    if (.not.allocated(self%modelParametersActive_)) then
-       allocate(self%modelParametersActive_(size(modelParametersActive_)))
-       do i=1,size(modelParametersActive_)
-          parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"::")
-          allocate(parameterNames(parameterCount))
-          call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"::")
-          parameters_=self%parametersModel
-          do j=1,parameterCount
-             instance    =1
-             indexElement=0
-             if (index(parameterNames(j),"[") /= 0) then
-                labelIndex       =extract(parameterNames(j),index(parameterNames(j),"[")+1,index(parameterNames(j),"]")-1)
-                parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"[")-1)
-                read (labelIndex,*) instance
-                instance=instance+1
-             else if (index(parameterNames(j),"{") /= 0) then
-                labelIndex       =extract(parameterNames(j),index(parameterNames(j),"{")+1,index(parameterNames(j),"}")-1)
-                parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"{")-1)
-                read (labelIndex,*) indexElement
-                indexElement=indexElement+1
-             end if
-             if (j == parameterCount) then
-                ! This is the final parameter - so get and store a pointer to its node.
-                self%modelParametersActive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
-                self%modelParametersActive_(i)%indexElement =  indexElement
-             else
-                ! This is an intermediate parameter, get the appropriate sub-parameters.
-                parameters_                                 =  parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
-             end if
-          end do
-          deallocate(parameterNames)
-       end do
-    end if
-    if (.not.allocated(self%modelParametersInactive_)) then
-       allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
-       do i=1,size(modelParametersInactive_)
-          parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"::")
-          allocate(parameterNames(parameterCount))
-          call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"::")
-          parameters_=self%parametersModel
-          do j=1,parameterCount
-             instance    =1
-             indexElement=0
-              if (index(parameterNames(j),"[") /= 0) then
-                labelIndex       =extract(parameterNames(j),index(parameterNames(j),"[")+1,index(parameterNames(j),"]")-1)
-                parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"[")-1)
-                read (labelIndex,*) instance
-                instance=instance+1
-             else if (index(parameterNames(j),"{") /= 0) then
-                labelIndex       =extract(parameterNames(j),index(parameterNames(j),"{")+1,index(parameterNames(j),"}")-1)
-                parameterNames(j)=extract(parameterNames(j),                             1,index(parameterNames(j),"{")-1)
-                read (labelIndex,*) indexElement
-                indexElement=indexElement+1
-             end if
-             if (j == parameterCount) then
-                ! This is the final parameter - so get and store a pointer to its node.
-                self%modelParametersInactive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
-                self%modelParametersInactive_(i)%indexElement =  indexElement
-             else
-                ! This is an intermediate parameter, get the appropriate sub-parameters.
-                parameters_                                   =  parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
-             end if
-          end do
-          deallocate(parameterNames)
-       end do
-    end if
+    ! Ensure pointers into the base parameters are initialized.
+    call self%initialize(modelParametersActive_,modelParametersInactive_)
     ! Iterate over all chains.
     do iRank=0,mpiSelf%count()-1
        ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
        if (logPriorsProposed(iRank) <= logImpossible) cycle
-       ! Update parameter values.
-       do i=1,size(modelParametersActive_)
-          if (self%modelParametersActive_(i)%indexElement == 0) then
-             ! Simply overwrite the parameter.
-             call self%modelParametersActive_(i)%parameter_%set(modelParametersActive_(i)%modelParameter_%unmap(stateVector(i,iRank)))
-          else
-             ! Overwrite only the indexed parameter in the list.
-             parameterText =self%modelParametersActive_(i)%parameter_%get()
-             parameterCount=String_Count_Words(char(parameterText))
-             if (self%modelParametersActive_(i)%indexElement > parameterCount)                                      &
-                  & call Galacticus_Error_Report(                                                                   &
-                  &                              var_str('attempt to access non-existant element {')             // &
-                  &                                     (self%modelParametersActive_(i)%indexElement          -1)// &
-                  &                                      '} of parameter "'                                      // &
-                  &                              char   (     modelParametersActive_(i)%modelParameter_%name()  )// &
-                  &                                      '"'                                                     // &
-                  &                              {introspection:location}                                        &
-                  &                             )
-             allocate(parameterNames(parameterCount))
-             call String_Split_Words(parameterNames,char(parameterText))
-             write (valueText,'(e24.16)') modelParametersActive_(i)%modelParameter_%unmap(stateVector(i,iRank))
-             parameterNames(self%modelParametersActive_(i)%indexElement)=trim(valueText)
-             call self%modelParametersActive_(i)%parameter_%set(String_Join(parameterNames," "))
-             deallocate(parameterNames)
-          endif
-       end do
-       ! Resolve dependencies in derived parameters.
-       if (size(modelParametersInactive_) > 0) then
-          do i=1,size(modelParametersInactive_)
-             select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-                class is (modelParameterDerived)
-                self%modelParametersInactive_(i)%definition=modelParameter_%definition()
-                self%modelParametersInactive_(i)%resolved  =.false.
-             end select
-          end do
-          firstIteration      =.true.
-          dependenciesResolved=.false.
-          do while (.not.dependenciesResolved)
-             dependenciesResolved=.true.
-             dependenciesUpdated =.false.
-             do i=1,size(modelParametersInactive_)
-                select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-                   class is (modelParameterDerived)
-                   if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) then
-                      ! The expression contains dependencies on other variables. Substitute the actual values where possible.
-                      !! For active parameters we only need to consider substitution on the first iteration (since they are fully defined immediately).
-                      !! Also handle special parameters here:
-                      !!  * %[posteriorSimulationStep] - this is the current step number in the simulation.
-                      if (firstIteration) then
-                         if (index(self%modelParametersInactive_(i)%definition,"%[posteriorSimulationStep]") /= 0) then
-                            write (valueText,'(i10)') simulationState%count()
-                            self%modelParametersInactive_(i)%definition=replace(                                                                     &
-                                 &                                                    self% modelParametersInactive_(i)%definition                 , &
-                                 &                                                    "%[posteriorSimulationStep]"                                 , &
-                                 &                                                    valueText                                                    , &
-                                 &                                              every=.true.                                                         &
-                                 &                                             )
-                         end if
-                         do j=1,size(modelParametersActive_)
-                            if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersActive_  (j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
-                            self%modelParametersInactive_(i)%definition=replace(                                                                     &
-                                 &                                                    self% modelParametersInactive_(i)%definition                 , &
-                                 &                                                    "%["//modelParametersActive_  (j)%modelParameter_%name()//"]", &
-                                 &                                                    self% modelParametersActive_  (j)%parameter_     %get ()     , &
-                                 &                                              every=.true.                                                         &
-                                 &                                             )
-                         end do
-                      end if
-                      !! For inactive parameters we must consider them each iteration as they become resolved.
-                      do j=1,size(modelParametersInactive_)
-                         if (i /= j .and. self%modelParametersInactive_(j)%resolved) then
-                            if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
-                            self%modelParametersInactive_(i)%definition=replace(                                                                     &
-                                 &                                                    self% modelParametersInactive_(i)%definition                 , &
-                                 &                                                    "%["//modelParametersInactive_(j)%modelParameter_%name()//"]", &
-                                 &                                                    self% modelParametersInactive_(j)%parameter_     %get ()     , &
-                                 &                                              every=.true.                                                         &
-                                 &                                             )
-                         end if
-                      end do
-                   end if
-                   if (index(self%modelParametersInactive_(i)%definition,"%[") == 0) then
-                      ! No dependencies remain, the expression can be evaluated.
-                      self%modelParametersInactive_(i)%resolved=.true.
-                      dependenciesUpdated                      =.true.
-#ifdef MATHEVALAVAIL
-                      evaluator   =Evaluator_Create_(char(self%modelParametersInactive_(i)%definition))
-                      valueDerived=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
-                      call Evaluator_Destroy_(evaluator)
-#else
-                      call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
-#endif
-                      if (self%modelParametersInactive_(i)%indexElement == 0) then
-                         ! Simply overwrite the parameter.
-                         call self%modelParametersInactive_(i)%parameter_%set(valueDerived)
-                      else
-                         ! Overwrite only the indexed parameter in the list.
-                         parameterText =self%modelParametersInactive_(i)%parameter_%get()
-                         parameterCount=String_Count_Words(char(parameterText))
-                         allocate(parameterNames(parameterCount))
-                         call String_Split_Words(parameterNames,char(parameterText))
-                         write (valueText,'(e24.16)') valueDerived
-                         parameterNames(self%modelParametersInactive_(i)%indexElement)=trim(valueText)
-                         call self%modelParametersInactive_(i)%parameter_%set(String_Join(parameterNames," "))
-                         deallocate(parameterNames)
-                      end if
-                   else
-                      dependenciesResolved=.false.
-                   end if
-                   class default
-                   call Galacticus_Error_Report('support for this parameter type is not implemented'//{introspection:location})
-                end select
-             end do
-             if (.not.dependenciesUpdated) then
-                call displayVerbositySet(verbosityLevelStandard)
-                call displayIndent('unresolved parameters')
-                do i=1,size(modelParametersInactive_)
-                   select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-                      class is (modelParameterDerived)
-                      if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call displayMessage(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
-                   end select
-                end do
-                call displayUnindent('unresolved parameters')
-                call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
+       ! If the likelihood was evaluated for the previous rank, and the current state vector is identical to that of the previous rank, the proposed likelihood must be unchanged.
+       if (iRank > 0) then
+          if (logPriorsProposed(iRank-1) > logImpossible .and. all(stateVector(:,iRank) == stateVector(:,iRank-1))) then
+             if (iRank == mpiSelf%rank()) then
+                galaxyPopulationEvaluate=logLikelihoodProposed
+                if (verbosityLevel >= verbosityLevelStandard) then
+                   write (valueText,'(e12.4)') logLikelihoodProposed
+                   message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+                   call displayMessage(message,verbosityLevelSilent)
+                end if
              end if
-             firstIteration=.false.
-          end do
+             cycle
+          end if
        end if
+       ! Update parameter values.
+       call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector(:,iRank))
        ! Build the task and outputter objects.
        call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
        !![

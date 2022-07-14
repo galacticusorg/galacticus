@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,12 +21,13 @@
   An implementation of virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.
   !!}
 
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters   , only : cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Root_Finder            , only : rootFinder
-  use :: Tables                 , only : table1DLinearLinear
-  use :: Virial_Density_Contrast, only : virialDensityContrastFixed
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Root_Finder             , only : rootFinder
+  use :: Tables                  , only : table1DLinearLinear
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass, virialDensityContrastFixed
 
   !![
   <virialOrbit name="virialOrbitJiang2014">
@@ -37,10 +38,10 @@
     propagated to the virial radius relevant to the current definition of density contrast.
    </description>
    <deepCopy>
-    <functionClass variables="virialDensityContrast_"/>
+    <functionClass variables="virialDensityContrastDefinition_"/>
    </deepCopy>
    <stateStorable>
-    <functionClass variables="virialDensityContrast_"/>
+    <functionClass variables="virialDensityContrastDefinition_"/>
    </stateStorable>
   </virialOrbit>
   !!]
@@ -49,15 +50,17 @@
      A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.
      !!}
      private
-     class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_    => null()
-     class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_    => null()
-     class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_     => null()
-     type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_  => null()
-     double precision                            , dimension(3,3) :: B                                , gamma                        , &
-          &                                                          sigma                            , mu                           , &
-          &                                                          velocityTangentialMean_          , velocityTotalRootMeanSquared_
+     class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_              => null()
+     class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_              => null()
+     class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_               => null()
+     class           (darkMatterProfileDMOClass ), pointer        :: darkMatterProfileDMO_             => null()
+     class           (virialDensityContrastClass), pointer        :: virialDensityContrast_            => null()
+     type            (virialDensityContrastFixed), pointer        :: virialDensityContrastDefinition_  => null()
+     double precision                            , dimension(3,3) :: B                                          , gamma                                     , &
+          &                                                          sigma                                      , mu                                        , &
+          &                                                          velocityTangentialMean_                    , velocityTotalRootMeanSquared_
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
-     type            (rootFinder                )                 :: totalFinder                      , radialFinder
+     type            (rootFinder                )                 :: totalFinder                                , radialFinder
    contains
      !![
      <methods>
@@ -99,15 +102,17 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (virialOrbitJiang2014    )                :: self
-    type            (inputParameters         ), intent(inout) :: parameters
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    double precision                          , dimension(3)  :: bRatioLow           , bRatioIntermediate    , bRatioHigh    , &
-         &                                                       gammaRatioLow       , gammaRatioIntermediate, gammaRatioHigh, &
-         &                                                       sigmaRatioLow       , sigmaRatioIntermediate, sigmaRatioHigh, &
-         &                                                       muRatioLow          , muRatioIntermediate   , muRatioHigh
+    type            (virialOrbitJiang2014      )                :: self
+    type            (inputParameters           ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                            , dimension(3)  :: bRatioLow             , bRatioIntermediate    , bRatioHigh    , &
+         &                                                         gammaRatioLow         , gammaRatioIntermediate, gammaRatioHigh, &
+         &                                                         sigmaRatioLow         , sigmaRatioIntermediate, sigmaRatioHigh, &
+         &                                                         muRatioLow            , muRatioIntermediate   , muRatioHigh
 
     !![
     <inputParameter>
@@ -182,25 +187,29 @@ contains
       <source>parameters</source>
       <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_)
+    self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="cosmologyParameters_"/>
-    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"  />
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function jiang2014ConstructorParameters
 
-  function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     !!}
-    use :: Numerical_Integration   , only : integrator                  , GSL_Integ_Gauss61
+    use :: Numerical_Integration   , only : GSL_Integ_Gauss61           , integrator
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
@@ -213,6 +222,8 @@ contains
     class           (darkMatterHaloScaleClass    ), intent(in   ), target         :: darkMatterHaloScale_
     class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ), target         :: cosmologyFunctions_
+    class           (virialDensityContrastClass  ), intent(in   ), target         :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass   ), intent(in   ), target         :: darkMatterProfileDMO_
     integer                                       , parameter                     :: tableCount                 =1000
     integer                                                                       :: i                                  , j                                    , k
     type            (distributionFunction1DVoight)                                :: voightDistribution
@@ -226,7 +237,7 @@ contains
     logical                                                                       :: reUse                              , limitFound
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
     ! Assign parameters of the distribution.
@@ -335,9 +346,9 @@ contains
        end do
     end do
     ! Create virial density contrast definition.
-    allocate(self%virialDensityContrast_)
+    allocate(self%virialDensityContrastDefinition_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     !!]
     ! Build root finders.
     self%totalFinder =rootFinder(                                                             &
@@ -413,10 +424,12 @@ contains
     type(virialOrbitJiang2014), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_"  />
-    <objectDestructor name="self%cosmologyParameters_"  />
-    <objectDestructor name="self%cosmologyFunctions_"   />
-    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"            />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine jiang2014Destructor
@@ -426,39 +439,55 @@ contains
     Return jiang2014 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     type            (keplerOrbit               )                        :: jiang2014Orbit
     class           (virialOrbitJiang2014      ), intent(inout), target :: self
-    type            (treeNode                  ), intent(inout)         :: host                   , node
+    type            (treeNode                  ), intent(inout)         :: host                                   , node
     logical                                     , intent(in   )         :: acceptUnboundOrbits
-    class           (nodeComponentBasic        ), pointer               :: hostBasic              , basic
-    class           (virialDensityContrastClass), pointer               :: virialDensityContrast_
-    integer                                     , parameter             :: attemptsMaximum        =10000
-    double precision                            , parameter             :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
-    double precision                                                    :: velocityHost                  , radiusHost                , &
-         &                                                                 massHost                      , massSatellite             , &
-         &                                                                 energyInternal                , radiusHostSelf            , &
-         &                                                                 velocityRadialInternal        , velocityTangentialInternal
+    class           (nodeComponentBasic        ), pointer               :: basicHost                              , basic
+    class           (virialDensityContrastClass), pointer               :: virialDensityContrastDefinition_
+    integer                                     , parameter             :: attemptsMaximum                 =10000
+    double precision                            , parameter             :: boundTolerance                  =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
+    double precision                                                    :: velocityHost                           , radiusHost                , &
+         &                                                                 massHost                               , massSatellite             , &
+         &                                                                 energyInternal                         , radiusHostSelf            , &
+         &                                                                 velocityRadialInternal                 , velocityTangentialInternal
     logical                                                             :: foundOrbit
     integer                                                             :: attempts
 
     ! Get basic components.
     basic     => node%basic()
-    hostBasic => host%basic()
+    basicHost => host%basic()
     ! Find virial density contrast under Jiang et al. (2014) definition.
     !![
-    <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>    
+    <referenceAcquire target="virialDensityContrastDefinition_" source="self%densityContrastDefinition()"/>    
     !!]
     ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast
     ! definition. We limit the satellite mass to be less than the host mass here. This is necessary because the correction to the
     ! mass under the definition of Jiang et al. (2014) can sometimes lead to large satellite masses if the satellite is moving to
     ! a new host (and was therefore last isolated at a much earlier time and so can be much denser than the host).
-    massHost     =             Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
-    massSatellite=min(massHost,Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            ))
+    massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                        &
+         &                                                                   host                                                                                           , &
+         &                                                                   virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
+         &                                                                   radiusHostSelf                                                                                 , &
+         &                                                                   velocityHost                                                                                   , &
+         &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
+         &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
+         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
+         &                                            virialDensityContrast_=self%virialDensityContrast_                                                                      &
+         &                                           )
+    massSatellite=Dark_Matter_Profile_Mass_Definition(                                                                                                                        &
+         &                                                                   node                                                                                           , &
+         &                                                                   virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
+         &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
+         &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
+         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
+         &                                            virialDensityContrast_=self%virialDensityContrast_                                                                      &
+         &                                           )
     !![
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     ! Select parameters appropriate for this host-satellite pair.
     call self%parametersSelect(massHost,massSatellite,jiang2014I,jiang2014J)
@@ -500,16 +529,16 @@ contains
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call jiang2014Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+       radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
        foundOrbit=.false.
        if (jiang2014Orbit%radiusApocenter() >= radiusHost .and. jiang2014Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call jiang2014Orbit%propagate(radiusHost  ,infalling=.true.)
-          call jiang2014Orbit%massesSet(basic%mass(),hostBasic%mass())
+          call jiang2014Orbit%massesSet(basic%mass(),basicHost%mass())
        end if
     end do
     ! If too many iterations were required to find an orbit, abort.
-    if (attempts >= attemptsMaximum) call Galacticus_Error_Report('maximum number of attempts exceeded'//{introspection:location})
+    if (attempts >= attemptsMaximum) call Error_Report('maximum number of attempts exceeded'//{introspection:location})
     return
   end function jiang2014Orbit
 
@@ -557,7 +586,7 @@ contains
     class(virialDensityContrastClass), pointer       :: jiang2014DensityContrastDefinition
     class(virialOrbitJiang2014      ), intent(inout) :: self
 
-    jiang2014DensityContrastDefinition => self%virialDensityContrast_
+    jiang2014DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function jiang2014DensityContrastDefinition
 
@@ -569,22 +598,38 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitJiang2014      ), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node                  , host
-    class           (nodeComponentBasic        ), pointer       :: hostBasic             , basic
-    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
-    double precision                                            :: massHost              , radiusHost   , &
-         &                                                         velocityHost          , massSatellite
-    integer                                                     :: i                     , j
+    type            (treeNode                  ), intent(inout) :: node                            , host
+    class           (nodeComponentBasic        ), pointer       :: basicHost                       , basic
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrastDefinition_
+    double precision                                            :: massHost                        , radiusHost   , &
+         &                                                         velocityHost                    , massSatellite
+    integer                                                     :: i                               , j
 
     !![
-    <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
+    <referenceAcquire target="virialDensityContrastDefinition_" source="self%densityContrastDefinition()"/>
     !!]
     basic         => node%basic()
-    hostBasic     => host%basic()
-    massHost      =  Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
-    massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
+    basicHost     => host%basic()
+    massHost      =  Dark_Matter_Profile_Mass_Definition(                                                                                                                        &
+         &                                                                      host                                                                                           , &
+         &                                                                      virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
+         &                                                                      radiusHost                                                                                     , &
+         &                                                                      velocityHost                                                                                   , &
+         &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
+         &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
+         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
+         &                                               virialDensityContrast_=self%virialDensityContrast_                                                                      &
+         &                                              )
+    massSatellite =  Dark_Matter_Profile_Mass_Definition(                                                                                                                        &
+         &                                                                      node                                                                                           , &
+         &                                                                      virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
+         &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
+         &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
+         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
+         &                                               virialDensityContrast_=self%virialDensityContrast_                                                                      &
+         &                                              )
     !![
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     call self%parametersSelect(massHost,massSatellite,i,j)
     jiang2014VelocityTangentialMagnitudeMean=+self%velocityTangentialMean_(i,j) &
@@ -596,7 +641,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -604,7 +649,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     jiang2014VelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function jiang2014VelocityTangentialVectorMean
 
@@ -617,19 +662,28 @@ contains
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
-    class           (nodeComponentBasic  ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic  ), pointer       :: basic       , basicHost
     double precision                                      :: massHost    , radiusHost, &
          &                                                   velocityHost
 
     basic                                 =>  node%basic()
-    hostBasic                             =>  host%basic()
-    massHost                              =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    basicHost                             =>  host%basic()
+    massHost                              =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                                              host                                                                                                , &
+         &                                                                                              self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
+         &                                                                                              radiusHost                                                                                          , &
+         &                                                                                              velocityHost                                                                                        , &
+         &                                                                       cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                                                       virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                                                      )
     jiang2014AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
          &                                   *radiusHost                                      &
          &                                   /(                                               & ! Account for reduced mass.
          &                                     +1.0d0                                         &
          &                                     +basic    %mass()                              &
-         &                                     /hostBasic%mass()                              &
+         &                                     /basicHost%mass()                              &
          &                                    )
     return
   end function jiang2014AngularMomentumMagnitudeMean
@@ -638,7 +692,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
@@ -646,7 +700,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     jiang2014AngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function jiang2014AngularMomentumVectorMean
 
@@ -658,22 +712,38 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitJiang2014      ), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node                  , host
-    class           (nodeComponentBasic        ), pointer       :: hostBasic             , basic
-    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
-    double precision                                            :: massHost              , radiusHost   , &
-         &                                                         velocityHost          , massSatellite
-    integer                                                     :: i                     , j
+    type            (treeNode                  ), intent(inout) :: node                            , host
+    class           (nodeComponentBasic        ), pointer       :: basicHost                       , basic
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrastDefinition_
+    double precision                                            :: massHost                        , radiusHost   , &
+         &                                                         velocityHost                    , massSatellite
+    integer                                                     :: i                              , j
 
     !![
-    <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
+    <referenceAcquire target="virialDensityContrastDefinition_" source="self%densityContrastDefinition()"/>
     !!]
     basic         => node%basic()
-    hostBasic     => host%basic()
-    massHost      =  Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
-    massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
+    basicHost     => host%basic()
+    massHost      =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                      host                                                                                                , &
+         &                                                                      self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
+         &                                                                      radiusHost                                                                                          , &
+         &                                                                      velocityHost                                                                                        , &
+         &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                               virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                              )
+    massSatellite =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                      node                                                                                                , &
+         &                                                                      self%virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
+         &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                               virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                              )
     !![
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     call self%parametersSelect(massHost,massSatellite,i,j)
     jiang2014VelocityTotalRootMeanSquared=+self%velocityTotalRootMeanSquared_(i,j) &
@@ -691,19 +761,28 @@ contains
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
-    class           (nodeComponentBasic  ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic  ), pointer       :: basic       , basicHost
     double precision                                      :: massHost    , radiusHost, &
          &                                                   velocityHost
 
     basic               =>  node%basic()
-    hostBasic           =>  host%basic()
-    massHost            =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    basicHost           =>  host%basic()
+    massHost            =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                             host                                                                                                , &
+         &                                                                             self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
+         &                                                                             radiusHost                                                                                          , &
+         &                                                                             velocityHost                                                                                        , &
+         &                                                      cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                                      cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                                      darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                                      virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                                     )
     jiang2014EnergyMean =  +0.5d0                                           &
          &                 *self%velocityTotalRootMeanSquared(node,host)**2 &
          &                 /(                                               & ! Account for reduced mass.
          &                   +1.0d0                                         &
          &                   +basic    %mass()                              &
-         &                   /hostBasic%mass()                              &
+         &                   /basicHost%mass()                              &
          &                  )                                               &
          &                 -gravitationalConstantGalacticus                 &
          &                 *massHost                                        &

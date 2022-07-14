@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -118,7 +118,8 @@ program Tests_Power_Spectrum
       &amp;                                  index_                             =1.000d0                                              , &amp;
       &amp;                                  running                            =0.000d0                                              , &amp;
       &amp;                                  runningRunning                     =0.000d0                                              , &amp;
-      &amp;                                  wavenumberReference                =1.000d0                                                &amp;
+      &amp;                                  wavenumberReference                =1.000d0                                              , &amp;
+      &amp;                                  runningSmallScalesOnly             =.false.                                                &amp;
       &amp;                                 )
    </constructor>
   </referenceConstruct>
@@ -148,7 +149,8 @@ program Tests_Power_Spectrum
       &amp;                                  index_                             =-1.000d0                                             , &amp;
       &amp;                                  running                            =+0.000d0                                             , &amp;
       &amp;                                  runningRunning                     =+0.000d0                                             , &amp;
-      &amp;                                  wavenumberReference                =+1.000d0                                               &amp;
+      &amp;                                  wavenumberReference                =+1.000d0                                             , &amp;
+      &amp;                                  runningSmallScalesOnly             =.false.                                                &amp;
       &amp;                                 )
    </constructor>
   </referenceConstruct>

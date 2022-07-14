@@ -147,7 +147,7 @@ sub Implementation_Deferred_Binding_Wrappers {
 	    description => "Call the deferred function for the {\\normalfont \\ttfamily ".$code::binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class if it has been set.",
 	    modules     =>
 		[
-		 "Galacticus_Error"
+		 "Error"
 		]
 	};
 	# Add a "self" argument if required.
@@ -211,7 +211,7 @@ CODE
 CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      call Galacticus_Error_Report('deferred function has not been assigned'//\{introspection:location\})
+      call Error_Report('deferred function has not been assigned'//\{introspection:location\})
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -225,7 +225,7 @@ CODE
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call Galacticus_Error_Report('incorrect class - this should not happen'//\{introspection:location\})
+   call Error_Report('incorrect class - this should not happen'//\{introspection:location\})
 end select
 CODE
 	# Insert a type-binding for this function into the node component class type.

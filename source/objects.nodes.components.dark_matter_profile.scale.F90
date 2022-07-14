@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,10 +25,12 @@ module Node_Component_Dark_Matter_Profile_Scale
   !!{
   Implements a dark matter profile method that provides a scale radius.
   !!}
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
+       &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize, &
+       &    Node_Component_Dark_Matter_Profile_Scale_State_Store      , Node_Component_Dark_Matter_Profile_Scale_State_Restore
 
   !![
   <component>
@@ -44,16 +46,14 @@ module Node_Component_Dark_Matter_Profile_Scale
       <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
       <classDefault>-1.0d0</classDefault>
     </property>
-    <property>
-      <name>scaleGrowthRate</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-    </property>
    </properties>
   </component>
   !!]
 
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
+  
 contains
 
   !![
@@ -65,16 +65,18 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     !$GLC attributes unused :: parameters_
 
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) &
-         & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
-    return
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       !![
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !!]
+     end if
+     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
   !![
@@ -86,12 +88,14 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) &
-         & call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       !![
+       <objectDestructor name="darkMatterHaloScale_"/>
+       !!]
+    end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
@@ -117,7 +121,11 @@ contains
     ! Ensure that it is of the scale class.
     select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileScale)
-       if (darkMatterProfile%scale() <= 0.0d0) then
+       if     (                                                                      &
+            &   darkMatterProfile%scale() <= 0.0d0                                   &
+            &  .or.                                                                  &
+            &   darkMatterProfile%scale() >  darkMatterHaloScale_%radiusVirial(node) &
+            & ) then
           node%isPhysicallyPlausible=.false.
           node%isSolvable           =.false.
        end if
@@ -125,31 +133,6 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
 
-  subroutine nodePromotion(self,node)
-    !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
-    to be that of its parent.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
-    implicit none
-    class(*                             ), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-    class(nodeComponentDarkMatterProfile), pointer       :: darkMatterProfileParent, darkMatterProfile
-    class(nodeComponentBasic            ), pointer       :: basicParent            , basic
-    !$GLC attributes unused :: self    
-
-    darkMatterProfile       => node       %darkMatterProfile()
-    darkMatterProfileParent => node%parent%darkMatterProfile()
-    basic                   => node       %basic            ()
-    basicParent             => node%parent%basic            ()
-    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-    ! Adjust the scale radius and its growth rate to that of the parent node.
-    call darkMatterProfile%scaleSet          (darkMatterProfileParent%scale          ())
-    call darkMatterProfile%scaleGrowthRateSet(darkMatterProfileParent%scaleGrowthRate())
-    return
-  end subroutine nodePromotion
-  
   !![
   <scaleSetTask>
    <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
@@ -161,18 +144,65 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    double precision                                , parameter              :: radiusScaleMinimum=1.0d-6
 
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure it is of the scale class.
     select type (darkMatterProfile)
-       class is (nodeComponentDarkMatterProfileScale)
+    class is (nodeComponentDarkMatterProfileScale)
        ! Set scale for the scale radius.
-       call darkMatterProfile%scaleScale(darkMatterProfile%scale())
+       call darkMatterProfile%scaleScale(max(darkMatterProfile%scale(),radiusScaleMinimum))
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDarkMatterProfile -> scale',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_"/>
+    !!]
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDarkMatterProfile -> scale',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_"/>
+    !!]
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore
 
 end module Node_Component_Dark_Matter_Profile_Scale

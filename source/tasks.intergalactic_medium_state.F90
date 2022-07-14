@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -139,10 +139,11 @@ contains
     !!{
     Output \gls{igm} state to the \glc\ output file.
     !!}
-    use            :: Display         , only : displayIndent       , displayUnindent
-    use            :: Galacticus_Error, only : errorStatusSuccess
-    use            :: Galacticus_HDF5 , only : galacticusOutputFile
-    use            :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use            :: Display         , only : displayIndent     , displayUnindent
+    use            :: Error           , only : errorStatusSuccess
+    use            :: Output_HDF5     , only : outputFile
+    use            :: HDF5_Access     , only : hdf5Access
+    use            :: IO_HDF5         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: String_Handling , only : operator(//)
     implicit none
@@ -174,13 +175,13 @@ contains
        massJeans      (i)=self%intergalacticMediumState_        %massJeans                  (time    (i))
        massFiltering  (i)=self%intergalacticMediumFilteringMass_%massFiltering              (time    (i))
     end do
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing intergalactic medium state data.'  )
-       outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       containerGroup=outputFile    %openGroup(char(self%outputGroup),'Group containing intergalactic medium state data.'  )
+       outputsGroup  =containerGroup%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     do i=1,outputCount
        groupName  ='Output'
@@ -198,7 +199,7 @@ contains
     end do
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: intergalactic medium state' )
     return

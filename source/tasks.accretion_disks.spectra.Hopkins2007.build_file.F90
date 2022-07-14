@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,7 +61,7 @@ contains
     !!}
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
     use :: Display               , only : displayIndent                  , displayUnindent
-    use :: Galacticus_Error      , only : errorStatusSuccess
+    use :: Error      , only : errorStatusSuccess
     implicit none
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status

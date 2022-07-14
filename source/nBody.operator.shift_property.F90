@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -96,6 +96,7 @@ contains
     !!{
     Select particles matching a list of integer properties. 
     !!}
+    use :: Error  , only : Error_Report
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
     implicit none
     class  (nbodyOperatorShiftProperty), intent(inout)               :: self
@@ -111,7 +112,7 @@ contains
                &             +self%shiftBy
           nullify(propertyInteger)
        else
-          call Galacticus_Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
+          call Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
        end if
     end do
     call displayUnindent('done',verbosityLevelStandard)

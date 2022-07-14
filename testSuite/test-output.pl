@@ -8,7 +8,7 @@ use PDL::IO::HDF5;
 # Andrew Benson (04-April-2014)
 
 # Simply run the models.
-system("cd ..; mkdir -p testSuite/outputs; Galacticus.exe testSuite/parameters/test-output.xml");
+system("cd ..; mkdir -p testSuite/outputs; ./Galacticus.exe testSuite/parameters/test-output.xml");
 
 # Check for outputs.
 die("test-output.pl: FAILED to run Galacticus model")

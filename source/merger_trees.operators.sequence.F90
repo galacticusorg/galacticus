@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,12 @@ Contains a module which implements a sequence of operators on merger trees.
    <deepCopy>
     <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
+   <allowedParameters>
+    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
+   </allowedParameters>
   </mergerTreeOperator>
   !!]
 
@@ -82,6 +88,9 @@ contains
        <objectBuilder class="mergerTreeOperator" name="operator_%operator_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeOperator"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

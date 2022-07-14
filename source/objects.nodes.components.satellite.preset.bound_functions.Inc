@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +21,9 @@
 Contains custom functions for the prest satellite component.
 !!}
 
-double precision function Node_Component_Satellite_Preset_Merge_Time(self)
+double precision function Node_Component_Satellite_Preset_Time_Until_Merging(self)
   !!{
-  Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
+  Return the {\normalfont \ttfamily timeUntilMerging} property of the {\normalfont \ttfamily satellitePreset} component class.
   !!}
   implicit none
   class(nodeComponentSatellitePreset), intent(inout) :: self
@@ -33,16 +33,16 @@ double precision function Node_Component_Satellite_Preset_Merge_Time(self)
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      selfBasicComponent => selfNode%basic()
-     Node_Component_Satellite_Preset_Merge_Time=max(self%timeOfMergingData-selfBasicComponent%time(),0.0d0)
+     Node_Component_Satellite_Preset_Time_Until_Merging=max(self%timeOfMergingData-selfBasicComponent%time(),0.0d0)
   else
-     Node_Component_Satellite_Preset_Merge_Time=-1.0d0
+     Node_Component_Satellite_Preset_Time_Until_Merging=-1.0d0
   end if
   return
-end function Node_Component_Satellite_Preset_Merge_Time
+end function Node_Component_Satellite_Preset_Time_Until_Merging
 
-subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
+subroutine Node_Component_Satellite_Preset_Time_Until_Merging_Set(self,setValue)
   !!{
-  Sets the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
+  Sets the {\normalfont \ttfamily timeUntilMerging} property of the {\normalfont \ttfamily satellitePreset} component class.
   !!}
   implicit none
   class           (nodeComponentSatellitePreset)         , intent(inout) :: self
@@ -54,7 +54,7 @@ subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
   selfBasicComponent => selfNode%basic()
   self%timeOfMergingData=setValue+selfBasicComponent%time()
   return
-end subroutine Node_Component_Satellite_Preset_Merge_Time_Set
+end subroutine Node_Component_Satellite_Preset_Time_Until_Merging_Set
 
 double precision function SatellitePresetMergeBoundMass(self)
   !!{

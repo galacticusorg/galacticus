@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,7 @@ contains
     Constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class which takes a
     parameter set as input.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath , pathTypeDataDynamic
+    use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (stellarPopulationBroadBandLuminositiesStandard)                :: self
@@ -123,7 +123,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>storeDirectory</name>
-      <defaultValue>galacticusPath(pathTypeDataDynamic)//'stellarPopulations'</defaultValue>
+      <defaultValue>inputPath(pathTypeDataDynamic)//'stellarPopulations'</defaultValue>
       <description>Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
       <source>parameters</source>
     </inputParameter>
@@ -166,7 +166,7 @@ contains
     filterIndex}.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report
+    use            :: Error               , only : Error_Report
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Stellar_Populations , only : stellarPopulationClass
     implicit none
@@ -218,7 +218,7 @@ contains
           ! Check for out of range age.
           if (age(iLuminosityStart) > self%luminosityTables(populationID)%age(self%luminosityTables(populationID)%agesCount)) then
              if (self%maximumAgeExceededIsFatal) then
-                call Galacticus_Error_Report('age exceeds the maximum tabulated'//{introspection:location})
+                call Error_Report('age exceeds the maximum tabulated'//{introspection:location})
              else
                 iAge=self%luminosityTables(populationID)%agesCount-1
                 hAge=[0.0d0,1.0d0]
@@ -305,19 +305,20 @@ contains
     !!{
     Tabulate stellar population luminosity in the given filters.
     !!}
-    use            :: Abundances_Structure            , only : logMetallicityZero     , metallicityTypeLogarithmicByMassSolar
-    use            :: Display                         , only : displayCounter         , displayCounterClear                  , displayIndent  , displayUnindent   , &
-          &                                                    verbosityLevelWorking  , displayMagenta                       , displayGreen   , displayReset
-    use            :: File_Utilities                  , only : File_Exists            , File_Lock                            , File_Unlock    , lockDescriptor
-    use            :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn                      , errorStatusFail, errorStatusSuccess
-    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use            :: Abundances_Structure            , only : logMetallicityZero , metallicityTypeLogarithmicByMassSolar
+    use            :: Display                         , only : displayCounter     , displayCounterClear                  , displayGreen            , displayIndent        , &
+          &                                                    displayMagenta     , displayReset                         , displayUnindent         , verbosityLevelWorking
+    use            :: File_Utilities                  , only : File_Exists        , File_Lock                            , File_Unlock             , lockDescriptor
+    use            :: Error                           , only : Error_Report       , Warn                                 , errorStatusFail         , errorStatusSuccess
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : assignment(=)          , char                                 , operator(//)   , var_str
+    use            :: ISO_Varying_String              , only : assignment(=)      , char                                 , operator(//)            , var_str
     use            :: Input_Parameters                , only : inputParameters
-    use            :: Instruments_Filters             , only : Filter_Extent          , Filter_Response_Function             , Filter_Name
-    use            :: Memory_Management               , only : Memory_Usage_Record    , allocateArray                        , deallocateArray
+    use            :: Instruments_Filters             , only : Filter_Extent      , Filter_Name                          , Filter_Response_Function
+    use            :: Memory_Management               , only : Memory_Usage_Record, allocateArray                        , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
-    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15      , integrator
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15  , integrator
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
@@ -333,6 +334,8 @@ contains
     class           (stellarPopulationSpectraClass                 ), pointer                         :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass    ), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
     type            (integrator                                    ), allocatable                     :: integrator_                                   , integratorAB_
+    type            (inputParameters                               ), save                            :: descriptor
+    !$omp threadprivate(descriptor)
     integer         (c_size_t                                      )                                  :: iAge                                          , iLuminosity                          , &
          &                                                                                               iMetallicity                                  , jLuminosity                          , &
          &                                                                                               populationID
@@ -347,7 +350,6 @@ contains
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
     type            (hdf5Object                                    )                                  :: luminositiesFile
-    type            (inputParameters                               )                                  :: descriptor
 
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()
@@ -548,20 +550,34 @@ contains
                                   write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
                                   message=         displayMagenta()//"WARNING:"//displayReset()//" increasing relative tolerance for stellar population luminosities to"    //char(10)
                                   message=message//trim(adjustl(label))//" and retrying integral"//{introspection:location}
-                                  call Galacticus_Warn(message)
+                                  call Warn(message)
                                else if (self%integrationToleranceDegrade) then
                                   message="integration of stellar populations failed"
-                                  call Galacticus_Error_Report(message//{introspection:location})
+                                  call Error_Report(message//{introspection:location})
                                else
-                                  write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
-                                  message=         "integration of stellar populations failed"                                        //char(10)
+                                  write (label,'(e9.3)')       self%integrationToleranceRelative
+                                  message=         "integration of stellar populations failed"                                              //char(10)
                                   message=message//displayGreen()
                                   message=message//"HELP: "
                                   message=message//displayReset()
-                                  message=message//"consider increasing the [self%integrationToleranceRelative]"                      //char(10)
-                                  message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"//char(10)
-                                  message=message//"      required if you can accept this lower accuracy."
-                                  call Galacticus_Error_Report(message//{introspection:location})
+                                  message=message//      "consider increasing the integrationtolerance parameter from the current value of "
+                                  message=message//trim(adjustl(label))
+                                  write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
+                                  message=message//"      to "
+                                  message=message//trim(adjustl(label))
+                                  message=message//      " if you can accept this lower accuracy."                                           //char(10)//char(10)
+                                  message=message//"      To do this, set in your parameter file:"                                           //char(10)//char(10)
+                                  message=message//'      <stellarPopulationBroadBandLuminosities value="standard">'                         //char(10)
+                                  message=message//'        <integrationToleranceRelative value="'
+                                  message=message//trim(adjustl(label))
+                                  message=message//      '"/>'                                                                               //char(10)
+                                  message=message//'      </stellarPopulationBroadBandLuminosities>'                                         //char(10)//char(10)
+                                  message=message//"      Alternative you can allow tolerances to be automatically degraded where"           //char(10)
+                                  message=message//"      needed to ensure convergence by setting in your parameter file:"                   //char(10)//char(10)
+                                  message=message//'      <stellarPopulationBroadBandLuminosities value="standard">'                         //char(10)
+                                  message=message//'        <integrationToleranceDegrade value="true"/>'                                     //char(10)
+                                  message=message//'      </stellarPopulationBroadBandLuminosities>'
+                                 call Error_Report(message//{introspection:location})
                                end if
                             end if
                          end do

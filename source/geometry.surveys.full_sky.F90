@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -201,12 +201,14 @@ contains
     !!{
     Compute the window function for the survey.
     !!}
-    use            :: FFTW3           , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
-         &                                     fftw_destroy_plan
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_ptr                  , c_double_complex
-    use            :: Meshes          , only : Meshes_Apply_Point     , cloudTypeTriangular
-    use            :: Vectors         , only : Vector_Magnitude
+    use            :: FFTW3        , only : fftw_plan_dft_3d  , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
+         &                                  fftw_destroy_plan
+#ifdef FFTW3UNAVAIL
+    use            :: Error        , only : Error_Report
+#endif
+    use, intrinsic :: ISO_C_Binding, only : c_ptr             , c_double_complex
+    use            :: Meshes       , only : Meshes_Apply_Point, cloudTypeTriangular
+    use            :: Vectors      , only : Vector_Magnitude
     implicit none
     class           (surveyGeometryFullSky), intent(inout)                                           :: self
     double precision                       , intent(in   )                                           :: mass1                   , mass2
@@ -226,7 +228,7 @@ contains
     complex         (c_double_complex     )                                                          :: normalization
 
 #ifdef FFTW3UNAVAIL
-    call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+    call Error_Report('FFTW3 library is required but was not found'//{introspection:location})
 #endif
     ! Find the comoving distance corresponding to this distance module.
     comovingDistanceMaximum1=self%distanceMaximum(mass1)

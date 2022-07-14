@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,11 +134,11 @@ contains
     !!{
     Assess and record an assertion.
     !!}
-    use                            :: Galacticus_Error    , only : Galacticus_Error_Report
-    use                            :: ISO_Varying_String  , only : assignment(=)          , operator(//), var_str
+    use                            :: Error               , only : Error_Report
+    use                            :: ISO_Varying_String  , only : assignment(=), operator(//), var_str
     use                            :: Numerical_Comparison, only : Values_Agree
     {Type¦match¦^integerLong¦  use :: Kind_Numbers        , only : kind_int8¦}
-    {Type¦match¦^varyingString¦use :: ISO_Varying_String  , only : operator(==)           , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=)¦}
+    {Type¦match¦^varyingString¦use :: ISO_Varying_String  , only : operator(==) , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=)¦}
     character                                  (len=*         ), intent(in   )              :: testName
     {Type¦intrinsic}                                           , intent(in   )  {Type¦rank} :: value1    , value2
     integer                                                    , intent(in   ), optional    :: compare
@@ -168,23 +168,23 @@ contains
    case (compareLessThan          )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  < value2}
        comparison="≮"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThan       )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  > value2}
        comparison="≯"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareLessThanOrEqual   )
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 <= value2}
        comparison="≰"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThanOrEqual)
        passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 >= value2}
        comparison="≱"
-       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
+       {Type¦match¦^(logical|doubleComplex)¦call Error_Report('unsupported comparison'//{introspection:location})¦}
     case default
        passed=.false.
        comparison=""
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
+       call Error_Report('unknown comparison'//{introspection:location})
     end select
     ! Get an object to store the results in.
     result => Get_New_Assert_Result()
@@ -253,27 +253,29 @@ contains
 
     passCount=0
     failCount=0
-    result => firstResult
-    do while (associated(result))
-       if (.not.(result%beginGroup.or.result%endGroup)) then
-          select case (result%result)
-          case (testFailed)
-             failCount=failCount+1
-             message=" FAILED: "//result%label
-             if (result%note /= "") message=message//" ["//result%note//"]"
-          case (testPassed)
-             passCount=passCount+1
-             message=" passed: "//result%label
-          case (testSkipped)
-             message="skipped: "//result%label//" ["//result%note//"]"
-          end select
-          call displayMessage(message)
-       else
-          if (result%beginGroup) call displayIndent  (result%label)
-          if (result%endGroup  ) call displayUnindent("")
-       end if
-       result => result%nextResult
-    end do
+    if (.not.firstAssert) then
+       result => firstResult
+       do while (associated(result))
+          if (.not.(result%beginGroup.or.result%endGroup)) then
+             select case (result%result)
+             case (testFailed)
+                failCount=failCount+1
+                message=" FAILED: "//result%label
+                if (result%note /= "") message=message//" ["//result%note//"]"
+             case (testPassed)
+                passCount=passCount+1
+                message=" passed: "//result%label
+             case (testSkipped)
+                message="skipped: "//result%label//" ["//result%note//"]"
+             end select
+             call displayMessage(message)
+          else
+             if (result%beginGroup) call displayIndent  (result%label)
+             if (result%endGroup  ) call displayUnindent("")
+          end if
+          result => result%nextResult
+       end do
+    end if
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
     else
@@ -285,7 +287,7 @@ contains
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
     else
-       percentage=100
+       percentage=  0
     end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"

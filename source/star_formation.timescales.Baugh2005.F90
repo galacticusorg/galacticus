@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -138,8 +138,8 @@ contains
     Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the {\normalfont
     \ttfamily baugh2005} timescale model.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponent, nodeComponentDisk, nodeComponentSpheroid
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponent, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (starFormationTimescaleBaugh2005), intent(inout) :: self
     class           (nodeComponent                  ), intent(inout) :: component
@@ -154,7 +154,7 @@ contains
        velocity=component%velocity()
     class default
        velocity=0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     if (velocity <= 0.0) then
        baugh2005Timescale=0.0d0

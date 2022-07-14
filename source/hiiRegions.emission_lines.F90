@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +39,7 @@ contains
     !!{
     Return the wavelength of a named emission line.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     character(len=*), intent(in) :: lineName
@@ -55,7 +55,7 @@ contains
        end if
     end do
     emissionLineWavelength=0.0d0
-    call Galacticus_Error_Report('line "'//trim(lineName)//'" was not found in the database'//{introspection:location})
+    call Error_Report('line "'//trim(lineName)//'" was not found in the database'//{introspection:location})
     return
   end function emissionLineWavelength
 
@@ -63,9 +63,10 @@ contains
     !!{
     Initialize a database of emission line properties.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
-    use :: IO_HDF5           , only : hdf5Object    , hdf5Access
-    use :: ISO_Varying_String, only : char          , operator(==)
+    use :: Input_Paths       , only : inputPath , pathTypeDataStatic
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : char      , operator(==)
     implicit none
     type   (hdf5Object) :: file   , lines, &
          &                 dataset
@@ -75,7 +76,7 @@ contains
        !$omp critical (emissionLineDatabaseInitialize)
        if (.not.databaseInitialized) then
           !$ call hdf5Access%set()
-          call file%openFile(char(galacticusPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
+          call file%openFile(char(inputPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
           allocate(wavelengths(size(lineNames)))

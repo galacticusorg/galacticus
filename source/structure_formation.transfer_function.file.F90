@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -109,9 +109,11 @@
            DATASPACE  SCALAR
         }
      }
-     DATASET "transferFunction" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+     GROUP "darkMatter" {
+        DATASET "transferFunctionZ0.0000" {
+           DATATYPE  H5T_IEEE_F64LE
+           DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+        }
      }
      DATASET "wavenumber" {
         DATATYPE  H5T_IEEE_F64LE
@@ -120,6 +122,10 @@
   }
   }
   \end{verbatim}
+
+  If an optional \refClass{transferFunctionClass} object named {\normalfont \ttfamily transferFunctionReference} is supplied then
+  that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to
+  {\normalfont \ttfamily transferFunctionReference} are also computed.
   </description>
   </transferFunction>
   !!]
@@ -128,11 +134,15 @@
      A transfer function class which interpolates a transfer function given in a file.
      !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_               => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                => null()
+     class           (transferFunctionClass   ), pointer :: transferFunctionReference          => null()
      type            (varying_string          )          :: fileName
      type            (table1DGeneric          )          :: transfer
-     double precision                                    :: time                          , redshift
+     logical                                             :: massHalfModeAvailable                       , massQuarterModeAvailable, &
+          &                                                 transferFunctionReferenceAvailable
+     double precision                                    :: time                                        , redshift                , &
+          &                                                 massHalfMode                                , massQuarterMode
    contains
      !![
      <methods>
@@ -145,6 +155,7 @@
      procedure :: logarithmicDerivative => fileLogarithmicDerivative
      procedure :: halfModeMass          => fileHalfModeMass
      procedure :: quarterModeMass       => fileQuarterModeMass
+     procedure :: fractionModeMass      => fileFractionModeMass
      procedure :: epochTime             => fileEpochTime
   end type transferFunctionFile
 
@@ -172,6 +183,7 @@ contains
     type            (inputParameters         ), intent(inout) :: parameters
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    class           (transferFunctionClass   ), pointer       :: transferFunctionReference
     type            (varying_string          )                :: fileName
     double precision                                          :: redshift
 
@@ -190,31 +202,58 @@ contains
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
-    self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_)
+    if (parameters%isPresent('transferFunctionReference')) then
+       !![
+       <objectBuilder class="transferFunction" name="transferFunctionReference" source="parameters" parameterName="transferFunctionReference"/>
+       !!]
+    else
+       transferFunctionReference => null()
+    end if
     !![
+    <conditionalCall>
+      <call>self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
+      <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="cosmologyFunctions_" />
     !!]
+    if (parameters%isPresent('transferFunctionReference')) then
+       !![
+       <objectDestructor name="transferFunctionReference"/>
+       !!]
+    end if
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
     !!{
     Internal constructor for the file transfer function class.
     !!}
     implicit none
-    type            (transferFunctionFile    )                        :: self
-    character       (len=*                   ), intent(in   )         :: fileName
-    double precision                          , intent(in   )         :: redshift
-    class           (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
+    type            (transferFunctionFile    )                                  :: self
+    character       (len=*                   ), intent(in   )                   :: fileName
+    double precision                          , intent(in   )                   :: redshift
+    class           (cosmologyParametersClass), intent(in   ), target           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(in   ), target           :: cosmologyFunctions_
+    class           (transferFunctionClass   ), intent(in   ), target, optional :: transferFunctionReference
+    integer                                                                     :: status
     !![
-    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
+    ! Compute half and quarter-mode masses.
+    self%transferFunctionReferenceAvailable=present(transferFunctionReference)
+    self%massHalfModeAvailable             =.false.
+    self%massQuarterModeAvailable          =.false.
+    if (self%transferFunctionReferenceAvailable) then
+       self%massHalfMode            =self%fractionModeMass(fraction=0.50d0,status=status)
+       self%massHalfModeAvailable   =status == errorStatusSuccess
+       self%massQuarterMode         =self%fractionModeMass(fraction=0.25d0,status=status)
+       self%massQuarterModeAvailable=status == errorStatusSuccess
+    end if
     return
   end function fileConstructorInternal
 
@@ -225,8 +264,9 @@ contains
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: IO_HDF5                , only : hdf5Access                        , hdf5Object
+    use :: Error                  , only : Error_Report
+    use :: HDF5_Access            , only : hdf5Access
+    use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use :: Table_Labels           , only : enumerationExtrapolationTypeEncode
@@ -249,11 +289,11 @@ contains
          &                                                                   darkMatterGroup
 
     ! Open and read the HDF5 data file.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
+    if (versionNumber /= fileFormatVersionCurrent) call Error_Report('file has the incorrect version number'//{introspection:location})
     ! Check that parameters match if any are present.
     parametersObject=fileObject%openGroup('parameters')
     allocate(cosmologyParametersSimple :: cosmologyParametersFile)
@@ -295,7 +335,7 @@ contains
     call darkMatterGroup%close      (                                                          )
     ! Close the file.
     call fileObject%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
@@ -339,6 +379,9 @@ contains
     double precision                      , intent(in   ) :: wavenumber
 
     fileValue=exp(self%transfer%interpolate(log(wavenumber)))
+    if (self%transferFunctionReferenceAvailable) &
+         & fileValue=+                               fileValue             &
+         &           *self%transferFunctionReference%    value(wavenumber)
     return
   end function fileValue
 
@@ -349,28 +392,35 @@ contains
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-
+    
     fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    if (self%transferFunctionReferenceAvailable) &
+         & fileLogarithmicDerivative=+                               fileLogarithmicDerivative             &
+         &                           +self%transferFunctionReference%    logarithmicDerivative(wavenumber)
+
     return
   end function fileLogarithmicDerivative
 
   double precision function fileHalfModeMass(self,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
-    this implementation.
+    suppressed by a factor of two relative to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
-    class  (transferFunctionFile), intent(inout)           :: self
+    class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
-    !$GLC attributes unused :: self
 
-    fileHalfModeMass=0.0d0
-    if (present(status)) then
-       status=errorStatusFail
+    if (self%massHalfModeAvailable) then
+       fileHalfModeMass=self%massHalfMode
+       if (present(status)) status=errorStatusSuccess
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       fileHalfModeMass=0.0d0
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Error_Report('not supported by this implementation'//{introspection:location})
+       end if
     end if
     return
   end function fileHalfModeMass
@@ -378,23 +428,95 @@ contains
   double precision function fileQuarterModeMass(self,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
-    this implementation.
+    suppressed by a factor of four relative to a \gls{cdm} transfer function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionFile), intent(inout)           :: self
+    class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
-    !$GLC attributes unused :: self
-
-    fileQuarterModeMass=0.0d0
-    if (present(status)) then
-       status=errorStatusFail
+    
+    if (self%massQuarterModeAvailable) then
+       fileQuarterModeMass=self%massQuarterMode
+       if (present(status)) status=errorStatusSuccess
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       fileQuarterModeMass=0.0d0
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Error_Report('not supported by this implementation'//{introspection:location})
+       end if
     end if
     return
   end function fileQuarterModeMass
+
+  double precision function fileFractionModeMass(self,fraction,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    reduced by {\normalfont \ttfamily fraction} relative to a \gls{cdm} transfer function.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Error                   , only : Error_Report, errorStatusFail
+    implicit none
+    class           (transferFunctionFile), intent(inout), target   :: self
+    double precision                      , intent(in   )           :: fraction
+    integer                               , intent(  out), optional :: status
+    double precision                                                :: fractionCurrent, fractionPrevious, &
+         &                                                             wavenumber     , matterDensity
+    integer                                                         :: j
+    logical                                                         :: modeFound
+    
+    if (present(status)) status=errorStatusSuccess
+    if (self%transferFunctionReferenceAvailable) then
+       matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
+            &                  *self%cosmologyParameters_%densityCritical()
+       ! Step from large to small scales until the target fraction is reached.
+       fractionCurrent =0.0d0
+       fractionPrevious=0.0d0
+       modeFound       =.false.
+       do j=1,self%transfer%size()
+          fractionPrevious=+fractionCurrent
+          fractionCurrent =+exp(self%transfer%y(j))
+          if (fractionCurrent < fraction) then
+             if (j > 1) then            
+                ! Interpolate to find the exact wavenumber.
+                wavenumber=+exp(                                                                      &
+                     &          +(+              fraction          -              fractionPrevious  ) &
+                     &          /(+              fractionCurrent   -              fractionPrevious  ) &
+                     &          *(+self%transfer%x              (j)-self%transfer%x            (j-1)) &
+                     &          +                                   self%transfer%x            (j-1)  &
+                     &         )
+                ! Compute the mode mass.
+                modeFound           =.true.
+                fileFractionModeMass=+4.0d0         &
+                     &               *Pi            &
+                     &               /3.0d0         &
+                     &               *matterDensity &
+                     &               *(             &
+                     &                 +Pi          &
+                     &                 /wavenumber  &
+                     &                )**3
+             end if
+             exit
+          end if
+       end do
+       if (.not.modeFound) then
+          fileFractionModeMass=0.0d0
+          if (present(status)) then
+             status=errorStatusFail
+          else
+             call Error_Report('not supported by this implementation'//{introspection:location})
+          end if
+       end if
+    else
+       fileFractionModeMass=0.0d0
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Error_Report('not supported by this implementation'//{introspection:location})
+       end if
+    end if
+    return
+  end function fileFractionModeMass
 
   double precision function fileEpochTime(self)
     !!{

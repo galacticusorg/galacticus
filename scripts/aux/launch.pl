@@ -34,14 +34,18 @@ my %arguments =
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the launch script.
-my $launchScript          = &Parse_Launch_Script    ($launchFileName);
+my $launchScript          = &Parse_Launch_Script            ($launchFileName);
 
 # Read in any configuration options.
-$launchScript->{'config'} = &Parse_Galacticus_Config(               );
+$launchScript->{'config'} = &Galacticus::Options::LoadConfig(               );
+
+# Override launch method if specified on the command line.
+$launchScript->{'launchMethod'} = $arguments{'launchMethod'}
+    if ( exists($arguments{'launchMethod'}) );
 
 # Check for an instance number for this launch.
 if ( $arguments{"instance"} =~ m/(\d+):(\d+)/ ) {
-    $launchScript->{'thisInstance' }  = $1;
+    $launchScript->{'thisInstance' } = $1;
     $launchScript->{'instanceCount'} = $2;
     print " -> launching instance ".$launchScript->{'thisInstance'}." of ".$launchScript->{'instanceCount'}."\n"
 	if ( $launchScript->{'verbosity'} > 0 );
@@ -59,7 +63,7 @@ my @jobs = &Construct_Models($launchScript);
 
 # Launch models.
 &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
-		      (\@jobs,$launchScript);
+		      (\@jobs,$launchScript,\%arguments);
 
 exit;
 
@@ -136,7 +140,7 @@ sub Construct_Models {
 			$parameters = $xml->XMLin($launchScript->{'baseParameters'});
 		    }
 		    # Set the output file name.
-		    $parameters->{'galacticusOutputFileName'}->{'value'} 
+		    $parameters->{'outputFileName'}->{'value'} 
 		        = &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
 		           ($galacticusOutputFile,$launchScript);
 		    # Set the random seed.
@@ -144,7 +148,7 @@ sub Construct_Models {
 			unless ( exists($parameters->{'randomSeed'}) );
 		    # Set a state restore file.
 		    if ( $launchScript->{'useStateFile'} eq "yes" ) {
-			(my $stateFile = $parameters->{'galacticusOutputFileName'}->{'value'}) =~ s/\.hdf5//;
+			(my $stateFile = $parameters->{'outputFileName'}->{'value'}) =~ s/\.hdf5//;
 			$parameters->{'stateFileRoot'}->{'value'} = $stateFile;
 		    }
 		    # Transfer parameters for this model to the active parameter set.
@@ -343,16 +347,4 @@ sub Parse_Launch_Script {
     }
     # Return the script.
     return $launchScript;
-}
-
-sub Parse_Galacticus_Config {
-    # Parse any local configuration.
-    my $config;
-    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
-	# Load XML.
-	my $xml          = new XML::Simple;
-	$config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
-    }
-    # Return the config.
-    return $config;
 }

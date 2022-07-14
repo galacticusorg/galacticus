@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -155,9 +155,9 @@ contains
          &               *  self%gamma                                                                 &
          &               *  self%cosmologyFunctions_ %expansionFactor      (basic%time())**self%delta1 &
          &               *(                                                                            &
-         &                 +self%darkMatterHaloScale_%virialVelocity       (node        )              &
+         &                 +self%darkMatterHaloScale_%velocityVirial       (node        )              &
          &                 /                          velocityNormalization                            &
          &                )                                                              **self%delta2 &
-         &               /  self%darkMatterHaloScale_%dynamicalTimescale   (node        )
+         &               /  self%darkMatterHaloScale_%timescaleDynamical   (node        )
     return
   end function henriques2013Rate

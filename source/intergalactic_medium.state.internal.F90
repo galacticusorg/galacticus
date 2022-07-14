@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -329,8 +329,8 @@ contains
     !!{
     Set state in the internal intergalatic medium state class.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (*), intent(inout)               :: self
     double precision   , intent(in   ), dimension(:) :: time            , densityHydrogen1, &
@@ -369,7 +369,7 @@ contains
        allocate(self%interpolator_)
        self%interpolator_=interpolator(self%time)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine internalStateSet

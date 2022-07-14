@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
 Contains a module which implements an N-body data importer for Gadget binary files.
 !!}
 
-  use :: ISO_Varying_String, only : varying_string
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: ISO_Varying_String  , only : varying_string
 
   !![
   <nbodyImporter name="nbodyImporterGadgetBinary">
@@ -33,11 +34,14 @@ Contains a module which implements an N-body data importer for Gadget binary fil
      An importer for Gadget HDF5 files.
      !!}
      private
-     type            (varying_string) :: fileName       , label
-     integer                          :: particleType
-     double precision                 :: lengthSoftening, unitMassInSI    , &
-          &                              unitLengthInSI , unitVelocityInSI
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     type            (varying_string          )          :: fileName                      , label
+     integer                                             :: particleType
+     double precision                                    :: lengthSoftening               , unitMassInSI    , &
+          &                                                 unitLengthInSI                , unitVelocityInSI
+     logical                                             :: isCosmological
    contains
+     final     ::           gadgetBinaryDestructor
      procedure :: import => gadgetBinaryImport
      procedure :: isHDF5 => gadgetBinaryIsHDF5
   end type nbodyImporterGadgetBinary
@@ -49,7 +53,7 @@ Contains a module which implements an N-body data importer for Gadget binary fil
      module procedure gadgetBinaryConstructorParameters
      module procedure gadgetBinaryConstructorInternal
   end interface nbodyImporterGadgetBinary
-
+  
 contains
 
   function gadgetBinaryConstructorParameters(parameters) result (self)
@@ -60,10 +64,12 @@ contains
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
-    type            (varying_string           )                :: fileName       , label
+    class           (cosmologyParametersClass ), pointer       :: cosmologyParameters_
+    type            (varying_string           )                :: fileName            , label
     integer                                                    :: particleType
-    double precision                                           :: lengthSoftening, unitMassInSI    , &
-         &                                                        unitLengthInSI , unitVelocityInSI
+    double precision                                           :: lengthSoftening     , unitMassInSI    , &
+         &                                                        unitLengthInSI      , unitVelocityInSI
+    logical                                                    :: isCosmological
 
     !![
     <inputParameter>
@@ -80,7 +86,7 @@ contains
     <inputParameter>
       <name>particleType</name>
       <source>parameters</source>
-      <description>The particle type to read from the Gadget bianry file.</description>
+      <description>The particle type to read from the Gadget binary file.</description>
     </inputParameter>
     <inputParameter>
       <name>lengthSoftening</name>
@@ -103,103 +109,251 @@ contains
       <description>The velocity unit expressed in the SI system.</description>
     </inputParameter>
     <inputParameter>
-      <name>unitVelocityInSI</name>
+      <name>isCosmological</name>
       <source>parameters</source>
-      <description>The velocity unit expressed in the SI system.</description>
+      <description>Set to true if this is a cosmological simulation, false otherwise.</description>
     </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=nbodyImporterGadgetBinary(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
+    self=nbodyImporterGadgetBinary(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
     !!]
     return
   end function gadgetBinaryConstructorParameters
 
-  function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
+  function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_) result (self)
     !!{
     Internal constructor for the ``gadgetBinary'' N-body importer class.
     !!}
     implicit none
-    type            (nbodyImporterGadgetBinary)                :: self
-    type            (varying_string           ), intent(in   ) :: fileName       , label
-    integer                                    , intent(in   ) :: particleType
-    double precision                           , intent(in   ) :: lengthSoftening, unitMassInSI   , &
-         &                                                        unitLengthInSI ,unitVelocityInSI
+    type            (nbodyImporterGadgetBinary)                        :: self
+    type            (varying_string           ), intent(in   )         :: fileName            , label
+    integer                                    , intent(in   )         :: particleType
+    double precision                           , intent(in   )         :: lengthSoftening     , unitMassInSI    , &
+         &                                                                unitLengthInSI      , unitVelocityInSI
+    logical                                    , intent(in   )         :: isCosmological
+    class           (cosmologyParametersClass ), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI"/>
+    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI, unitLengthInSI, isCosmological, *cosmologyParameters_"/>
     !!]
 
     return
   end function gadgetBinaryConstructorInternal
 
+  subroutine gadgetBinaryDestructor(self)
+    !!{
+    Destructor for the Gadget binary N-body importer class.
+    !!}
+    implicit none
+    type(nbodyImporterGadgetBinary), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
+    return
+  end subroutine gadgetBinaryDestructor
+
   subroutine gadgetBinaryImport(self,simulations)
     !!{
     Import data from a Gadget HDF5 file.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank1DoublePtrHash
-    use :: Memory_Management               , only : allocateArray
-    use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
-    use :: Numerical_Constants_Prefixes    , only : kilo
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Display                         , only : displayIndent           , displayUnindent         , verbosityLevelStandard
+    use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use            :: File_Utilities                  , only : File_Exists
+    use            :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash    , rank2DoublePtrHash, &
+         &                                                     doubleHash              , varyingStringHash       , integerSizeTHash      , genericHash
+    use            :: Memory_Management               , only : allocateArray
+    use            :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
+    use            :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (nbodyImporterGadgetBinary), intent(inout)                                :: self
     type            (nBodyData                ), intent(  out), allocatable  , dimension(:  ) :: simulations
-    integer                                                                  , dimension(6  ) :: numberParticleType    , numberParticleTypeFile, &
-         &                                                                                       numberParticleTypeRead
-    real                                                      , allocatable  , dimension(:,:) :: position              , velocity
-    double precision                                          , pointer      , dimension(:,:) :: position_             , velocity_
+    integer                                                                  , dimension(6  ) :: numberParticleType     , numberParticleTypeFile
+    integer                                                                                   :: numberParticleTotal    , numberParticleTotalFile, &
+         &                                                                                       numberParticleTotalRead, numberParticleStartRead, &
+         &                                                                                       numberMassStartRead
+    real                                                      , allocatable  , dimension(:,:) :: position               , velocity
+    double precision                                          , pointer      , dimension(:,:) :: position_              , velocity_
     double precision                                                         , dimension(6  ) :: massParticleType
-    double precision                                                                          :: time                  , redshift
-    integer                                                                                   :: file                  , flagSFR               , &
-         &                                                                                       flagFeedback          , flagCooling           , &
-         &                                                                                       numberFiles           , fileNumber
+    real                                                      , allocatable  , dimension(:  ) :: mass
+    double precision                                          , pointer      , dimension(:  ) :: mass_
+    integer                                                   , allocatable  , dimension(:  ) :: id
+    integer         (c_size_t                 )               , pointer      , dimension(:  ) :: id_
+    double precision                                                                          :: time                   , redshift               , &
+         &                                                                                       hubbleConstantLittleH  , boxSize
+    integer                                                                                   :: file                   , flagSFR                , &
+         &                                                                                       flagFeedback           , flagCooling            , &
+         &                                                                                       numberFiles            , fileNumber             , &
+         &                                                                                       i                      , j
     character       (len=6                    )                                               :: fileNumberText
+    logical                                                                                   :: particleTypeAll        , massesDiffer           , &
+         &                                                                                       readMasses
 
-    ! Open the file.
+    call displayIndent('import simulation from Gadget binary file',verbosityLevelStandard)
     allocate(simulations(1))
-    simulations(1)%label  =self%label
-    numberFiles           =huge(0)
-    fileNumber            =     0
-    numberParticleTypeRead=     0
+    simulations(1)%label   =self%label
+    particleTypeAll        =self%particleType < 0
+    numberFiles            =huge(0)
+    fileNumber             =     0
+    numberParticleTotalRead=     0
+    numberParticleTotal    =     0
+    if (self%isCosmological) then
+       hubbleConstantLittleH=self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+    else
+       hubbleConstantLittleH=1.0d0
+    end if
     do while (fileNumber < numberFiles)
-       write (fileNumberText,'(i4)') fileNumber
-       open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
-       read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles
-       if (fileNumber == 0) then
-          allocate(position_(3,numberParticleType(self%particleType+1)))
-          allocate(velocity_(3,numberParticleType(self%particleType+1)))
+       ! Check for the existance of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
+       if (fileNumber == 0 .and. File_Exists(self%fileName)) then
+          ! Open the file with no subfile suffix.
+          open(newUnit=file,file=char(self%fileName)                                    ,status='old',form='unformatted')
+       else
+          ! Append the appropriate subfile suffix and open the file.
+          write (fileNumberText,'(i4)') fileNumber
+          open(newUnit=file,file=char(self%fileName)//"."//trim(adjustl(fileNumberText)),status='old',form='unformatted')
        end if
-       allocate(position(3,numberParticleTypeFile(self%particleType+1)))
-       allocate(velocity(3,numberParticleTypeFile(self%particleType+1)))
-       read (file) position
-       read (file) velocity
+       read (file) numberParticleTypeFile, massParticleType, time, redshift, flagSFR, flagFeedback, numberParticleType, flagCooling, numberFiles, boxSize
+       if (fileNumber == 0) then
+          if (particleTypeAll) then
+             numberParticleTotal=sum(numberParticleType                     )
+             massesDiffer       =any(massParticleType                      == 0.0d0 .and. numberParticleType > 0) .or. any(massParticleType /= massParticleType(1))
+          else
+             numberParticleTotal=    numberParticleType(self%particleType+1)
+             massesDiffer       =    massParticleType(self%particleType+1) == 0.0d0 
+          end if
+          readMasses=massesDiffer .and. any(massParticleType == 0.0d0)
+          allocate       (position_(3,numberParticleTotal))
+          allocate       (velocity_(3,numberParticleTotal))
+          allocate       (id_      (  numberParticleTotal))
+          if (massesDiffer)                                 &
+               & allocate(mass_    (  numberParticleTotal))
+       end if
+       if (particleTypeAll) then
+          numberParticleTotalFile   =sum(numberParticleTypeFile                       )
+          numberParticleStartRead   =0
+       else
+          numberParticleTotalFile   =    numberParticleTypeFile(  self%particleType+1)
+          if (self%particleType > 0) then
+             numberParticleStartRead=sum(numberParticleTypeFile(1:self%particleType  ))
+          else
+             numberParticleStartRead=0
+          end if
+       end if
+       allocate       (position(3,sum(numberParticleTypeFile                               )))
+       allocate       (velocity(3,sum(numberParticleTypeFile                               )))
+       allocate       (id      (  sum(numberParticleTypeFile                               )))
+       if (readMasses)                                                                         &
+            & allocate(mass    (  sum(numberParticleTypeFile,mask=massParticleType == 0.0d0)))
+       read        (file) position
+       read        (file) velocity
+       read        (file) id
+       if (readMasses .and. size(mass) > 0) &
+            & read (file) mass
        close(file)
-       position_(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=position
-       velocity_(:,numberParticleTypeRead(self%particleType+1)+1:numberParticleTypeRead(self%particleType+1)+numberParticleTypeFile(self%particleType+1))=velocity
-       deallocate(position)
-       deallocate(velocity)
-       numberParticleTypeRead=numberParticleTypeRead+numberParticleTypeFile
-       fileNumber            =fileNumber            +1
+       position_(:,numberParticleTotalRead+1:numberParticleTotalRead+numberParticleTotalFile)=position(:,numberParticleStartRead+1:numberParticleStartRead+numberParticleTotalFile)
+       velocity_(:,numberParticleTotalRead+1:numberParticleTotalRead+numberParticleTotalFile)=velocity(:,numberParticleStartRead+1:numberParticleStartRead+numberParticleTotalFile)
+       id_      (  numberParticleTotalRead+1:numberParticleTotalRead+numberParticleTotalFile)=id      (  numberParticleStartRead+1:numberParticleStartRead+numberParticleTotalFile)
+       if (massesDiffer) then
+          if (particleTypeAll) then
+             j                  =0
+             numberMassStartRead=0
+             do i=1,6
+                if (numberParticleTypeFile(i) == 0) cycle
+                if (readMasses .and. massParticleType(i) == 0.0d0) then
+                   mass_              (numberParticleTotalRead+j+1:numberParticleTotalRead+j+numberParticleTypeFile(i))=                    mass                  (numberMassStartRead+1:numberMassStartRead+numberParticleTypeFile  (i))
+                   numberMassStartRead                                                                                 =numberMassStartRead+numberParticleTypeFile(i)
+                else
+                   mass_              (numberParticleTotalRead+j+1:numberParticleTotalRead+j+numberParticleTypeFile(i))=                    massParticleType      (                                                                   i )
+                end if
+                j                                                                                                      =j                  +numberParticleTypeFile(                                                                   i )
+             end do
+          else
+             if (readMasses) then
+                if (self%particleType > 0) then
+                   numberMassStartRead=sum(numberParticleTypeFile(1:self%particleType),mask=massParticleType(1:self%particleType) == 0.0d0)
+                else
+                   numberMassStartRead=0
+                end if
+                mass_                 (numberParticleTotalRead  +1:numberParticleTotalRead  +numberParticleTotalFile   )=                    mass                  (numberMassStartRead+1:numberMassStartRead+numberParticleTotalFile   )
+             else
+                mass_                 (numberParticleTotalRead  +1:numberParticleTotalRead  +numberParticleTotalFile   )=                    massParticleType      (self%particleType  +1                                               )
+             end if
+          end if
+       end if
+       deallocate     (position)
+       deallocate     (velocity)
+       deallocate     (id      )
+       if (readMasses) &
+            deallocate(mass    )
+       if (particleTypeAll) then
+          numberParticleTotalRead=numberParticleTotalRead+sum(numberParticleTypeFile                     )
+       else
+          numberParticleTotalRead=numberParticleTotalRead+    numberParticleTypeFile(self%particleType+1)
+       end if
+       fileNumber=fileNumber+1
     end do
-    ! Set particle mass.
-    call simulations(1)%attributesReal%set(                                        &
-         &                                 'massParticle'                        , &
-         &                                 +massParticleType(self%particleType+1)  &
-         &                                 *self%unitMassInSI                      &
-         &                                 /massSolar                              &
-         &                                )
     ! Convert position and velocities to internal units.
     position_=+position_                   &
          &    *self      %unitLengthInSI   &
+         &    /hubbleConstantLittleH       &
          &    /megaParsec
     velocity_=+velocity_                   &
          &    *self      %unitVelocityInSI &
          &    /kilo
+    boxSize  =+boxSize                     &
+         &    *self      %unitLengthInSI   &
+         &    /hubbleConstantLittleH       &
+         &    /megaParsec
+    !! For cosmological simulations velocities are in internal Gadget units and must be multiplied by √a to get peculiar velocity.
+    if (self%isCosmological)         &
+         velocity_=+velocity_        &
+         &         *sqrt(            &
+         &               +  1.0d0    &
+         &               /(          &
+         &                 +1.0d0    &
+         &                 +redshift &
+         &                )          &
+         &              )
     ! Set the properties.
-    simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
-    simulations(1)%propertiesReal   =rank1DoublePtrHash      ()
-    call simulations(1)%propertiesRealRank1%set('position',position_)
-    call simulations(1)%propertiesRealRank1%set('velocity',velocity_)
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesReal        =doubleHash              ()
+    simulations(1)%attributesText        =varyingStringHash       ()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesGeneric     =genericHash             ()
+    call simulations(1)%attributesReal     %set('boxSize'   ,boxSize  )
+    call simulations(1)%propertiesRealRank1%set('position'  ,position_)
+    call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity_)
+    call simulations(1)%propertiesInteger  %set('particleID',id_      )
+    ! Set particle mass.
+    if (massesDiffer) then
+       mass_  =+mass_                  &
+            &  *self     %unitMassInSI &
+            &  /hubbleConstantLittleH  &
+            &  /massSolar
+       call simulations(1)%propertiesReal%set(                                        &
+            &                                 'massParticle'                        , &
+            &                                  mass_                                  &
+            &                                )
+       call simulations(1)%attributesReal%set(                                        &
+            &                                 'massParticle'                        , &
+            &                                 -1.0d0                                  &
+            &                                )
+    else
+       call simulations(1)%attributesReal%set(                                        &
+            &                                 'massParticle'                        , &
+            &                                 +massParticleType(self%particleType+1)  &
+            &                                 *self%unitMassInSI                      &
+            &                                 /hubbleConstantLittleH                  &
+            &                                 /massSolar                              &
+            &                                )
+    end if
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine gadgetBinaryImport
 

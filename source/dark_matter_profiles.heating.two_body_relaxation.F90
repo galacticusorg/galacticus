@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -105,7 +105,7 @@ contains
     return
   end function twoBodyRelaxationConstructorInternal
 
-  double precision function twoBodyRelaxationSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
+  double precision function twoBodyRelaxationSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}. The assumption here is that the mean
     fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
@@ -165,7 +165,7 @@ contains
     return
   end function twoBodyRelaxationSpecificEnergy
 
-  double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
+  double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
@@ -218,17 +218,17 @@ contains
                &            /velocity                                                    **2 &
                &           )
        end if
-       twoBodyRelaxationSpecificEnergyGradient=+self                             %specificEnergy(node,darkMatterProfileDMO_,radius)    &
-            &                                  /                                                                            radius     &
+       twoBodyRelaxationSpecificEnergyGradient=+self                             %specificEnergy(node,radius,darkMatterProfileDMO_)    &
+            &                                  /                                                      radius                           &
             &                                  *(                                                                                      &
             &                                    -2.5d0                                                                                &
             &                                    +6.0d0                                                                                &
             &                                    *Pi                                                                                   &
             &                                    *gravitationalConstantGalacticus                                                      &
-            &                                    *darkMatterProfileDMO_          %density       (node,                      radius)    &
+            &                                    *darkMatterProfileDMO_          %density       (node,radius                      )    &
             &                                    *radius                                                                           **2 &
             &                                    /velocity                                                                         **2 &
-            &                                    -                                                                          radius     &
+            &                                    -                                                    radius                           &
             &                                    *                gradientCoulomb                                                      &
             &                                    /               logarithmCoulomb                                                      &
             &                                    *sqrt(exp(2.0d0*logarithmCoulomb)-1.0d0)                                              &

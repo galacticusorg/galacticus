@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -197,7 +197,7 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
@@ -206,7 +206,7 @@ contains
     !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -246,7 +246,7 @@ contains
     !!{
     Return the solid angle of the \cite{li_distribution_2009} sample.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     integer                                        , intent(in   ), optional :: field
@@ -254,7 +254,7 @@ contains
     !$GLC attributes unused :: self
 
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
+    if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
     liWhite2009SDSSSolidAngle=solidAngleSurvey
     return
   end function liWhite2009SDSSSolidAngle
@@ -265,8 +265,8 @@ contains
     !!}
     use :: Display                 , only : displayMessage
     use :: File_Utilities          , only : Count_Lines_In_File    , Directory_Make     , File_Exists
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
+    use :: Error                   , only : Error_Report
+    use :: Input_Paths             , only : inputPath              , pathTypeDataDynamic
     use :: ISO_Varying_String      , only : varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
@@ -281,15 +281,15 @@ contains
     type            (varying_string               )                            :: message
 
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
-    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
-       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"surveyGeometry")
-       call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
+    if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
+       call Directory_Make(inputPath(pathTypeDataDynamic)//"surveyGeometry")
+       call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
+       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if
-    randomsCount=Count_Lines_In_File(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
+    randomsCount=Count_Lines_In_File(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
     call allocateArray(self%randomTheta,[randomsCount])
     call allocateArray(self%randomPhi  ,[randomsCount])
-    open(newUnit=randomUnit,file=char(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
+    open(newUnit=randomUnit,file=char(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
     j=0
     do i=1,randomsCount
        read (randomUnit,*) rightAscension,declination

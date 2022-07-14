@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,8 +31,7 @@ program Test_Hearin2021_Stochastic_MAH
   use            :: Events_Hooks                             , only : eventsHooksInitialize
   use            :: File_Utilities                           , only : Count_Lines_in_File
   use            :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use            :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
-  use            :: Galacticus_Paths                         , only : galacticusPath                                        , pathTypeExec
+  use            :: Input_Paths                              , only : inputPath                                             , pathTypeExec
   use            :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                          , nodeComponentBasic               , treeNode , mergerTree
   use            :: Input_Parameters                         , only : inputParameters
   use            :: ISO_Varying_String                       , only : char
@@ -94,9 +93,9 @@ program Test_Hearin2021_Stochastic_MAH
   treeEarly %initializedUntil          =  0.0d0
   treeEarly %event                     => null()
   treeEarly %firstTree                 => treeEarly
-  treeEarly %baseNode                  => treeNode                (                 )
-  treeEarly %baseNode        %hostTree => treeEarly
-  basicEarly                           => treeEarly%baseNode%basic(autoCreate=.true.)
+  treeEarly %nodeBase                  => treeNode                (                 )
+  treeEarly %nodeBase        %hostTree => treeEarly
+  basicEarly                           => treeEarly%nodeBase%basic(autoCreate=.true.)
   allocate(randomNumberGeneratorGSL :: treeEarly%randomNumberGenerator_)
   select type (randomNumberGenerator_ => treeEarly%randomNumberGenerator_)
   type is (randomNumberGeneratorGSL)
@@ -109,9 +108,9 @@ program Test_Hearin2021_Stochastic_MAH
   treeLate  %initializedUntil          =  0.0d0
   treeLate  %event                     => null()
   treeLate  %firstTree                 => treeLate
-  treeLate  %baseNode                  => treeNode                (                 )
-  treeLate  %baseNode        %hostTree => treeLate
-  basicLate                            => treeLate %baseNode%basic(autoCreate=.true.)
+  treeLate  %nodeBase                  => treeNode                (                 )
+  treeLate  %nodeBase        %hostTree => treeLate
+  basicLate                            => treeLate %nodeBase%basic(autoCreate=.true.)
   allocate(randomNumberGeneratorGSL :: treeLate %randomNumberGenerator_)
   select type (randomNumberGenerator_ => treeLate %randomNumberGenerator_)
   type is (randomNumberGeneratorGSL)
@@ -150,8 +149,8 @@ program Test_Hearin2021_Stochastic_MAH
   call basicEarly%timeSet(13.8d0        )
   call basicLate %timeSet(13.8d0        )
   ! Open the reference file produced by Andrew Hearin's "diffmah" code and read the parameter values used.
-  countTimes=Count_Lines_In_File(char(galacticusPath(pathTypeExec))//'testSuite/data/hearin2021MAHMean.txt',comment_char='#')
-  open(newUnit=referenceFile,file=char(galacticusPath(pathTypeExec))//'testSuite/data/hearin2021MAHMean.txt',status='old',form='formatted')
+  countTimes=Count_Lines_In_File(char(inputPath(pathTypeExec))//'testSuite/data/hearin2021MAHMean.txt',comment_char='#')
+  open(newUnit=referenceFile,file=char(inputPath(pathTypeExec))//'testSuite/data/hearin2021MAHMean.txt',status='old',form='formatted')
   do i=1,7
      read (referenceFile,'(a)') line
   end do
@@ -162,8 +161,8 @@ program Test_Hearin2021_Stochastic_MAH
   do i=1,countTimes
      read (referenceFile,*) timeLogarithmic,massEarlyTarget(i),massLateTarget(i)
      time                 =10.0d0**timeLogarithmic
-     massEarlyRecovered(i)=log10(darkMatterHaloMassAccretionHistoryEarlyForming_%mass(treeEarly%baseNode,time))
-     massLateRecovered (i)=log10(darkMatterHaloMassAccretionHistoryLateForming_ %mass(treeLate %baseNode,time))
+     massEarlyRecovered(i)=log10(darkMatterHaloMassAccretionHistoryEarlyForming_%mass(treeEarly%nodeBase,time))
+     massLateRecovered (i)=log10(darkMatterHaloMassAccretionHistoryLateForming_ %mass(treeLate %nodeBase,time))
   end do
   call Assert('mass accretion history (early-forming)',massEarlyTarget,massEarlyRecovered,relTol=1.0d-6)
   call Assert('mass accretion history (late-forming)' ,massLateTarget ,massLateRecovered ,relTol=1.0d-6)
@@ -173,5 +172,4 @@ program Test_Hearin2021_Stochastic_MAH
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Hearin2021_Stochastic_MAH

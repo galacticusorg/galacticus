@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,7 @@ module Node_Component_Satellite_Very_Simple
   public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create             , &
        &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute       , &
        &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Very_Simple_State_Store        , Node_Component_Satellite_Very_Simple_State_Restore      , &
        &    Node_Component_Satellite_Very_Simple_Initialize
 
   !![
@@ -41,12 +42,12 @@ module Node_Component_Satellite_Very_Simple
    <isDefault>false</isDefault>
    <properties>
     <property>
-      <name>mergeTime</name>
+      <name>timeUntilMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Very_Simple_Merge_Time</getFunction>
+      <getFunction>Node_Component_Satellite_Very_Simple_Time_Until_Merging</getFunction>
       <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
     </property>
     <property>
@@ -202,7 +203,7 @@ contains
     ! Ensure that it is of the standard class.
     select type (satellite)
     class is (nodeComponentSatelliteVerySimple)
-       if (node%isSatellite()) call satellite%mergeTimeRate(-1.0d0)
+       if (node%isSatellite()) call satellite%timeUntilMergingRate(-1.0d0)
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Rate_Compute
@@ -210,7 +211,6 @@ contains
   !![
   <mergerTreeInitializeTask>
    <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
-   <after>darkMatterProfile</after>
   </mergerTreeInitializeTask>
   !!]
   subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(node)
@@ -244,7 +244,7 @@ contains
     type            (treeNode              ), pointer       :: nodeHost
     class           (nodeComponentSatellite), pointer       :: satellite
     logical                                                 :: isNewSatellite
-    double precision                                        :: mergeTime
+    double precision                                        :: timeUntilMerging
     type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
@@ -272,10 +272,56 @@ contains
        end if
        orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
        ! Compute and store a time until merging.
-       mergeTime=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
-       if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
+       timeUntilMerging=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
+       if (timeUntilMerging >= 0.0d0) call satellite%timeUntilMergingSet(timeUntilMerging)
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Create
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Satellite_Very_Simple_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Satellite_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentSatellite -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="virialOrbit_ satelliteMergingTimescales_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Satellite_Very_Simple_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Satellite_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentSatellite -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="virialOrbit_ satelliteMergingTimescales_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_State_Restore
 
 end module Node_Component_Satellite_Very_Simple

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,7 +112,7 @@ contains
     !!{
     Returns true if the posterior sampling should stop.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Error                   , only : Error_Report
     use :: Posterior_Sampling_State, only : posteriorSampleStateCorrelation
     implicit none
     class(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self
@@ -129,7 +129,7 @@ contains
             &   self                            %stopAfterCount
        class default
        correlationLengthStop=.false.
-       call Galacticus_Error_Report('state object does not support correlation length count'//{introspection:location})
+       call Error_Report('state object does not support correlation length count'//{introspection:location})
     end select
     return
   end function correlationLengthStop

@@ -10,7 +10,7 @@
     <haloMassMaximum value="1.0e15"/>
     <pointsPerDecade value="20"/>
   </task>
-  <galacticusOutputFileName value=""/>
+  <outputFileName value=""/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>

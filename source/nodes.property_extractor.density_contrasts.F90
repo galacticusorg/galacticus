@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@ Contains a module which implements a property extractor class for the mass and r
   use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galacticus_Nodes       , only : nodeComponentBasic , treeNode
+  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Root_Finder            , only : rootFinder
 
   !![
@@ -43,12 +44,13 @@ Contains a module which implements a property extractor class for the mass and r
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityContrasts
      !!{
-     A property extractor class for the mass and radii of spheres are specified density contrast..
+     A property extractor class for the mass and radii of spheres are specified density contrast.
      !!}
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
      class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
+     class           (galacticStructureClass  ), pointer                   :: galacticStructure_   => null()
      type            (rootFinder              )                            :: finder
      integer                                                               :: elementCount_                 , countDensityContrasts    , &
           &                                                                   massTypeSelected              , densityContrastRelativeTo
@@ -95,6 +97,7 @@ contains
     class           (cosmologyParametersClass             ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), pointer                     :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
+    class           (galacticStructureClass               ), pointer                     :: galacticStructure_
     double precision                                       , allocatable  , dimension(:) :: densityContrasts
     logical                                                                              :: darkMatterOnly
     type            (varying_string                       )                              :: densityContrastRelativeTo
@@ -121,18 +124,20 @@ contains
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorDensityContrasts(densityContrasts,darkMatterOnly,enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_)
+    self=nodePropertyExtractorDensityContrasts(densityContrasts,darkMatterOnly,enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function densityContrastsConstructorParameters
 
-  function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
+  function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
     !!}
@@ -143,12 +148,13 @@ contains
     class           (cosmologyFunctionsClass              ), intent(in   ), target       :: cosmologyFunctions_
     class           (cosmologyParametersClass             ), intent(in   ), target       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
+    class           (galacticStructureClass               ), intent(in   ), target       :: galacticStructure_
     double precision                                       , intent(in   ), dimension(:) :: densityContrasts
     logical                                                , intent(in   )               :: darkMatterOnly
     integer                                                , intent(in   )               :: densityContrastRelativeTo
     double precision                                       , parameter                   :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="densityContrasts, darkMatterOnly, densityContrastRelativeTo, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="densityContrasts, darkMatterOnly, densityContrastRelativeTo, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     self%countDensityContrasts=size(densityContrasts)
@@ -183,6 +189,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine densityContrastsDestructor
@@ -218,17 +225,18 @@ contains
     !!{
     Implement a last isolated redshift output analysis.
     !!}
-    use :: Cosmology_Functions               , only : densityCosmologicalMean         , densityCosmologicalCritical
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll
+    use :: Cosmology_Functions       , only : densityCosmologicalMean, densityCosmologicalCritical
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Options, only : componentTypeAll
     implicit none
     double precision                                        , dimension(:,:), allocatable :: densityContrastsExtract
     class           (nodePropertyExtractorDensityContrasts ), intent(inout) , target      :: self
     type            (treeNode                              ), intent(inout) , target      :: node
     double precision                                        , intent(in   )               :: time
     type            (multiCounter                          ), intent(inout) , optional    :: instance
+    double precision                                        , parameter                   :: radiusTiny             =1.0d-12
     integer                                                                               :: i
-    double precision                                                                      :: enclosedMass           , radius, &
+    double precision                                                                      :: enclosedMass                   , radius, &
          &                                                                                   densityReference
     !$GLC attributes unused :: time, instance
 
@@ -247,7 +255,7 @@ contains
        densityReference=+densityReference                                                          &
             &           /self%cosmologyFunctions_%OmegaMatterEpochal(densityContrastsBasic%time())
     case default
-       call Galacticus_Error_Report('unknown cosmological density'//{introspection:location})
+       call Error_Report('unknown cosmological density'//{introspection:location})
     end select
     ! If dark matter only is used, multiply the reference density by the dark matter fraction.
     if (self%darkMatterOnly) densityReference=+ densityReference                                                                 &
@@ -255,70 +263,78 @@ contains
          &                                    / self%cosmologyParameters_%OmegaMatter()
     ! Iterate over density contrasts.    
     do i=1,self%countDensityContrasts
-       densityTarget=self       %densityContrasts(          i                                           )*densityReference
-       radius       =self%finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
-       enclosedMass =Galactic_Structure_Enclosed_Mass(                                     &
-            &                                                            node            , &
-            &                                                            radius          , &
-            &                                         componentType=     componentTypeAll, &
-            &                                         massType     =self%massTypeSelected  &
-            &                                        )
+       densityTarget=self%densityContrasts(i)*densityReference
+       if (densityContrastsRoot(radiusTiny*self%darkMatterHaloScale_%radiusVirial(node)) < 0.0d0) then
+          ! The target density contrast is not reached even at this tiny radius. This happens in cored density profiles. Return
+          ! zero mass and radius.
+          radius      =0.0d0
+          enclosedMass=0.0d0
+       else
+          ! The target density is reached, so find the exact radius at which it occurs.
+          radius      =self%finder%find            (rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
+          enclosedMass=self%galacticStructure_%massEnclosed(                                     &
+               &                                                               node            , &
+               &                                                               radius          , &
+               &                                            componentType=     componentTypeAll, &
+               &                                            massType     =self%massTypeSelected  &
+               &                                           )
+       end if
        densityContrastsExtract(i,:)=[radius,enclosedMass]
     end do
     return
   end function densityContrastsExtract
 
-  function densityContrastsNames(self,time)
+  subroutine densityContrastsNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily densityContrasts} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsNames
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(densityContrastsNames(self%elementCount_))
-    densityContrastsNames(1)='nodeRadius'
-    densityContrastsNames(2)='nodeMass'
+    allocate(names(self%elementCount_))
+    names(1)='nodeRadius'
+    names(2)='nodeMass'
     return
-  end function densityContrastsNames
+  end subroutine densityContrastsNames
 
-  function densityContrastsDescriptions(self,time)
+  subroutine densityContrastsDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsDescriptions
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(densityContrastsDescriptions(self%elementCount_))
-       densityContrastsDescriptions(1)='Radius enclosing a given density contrast [Mpc].'
-       densityContrastsDescriptions(2)='Mass within a given density contrast [M☉].'
+    allocate(descriptions(self%elementCount_))
+       descriptions(1)='Radius enclosing a given density contrast [Mpc].'
+       descriptions(2)='Mass within a given density contrast [M☉].'
     return
-  end function densityContrastsDescriptions
+  end subroutine densityContrastsDescriptions
 
-  function densityContrastsColumnDescriptions(self,time)
+  subroutine densityContrastsColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsColumnDescriptions
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
-    character       (len=32                               )                             :: label
-    integer         (c_size_t                             )                             :: i
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
+    character       (len=32                               )                                            :: label
+    integer         (c_size_t                             )                                            :: i
     !$GLC attributes unused :: time
 
-    allocate(densityContrastsColumnDescriptions(self%countDensityContrasts))
+    allocate(descriptions(self%countDensityContrasts))
     do i=1,self%countDensityContrasts
        write (label,'(a2,f9.4)') 'Δ=',self%densityContrasts(i)
-       densityContrastsColumnDescriptions(i)=trim(label)
+       descriptions(i)=trim(label)
     end do
     return
-  end function densityContrastsColumnDescriptions
+  end subroutine densityContrastsColumnDescriptions
 
   function densityContrastsUnitsInSI(self,time)
     !!{
@@ -353,19 +369,18 @@ contains
     !!{
     Root function used in finding the radius that encloses a given density contrast.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll
-    use :: Numerical_Constants_Math          , only : Pi
+    use :: Galactic_Structure_Options, only : componentTypeAll
+    use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: enclosedMass
-
-    enclosedMass        =Galactic_Structure_Enclosed_Mass(                                                         &
-         &                                                                                   densityContrastsNode, &
-         &                                                                                   radius              , &
-         &                                                componentType=                     componentTypeAll    , &
-         &                                                massType     =densityContrastsSelf%massTypeSelected      &
-         &                                               )
+    
+    enclosedMass        =densityContrastsSelf%galacticStructure_%massEnclosed(                                                         &
+         &                                                                                                       densityContrastsNode, &
+         &                                                                                                       radius              , &
+         &                                                                    componentType=                     componentTypeAll    , &
+         &                                                                    massType     =densityContrastsSelf%massTypeSelected      &
+         &                                                                   )
     densityContrastsRoot=+3.0d0         &
          &               *enclosedMass  &
          &               /4.0d0         &

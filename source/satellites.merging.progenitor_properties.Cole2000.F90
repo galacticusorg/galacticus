@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,7 @@
 
   use :: Root_Finder                     , only : rootFinder
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Galactic_Structure              , only : galacticStructureClass
 
   !![
   <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000">
@@ -66,6 +67,7 @@
      A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
      !!}
      private
+     class(galacticStructureClass  ), pointer :: galacticStructure_   => null()
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
      type (rootFinder              )          :: finder
    contains
@@ -82,10 +84,11 @@
   end interface mergerProgenitorPropertiesCole2000
 
   ! Module global variables used in root finding.
-  type            (treeNode  ), pointer :: cole2000Node
-  integer                               :: cole2000DestinationGas, cole2000DestinationStars
-  double precision                      :: cole2000HalfMass
-  !$omp threadprivate(cole2000Node,cole2000DestinationGas,cole2000DestinationStars,cole2000HalfMass)
+  class           (mergerProgenitorPropertiesCole2000), pointer :: cole2000Self
+  type            (treeNode                          ), pointer :: cole2000Node
+  integer                                                       :: cole2000DestinationGas, cole2000DestinationStars
+  double precision                                              :: cole2000HalfMass
+  !$omp threadprivate(cole2000Self,cole2000Node,cole2000DestinationGas,cole2000DestinationStars,cole2000HalfMass)
 
 contains
 
@@ -94,13 +97,14 @@ contains
     Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultDiskComponent     , defaultSpheroidComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Error           , only : Error_Report            , Component_List
+    use :: Galacticus_Nodes, only : defaultDiskComponent    , defaultSpheroidComponent
+    use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type (mergerProgenitorPropertiesCole2000)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(mergerMassMovementsClass          ), pointer       :: mergerMassMovements_
+    class(galacticStructureClass            ), pointer       :: galacticStructure_
 
     ! Ensure that required methods are supported.
     if     (                                                                                                                                                           &
@@ -111,16 +115,16 @@ contains
          &        defaultDiskComponent    % halfMassRadiusIsGettable().and.                                                                                            &
          &        defaultDiskComponent    %angularMomentumIsGettable()                                                                                                 &
          &  )                                                                                                                                                          &
-         & ) call Galacticus_Error_Report                                                                                                                              &
+         & ) call Error_Report                                                                                                                                         &
          &        (                                                                                                                                                    &
          &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the disk component.'    // &
-         &         Galacticus_Component_List(                                                                                                                          &
-         &                                   'disk'                                                                                                                 ,  &
-         &                                   defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultDiskComponent    %angularMomentumAttributeMatch(requireGettable=.true.)                                            &
-         &                                  )                                                                                                                       // &
+         &         Component_List(                                                                                                                                     &
+         &                        'disk'                                                                                                                            ,  &
+         &                        defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultDiskComponent    %angularMomentumAttributeMatch(requireGettable=.true.)                                                       &
+         &                       )                                                                                                                                  // &
          &         {introspection:location}                                                                                                                            &
          &        )
     if     (                                                                                                                                                           &
@@ -131,30 +135,32 @@ contains
          &        defaultSpheroidComponent% halfMassRadiusIsGettable().and.                                                                                            &
          &        defaultSpheroidComponent%angularMomentumIsGettable()                                                                                                 &
          &  )                                                                                                                                                          &
-         & ) call Galacticus_Error_Report                                                                                                                              &
+         & ) call Error_Report                                                                                                                                         &
          &        (                                                                                                                                                    &
          &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the spheroid component.'// &
-         &         Galacticus_Component_List(                                                                                                                          &
-         &                                   'spheroid'                                                                                                             ,  &
-         &                                   defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                              &
-         &                                   defaultSpheroidComponent%angularMomentumAttributeMatch(requireGettable=.true.)                                            &
-         &                                  )                                                                                                                       // &
+         &         Component_List(                                                                                                                                     &
+         &                        'spheroid'                                                                                                                        ,  &
+         &                        defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                                         &
+         &                        defaultSpheroidComponent%angularMomentumAttributeMatch(requireGettable=.true.)                                                       &
+         &                       )                                                                                                                                  // &
          &         {introspection:location}                                                                                                                            &
          &        )
     !![
     <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=mergerProgenitorPropertiesCole2000(mergerMassMovements_)
+    self=mergerProgenitorPropertiesCole2000(mergerMassMovements_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerMassMovements_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function cole2000ConstructorParameters
 
- function cole2000ConstructorInternal(mergerMassMovements_) result(self)
+ function cole2000ConstructorInternal(mergerMassMovements_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
     !!}
@@ -162,8 +168,9 @@ contains
     implicit none
     type (mergerProgenitorPropertiesCole2000)                        :: self
     class(mergerMassMovementsClass          ), intent(in   ), target :: mergerMassMovements_
+    class(galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*mergerMassMovements_"/>
+    <constructorAssign variables="*mergerMassMovements_, *galacticStructure_"/>
     !!]
     
     self%finder=rootFinder(                                                             &
@@ -188,6 +195,7 @@ contains
 
     !![
     <objectDestructor name="self%mergerMassMovements_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine cole2000Destructor
@@ -196,14 +204,13 @@ contains
     !!{
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid                   , treeNode
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid               , destinationMergerUnmoved
+    use :: Galactic_Structure_Options      , only : massTypeGalactic               , radiusLarge
+    use :: Error                           , only : Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk              , nodeComponentSpheroid    , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk          , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
-    class           (mergerProgenitorPropertiesCole2000), intent(inout)         :: self
+    class           (mergerProgenitorPropertiesCole2000), intent(inout), target :: self
     type            (treeNode                          ), intent(inout), target :: nodeSatellite                  , nodeHost
     double precision                                    , intent(  out)         :: factorAngularMomentum          , massHost                         , &
          &                                                                         radiusHost                     , massSpheroidHost                 , &
@@ -229,8 +236,8 @@ contains
     diskSatelite      => nodeSatellite%disk    ()
     spheroidSatellite => nodeSatellite%spheroid()
     ! Find the baryonic masses of the two galaxies.
-    massSatellite=Galactic_Structure_Enclosed_Mass(nodeSatellite,massType=massTypeGalactic)
-    massHost     =Galactic_Structure_Enclosed_Mass(     nodeHost,massType=massTypeGalactic)
+    massSatellite=self%galacticStructure_%massEnclosed(nodeSatellite,massType=massTypeGalactic)
+    massHost     =self%galacticStructure_%massEnclosed(     nodeHost,massType=massTypeGalactic)
     ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M r) where M is the
     ! component mass and r its half-mass radius. We use a weighted average of these factors to infer the specific angular momentum
     ! of the remnant from its mass and radius.
@@ -292,7 +299,7 @@ contains
        massGasSpheroidRemnant=spheroidHost%massGas()
        massSpheroidRemnant   =spheroidHost%massGas()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (destinationStarsHost)
     case (destinationMergerSpheroid)
@@ -307,7 +314,7 @@ contains
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (destinationGasSatellite)
     case (destinationMergerSpheroid)
@@ -324,7 +331,7 @@ contains
        massGasSpheroidRemnant=massGasSpheroidRemnant+spheroidSatellite%massGas()
        massSpheroidRemnant   =massSpheroidRemnant   +spheroidSatellite%massGas()
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (destinationStarsSatellite)
     case (destinationMergerSpheroid)
@@ -339,22 +346,23 @@ contains
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidSatellite%massStellar()
        factorAngularMomentum=factorAngularMomentum+spheroidSatellite%massStellar()*factorDarkMatterSpheroidSatellite
     case default
-       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
+       call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     ! Compute the half-mass radii of the material that will end up in the remnant spheroid.
     ! Host node.
     if (massSpheroidHost > 0.0d0) then
+       cole2000Self       => self
        cole2000Node       => nodeHost
        cole2000DestinationGas =  destinationGasHost
        cole2000DestinationStars=  destinationStarsHost
        cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
        cole2000HalfMass   =  0.5d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
-          radiusHost=self%finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-               &                                                                                        cole2000Node    , &
-               &                                                                         fractionalMass=0.50d0          , &
-               &                                                                         massType      =massTypeGalactic  &
-               &                                                                        )                                 &
+          radiusHost=self%finder%find(rootGuess=self%galacticStructure_%radiusEnclosingMass(                                 &
+               &                                                                                           cole2000Node    , &
+               &                                                                            massFractional=0.50d0          , &
+               &                                                                            massType      =massTypeGalactic  &
+               &                                                                           )                                 &
                &                     )
        else
           radiusHost      =0.0d0
@@ -364,17 +372,18 @@ contains
        radiusHost=0.0d0
     end if
     if (massSpheroidSatellite > 0.0d0) then
+       cole2000Self       => self
        cole2000Node       => nodeSatellite
        cole2000DestinationGas =  destinationGasSatellite
        cole2000DestinationStars=  destinationStarsSatellite
        cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
        cole2000HalfMass   =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
-          radiusSatellite=self%finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-               &                                                                                             cole2000Node    , &
-               &                                                                              fractionalMass=0.50d0          , &
-               &                                                                              massType      =massTypeGalactic  &
-               &                                                                             )                                 &
+          radiusSatellite=self%finder%find(rootGuess=self%galacticStructure_%radiusEnclosingMass(                                 &
+               &                                                                                                cole2000Node    , &
+               &                                                                                 massFractional=0.50d0          , &
+               &                                                                                 massType      =massTypeGalactic  &
+               &                                                                                )                                 &
                &                          )
        else
           radiusSatellite      =0.0d0
@@ -398,9 +407,8 @@ contains
     !!{
     Function used in root finding for progenitor galaxy half-mass radii.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid   , massTypeGaseous, massTypeStellar
-    use :: Satellite_Merging_Mass_Movements  , only : destinationMergerSpheroid       , destinationMergerUnmoved
+    use :: Galactic_Structure_Options      , only : componentTypeDisk        , componentTypeSpheroid   , massTypeGaseous, massTypeStellar
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -409,22 +417,22 @@ contains
     ! Account for gas mass.
     select case (cole2000DestinationGas)
     case (destinationMergerSpheroid)
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                         &
-            &                     +Galactic_Structure_Enclosed_Mass(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous) &
-            &                     +Galactic_Structure_Enclosed_Mass(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
+            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous) &
+            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
     case (destinationMergerUnmoved    )
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                         &
-            &                     +Galactic_Structure_Enclosed_Mass(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
+            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
     end select
     ! Account for stellar mass.
     select case (cole2000DestinationStars)
     case (destinationMergerSpheroid)
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                         &
-            &                     +Galactic_Structure_Enclosed_Mass(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar) &
-            &                     +Galactic_Structure_Enclosed_Mass(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
+            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar) &
+            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
     case (destinationMergerUnmoved    )
-       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                         &
-            &                     +Galactic_Structure_Enclosed_Mass(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
+       cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
+            &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
     end select
     return
   end function cole2000HalfMassRadiusRoot

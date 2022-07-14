@@ -5,45 +5,58 @@
 
 # Set defaults.
 PPN=1
+FORCE=yes
+SUFFIX=
+DIR=./work/build
+CLEAN=no
 
 # Get options.
-while getopts p: option
-do
+while getopts ":p:f:d:s:c:" option; do
 case "${option}"
 in
+f) FORCE=${OPTARG};;
 p) PPN=${OPTARG};;
+d) DIR=${OPTARG};;
+s) SUFFIX=${OPTARG};;
+c) CLEAN=${OPTARG};;
+\?) echo "Invalid option: $OPTARG";;
+:) echo "Invalid option: $OPTARG requires an argument";;
 esac
 done
 
-# Clear out old build files.
-rm -f                                                                                                                                     \
-   doc/physics/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
-   doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex
+# Export build directory.
+export BUILDPATH=$DIR
 
+# Clear out old build files.
+if [ "$FORCE" = "yes" ]; then
+    rm -f                                                                                                                                     \
+       doc/physics/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
+       doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex
+    rm -rf $DIR
+fi
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
-rm -rf work/build
-make -j$PPN GALACTICUS_BUILD_DOCS=yes all
+make -j$PPN GALACTICUS_BUILD_DOCS=yes SUFFIX=$SUFFIX BUILDPATH=$DIR all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
  exit 1
 fi
 
 # Extract source code data.
-scripts/doc/extractData.pl source doc/data
+./scripts/doc/extractData.pl source doc/data
 if [ $? -ne 0 ]; then
  echo Failed to extract source code data
  exit 1
 fi
 
 # Extract contributor data.
-scripts/doc/Extract_Contributors.pl . doc/contributions.tex
+./scripts/doc/Extract_Contributors.pl . doc/contributions.tex
 if [ $? -ne 0 ]; then
  echo Failed to extract contributor data
  exit 1
 fi
 
 # Analyze source code.
-scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
+./scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
 if [ $? -ne 0 ]; then
  echo Failed to analyze source code
  exit 1
@@ -53,7 +66,7 @@ fi
 cd doc
 
 # Demangle the bibliography.
-Bibliography_Demangle.pl
+./Bibliography_Demangle.pl
 if [ $? -ne 0 ]; then
  echo Failed to demangle bibliography
  exit 1
@@ -73,44 +86,48 @@ for type in "Usage" "Physics" "Development" "Source"; do
     while [ $iPass -le 6 ]; do
 	# Run pdflatex.
 	if [ $iPass -le 5 ]; then
-	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d >& /dev/null
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d > /dev/null 2>&1
 	else
 	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	fi
 	if [ $? -ne 0 ]; then
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	    echo pdflatex failed
 	    exit 1
 	fi
 
 	# Run bibtex.
 	if [ $iPass -le 5 ]; then
-	    bibtex Galacticus_$type >& /dev/null
+	    bibtex Galacticus_$type > /dev/null 2>&1
 	else
 	    bibtex Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    bibtex Galacticus_$type
 	    echo bibtex failed
 	    exit 1
 	fi
 
 	# Run makeindex.
 	if [ $iPass -le 5 ]; then
-	    makeindex Galacticus_$type >& /dev/null
+	    makeindex Galacticus_$type > /dev/null 2>&1
 	else
 	    makeindex Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    makeindex Galacticus_$type
 	    echo makeindex failed for main index
 	    exit 1
 	fi
 
 	# Run makeglossaries.
 	if [ $iPass -le 5 ]; then
-	    makeglossaries Galacticus_$type >& /dev/null
+	    makeglossaries Galacticus_$type > /dev/null 2>&1
 	else
 	    makeglossaries Galacticus_$type
 	fi
 	if [ $? -ne 0 ]; then
+	    makeglossaries Galacticus_$type
 	    echo make glossaries failed
 	    exit 1
 	fi
@@ -119,5 +136,12 @@ for type in "Usage" "Physics" "Development" "Source"; do
     done
 
 done
+
+# Clean build files if requested.
+if [ "$CLEAN" = "yes" ]; then
+    cd ..
+    rm -rf $DIR
+    rm *.exe$SUFFIX
+fi
 
 exit 0

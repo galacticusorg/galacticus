@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,9 +59,9 @@ contains
     Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
     input.
     !!}
-    use :: Display         , only : displayMessage         , verbosityLevelWarn
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Display         , only : displayMessage, verbosityLevelWarn
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistribution)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
@@ -92,17 +92,17 @@ contains
     <inputParametersValidate source="parameters"/>
     !!]
     ! Validate input.
-    if (self%massTreeMaximum >= 1.0d16              )                                                           &
+    if (self%massTreeMaximum >= 1.0d16              )                                               &
          & call displayMessage(                                                                     &
-         &                                 '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
-         &                                 'to failures in merger tree construction'                         ,  &
-         &                                 verbosityLevelWarn                                                        &
-         &                                )
-    if (self%massTreeMaximum <= self%massTreeMinimum)                                                           &
-         & call Galacticus_Error_Report   (                                                                     &
-         &                                 '[massHaloMaximum] > [massHaloMinimum] is required'             //   &
-         &                                 {introspection:location}                                             &
-         &                                )
+         &                     '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
+         &                     'to failures in merger tree construction'                         ,  &
+         &                     verbosityLevelWarn                                                   &
+         &                    )
+    if (self%massTreeMaximum <= self%massTreeMinimum)                                               &
+         & call Error_Report  (                                                                     &
+         &                     '[massHaloMaximum] > [massHaloMinimum] is required'             //   &
+         &                     {introspection:location}                                             &
+         &                    )
     return
   end function sampledDistributionConstructorParameters
 
@@ -123,12 +123,12 @@ contains
     !!{
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
+    use            :: Error                  , only : Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Memory_Management      , only : allocateArray          , deallocateArray
+    use            :: Memory_Management      , only : allocateArray       , deallocateArray
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Interpolation, only : interpolator
-    use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLinear
+    use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLinear
     use            :: Sorting                , only : sort
     use            :: Table_Labels           , only : extrapolationTypeFix
     implicit none
@@ -192,7 +192,7 @@ contains
        massFunctionSampleLogPrevious=massFunctionSampleLogMass(iSample)
     end do
     massFunctionSampleCount=jSample
-    if (massFunctionSampleCount < 2) call Galacticus_Error_Report('tabulated mass function sampling density has fewer than 2 non-zero points'//{introspection:location})
+    if (massFunctionSampleCount < 2) call Error_Report('tabulated mass function sampling density has fewer than 2 non-zero points'//{introspection:location})
     ! Normalize the cumulative probability distribution.
     massFunctionSampleProbability(1:massFunctionSampleCount)=+massFunctionSampleProbability(1:massFunctionSampleCount) &
          &                                                   /massFunctionSampleProbability(  massFunctionSampleCount)
@@ -249,13 +249,13 @@ contains
     !!{
     Stub function for cumulative mass function.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
     double precision                                          , intent(  out), dimension(:) :: x
     !$GLC attributes unused :: self, x
 
-    call Galacticus_Error_Report('attempt to call function in abstract type'//{introspection:location})
+    call Error_Report('attempt to call function in abstract type'//{introspection:location})
     return
   end subroutine sampledDistributionCMF
 

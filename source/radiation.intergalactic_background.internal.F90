@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,7 +145,7 @@ contains
     <inputParameter>
       <name>timeCountPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of time to use for calculations of tge cosmic background radiation.</description>
+      <description>The number of bins per decade of time to use for calculations of the cosmic background radiation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -337,8 +337,8 @@ contains
     !!{
     Return the flux in the internally-computed intergalatic background.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
     double precision                                               , intent(in   )  :: wavelength
@@ -361,19 +361,19 @@ contains
           if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) then
              write (timeCurrent,'(e16.8)') self %timeCurrent
              write (timeNext   ,'(e16.8)') state%timeNext
-             call Galacticus_Error_Report(                                                                       &
-                  &                       'time is out of range for intergalactic radiation field: '//char(10)// &
-                  &                       '   timeCurrent = Gyr'//adjustl(trim(timeCurrent))        //char(10)// &
-                  &                       '  >'                                                     //char(10)// &
-                  &                       '   timeNext    = Gyr'//adjustl(trim(timeNext   ))        //char(10)// &
-                  &                       {introspection:location}                                               &
-                  &                      )
+             call Error_Report(                                                                       &
+                  &            'time is out of range for intergalactic radiation field: '//char(10)// &
+                  &            '   timeCurrent = Gyr'//adjustl(trim(timeCurrent))        //char(10)// &
+                  &            '  >'                                                     //char(10)// &
+                  &            '   timeNext    = Gyr'//adjustl(trim(timeNext   ))        //char(10)// &
+                  &            {introspection:location}                                               &
+                  &           )
           end if
           ! Find interpolation in array of times.
           call self%interpolatorTime%linearFactors(self%timeCurrent,self%iTime,self%hTime)
           if (self%timeCurrent > state%timePrevious) self%hTime=[1.0d0,0.0d0]
        class default
-          call Galacticus_Error_Report('state has unknown type'//{introspection:location})
+          call Error_Report('state has unknown type'//{introspection:location})
        end select
        !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
     end if
@@ -393,7 +393,7 @@ contains
        end do
        intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
     class default
-       call Galacticus_Error_Report('state has unknown type'//{introspection:location})
+       call Error_Report('state has unknown type'//{introspection:location})
     end select
     return
   end function intergalacticBackgroundInternalFlux
@@ -402,8 +402,8 @@ contains
     !!{
     Attach an initial event to the universe to cause the background radiation update function to be called.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : universe               , universeEvent
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : universe    , universeEvent
     implicit none
     class(*                                   ), intent(inout), target :: self
     type (universe                            ), intent(inout)         :: universe_
@@ -432,7 +432,7 @@ contains
           self%statePrevious            => null()
        end if
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine intergalacticBackgroundInternalUniversePreEvolve
@@ -444,12 +444,13 @@ contains
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : searchArrayClosest
     use            :: Display                     , only : displayIndent                , displayMessage          , displayUnindent
-    use            :: Galacticus_Error            , only : Galacticus_Error_Report
-    use            :: Galacticus_HDF5             , only : galacticusOutputFile
+    use            :: Error                       , only : Error_Report
+    use            :: Output_HDF5                 , only : outputFile
     use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent, mergerTreeList , nodeComponentBasic, &
           &                                                nodeComponentDisk            , nodeComponentSpheroid   , treeNode       , universe          , &
           &                                                universeEvent
-    use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
+    use            :: HDF5_Access                 , only : hdf5Access
+    use            :: IO_HDF5                     , only : hdf5Object
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: ISO_Varying_String          , only : varying_string
     use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
@@ -633,19 +634,19 @@ contains
              eventNew%task    => intergalacticBackgroundInternalUpdate
           else
              ! Output the results to file.
-             call hdf5Access%set()
-             outputGroup=galacticusOutputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
-             call outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
-             call outputDataset%writeAttribute(1.0d0/angstromsPerMeter,'unitsInSI'                                                                                                    )
-             call outputDataset%close         (                                                                                                                                       )
-             call outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
-             call outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
-             call outputDataset%close         (                                                                                                                                       )
-             call outputGroup  %writeDataset  (state%flux             ,'flux'      ,'Flux is the cosmic background radiation [erg cm⁻² s⁻¹ Hz⁻¹ sr⁻¹].' ,datasetReturned=outputDataset)
-             call outputDataset%writeAttribute(ergs/centi**2          ,'unitsInSI'                                                                                                    )
-             call outputDataset%close         (                                                                                                                                       )
-             call outputGroup  %close         (                                                                                                                                       )
-             call hdf5Access   %unset         (                                                                                                                                       )
+             !$ call hdf5Access%set()
+             outputGroup=outputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
+             call    outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
+             call    outputDataset%writeAttribute(1.0d0/angstromsPerMeter,'unitsInSI'                                                                                                    )
+             call    outputDataset%close         (                                                                                                                                       )
+             call    outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
+             call    outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
+             call    outputDataset%close         (                                                                                                                                       )
+             call    outputGroup  %writeDataset  (state%flux             ,'flux'      ,'Flux is the cosmic background radiation [erg cm⁻² s⁻¹ Hz⁻¹ sr⁻¹].' ,datasetReturned=outputDataset)
+             call    outputDataset%writeAttribute(ergs/centi**2          ,'unitsInSI'                                                                                                    )
+             call    outputDataset%close         (                                                                                                                                       )
+             call    outputGroup  %close         (                                                                                                                                       )
+             !$ call hdf5Access   %unset         (                                                                                                                                       )
           end if
        end select
        ! Display message.
@@ -655,7 +656,7 @@ contains
     class default
        ! Incorrect event creator type.
        success=.false.
-       call Galacticus_Error_Report('incorrect event creator class'//{introspection:location})
+       call Error_Report('incorrect event creator class'//{introspection:location})
     end select
     return
 
@@ -665,7 +666,7 @@ contains
       !!{
       Integrand for convolution of stellar spectra.
       !!}
-      use :: Galacticus_Error, only : errorStatusInputDomain, errorStatusSuccess
+      use :: Error, only : errorStatusInputDomain, errorStatusSuccess
       implicit none
       double precision, intent(in   ) :: age
       integer                         :: status
@@ -676,14 +677,14 @@ contains
            &                                                         wavelength   , &
            &                                                         status         &
            &                                                        )
-      if     (                                                                              &
-           &   status /= errorStatusSuccess                                                 &
-           &  .and.                                                                         &
-           &   status /= errorStatusInputDomain                                             &
-           & ) call Galacticus_Error_Report(                                                &
-           &                                'stellar population spectrum function failed'// &
-           &                                {introspection:location}                        &
-           &                               )
+      if     (                                                                   &
+           &   status /= errorStatusSuccess                                      &
+           &  .and.                                                              &
+           &   status /= errorStatusInputDomain                                  &
+           & ) call Error_Report(                                                &
+           &                     'stellar population spectrum function failed'// &
+           &                     {introspection:location}                        &
+           &                    )
       return
     end function stellarSpectraConvolution
 

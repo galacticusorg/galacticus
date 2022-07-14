@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,33 +41,33 @@ program Tests_Excursion_Sets
   use :: Transfer_Functions                  , only : transferFunctionIdentity
   use :: Unit_Tests                          , only : Assert                                         , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
-  type            (cosmologyParametersSimple                                    )               :: cosmologyParametersSimple_
-  type            (cosmologyFunctionsMatterLambda                               )               :: cosmologyFunctionsMatterLambda_
-  type            (cosmologicalMassVarianceFilteredPower                        )               :: cosmologicalMassVarianceFilteredPower_
-  type            (powerSpectrumWindowFunctionSharpKSpace                       )               :: powerSpectrumWindowFunctionSharpKSpace_
-  type            (powerSpectrumPrimordialPowerLaw                              )               :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionIdentity                                     )               :: transferFunctionIdentity_
-  type            (powerSpectrumPrimordialTransferredSimple                     )               :: powerSpectrumPrimordialTransferredSimple_
-  type            (linearGrowthCollisionlessMatter                              )               :: linearGrowthCollisionlessMatter_
-  type            (excursionSetFirstCrossingLinearBarrier                       )               :: excursionSetFirstCrossingLinearBarrier_
-  type            (excursionSetFirstCrossingFarahiMidpoint                      ), target       :: excursionSetFirstCrossingFarahiMidpoint_
-  type            (excursionSetFirstCrossingFarahi                              ), target       :: excursionSetFirstCrossingFarahi_
-  type            (excursionSetFirstCrossingZhangHui                            ), target       :: excursionSetFirstCrossingZhangHui_
-  type            (excursionSetFirstCrossingZhangHuiHighOrder                   ), target       :: excursionSetFirstCrossingZhangHuiHighOrder_
-  class           (excursionSetFirstCrossingClass                               ), pointer      :: excursionSetFirstCrossing_
-  type            (excursionSetBarrierCriticalOverdensity                       )               :: excursionSetBarrierCriticalOverdensity_
-  type            (darkMatterParticleCDM                                        )               :: darkMatterParticleCDM_
-  type            (treeNode                                                     )               :: node
+  type            (cosmologyParametersSimple                                   )               :: cosmologyParametersSimple_
+  type            (cosmologyFunctionsMatterLambda                              )               :: cosmologyFunctionsMatterLambda_
+  type            (cosmologicalMassVarianceFilteredPower                       )               :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionSharpKSpace                      )               :: powerSpectrumWindowFunctionSharpKSpace_
+  type            (powerSpectrumPrimordialPowerLaw                             )               :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionIdentity                                    )               :: transferFunctionIdentity_
+  type            (powerSpectrumPrimordialTransferredSimple                    )               :: powerSpectrumPrimordialTransferredSimple_
+  type            (linearGrowthCollisionlessMatter                             )               :: linearGrowthCollisionlessMatter_
+  type            (excursionSetFirstCrossingLinearBarrier                      )               :: excursionSetFirstCrossingLinearBarrier_
+  type            (excursionSetFirstCrossingFarahiMidpoint                     ), target       :: excursionSetFirstCrossingFarahiMidpoint_
+  type            (excursionSetFirstCrossingFarahi                             ), target       :: excursionSetFirstCrossingFarahi_
+  type            (excursionSetFirstCrossingZhangHui                           ), target       :: excursionSetFirstCrossingZhangHui_
+  type            (excursionSetFirstCrossingZhangHuiHighOrder                  ), target       :: excursionSetFirstCrossingZhangHuiHighOrder_
+  class           (excursionSetFirstCrossingClass                              ), pointer      :: excursionSetFirstCrossing_
+  type            (excursionSetBarrierCriticalOverdensity                      )               :: excursionSetBarrierCriticalOverdensity_
+  type            (darkMatterParticleCDM                                       )               :: darkMatterParticleCDM_
+  type            (treeNode                                                    )               :: node
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
-  double precision                                                                              :: time
-  double precision                                                               , dimension(2) :: variance                                                      =[0.50d0,1.00d0]
-  double precision                                                               , dimension(2) :: varianceProgenitor                                            =[1.00d0,1.01d0]
-  double precision                                                               , dimension(2) :: probabilityTarget                                                             , probability, &
-       &                                                                                           rateTarget                                                                    , rate
-  double precision                                                               , parameter    :: varianceLarge                                                 =10.0d0
-  integer                                                                                       :: i                                                                             , j
-  character       (len=32                                                       )               :: label
-  logical                                                                                       :: testRates
+  double precision                                                                             :: time
+  double precision                                                              , dimension(2) :: variance                                                      =[0.50d0,1.00d0]
+  double precision                                                              , dimension(2) :: varianceProgenitor                                            =[1.00d0,1.01d0]
+  double precision                                                              , dimension(2) :: probabilityTarget                                                             , probability, &
+       &                                                                                          rateTarget                                                                    , rate
+  double precision                                                              , parameter    :: varianceLarge                                                 =10.0d0
+  integer                                                                                      :: i                                                                             , j
+  character       (len=32                                                      )               :: label
+  logical                                                                                      :: testRates
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -93,7 +93,8 @@ program Tests_Excursion_Sets
        &                                                                                                                       index_                                 =-1.0d0                                                        , &
        &                                                                                                                       running                                =+0.0d0                                                        , &
        &                                                                                                                       runningRunning                         =+0.0d0                                                        , &
-       &                                                                                                                       wavenumberReference                    =+1.0d0                                                          &
+       &                                                                                                                       wavenumberReference                    =+1.0d0                                                        , &
+       &                                                                                                                       runningSmallScalesOnly                 =.false.                                                         &
        &                                                                                                                      )
   transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
        &                                                                                                                       time                                   =13.8d0                                                          &

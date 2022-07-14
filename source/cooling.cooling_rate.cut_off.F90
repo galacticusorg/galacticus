@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,7 +143,7 @@ contains
     !!{
     Internal constructor for the cut off cooling rate class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (coolingRateCutOff       )                        :: self
     double precision                          , intent(in   )         :: velocityCutOff      , timeCutOff
@@ -156,7 +156,7 @@ contains
     <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_"/>
     !!]
     ! Validate "whenCutOff" argument.
-    if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Galacticus_Error_Report('[whenCutOff] is invalid'//{introspection:location})
+    if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Error_Report('[whenCutOff] is invalid'//{introspection:location})
     return
   end function cutOffConstructorInternal
 
@@ -189,9 +189,9 @@ contains
     ! Test for halos where cooling should be cut off.
     select case (self%useFormationNode)
     case (.false.)
-       velocityVirial=self%darkMatterHaloScale_%virialVelocity(node              )
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node              )
     case (.true. )
-       velocityVirial=self%darkMatterHaloScale_%virialVelocity(node%formationNode)
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node%formationNode)
     end select
     basic => node%basic()
     if     (                                                                             &

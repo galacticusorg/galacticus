@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Combine mangle polygon files for surveyed areas and masked regions supplied by I. Davidzon into
-# a single mangle file. Follows the procedure described at http://casa.colorado.edu/~ajsh/mangle/#complement
+# a single mangle file. Follows the procedure described at https://jila.colorado.edu/~ajsh/mangle/index.html#complement
 
 # Andrew Benson (13-June-2014)
 

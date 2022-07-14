@@ -12,7 +12,7 @@ use PDL::IO::HDF5;
 system("mkdir -p outputs/");
 
 # Run the model.
-system("cd ..; Galacticus.exe testSuite/parameters/barInstability.xml");
+system("cd ..; ./Galacticus.exe testSuite/parameters/barInstability.xml");
 if ( $? == 0 ) {
     my $model               = new PDL::IO::HDF5("outputs/barInstability.hdf5");
     my $outputs             = $model  ->group  ('Outputs'            )       ;

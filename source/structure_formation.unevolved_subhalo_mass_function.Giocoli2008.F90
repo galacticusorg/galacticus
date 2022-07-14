@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -155,8 +155,8 @@ contains
       !!{
       Evaluate the incomplete gamma function, possibly for a negative exponent.
       !!}
-      use :: Galacticus_Error, only : Galacticus_Error_Report
-      use :: Gamma_Functions , only : Gamma_Function         , Gamma_Function_Incomplete
+      use :: Error          , only : Error_Report
+      use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete
       implicit none
       double precision, intent(in   ) :: x
 
@@ -183,7 +183,7 @@ contains
               &          /                           x                     ** self%exponent
       else
          gammaIncomplete=0.0d0
-         call Galacticus_Error_Report('exponent out of range'//{introspection:location})
+         call Error_Report('exponent out of range'//{introspection:location})
       end if
       return
     end function gammaIncomplete

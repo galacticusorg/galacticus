@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,73 +59,66 @@ contains
     Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
     !!}
     use :: Display           , only : displayMessage         , verbosityLevelWorking
-    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock, &
+    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock      , File_Unlock, &
           &                           lockDescriptor
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), replace    , &
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath              , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)   , replace    , &
           &                           varying_string
+    use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler               , compilerOptions      , languageFortran
     implicit none
     type   (varying_string), intent(  out)           :: cambPath, cambVersion
     logical                , intent(in   ), optional :: static
-    integer                                          :: status  , flagsLength
-    type   (varying_string)                          :: command
+    integer                                          :: status
+    type   (varying_string)                          :: command , forutilsVersion
     type   (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Set path and version
-    cambPath   =galacticusPath(pathTypeDataDynamic)//"CAMB/"
-    cambVersion="?"
+    cambVersion    ="1.3.2"
+    forutilsVersion="1.0"
+    cambPath       =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
-       call Directory_Make(cambPath)
-       call File_Lock(char(cambPath//"camb"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     cambPath                                       )
+       call File_Lock     (char(cambPath//"camb"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(cambPath//"Makefile")) then
           ! Download CAMB if necessary.
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
+          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) then
              call displayMessage("downloading CAMB code....",verbosityLevelWorking)
-             call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
-             if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
+             call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status)
+             if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
-          if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
-       end if
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz",status);
+          if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
+          ! Download the "forutils" package if necessary.
+          if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
+             if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
+                call displayMessage("downloading forutils code....",verbosityLevelWorking)
+                call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",char(cambPath)//"../forutils_"//char(forutilsVersion)//".tar.gz",status)
+                if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Error_Report("unable to download forutils"//{introspection:location})
+             end if
+             call displayMessage("unpacking forutils code....",verbosityLevelWorking)
+             call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
+             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Error_Report('failed to unpack forutils code'//{introspection:location})
+          end if
+       end if       
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
-       command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp'
-       if (static_) then
-          ! Include Galacticus compilation flags here - may be necessary for static linking.
-          call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
-          if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
-          command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
-       end if
-       command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
+       command='cd '//cambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//compiler(languageFortran)//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//compiler(languageFortran)//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
+       if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
+       command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
-       if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
+       if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Error_Report("failed to build CAMB code"//{introspection:location})
        call File_Unlock(fileLock)
     end if
     return
-
-  contains
-
-    function flagsRetrieve(flagsLength)
-      !!{
-      Retrieve the compiler flags.
-      !!}
-      implicit none
-      type     (varying_string )                :: flagsRetrieve
-      integer                   , intent(in   ) :: flagsLength
-      character(len=flagsLength)                :: flags
-
-      call Get_Environment_Variable('GALACTICUS_FCFLAGS',value=flags)
-      flagsRetrieve=replace(flags,"/","\/",every=.true.)
-      return
-    end function flagsRetrieve
-
   end subroutine Interface_CAMB_Initialize
 
   subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
@@ -135,11 +128,12 @@ contains
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
           &                                                       File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
-    use               :: Galacticus_Error                , only : Galacticus_Error_Report
-    use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
+    use               :: Error                           , only : Error_Report
+    use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
-    use               :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
+    use               :: HDF5_Access                     , only : hdf5Access
+    use               :: IO_HDF5                         , only : hdf5Object
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
@@ -211,10 +205,10 @@ contains
          &      String_C_To_Fortran(cambSourceDigest)
     call descriptor%destroy()
     ! Build the file name.
-    fileName_=char(galacticusPath(pathTypeDataDynamic))                       // &
-         &                       'largeScaleStructure/transfer_function_CAMB_'// &
-         &                       Hash_MD5(uniqueLabel)                        // &
-         &                       '.hdf5'
+    fileName_=char(inputPath(pathTypeDataDynamic))                       // &
+         &                  'largeScaleStructure/transfer_function_CAMB_'// &
+         &                  Hash_MD5(uniqueLabel)                        // &
+         &                  '.hdf5'
     if (present(fileName)) fileName=fileName_
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
@@ -272,7 +266,7 @@ contains
              redshiftLabel=extract(datasetNames(i),18,len(datasetNames(i)))
              read (redshiftLabel,*) redshiftsCombined(size(redshifts)+i)
           else
-             call Galacticus_Error_Report('unknown dataset'//{introspection:location})
+             call Error_Report('unknown dataset'//{introspection:location})
           end if
        end do
        allocate(redshiftRanksCombined (size(redshiftsCombined)))
@@ -305,7 +299,7 @@ contains
        if (allocated(wavenumbers)) wavenumberCAMB=max(wavenumberCAMB,wavenumbers(size(wavenumbers)))
        ! Construct input file for CAMB.
        call Get_Environment_Variable('HOSTNAME',hostName)
-       workPath     =galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/'
+       workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
        parameterFile=workPath//'transfer_function_parameters'//'_'//trim(hostName)//'_'//GetPID()
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
        parameterFile=parameterFile//'.txt'
@@ -321,16 +315,14 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'l_max_scalar                 ',2200.0d0
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'l_max_tensor                 ',1500.0d0
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'k_eta_max_tensor             ',3000.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,a    )') 'use_physical                 ','F'
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_baryon                 ',cosmologyParameters_%OmegaBaryon    ()
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm                    ',cosmologyParameters_%OmegaMatter    ()-cosmologyParameters_%OmegaBaryon()
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_lambda                 ',cosmologyParameters_%OmegaDarkEnergy()
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_neutrino               ',0.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omk                          ',0.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'hubble                       ',cosmologyParameters_%HubbleConstant ()
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'ombh2                        ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omch2                        ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omk                          ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omnuh2                       ',(0.0d0                                                                             )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'hubble                       ',                                                                                     cosmologyParameters_%HubbleConstant(                  )
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'w                            ',-1.0d0
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'cs2_lam                      ',1.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'temp_cmb                     ',cosmologyParameters_%temperatureCMB ()
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'temp_cmb                     ',      cosmologyParameters_%temperatureCMB()
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'helium_fraction              ',heliumByMassPrimordial
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'massless_neutrinos           ',2.046d0
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'nu_mass_eigenstates          ',1
@@ -436,7 +428,7 @@ contains
                    read (cambTransferLine,*) wavenumbers(i),transferFunctions(i,cambSpeciesDarkMatter,j),transferFunctions(i,cambSpeciesBaryons,j)
                 end if
              else
-                call Galacticus_Error_Report('unable to read CAMB transfer function file'//{introspection:location})
+                call Error_Report('unable to read CAMB transfer function file'//{introspection:location})
              end if
           end do
           close(cambTransferFile)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,6 +24,7 @@
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForce     , hotHaloRamPressureForceClass
+  use :: Galactic_Structure          , only : galacticStructureClass
   use :: Kind_Numbers                , only : kind_int8
   use :: Root_Finder                 , only : rootFinder
 
@@ -51,6 +52,7 @@
      class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
+     class           (galacticStructureClass      ), pointer :: galacticStructure_       => null()
      double precision                                        :: formFactor
      integer         (kind_int8                   )          :: uniqueIDLast             =  -1
      double precision                                        :: radiusLast               =  -1.0d0
@@ -87,6 +89,7 @@ contains
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
     class           (hotHaloMassDistributionClass       ), pointer       :: hotHaloMassDistribution_
+    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: formFactor
 
     !![
@@ -100,18 +103,20 @@ contains
     <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_)
+    self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"    />
     <objectDestructor name="hotHaloRamPressureForce_"/>
     <objectDestructor name="hotHaloMassDistribution_"/>
+    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function font2008ConstructorParameters
 
-  function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_) result(self)
+  function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
     !!}
@@ -120,10 +125,11 @@ contains
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
     class           (hotHaloMassDistributionClass       ), intent(in   ), target :: hotHaloMassDistribution_
+    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     double precision                                     , intent(in   )         :: formFactor
     double precision                                     , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_"/>
+    <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_, *galacticStructure_"/>
     !!]
 
     ! Solver for the ram pressure stripping radius.
@@ -146,6 +152,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"    />
     <objectDestructor name="self%hotHaloRamPressureForce_"/>
     <objectDestructor name="self%hotHaloMassDistribution_"/>
+    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine font2008Destructor
@@ -154,9 +161,9 @@ contains
     !!{
     Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     !!}
-    use :: Display         , only : displayMessage           , verbosityLevelSilent
-    use :: Galacticus_Error, only : Galacticus_Error_Report  , errorStatusSuccess
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Display    , only : displayMessage           , verbosityLevelSilent
+    use :: Error      , only : Error_Report             , errorStatusSuccess
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -168,7 +175,7 @@ contains
     character       (len=16                             )                        :: label
 
     ! Get the virial radius of the satellite.
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Test whether node is a satellite.
     if (node%isSatellite()) then
        ! Set a pointer to the satellite node.
@@ -230,7 +237,7 @@ contains
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
-                call Galacticus_Error_Report('root finding failed'//{introspection:location})
+                call Error_Report('root finding failed'//{introspection:location})
              end if
              self%radiusLast=font2008RadiusStripped
           end if
@@ -246,17 +253,16 @@ contains
     !!{
     Root function used in finding the ram pressure stripping radius.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeAll
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: massEnclosed  , forceBindingGravitational, &
          &                             densityHotHalo
 
     ! Get the hot halo mass distribution.
-    massEnclosed             =+Galactic_Structure_Enclosed_Mass(font2008Node,radius,massType=massTypeAll,componentType=componentTypeAll)
-    densityHotHalo           =+font2008Self%hotHaloMassDistribution_%density(font2008Node,radius)
+    massEnclosed             =+font2008Self%galacticStructure_      %massEnclosed(font2008Node,radius,massType=massTypeAll,componentType=componentTypeAll)
+    densityHotHalo           =+font2008Self%hotHaloMassDistribution_%density     (font2008Node,radius                                                    )
     forceBindingGravitational=+font2008Self%formFactor         &
          &                    *gravitationalConstantGalacticus &
          &                    *massEnclosed                    &

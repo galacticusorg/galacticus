@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@ program Test_Sort_Topological
   Tests of topological sorting functions.
   !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard
-  use :: Galacticus_Error   , only : errorStatusFail    , errorStatusSuccess
+  use :: Error   , only : errorStatusFail    , errorStatusSuccess
   use :: Sorting_Topological, only : Sort_Topological
   use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none

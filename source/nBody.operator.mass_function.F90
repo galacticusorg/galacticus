@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -146,8 +146,10 @@ contains
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
-          &                              displayUnindent        , verbosityLevelStandard
-    use    :: IO_HDF5           , only : hdf5Access             , hdf5Object
+         &                               displayUnindent        , verbosityLevelStandard
+    use    :: Error             , only : Error_Report
+    use    :: HDF5_Access       , only : hdf5Access
+    use    :: IO_HDF5           , only : hdf5Object
     use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
@@ -193,13 +195,13 @@ contains
           boxSize=simulations(iSimulation)%attributesReal%value('boxSize')
        else
           boxSize=0.0d0
-          call Galacticus_Error_Report('box size is required, but is not available in the simulation'//{introspection:location})
+          call Error_Report('box size is required, but is not available in the simulation'//{introspection:location})
        end if
        ! Get the mass data.
        if (simulations(iSimulation)%propertiesReal%exists('massVirial')) then
           mass => simulations(iSimulation)%propertiesReal%value('massVirial')
        else
-          call Galacticus_Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
+          call Error_Report('halo virial masses are required, but are not available in the simulation'//{introspection:location})
        end if
        ! Accumulate counts.
 #ifdef USEMPI

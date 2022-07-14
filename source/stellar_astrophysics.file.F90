@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,7 +112,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily file} stellar astrophysics class which takes a parameter list as input.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarAstrophysicsFile)                :: self
@@ -122,7 +122,7 @@ contains
     !![
     <inputParameter>
       <name>fileName</name>
-      <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
+      <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
       <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
       <source>parameters</source>
     </inputParameter>
@@ -164,7 +164,7 @@ contains
     !!}
     use :: Atomic_Data      , only : Atomic_Short_Label
     use :: FoX_DOM          , only : destroy                          , node
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS, &
          &                           XML_Parse
     use :: Memory_Management, only : allocateArray
@@ -185,11 +185,11 @@ contains
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing stellar properties.
     doc => XML_Parse(char(self%fileName),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse stellar properties file'//{introspection:location})
+    if (ioErr /= 0) call Error_Report('Unable to parse stellar properties file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(datum,fileFormatVersion)
-    if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Get a list of all stars.
     call XML_Get_Elements_By_Tag_Name(doc,"star",starList)
     ! Count up number of stars with given properties.
@@ -200,22 +200,22 @@ contains
     do iStar=0,size(starList)-1
        star         => starList(iStar)%element
        call XML_Get_Elements_By_Tag_Name(star,"initialMass",propertyList)
-       if (size(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one initial mass'//{introspection:location})
+       if (size(propertyList) /= 1) call Error_Report('star must have precisely one initial mass'//{introspection:location})
        call XML_Get_Elements_By_Tag_Name(star,"metallicity",propertyList)
-       if (size(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one metallicity' //{introspection:location})
+       if (size(propertyList) /= 1) call Error_Report('star must have precisely one metallicity' //{introspection:location})
        call XML_Get_Elements_By_Tag_Name(star,"lifetime",propertyList)
        if (size(propertyList) == 1) countLifetime=countLifetime      +1
-       if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple lifetimes'              //{introspection:location})
+       if (size(propertyList) >  1) call Error_Report('star has multiple lifetimes'              //{introspection:location})
        call XML_Get_Elements_By_Tag_Name(star,"ejectedMass",propertyList)
        if (size(propertyList) == 1) countMassEjected=countMassEjected+1
-       if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple ejected masses'         //{introspection:location})
+       if (size(propertyList) >  1) call Error_Report('star has multiple ejected masses'         //{introspection:location})
        call XML_Get_Elements_By_Tag_Name(star,"metalYieldMass",propertyList)
        if (size(propertyList) == 1) countYieldMetals=countYieldMetals+1
-       if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple metal yield masses'     //{introspection:location})
+       if (size(propertyList) >  1) call Error_Report('star has multiple metal yield masses'     //{introspection:location})
        do iElement=1,size(self%countYieldElement)
           call XML_Get_Elements_By_Tag_Name(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)),propertyList)
           if (size(propertyList) == 1) self%countYieldElement(iElement)=self%countYieldElement(iElement)+1
-          if (size(propertyList) >  1) call Galacticus_Error_Report('star has multiple element yield masses'//{introspection:location})
+          if (size(propertyList) >  1) call Error_Report('star has multiple element yield masses'//{introspection:location})
        end do
     end do
     ! Find number of elements for which some yield data is available.

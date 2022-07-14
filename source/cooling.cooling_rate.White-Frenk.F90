@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,7 +102,7 @@ contains
     Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
+    use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coolingRateWhiteFrenk1991   )                        :: self
@@ -115,22 +115,22 @@ contains
     !!]
 
     ! Check that the properties we need are gettable.
-    if     (                                                                                                              &
-         &  .not.(                                                                                                        &
-         &         defaultHotHaloComponent%       massIsGettable()                                                        &
-         &        .and.                                                                                                   &
-         &         defaultHotHaloComponent%outerRadiusIsGettable()                                                        &
-         &       )                                                                                                        &
-         & ) call Galacticus_Error_Report                                                                                 &
-         &        (                                                                                                       &
-         &         'mass and outerRadius properties of hot halo component must be gettable.'//                            &
-         &         Galacticus_Component_List(                                                                             &
-         &                                   'hotHalo'                                                                 ,  &
-         &                                    defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
-         &                                   .intersection.                                                               &
-         &                                    defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
-         &                                  )                                                                          // &
-         &         {introspection:location}                                                                               &
+    if     (                                                                                                   &
+         &  .not.(                                                                                             &
+         &         defaultHotHaloComponent%       massIsGettable()                                             &
+         &        .and.                                                                                        &
+         &         defaultHotHaloComponent%outerRadiusIsGettable()                                             &
+         &       )                                                                                             &
+         & ) call Error_Report                                                                                 &
+         &        (                                                                                            &
+         &         'mass and outerRadius properties of hot halo component must be gettable.'//                 &
+         &         Component_List(                                                                             &
+         &                        'hotHalo'                                                                 ,  &
+         &                         defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
+         &                        .intersection.                                                               &
+         &                         defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
+         &                       )                                                                          // &
+         &         {introspection:location}                                                                    &
          &        )
     return
   end function whiteFrenk1991ConstructorInternal
@@ -166,7 +166,7 @@ contains
          &                                                        radiusInfallGrowthRate
 
     ! Get the virial velocity.
-    velocityVirial=self%darkMatterHaloScale_%virialVelocity(node)
+    velocityVirial=self%darkMatterHaloScale_%velocityVirial(node)
     ! Return zero cooling rate if virial velocity exceeds critical value.
     if (velocityVirial > self%velocityCutOff) then
        whiteFrenk1991Rate=0.0d0
@@ -180,7 +180,7 @@ contains
     if (radiusInfall >= radiusOuter) then
        ! Infall radius exceeds the outer radius. Limit infall to the dynamical timescale.
        whiteFrenk1991Rate=+hotHalo                     %mass              (    ) &
-            &             /self   %darkMatterHaloScale_%dynamicalTimescale(node)
+            &             /self   %darkMatterHaloScale_%timescaleDynamical(node)
     else
        ! Find the density at the cooling radius.
        densityCooling           =  self%hotHaloMassDistribution_%density           (node,radiusInfall)

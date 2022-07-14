@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,8 +40,9 @@ contains
     Outputs collected data on OpenMP critical section wait times.
     !!}
 #ifdef OMPPROFILE
-    use :: Galacticus_HDF5      , only : galacticusOutputFile
-    use :: IO_HDF5              , only : hdf5Access             , hdf5Object
+    use :: Output_HDF5          , only : outputFile
+    use :: HDF5_Access          , only : hdf5Access
+    use :: IO_HDF5              , only : hdf5Object
     use :: ISO_Varying_String   , only : varying_string         , var_str
     use :: OpenMP_Utilities_Data, only : criticalSectionWaitTime, criticalSectionCount
 #endif
@@ -54,8 +55,8 @@ contains
     if (all(criticalSectionWaitTime == 0.0d0)) return
     ! Open output group.
     !$ call hdf5Access%set()
-    metaDataGroup=galacticusOutputFile%openGroup('metaData','Galacticus meta data.'           )
-    waitTimeGroup=metaDataGroup       %openGroup('openMP'  ,'Meta-data on OpenMP performance.')
+    metaDataGroup=outputFile   %openGroup('metaData','Galacticus meta data.'           )
+    waitTimeGroup=metaDataGroup%openGroup('openMP'  ,'Meta-data on OpenMP performance.')
     ! Write wait time data.
     call waitTimeGroup%writeDataset(criticalSectionNames   ,"criticalSectionNames"    ,"Names of OpenMP critical sections"                                                   )
     call waitTimeGroup%writeDataset(criticalSectionWaitTime,"criticalSectionWaitTimes","Total time spent waiting at OpenMP critical sections",datasetReturned=waitTimeDataset)

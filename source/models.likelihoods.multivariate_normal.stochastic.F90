@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,8 +30,8 @@
     is evaluated stochastically. In addition to the parameter of the {\normalfont \ttfamily multivariateNormal} class, two additional
     parameters are required and are specified within the {\normalfont \ttfamily likelihood} element using:
     \begin{verbatim}
-      <realizationCount>4000</realizationCount>
-      <realizationCountMinimum>10</realizationCountMinimum>
+      &lt;realizationCount>4000&lt;/realizationCount>
+      &lt;realizationCountMinimum>10&lt;/realizationCountMinimum>
     \end{verbatim}
     When evaluating the likelihood, the state vector is set equal to 
     \begin{equation}

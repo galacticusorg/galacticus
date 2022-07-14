@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ module Sorting
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: sortByIndex, sort, sortIndex
+  public :: sortByIndex, sort, sortIndex, sortSmallest, sortLargest, sortSmallestIndex, sortLargestIndex
 
   !![
   <generic identifier="Type">
@@ -88,6 +88,54 @@ module Sorting
        integer(c_size_t), value :: count_            , size_
        type   (c_funptr), value :: compare
      end function gsl_heapsort_index
+
+     function gsl_sort_smallest(dest,k,src,stride,n) bind(c,name='gsl_sort_smallest')
+       !!{
+       Template for the GSL sort smallest function.
+       !!}
+       import
+       integer(c_int   )        :: gsl_sort_smallest
+       type   (c_ptr   ), value :: dest
+       integer(c_size_t), value :: k
+       type   (c_ptr   ), value :: src
+       integer(c_size_t), value :: stride           , n
+     end function gsl_sort_smallest
+
+     function gsl_sort_largest(dest,k,src,stride,n) bind(c,name='gsl_sort_largest')
+       !!{
+       Template for the GSL sort largest function.
+       !!}
+       import
+       integer(c_int   )        :: gsl_sort_largest
+       type   (c_ptr   ), value :: dest
+       integer(c_size_t), value :: k
+       type   (c_ptr   ), value :: src
+       integer(c_size_t), value :: stride          , n
+     end function gsl_sort_largest
+
+     function gsl_sort_smallest_index(p,k,src,stride,n) bind(c,name='gsl_sort_smallest_index')
+       !!{
+       Template for the GSL sort smallest index function.
+       !!}
+       import
+       integer(c_int   )        :: gsl_sort_smallest_index
+       type   (c_ptr   ), value :: p
+       integer(c_size_t), value :: k
+       type   (c_ptr   ), value :: src
+       integer(c_size_t), value :: stride                 , n
+     end function gsl_sort_smallest_index
+
+     function gsl_sort_largest_index(p,k,src,stride,n) bind(c,name='gsl_sort_largest_index')
+       !!{
+       Template for the GSL sort largest index function.
+       !!}
+       import
+       integer(c_int   )        :: gsl_sort_largest_index
+       type   (c_ptr   ), value :: p
+       integer(c_size_t), value :: k
+       type   (c_ptr   ), value :: src
+       integer(c_size_t), value :: stride                , n
+     end function gsl_sort_largest_index
   end interface
   
 contains
@@ -181,5 +229,119 @@ contains
     end if
     return
   end function compare{Type¦label}
+
+  function sortSmallest(array,k,mask) result(arraySort)
+    !!{
+    Given an {\normalfont \ttfamily array}, find the k smallest elements.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_loc
+    implicit none
+    double precision          , dimension(:), target  , intent(in   ) :: array
+    integer         (c_size_t),                         intent(in   ) :: k
+    logical                   , dimension(:), optional, intent(in   ) :: mask
+    double precision          , dimension(k), target                  :: arraySort
+    double precision          , dimension(:), target  , allocatable   :: arrayMasked
+    integer         (c_int   )                                        :: status
+
+    if (present(mask)) then
+       allocate(arrayMasked(size(array)))
+       where(mask)
+          arrayMasked=array
+       elsewhere
+          arrayMasked=huge(0.0d0)
+       end where
+       status=GSL_Sort_Smallest(c_loc(arraySort),k,c_loc(arrayMasked),1_c_size_t,size(array,kind=c_size_t))
+       deallocate(arrayMasked)
+    else
+       status=GSL_Sort_Smallest(c_loc(arraySort),k,c_loc(array      ),1_c_size_t,size(array,kind=c_size_t))
+    end if
+    return
+  end function sortSmallest
+
+  function sortLargest(array,k,mask) result(arraySort)
+    !!{
+    Given an {\normalfont \ttfamily array}, find the k largest elements.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_loc
+    implicit none
+    double precision          , dimension(:), target  , intent(in   ) :: array
+    integer         (c_size_t),                         intent(in   ) :: k
+    logical                   , dimension(:), optional, intent(in   ) :: mask
+    double precision          , dimension(k), target                  :: arraySort
+    double precision          , dimension(:), target  , allocatable   :: arrayMasked
+    integer         (c_int   )                                        :: status
+
+    if (present(mask)) then
+       allocate(arrayMasked(size(array)))
+       where(mask)
+          arrayMasked=array
+       elsewhere
+          arrayMasked=-huge(0.0d0)
+       end where
+       status=GSL_Sort_Largest(c_loc(arraySort),k,c_loc(arrayMasked),1_c_size_t,size(array,kind=c_size_t))
+       deallocate(arrayMasked)
+    else
+       status=GSL_Sort_Largest(c_loc(arraySort),k,c_loc(array      ),1_c_size_t,size(array,kind=c_size_t))
+    end if
+    return
+  end function sortLargest
+
+  function sortSmallestIndex(array,k,mask) result(index)
+    !!{
+    Given an {\normalfont \ttfamily array}, find the indices of k smallest elements.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_loc
+    implicit none
+    double precision          , dimension(:), target  , intent(in   ) :: array
+    integer         (c_size_t),                         intent(in   ) :: k
+    logical                   , dimension(:), optional, intent(in   ) :: mask
+    integer         (c_size_t), dimension(k), target                  :: index
+    double precision          , dimension(:), target  , allocatable   :: arrayMasked
+    integer         (c_int   )                                        :: status
+
+    if (present(mask)) then
+       allocate(arrayMasked(size(array)))
+       where(mask)
+          arrayMasked=array
+       elsewhere
+          arrayMasked=huge(0.0d0)
+       end where
+       status=GSL_Sort_Smallest_Index(c_loc(index),k,c_loc(arrayMasked),1_c_size_t,size(array,kind=c_size_t))
+       deallocate(arrayMasked)
+    else
+       status=GSL_Sort_Smallest_Index(c_loc(index),k,c_loc(array      ),1_c_size_t,size(array,kind=c_size_t))
+    end if
+    index=index+1_c_size_t
+    return
+  end function sortSmallestIndex
+
+  function sortLargestIndex(array,k,mask) result(index)
+    !!{
+     Given an {\normalfont \ttfamily array}, find the indices of k largest elements.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_loc
+    implicit none
+    double precision          , dimension(:), target  , intent(in   ) :: array
+    integer         (c_size_t),                         intent(in   ) :: k
+    logical                   , dimension(:), optional, intent(in   ) :: mask
+    integer         (c_size_t), dimension(k), target                  :: index
+    double precision          , dimension(:), target  , allocatable   :: arrayMasked
+    integer         (c_int   )                                        :: status
+
+    if (present(mask)) then
+       allocate(arrayMasked(size(array)))
+       where(mask)
+          arrayMasked=array
+       elsewhere
+          arrayMasked=-huge(0.0d0)
+       end where
+       status=GSL_Sort_Largest_Index(c_loc(index),k,c_loc(arrayMasked),1_c_size_t,size(array,kind=c_size_t))
+       deallocate(arrayMasked)
+    else
+       status=GSL_Sort_Largest_Index(c_loc(index),k,c_loc(array      ),1_c_size_t,size(array,kind=c_size_t))
+    end if
+    index=index+1_c_size_t
+    return
+  end function sortLargestIndex
 
 end module Sorting

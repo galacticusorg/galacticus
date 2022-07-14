@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,13 +47,13 @@
      class           (darkMatterProfileDMOClass        ), pointer                   :: darkMatterProfileDMO_         => null()
      class           (darkMatterHaloBiasClass          ), pointer                   :: darkMatterHaloBias_           => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                   :: darkMatterProfileScaleRadius_ => null()
-      double precision                                  , allocatable, dimension(:) :: separationProjectedBinned              , correlationProjectedBinned
-     double precision                                                               :: separationMinimum                      , separationMaximum         , &
-          &                                                                            massMinimum                            , massMaximum               , &
-          &                                                                            massHaloMinimum                        , massHaloMaximum           , &
+      double precision                                  , allocatable, dimension(:) :: separationProjectedBinned               , correlationProjectedBinned
+     double precision                                                               :: separationMinimum                       , separationMaximum         , &
+          &                                                                            massMinimum                             , massMaximum               , &
+          &                                                                            massHaloMinimum                         , massHaloMaximum           , &
           &                                                                            depthLineOfSight
      integer                                                                        :: countSeparations
-     logical                                                                        :: halfIntegral
+     logical                                                                        :: nodeComponentsInitialized     =  .false., halfIntegral
      type            (varying_string                   )                            :: outputGroup
      ! Pointer to the parameters for this task.
      type            (inputParameters                  )                            :: parameters
@@ -114,6 +114,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>separationMinimum</name>
@@ -253,7 +254,7 @@ contains
     <objectDestructor name="self%darkMatterHaloBias_"          />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine haloModelProjectedCorrelationFunctionDestructor
 
@@ -262,8 +263,8 @@ contains
     Generate a mock galaxy catalog using a simple halo model approach.
     !!}
     use :: Display                          , only : displayIndent                    , displayUnindent
-    use :: Galacticus_Error                 , only : errorStatusSuccess
-    use :: Galacticus_HDF5                  , only : galacticusOutputFile
+    use :: Error                            , only : errorStatusSuccess
+    use :: Output_HDF5                      , only : outputFile
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     use :: IO_HDF5                          , only : hdf5Object
     use :: Node_Components                  , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
@@ -294,7 +295,7 @@ contains
          &                                self%halfIntegral                 , &
          &                                self%correlationProjectedBinned     &
          &                               )
-    outputGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
+    outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.')
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )
     call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",commentText="Projected correlation [Mpc].")
     call outputGroup%close       (                                                                                                 )

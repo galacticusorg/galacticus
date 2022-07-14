@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,38 +156,38 @@ Contains a module which implements a excursion set first crossing statistics cla
      class           (excursionSetBarrierClass     ), pointer                       :: excursionSetBarrier_             => null()
      class           (cosmologicalMassVarianceClass), pointer                       :: cosmologicalMassVariance_        => null()
      ! Variables used in tabulation the first crossing function.
-     double precision                                                               :: timeMaximum                               , timeMinimum             , &
+     double precision                                                               :: timeMaximum                                , timeMinimum             , &
           &                                                                            varianceMaximum
-     integer                                                                        :: timeTableCount                            , varianceTableCount
+     integer                                                                        :: timeTableCount                             , varianceTableCount
      double precision                               , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
-     double precision                               , allocatable, dimension(:  )   :: timeTable                                 , varianceTable
+     double precision                               , allocatable, dimension(:  )   :: timeTable                                  , varianceTable
      double precision                                                               :: varianceTableStep
-     logical                                                                        :: tableInitialized                          , fileNameInitialized
-     type            (interpolator                 ), allocatable                   :: interpolatorTime                          , interpolatorVariance
+     logical                                                                        :: tableInitialized                 =  .false., fileNameInitialized
+     type            (interpolator                 ), allocatable                   :: interpolatorTime                           , interpolatorVariance
      ! Variables used in tabulation the first crossing rate function.
-     double precision                                                               :: timeMaximumRate                           , timeMinimumRate         , &
+     double precision                                                               :: timeMaximumRate                            , timeMinimumRate         , &
           &                                                                            varianceMaximumRate
-     integer                                                                        :: timeTableCountRate                        , varianceTableCountRate  , &
+     integer                                                                        :: timeTableCountRate                         , varianceTableCountRate  , &
           &                                                                            varianceTableCountRateBase
      double precision                               , allocatable, dimension(:,:,:) :: firstCrossingTableRate
      double precision                               , allocatable, dimension(:,:  ) :: nonCrossingTableRate
-     double precision                               , allocatable, dimension(:    ) :: timeTableRate                             , varianceTableRate       , &
+     double precision                               , allocatable, dimension(:    ) :: timeTableRate                              ,  varianceTableRate       , &
           &                                                                            varianceTableRateBase
-     logical                                                                        :: tableInitializedRate
-     type            (interpolator                 ), allocatable                   :: interpolatorTimeRate                      , interpolatorVarianceRate, &
+     logical                                                                        :: tableInitializedRate             =  .false.
+     type            (interpolator                 ), allocatable                   :: interpolatorTimeRate                       , interpolatorVarianceRate, &
           &                                                                            interpolatorVarianceRateBase
      ! File name used to store tabulations.
      type            (varying_string               )                                :: fileName
      logical                                                                        :: useFile
      ! Tabulation resolutions.
-     integer                                                                        :: varianceNumberPerUnitProbability          , varianceNumberPerUnit   , &
-          &                                                                            timeNumberPerDecade                       , varianceNumberPerDecade
+     integer                                                                        :: varianceNumberPerUnitProbability           , varianceNumberPerUnit   , &
+          &                                                                            timeNumberPerDecade                        , varianceNumberPerDecade
      ! The fractional step in time used to compute barrier crossing rates.
      double precision                                                               :: timeStepFractional
      ! Record of variance and time in previous call to rate functions.
-     double precision                                                               :: timeRatePrevious                          , varianceRatePrevious
-     double precision                                            , dimension(0:1)   :: hTimeRate                                 , hVarianceRate
-     integer         (c_size_t                     )                                :: iTimeRate                                 , iVarianceRate
+     double precision                                                               :: timeRatePrevious                           , varianceRatePrevious
+     double precision                                            , dimension(0:1)   :: hTimeRate                                  , hVarianceRate
+     integer         (c_size_t                     )                                :: iTimeRate                                  , iVarianceRate
    contains
      !![
      <methods>
@@ -322,15 +322,15 @@ contains
   end function farahiConstructorInternal
 
   subroutine farahiFileNameInitialize(self)
-    use :: File_Utilities  , only : Directory_Make, File_Name_Expand   , File_Path
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+    use :: File_Utilities, only : Directory_Make, File_Name_Expand   , File_Path
+    use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
 
     if (self%fileNameInitialized) return
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") &
-         & self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+         & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
     ! Expand file name.
     self%fileName=File_Name_Expand(char(self%fileName))
     ! Ensure directory exists.
@@ -358,14 +358,13 @@ contains
     !!{
     Return the excursion set barrier at the given variance and time.
     !!}
-    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : erfApproximate
-    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble      , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
-    use :: Memory_Management, only : allocateArray  , deallocateArray
-    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions  , only : Error_Function_Complementary
+    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
+    use :: Memory_Management, only : allocateArray               , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
     double precision                                 , intent(in   )                 :: variance                     , time
@@ -401,7 +400,7 @@ contains
     if (makeTable) then
        !$omp critical(farahiProbabilityTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile.and..not.self%tableInitialized) then
+       if (self%useFile) then
           call self%fileNameInitialize()
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
@@ -484,19 +483,12 @@ contains
                 barrierTable(i)=excursionSetBarrier_%barrier(self%varianceTable(i),self%timeTable(iTime),node,rateCompute=.false.)
              end do
              self%firstCrossingProbabilityTable(0,iTime)=0.0d0
-             self%firstCrossingProbabilityTable(1,iTime)=                                                              &
-                  &                                 real(                                                              &
-                  &                                        +2.0_kind_quad                                              &
-                  &                                      *(                                                            &
-                  &                                        +1.0_kind_quad                                              &
-                  &                                        -erfApproximate(                                            &
-                  &                                                        +barrierTable(1)                            &
-                  &                                                        /sqrt(2.0_kind_quad*self%varianceTable(1))  &
-                  &                                                       )                                            &
-                  &                                       )                                                            &
-                  &                                      /self%varianceTableStep                                     , &
-                  &                                      kind=kind_dble                                                &
-                  &                                     )
+             self%firstCrossingProbabilityTable(1,iTime)=+2.0d0                                                           &
+                  &                                      *Error_Function_Complementary(                                   &
+                  &                                                                    +barrierTable(1)                   &
+                  &                                                                    /sqrt(2.0d0*self%varianceTable(1)) &
+                  &                                                                   )                                   &
+                  &                                      /self%varianceTableStep
              do i=2,self%varianceTableCount
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -509,37 +501,27 @@ contains
                 loopCount=loopCount+(i-1)
                 sigma1f  =0.0d0
                 do j=1,i-1
-                   sigma1f=+sigma1f                                                                                  &
-                        &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
-                        &  *real(                                                                                    &
-                        &        +1.0_kind_quad                                                                      &
-                        &        -erfApproximate(                                                                    &
-                        &                        +(                                                                  &
-                        &                           +barrierTable(i)                                                 &
-                        &                           -barrierTable(j)                                                 &
-                        &                         )                                                                  &
-                        &                        /sqrt(2.0_kind_quad*(self%varianceTable(i)-self%varianceTable(j)))  &
-                        &                       )                                                                  , &
-                        &        kind=kind_dble                                                                      &
-                        &       )
+                   sigma1f=+sigma1f                                                                                 &
+                        &  +self%firstCrossingProbabilityTable(j,iTime)                                             &
+                        &  *Error_Function_Complementary(                                                           &
+                        &                                +(                                                         &
+                        &                                   +barrierTable(i)                                        &
+                        &                                   -barrierTable(j)                                        &
+                        &                                 )                                                         &
+                        &                                /sqrt(2.0d0*(self%varianceTable(i)-self%varianceTable(j))) &
+                        &                               )
                 end do
-                self%firstCrossingProbabilityTable(i,iTime)=+real(                                                                   &
-                     &                                            +max(                                                              &
-                     &                                                 +0.0_kind_quad,                                               &
-                     &                                                 +2.0_kind_quad                                                &
-                     &                                                 *(                                                            &
-                     &                                                   +1.0_kind_quad                                              &
-                     &                                                   -erfApproximate(                                            &
-                     &                                                                   +barrierTable(i)                            &
-                     &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
-                     &                                                                  )                                            &
-                     &                                                  )                                                            &
-                     &                                                 /self%varianceTableStep                                       &
-                     &                                                 -2.0_kind_quad                                                &
-                     &                                                 *sigma1f                                                      &
-                     &                                                )                                                            , &
-                     &                                            kind=kind_dble                                                     &
-                     &                                           )
+                self%firstCrossingProbabilityTable(i,iTime)=max(                                                                 &
+                     &                                          +0.0d0,                                                          &
+                     &                                          +2.0d0                                                           &
+                     &                                          *Error_Function_Complementary(                                   &
+                     &                                                                        +barrierTable(i)                   &
+                     &                                                                        /sqrt(2.0d0*self%varianceTable(i)) &
+                     &                                                                       )                                   &
+                     &                                          /self%varianceTableStep                                          &
+                     &                                          -2.0d0                                                           &
+                     &                                          *sigma1f                                                         &
+                     &                                         )
              end do
              ! Force the probability at maximum variance to zero.
              self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
@@ -708,14 +690,14 @@ contains
     !!{
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : erfApproximate
-    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble      , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
-    use :: Memory_Management, only : allocateArray  , deallocateArray
-    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions  , only : Error_Function_Complementary
+    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
+    use :: Memory_Management, only : allocateArray               , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
     double precision                                 , intent(in   )               :: time                             , varianceProgenitor
@@ -760,7 +742,7 @@ contains
     if (makeTable) then
        !$omp critical(farahiRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile.and.self%tableInitializedRate) then
+       if (self%useFile) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -904,10 +886,10 @@ contains
 #endif
                 ! Construct the barrier table.
                 do i=1,self%varianceTableCountRate
-                   massProgenitor         =+cosmologicalMassVariance_%mass        (real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime)                        )
-                   growthFactorEffective  =+cosmologicalMassVariance_%rootVariance(      massProgenitor                                                       ,self%timeTableRate(iTime)                        ) &
-                        &                  /cosmologicalMassVariance_%rootVariance(      massProgenitor                                                       ,     timeProgenitor                              )
-                   barrierTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
+                   massProgenitor         =+cosmologicalMassVariance_%mass        (real(sqrt(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance)),kind=8),self%timeTableRate(iTime)                        )
+                   growthFactorEffective  =+cosmologicalMassVariance_%rootVariance(           massProgenitor                                                        ,self%timeTableRate(iTime)                        ) &
+                        &                  /cosmologicalMassVariance_%rootVariance(           massProgenitor                                                        ,     timeProgenitor                              )
+                   barrierTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(     +varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) ,kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
                         &                  *growthFactorEffective
                 end do
                 !$omp atomic
@@ -922,17 +904,14 @@ contains
                 if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(1)= 0.0_kind_quad
                 else
-                   firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                  &
-                        &                        *(                                                              &
-                        &                          +1.0_kind_quad                                                &
-                        &                          -erfApproximate(                                              &
-                        &                                          +(                                            &
-                        &                                            +barrierTableRateQuad(1)                    &
-                        &                                            -barrier                                    &
-                        &                                           )                                            &
-                        &                                          /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
-                        &                                         )                                              &
-                        &                         )                                                              &
+                   firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                              &
+                        &                        *Error_Function_Complementary(                                              &
+                        &                                                      +(                                            &
+                        &                                                        +barrierTableRateQuad(1)                    &
+                        &                                                        -barrier                                    &
+                        &                                                       )                                            &
+                        &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
+                        &                                                     )                                              &
                         &                        /varianceTableStepRate
                 end if
                 do i=2,self%varianceTableCountRate
@@ -943,36 +922,30 @@ contains
                       sigma1f                =+0.0_kind_quad
                       do j=1,i-1
                          varianceTableStepRate=(varianceTableRateQuad(j+1)-varianceTableRateQuad(j-1))/2.0_kind_quad
-                         sigma1f=+sigma1f                                                                                   &
-                              &  +firstCrossingTableRateQuad(j)                                                             &
-                              &  *varianceTableStepRate                                                                     &
-                              &  *(                                                                                         &
-                              &    +1.0_kind_quad                                                                           &
-                              &    -erfApproximate(                                                                         &
-                              &                    +(                                                                       &
-                              &                      +effectiveBarrierInitial                                               &
-                              &                      -barrierTableRateQuad(j)                                               &
-                              &                      +barrier                                                               &
-                              &                     )                                                                       &
-                              &                    /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceTableRateQuad(j))) &
-                              &                   )                                                                         &
-                              &   )
+                         sigma1f=+sigma1f                                                                                               &
+                              &  +firstCrossingTableRateQuad(j)                                                                         &
+                              &  *varianceTableStepRate                                                                                 &
+                              &  *Error_Function_Complementary(                                                                         &
+                              &                                +(                                                                       &
+                              &                                  +effectiveBarrierInitial                                               &
+                              &                                  -barrierTableRateQuad(j)                                               &
+                              &                                  +barrier                                                               &
+                              &                                 )                                                                       &
+                              &                                /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceTableRateQuad(j))) &
+                              &                               )
                       end do
                       varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                      firstCrossingTableRateQuad(i)=max(                                                                  &
-                           &                            +0.0_kind_quad,                                                   &
-                           &                            +(                                                                &
-                           &                              +2.0_kind_quad                                                  &
-                           &                              *(                                                              &
-                           &                                +1.0_kind_quad                                                &
-                           &                                -erfApproximate(                                              &
-                           &                                                +effectiveBarrierInitial                      &
-                           &                                                /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
-                           &                                               )                                              &
-                           &                               )                                                              &
-                           &                              -2.0_kind_quad*sigma1f                                          &
-                           &                             )                                                                &
-                           &                            /varianceTableStepRate                                            &
+                      firstCrossingTableRateQuad(i)=max(                                                                              &
+                           &                            +0.0_kind_quad,                                                               &
+                           &                            +(                                                                            &
+                           &                              +2.0_kind_quad                                                              &
+                           &                              *Error_Function_Complementary(                                              &
+                           &                                                            +effectiveBarrierInitial                      &
+                           &                                                            /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
+                           &                                                           )                                              &
+                           &                              -2.0_kind_quad*sigma1f                                                      &
+                           &                             )                                                                            &
+                           &                            /varianceTableStepRate                                                        &
                            &                           )
                    end if
                 end do
@@ -1067,7 +1040,8 @@ contains
     !!}
     use :: Display           , only : displayIndent, displayMessage  , displayUnindent, verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists  , File_Name_Expand
-    use :: IO_HDF5           , only : hdf5Access   , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : operator(//) , var_str         , varying_string
     use :: Memory_Management , only : allocateArray, deallocateArray
     implicit none
@@ -1124,13 +1098,13 @@ contains
        ! Report.
        message=var_str('read excursion set first crossing probability from: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMinimum
+       write (label,'(e22.16)') self%timeMinimum
        message=var_str('    time minimum: ')//label//' Gyr'
        call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMaximum
+       write (label,'(e22.16)') self%timeMaximum
        message=var_str('    time maximum: ')//label//' Gyr'
        call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%varianceMaximum
+       write (label,'(e22.16)') self%varianceMaximum
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
@@ -1184,14 +1158,13 @@ contains
        ! Report.
        message=var_str('read excursion set first crossing rates from: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMinimumRate
+       write (label,'(e22.16)') self%timeMinimumRate
        message=var_str('    time minimum: ')//label//' Gyr'
        call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMaximumRate
+       write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
-       write (label,'(e12.6)') self%varianceMaximumRate
-       message=var_str('variance minimum: ')//label
-       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%varianceMaximumRate
+       message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
@@ -1205,11 +1178,16 @@ contains
     !!{
     Write tabulated data on excursion set first crossing probabilities to file.
     !!}
-    use :: HDF5   , only : hsize_t
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
+    use :: HDF5              , only : hsize_t
+    use :: ISO_Varying_String, only : operator(//) , var_str       , varying_string
     implicit none
-    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
-    type (hdf5Object                     )                :: dataFile, dataGroup
+    class    (excursionSetFirstCrossingFarahi), intent(inout) :: self
+    type     (hdf5Object                     )                :: dataFile, dataGroup
+    type     (varying_string                 )                :: message
+    character(len=32                         )                :: label
 
     ! Don't write anything if neither table is initialized.
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
@@ -1225,6 +1203,19 @@ contains
        call dataGroup%writeDataset(self%timeTable                    ,'time'                    ,'The cosmic times at which results are tabulated.'                     )
        call dataGroup%writeDataset(self%firstCrossingProbabilityTable,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
        call dataGroup%close()
+       ! Report.
+       message=var_str('write excursion set first crossing probability to: ')//char(self%fileName)
+       call displayIndent  (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMinimum
+       message=var_str('    time minimum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMaximum
+       message=var_str('    time maximum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%varianceMaximum
+       message=var_str('variance maximum: ')//label
+       call displayMessage (message,verbosityLevelWorking)
+       call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Check if the rate table is populated.
     if (self%tableInitializedRate) then
@@ -1235,6 +1226,18 @@ contains
        call dataGroup%writeDataset(self%firstCrossingTableRate,'firstCrossingRate','The probability rate of first crossing as a function of variances and time.')
        call dataGroup%writeDataset(self%nonCrossingTableRate  ,'nonCrossingRate'  ,'The probability rate of non crossing as a function of variance and time.')
        call dataGroup%close()
+       ! Report.
+       message=var_str('wrote excursion set first crossing rates to: ')//char(self%fileName)
+       call displayIndent  (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMinimumRate
+       message=var_str('    time minimum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMaximumRate
+       message=var_str('    time maximum: ')//label//' Gyr'
+       write (label,'(e22.16)') self%varianceMaximumRate
+       message=var_str('variance maximum: ')//label
+       call displayMessage (message,verbosityLevelWorking)
+       call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Close the data file.
     call dataFile%close()

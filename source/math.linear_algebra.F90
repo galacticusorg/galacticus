@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,9 +28,9 @@ module Linear_Algebra
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_double, c_size_t, c_int
   implicit none
   private
-  public :: vector        , matrix       , matrixRotation, matrixRotationPlusTranslation, &
-       &    matrixLU      , assignment(=), operator(*)   , gsl_vector_get               , &
-       &    gsl_vector_set, gsl_vector_free
+  public :: vector        , matrix         , matrixRotation      , matrixRotationPlusTranslation, &
+       &    matrixLU      , assignment(=)  , operator(*)         , gsl_vector_get               , &
+       &    gsl_vector_set, gsl_vector_free, matrixRotationRandom
 
   type, public :: vector
      !!{
@@ -42,12 +42,12 @@ module Linear_Algebra
    contains
      !![
      <methods>
-       <method description="Compute the magnitude of a vector." method="magnitude" />
-       <method description="Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}." method="operator(.dot.)" />
-       <method description="Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}." method="operator(-)" />
-       <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}." method="operator(+)" />
-       <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)" />
-       <method description="Return a C pointer to the GSL vector object." method="gslObject" />
+       <method description="Compute the magnitude of a vector."                                                method="magnitude"        />
+       <method description="Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}."  method="operator(.dot.)"  />
+       <method description="Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}."          method="operator(-)"      />
+       <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}."          method="operator(+)"      />
+       <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)"/>
+       <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
      </methods>
      !!]
      final     ::                        vectorDestructorRank0, vectorDestructorRank1
@@ -83,21 +83,24 @@ module Linear_Algebra
    contains
      !![
      <methods>
-       <method description="Compute the product of two matrices." method="operator(*)" />
-       <method description="Compute and return the determinant of the matrix." method="determinant" />
-       <method description="Compute and return the logarithm of the determinant of the matrix." method="logarithmicDeterminant" />
-       <method description="Compute and return the sign of the determinant of the matrix." method="signDeterminant" />
-       <method description="Compute and return the matrix inverse." method="inverse" />
-       <method description="Return the transpose of a matrix." method="transpose" />
-       <method description="Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct" />
-       <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector." method="linearSystemSolve" />
-       <method description="Compute eigenvectors and eigenvalues of the matrix." method="eigenSystem" />
-       <method description="Compute the Cholesky decomposition of the matrix in place." method="choleskyDecomposition" />
+       <method description="Compute the product of two matrices."                                                              method="operator(*)"           />
+       <method description="Compute the sum of two matrices."                                                                  method="operator(+)"           />
+       <method description="Compute and return the determinant of the matrix."                                                 method="determinant"           />
+       <method description="Compute and return the logarithm of the determinant of the matrix."                                method="logarithmicDeterminant"/>
+       <method description="Compute and return the sign of the determinant of the matrix."                                     method="signDeterminant"       />
+       <method description="Compute and return the matrix inverse."                                                            method="inverse"               />
+       <method description="Return the transpose of a matrix."                                                                 method="transpose"             />
+       <method description="Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct"     />
+       <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector."     method="linearSystemSolve"     />
+       <method description="Compute eigenvectors and eigenvalues of the matrix."                                               method="eigenSystem"           />
+       <method description="Compute the Cholesky decomposition of the matrix in place."                                        method="choleskyDecomposition" />
      </methods>
      !!]
      final     ::                           matrixDestructorRank0       , matrixDestructorRank1
      procedure ::                           matrixMatrixProduct
+     procedure ::                           matrixMatrixAdd
      generic   :: operator(*)            => matrixMatrixProduct
+     generic   :: operator(+)            => matrixMatrixAdd
      procedure :: determinant            => matrixDeterminant
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
      procedure :: signDeterminant        => matrixSignDeterminant
@@ -154,6 +157,7 @@ module Linear_Algebra
   ! Operator interfaces.
   interface operator(*)
      module procedure matrixVectorMultiply
+     module procedure matrixScalarMultiply
   end interface operator(*)
   
   interface
@@ -308,6 +312,25 @@ module Linear_Algebra
        import c_ptr, c_size_t
        type(c_ptr), value :: p
      end subroutine gsl_permutation_free
+
+     function gsl_matrix_scale(a,x) bind(c,name='gsl_matrix_scale')
+       !!{
+       Template for the GSL matrix scale function.
+       !!}
+       import c_ptr, c_int, c_double
+       integer(c_int   )        :: gsl_matrix_scale
+       type   (c_ptr   ), value :: a
+       real   (c_double), value :: x
+     end function gsl_matrix_scale
+
+     function gsl_matrix_add(a,b) bind(c,name='gsl_matrix_add')
+       !!{
+       Template for the GSL matrix addition function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_matrix_add
+       type   (c_ptr), value :: a             , b
+     end function gsl_matrix_add
 
      function gsl_linalg_LU_decomp(A,p,signum) bind(c,name='gsl_linalg_LU_decomp')
        !!{
@@ -489,8 +512,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily vector} class which builds the vector by copying a {\normalfont \ttfamily source} vector.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (vector)             :: self
     type   (vector), intent(in) :: source
@@ -500,7 +523,7 @@ contains
     self%size_  =source%size_
     self%vector_=gsl_vector_alloc(self%size_)
     status      =gsl_vector_memcpy(self%vector_,source%vector_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('vector copy failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('vector copy failed'//{introspection:location})
     return
   end function vectorCopyConstructor
   
@@ -566,8 +589,8 @@ contains
     !!{
     Add one vector to another.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (vector)                :: vectorAdd
     class  (vector), intent(in   ) :: vector1  , vector2
@@ -575,7 +598,7 @@ contains
 
     vectorAdd=vector(vector1)
     status   =gsl_vector_add(vectorAdd%vector_,vector2%vector_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('vector addition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('vector addition failed'//{introspection:location})
     return
   end function vectorAdd
 
@@ -583,8 +606,8 @@ contains
     !!{
     Subtract one vector from another.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (vector)                :: vectorSubtract
     class  (vector), intent(in   ) :: vector1       , vector2
@@ -592,7 +615,7 @@ contains
 
     vectorSubtract=vector(vector1)
     status        =gsl_vector_sub(vectorSubtract%vector_,vector2%vector_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('vector subtract failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('vector subtract failed'//{introspection:location})
     return
   end function vectorSubtract
 
@@ -611,14 +634,14 @@ contains
     !!{
     Compute the dot product of two vectors.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class  (vector), intent(in   ) :: vector1, vector2
     integer(c_int )                :: status
 
     status=gsl_blas_ddot(vector1%vector_,vector2%vector_,vectorDotProduct)
-    if (status /= GSL_Success) call Galacticus_Error_Report('vector dot product failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('vector dot product failed'//{introspection:location})
     return
   end function vectorDotProduct
   
@@ -626,13 +649,13 @@ contains
     !!{
     Compute the cross product of two vectors.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type (vector)                :: vectorCrossProduct
     class(vector), intent(in   ) :: vector1           , vector2
 
     if (vector1%size_ /= 3_c_size_t .or. vector2%size_ /= 3_c_size_t) &
-         & call Galacticus_Error_Report('vector cross product only defined for 3D vectors'//{introspection:location})
+         & call Error_Report('vector cross product only defined for 3D vectors'//{introspection:location})
     vectorCrossProduct=vector(                                                                                         &
          &                    [                                                                                        &
          &                     +gsl_vector_get(vector1%vector_,1_c_size_t)*gsl_vector_get(vector2%vector_,2_c_size_t)  &
@@ -701,8 +724,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily matrix} class which builds the matrix by copying a {\normalfont \ttfamily source} matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (matrix)             :: self
     type   (matrix), intent(in) :: source
@@ -713,7 +736,7 @@ contains
     self%isSquare=source%isSquare
     self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
     status       =gsl_matrix_memcpy(self%matrix_,source%matrix_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('matrix copy failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('matrix copy failed'//{introspection:location})
     return
   end function matrixCopyConstructor
 
@@ -781,37 +804,55 @@ contains
     !!{
     Multiply a matrix by a matrix, returning a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (matrix)                :: matrixMatrixProduct
     class  (matrix), intent(in   ) :: matrix1             , matrix2
     integer(c_int )                :: status
 
-    if (matrix1%size_(2) /= matrix2%size_(1)) call Galacticus_Error_Report('matrices can not be multiplied'//{introspection:location})
+    if (matrix1%size_(2) /= matrix2%size_(1)) call Error_Report('matrices can not be multiplied'//{introspection:location})
     matrixMatrixProduct=matrix(matrix1%size_(1),matrix2%size_(2))
     status             =gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0d0,matrix1%matrix_,matrix2%matrix_,0.0d0,matrixMatrixProduct%matrix_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('matrix-matrix multiply failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('matrix-matrix multiply failed'//{introspection:location})
     return
   end function matrixMatrixProduct
+  
+  function matrixMatrixAdd(matrix1,matrix2)
+    !!{
+    Sum two matrices, returning a matrix.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (matrix)                :: matrixMatrixAdd
+    class  (matrix), intent(in   ) :: matrix1        , matrix2
+    integer(c_int )                :: status
+
+    if (any(matrix1%size_ /= matrix2%size_)) call Error_Report('matrices can not be summed'//{introspection:location})
+    matrixMatrixAdd=matrix(matrix1)
+    status         =gsl_matrix_add(matrixMatrixAdd%matrix_,matrix2%matrix_)
+    if (status /= GSL_Success) call Error_Report('matrix-matrix summation failed'//{introspection:location})
+    return
+  end function matrixMatrixAdd
   
   double precision function matrixDeterminant(self)
     !!{
     Compute the determinant of a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class  (matrix), intent(in   ) :: self
     type   (c_ptr )                :: permutation
     integer(c_int )                :: status     , decompositionSign
     type   (matrix)                :: LU
 
-    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU         =matrix(self)
     permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
     status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     matrixDeterminant=GSL_LinAlg_LU_Det(LU%matrix_,decompositionSign)
     call gsl_permutation_free(permutation)
     return
@@ -821,19 +862,19 @@ contains
     !!{
     Compute the logarithmic determinant of a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class  (matrix), intent(in   ) :: self
     type   (c_ptr )                :: permutation
     integer(c_int )                :: status     , decompositionSign
     type   (matrix)                :: LU
 
-    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU         =matrix(self)
     permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
     status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     matrixLogarithmicDeterminant=GSL_LinAlg_LU_lnDet(LU%matrix_)
     call gsl_permutation_free(permutation)
     return
@@ -843,19 +884,19 @@ contains
     !!{
     Compute the sign of the determinant of a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     class  (matrix), intent(in   ) :: self
     type   (c_ptr )                :: permutation
     integer(c_int )                :: status     , decompositionSign
     type   (matrix)                :: LU
 
-    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU         =matrix(self)
     permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
     status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     matrixSignDeterminant=GSL_LinAlg_LU_sgnDet(LU%matrix_,decompositionSign)
     call gsl_permutation_free(permutation)
     return
@@ -865,8 +906,8 @@ contains
     !!{
     Transpose a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (matrix)                :: matrixTranspose
     class  (matrix), intent(in   ) :: self
@@ -874,7 +915,7 @@ contains
 
     matrixTranspose=matrix(self%size_(2),self%size_(1))
     status=gsl_matrix_transpose_memcpy(matrixTranspose%matrix_,self%matrix_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('matrix transpose failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('matrix transpose failed'//{introspection:location})
     return
   end function matrixTranspose
 
@@ -882,8 +923,8 @@ contains
     !!{
     Compute the inverse of a matrix.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (matrix)                :: matrixInverse
     class  (matrix), intent(in   ) :: self
@@ -891,17 +932,37 @@ contains
     integer(c_int )                :: status       , decompositionSign
     type   (matrix)                :: LU
 
-    if (.not.self%isSquare) call Galacticus_Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
+    if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU           =matrix(self                       )
     matrixInverse=matrix(self%size_(1),self%size_(2))
     permutation  =GSL_Permutation_Alloc(self%size_  (1)                                      )
     status       =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign        )
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     status       =GSL_LinAlg_LU_Invert (LU  %matrix_   ,permutation,matrixInverse    %matrix_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU invert failed'       //{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU invert failed'       //{introspection:location})
     call gsl_permutation_free(permutation)
     return
   end function matrixInverse
+
+  !! Scalar-matrix functions.
+  
+  function matrixScalarMultiply(matrix_,scalar_)
+    !!{
+    Multiply a matrix by a scalar, returning a scalar.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type            (matrix)                :: matrixScalarMultiply
+    class           (matrix), intent(in   ) :: matrix_
+    double precision        , intent(in   ) :: scalar_
+    integer         (c_int )                :: status
+
+    matrixScalarMultiply=matrix(matrix_)
+    status              =gsl_matrix_scale(matrixScalarMultiply%matrix_,scalar_)
+    if (status /= GSL_Success) call Error_Report('matrix-scalar multiply failed'//{introspection:location})
+    return
+  end function matrixScalarMultiply
 
   !! Vector-matrix functions.
   
@@ -909,8 +970,8 @@ contains
     !!{
     Multiply a matrix by a vector, returning a vector.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (vector)                :: matrixVectorMultiply
     class  (matrix), intent(in   ) :: matrix_
@@ -921,7 +982,7 @@ contains
     vectorX             =vector(vector_      )
     matrixVectorMultiply=vector(vector_%size_)
     status              =gsl_blas_dgemv(CblasNoTrans,1.0d0,matrix_%matrix_,vectorX%vector_,0.0d0,matrixVectorMultiply%vector_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('matrix-vector multiply failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('matrix-vector multiply failed'//{introspection:location})
     return
   end function matrixVectorMultiply
 
@@ -929,8 +990,8 @@ contains
     !!{
     Solve the linear system $y = A \cdot x$.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (vector)                :: matrixLinearSystemSolve
     class  (matrix), intent(inout) :: self
@@ -943,9 +1004,9 @@ contains
     LU                     =matrix(self      )
     permutation            =GSL_Permutation_Alloc(self%size_  (1)                                                              )
     status                 =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign                                )
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     status                 =GSL_LinAlg_LU_Solve  (LU%matrix_     ,permutation,y%vector_        ,matrixLinearSystemSolve%vector_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU solve failed'        //{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU solve failed'        //{introspection:location})
     call gsl_permutation_free(permutation)
     return
   end function matrixLinearSystemSolve
@@ -956,8 +1017,8 @@ contains
     directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system
     $y = C x$ for $x$, and then evaluate $y x$.
     !!}
-    use :: Interface_GSL   , only : GSL_Success            , GSL_ESing
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL, only : GSL_Success , GSL_ESing
+    use :: Error        , only : Error_Report
     implicit none
     class  (matrix  ), intent(inout)           :: self
     type   (vector  ), intent(in   )           :: y
@@ -1002,7 +1063,7 @@ contains
        if (present(status)) then
           status=GSL_ESing
        else
-          call Galacticus_Error_Report('matrix is not semi-positive definite'//{introspection:location})
+          call Error_Report('matrix is not semi-positive definite'//{introspection:location})
        end if
     end if
     return
@@ -1012,8 +1073,8 @@ contains
     !!{
     Find eigenvectors and eigenvalues of a real symmetric matrix.
     !!}
-    use :: Interface_GSL   , only : GSL_Success
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    use :: Error        , only : Error_Report
     implicit none
     class  (matrix), intent(inout) :: self
     type   (matrix), intent(  out) :: eigenVectors
@@ -1027,7 +1088,7 @@ contains
     eigenVectors=matrix               (self   %size_  (1),self       %size_  (1)                               )
     workspace   =GSL_Eigen_SymmV_Alloc(self   %size_  (1)                                                      )
     status      =GSL_Eigen_SymmV      (matrix_%matrix_   ,eigenValues%vector_   ,eigenVectors%matrix_,workspace)
-    if (status /= GSL_Success) call Galacticus_Error_Report('eigensystem evaluation failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('eigensystem evaluation failed'//{introspection:location})
     call GSL_Eigen_Symmv_Free(workspace)
     return
   end subroutine matrixEigensystem
@@ -1036,14 +1097,14 @@ contains
     !!{
     Find the Cholesky decomposition of a matrix.
     !!}
-    use :: Interface_GSL   , only : GSL_Success
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    use :: Error        , only : Error_Report
     implicit none
     class  (matrix     ), intent(inout) :: self
     integer(c_int      )                :: status
 
     status=GSL_LinAlg_Cholesky_Decomp(self%matrix_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('Cholesky decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('Cholesky decomposition failed'//{introspection:location})
     return
   end subroutine matrixCholeskyDecomposition
 
@@ -1055,18 +1116,18 @@ contains
     !!{
     Constructor for {\normalfont \ttfamily matrixLU} class which builds the matrix from an array.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (matrixLU)                :: self
     type   (matrix  ), intent(in   ) :: matrix_
     integer(c_int   )                :: status
 
-    if (.not.matrix_%isSquare) call Galacticus_Error_Report('can not find LU decomposition of a non-square matrix'//{introspection:location})
+    if (.not.matrix_%isSquare) call Error_Report('can not find LU decomposition of a non-square matrix'//{introspection:location})
     self%matrix     =matrix(matrix_)
     self%permutation=GSL_Permutation_Alloc(self%size_  (1)                                        )
     status          =GSL_LinAlg_LU_Decomp (self%matrix_   ,self%permutation,self%decompositionSign)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU decomposition failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     return
   end function matrixLUConstructor
 
@@ -1113,8 +1174,8 @@ contains
     !!{
     Solve the square linear system $y = A \cdot x$.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Interface_GSL   , only : GSL_Success
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     type   (vector  )                :: matrixLUSquareSystemSolve
     class  (matrixLU), intent(inout) :: self
@@ -1123,7 +1184,7 @@ contains
 
     matrixLUSquareSystemSolve=vector(y%size_)
     status=GSL_LinAlg_LU_Solve(self%matrix_,self%permutation,y%vector_,matrixLUSquareSystemSolve%vector_)
-    if (status /= GSL_Success) call Galacticus_Error_Report('LU solve failed'//{introspection:location})
+    if (status /= GSL_Success) call Error_Report('LU solve failed'//{introspection:location})
     return
   end function matrixLUSquareSystemSolve
 
@@ -1145,6 +1206,46 @@ contains
   end subroutine matrixLUUnassignment
   
   !! Geometrical transformations.
+
+  function matrixRotationRandom(randomNumberGenerator_)
+    !!{
+    Generate a random 3-D rotation matrix. ``Random'' here means that the distribution is invariant when composed with an
+    arbitrary rotation (see \href{https://en.wikipedia.org/wiki/Rotation_matrix\#Uniform_random_rotation_matrices}{here} for
+    further details).
+    !!}
+    use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    type            (matrix                    )                 :: matrixRotationRandom
+    class           (randomNumberGeneratorClass), intent(inout)  :: randomNumberGenerator_
+    double precision                            , dimension(3,3) :: matrixComponents
+    double precision                                             :: theta                 , phi   , &
+         &                                                          psi                   , x     , &
+         &                                                          y                     , z     , &
+         &                                                          cosPsi                , sinPsi, &
+         &                                                          mcosPsi
+    
+    theta  =+acos(+2.0d0   *randomNumberGenerator_%uniformSample()-1.0d0)
+    phi    =      +2.0d0*Pi*randomNumberGenerator_%uniformSample()
+    psi    =      +2.0d0*Pi*randomNumberGenerator_%uniformSample()
+    x      =+sin(theta)*cos(phi)
+    y      =+sin(theta)*sin(phi)
+    z      =+cos(theta)
+    cosPsi =+cos(psi)
+    sinPsi =+sin(psi)
+    mcosPsi=+1.0d0  &
+         &  -cosPsi
+    matrixComponents=reshape(                                                                    &
+         &                   [                                                                   &
+         &                    +x*x*mcosPsi+  cosPsi,+x*y*mcosPsi-z*sinPsi,+x*z*mcosPsi+y*sinPsi, &
+         &                    +y*x*mcosPsi+z*sinPsi,+y*y*mcosPsi+  cosPsi,+y*z*mcosPsi-x*sinPsi, &
+         &                    +z*x*mcosPsi-y*sinPsi,+z*y*mcosPsi+x*sinPsi,+z*z*mcosPsi+  cosPsi  &
+         &                   ]                                                                 , &
+         &                   [3,3]                                                               &
+         &                  )
+    matrixRotationRandom=matrix(matrixComponents)
+    return
+  end function matrixRotationRandom
   
   function matrixRotation(points,pointsRotated)
     !!{

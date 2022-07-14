@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,9 +54,11 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepSatelliteDestruction)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=mergerTreeEvolveTimestepSatelliteDestruction()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteDestructionConstructorParameters
 
@@ -123,7 +125,7 @@ contains
     Process a satellite node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,34 +31,33 @@
     A radiation field class for intergalactic background light with properties read from file. The flux is determined by
     linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily
     [fileName]}. An example of the required file structure is:
-     \begin{verbatim}
-    <spectrum>
-      <URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H</URL>
-      <description>Cosmic background radiation spectrum from quasars alone.</description>
-      <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
-      <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
-      <wavelengths>
-        <datum>0.0002481</datum>
-        <datum>0.001489</datum>
+    \begin{verbatim}
+    &lt;spectrum>
+      &lt;URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL>
+      &lt;description>Cosmic background radiation spectrum from quasars alone.&lt;/description>
+      &lt;reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20&lt;/reference>
+      &lt;source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00&lt;/source>
+      &lt;wavelengths>
+        &lt;datum>0.0002481&lt;/datum>
+        &lt;datum>0.001489&lt;/datum>
         .
         .
         .
-        <units>Angstroms</units>
-      </wavelengths>
-      <spectra>
-        <datum>7.039E-49</datum>
-        <datum>8.379E-48</datum>
-        <datum>1.875E-39</datum>
-        <datum>7.583E-38</datum>
+        &lt;units>Angstroms&lt;/units>
+      &lt;/wavelengths>
+      &lt;spectra>
+        &lt;datum>7.039E-49&lt;/datum>
+        &lt;datum>8.379E-48&lt;/datum>
+        &lt;datum>1.875E-39&lt;/datum>
+        &lt;datum>7.583E-38&lt;/datum>
         .
         .
         .
-        <redshift>0</redshift>
-        <units>erg cm^-2 s^-1 Hz^-1 sr^-1</units>
-      </spectra>
-    </spectrum>
-     \end{verbatim}
-    \end{description}
+        &lt;redshift>0&lt;/redshift>
+        &lt;units>erg cm^-2 s^-1 Hz^-1 sr^-1&lt;/units>
+      &lt;/spectra>
+    &lt;/spectrum>
+    \end{verbatim}
     The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and
     {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
     wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in
@@ -139,11 +138,11 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
     !!}
-    use :: Array_Utilities  , only : Array_Is_Monotonic            , Array_Reverse     , directionIncreasing
-    use :: FoX_DOM          , only : destroy                       , node              , extractDataContent
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList       , XML_Parse
+    use :: Array_Utilities  , only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
+    use :: FoX_DOM          , only : destroy                          , extractDataContent   , node
+    use :: Error            , only : Error_Report
+    use :: IO_XML           , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
+          &                          XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
     use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                              :: self
@@ -161,11 +160,11 @@ contains
 
     !$omp critical (FoX_DOM_Access)
     doc => XML_Parse(char(fileName),iostat=status)
-    if (status /= 0) call Galacticus_Error_Report('Unable to find or parse data file'//{introspection:location})
+    if (status /= 0) call Error_Report('Unable to find or parse data file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(datum,fileFormatVersion)
-    if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= intergalacticBackgroundFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Get a list of all spectra.
     call XML_Get_Elements_By_Tag_Name(doc,"spectra",spectraList)
     ! Get the wavelengths.
@@ -186,7 +185,7 @@ contains
        self%spectraTimes(iSpectrum)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%spectraTimes(iSpectrum)))
     end do
     ! Check if the times are monotonically ordered.
-    if (.not.Array_Is_Monotonic(self%spectraTimes)) call Galacticus_Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
+    if (.not.Array_Is_Monotonic(self%spectraTimes)) call Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
     timesIncreasing=Array_Is_Monotonic(self%spectraTimes,direction=directionIncreasing)
     ! Reverse times if necessary.
     if (.not.timesIncreasing) self%spectraTimes=Array_Reverse(self%spectraTimes)
@@ -201,7 +200,7 @@ contains
        ! Get the data.
        spectrum => spectraList(iSpectrum-1)%element
        ! Check that we have the correct number of data.
-       if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Galacticus_Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
+       if (XML_Count_Elements_By_Tag_Name(spectrum,"datum") /= self%spectraWavelengthsCount) call Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
        ! Extract the data.
        call XML_Array_Read_Static(spectrum,"datum",self%spectra(:,jSpectrum))
     end do

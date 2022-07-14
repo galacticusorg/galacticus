@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing tidal track evolution of subhalos. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+
+</parameters>

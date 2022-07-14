@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -617,8 +617,9 @@ contains
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Display                      , only : displayIndent                     , displayUnindent     , verbosityLevelDebug
     use :: File_Utilities               , only : File_Name_Expand
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
-    use :: IO_HDF5                      , only : hdf5Access                        , hdf5Object
+    use :: Error                        , only : Error_Report
+    use :: HDF5_Access                  , only : hdf5Access
+    use :: IO_HDF5                      , only : hdf5Object
     use :: ISO_Varying_String           , only : varying_string
     use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
@@ -630,13 +631,13 @@ contains
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
 
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     ! Parse the file.
     call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
     call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
-    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
     ! Test for presence of hydrogen data.
     self%gotHydrogenAtomic=chemicalStateFile%hasDataset('hiDensity' )
     self%gotHydrogenCation=chemicalStateFile%hasDataset('hiiDensity')
@@ -674,32 +675,32 @@ contains
          &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
+         & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Close the file.
     call chemicalStateFile%close()
     call displayUnindent('done',verbosityLevelDebug)
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)
@@ -733,7 +734,7 @@ contains
             &  .or.                                                          &
             &   self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
             & )                                                              &
-            & call Galacticus_Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
+            & call Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
     end if
     ! Build interpolators.
     self%interpolatorTemperature=interpolator(self%temperatures )

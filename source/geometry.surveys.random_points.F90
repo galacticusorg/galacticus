@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,11 +84,11 @@ contains
     !!{
     Compute the window function for the survey.
     !!}
-    use            :: FFTW3           , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
-         &                                     fftw_destroy_plan
-    use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_ptr
-    use            :: Meshes          , only : Meshes_Apply_Point     , cloudTypeTriangular
+    use            :: FFTW3        , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
+         &                                  fftw_destroy_plan
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_double_complex       , c_ptr
+    use            :: Meshes       , only : Meshes_Apply_Point     , cloudTypeTriangular
     implicit none
     class           (surveyGeometryRandomPoints), intent(inout)                                           :: self
     double precision                            , intent(in   )                                           :: mass1                   , mass2
@@ -108,9 +108,9 @@ contains
     complex         (c_double_complex          )                                                          :: normalization
 
 #ifdef FFTW3UNAVAIL
-    call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+    call Error_Report('FFTW3 library is required but was not found'//{introspection:location})
 #endif
-    if (.not.associated(self%randomNumberGenerator_)) call Galacticus_Error_Report('no random number generator supplied'//{introspection:location})
+    if (.not.associated(self%randomNumberGenerator_)) call Error_Report('no random number generator supplied'//{introspection:location})
     ! Initialize geometry if necessary.
     if (.not.self%geometryInitialized) then
        call self%randomsInitialize()
@@ -181,14 +181,14 @@ contains
     !!{
     Angular power is not available, so simply aborts.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (surveyGeometryRandomPoints), intent(inout) :: self
     integer                            , intent(in   ) :: i   , j, l
     !$GLC attributes unused :: self, i, j, l
 
     randomPointsAngularPower=0.0d0
-    call Galacticus_Error_Report('angular power is not available'//{introspection:location})
+    call Error_Report('angular power is not available'//{introspection:location})
     return
   end function randomPointsAngularPower
 
@@ -196,7 +196,7 @@ contains
     !!{
     Return true if a point is included in the survey geometry.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryRandomPoints), intent(inout)               :: self
     double precision                            , intent(in   ), dimension(3) :: point
@@ -204,7 +204,7 @@ contains
     !$GLC attributes unused :: self, point, mass
 
     randomPointIncluded=.false.
-    call Galacticus_Error_Report('point inclusion is not supported for window functions defined by random points'//{introspection:location})
+    call Error_Report('point inclusion is not supported for window functions defined by random points'//{introspection:location})
     return
   end function randomPointIncluded
 

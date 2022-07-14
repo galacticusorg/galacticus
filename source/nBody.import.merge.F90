@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,13 @@ Contains a module which implements an N-body data importer which merges data fro
    <deepCopy>
     <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
    </deepCopy>
-  </nbodyImporter>
+   <stateStore>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
+   </stateStore>
+   <allowedParameters>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
+   </allowedParameters>
+ </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMerge
      !!{
@@ -86,6 +92,9 @@ contains
        <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nbodyImporter"/>
+    !!]
     return
   end function mergeConstructorParameters
 
@@ -139,10 +148,10 @@ contains
     !!{
     Merge data from multiple importers.
     !!}
-    use :: Display         , only : displayIndent          , displayUnindent         , verbosityLevelStandard
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Hashes          , only : doubleHash             , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash     , rank2IntegerSizeTPtrHash, varyingStringHash
+    use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Error  , only : Error_Report
+    use :: Hashes , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
@@ -178,7 +187,7 @@ contains
              countObjectsMerged   =  +countObjectsMerged               &
                   &                  +size(propertyRealRank1   ,dim=2)
           else
-             call Galacticus_Error_Report('no properties are available in the simulations'//{introspection:location})
+             call Error_Report('no properties are available in the simulations'//{introspection:location})
           end if
        end do
        importer_ => importer_%next
@@ -209,6 +218,13 @@ contains
     if (self%importers%simulations(1)%attributesText   %size() > 0) then
        do k=1,self%importers%simulations(1)%attributesText   %size()
           call simulations(1)%attributesText   %set(self%importers%simulations(1)%attributesText   %key(k),self%importers%simulations(1)%attributesText   %value(k))
+       end do
+    end if
+    !! Generic attributes.
+    simulations(1)%attributesGeneric=genericHash          ()
+    if (self%importers%simulations(1)%attributesGeneric%size() > 0) then
+       do k=1,self%importers%simulations(1)%attributesGeneric%size()
+          call simulations(1)%attributesGeneric%set(self%importers%simulations(1)%attributesGeneric%key(k),self%importers%simulations(1)%attributesGeneric%value(k))
        end do
     end if
     !! Scalar integer properties.

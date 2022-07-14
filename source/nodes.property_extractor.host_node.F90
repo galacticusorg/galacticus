@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@ Contains a module which implements an output analysis property extractor class t
      A property extractor output analysis class that extracts a property from the host node of the given node.
      !!}
      private
-     class(nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
+     class(nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
    contains
      final     ::                hostNodeDestructor
      procedure :: extract     => hostNodeExtract
@@ -55,7 +55,7 @@ contains
     !!{
     Constructor for the ``hostNode'' node property extractor class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorHostNode)                :: self
@@ -69,7 +69,7 @@ contains
     class is (nodePropertyExtractorScalar)
        self=nodePropertyExtractorHostNode(nodePropertyExtractor_)
     class default
-       call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
+       call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>

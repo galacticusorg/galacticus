@@ -75,6 +75,7 @@ sub Label_Lengths {
     $fullyQualifiedNameLengthMax = max map {length($_->{'name' })+length($_->{'class'})} &List::ExtraUtils::hashList($build->{'components'});
     # Get property label lengths.
     $implementationPropertyNameLengthMax = 0;
+    my $propertyNameLengthMax            = 0;
     foreach my $component ( &List::ExtraUtils::hashList($build->{'components'}) ) {
 	$propertyNameLengthMax               = max map {length($_->{'name' })} &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' );
 	$implementationPropertyNameLengthMax = 
@@ -91,13 +92,34 @@ sub Label_Lengths {
 	     }
 	     &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
 	    );
+	$propertyNameLengthMax = 
+	    max 
+	    (
+	     $propertyNameLengthMax,
+	     map 
+	     {
+		 length($_        ->{'name' })
+	     }
+	     &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
+	    )
+	    if ( exists($component->{'properties'}->{'property'}) );
     }
+    # Add variables for use at run-time.
+        push
+	(
+	 @{$build->{'variables'}},
+	 {
+	     intrinsic  => "integer"                                                                                                       ,
+	     variables  => [ "propertyNameLengthMax=".$propertyNameLengthMax ]
+	 }
+	);
     # Report.
     if ( $verbosityLevel >= 1 ) {
 	print "         --> Maximum label lengths:\n";
 	print "            -->           Class: ".$classNameLengthMax         ."\n";
 	print "            -->  Implementation: ".$implementationNameLengthMax."\n";
 	print "            --> Fully-qualified: ".$fullyQualifiedNameLengthMax."\n";
+	print "            -->        Property: ".$propertyNameLengthMax      ."\n";
     }
 }
 
@@ -119,7 +141,7 @@ sub offsetName {
 	(
 	 all      => "all",
 	 active   => "atv",
-	 inactive => "itv"	 
+	 inactive => "itv"
 	);
     if ( scalar(@_) == 3 ) {
 	my $status        = shift();

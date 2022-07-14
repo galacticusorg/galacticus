@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,6 +100,7 @@ contains
     Select particles matching a list of integer properties. 
     !!}
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
+    use :: Error  , only : Error_Report
     implicit none
     class           (nbodyOperatorSelectProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -122,7 +123,7 @@ contains
           end do
           nullify(propertyInteger)
        else
-          call Galacticus_Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
+          call Error_Report('property "'//self%propertyName//'"does not exist'//{introspection:location})
        end if
        countFiltered=count(mask)
        ! Filter properties.

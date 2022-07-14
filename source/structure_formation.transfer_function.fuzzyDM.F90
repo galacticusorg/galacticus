@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,8 @@
   \cite{murgia_non-cold_2017}.
   !!}
 
+  use :: Dark_Matter_Particles, only : darkMatterParticleClass
+
   !![
   <transferFunction name="transferFunctionFuzzyDM">
    <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.</description>
@@ -32,7 +34,8 @@
      A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
      !!}
      private
-     double precision :: m22
+     double precision                                   :: m22
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
   end type transferFunctionFuzzyDM
    
   interface transferFunctionFuzzyDM
@@ -58,18 +61,15 @@ contains
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    double precision                                          :: m22                 , beta    , &
-         &                                                       gamma               , redshift
+    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
+    double precision                                          :: beta                , gamma, &
+         &                                                       redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
+
     !![
-    <inputParameter>
-      <name>m22</name>
-      <source>parameters</source>
-      <description>The mass of the fuzzy dark matter particle in units of $10^{-22}$~eV, $m_{22}$.</description>
-    </inputParameter>
     <inputParameter>
       <name>beta</name>
       <source>parameters</source>
@@ -87,6 +87,7 @@ contains
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     <inputParameter>
       <name>redshift</name>
       <source>parameters</source>
@@ -94,35 +95,57 @@ contains
       <description>The redshift of the epoch at which the transfer function is defined.</description>
     </inputParameter>
     !!]
-    self=transferFunctionFuzzyDM(transferFunctionCDM,m22,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
+    self=transferFunctionFuzzyDM(transferFunctionCDM,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="transferFunctionCDM" />
+    <objectDestructor name="darkMatterParticle_" />
     !!]
     return
   end function fuzzyDMConstructorParameters
 
-  function fuzzyDMConstructorInternal(transferFunctionCDM,m22,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function fuzzyDMConstructorInternal(transferFunctionCDM,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class.
     !!}
+    use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
+    use :: Error                       , only : Error_Report
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (transferFunctionFuzzyDM)                         :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
-    double precision                                  , intent(in   ) :: m22                 , beta, &
-         &                                                               gamma               , time
+    double precision                                  , intent(in   ) :: beta                , gamma, &
+         &                                                               time
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
+    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
     double precision                                                  :: alpha
+    double precision                                                  :: wavenumberHalfMode
     !![
-    <constructorAssign variables="m22"/>
+    <constructorAssign variables="*darkMatterParticle_"/>
     !!]
 
-    alpha  =+0.11d0                   &
-         &  *self%m22**(-4.0d0/9.0d0) 
+    select type (darkMatterParticle__ => self%darkMatterParticle_)
+    class is (darkMatterParticleFuzzyDarkMatter)
+       if (darkMatterParticle__%densityFraction() == 1.0d0) then
+          self%m22=+darkMatterParticle__%mass() &
+               &   *kilo                        &
+               &   /1.0d-22
+       else
+          call Error_Report('transfer function is not implemented for a mixed CDM and fuzzy dark matter model'//{introspection:location})
+       end if
+    class default
+       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+    end select
+    wavenumberHalfMode=+4.5d0                   &
+         &             *self%m22**(4.0d0/9.0d0)
+    alpha             =+(                       &
+         &               -1.0d0                 &
+         &               +2.0d0**(-0.5d0/gamma) &
+         &              )**(1.0d0/beta)         &
+         &             /wavenumberHalfMode
     self%transferFunctionMurgia2017=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_)
     return
   end function fuzzyDMConstructorInternal
-

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,21 +112,21 @@ contains
     !!{
     Read merger tree masses from file.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     use :: File_Utilities  , only : File_Name_Expand
     implicit none
     class           (mergerTreeBuildMassesReadHDF5), intent(inout)                            :: self
     double precision                               , intent(  out), allocatable, dimension(:) :: mass    , weight
     type            (hdf5Object                   )                                           :: treeFile
 
-    call        hdf5Access%set        (                                                                             )
+    !$ call     hdf5Access%set        (                                                                             )
     call        treeFile  %openFile   (char(File_Name_Expand(char(self%fileName))),overWrite=.false.,readOnly=.true.)
     call        treeFile  %readDataset('treeRootMass'     ,          mass                                           )
     if (treeFile%hasDataset('treeWeight'))                                                                            &
          & call treeFile  %readDataset('treeWeight'       ,          weight                                         )
     call        treeFile  %close      (                                                                             )
-    call        hdf5Access%unset      (                                                                             )
+    !$ call     hdf5Access%unset      (                                                                             )
     return
   end subroutine readHDF5Read
 

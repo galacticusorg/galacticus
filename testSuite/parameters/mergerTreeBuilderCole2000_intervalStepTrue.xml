@@ -59,7 +59,6 @@
   <componentBasic value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentSatellite value="standard"/>
-  <componentMergingStatistics value="standard"/>
   <componentSpin value="null"/>
   <componentBlackHole value="null"/>
   <componentDisk value="null"/>
@@ -107,7 +106,6 @@
 
   <!-- Output options -->
   <mergerTreeOutputter value="null"/>
-  <galacticusOutputFileName value="testSuite/outputs/mergerTreeBuilderCole2000_intervalStepTrue.hdf5"/>
 
   <!-- Statistics -->
   <mergerTreeOperator value="conditionalMF">
@@ -135,6 +133,15 @@
   </darkMatterProfileScaleRadius>
 
   <!-- Halo concentrations -->
-  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"                        iterable="no"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"                    iterable="no"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+    <nodeOperator value="hierarchy"                         iterable="no"/>
+  </nodeOperator>
 
 </parameters>

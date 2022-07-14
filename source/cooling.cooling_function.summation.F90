@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,12 @@
    <deepCopy>
     <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction"/>
+   </stateStore>
+   <allowedParameters>
+    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction"/>
+   </allowedParameters>
   </coolingFunction>
   !!]
 
@@ -84,6 +90,9 @@ contains
        <objectBuilder class="coolingFunction" name="coolant%coolingFunction" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="coolingFunction"/>
+    !!]
     return
   end function summationConstructorParameters
 
@@ -227,7 +236,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
@@ -273,7 +282,7 @@ contains
             &                                  /coolingFunctionCumulative
     else
        summationCoolingFunctionDensityLogSlope=0.0d0
-       if (coolingFunctionGradient /= 0.0d0) call Galacticus_Error_Report('cooling function is zero but has non-zero gradient with density - logarithmic slope is undefined'//{introspection:location})
+       if (coolingFunctionGradient /= 0.0d0) call Error_Report('cooling function is zero but has non-zero gradient with density - logarithmic slope is undefined'//{introspection:location})
     end if
     return
   end function summationCoolingFunctionDensityLogSlope
@@ -285,7 +294,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
+    use :: Error                        , only : Error_Report
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
@@ -331,7 +340,7 @@ contains
             &                                      /coolingFunctionCumulative
     else
        summationCoolingFunctionTemperatureLogSlope=0.0d0
-       if (coolingFunctionGradient /= 0.0d0) call Galacticus_Error_Report('cooling function is zero but has non-zero gradient with temperature - logarithmic slope is undefined'//{introspection:location})
+       if (coolingFunctionGradient /= 0.0d0) call Error_Report('cooling function is zero but has non-zero gradient with temperature - logarithmic slope is undefined'//{introspection:location})
     end if
     return
   end function summationCoolingFunctionTemperatureLogSlope

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -183,7 +183,7 @@ contains
     !!{
     Compute and output the emission spectrum.
     !!}
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     use :: Numerical_Integration           , only : integrator
     use :: MPI_Utilities                   , only : mpiSelf
@@ -307,9 +307,9 @@ contains
     !!{
     Output the spectrum.
     !!}
-    !$ use :: IO_HDF5                      , only : hdf5Access
-    use :: Numerical_Constants_Astronomical, only : luminositySolar
-    use :: String_Handling                 , only : String_Upper_Case_First
+    !$ use :: HDF5_Access                     , only : hdf5Access
+    use    :: Numerical_Constants_Astronomical, only : luminositySolar
+    use    :: String_Handling                 , only : String_Upper_Case_First
     implicit none
     class  (radiativeTransferOutputterSpectrum), intent(inout) :: self
     type   (hdf5Object                        ), intent(inout) :: outputGroup

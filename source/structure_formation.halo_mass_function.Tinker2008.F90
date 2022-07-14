@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,8 +128,8 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : destroy                     , node                             , parseFile
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML            , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
     use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : extrapolationTypeExtrapolate
@@ -154,11 +154,11 @@ contains
     self%timeParameters=-1.0d0
     self%massParameters=-1.0d0
     ! Read the data file which gives fitting parameters as a function of halo overdensity.
-    parameterFileName=galacticusPath(pathTypeDataStatic)//"darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
-    if (.not.File_Exists(parameterFileName)) call Galacticus_Error_Report('Unable to find data file "'//parameterFileName//'"'//{introspection:location})
+    parameterFileName=inputPath(pathTypeDataStatic)//"darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
+    if (.not.File_Exists(parameterFileName)) call Error_Report('Unable to find data file "'//parameterFileName//'"'//{introspection:location})
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(parameterFileName),ioStat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('Unable to parse data file "'//parameterFileName//'"'//{introspection:location})
+    if (ioStatus /= 0) call Error_Report('Unable to parse data file "'//parameterFileName//'"'//{introspection:location})
     columnsElement => XML_Get_First_Element_By_Tag_Name(doc           ,"columns"        )
     columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"densityContrast")
     call XML_Array_Read(columnElement,"data",dataTmp)

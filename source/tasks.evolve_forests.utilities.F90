@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,9 +50,9 @@ contains
     Build a {\normalfont \ttfamily taskEvolveForests} object from a given parameter set. This is a globally-callable function
     to allow us to subvert the class/module hierarchy.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Input_Parameters, only : inputParameter         , inputParameters
-    use :: Tasks           , only : task                   , taskEvolveForests
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Tasks           , only : task          , taskEvolveForests
     implicit none
     type (inputParameters), intent(inout)          :: parameters
     class(*              ), intent(  out), pointer :: task_
@@ -65,7 +65,7 @@ contains
        !!]
        call task__%autoHook()
     class default
-       call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
+       call Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select
     task_ => task__
     return
@@ -83,8 +83,8 @@ contains
     !!{
     Perform the task for a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Tasks           , only : task                   , taskEvolveForests
+    use :: Error, only : Error_Report
+    use :: Tasks, only : task        , taskEvolveForests
     implicit none
     class  (*), intent(inout)           :: task_
     integer   , intent(  out), optional :: status
@@ -93,7 +93,7 @@ contains
     class is (taskEvolveForests)
        call task_%perform(status)
     class default
-       call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
+       call Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select
     return
   end subroutine Tasks_Evolve_Forest_Perform
@@ -109,8 +109,8 @@ contains
     !!{
     Destruct a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Tasks           , only : task                   , taskEvolveForests
+    use :: Error, only : Error_Report
+    use :: Tasks, only : task        , taskEvolveForests
     implicit none
     class(*), intent(inout), pointer :: task_
 
@@ -121,7 +121,7 @@ contains
        <objectDestructor name="task__"/>
        !!]
     class default
-       call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
+       call Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select
     return
   end subroutine Tasks_Evolve_Forest_Destruct

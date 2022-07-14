@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,12 +34,15 @@ contains
     !!{
     Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
     !!}
-    use :: Display           , only : displayMessage         , verbosityLevelWorking
+    use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)     , varying_string
+    use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageCPlusPlus
     implicit none
     type     (varying_string), intent(  out)           :: cloudyPath   , cloudyVersion
     logical                  , intent(in   ), optional :: static
@@ -53,9 +56,9 @@ contains
     !!]
 
     ! Specify Cloudy version.
-    cloudyVersion="c17.02"
+    cloudyVersion="c17.03"
     ! Specify Cloudy path.
-    cloudyPath   =galacticusPath(pathTypeDataDynamic)//cloudyVersion
+    cloudyPath   =inputPath(pathTypeDataDynamic)//cloudyVersion
     ! Check for existance of executable - build if necessary.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
        ! Check for existance of source code - unpack and patch if necessary.
@@ -63,15 +66,17 @@ contains
           ! Check for existance of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
-             call System_Command_Do('wget "http://data.nublado.org/cloudy_releases/c17/'//cloudyVersion//'.tar.gz" -O '//cloudyPath//'.tar.gz',status)
-             if (status /= 0) call Galacticus_Error_Report("failed to download Cloudy code"//{introspection:location})
+             call download('"http://data.nublado.org/cloudy_releases/c17/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)
+             if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
           end if
           ! Unpack and patch the code.
           call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
-          if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Galacticus_Error_Report("failed to unpack Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -r s/"\\\$res\s+\.=\s+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
-          if (status /= 0                                  ) call Galacticus_Error_Report("failed to patch Cloudy code"//{introspection:location})
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
+          if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Error_Report("failed to unpack Cloudy code"//{introspection:location})
+          call System_Command_Do('sed -i~ -E s/"\\\$res[[:space:]]+\.=[[:space:]]+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
+          if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
+          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//compiler(languageCPlusPlus)//'"/ '//cloudyPath//'/source/Makefile',status)
+          if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
        end if
        ! Build the code.
        call displayMessage("compiling Cloudy code....",verbosityLevelWorking)
@@ -80,20 +85,20 @@ contains
           if (statusEnvironment <= 0) static_=staticDefault == "yes"
        end if
        if (static_) then
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA = -static'/g Makefile")
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static "//stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
        else
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA ='/g Makefile")
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = "        //stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
        end if
        command="cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl;"
        call Get_Environment_Variable('CLOUDY_COMPILER_PATH',compilerPath,status=statusPath)
        if      (statusPath == -1) then
-          call Galacticus_Error_Report("can not read Cloudy compiler path environment variable"//{introspection:location})
+          call Error_Report("can not read Cloudy compiler path environment variable"//{introspection:location})
        else if (statusPath ==  0) then
           command=command//"export PATH="//trim(compilerPath)//":$PATH; "
        end if
        command=command//" make"
        call System_Command_Do(char(command),status)
-       if (status /= 0 .or. .not.File_Exists(cloudyPath//"/source/cloudy.exe")) call Galacticus_Error_Report("failed to build Cloudy code"//{introspection:location})
+       if (status /= 0 .or. .not.File_Exists(cloudyPath//"/source/cloudy.exe")) call Error_Report("failed to build Cloudy code"//{introspection:location})
     end if
     ! Append backslash to path before returning.
     cloudyPath=cloudyPath//"/"

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.400000"/>
+    <OmegaMatter     value=" 0.272000"/>
+    <OmegaDarkEnergy value=" 0.728000"/>
+    <OmegaBaryon     value=" 0.044550"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunctionMethod        value="CAMB"    />
+  <powerSpectrumPrimordialMethod value="powerLaw" >
+    <index               value="0.967"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
+  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.81"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunctionMethod value="shethTormen">
+    <a             value="+0.791"/>
+    <p             value="+0.218"/>
+    <normalization value="+0.302"/>
+  </haloMassFunctionMethod>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloEnvironment value="normal">
+    <radiusEnvironment value="7.102"/>
+  </haloEnvironment>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.01"/>
+    <mergeProbability value="0.1"/>
+    <branchIntervalStep value="true"/>
+    <redshiftMaximum    value="12.0"/>
+    <criticalOverdensity value="environmental">
+      <a value="0.077"/>
+      <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    </criticalOverdensity>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0     value="+0.591"/>
+    <gamma1 value="+0.253"/>
+    <gamma2 value="+0.124"/>
+    <accuracyFirstOrder value="+0.10"/>
+    <cdmAssumptions value="true"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e9"/>
+    <massTreeMaximum value="18.0e9"/>
+    <treesPerDecade value="3000"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="9.8e6"/>
+  </mergerTreeMassResolution>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  2.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="ludlow2016">
+      <C value="625.0"/>
+      <f value="0.061"/>
+      <darkMatterProfileScaleRadius value="concentration"/>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+  <darkMatterProfileConcentration value="diemerJoyce2019"/>
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  </nodeOperator>
+  
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Evolvers -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/concentrationDistributionLudlow2016Environmental.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="massHalo">
+      <virialDensityContrastDefinition value="fixed">
+	<densityContrastValue value="200"/>
+	<densityType value="critical"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="concentration">
+      <virialDensityContrastDefinition value="fixed">
+	<densityContrastValue value="200"/>
+	<densityType value="critical"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+ 
+</parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,8 +29,8 @@
      Implementation of a black body spectrum for radiative transfer calculations.
      !!}
      private
-     class           (accretionDiskSpectraClass), pointer :: accretionDiskSpectra_
-     double precision                                     :: massBlackHole        , accretionRateEddington, &
+     class           (accretionDiskSpectraClass), pointer :: accretionDiskSpectra_ => null()
+     double precision                                     :: massBlackHole                  , accretionRateEddington, &
           &                                                  accretionRate
    contains
      final     ::               accretionDiskDestructor

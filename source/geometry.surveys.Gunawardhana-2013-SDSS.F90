@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,7 +72,6 @@ contains
     !!{
     Default constructor for the \cite{gunawardhana_galaxy_2013} survey geometry class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (surveyGeometryGunawardhana2013SDSS)                        :: self
     class(cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
@@ -124,7 +123,7 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options     , only : distanceTypeComoving
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Units       , only : ergs
@@ -139,7 +138,7 @@ contains
     !$GLC attributes unused :: field, mass, magnitudeAbsolute
 
     ! Validate input.
-    if (.not.present(luminosity)) call Galacticus_Error_Report('luminosity must be supplied '//{introspection:location})
+    if (.not.present(luminosity)) call Error_Report('luminosity must be supplied '//{introspection:location})
     ! Compute limiting distances. We find the luminosity distance from the supplied luminosity and the limiting flux of the survey.
     distanceLuminosity      =sqrt(                 &
          &                        +luminosity      &

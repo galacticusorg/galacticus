@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,13 +32,13 @@ Contains a module which implements a merger tree processing time estimator using
     where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
     the {\normalfont \ttfamily [fileName]} parameter. This file should be an XML document with the structure:
     \begin{verbatim}
-    <timing>
-     <fit>
-       <coefficient>-0.73</coefficient>
-       <coefficient>-0.20</coefficient>
-       <coefficient>0.03</coefficient>
-     </fit>
-    </timing>
+    &lt;timing>
+     &lt;fit>
+       &lt;coefficient>-0.73&lt;/coefficient>
+       &lt;coefficient>-0.20&lt;/coefficient>
+       &lt;coefficient>0.03&lt;/coefficient>
+     &lt;/fit>
+    &lt;/timing>
     \end{verbatim}
     where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
    </description>
@@ -82,6 +82,9 @@ contains
     </inputParameter>
     !!]
     self=metaTreeProcessingTimeFile(fileName)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fileConstructorParameters
 
@@ -89,9 +92,10 @@ contains
     !!{
     Internal constructor for the ``file'' merger tree processing time estimator class.
     !!}
-    use :: FoX_DOM         , only : node                   , parseFile
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
+    use :: FoX_DOM           , only : node                 , parseFile
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String, only : varying_string       , char
     implicit none
     type   (metaTreeProcessingTimeFile)                :: self
     type   (varying_string            ), intent(in   ) :: fileName
@@ -101,7 +105,7 @@ contains
     ! Parse the fit file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(fileName),iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('Unable to find or parse tree timing file'//{introspection:location})
+    if (ioStatus /= 0) call Error_Report('Unable to find or parse tree timing file'//{introspection:location})
     fit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
     call XML_Array_Read_Static(fit,"coefficient",self%fitCoefficient)
     !$omp end critical (FoX_DOM_Access)

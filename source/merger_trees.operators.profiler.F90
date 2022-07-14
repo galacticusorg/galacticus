@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -213,8 +213,9 @@ contains
     !!{
     Outputs tree information content function.
     !!}
-    use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: Output_HDF5, only : outputFile
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class  (mergerTreeOperatorProfiler), intent(inout)               :: self
     type   (hdf5Object                )                              :: profilerGroup
@@ -223,7 +224,7 @@ contains
 
     !$ call hdf5Access%set()
     ! Output information content information.
-    profilerGroup=galacticusOutputFile%openGroup('treeProfiler','Profiling information on merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
+    profilerGroup=outputFile%openGroup('treeProfiler','Profiling information on merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
     if (profilerGroup%hasAttribute('nodeCount'                )) then
        call profilerGroup%readAttribute('nodeCount'              ,nodeCountCurrent                  )
        self%nodeCount                =self%nodeCount                +nodeCountCurrent

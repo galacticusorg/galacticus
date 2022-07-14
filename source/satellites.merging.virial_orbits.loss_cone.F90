@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,8 +24,9 @@
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters           , only : cosmologyParametersClass
   use :: Cosmological_Velocity_Field    , only : cosmologicalVelocityFieldClass
-  use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass              , criticalOverdensityClass, criticalOverdensityPeakBackgroundSplit, haloEnvironmentNormal, &
-       &                                         cosmologicalMassVariancePeakBackgroundSplit
+  use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass      , cosmologicalMassVariancePeakBackgroundSplit, criticalOverdensityClass, criticalOverdensityPeakBackgroundSplit, &
+          &                                      haloEnvironmentNormal
+  use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
   use :: Halo_Mass_Functions            , only : haloMassFunctionShethTormen
   use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
   use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
@@ -53,6 +54,7 @@
      class           (cosmologicalVelocityFieldClass     ), pointer                         :: cosmologicalVelocityField_      => null()     
      class           (darkMatterHaloBiasClass            ), pointer                         :: darkMatterHaloBias_             => null()
      class           (darkMatterHaloScaleClass           ), pointer                         :: darkMatterHaloScale_            => null()
+     class           (darkMatterProfileDMOClass          ), pointer                         :: darkMatterProfileDMO_           => null()
      class           (cosmologicalMassVarianceClass      ), pointer                         :: cosmologicalMassVariance_       => null()
      class           (criticalOverdensityClass           ), pointer                         :: criticalOverdensity_            => null()
      class           (linearGrowthClass                  ), pointer                         :: linearGrowth_                   => null()
@@ -147,6 +149,7 @@ contains
     class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
     class           (darkMatterHaloBiasClass            ), pointer       :: darkMatterHaloBias_
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     class           (linearGrowthClass                  ), pointer       :: linearGrowth_
     class           (virialDensityContrastClass         ), pointer       :: virialDensityContrast_
     class           (correlationFunctionTwoPointClass   ), pointer       :: correlationFunctionTwoPoint_
@@ -216,11 +219,12 @@ contains
     <objectBuilder class="linearGrowth"                   name="linearGrowth_"                   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
     <objectBuilder class="darkMatterHaloBias"             name="darkMatterHaloBias_"             source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
     <objectBuilder class="virialDensityContrast"          name="virialDensityContrast_"          source="parameters"/>
     <objectBuilder class="correlationFunctionTwoPoint"    name="correlationFunctionTwoPoint_"    source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     !!]
-    self=virialOrbitLossCone(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_)
+    self=virialOrbitLossCone(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"            />
@@ -231,6 +235,7 @@ contains
     <objectDestructor name="linearGrowth_"                  />
     <objectDestructor name="darkMatterHaloScale_"           />
     <objectDestructor name="darkMatterHaloBias_"            />
+    <objectDestructor name="darkMatterProfileDMO_"          />
     <objectDestructor name="virialDensityContrast_"         />
     <objectDestructor name="correlationFunctionTwoPoint_"   />
     <objectDestructor name="mergerTreeBranchingProbability_"/>
@@ -238,13 +243,13 @@ contains
     return
   end function lossConeConstructorParameters
 
-  function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_) result(self)
+  function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily lossCone} virial orbits class.
     !!}
-    use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
-    use :: Numerical_Ranges  , only : Make_Range    , rangeTypeLinear
+    use :: Numerical_Ranges  , only : Make_Range  , rangeTypeLinear
     implicit none
     type            (virialOrbitLossCone                )                        :: self
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -254,6 +259,7 @@ contains
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     class           (darkMatterHaloBiasClass            ), intent(in   ), target :: darkMatterHaloBias_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     class           (linearGrowthClass                  ), intent(in   ), target :: linearGrowth_
     class           (virialDensityContrastClass         ), intent(in   ), target :: virialDensityContrast_
     class           (correlationFunctionTwoPointClass   ), intent(in   ), target :: correlationFunctionTwoPoint_
@@ -265,7 +271,7 @@ contains
     logical                                              , intent(in   )         :: includeInFlightGrowth
     integer                                                                      :: countVelocities
     !![
-    <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_"/>
+    <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_, *darkMatterProfileDMO_"/>
     !!]
 
     ! Set an initial mass range, along with an unphysical initial time (so that retabulation will be forced on the first call).
@@ -279,12 +285,12 @@ contains
     self%velocity            =Make_Range(self%velocityMinimum,self%velocityMaximum,countVelocities,rangeTypeLinear)
     self%interpolatorVelocity=interpolator(self%velocity)
     ! Build a file name for storing the tabulated solution.
-    self%fileName=galacticusPath(pathTypeDataDynamic)                                   // &
-         &                             'darkMatterHalos/'                               // &
-         &                             self%objectType      (                          )// &
-         &                             '_'                                              // &
-         &                             self%hashedDescriptor(includeSourceDigest=.true.)// &
-         &                             '.hdf5'
+    self%fileName=inputPath(pathTypeDataDynamic)                   // &
+         &        'darkMatterHalos/'                               // &
+         &        self%objectType      (                          )// &
+         &        '_'                                              // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &        '.hdf5'
     self%fileRead=.false.
     return
   end function lossConeConstructorInternal
@@ -308,6 +314,7 @@ contains
     <objectDestructor name="self%virialDensityContrast_"         />
     <objectDestructor name="self%correlationFunctionTwoPoint_"   />
     <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    <objectDestructor name="self%darkMatterProfileDMO_"          />
     !!]
     return
   end subroutine lossConeDestructor
@@ -401,7 +408,7 @@ contains
        call orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+       radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
        if (orbit%radiusApocenter() >= radiusHost .and. orbit%radiusPericenter() <= radiusHost) then
           foundOrbit     =  .true.
           basicHost      => host%basic()
@@ -481,8 +488,24 @@ contains
     ! Evaluate halo masses under our mass definition. Also gives us the host velocity scale.
     basicSatellite => node%basic()
     basicHost      => host%basic()
-    massSatellite  =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basicSatellite%mass(),basicSatellite%timeLastIsolated())                                        )
-    massHost       =  Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost     %mass(),basicHost     %timeLastIsolated()),radius=RadiusHost,velocity=velocityHost)
+    massSatellite  =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                       node                                                                                                , &
+         &                                                                       self%virialDensityContrast_%densityContrast(basicSatellite%mass(),basicSatellite%timeLastIsolated()), &
+         &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                               )
+    massHost       =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                       host                                                                                                , &
+         &                                                                       self%virialDensityContrast_%densityContrast(basicHost     %mass(),basicHost     %timeLastIsolated()), &
+         &                                                radius                =radiusHost                                                                                          , &
+         &                                                velocity              =velocityHost                                                                                        , &
+         &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                               )
     massSatellite  =  min(massSatellite,massHost)
     ! Compute interpolating factors.
     call self%interpolatorMass%linearFactors(log(massSatellite),iSatellite(0),hSatellite)
@@ -538,7 +561,7 @@ contains
     !!{
     Return the mean of the vector tangential velocity.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                     , dimension(3)  :: lossConeVelocityTangentialVectorMean
     class           (virialOrbitLossCone), intent(inout) :: self
@@ -546,7 +569,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     lossConeVelocityTangentialVectorMean=0.0d0
-    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    call Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function lossConeVelocityTangentialVectorMean
 
@@ -559,19 +582,19 @@ contains
     implicit none
     class           (virialOrbitLossCone), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node        , host
-    class           (nodeComponentBasic ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic ), pointer       :: basic       , basicHost
     double precision                                     :: massHost    , radiusHost, &
          &                                                  velocityHost
 
     basic                                =>  node%basic()
-    hostBasic                            =>  host%basic()
-    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    basicHost                            =>  host%basic()
+    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     lossConeAngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
          &                                  *radiusHost                                      &
          &                                  /(                                               & ! Account for reduced mass.
          &                                    +1.0d0                                         &
          &                                    +basic    %mass()                              &
-         &                                    /hostBasic%mass()                              &
+         &                                    /basicHost%mass()                              &
          &                                   )
     return
   end function lossConeAngularMomentumMagnitudeMean
@@ -580,7 +603,7 @@ contains
     !!{
     Return the mean of the vector angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision                     , dimension(3)  :: lossConeAngularMomentumVectorMean
     class           (virialOrbitLossCone), intent(inout) :: self
@@ -588,7 +611,7 @@ contains
     !$GLC attributes unused :: self, node, host
 
     lossConeAngularMomentumVectorMean=0.0d0
-    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    call Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
     return
   end function lossConeAngularMomentumVectorMean
 
@@ -632,19 +655,19 @@ contains
     implicit none
     class           (virialOrbitLossCone), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node        , host
-    class           (nodeComponentBasic ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic ), pointer       :: basic       , basicHost
     double precision                                     :: massHost    , radiusHost, &
          &                                                  velocityHost
 
     basic              =>  node%basic()
-    hostBasic          =>  host%basic()
-    massHost           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    basicHost          =>  host%basic()
+    massHost           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     lossConeEnergyMean =  +0.5d0                                           &
          &                *self%velocityTotalRootMeanSquared(node,host)**2 &
          &                /(                                               & ! Account for reduced mass.
          &                  +1.0d0                                         &
          &                  +basic    %mass()                              &
-         &                  /hostBasic%mass()                              &
+         &                  /basicHost%mass()                              &
          &                 )                                               &
          &                -gravitationalConstantGalacticus                 &
          &                *massHost                                        &
@@ -658,11 +681,11 @@ contains
     !!}
     use :: Cosmological_Density_Field          , only : haloEnvironmentNormal
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Display                             , only : displayIndent                      , displayUnindent     , displayCounter, displayCounterClear, &
-         &                                              verbosityLevelWorking
-    use :: Galacticus_Error                    , only : errorStatusSuccess
-    use :: Galacticus_Nodes                    , only : treeNode                           , nodeComponentBasic  , mergerTree
-    use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
+    use :: Display                             , only : displayCounter                     , displayCounterClear , displayIndent, displayUnindent, &
+          &                                             verbosityLevelWorking
+    use :: Error                               , only : errorStatusSuccess
+    use :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic  , treeNode
+    use :: Calculations_Resets                 , only : Calculations_Reset
     use :: Numerical_Constants_Math            , only : Pi
     use :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
     use :: Table_Labels                        , only : extrapolationTypeFix
@@ -718,8 +741,22 @@ contains
     ! Check if we need to retabulate.
     basicSatellite => nodeSatelliteTarget%basic()
     basicHost      => nodeHostTarget     %basic()
-    massSatellite  =  Dark_Matter_Profile_Mass_Definition(nodeSatelliteTarget,self%virialDensityContrast_%densityContrast(basicSatellite%mass(),basicSatellite%timeLastIsolated()))
-    massHost       =  Dark_Matter_Profile_Mass_Definition(nodeHostTarget     ,self%virialDensityContrast_%densityContrast(basicHost     %mass(),basicHost     %timeLastIsolated()))
+    massSatellite  =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                       nodeSatelliteTarget                                                                                 , &
+         &                                                                       self%virialDensityContrast_%densityContrast(basicSatellite%mass(),basicSatellite%timeLastIsolated()), &
+         &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &  )
+    massHost       =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                       nodeHostTarget                                                                                      , &
+         &                                                                       self%virialDensityContrast_%densityContrast(basicHost     %mass(),basicHost     %timeLastIsolated()), &
+         &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         & )
     if     (                                           &
          &   basicHost     %time() == self%time        &
          &  .and.                                      &
@@ -824,46 +861,47 @@ contains
     !![
     <referenceConstruct object="haloEnvironment_"                      >
      <constructor>
-      haloEnvironmentNormal                      (                                                                  &amp;
-       &amp;                                      radiusEnvironment        =radiusEnvironment                     , &amp;
-       &amp;                                      cosmologyParameters_     =cosmologyParameters_                  , &amp;
-       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                   , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_             , &amp;
-       &amp;                                      linearGrowth_            =linearGrowth_                         , &amp;
-       &amp;                                      criticalOverdensity_     =criticalOverdensity_                    &amp;
+      haloEnvironmentNormal                      (                                                                       &amp;
+       &amp;                                      radiusEnvironment        =radiusEnvironment                          , &amp;
+       &amp;                                      time                     =cosmologyFunctions_      %cosmicTime(1.0d0), &amp;
+       &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
+       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                        , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
+       &amp;                                      linearGrowth_            =linearGrowth_                              , &amp;
+       &amp;                                      criticalOverdensity_     =criticalOverdensity_                         &amp;
        &amp;                                      )
      </constructor>
     </referenceConstruct>
     <referenceConstruct object="cosmologicalMassVarianceEnvironmental_">
      <constructor>
-      cosmologicalMassVariancePeakBackgroundSplit(                                                                  &amp;
-       &amp;                                      haloEnvironment_         =haloEnvironment_                      , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_             , &amp;
-       &amp;                                      cosmologyParameters_     =cosmologyParameters_                  , &amp;
-       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                     &amp;
+      cosmologicalMassVariancePeakBackgroundSplit(                                                                       &amp;
+       &amp;                                      haloEnvironment_         =haloEnvironment_                           , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
+       &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
+       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                          &amp;
        &amp;                                     )
      </constructor>
     </referenceConstruct>
     <referenceConstruct object="criticalOverdensityEnvironmental_"     >
      <constructor>
-      criticalOverdensityPeakBackgroundSplit     (                                                                  &amp;
-       &amp;                                      criticalOverdensity_     =criticalOverdensity_                  , &amp;
-       &amp;                                      haloEnvironment_         =haloEnvironment_                      , &amp;
-       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                   , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_             , &amp;
-       &amp;                                      linearGrowth_            =linearGrowth_                           &amp;
+      criticalOverdensityPeakBackgroundSplit     (                                                                       &amp;
+       &amp;                                      criticalOverdensity_     =criticalOverdensity_                       , &amp;
+       &amp;                                      haloEnvironment_         =haloEnvironment_                           , &amp;
+       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                        , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
+       &amp;                                      linearGrowth_            =linearGrowth_                                &amp;
        &amp;                                     )
      </constructor>
     </referenceConstruct>
     <referenceConstruct object="haloMassFunctionEnvironmental_"        >
      <constructor>
-      haloMassFunctionShethTormen                (                                                                  &amp;
-       &amp;                                      cosmologyParameters_     =cosmologyParameters_                  , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVarianceEnvironmental_, &amp;
-       &amp;                                      criticalOverdensity_     =criticalOverdensityEnvironmental_     , &amp;
-       &amp;                                      a                        =self%haloMassFunctionA                , &amp;
-       &amp;                                      p                        =self%haloMassFunctionP                , &amp;
-       &amp;                                      normalization            =self%haloMassFunctionNormalization      &amp;
+      haloMassFunctionShethTormen                (                                                                       &amp;
+       &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVarianceEnvironmental_     , &amp;
+       &amp;                                      criticalOverdensity_     =criticalOverdensityEnvironmental_          , &amp;
+       &amp;                                      a                        =self%haloMassFunctionA                     , &amp;
+       &amp;                                      p                        =self%haloMassFunctionP                     , &amp;
+       &amp;                                      normalization            =self%haloMassFunctionNormalization           &amp;
        &amp;                                     )
      </constructor>
     </referenceConstruct>
@@ -878,14 +916,14 @@ contains
        nodeHost_          => nodeHost
        basicHost          => nodeHost%basic(autoCreate=.true.)
        nodeHost %hostTree => tree
-       tree     %baseNode => nodeHost
+       tree     %nodeBase => nodeHost
        call basicHost%massSet            (     massHost)
        call basicHost%timeSet            (self%time    )
        call basicHost%timeLastIsolatedSet(self%time    )
-       call Galacticus_Calculations_Reset(     nodeHost)
+       call Calculations_Reset           (     nodeHost)
        ! Compute host virial properties.
-       radiusVirialHost  =darkMatterHaloScale_%virialRadius  (nodeHost)
-       velocityVirialHost=darkMatterHaloScale_%virialVelocity(nodeHost)
+       radiusVirialHost  =darkMatterHaloScale_%radiusVirial  (nodeHost)
+       velocityVirialHost=darkMatterHaloScale_%velocityVirial(nodeHost)
        ! Compute the environmental boost factor for velocity dispersion.
        timeEvaluate_      =+                                                                                                                                 self%time
        factorEnvironmental=+integratorEnvironment          %integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum()) &
@@ -906,7 +944,7 @@ contains
           call basicSatellite%massSet            (     massSatellite)
           call basicSatellite%timeSet            (self%time         )
           call basicSatellite%timeLastIsolatedSet(self%time         )
-          call Galacticus_Calculations_Reset     (     nodeSatellite)
+          call Calculations_Reset                (     nodeSatellite)
           ! Tabulate the 1-D linear theory relative velocity of host-satellite halo pairs as a function of radius.
           !$omp single
           if (allocated(radius)) then
@@ -992,7 +1030,7 @@ contains
                            &                     -timeAlongOrbit(1.0d0               ,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial) &
                            &                    )
                       timeOfFlight=+                     timeOfFlightVirial           &
-                           &       *darkMatterHaloScale_%dynamicalTimescale(nodeHost)
+                           &       *darkMatterHaloScale_%timescaleDynamical(nodeHost)
                       timeEvaluate=+self%time                                         &
                            &       -     timeOfFlight
                       ! Skip orbits where the evaluation time is prior to the Big Bang.
@@ -1006,7 +1044,7 @@ contains
                       radiusEvaluateComoving    =+radiusEvaluate                                    &
                            &                     /cosmologyFunctions_%expansionFactor(timeEvaluate)                      
                       radiusEvaluateLagrangian  =(                                                                                              &
-                           &                      + darkMatterHaloScale_        %meanDensity              (                      nodeHost     ) &
+                           &                      + darkMatterHaloScale_        %densityMean              (                      nodeHost     ) &
                            &                      / cosmologyFunctions_         %matterDensityEpochal     (                      self    %time) &
                            &                      *radiusVirialHost**3                                                                          &
                            &                      +(                                                                                            &
@@ -1231,8 +1269,8 @@ contains
   contains
 
     double precision function integrandEnvironment(overdensity)
-      use :: Cosmology_Parameters          , only : hubbleUnitsLittleH
-      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+      use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+      use :: Calculations_Resets , only : Calculations_Reset
       implicit none
       double precision, intent(in   ) :: overdensity
       double precision, parameter     :: radiusReferenceExternal=10.0d0 ! Reference radius (in units of Mpc/h) in the Sheth & Diaferio (2001) model for the environmental dependence of velocity dispersion.
@@ -1242,7 +1280,7 @@ contains
            &                             overdensityNonlinear
       
       call haloEnvironment_%overdensityLinearSet(nodeHost_,overdensity)
-      call Galacticus_Calculations_Reset        (nodeHost_            )
+      call Calculations_Reset                   (nodeHost_            )
       radiusReference     =+radiusReferenceExternal                                       &
            &               /cosmologyParameters_%hubbleConstant      (hubbleUnitsLittleH)
       massRadius          =+haloEnvironment_    %environmentMass     (                  )
@@ -1273,14 +1311,14 @@ contains
       !!{
       The normalizing integrand for the environmental dependence of velocity dispersion.
       !!}
-      use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+      use :: Calculations_Resets, only : Calculations_Reset
       implicit none
       double precision, intent(in   ) :: overdensity
       double precision                :: mergerRate          , massFunction, &
            &                             overdensityNonlinear
 
       call haloEnvironment_%overdensityLinearSet(nodeHost_,overdensity)
-      call Galacticus_Calculations_Reset        (nodeHost_            )
+      call Calculations_Reset                   (nodeHost_            )
       overdensityNonlinear             =+haloEnvironment_               %overdensityNonlinear(                                  node=nodeHost_                                                                                                   )
       massFunction                     =+haloMassFunctionEnvironmental_ %differential        (time=timeEvaluate_,mass=massHost_,node=nodeHost_                                                                                                   )
       mergerRate                       =+mergerTreeBranchingProbability_%rate                (time=timeEvaluate_,mass=massHost_,node=nodeHost_,deltaCritical=criticalOverdensity_%value(time=self%time,mass=massHost_),massBranch=0.5d0*massHost_)
@@ -1369,8 +1407,9 @@ contains
     !!{
     Attempt to restore a table from file.
     !!}
-    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
-    use :: IO_HDF5           , only : hdf5Access     , hdf5Object
+    use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
     class           (virialOrbitLossCone)             , intent(inout) :: self
@@ -1422,9 +1461,10 @@ contains
     !!{
     Store the tabulated solution to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock , File_Unlock, File_Path, &
-         &                            lockDescriptor
-    use :: IO_HDF5           , only : hdf5Access    , hdf5Object
+    use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
+          &                           lockDescriptor
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self

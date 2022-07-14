@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,37 +86,37 @@
      Implementation of a task which computes and stores covariance matrices for mass functions.
      !!}
      private
-     class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_
-     class           (surveyGeometryClass         ), pointer                     :: surveyGeometry_
-     class           (powerSpectrumNonlinearClass ), pointer                     :: powerSpectrumNonlinear_
-     class           (darkMatterHaloBiasClass     ), pointer                     :: darkMatterHaloBias_
-     class           (conditionalMassFunctionClass), pointer                     :: conditionalMassFunction_
-     class           (haloMassFunctionClass       ), pointer                     :: haloMassFunction_
-     integer                                                                     :: countMassBins            , sizeGridFFT
-     double precision                                                            :: massMinimum              , massMaximum          , &
-          &                                                                         massHaloMinimum          , massHaloMaximum      , &
+     class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_      => null()
+     class           (surveyGeometryClass         ), pointer                     :: surveyGeometry_          => null()
+     class           (powerSpectrumNonlinearClass ), pointer                     :: powerSpectrumNonlinear_  => null()
+     class           (darkMatterHaloBiasClass     ), pointer                     :: darkMatterHaloBias_      => null()
+     class           (conditionalMassFunctionClass), pointer                     :: conditionalMassFunction_ => null()
+     class           (haloMassFunctionClass       ), pointer                     :: haloMassFunction_        => null()
+     integer                                                                     :: countMassBins                     , sizeGridFFT
+     double precision                                                            :: massMinimum                       , massMaximum          , &
+          &                                                                         massHaloMinimum                   , massHaloMaximum      , &
           &                                                                         completenessErrorObserved
-     logical                                                                     :: includePoisson           , includeHalo          , &
+     logical                                                                     :: includePoisson                    , includeHalo          , &
           &                                                                         includeLSS
      type            (varying_string              )                              :: massFunctionFileName
      ! State used in integrations etc.
      double precision                                                            :: time
      double precision                                                            :: waveNumberGlobal
-     double precision                                                            :: logMassLower             , logMassUpper
-     double precision                              , dimension(:  ), allocatable :: log10MassBinWidth        , logMassBinWidth
-     integer                                                                     :: binI                     , binJ                 , &
+     double precision                                                            :: logMassLower                      , logMassUpper
+     double precision                              , dimension(:  ), allocatable :: log10MassBinWidth                 , logMassBinWidth
+     integer                                                                     :: binI                              , binJ                 , &
           &                                                                         lssBin
-     double precision                                                            :: massBinCenterI           , massBinMinimumI      , &
+     double precision                                                            :: massBinCenterI                    , massBinMinimumI      , &
           &                                                                         massBinMaximumI
-     double precision                                                            :: massBinCenterJ           , massBinMinimumJ      , &
+     double precision                                                            :: massBinCenterJ                    , massBinMinimumJ      , &
           &                                                                         massBinMaximumJ
      integer                                                                     :: countTimeBins
      double precision                              , dimension(:  ), allocatable :: timeTable
      double precision                              , dimension(:,:), allocatable :: biasTable
-     double precision                                                            :: surveyRedshiftMinimum    , surveyRedshiftMaximum
-     double precision                              , dimension(:  ), allocatable :: volumeNormalizationI     , volumeNormalizationJ , &
-          &                                                                         timeMinimumI             , timeMinimumJ         , &
-          &                                                                         timeMaximumI             , timeMaximumJ         , &
+     double precision                                                            :: surveyRedshiftMinimum             , surveyRedshiftMaximum
+     double precision                              , dimension(:  ), allocatable :: volumeNormalizationI              , volumeNormalizationJ , &
+          &                                                                         timeMinimumI                      , timeMinimumJ         , &
+          &                                                                         timeMaximumI                      , timeMaximumJ         , &
           &                                                                         logMassBinCenter
    contains
      final     ::                       massFunctionCovarianceDestructor
@@ -301,7 +301,7 @@ contains
     Compute and output the halo mass function.
     !!}
     use :: Display                         , only : displayIndent          , displayUnindent
-    use :: Galacticus_Error                , only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Error                , only : Error_Report, errorStatusSuccess
     use :: IO_HDF5                         , only : hdf5Object
     use :: Memory_Management               , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
@@ -395,7 +395,7 @@ contains
     self%logMassUpper        =log10(self%massHaloMaximum)
     ! Determine which mass function to use.
     if (allocated(massFunctionObserved)) then
-       if (size(massFunctionObserved) /= self%countMassBins) call Galacticus_Error_Report('observed mass function has incorrect number of bins'//{introspection:location})
+       if (size(massFunctionObserved) /= self%countMassBins) call Error_Report('observed mass function has incorrect number of bins'//{introspection:location})
        massFunctionUse => massFunctionObserved
     else
        massFunctionUse => massFunction
@@ -403,10 +403,10 @@ contains
     ! Determine if completeness and/or number is available.
     useCompleteness=allocated(completenessObserved)
     if (useCompleteness .and. size(completenessObserved) /= self%countMassBins) &
-         & call Galacticus_Error_Report('observed completeness has incorrect number of bins'//{introspection:location})
+         & call Error_Report('observed completeness has incorrect number of bins'//{introspection:location})
     useNumber      =allocated(      numberObserved)
     if (useNumber       .and. size(      numberObserved) /= self%countMassBins) &
-         & call Galacticus_Error_Report('observed number has incorrect number of bins'      //{introspection:location})
+         & call Error_Report('observed number has incorrect number of bins'      //{introspection:location})
     ! Compute the mass function and bias averaged over each bin.
     massFunction=0.0d0
     do i=1,self%countMassBins
@@ -455,7 +455,7 @@ contains
           call massFunctionCovarianceLSSWindowFunction (self,self%countMassBins,self%surveyRedshiftMinimum,self%surveyRedshiftMaximum,varianceLSS)
        ! No method exists to compute the LSS contribution to variance. Abort.
        else
-          call Galacticus_Error_Report('no method exists to compute LSS contribution to covariance matrix'//{introspection:location})
+          call Error_Report('no method exists to compute LSS contribution to covariance matrix'//{introspection:location})
        end if
     end if
     ! Construct the covariance matrix.

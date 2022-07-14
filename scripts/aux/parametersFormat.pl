@@ -440,7 +440,7 @@ my @groups =
 	 description => "Output",
 	 members     =>
 	     [
-	      "galacticusOutputFileName",
+	      "outputFileName",
 	      "hdf5CompressionLevel",
 	      "mergerTreeOutput",
 	      "mergerTreeOutputReferences",

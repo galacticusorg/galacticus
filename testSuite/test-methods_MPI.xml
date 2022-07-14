@@ -9,6 +9,7 @@
   <baseParameters>testSuite/test-methods-base.xml</baseParameters>
   <launchMethod>pbs</launchMethod>
   <pbs>
+    <executable>Galacticus.exe_MPI</executable>
     <mpiLaunch>yes</mpiLaunch>
     <mpiNodes>4</mpiNodes>
     <mpiProcesses>48</mpiProcesses>
@@ -17,7 +18,10 @@
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
   </pbs>
-
+  <local>
+    <executable>Galacticus.exe_MPI</executable>
+  </local>
+  
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -42,13 +46,13 @@
       <treeIndexToRootNodeIndex value="true"/>
       <presetSubhaloMasses value="true"/>
       <presetPositions value="true"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
       <presetScaleRadii value="false"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
       <componentSatellite value="preset" parameterLevel="top"/>
-      <componentPosition value="preset" parameterLevel="top"/>
+      <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">
 	<allTreesExistAtFinalTime value="false"/>
       </mergerTreeEvolver>

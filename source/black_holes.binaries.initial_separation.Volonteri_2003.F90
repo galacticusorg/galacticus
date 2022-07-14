@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -119,7 +119,7 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout)         :: self
+    class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout), target :: self
     type (treeNode                                     ), intent(inout), target :: nodeHost     , node
     class(nodeComponentBlackHole                       ), pointer               :: blackHoleHost, blackHole
 
@@ -131,6 +131,6 @@ contains
          &                              +blackHoleHost%mass()                                &
          &                             )                                                     &
          &                            /2.0d0                                                 &
-         &                            /self%darkMatterHaloScale_%virialVelocity(nodeHost)**2
+         &                            /self%darkMatterHaloScale_%velocityVirial(nodeHost)**2
     return
   end function volonteri2003SeparationInitial

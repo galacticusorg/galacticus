@@ -18,7 +18,6 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   <componentSpin value="vector"/>
-  <componentNBody value="generic"/>
 
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
@@ -62,9 +61,9 @@
     <presetOrbitsBoundOnly value="true"/>
     <presetOrbitsSetAll value="true"/>
     <presetOrbitsAssertAllSet value="true"/>
-    <presetSpins value="true"/>
-    <presetSpins3D value="true"/>
-    <presetUnphysicalSpins value="true"/>
+    <presetAngularMomenta value="true"/>
+    <presetAngularMomenta3D value="true"/>
+    <presetUnphysicalAngularMomenta value="true"/>
     <presetScaleRadii value="true"/>
     <presetScaleRadiiMinimumMass value="1.0e10"/>
     <presetMergerTimes value="true"/>
@@ -82,7 +81,7 @@
   </mergerTreeEvolver>
 
   <!-- Use merger tree node positions -->
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <!-- Use merger tree velocities to compute orbits at the virial radius -->
   <!-- Use merger tree spins -->
   <!-- Use scale radius, set minimum mass to rockstar halo resolution -->
@@ -234,10 +233,15 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spin -->
-    <nodeOperator value="haloSpinInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
@@ -267,6 +271,8 @@
 	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
+    <!-- Shift preset named N-body properties -->
+    <nodeOperator value="presetNamedShift"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->
@@ -281,10 +287,16 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
-  <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
+  <outputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0 0.1 2 4"/>
   </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="presetNamedReals">
+      <presetNames value="velocityMaximum velocityDispersion"/>
+    </nodePropertyExtractor> 
+  </nodePropertyExtractor>
 
   <luminosityFilter value="SDSS_g SDSS_u SDSS_r bJ UKIRT_K RGO_I 2MASS_Ks SDSS_z SDSS_i"/>
   <luminosityRedshift value="0.1 0.1 0.1 0.0 0.0 0.0 0.0 0.1 0.1"/>

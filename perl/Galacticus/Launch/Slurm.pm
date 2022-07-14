@@ -315,8 +315,11 @@ sub SubmitJobs {
 		open(my $scriptFile,">".$newJob->{'launchFile'});
 		print $scriptFile "#!/bin/bash\n";
 		print $scriptFile "#SBATCH --job-name=\"".$newJob->{'label'}."\"\n";
-		print $scriptFile "#SBATCH --time=".$newJob->{'walltime'}."\n"
-		    if ( exists($newJob->{'walltime'}) );
+		if ( exists($newJob->{'walltime'}) ) {
+		    print $scriptFile "#SBATCH --time=".$newJob->{'walltime'}."\n"
+		} elsif ( exists($slurmConfig->{'timeMaximum'}) ) {
+		    print $scriptFile "#SBATCH --time=".$slurmConfig->{'timeMaximum'}."\n"
+		}
 		if ( exists($newJob->{'queue'}) ) {
 		    print $scriptFile "#SBATCH --partition=".$newJob->{'queue'}."\n";
 		} elsif ( exists($arguments{'queue'}) ) {

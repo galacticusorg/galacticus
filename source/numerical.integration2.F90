@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -353,24 +353,24 @@ contains
     !!{
     Initialize the tolerances for numerical integrators.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (integrator2), intent(inout)           :: self
     double precision             , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
 
     if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                 &
-         &  call Galacticus_Error_Report(                                                                &
+         &  call Error_Report(                                                                &
          &                               'at least one of absolute and relative tolerance must be set'// &
          &                               {introspection:location}                                        &
          &                              )
     self%toleranceAbsolute=0.0d0
     self%toleranceRelative=0.0d0
     if (present(toleranceAbsolute)) then
-       if (toleranceAbsolute < 0.0d0) call Galacticus_Error_Report('absolute tolerance must be non-negative'//{introspection:location})
+       if (toleranceAbsolute < 0.0d0) call Error_Report('absolute tolerance must be non-negative'//{introspection:location})
        self%toleranceAbsolute=toleranceAbsolute
     end if
     if (present(toleranceRelative)) then
-       if (toleranceRelative < 0.0d0) call Galacticus_Error_Report('relative tolerance must be non-negative'//{introspection:location})
+       if (toleranceRelative < 0.0d0) call Error_Report('relative tolerance must be non-negative'//{introspection:location})
        self%toleranceRelative=toleranceRelative
     end if
     return
@@ -394,13 +394,13 @@ contains
     !!{
     Initialize a one-dimensional, composite trapezoidal numerical integrator.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (integratorCompositeTrapezoidal1D), intent(inout) :: self
     integer                                  , intent(in   ) :: iterationsMaximum
 
     if (iterationsMaximum < 3)                                                 &
-         & call Galacticus_Error_Report(                                       &
+         & call Error_Report(                                       &
          &                              'at least 3 iterations are required'// &
          &                               {introspection:location}              &
          &                             )
@@ -412,7 +412,7 @@ contains
     !!{
     Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error    , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (integratorCompositeTrapezoidal1D), intent(inout) :: self
@@ -430,7 +430,7 @@ contains
     do while (.not.converged)
        iteration=iteration+1
        if (iteration > self%iterationsMaximum)                             &
-            & call Galacticus_Error_Report(                                &
+            & call Error_Report(                                &
             &                              'maximum iterations exceeded'// &
             &                               {introspection:location}       &
             &                             )
@@ -462,17 +462,17 @@ contains
     Initialize a one-dimensional, composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from
     those used in the \gls{gsl}.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error , only : Error_Report
     use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorCompositeGaussKronrod1D), intent(inout) :: self
     integer                                   , intent(in   ) :: iterationsMaximum, order
 
-    if (iterationsMaximum < 3)                                                 &
-         & call Galacticus_Error_Report(                                       &
-         &                              'at least 3 iterations are required'// &
-         &                               {introspection:location}              &
-         &                             )
+    if (iterationsMaximum < 3)                                      &
+         & call Error_Report(                                       &
+         &                   'at least 3 iterations are required'// &
+         &                    {introspection:location}              &
+         &                  )
     self%iterationsMaximum=iterationsMaximum
     ! Choose order.
     select case (order)
@@ -594,7 +594,7 @@ contains
             &          0.051494729429451567558340433647099d0  &
             &         ]
     case default
-       call Galacticus_Error_Report('unknown order'//{introspection:location})
+       call Error_Report('unknown order'//{introspection:location})
     end select
     return
   end subroutine compositeGaussKronrod1DInitialize
@@ -603,7 +603,7 @@ contains
     !!{
     Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (integratorCompositeGaussKronrod1D), intent(inout) :: self
     double precision                                   , intent(in   ) :: a           , b
@@ -814,14 +814,14 @@ contains
     Initialize a one-dimensional, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points and weights are
     taken from those used in the \gls{gsl}.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error , only : Error_Report
     use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                             , intent(in   ) :: iterationsMaximum, order
 
     if (iterationsMaximum < 3)                                                 &
-         & call Galacticus_Error_Report(                                       &
+         & call Error_Report(                                       &
          &                              'at least 3 iterations are required'// &
          &                               {introspection:location}              &
          &                             )
@@ -946,7 +946,7 @@ contains
             &          0.051494729429451567558340433647099d0  &
             &         ]
     case default
-       call Galacticus_Error_Report('unknown order'//{introspection:location})
+       call Error_Report('unknown order'//{introspection:location})
     end select
     return
   end subroutine vectorizedCompositeGaussKronrod1DInitialize
@@ -955,7 +955,7 @@ contains
     !!{
     Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     double precision                                   , intent(in   ) :: a           , b
@@ -1125,8 +1125,8 @@ contains
          &          +sum(                                        &
          &               +self%wKronrod (1:pointCountKronrod-1)  &
          &               *(                                      &
-         &                 +     fvalue1(1:pointCountKronrod-1)  &
-         &                 +     fvalue2(1:pointCountKronrod-1)  &
+         &                 +     fValue1(1:pointCountKronrod-1)  &
+         &                 +     fValue2(1:pointCountKronrod-1)  &
          &                )                                      &
          &              )
     integralAbsolute=+self%wKronrod     (  pointCountKronrod  )  &
@@ -1134,13 +1134,20 @@ contains
          &           +sum(                                       &
          &                +self%wKronrod(1:pointCountKronrod-1)  &
          &                *(                                     &
-         &                  +abs(fvalue1(1:pointCountKronrod-1)) &
-         &                  +abs(fvalue2(1:pointCountKronrod-1)) &
+         &                  +abs(fValue1(1:pointCountKronrod-1)) &
+         &                  +abs(fValue2(1:pointCountKronrod-1)) &
          &                 )                                     &
          &               )
     mean       =integralKronrod*0.5d0
-    integralAsc=+sum(self%wKronrod                   *(abs(fValue1  -mean)+abs(fValue2-mean))) &
-         &      +    self%wKronrod(pointCountKronrod)* abs(fUnion(1)-mean)
+    integralAsc=+sum(                                      &
+         &           +self%wKronrod(1:pointCountKronrod-1) &
+         &           *(                                    &
+         &             +abs(fValue1   -mean)               &
+         &             +abs(fValue2   -mean)               &
+         &            )                                    &
+         &          )                                      &
+         &      +    self%wKronrod(  pointCountKronrod  )  &
+         &      *       abs(fUnion (1)-mean)
     ! Evaluate error.
     error           =abs((integralKronrod-integralGauss)*halfLength)
     integralKronrod =integralKronrod *halfLength
@@ -1168,7 +1175,7 @@ contains
     !!{
     Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (integratorAdaptiveCompositeTrapezoidal1D), intent(inout) :: self
     double precision                                          , intent(in   ) :: a,b
@@ -1302,7 +1309,7 @@ contains
     !!{
     Initialize a one-dimensional, vectorized composite trapezoidal numerical integrator.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error , only : Error_Report
     use :: Memory_Management, only : allocateArray
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout) :: self
@@ -1312,7 +1319,7 @@ contains
     double precision                                                            :: step
 
     if (iterationsMaximum < 3)                                                 &
-         & call Galacticus_Error_Report(                                       &
+         & call Error_Report(                                       &
          &                              'at least 3 iterations are required'// &
          &                               {introspection:location}              &
          &                             )
@@ -1334,7 +1341,7 @@ contains
     !!{
     Evaluate a one-dimension integral using a numerical vectorized composite trapezoidal rule.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error    , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout)                        :: self
@@ -1350,7 +1357,7 @@ contains
     do while (.not.converged)
        iteration=iteration+1
        if (iteration > self%iterationsMaximum)                             &
-            & call Galacticus_Error_Report(                                &
+            & call Error_Report(                                &
             &                              'maximum iterations exceeded'// &
             &                               {introspection:location}       &
             &                             )
@@ -1391,7 +1398,7 @@ contains
     !!{
     Initialize the tolerances for multi-integrand numerical integrators.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error , only : Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class           (integratorMulti), intent(inout)                         :: self
@@ -1399,7 +1406,7 @@ contains
     integer                                                                  :: toleranceCount
 
     if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                 &
-         &  call Galacticus_Error_Report(                                                                &
+         &  call Error_Report(                                                                &
          &                               'at least one of absolute and relative tolerance must be set'// &
          &                               {introspection:location}                                        &
          &                              )
@@ -1407,7 +1414,7 @@ contains
     if (present(toleranceAbsolute)) then
        toleranceCount=size(toleranceAbsolute)
        if (present(toleranceRelative).and.size(toleranceRelative) /= size(toleranceAbsolute))                   &
-         &  call Galacticus_Error_Report(                                                                       &
+         &  call Error_Report(                                                                       &
          &                               'absolute and relative tolerances must have same number of elements'// &
          &                               {introspection:location}                                               &
          &                              )
@@ -1421,11 +1428,11 @@ contains
     self%toleranceAbsolute=0.0d0
     self%toleranceRelative=0.0d0
     if (present(toleranceAbsolute)) then
-       if (any(toleranceAbsolute < 0.0d0)) call Galacticus_Error_Report('absolute tolerances must be non-negative'//{introspection:location})
+       if (any(toleranceAbsolute < 0.0d0)) call Error_Report('absolute tolerances must be non-negative'//{introspection:location})
        self%toleranceAbsolute=toleranceAbsolute
     end if
     if (present(toleranceRelative)) then
-       if (any(toleranceRelative < 0.0d0)) call Galacticus_Error_Report('relative tolerances must be non-negative'//{introspection:location})
+       if (any(toleranceRelative < 0.0d0)) call Error_Report('relative tolerances must be non-negative'//{introspection:location})
        self%toleranceRelative=toleranceRelative
     end if
     return
@@ -1470,14 +1477,14 @@ contains
     Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points
     and weights are taken from those used in the \gls{gsl}.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error , only : Error_Report
     use :: Memory_Management, only : allocateArray
     implicit none
     class  (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                                  , intent(in   ) :: intervalsMaximum, order
 
     if (intervalsMaximum < 1)                                               &
-         & call Galacticus_Error_Report(                                    &
+         & call Error_Report(                                    &
          &                              'at least 1 interval is required'// &
          &                               {introspection:location}           &
          &                             )
@@ -1602,7 +1609,7 @@ contains
             &          0.051494729429451567558340433647099d0  &
             &         ]
     case default
-       call Galacticus_Error_Report('unknown order'//{introspection:location})
+       call Error_Report('unknown order'//{introspection:location})
     end select
     return
   end subroutine multiVectorizedCompositeGaussKronrod1DInitialize
@@ -1611,7 +1618,7 @@ contains
     !!{
     Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     !!}
-    use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use            :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Sorting         , only : sortIndex
     implicit none
@@ -1684,7 +1691,7 @@ contains
             &   midpoint==current%a &
             &  .or.                 &
             &   midpoint==current%b &
-            & ) call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+            & ) call Error_Report("loss of precision in integration interval"//{introspection:location})
        ! Compute the integral and error estimate in each new subinterval.
        mustEvaluate=.not.converged
        call self%evaluateInterval(newInterval1%a,newInterval1%b,newInterval1%integral,newInterval1%error,mustEvaluate)
@@ -1819,7 +1826,7 @@ contains
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report('maximum number of intervals exceeded'//{introspection:location})
+          call Error_Report('maximum number of intervals exceeded'//{introspection:location})
        end if
     end if
     return
@@ -1923,13 +1930,13 @@ contains
     !!{
     Initialize a one-dimensional, multi-integrand, vectorized composite trapezoidal numerical integrator.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout) :: self
     integer                                                 , intent(in   ) :: intervalsMaximum
 
     if (intervalsMaximum < 1)                                               &
-         & call Galacticus_Error_Report(                                    &
+         & call Error_Report(                                    &
          &                              'at least 1 intevals is required'// &
          &                               {introspection:location}           &
          &                             )
@@ -1943,7 +1950,7 @@ contains
     !!}
     use            :: Display           , only : displayIndent          , displayMessage        , displayUnindent   , displayVerbosity, &
           &                                      displayVerbositySet    , verbosityLevelStandard
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusFail       , errorStatusSuccess
+    use            :: Error  , only : Error_Report, errorStatusFail       , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , varying_string
     use            :: Sorting           , only : sortIndex
@@ -2350,13 +2357,13 @@ contains
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+          call Error_Report("loss of precision in integration interval"//{introspection:location})
        end if
     else if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
        if (present(status)) then
           status=errorStatusFail
        else
-          call Galacticus_Error_Report('maximum number of intervals exceeded'//{introspection:location})
+          call Error_Report('maximum number of intervals exceeded'//{introspection:location})
        end if
     end if
     return

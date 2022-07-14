@@ -14,15 +14,15 @@
     <presetMergerTimes value="false"/>
     <presetMergerNodes value="false"/>
     <presetSubhaloMasses value="true"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetScaleRadii value="true"/>
   </mergerTreeConstructor>
-  <galacticusOutputFileName value="testSuite/outputs/bug1066052.hdf5"/>
+  <outputFileName value="testSuite/outputs/bug1066052.hdf5"/>
   <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolver>
 
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <componentSatellite value="preset"/>
   <cosmologyParameters value="simple">
     <HubbleConstant value="70.2"/>
@@ -67,12 +67,18 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

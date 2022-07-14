@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -195,7 +195,6 @@ contains
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorSpherical
     use :: Display                                , only : displayCounter                              , displayCounterClear  , displayIndent, displayUnindent, &
           &                                                verbosityLevelStandard                      , verbosityLevelWorking
-    use :: Galacticus_Error                       , only : Galacticus_Error_Report
     use :: MPI_Utilities                          , only : mpiBarrier                                  , mpiSelf
     use :: Timers                                 , only : timer
     implicit none
@@ -492,7 +491,7 @@ contains
     !!}
     use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
           &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
-    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Error, only : errorStatusSuccess
     use :: MPI_Utilities   , only : mpiBarrier        , mpiSelf
     use :: Timers          , only : timer
     implicit none
@@ -650,7 +649,7 @@ contains
     !!{
     Output the computational domain.
     !!}
-    !$ use :: IO_HDF5                         , only : hdf5Access
+    !$ use :: HDF5_Access                     , only : hdf5Access
     use    :: ISO_Varying_String              , only : char
     use    :: Numerical_Constants_Astronomical, only : megaparsec
     implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,12 @@ Implements a stellar population spectra postprocessor class which applies a sequ
    <deepCopy>
     <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_"/>
+   </stateStore>
+   <allowedParameters>
+    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_"/>
+   </allowedParameters>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
@@ -81,6 +87,9 @@ contains
        <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessor_%postprocessor_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="stellarPopulationSpectraPostprocessor"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

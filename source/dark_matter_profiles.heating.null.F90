@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,20 +55,22 @@ contains
     implicit none
     type(darkMatterProfileHeatingNull), target        :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=darkMatterProfileHeatingNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 
-  double precision function nullSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
+  double precision function nullSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
     implicit none
     class           (darkMatterProfileHeatingNull), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass      ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass   ), intent(inout) :: darkMatterProfileDMO_
     double precision                              , intent(in   ) :: radius
     !$GLC attributes unused :: self, node, radius, darkMatterProfileDMO_
 
@@ -76,14 +78,14 @@ contains
     return
   end function nullSpecificEnergy
 
-  double precision function nullSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
+  double precision function nullSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
     !!{
     Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
     implicit none
     class           (darkMatterProfileHeatingNull), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass      ), intent(inout) :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass   ), intent(inout) :: darkMatterProfileDMO_
     double precision                              , intent(in   ) :: radius
     !$GLC attributes unused :: self, node, darkMatterProfileDMO_, radius
 
@@ -98,7 +100,7 @@ contains
     implicit none
     class(darkMatterProfileHeatingNull), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
-    class(darkMatterProfileDMOClass      ), intent(inout) :: darkMatterProfileDMO_
+    class(darkMatterProfileDMOClass   ), intent(inout) :: darkMatterProfileDMO_
     !$GLC attributes unused :: self, node, darkMatterProfileDMO_
 
     nullSpecificEnergyIsEverywhereZero=.true.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -228,7 +228,7 @@ contains
     !!{
     Return an array of indices for which {\normalfont \ttfamily mask} is true.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     logical, intent(in   ) :: mask   (:)
     integer, intent(  out) :: indices(:)
@@ -239,7 +239,7 @@ contains
     do index=1,size(mask)
        if (mask(index)) then
           matchCount=matchCount+1
-          if (matchCount > size(indices)) call Galacticus_Error_Report('indices array is too small'//{introspection:location})
+          if (matchCount > size(indices)) call Error_Report('indices array is too small'//{introspection:location})
           indices(matchCount)=index
        end if
     end do
@@ -299,7 +299,7 @@ contains
     !!{
     Return a subset of a 2D double precision array given a set of indices into the array.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     double precision             , dimension(:,:), intent(in   )           :: array
     integer                      , dimension(:  ), intent(in   )           :: indices
@@ -309,7 +309,7 @@ contains
 
     indexOnActual=2
     if (present(indexOn)) then
-       if (indexOn < 1 .or. indexOn > 2) call Galacticus_Error_Report('1≤indexOn≤2'//{introspection:location})
+       if (indexOn < 1 .or. indexOn > 2) call Error_Report('1≤indexOn≤2'//{introspection:location})
        indexOnActual=indexOn
     end if
     select case (indexOnActual)
@@ -416,7 +416,7 @@ contains
   end function Array_Is_Monotonic_Integer8
 
   function Array_Intersection_Varying_String(a,b)
-    use :: ISO_Varying_String, only : varying_string, operator(==)
+    use :: ISO_Varying_String, only : operator(==), varying_string
     implicit none
     type   (varying_string), allocatable  , dimension(:) :: Array_Intersection_Varying_String
     type   (varying_string), intent(in   ), dimension(:) :: a, b

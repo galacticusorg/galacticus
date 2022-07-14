@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Compute halo mass function -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <task value="NBodyAnalyze"/>
+
+  <nbodyImporter value="merge">
+  </nbodyImporter>
+
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="addAttributes">
+      <names  value="massParticle redshift timeRecent massMinimum massMaximum labelTarget"/>
+      <values value="1.0e9        0.0      0.0        1.0e9       1.0e15      MDPL"       />
+    </nbodyOperator>
+    <nbodyOperator value="concentrationDistributionFunction">
+      <description                       value=""       />
+      <simulationReference               value=""       />
+      <simulationURL                     value=""       />
+      <massMinimum                       value="1.0e+12"/>
+      <massMaximum                       value="1.0e+30"/>
+      <concentrationMinimum              value="1.0e+00"/>
+      <concentrationMaximum              value="1.0e+02"/>
+      <concentrationCountPerDecade       value="5"      />
+    </nbodyOperator>
+  </nbodyOperator>
+  
+</parameters>

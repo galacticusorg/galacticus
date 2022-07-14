@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,7 +121,6 @@ contains
     !!{
     Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
@@ -738,7 +737,7 @@ contains
     \cite{klypin_multidark_2014} algorithm.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
@@ -800,7 +799,7 @@ contains
             &                   )
     case default
        klypin2015Concentration=0.0d0
-       call Galacticus_Error_Report('unknown fit type'//{introspection:location})
+       call Error_Report('unknown fit type'//{introspection:location})
     end select
     return
   end function klypin2015Concentration

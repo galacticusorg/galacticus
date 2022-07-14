@@ -1,0 +1,78 @@
+name: Tools
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'source/interface.CAMB.F90'
+      - 'source/interface.AxionCAMB.F90'
+      - 'source/interface.CLASS.F90'
+      - 'source/interface.Cloudy.F90'
+      - 'source/interface.FSPS.F90'
+      - 'source/interface.RecFast.F90'
+      - 'aux/**'
+jobs:
+  Build-Tools:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    concurrency:
+      group: tools-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
+          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          make -j2 Galacticus.exe
+          md5sum Galacticus.exe
+      - name: Build tools
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          ./Galacticus.exe parameters/buildTools.xml
+          cd $GALACTICUS_DATA_PATH
+          tar cfj tools.tar.bz2 \
+            dynamic/CAMB-1.3.2/fortran/camb \
+            dynamic/AxionCAMB/camb \
+            dynamic/class_public-3.0.2/class \
+            dynamic/RecFast/recfast.exe \
+            dynamic/RecFast/currentVersion \
+            dynamic/c17.03/source/cloudy.exe \
+            dynamic/c17.03/data \
+            dynamic/fsps-3.2/src/autosps.exe \
+            dynamic/fsps-3.2/dust \
+            dynamic/fsps-3.2/data \
+            dynamic/fsps-3.2/nebular \
+            dynamic/fsps-3.2/SPECTRA \
+            dynamic/fsps-3.2/OUTPUTS \
+            dynamic/fsps-3.2/ISOCHRONES
+      - name: Update release
+        uses: johnwbyrd/update-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./datasets/tools.tar.bz2
+          release: bleeding-edge
+          prerelease: true
+          message: Bleeding edge release
+          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
+      - name: Update release tag
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "This job's status is ${{ job.status }}."

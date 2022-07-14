@@ -9,7 +9,7 @@
    <haloMassMaximum value=" 1.122018454e16"/>
    <pointsPerDecade value="10.0"           />
   </task>
-  <galacticusOutputFileName value="output.hdf5"/>
+  <outputFileName value="output.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0"/>
   </outputTimes>  

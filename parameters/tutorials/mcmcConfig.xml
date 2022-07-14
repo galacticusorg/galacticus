@@ -10,7 +10,7 @@
     <initializeNodeClassHierarchy value="false"/>
   </task>
 
-  <galacticusOutputFileName value="galacticus.hdf5"/>
+  <outputFileName value="galacticus.hdf5"/>
 
   <posteriorSampleLikelihood value="galaxyPopulation">
     <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"      />
@@ -66,7 +66,7 @@
 
      <!-- Feedback -->
      <modelParameter value="active">
-       <name value="nodeOperatorMethod::nodeOperatorMethod[4]::stellarFeedbackOutflowsMethod::stellarFeedbackOutflowsMethod::velocityCharacteristic"/>
+       <name value="nodeOperator::nodeOperator[4]::stellarFeedbackOutflows::stellarFeedbackOutflows::velocityCharacteristic"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="25.0"/>
 	 <limitUpper value="500.0"/>

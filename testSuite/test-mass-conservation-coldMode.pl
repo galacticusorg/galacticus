@@ -7,18 +7,36 @@ use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use Galacticus::HDF5;
+use Galacticus::Options;
 
 # Run a cold-mode hot halo model to test mass conservation.
 # Andrew Benson (23-May-2016)
 
+# Read in any configuration options.
+my $config = &Galacticus::Options::LoadConfig();
+
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
+
+# Set default options.
+my %options =
+    (
+     'pbsJobMaximum' => (defined($queueConfig) && exists($queueConfig->{'jobMaximum'})) ? $queueConfig->{'jobMaximum'} : 100,
+    );
+
+# Get any command line options.
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
 # Run the model.
-system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-coldMode.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-coldMode.xml ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)));
 
 # Check for failed models.
-system("grep -q -i fatal outputs/test-mass-conservation-coldMode/galacticus_*/galacticus.log");
+system("grep -q -i -e fatal -e aborted outputs/test-mass-conservation-coldMode/galacticus_*/galacticus.log");
 if ( $? == 0 ) {
     # Failures were found. Output their reports.
-    my @failures = split(" ",`grep -l -i fatal outputs/test-mass-conservation-coldMode/galacticus_*/galacticus.log`);
+    my @failures = split(" ",`grep -l -i -e fatal -e aborted outputs/test-mass-conservation-coldMode/galacticus_*/galacticus.log`);
     foreach my $failure ( @failures ) {
 	print "FAILED: log from ".$failure.":\n";
 	system("cat ".$failure);

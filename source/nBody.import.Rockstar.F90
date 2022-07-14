@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,8 @@ Contains a module which implements an N-body data importer for Rockstar files.
      !!}
      private
      class  (cosmologyParametersClass)              , pointer     :: cosmologyParameters_    => null()
-     integer                          , dimension(:), allocatable :: readColumns                      , readColumnsType
+     integer                          , dimension(:), allocatable :: readColumns                      , readColumnsType     , &
+          &                                                          readColumnsMapped
      integer                                                      :: readColumnsIntegerCount          , readColumnsRealCount
      type   (varying_string          )                            :: fileName                         , label
      logical                                                      :: havePosition                     , haveVelocity        , &
@@ -194,7 +195,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily rockstar} N-body importer class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (nbodyImporterRockstar   )                                        :: self
     class  (cosmologyParametersClass), intent(in   ), target                 :: cosmologyParameters_
@@ -209,7 +210,9 @@ contains
     if (allocated(self%readColumns)) then
        self%readColumnsIntegerCount=0
        self%readColumnsRealCount   =0
-       allocate(self%readColumnsType(size(self%readColumns)))
+       allocate(self%readColumnsType  (size(self%readColumns)))
+       allocate(self%readColumnsMapped(size(self%readColumns)))
+       self%readColumnsMapped=self%readColumns
        do i=1,size(self%readColumns)
           select case (self%readColumns(i))
           case   (                                               &
@@ -278,7 +281,7 @@ contains
              self%readColumnsIntegerCount   =self%readColumnsIntegerCount+1
              self%readColumnsType        (i)=columnTypeInteger
           case default
-             call Galacticus_Error_Report('unknown column'//{introspection:location})
+             call Error_Report('unknown column'//{introspection:location})
           end select
        end do
        self%havePosition         =any(self%readColumns == rockstarColumnX ) .and. any(self%readColumns == rockstarColumnY ) .and. any(self%readColumns == rockstarColumnZ )
@@ -309,13 +312,16 @@ contains
     !!{
     Import data from a Rockstar file.
     !!}
-    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
-          &                             verbosityLevelStandard
-    use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
-          &                             rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash
-    use :: Memory_Management   , only : allocateArray         , deallocateArray
+    use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
+    use :: Display                     , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
+          &                                     verbosityLevelStandard
+    use :: Error                       , only : Error_Report
+    use :: File_Utilities              , only : Count_Lines_in_File
+    use :: Hashes                      , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
+          &                                     rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash , genericHash
+    use :: Memory_Management           , only : allocateArray         , deallocateArray
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: String_Handling             , only : String_Split_Words    , String_Count_Words
     implicit none
     class           (nbodyImporterRockstar     ), intent(inout)                                 :: self
     type            (nBodyData                 ), intent(  out), dimension( :    ), allocatable :: simulations
@@ -325,11 +331,13 @@ contains
     double precision                                           , dimension( :  ,:), pointer     :: position         , velocity
     double precision                                           , dimension(0:56  )              :: columnsReal
     integer         (c_size_t                  )               , dimension(0:56  )              :: columnsInteger
+    type            (varying_string            )               , dimension( :    ), allocatable :: columnNames
     integer         (c_size_t                  )                                                :: countHalos       , countTrees, &
          &                                                                                         i
     integer                                                                                     :: status           , j         , &
          &                                                                                         file             , jInteger  , &
-         &                                                                                         jReal
+         &                                                                                         jReal            , columnMap , &
+         &                                                                                         lineStatus
     character       (len=1024                  )                                                :: line
     character       (len=64                    )                                                :: columnName
     logical                                                                                     :: isComment
@@ -357,26 +365,95 @@ contains
        allocate(propertiesReal   (0                           ))
     end if
     ! Open the file and read.
-    i=0_c_size_t
+    i        =0_c_size_t
+    columnMap=-1
     open(newUnit=file,file=char(self%fileName),status='old',form='formatted',iostat=status)
     do while (status == 0)
        read (file,'(a)',iostat=status) line
        isComment=line(1:1) == "#"
+       if (isComment .and. columnMap < 0) then
+          ! Different versions of Rockstar have slightly different column layouts. Figure out which is used in this file.
+          allocate(columnNames(String_Count_Words(line)))
+          call String_Split_Words(columnNames,line)
+          if      (columnNames(36) == "Rs_Klypin"      ) then
+             columnMap=1
+          else if (columnNames(36) == "Tidal_Force(35)") then
+             columnMap=2
+          else if (columnNames(36) == "Mvir_all"       ) then
+             columnMap=3
+          else
+             call Error_Report('unrecognized column layout'//{introspection:location})
+          end if
+          ! Adjust column numbers to be read.
+          select case (columnMap)
+          case (1)
+             do j=1,size(self%readColumns)
+                if     (                                                  &
+                     &   self%readColumns(j) == rockstarColumnTidal_Force &
+                     &  .or.                                              &
+                     &   self%readColumns(j) == rockstarColumnTidal_ID    &
+                     & ) call Error_Report('tidal properties not available'//{introspection:location})
+                if (self%readColumns(j) > 34)                               &
+                     & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
+                     &                           -2
+             end do
+          case (3)
+             do j=1,size(self%readColumns)
+                if     (                                                  &
+                     &   self%readColumns(j) == rockstarColumnTidal_Force &
+                     &  .or.                                              &
+                     &   self%readColumns(j) == rockstarColumnTidal_ID    &
+                     & ) call Error_Report('tidal properties not available'//{introspection:location})
+                if (self%readColumns(j) > 33)                               &
+                     & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
+                     &                           -3
+             end do
+          end select
+       end if
        if (.not.isComment) then
           if (countTrees > 0_c_size_t) then
              ! We have already determined the number of trees.
              i=i+1_c_size_t
-             read (line,*) columnsReal   ( 0   ), &
-                  &        columnsInteger( 1   ), &
-                  &        columnsReal   ( 2   ), &
-                  &        columnsInteger( 3: 8), &
-                  &        columnsReal   ( 9:13), &
-                  &        columnsInteger(14:14), &
-                  &        columnsReal   (15:26), &
-                  &        columnsInteger(27:34), &
-                  &        columnsReal   (35   ), &
-                  &        columnsInteger(36   ), &
-                  &        columnsReal   (37:56)
+             select case (columnMap)
+             case (1)
+                ! Older layout with "Rs_Klypin" in column 35.
+                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                     &                          columnsInteger( 1   ), &
+                     &                          columnsReal   ( 2   ), &
+                     &                          columnsInteger( 3: 8), &
+                     &                          columnsReal   ( 9:13), &
+                     &                          columnsInteger(14:14), &
+                     &                          columnsReal   (15:26), &
+                     &                          columnsInteger(27:34), &
+                     &                          columnsReal   (35:54)
+             case (2)
+                ! Newer layout with "Tidal_Force" in column 35.
+                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                     &                          columnsInteger( 1   ), &
+                     &                          columnsReal   ( 2   ), &
+                     &                          columnsInteger( 3: 8), &
+                     &                          columnsReal   ( 9:13), &
+                     &                          columnsInteger(14:14), &
+                     &                          columnsReal   (15:26), &
+                     &                          columnsInteger(27:34), &
+                     &                          columnsReal   (35   ), &
+                     &                          columnsInteger(36   ), &
+                     &                          columnsReal   (37:56)
+             case (3)
+                ! Older layout with "Mvir_all" in column 35.
+                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                     &                          columnsInteger( 1   ), &
+                     &                          columnsReal   ( 2   ), &
+                     &                          columnsInteger( 3: 8), &
+                     &                          columnsReal   ( 9:13), &
+                     &                          columnsInteger(14:14), &
+                     &                          columnsReal   (15:26), &
+                     &                          columnsInteger(27:33), &
+                     &                          columnsReal   (35:54)
+             case default
+                call Error_Report('unknown column layout'//{introspection:location})
+             end select
+             if (lineStatus /= 0) call Error_Report('failed to parse line:'//char(10)//'"'//trim(line)//'"'//{introspection:location})
              if (self%expansionFactorNeeded) expansionFactor(i)=columnsReal(0)
              ! Read any extra columns.
              if (allocated(self%readColumns)) then
@@ -385,11 +462,11 @@ contains
                 do j=1,size(self%readColumns)
                    select case (self%readColumnsType(j))
                    case (columnTypeInteger)
-                      jInteger                               =jInteger                           +1
-                      propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumns(j))
+                      jInteger                               =jInteger                                 +1
+                      propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumnsMapped(j))
                    case (columnTypeReal   )
-                      jReal                                  =jReal                              +1
-                      propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumns(j))
+                      jReal                                  =jReal                                    +1
+                      propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumnsMapped(j))
                    end select
                 end do
              end if
@@ -427,6 +504,7 @@ contains
     simulations(1)%attributesInteger=integerSizeTHash ()
     simulations(1)%attributesReal   =doubleHash       ()
     simulations(1)%attributesText   =varyingStringHash()
+    simulations(1)%attributesGeneric=genericHash      ()
     call simulations(1)%attributesReal%set('boxSize',boxSize)
     ! Add any additional properties.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
@@ -479,13 +557,15 @@ contains
              case (rockstarColumnRvir      )
                 columnName='radiusVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
-                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
              case (rockstarColumnSpin      )
                 columnName='spin'
              case (rockstarColumnrs        )
                 columnName='radiusScale'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
-                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
              case (rockstarColumnTU        )
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &

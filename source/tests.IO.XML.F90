@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,21 +25,21 @@ program Tests_IO_XML
   !!{
   Tests the XML I/O module.
   !!}
-  use            :: Display         , only : displayVerbositySet    , verbosityLevelStandard
-  use            :: FoX_DOM         , only : destroy                , node                  , serialize
-  use            :: Galacticus_Error, only : Galacticus_Error_Report
-  use, intrinsic :: ISO_C_Binding   , only : c_size_t
-  use            :: System_Command  , only : System_Command_Do
-  use            :: Unit_Tests      , only : Assert                 , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Display       , only : displayVerbositySet, verbosityLevelStandard
+  use            :: FoX_DOM       , only : destroy            , node                  , serialize
+  use            :: Error         , only : Error_Report
+  use, intrinsic :: ISO_C_Binding , only : c_size_t
+  use            :: System_Command, only : System_Command_Do
+  use            :: Unit_Tests    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   use            :: IO_XML            , only : XML_Count_Elements_By_Tag_Name                       , XML_Array_Read        , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
           &                                    XML_Parse                                            , XML_Path_Exists       , xmlNodeList          , XML_Get_ELements_By_Tag_Name     , &
           &                                    extractDataContent            => extractDataContentTS
-  use            :: Display         , only : displayVerbositySet    , verbosityLevelStandard
-  use            :: FoX_DOM         , only : destroy                , node                  , serialize
-  use            :: Galacticus_Error, only : Galacticus_Error_Report
-  use, intrinsic :: ISO_C_Binding   , only : c_size_t
-  use            :: System_Command  , only : System_Command_Do
-  use            :: Unit_Tests      , only : Assert                 , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Display       , only : displayVerbositySet, verbosityLevelStandard
+  use            :: FoX_DOM       , only : destroy            , node                  , serialize
+  use            :: Error         , only : Error_Report
+  use, intrinsic :: ISO_C_Binding , only : c_size_t
+  use            :: System_Command, only : System_Command_Do
+  use            :: Unit_Tests    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (node       )                           , pointer :: doc        , xmlElement
   type            (xmlNodeList), allocatable, dimension(:)          :: xmlElements
@@ -57,7 +57,7 @@ program Tests_IO_XML
   !$omp critical (FoX_DOM_Access)
   ! Parse the XML file.
   doc => XML_Parse("testSuite/data/xmlTest.xml",iostat=ioErr)
-  if (ioErr /= 0) call Galacticus_Error_Report("failed to parse 'testSuite/data/xmlTest.xml'"//{introspection:location})
+  if (ioErr /= 0) call Error_Report("failed to parse 'testSuite/data/xmlTest.xml'"//{introspection:location})
 
   ! Test XInclude.
   call serialize(doc,"testSuite/outputs/xmlTest.xml")

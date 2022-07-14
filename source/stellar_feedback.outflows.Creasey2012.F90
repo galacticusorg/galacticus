@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,7 @@
   !!}
 
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
+  use :: Galactic_Structure                       , only : galacticStructureClass
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2012">
@@ -44,9 +45,10 @@
      Implementation of the \cite{creasey_how_2012} stellar feedback model.
      !!}
      private
-    class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
-     double precision                                                    :: nu                                             , mu, &
-          &                                                                 beta0
+     class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
+     class           (galacticStructureClass                   ), pointer :: galacticStructure_                    => null()
+     double precision                                                     :: nu                                             , mu, &
+          &                                                                  beta0
    contains
      final     ::                creasey2012Destructor
      procedure :: outflowRate => creasey2012OutflowRate
@@ -66,11 +68,12 @@ contains
     !!{
     Constructor for the \cite{creasey_how_2012} stellar feedback class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (stellarFeedbackOutflowsCreasey2012       )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
+    class           (galacticStructureClass                   ), pointer       :: galacticStructure_
     double precision                                                           :: mu                                   , nu, &
          &                                                                        beta0
 
@@ -97,8 +100,9 @@ contains
       <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
     </inputParameter>
     <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
+    <objectBuilder class="galacticStructure"                    name="galacticStructure_"                    source="parameters"/>
     !!]
-    self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
+    self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
@@ -106,17 +110,18 @@ contains
     return
   end function creasey2012ConstructorParameters
 
-  function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
+  function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily creasey2012} stellar feedback class.
     !!}
     implicit none
     type            (stellarFeedbackOutflowsCreasey2012       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
+    class           (galacticStructureClass                   ), intent(in   ), target :: galacticStructure_
     double precision                                           , intent(in   )         :: mu                                   , nu, &
          &                                                                                beta0
     !![
-    <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_"/>
+    <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_, *galacticStructure_"/>
     !!]
 
     return
@@ -131,6 +136,7 @@ contains
 
     !![
     <objectDestructor name="self%starFormationRateSurfaceDensityDisks_"/>
+    <objectDestructor name="self%galacticStructure_"                   />
     !!]
     return
   end subroutine creasey2012Destructor
@@ -171,7 +177,7 @@ contains
        massGas    =0.0d0
        massStellar=0.0d0
        radiusScale=0.0d0
-       call Galacticus_Error_Report('unsupported component'//{introspection:location})
+       call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Return immediately for a null component.
     if (massGas <= 0.0d0 .or. massStellar <= 0.0d0 .or. radiusScale <= 0.0d0) then
@@ -200,30 +206,29 @@ contains
       !!{
       Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
       !!}
-      use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
-      use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
-      use :: Numerical_Constants_Prefixes        , only : mega
+      use :: Galactic_Structure_Options  , only : componentTypeDisk, coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+      use :: Numerical_Constants_Prefixes, only : mega
       implicit none
       double precision, intent(in   ) :: radius
       double precision                :: fractionGas      , densitySurfaceRateStarFormation, &
            &                             densitySurfaceGas, densitySurfaceStellar
 
       ! Get gas surface density.
-      densitySurfaceGas    =Galactic_Structure_Surface_Density(                                                            &
-           &                                                                     component%hostNode                      , &
-           &                                                                    [radius                     ,0.0d0,0.0d0], &
-           &                                                   coordinateSystem= coordinateSystemCylindrical             , &
-           &                                                   componentType   = componentTypeDisk                       , &
-           &                                                   massType        = massTypeGaseous                           &
-           &                                                  )
+      densitySurfaceGas    =self%galacticStructure_%surfaceDensity(                                                            &
+           &                                                                         component%hostNode                      , &
+           &                                                                        [radius                     ,0.0d0,0.0d0], &
+           &                                                       coordinateSystem= coordinateSystemCylindrical             , &
+           &                                                       componentType   = componentTypeDisk                       , &
+           &                                                       massType        = massTypeGaseous                           &
+           &                                                      )
       ! Get stellar surface density.
-      densitySurfaceStellar=Galactic_Structure_Surface_Density(                                                            &
-           &                                                                     component%hostNode                      , &
-           &                                                                    [radius                     ,0.0d0,0.0d0], &
-           &                                                   coordinateSystem= coordinateSystemCylindrical             , &
-           &                                                   componentType   = componentTypeDisk                       , &
-           &                                                   massType        = massTypeStellar                           &
-           &                                                  )
+      densitySurfaceStellar=self%galacticStructure_%surfaceDensity(                                                            &
+           &                                                                         component%hostNode                      , &
+           &                                                                        [radius                     ,0.0d0,0.0d0], &
+           &                                                       coordinateSystem= coordinateSystemCylindrical             , &
+           &                                                       componentType   = componentTypeDisk                       , &
+           &                                                       massType        = massTypeStellar                           &
+           &                                                      )
       ! Compute the gas fraction.
       fractionGas=+  densitySurfaceGas     &
            &      /(                       &

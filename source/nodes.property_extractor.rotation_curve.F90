@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +20,9 @@
   !!{
   Contains a module which implements a property extractor class for the rotation curve at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure                  , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
@@ -29,7 +30,7 @@
     A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
     are specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
    </description>
   </nodePropertyExtractor>
@@ -39,13 +40,14 @@
      A property extractor class for the rotation curve at a set of radii.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
+     class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
+     integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
-     logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
-          &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
+     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
    contains
      final     ::                       rotationCurveDestructor
      procedure :: columnDescriptions => rotationCurveColumnDescriptions
@@ -78,6 +80,7 @@ contains
     type   (inputParameters                   ), intent(inout)               :: parameters
     type   (varying_string                    ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass          ), pointer                     :: darkMatterHaloScale_
+    class  (galacticStructureClass            ), pointer                     :: galacticStructure_
     logical                                                                  :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -94,16 +97,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorRotationCurve(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
+    self=nodePropertyExtractorRotationCurve(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function rotationCurveConstructorParameters
 
-  function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
+  function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
     !!}
@@ -112,9 +117,10 @@ contains
     type   (nodePropertyExtractorRotationCurve)                              :: self
     type   (varying_string                    ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass          ), intent(in   ), target       :: darkMatterHaloScale_
+    class  (galacticStructureClass            ), intent(in   ), target       :: galacticStructure_
     logical                                    , intent(in   )               :: includeRadii
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     if (includeRadii) then
@@ -143,6 +149,7 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine rotationCurveDestructor
@@ -178,13 +185,11 @@ contains
     !!{
     Implement a {\normalfont \ttfamily rotationCurve} property extractor.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius         , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
-          &                                             radiusTypeGalacticMassFraction          , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
-          &                                             radiusTypeVirialRadius
-    use :: Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
+          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+          &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     implicit none
     double precision                                    , dimension(:,:), allocatable :: rotationCurveExtract
     class           (nodePropertyExtractorRotationCurve), intent(inout) , target      :: self
@@ -200,7 +205,7 @@ contains
 
     allocate(rotationCurveExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
+    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
@@ -224,76 +229,87 @@ contains
        case   (radiusTypeGalacticMassFraction ,  &
             &  radiusTypeGalacticLightFraction )
           radius=+radius                                           &
-               & *Galactic_Structure_Radius_Enclosing_Mass         &
+               & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
                &   node                                         ,  &
-               &   fractionalMass=self%radii(i)%fraction        ,  &
+               &   massFractional=self%radii(i)%fraction        ,  &
                &   massType      =              massTypeGalactic,  &
                &   componentType =              componentTypeAll,  &
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case   (radiusTypeStellarMassFraction  )
+          radius=+radius                                           &
+               & *self%galacticStructure_%radiusEnclosingMass      &
+               &  (                                                &
+               &   node                                         ,  &
+               &   massFractional=self%radii(i)%fraction        ,  &
+               &   massType      =              massTypeStellar ,  &
+               &   componentType =              componentTypeAll,  &
+               &   weightBy      =self%radii(i)%weightBy        ,  &
+               &   weightIndex   =self%radii(i)%weightByIndex      &
+               &  )
        end select
-       rotationCurveExtract       (i,1)=Galactic_Structure_Rotation_Curve(                                       &
-               &                                                          node                                 , &
-               &                                                          radius                               , &
-               &                                                          componentType=self%radii(i)%component, &
-               &                                                          massType     =self%radii(i)%mass       &
-               &                                                         )
-       if (self%includeRadii)                                                                                    &
-            & rotationCurveExtract(i,2)=                                  radius
+       rotationCurveExtract       (i,1)=self%galacticStructure_%velocityRotation(                                       &
+               &                                                                 node                                 , &
+               &                                                                 radius                               , &
+               &                                                                 componentType=self%radii(i)%component, &
+               &                                                                 massType     =self%radii(i)%mass       &
+               &                                                                )
+       if (self%includeRadii)                                                                                           &
+            & rotationCurveExtract(i,2)=                                         radius
     end do
     return
   end function rotationCurveExtract
 
-  function rotationCurveNames(self,time)
+  subroutine rotationCurveNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily rotationCurve} properties.
     !!}
     implicit none
-    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveNames
-    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
-    double precision                                    , intent(in   )              :: time
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
+    double precision                                    , intent(in   )                             :: time
+    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(rotationCurveNames(self%elementCount_))
-    rotationCurveNames       (1)="rotationCurve"
+    allocate(names(self%elementCount_))
+    names       (1)="rotationCurve"
     if (self%includeRadii)                             &
-         & rotationCurveNames(2)="rotationCurveRadius"
+         & names(2)="rotationCurveRadius"
     return
-  end function rotationCurveNames
+  end subroutine rotationCurveNames
 
-  function rotationCurveDescriptions(self,time)
+  subroutine rotationCurveDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
-    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveDescriptions
-    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
-    double precision                                    , intent(in   )              :: time
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
+    double precision                                    , intent(in   )                             :: time
+    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
     
-    allocate(rotationCurveDescriptions(self%elementCount_))
-    rotationCurveDescriptions       (1)="Rotation curve at a given radius [km s⁻¹]."
+    allocate(descriptions(self%elementCount_))
+    descriptions       (1)="Rotation curve at a given radius [km s⁻¹]."
     if (self%includeRadii)                                                                &
-         & rotationCurveDescriptions(2)="Radius at which rotation curve is output [Mpc]."
+         & descriptions(2)="Radius at which rotation curve is output [Mpc]."
     return
-  end function rotationCurveDescriptions
+  end subroutine rotationCurveDescriptions
 
-  function rotationCurveColumnDescriptions(self,time)
+  subroutine rotationCurveColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
-    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveColumnDescriptions
-    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
-    double precision                                    , intent(in   )              :: time
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
+    double precision                                    , intent(in   )                             :: time
+    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(rotationCurveColumnDescriptions(self%radiiCount))
-    rotationCurveColumnDescriptions=self%radii%name
+    allocate(descriptions(self%radiiCount))
+    descriptions=self%radii%name
     return
-  end function rotationCurveColumnDescriptions
+  end subroutine rotationCurveColumnDescriptions
 
   function rotationCurveUnitsInSI(self,time)
     !!{

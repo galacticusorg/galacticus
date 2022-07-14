@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,7 +140,8 @@ module Stellar_Luminosities_Structure
   integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
        &                                                                                            luminosityMap
   double precision                                                   , allocatable, dimension(:) :: luminosityBandRedshift                               , luminosityCosmicTime          , &
-       &                                                                                            luminosityRedshift
+       &                                                                                            luminosityRedshift                                   , luminosityWavelengthEffective , &
+       &                                                                                            luminosityVegaOffset
   type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: luminosityPostprocessor
   type            (varying_string                                   ), allocatable, dimension(:) :: luminosityFilter                                     , luminosityName                , &
        &                                                                                            luminosityPostprocessSet                             , luminosityType                , &
@@ -170,15 +171,14 @@ contains
     Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
     !!}
     use            :: Array_Utilities    , only : Array_Reverse
-    use            :: Cosmology_Functions, only : cosmologyFunctions     , cosmologyFunctionsClass
-    use            :: Galacticus_Error   , only : Galacticus_Error_Report
+    use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use            :: Error              , only : Error_Report
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use            :: ISO_Varying_String , only : assignment(=)          , char                   , operator(//), operator(/=), &
-          &                                       operator(==)           , var_str
+    use            :: ISO_Varying_String , only : assignment(=)     , char                       , operator(//)      , operator(/=), &
+          &                                       operator(==)      , var_str
     use            :: Input_Parameters   , only : inputParameters
-    use            :: Instruments_Filters, only : Filter_Get_Index
-    use            :: Memory_Management  , only : Memory_Usage_Record    , allocateArray
-    use            :: Sorting            , only : sortByIndex            , sortIndex
+    use            :: Instruments_Filters, only : Filter_Get_Index  , Filter_Wavelength_Effective, Filter_Vega_Offset
+    use            :: Sorting            , only : sortByIndex       , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
     type            (inputParameters                                  ), intent(inout)             :: parameters_
@@ -208,14 +208,14 @@ contains
     </inputParameter>
     !!]
     select case (char(luminosityOutputOptionText))
-    case ("all")
+    case ("all"    )
        luminosityOutputOption=luminosityOutputOptionAll
-    case ("future")
+    case ("future" )
        luminosityOutputOption=luminosityOutputOptionFuture
     case ("present")
        luminosityOutputOption=luminosityOutputOptionPresent
     case default
-       call Galacticus_Error_Report("unrecognized luminosityOutputOption"//{introspection:location})
+       call Error_Report("unrecognized luminosityOutputOption"//{introspection:location})
     end select
     
     ! Get required objects.
@@ -228,23 +228,29 @@ contains
     luminosityCount=parameters_%count('luminosityRedshift',zeroIfNotPresent=.true.)
     luminosityCountUnmapped=luminosityCount
     if (parameters_%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) &
-         & call Galacticus_Error_Report(var_str('luminosityFilter [')//parameters_%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
+         & call Error_Report(var_str('luminosityFilter [')//parameters_%count('luminosityFilter',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
     if (parameters_%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) &
-         & call Galacticus_Error_Report(var_str('luminosityType [')//parameters_%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
+         & call Error_Report(var_str('luminosityType [')//parameters_%count('luminosityType',zeroIfNotPresent=.true.)//'] and luminosityRedshift ['//luminosityCount//'] input arrays must have same dimension'//{introspection:location})
     if (parameters_%isPresent('luminosityBandRedshift')) then
        if (parameters_%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) &
-            & call Galacticus_Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
+            & call Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
     end if
 
     if (luminosityCount > 0) then
-       call allocateArray(luminosityMap                     ,[luminosityCount])
-       call allocateArray(luminosityRedshift                ,[luminosityCount])
-       call allocateArray(luminosityBandRedshift            ,[luminosityCount])
+       if (allocated(luminosityMap           )) deallocate(luminosityMap           )
+       if (allocated(luminosityRedshift      )) deallocate(luminosityRedshift      )
+       if (allocated(luminosityBandRedshift  )) deallocate(luminosityBandRedshift  )
+       if (allocated(luminosityFilter        )) deallocate(luminosityFilter        )
+       if (allocated(luminosityType          )) deallocate(luminosityType          )
+       if (allocated(luminosityPostprocessSet)) deallocate(luminosityPostprocessSet)
+       if (allocated(luminosityRedshiftText  )) deallocate(luminosityRedshiftText  )       
+       allocate(luminosityMap           (luminosityCount))
+       allocate(luminosityRedshift      (luminosityCount))
+       allocate(luminosityBandRedshift  (luminosityCount))
        allocate(luminosityFilter        (luminosityCount))
        allocate(luminosityType          (luminosityCount))
        allocate(luminosityPostprocessSet(luminosityCount))
        allocate(luminosityRedshiftText  (luminosityCount))
-       call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityPostprocessSet),blockCount=4)
        !![
        <inputParameter>
          <name>luminosityRedshift</name>
@@ -298,7 +304,7 @@ contains
        ! Read postprocessing set information.
        if (parameters_%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
           if (parameters_%count('luminosityPostprocessSet') /= luminosityCount) &
-               & call Galacticus_Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
+               & call Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
           !![
           <inputParameter>
             <name>luminosityPostprocessSet</name>
@@ -313,12 +319,22 @@ contains
        call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
        luminosityCount=size(luminosityRedshift)
        ! Allocate remaining required arrays.
-       allocate          (luminosityName          (luminosityCount))
-       allocate          (luminosityPostprocessor (luminosityCount))
-       call allocateArray(luminosityFilterIndex  ,[luminosityCount])
-       call allocateArray(luminosityIndex        ,[luminosityCount])
-       call allocateArray(luminosityCosmicTime   ,[luminosityCount])
-       call allocateArray(luminosityTimeIndex    ,[luminosityCount])
+       if (allocated(luminosityName               )) deallocate(luminosityName               )
+       if (allocated(luminosityPostprocessor      )) deallocate(luminosityPostprocessor      )
+       if (allocated(luminosityFilterIndex        )) deallocate(luminosityFilterIndex        )
+       if (allocated(luminosityIndex              )) deallocate(luminosityIndex              )
+       if (allocated(luminosityCosmicTime         )) deallocate(luminosityCosmicTime         )
+       if (allocated(luminosityTimeIndex          )) deallocate(luminosityTimeIndex          )
+       if (allocated(luminosityWavelengthEffective)) deallocate(luminosityWavelengthEffective)
+       if (allocated(luminosityVegaOffset         )) deallocate(luminosityVegaOffset         )
+       allocate(luminosityName               (luminosityCount))
+       allocate(luminosityPostprocessor      (luminosityCount))
+       allocate(luminosityFilterIndex        (luminosityCount))
+       allocate(luminosityIndex              (luminosityCount))
+       allocate(luminosityCosmicTime         (luminosityCount))
+       allocate(luminosityTimeIndex          (luminosityCount))
+       allocate(luminosityWavelengthEffective(luminosityCount))
+       allocate(luminosityVegaOffset         (luminosityCount))
        ! Process the list of luminosities.
        do iLuminosity=1,luminosityCount
           ! Assign a name to this luminosity.
@@ -338,16 +354,19 @@ contains
           if (iLuminosity > 1) then
              do jLuminosity=1,iLuminosity-1
                 if (luminosityName(iLuminosity) == luminosityName(jLuminosity)) &
-                     & call Galacticus_Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
+                     & call Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
              end do
           end if
           ! Assign an index for this luminosity.
-          luminosityIndex(iLuminosity)=iLuminosity
+          luminosityIndex              (iLuminosity)=                                                                      iLuminosity
           ! Get the index of the specified filter.
-          luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
+          luminosityFilterIndex        (iLuminosity)=Filter_Get_Index                               (luminosityFilter     (iLuminosity))
+          ! Get effctive wavelength and Vega offset.
+          luminosityWavelengthEffective(iLuminosity)=Filter_Wavelength_Effective                    (luminosityFilterIndex(iLuminosity))
+          luminosityVegaOffset         (iLuminosity)=Filter_Vega_Offset                             (luminosityFilterIndex(iLuminosity))
           ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
-          expansionFactor                  =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift(iLuminosity))
-          luminosityCosmicTime(iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                )
+          expansionFactor                           =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift   (iLuminosity))
+          luminosityCosmicTime         (iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                   )
           ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
           ! it is set to zero to indicate a rest-frame filter.
           select case(char(luminosityType(iLuminosity)))
@@ -356,25 +375,29 @@ contains
           case ("observed")
              ! Do nothing, we already have the correct redshift.
           case default
-             call Galacticus_Error_Report('unrecognized filter type - must be "rest" or "observed"'//{introspection:location})
+             call Error_Report('unrecognized filter type - must be "rest" or "observed"'//{introspection:location})
           end select
           ! Find the index for the postprocessing chain to be applied to this filter.
           luminosityPostprocessor(iLuminosity)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessorBuilder_%build(luminosityPostprocessSet(iLuminosity))
        end do
        ! Sort the luminosities such that the latest luminosities are stored first.
        luminosityTimeIndex=Array_Reverse(sortIndex(luminosityCosmicTime))
-       call sortByIndex             (luminosityFilterIndex   ,luminosityTimeIndex)
-       call sortByIndexPostprocessor(luminosityPostprocessor ,luminosityTimeIndex)
-       call sortByIndex             (luminosityCosmicTime    ,luminosityTimeIndex)
-       call sortByIndex             (luminosityName          ,luminosityTimeIndex)
-       call sortByIndex             (luminosityRedshift      ,luminosityTimeIndex)
-       call sortByIndex             (luminosityBandRedshift  ,luminosityTimeIndex)
-       call sortByIndex             (luminosityFilter        ,luminosityTimeIndex)
-       call sortByIndex             (luminosityType          ,luminosityTimeIndex)
-       call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)
+       call sortByIndex             (luminosityFilterIndex        ,luminosityTimeIndex)
+       call sortByIndexPostprocessor(luminosityPostprocessor      ,luminosityTimeIndex)
+       call sortByIndex             (luminosityCosmicTime         ,luminosityTimeIndex)
+       call sortByIndex             (luminosityName               ,luminosityTimeIndex)
+       call sortByIndex             (luminosityRedshift           ,luminosityTimeIndex)
+       call sortByIndex             (luminosityBandRedshift       ,luminosityTimeIndex)
+       call sortByIndex             (luminosityFilter             ,luminosityTimeIndex)
+       call sortByIndex             (luminosityType               ,luminosityTimeIndex)
+       call sortByIndex             (luminosityPostprocessSet     ,luminosityTimeIndex)
+       call sortByIndex             (luminosityWavelengthEffective,luminosityTimeIndex)
+       call sortByIndex             (luminosityVegaOffset         ,luminosityTimeIndex)
        ! Allocate unit and zero stellar abundance objects.
-       call allocateArray(unitStellarLuminosities%luminosityValue,[luminosityCount])
-       call allocateArray(zeroStellarLuminosities%luminosityValue,[luminosityCount])
+       if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
+       if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
+       allocate(unitStellarLuminosities%luminosityValue(luminosityCount))
+       allocate(zeroStellarLuminosities%luminosityValue(luminosityCount))
        unitStellarLuminosities%luminosityValue=1.0d0
        zeroStellarLuminosities%luminosityValue=0.0d0
     end if
@@ -430,9 +453,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     !!}
-    use :: FoX_DOM         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: FoX_DOM, only : node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
@@ -561,7 +584,7 @@ contains
     !!{
     Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: index
@@ -572,7 +595,7 @@ contains
           Stellar_Luminosities_Luminosity=self%luminosityValue(index)
        else
           Stellar_Luminosities_Luminosity=0.0d0
-          call Galacticus_Error_Report('index out of range'//{introspection:location})
+          call Error_Report('index out of range'//{introspection:location})
        end if
     else
        Stellar_Luminosities_Luminosity=0.0d0
@@ -786,7 +809,7 @@ contains
     !!{
     Return a name for the specified entry in the stellar luminosities structure.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : trim
     implicit none
     type   (varying_string)                :: Stellar_Luminosities_Name
@@ -796,7 +819,7 @@ contains
     if (index > 0 .and. index <= luminosityCount) then
        Stellar_Luminosities_Name=trim(luminosityName(index))
     else
-       call Galacticus_Error_Report('index out of range'//{introspection:location})
+       call Error_Report('index out of range'//{introspection:location})
     end if
     return
   end function Stellar_Luminosities_Name
@@ -957,6 +980,8 @@ contains
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
              doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+             call doubleProperties(doubleProperty)%metaData%set('wavelengthEffective',luminosityWavelengthEffective(i))
+             call doubleProperties(doubleProperty)%metaData%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if
        end do
     end if
@@ -967,7 +992,7 @@ contains
     !!{
     Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     integer         , intent(in   )           :: luminosityIndex
     double precision, intent(in   )           :: time
@@ -990,7 +1015,7 @@ contains
        Stellar_Luminosities_Is_Output=(abs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
     case default
        Stellar_Luminosities_Is_Output=.false.
-       call Galacticus_Error_Report('unknown luminosity output option'//{introspection:location})
+       call Error_Report('unknown luminosity output option'//{introspection:location})
     end select
     return
   end function Stellar_Luminosities_Is_Output
@@ -1041,7 +1066,7 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its name.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     type   (varying_string), intent(in   ) :: name
@@ -1054,7 +1079,7 @@ contains
           return
        end if
     end do
-    call Galacticus_Error_Report('unmatched name'//{introspection:location})
+    call Error_Report('unmatched name'//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Name
 
@@ -1062,8 +1087,8 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its properties.
     !!}
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)          , operator(//), operator(==), varying_string
+    use :: Error               , only : Error_Report
+    use :: ISO_Varying_String  , only : assignment(=), operator(//), operator(==), varying_string
     use :: Numerical_Comparison, only : Values_Agree
     use :: String_Handling     , only : operator(//)
     implicit none
@@ -1121,7 +1146,7 @@ contains
           message=message//" : "//luminosityPostprocessSet(i)
        end if
     end do
-    call Galacticus_Error_Report(message//{introspection:location})
+    call Error_Report(message//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Properties
 
@@ -1197,7 +1222,7 @@ contains
     double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
     type            (inputParameters              ), intent(inout)                            :: parameters_
     integer         (c_size_t                     )                                           :: i                        , j                          , &
-         &                                                                                       k                        , newFilterCount
+         &                                                                                       k                        , newFilterCount,luminosityCount
     integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
     type            (varying_string               )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                       luminosityTypeTmp        , luminosityPostprocessSetTmp
@@ -1223,8 +1248,23 @@ contains
     i=1
     do while (i <= size(luminosityRedshiftText))
        ! Check for special cases.
+       luminosityCount=size(luminosityMap)
        if (luminosityRedshiftText(i) == "all") then
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+outputCount-1))
+          allocate(luminosityFilter        (luminosityCount+outputCount-1))
+          allocate(luminosityType          (luminosityCount+outputCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+outputCount-1))
+          allocate(luminosityMap           (luminosityCount+outputCount-1))
+          allocate(luminosityRedshift      (luminosityCount+outputCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+outputCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & outputCount                ,          &
@@ -1254,16 +1294,30 @@ contains
                 luminosityBandRedshift(j+i-1)=luminosityBandRedshiftTmp  (i)
              end if
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Alias for filters required for emission line calculations.
        if (luminosityFilter(i) == "emissionLineFilters") then
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+3_c_size_t-1))
+          allocate(luminosityFilter        (luminosityCount+3_c_size_t-1))
+          allocate(luminosityType          (luminosityCount+3_c_size_t-1))
+          allocate(luminosityPostprocessSet(luminosityCount+3_c_size_t-1))
+          allocate(luminosityMap           (luminosityCount+3_c_size_t-1))
+          allocate(luminosityRedshift      (luminosityCount+3_c_size_t-1))
+          allocate(luminosityBandRedshift  (luminosityCount+3_c_size_t-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & 3_c_size_t                 ,          &
@@ -1287,8 +1341,19 @@ contains
              luminosityRedshift       (i:i+2)=luminosityRedshiftTmp      (i)
              luminosityBandRedshift   (i:i+2)=luminosityBandRedshiftTmp  (i)
              luminosityPostprocessSet (i:i+2)=luminosityPostprocessSetTmp(i)
-             luminosityFilter         (i:i+2)=[var_str("Lyc" ),var_str("HeliumContinuum"),var_str("OxygenContinuum")]
-             luminosityType           (i:i+2)=[        "rest" ,        "rest"            ,        "rest"            ]
+             luminosityFilter         (  i+0)=var_str("Lyc"            )
+             luminosityFilter         (  i+1)=var_str("HeliumContinuum")
+             luminosityFilter         (  i+2)=var_str("OxygenContinuum")
+             luminosityType           (  i+0)=var_str("rest"           )
+             luminosityType           (  i+1)=var_str("rest"           )
+             luminosityType           (  i+2)=var_str("rest"           )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then
@@ -1310,6 +1375,20 @@ contains
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+newFilterCount-1))
+          allocate(luminosityFilter        (luminosityCount+newFilterCount-1))
+          allocate(luminosityType          (luminosityCount+newFilterCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+newFilterCount-1))
+          allocate(luminosityMap           (luminosityCount+newFilterCount-1))
+          allocate(luminosityRedshift      (luminosityCount+newFilterCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+newFilterCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
@@ -1347,13 +1426,13 @@ contains
              ! Increase the central wavelength.
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters for SEDs
        if (extract(luminosityFilter(i),1,30) == "adaptiveResolutionTopHatArray_") then
@@ -1387,6 +1466,20 @@ contains
                   &                                    )
           end do
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+newFilterCount-1))
+          allocate(luminosityFilter        (luminosityCount+newFilterCount-1))
+          allocate(luminosityType          (luminosityCount+newFilterCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+newFilterCount-1))
+          allocate(luminosityMap           (luminosityCount+newFilterCount-1))
+          allocate(luminosityRedshift      (luminosityCount+newFilterCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+newFilterCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
@@ -1437,13 +1530,13 @@ contains
                   &                                     stellarPopulationSpectra_     &
                   &                                    )
           end do
-          deallocate          (luminosityRedshiftTextTmp  )
-          deallocate          (luminosityFilterTmp        )
-          deallocate          (luminosityTypeTmp          )
-          deallocate          (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters for equivalent width calculations
        if (extract(luminosityFilter(i),1,26) == "emissionLineContinuumPair_") then
@@ -1470,6 +1563,20 @@ contains
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
           ! Resize the arrays.
+          call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
+          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+          allocate(luminosityRedshiftText  (luminosityCount+newFilterCount-1))
+          allocate(luminosityFilter        (luminosityCount+newFilterCount-1))
+          allocate(luminosityType          (luminosityCount+newFilterCount-1))
+          allocate(luminosityPostprocessSet(luminosityCount+newFilterCount-1))
+          allocate(luminosityMap           (luminosityCount+newFilterCount-1))
+          allocate(luminosityRedshift      (luminosityCount+newFilterCount-1))
+          allocate(luminosityBandRedshift  (luminosityCount+newFilterCount-1))
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
@@ -1511,13 +1618,13 @@ contains
              ! Increase the central wavelength.
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)
-          call deallocateArray(luminosityMapTmp           )
-          call deallocateArray(luminosityRedshiftTmp      )
-          call deallocateArray(luminosityBandRedshiftTmp  )
+          deallocate(luminosityRedshiftTextTmp  )
+          deallocate(luminosityFilterTmp        )
+          deallocate(luminosityTypeTmp          )
+          deallocate(luminosityPostprocessSetTmp)
+          deallocate(luminosityMapTmp           )
+          deallocate(luminosityRedshiftTmp      )
+          deallocate(luminosityBandRedshiftTmp  )
        end if
        ! Next luminosity.
        i=i+1
@@ -1553,32 +1660,18 @@ contains
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     implicit none
-    integer         (c_size_t      ), intent(in   )                            :: expandFrom               , expandCount
-    integer                         , intent(inout), allocatable, dimension(:) :: luminosityMap
-    type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
-         &                                                                        luminosityType           , luminosityPostprocessSet
-    double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    integer                         , intent(inout), allocatable, dimension(:) :: luminosityMapTmp
-    type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
-         &                                                                        luminosityTypeTmp        , luminosityPostprocessSetTmp
-    double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
-    integer                                                                    :: luminosityCount
+    integer         (c_size_t      ), intent(in   )               :: expandFrom               , expandCount
+    integer                         , intent(inout), dimension(:) :: luminosityMap
+    type            (varying_string), intent(inout), dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
+         &                                                           luminosityType           , luminosityPostprocessSet
+    double precision                , intent(inout), dimension(:) :: luminosityRedshift       , luminosityBandRedshift
+    integer                         , intent(inout), dimension(:) :: luminosityMapTmp
+    type            (varying_string), intent(inout), dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
+         &                                                           luminosityTypeTmp        , luminosityPostprocessSetTmp
+    double precision                , intent(inout), dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
+    integer                                                       :: luminosityCount
 
-    luminosityCount=size(luminosityMap)
-    call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
-    call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
-    call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
-    call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
-    call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
-    call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
-    call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
-    allocate        (luminosityRedshiftText   (size(luminosityRedshiftTextTmp  )+expandCount-1))
-    allocate        (luminosityFilter         (size(luminosityFilterTmp        )+expandCount-1))
-    allocate        (luminosityType           (size(luminosityTypeTmp          )+expandCount-1))
-    allocate        (luminosityPostprocessSet (size(luminosityPostprocessSetTmp)+expandCount-1))
-    call allocateArray(luminosityMap           ,[size(luminosityRedshiftTmp      )+expandCount-1])
-    call allocateArray(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+expandCount-1])
-    call allocateArray(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+expandCount-1])
+    luminosityCount=size(luminosityMapTmp)
     if (expandFrom > 1              ) then
        luminosityMap           (1            :expandFrom                          -1)=luminosityMapTmp           (1  :expandFrom-1            )
        luminosityRedshiftText  (1            :expandFrom                          -1)=luminosityRedshiftTextTmp  (1  :expandFrom-1            )
@@ -1667,9 +1760,9 @@ contains
   end subroutine Stellar_Luminosities_Parameter_Map_Double
 
   !![
-  <galacticusStateStoreTask>
+  <stateStoreTask>
    <unitName>Stellar_Luminosities_State_Store</unitName>
-  </galacticusStateStoreTask>
+  </stateStoreTask>
   !!]
   subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1725,9 +1818,9 @@ contains
   end subroutine Stellar_Luminosities_State_Store
 
   !![
-  <galacticusStateRetrieveTask>
+  <stateRetrieveTask>
    <unitName>Stellar_Luminosities_State_Restore</unitName>
-  </galacticusStateRetrieveTask>
+  </stateRetrieveTask>
   !!]
   subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

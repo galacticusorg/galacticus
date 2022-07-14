@@ -1,16 +1,40 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::Constants qw(PI);
+use Galacticus::Options;
 
 # Test the radiative transfer code by attempting to reproduce a Strömgren sphere solution.
 # Andrew Benson (04-December-2019)
 
+# Read in any configuration options.
+my $config = &Galacticus::Options::LoadConfig();
+
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
+
+# Get any command line options.
+my %options =
+    (
+     'processesPerNode'  => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
+     'allow-run-as-root' => "no"
+    );
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
+# We need at least 2 processes to run this test.
+if ( $options{'processesPerNode'} < 2 ) {
+    print "SKIPPED: at least 2 processes per node are required for this test\n";
+    exit;
+}
+
 # Run the calculation.
-system("cd ..; mpirun -np 16 Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
+system("cd ..; mpirun -np ".$options{'processesPerNode'}.($options{'allow-run-as-root'} eq "yes" ? " --allow-run-as-root" : "")." Galacticus.exe_MPI testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
 die("FAILED: failed to run calculation")
     unless ( $? == 0 );
 # Read model output and parameters.

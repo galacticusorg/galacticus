@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,6 +45,7 @@ module Halo_Mass_Functions
     <description>Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time} [Gyr].</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>double precision          , intent(in   )           :: time, mass</argument>
     <argument>type            (treeNode), intent(inout), optional :: node      </argument>
    </method>
@@ -68,7 +69,7 @@ module Halo_Mass_Functions
      self%time_ =  time
      logMassLow =log(massLow )
      logMassHigh=log(massHigh)
-     integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+     integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-100,integrationRule=GSL_Integ_Gauss15)
      haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh)
      return
     </code>
@@ -93,7 +94,7 @@ module Halo_Mass_Functions
      self%time_ =  time
      logMassLow =log(massLow )
      logMassHigh=log(massHigh)
-     integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+     integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-100,integrationRule=GSL_Integ_Gauss15)
      haloMassFunctionMassFraction=integrator_%integrate(logMassLow,logMassHigh)
      ! Convert to a mass fraction.
      haloMassFunctionMassFraction=+haloMassFunctionMassFraction                &amp;

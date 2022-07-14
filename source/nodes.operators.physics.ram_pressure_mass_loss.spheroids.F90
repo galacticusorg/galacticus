@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,7 +101,7 @@ contains
     !!{
     Perform ram pressure stripping-induced in a spheroid.
     !!}
-    use :: Galacticus_Nodes    , only : propertyTypeInactive, nodeComponentSpheroid, nodeComponentHotHalo
+    use :: Galacticus_Nodes    , only : propertyInactive, nodeComponentSpheroid, nodeComponentHotHalo
     use :: Abundances_Structure, only : operator(*)
     implicit none
     class           (nodeOperatorRamPressureMassLossSpheroids), intent(inout), target  :: self
@@ -114,11 +114,11 @@ contains
     double precision                                                                   :: massLossRate
 
     ! Do nothing during inactive property solving.
-    if (propertyType       == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     spheroid => node%spheroid()
-    if (spheroid%massGas() <= 0.0d0               ) return
+    if (spheroid%massGas() <= 0.0d0   ) return
     massLossRate=self%ramPressureStripping_%rateMassLoss(spheroid)
-    if (massLossRate       <= 0.0d0               ) return
+    if (massLossRate       <= 0.0d0   ) return
     hotHalo => node%hotHalo()
     call spheroid%                  massGasRate(-massLossRate                                                                       )
     call spheroid%          angularMomentumRate(-massLossRate*spheroid%angularMomentum()/(spheroid%massGas()+spheroid%massStellar()))

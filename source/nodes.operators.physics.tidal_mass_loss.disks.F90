@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,10 +101,10 @@ contains
     !!{
     Perform star formation in a disk.
     !!}
-    use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk  , nodeComponentHotHalo
+    use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentDisk  , nodeComponentHotHalo
     use :: Abundances_Structure          , only : operator(*)
-    use :: Histories                     , only : operator(*)         , history
-    use :: Stellar_Luminosities_Structure, only : operator(*)         , stellarLuminosities, zeroStellarLuminosities, max
+    use :: Histories                     , only : operator(*)     , history
+    use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
     implicit none
     class           (nodeOperatorTidalMassLossDisks), intent(inout), target  :: self
     type            (treeNode                      ), intent(inout)          :: node
@@ -120,13 +120,13 @@ contains
     type            (history                       )                         :: historyTransferRate
 
     ! Do nothing during inactive property solving.
-    if (propertyType                      == propertyTypeInactive) return
+    if (propertyInactive(propertyType)            ) return
     ! Return if the disk has no mass.
     disk => node%disk()
-    if (disk%massGas()+disk%massStellar() <= 0.0d0               ) return
+    if (disk%massGas()+disk%massStellar() <= 0.0d0) return
     ! Return if the tidal mass loss rate is zero.
     massLossRate=self%tidalStripping_%rateMassLoss(disk)
-    if (massLossRate                      <= 0.0d0               ) return
+    if (massLossRate                      <= 0.0d0) return
     ! Transfer stripped material from the disk.
     !! Gas is moved to the hot halo component.
     hotHalo         => node%hotHalo()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,20 +32,20 @@
      Implementation of a task which computes projected correlation functions based on a simple halo model approach.
      !!}
      private
-     class           (cosmologyParametersClass  ), pointer      :: cosmologyParameters_    => null()
-     class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_     => null()
-     class           (surveyGeometryClass       ), pointer      :: surveyGeometry_         => null()
-     class           (randomNumberGeneratorClass), pointer      :: randomNumberGenerator_  => null()
+     class           (cosmologyParametersClass  ), pointer      :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_       => null()
+     class           (surveyGeometryClass       ), pointer      :: surveyGeometry_           => null()
+     class           (randomNumberGeneratorClass), pointer      :: randomNumberGenerator_    => null()
      type            (varying_string            )               :: galaxyCatalogFileName
-     integer                                                    :: separationCount                  , randomSampleCount, &
+     integer                                                    :: separationCount                     , randomSampleCount, &
           &                                                        randomSampleCountType
-     double precision                                           :: massMinimum                      , massMaximum      , &
-          &                                                        separationMinimum                , separationMaximum, &
-          &                                                        separationRadialMaximum,           widthBuffer      , &
+     double precision                                           :: massMinimum                         , massMaximum      , &
+          &                                                        separationMinimum                   , separationMaximum, &
+          &                                                        separationRadialMaximum,              widthBuffer      , &
           &                                                        angleRotation
      double precision                            , dimension(3) :: origin
      double precision                            , dimension(2) :: vectorRotation
-     logical                                                    :: halfIntegral
+     logical                                                    :: nodeComponentsInitialized =  .false., halfIntegral
      ! Pointer to the parameters for this task.
      type            (inputParameters           )               :: parameters
    contains
@@ -114,6 +114,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>galaxyCatalogFileName</name>
@@ -267,7 +268,7 @@ contains
     <objectDestructor name="self%surveyGeometry_"       />
     <objectDestructor name="self%randomNumberGenerator_"/>
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine catalogProjectedCorrelationFunctionDestructor
 
@@ -276,8 +277,8 @@ contains
     Compute the projected correlation function from a galaxy catalog.
     !!}
     use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
-    use :: Galacticus_Error                , only : Galacticus_Error_Report          , errorStatusSuccess
-    use :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use :: Error                           , only : Error_Report                     , errorStatusSuccess
+    use :: Output_HDF5                     , only : outputFile
     use :: IO_HDF5                         , only : hdf5Object
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
@@ -352,7 +353,7 @@ contains
        randomPointCount=int(self%randomSampleCount*dble(size(galaxyPosition,dim=2)))
     case default
        randomPointCount=0
-       call Galacticus_Error_Report('unknown random sample count type'//{introspection:location})
+       call Error_Report('unknown random sample count type'//{introspection:location})
     end select
     call allocateArray(randomPosition,[3,randomPointCount])
     do i=1,3
@@ -406,7 +407,7 @@ contains
        randomPointCount=int(self%randomSampleCount*dble(replicatedGalaxyCount))
     case default
        randomPointCount=0
-       call Galacticus_Error_Report('unknown random sample count type'//{introspection:location})
+       call Error_Report('unknown random sample count type'//{introspection:location})
     end select
     call deallocateArray(randomPosition                     )
     call allocateArray  (randomPosition,[3,randomPointCount])
@@ -436,7 +437,7 @@ contains
          &                             halfIntegral                            =self%halfIntegral             &
          &                            )
     ! Write correlations to file.
-    correlationFunctionGroup=galacticusOutputFile%openGroup('projectedCorrelationFunction')
+    correlationFunctionGroup=outputFile%openGroup('projectedCorrelationFunction')
     call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
     call dataset%close         (                      )

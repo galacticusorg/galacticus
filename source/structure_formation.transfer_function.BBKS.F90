@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,6 +48,7 @@
      procedure :: value                 => bbksValue
      procedure :: logarithmicDerivative => bbksLogarithmicDerivative
      procedure :: halfModeMass          => bbksHalfModeMass
+     procedure :: quarterModeMass       => bbksQuarterModeMass
      procedure :: epochTime             => bbksEpochTime
   end type transferFunctionBBKS
 
@@ -97,7 +98,7 @@ contains
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Error                , only : Error_Report
     implicit none
     type (transferFunctionBBKS    )                        :: self
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
@@ -112,7 +113,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
+       call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
@@ -252,9 +253,9 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function. Not supported in this implementation.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    use :: Error, only : Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionBBKS), intent(inout)           :: self
+    class  (transferFunctionBBKS), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
@@ -262,10 +263,30 @@ contains
     if (present(status)) then
        status=errorStatusFail
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       call Error_Report('not supported by this implementation'//{introspection:location})
     end if
     return
   end function bbksHalfModeMass
+
+  double precision function bbksQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
+    use :: Error, only : Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionBBKS), intent(inout), target   :: self
+    integer                      , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    bbksQuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function bbksQuarterModeMass
 
   double precision function bbksEpochTime(self)
     !!{

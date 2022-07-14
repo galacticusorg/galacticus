@@ -207,7 +207,7 @@ foreach my $forestFile ( @forestFiles ) {
 	    # Read and modify parameter file.
 	    my $xml        = new XML::Simple(RootName => "parameters");
 	    my $parameters = $xml->XMLin("parameters/test-splitForests-".$_.".xml");
-	    $parameters->{'galacticusOutputFileName'}                 ->{'value'} = "testSuite/".$outputDirectoryName.$_.".hdf5";
+	    $parameters->{'outputFileName'}                 ->{'value'} = "testSuite/".$outputDirectoryName.$_.".hdf5";
 	    $parameters->{'mergerTreeConstructor'   }->{'fileNames'  }->{'value'} = $forestFile->{'fileName'};
 	    $parameters->{'task'                    }->{'suspendPath'}->{'value'} = defined($scratchConfig) ? $scratchConfig->{'path'} : ".";
 	    my @stack  = ( { node => $parameters, content => $forestFile->{'parameters'} } );

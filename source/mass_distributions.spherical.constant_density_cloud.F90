@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -189,7 +189,7 @@ contains
     Computes radial moments of the density in a constant density cloud.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Error               , only : Error_Report
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout)           :: self
     double precision                                      , intent(in   )           :: moment
@@ -206,7 +206,7 @@ contains
              isInfinite=.true.
              return
           else
-             call Galacticus_Error_Report('radial moment is infinite'//{introspection:location})
+             call Error_Report('radial moment is infinite'//{introspection:location})
           end if
        end if
        if (Values_Agree(moment,-1.0d0,absTol=1.0d-6)) then

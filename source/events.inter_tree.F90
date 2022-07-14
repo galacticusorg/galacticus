@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,7 +56,7 @@ contains
     Push a node from the tree.
     !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent         , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode                     , treeNodeLinkedList
     use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)      , varying_string
@@ -145,7 +145,7 @@ contains
      class default
         splitForestUniqueID=-1
         pairedNodeID       =-1
-       call Galacticus_Error_Report('unknown event type'//{introspection:location})
+       call Error_Report('unknown event type'//{introspection:location})
     end select
     call displayMessage(message,verbosityLevelInfo)
     ! This is a subhalo jumping to another tree. Remove the node from its host, and explicitly nullify its parent pointer to
@@ -181,7 +181,7 @@ contains
     Pull a node from the tree.
     !!}
     use :: Display                            , only : displayMessage            , verbosityLevelInfo           , verbosityLevelWarn
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode
     use :: ISO_Varying_String                 , only : assignment(=)             , operator(//)                 , varying_string
@@ -249,7 +249,7 @@ contains
        pairedNodeID       =-1
        timeMatchRequired  =.false.
        isPrimary          =.false.
-       call Galacticus_Error_Report('unknown event type'//{introspection:location})
+       call Error_Report('unknown event type'//{introspection:location})
     end select
     call displayMessage(message,verbosityLevelInfo)
     ! Search for the node to be pulled in the inter-tree wait list.
@@ -293,7 +293,7 @@ contains
                 select type (event)
                 type is (nodeEventSubhaloPromotionInterTree)
                    ! Node being jumped to should not be a satellite in this case.
-                   if (node%isSatellite()) call Galacticus_Error_Report('inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior'//{introspection:location})
+                   if (node%isSatellite()) call Error_Report('inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior'//{introspection:location})
                    ! Pulled node is the primary progenitor and a subhalo promotion. It is being pulled to a node that is a clone of its parent. Replace the
                    ! clone with the pulled node.
                    if (associated(node%firstSatellite)) then
@@ -369,7 +369,7 @@ contains
                       message=message//"  node ID="//node%index()//"; time="//label//" Gyr"//char(10)
                       write (label,'(f12.6)')   pullBasic%time()
                       message=message//"  pull ID="//pullNode%index()//"; time="//label//" Gyr"
-                      call Galacticus_Error_Report(message//{introspection:location})
+                      call Error_Report(message//{introspection:location})
                    end if
                    call pullBasic%timeSet(pullBasic%time()*(1.0d0-timeOffsetFractional))
                    ! Destroy the cloned node.
@@ -460,7 +460,7 @@ contains
                       message=message//"  node ID="//attachNode%index()//"; time="//label//" Gyr"//char(10)
                       write (label,'(f12.6)')   pullBasic%time()
                       message=message//"  pull ID="//pullNode  %index()//"; time="//label//" Gyr"
-                      call Galacticus_Error_Report(message//{introspection:location})
+                      call Error_Report(message//{introspection:location})
                    end if
                 end if
                 ! Assign a merging time to the new satellite if possible.
@@ -472,7 +472,7 @@ contains
                    attachBasic => attachNode%basic()
                    if (associated(event%mergeTimeSet)) call event%mergeTimeSet(event%creator,pullNode,attachNode)
                 class default
-                   call Galacticus_Error_Report('non-primary jump should be inter-tree branch jump'//{introspection:location})
+                   call Error_Report('non-primary jump should be inter-tree branch jump'//{introspection:location})
                 end select
              end if
              ! If the node or its parent are now satellites, and have their own satellites, transfer these satellites to the new
@@ -484,7 +484,7 @@ contains
                    hostNode => pullNode%parent%parent
                 else
                    hostNode => null()
-                   call Galacticus_Error_Report('neither node nor parent are satellites - this should not happen'//{introspection:location})
+                   call Error_Report('neither node nor parent are satellites - this should not happen'//{introspection:location})
                 end if
                 satelliteNode          => pullNode%firstSatellite
                 satelliteNode%parent   => hostNode
@@ -529,9 +529,9 @@ contains
     !!{
     Check that the inter-tree transfer list is empty after universe evolution.
     !!}
-    use :: Display           , only : displayIndent          , displayMessage, displayUnindent
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)          , varying_string
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type(interTreeTransfer), pointer :: waitListEntry
@@ -547,7 +547,7 @@ contains
           waitListEntry => waitListEntry%next
        end do
        call displayUnindent('done')
-       call Galacticus_Error_Report('nodes remain in the inter-tree transfer wait list - see preceeding report'//{introspection:location})
+       call Error_Report('nodes remain in the inter-tree transfer wait list - see preceeding report'//{introspection:location})
     end if
     return
   end subroutine Inter_Tree_Event_Post_Evolve

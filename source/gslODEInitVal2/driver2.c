@@ -148,7 +148,7 @@ gsl_odeiv2_driver_alloc_scaled2_new (const gsl_odeiv2_system * sys,
 int
 gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
 			  const double t1, double y[],
-			  void(*postStep)(double y[], int *s),
+			  void(*postStep)(double t, double y[], int *s),
 			  void(*latentIntegrator)(double *t),
 			  void(*stepAnalyzer)(double y[], double yerr[], double h, int s)
 			  )
@@ -206,9 +206,12 @@ gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
       if (postStep != NULL)
 	{
 	  int s = GSL_SUCCESS;
-	  postStep(y,&s);
+	  postStep(*t,y,&s);
 	  if (s != 0)
 	    {
+	      /* Post-step processing returned failure, which indicates that the state of the system was changed. We must reset
+		 the evolver (specifically setting d->e->count = 0) to avoid re-using the dydt's computed at the end of the
+		 current step at the start of the next step, as they could be invalid due to this change of state. */
 	      gsl_odeiv2_evolve_reset(d->e);
 	    }
 	}

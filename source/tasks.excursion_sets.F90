@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,16 +36,17 @@
      !!}
      private
      type            (varying_string                )          :: outputGroup
-     integer                                                   :: massesPerDecade           , timesPerDecade
-     double precision                                          :: massMaximum               , massMinimum   , &
-          &                                                       timeMinimum               , timeMaximum
-     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_ => null()
-     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
-     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_ => null()
-     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_ => null()
+     integer                                                   :: massesPerDecade                      , timesPerDecade
+     double precision                                          :: massMaximum                          , massMinimum   , &
+          &                                                       timeMinimum                          , timeMaximum
+     logical                                                   :: nodeComponentsInitialized  =  .false.
+     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_       => null()
+     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
+     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
+     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_          => null()
+     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_       => null()
      class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
-     class           (powerSpectrumClass            ), pointer :: powerSpectrum_ => null()
+     class           (powerSpectrumClass            ), pointer :: powerSpectrum_             => null()
    contains
      final     ::            excursionSetsDestructor
      procedure :: perform => excursionSetsPerform
@@ -98,6 +99,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>massMinimum</name>
@@ -238,7 +240,7 @@ contains
     <objectDestructor name="self%powerSpectrum_"            />
     !!]
     call self%outputGroup%destroy()
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine excursionSetsDestructor
 
@@ -246,14 +248,14 @@ contains
     !!{
     Compute and output the halo mass function.
     !!}
-    use :: Display                 , only : displayIndent       , displayUnindent
-    use :: Galacticus_Error        , only : errorStatusSuccess
-    use :: Galacticus_HDF5         , only : galacticusOutputFile
+    use :: Display                 , only : displayIndent     , displayUnindent
+    use :: Error                   , only : errorStatusSuccess
+    use :: Output_HDF5             , only : outputFile
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
-    use :: Memory_Management       , only : allocateArray       , deallocateArray
+    use :: Memory_Management       , only : allocateArray     , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range          , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
     implicit none
     class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
@@ -322,7 +324,7 @@ contains
     call self%excursionSetFirstCrossing_%coordinatedMPI(.false.)
 #endif
     ! Write results to the output file.
-    outputGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing data relating to the excursion set problem.')
+    outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing data relating to the excursion set problem.')
     call outputGroup%writeDataset(mass                    ,'mass'                    ,'The mass of the halo [M☉]'                       )
     call outputGroup%writeDataset(time                    ,'time'                    ,'The cosmic time [Gyr]'                           )
     call outputGroup%writeDataset(wavenumber              ,'wavenumber'              ,'The wavenumber associated with this mass [Mpc⁻¹]')

@@ -6,7 +6,7 @@
   <version>0.9.4</version>
 
   <!-- Output file -->
-  <galacticusOutputFileName value="testSuite/outputs/test-star-formation-histories-adapative/galacticus.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-star-formation-histories-adapative/galacticus.hdf5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -210,12 +210,18 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

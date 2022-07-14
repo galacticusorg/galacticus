@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,7 +78,6 @@
      procedure :: radiusFromSpecificAngularMomentum => finiteResolutionRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => finiteResolutionRotationNormalization
      procedure :: energy                            => finiteResolutionEnergy
-     procedure :: energyGrowthRate                  => finiteResolutionEnergyGrowthRate
      procedure :: kSpace                            => finiteResolutionKSpace
      procedure :: freefallRadius                    => finiteResolutionFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => finiteResolutionFreefallRadiusIncreaseRate
@@ -152,7 +151,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily finiteResolution} dark matter profile class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileDMOFiniteResolution)                        :: self
     class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
@@ -165,7 +164,7 @@ contains
     <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
     !!]
     
-    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID              =-1_kind_int8
     self%genericLastUniqueID       =-1_kind_int8
     self%lengthResolutionPrevious  =-huge(0.0d0)
@@ -209,11 +208,15 @@ contains
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
-    self%lastUniqueID              =node%uniqueID()
-    self%genericLastUniqueID       =node%uniqueID()
-    self%lengthResolutionPrevious  =-huge(0.0d0)
-    self%enclosedMassPrevious      =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious=-huge(0.0d0)
+    self%lastUniqueID                                =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%lengthResolutionPrevious                    =-huge(0.0d0)
+    self%enclosedMassPrevious                        =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious                  =-huge(0.0d0)
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -468,7 +471,7 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                                      :: radiusVirial
 
-    radiusVirial                         =+self%darkMatterHaloScale_%virialRadius(node                                                           )
+    radiusVirial                         =+self%darkMatterHaloScale_%radiusVirial(node                                                           )
     finiteResolutionRotationNormalization=+self                     %radialMoment(node,moment=2.0d0,radiusMinimum=0.0d0,radiusMaximum=radiusVirial) &
          &                                /self                     %radialMoment(node,moment=3.0d0,radiusMinimum=0.0d0,radiusMaximum=radiusVirial)
     return
@@ -489,22 +492,6 @@ contains
     end if
     return
   end function finiteResolutionEnergy
-
-  double precision function finiteResolutionEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a finiteResolution halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOFiniteResolution), intent(inout)         :: self
-    type (treeNode                            ), intent(inout), target :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       finiteResolutionEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       finiteResolutionEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function finiteResolutionEnergyGrowthRate
 
   double precision function finiteResolutionKSpace(self,node,waveNumber)
     !!{
@@ -578,10 +565,10 @@ contains
           self%lengthResolutionPrevious    =  +self%lengthResolutionPrevious                           &
                &                              *self%cosmologyFunctions_%expansionFactor(basic%time ())
        end if
-       if (self%massResolution > 0.0d0)                                                                                         &
-            & self%lengthResolutionPrevious=max(                                                                                &
-            &                                   self                      %lengthResolutionPrevious                           , &
-            &                                   self%darkMatterProfileDMO_%radiusEnclosingMass     (node,self%massResolution)   &
+       if (self%massResolution > 0.0d0)                                                                                        &
+            & self%lengthResolutionPrevious=max(                                                                               &
+            &                                   self                      %lengthResolutionPrevious                          , &
+            &                                   self%darkMatterProfileDMO_%radiusEnclosingMass     (node,self%massResolution)  &
             &                                  )
     end if
     finiteResolutionLengthResolutionPhysical=self%lengthResolutionPrevious

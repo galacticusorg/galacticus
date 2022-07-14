@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,21 +25,21 @@
   <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML">
    <description>
     A merger tree build masses class which reads masses from an XML file. The XML file should have the following form:
-  \begin{verbatim}
-     <mergerTrees>
-      <treeRootMass>13522377303.5998</treeRootMass>
-      <treeRootMass>19579530191.8709</treeRootMass>
-      <treeRootMass>21061025282.9613</treeRootMass>
+    \begin{verbatim}
+     &lt;mergerTrees>
+      &lt;treeRootMass>13522377303.5998&lt;/treeRootMass>
+      &lt;treeRootMass>19579530191.8709&lt;/treeRootMass>
+      &lt;treeRootMass>21061025282.9613&lt;/treeRootMass>
       .
       .
       .
-      <treeWeight>13522377303.5998</treeWeight>
-      <treeWeight>19579530191.8709</treeWeight>
-      <treeWeight>21061025282.9613</treeWeight>
+      &lt;treeWeight>13522377303.5998&lt;/treeWeight>
+      &lt;treeWeight>19579530191.8709&lt;/treeWeight>
+      &lt;treeWeight>21061025282.9613&lt;/treeWeight>
       .
       .
       .
-     </mergerTrees>
+     &lt;/mergerTrees>
     \end{verbatim}
     where each {\normalfont \ttfamily treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
     generate, and the (optional) {\normalfont \ttfamily treeWeight} elements give the corresponding weight (in units of
@@ -114,10 +114,10 @@ contains
     !!{
     Read merger tree masses from file.
     !!}
-    use :: FoX_DOM         , only : destroy                , getDocumentElement   , node           , parseFile
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Array_Read         , XML_Array_Read_Static, XML_Path_Exists
-    use :: File_Utilities  , only : File_Name_Expand
+    use :: FoX_DOM       , only : destroy         , getDocumentElement   , node           , parseFile
+    use :: Error         , only : Error_Report
+    use :: IO_XML        , only : XML_Array_Read  , XML_Array_Read_Static, XML_Path_Exists
+    use :: File_Utilities, only : File_Name_Expand
     implicit none
     class           (mergerTreeBuildMassesReadXML), intent(inout)                            :: self
     double precision                              , intent(  out), allocatable, dimension(:) :: mass, weight
@@ -126,7 +126,7 @@ contains
 
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
+    if (ioErr /= 0) call Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
     rootNode => getDocumentElement(doc)
     ! Read all tree masses.
     call XML_Array_Read(doc,"treeRootMass",mass)

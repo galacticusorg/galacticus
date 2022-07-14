@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,9 +31,11 @@ module Input_Parameters
   use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
+  use :: Hashes            , only : integerHash
+  use :: Locks             , only : ompLock
   private
-  public :: inputParameters, inputParameter, inputParameterList, globalParameters
-
+  public :: inputParameters, inputParameter, inputParameterList
+  
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -73,10 +75,12 @@ module Input_Parameters
      !!}
      private
      type   (node             ), pointer                   :: content
-     type   (inputParameter   ), pointer    , public       :: parent         , firstChild        , &
-          &                                                   sibling        , referenced
+     type   (inputParameter   ), pointer    , public       :: parent                 , firstChild        , &
+          &                                                   sibling                , referenced
      type   (genericObjectList), allocatable, dimension(:) :: objects
-     logical                                               :: created=.false., removed   =.false.
+     type   (varying_string   )                            :: contentOriginal
+     logical                                               :: created        =.false., removed   =.false.,&
+          &                                                   evaluated      =.false.
    contains
      !![
      <methods>
@@ -103,6 +107,14 @@ module Input_Parameters
      procedure :: get           => inputParameterGet
   end type inputParameter
 
+  !![
+  <deepCopyActions class="inputParameters">
+   <inputParameters>
+    <methodCall method="lockReinitialize"/>
+   </inputParameters>
+  </deepCopyActions>
+  !!]
+    
   type :: inputParameters
      private
      type   (node           ), pointer, public :: document               => null()
@@ -110,15 +122,15 @@ module Input_Parameters
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
      type   (inputParameter ), pointer         :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
-     logical                                   :: global                 =  .false., isNull                   =.false., &
-          &                                       outputParametersCopied =  .false., outputParametersTemporary=.false.
+     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
+          &                                       isNull                 =  .false.
+     type   (integerHash    ), allocatable     :: warnedDefaults
+     type   (ompLock        ), pointer         :: lock                   => null()
    contains
      !![
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
-       <method description="Mark an input parameter set as the global set." method="markGlobal" />
-       <method description="Return true if these parameters are the global set." method="isGlobal" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
@@ -134,14 +146,14 @@ module Input_Parameters
        <method description="Add a parameter." method="addParameter" />
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
+       <method description="Return the path to this parameters object." method="path" />
+       <method description="Reinitialize lock." method="lockReinitialize" />
      </methods>
      !!]
      final     ::                        inputParametersFinalize
      procedure :: buildTree           => inputParametersBuildTree
      procedure :: resolveReferences   => inputParametersResolveReferences
      procedure :: destroy             => inputParametersDestroy
-     procedure :: markGlobal          => inputParametersMarkGlobal
-     procedure :: isGlobal            => inputParametersIsGlobal
      procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
      procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
      procedure :: validateName        => inputParametersValidateName
@@ -159,6 +171,8 @@ module Input_Parameters
      procedure :: serializeToXML      => inputParametersSerializeToXML
      procedure :: addParameter        => inputParametersAddParameter
      procedure :: reset               => inputParametersReset
+     procedure :: path                => inputParametersPath
+     procedure :: lockReinitialize    => inputParametersLockReinitialize
   end type inputParameters
 
   interface inputParameters
@@ -210,11 +224,8 @@ module Input_Parameters
   </enumeration>
   !!]
 
-  ! Pointer to the global input parameters.
-  type   (inputParameters), pointer   :: globalParameters       => null()
-
   ! Maximum length allowed for parameter entries.
-  integer                 , parameter :: parameterLengthMaximum =  1024
+  integer, parameter :: parameterLengthMaximum=1024
 
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
@@ -234,15 +245,18 @@ contains
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
 
-    inputParametersConstructorNull%document   => createDocument    (                                  &
-         &                                                          getImplementation()             , &
-         &                                                          qualifiedName      ="parameters", &
-         &                                                          docType            =null()        &
-         &                                                         )
-    inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
-    inputParametersConstructorNull%parameters => null()
-    inputParametersConstructorNull%global     = .false.
-    inputParametersConstructorNull%isNull     = .true.
+    allocate(inputParametersConstructorNull%warnedDefaults)
+    allocate(inputParametersConstructorNull%lock          )
+    inputParametersConstructorNull%document       => createDocument    (                                  &
+         &                                                              getImplementation()             , &
+         &                                                              qualifiedName      ="parameters", &
+         &                                                              docType            =null()        &
+         &                                                             )
+    inputParametersConstructorNull%rootNode       => getDocumentElement(inputParametersConstructorNull%document)
+    inputParametersConstructorNull%parameters     => null              (                                       )
+    inputParametersConstructorNull%warnedDefaults =  integerHash       (                                       )
+    inputParametersConstructorNull%lock           =  ompLock           (                                       )
+    inputParametersConstructorNull%isNull         = .true.
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
     !$omp end critical (FoX_DOM_Access)
@@ -320,10 +334,10 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
     !!}
-    use :: File_Utilities  , only : File_Exists
-    use :: FoX_dom         , only : node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: File_Utilities, only : File_Exists
+    use :: FoX_dom       , only : node
+    use :: Error         , only : Error_Report
+    use :: IO_XML        , only : XML_Get_First_Element_By_Tag_Name, XML_Parse
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorFileChar
     character(len=*          )              , intent(in   )           :: fileName
@@ -334,15 +348,15 @@ contains
     integer                                                           :: errorStatus
 
     ! Check that the file exists.
-    if (.not.File_Exists(fileName)) call Galacticus_Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
+    if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Parse(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Galacticus_Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
+          call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
        else
-          call Galacticus_Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
+          call Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
        end if
     end if
     !$omp end critical (FoX_DOM_Access)
@@ -369,7 +383,16 @@ contains
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
     inputParametersConstructorCopy%parent     =>                 parameters%parent
-    inputParametersConstructorCopy%global     =                  parameters%global
+    if (allocated(parameters%warnedDefaults)) then
+       if (allocated(inputParametersConstructorCopy%warnedDefaults)) deallocate(inputParametersConstructorCopy%warnedDefaults)
+       allocate(inputParametersConstructorCopy%warnedDefaults)
+       inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
+    end if
+    if (associated(parameters%lock)) then
+       nullify(inputParametersConstructorCopy%lock)
+       allocate(inputParametersConstructorCopy%lock)
+       inputParametersConstructorCopy%lock=ompLock()
+    end if
     return
   end function inputParametersConstructorCopy
 
@@ -377,19 +400,16 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use :: Display           , only : displayMessage                   , displayGreen   , displayReset
+    use :: Display           , only : displayGreen                     , displayMessage , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
     use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)                      , operator(/=)
     use :: String_Handling   , only : String_Strip
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
     use :: Display           , only : displayMessage
-    use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
-    use :: String_Handling   , only : String_Strip
+    use :: IO_HDF5           , only : ioHDF5AccessInitialize
+    use :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
     type     (node           ), pointer     , intent(in   )           :: parametersNode
@@ -405,12 +425,16 @@ contains
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
     !!]
+#include "os.inc"
 
-    inputParametersConstructorNode%global   =  .false.
-    inputParametersConstructorNode%isNull   =  .false.
-    inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
-    inputParametersConstructorNode%rootNode =>                  parametersNode
-    inputParametersConstructorNode%parent   => null            (              )
+    allocate(inputParametersConstructorNode%warnedDefaults)
+    allocate(inputParametersConstructorNode%lock          )
+    inputParametersConstructorNode%isNull         =  .false.
+    inputParametersConstructorNode%document       => getOwnerDocument(parametersNode)
+    inputParametersConstructorNode%rootNode       =>                  parametersNode
+    inputParametersConstructorNode%parent         => null            (              )
+    inputParametersConstructorNode%warnedDefaults =  integerHash     (              )
+    inputParametersConstructorNode%lock           =  ompLock         (              )
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     if (.not.noBuild_) then
@@ -426,14 +450,31 @@ contains
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
+       !$ call hdf5Access%  set()
        inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.false.
+       !$ call hdf5Access%unset()
     else if (.not.noOutput_) then
-       call inputParametersConstructorNode%outputParametersContainer%openFile(char(File_Name_Temporary('glcTmpPar','/dev/shm')))
+       ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
+       call ioHDF5AccessInitialize()
+       !$ call hdf5Access%  set()
+       call inputParametersConstructorNode%outputParametersContainer%openFile(                                      &
+            &                                                                 char(                                 &
+            &                                                                      File_Name_Temporary(             &
+            &                                                                                          'glcTmpPar', &
+#ifdef __APPLE__
+            &                                                                                          '/tmp'       &
+#else
+            &                                                                                          '/dev/shm'   &
+#endif
+            &                                                                                         )             &
+            &                                                                      )                                &
+            &                                                                )
        inputParametersConstructorNode%outputParameters         =inputParametersConstructorNode%outputParametersContainer%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
+       !$ call hdf5Access%unset()
     end if
     ! Get allowed parameter names.
     call knownParameterNames(allowedParameterNamesCombined)
@@ -523,16 +564,17 @@ contains
     !!{
     Build a tree representation of the input parameter file.
     !!}
-    use :: FoX_dom           , only : ELEMENT_NODE           , getNodeName  , getNodeType     , hasAttribute  , &
-         &                            DOMException           , inException  , getAttributeNode, getTextContent
-    use :: ISO_Varying_String, only : operator(==)           , assignment(=)
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: FoX_dom           , only : DOMException , ELEMENT_NODE  , getAttributeNode, getNodeName, &
+          &                           getNodeType  , getTextContent, hasAttribute    , inException
+    use :: ISO_Varying_String, only : assignment(=), operator(==)  , char
+    use :: Error             , only : Error_Report
     implicit none
-    class(inputParameters), intent(inout) :: self
-    type (inputParameter ), pointer       :: currentParameter, referencedParameter
-    type (node           ), pointer       :: identifierNode  , identifierReferenceNode
-    type (varying_string )                :: identifier      , identifierReference
-    type (DOMException   )                :: exception
+    class  (inputParameters), intent(inout) :: self
+    type   (inputParameter ), pointer       :: currentParameter, referencedParameter
+    type   (node           ), pointer       :: identifierNode  , identifierReferenceNode
+    type   (varying_string )                :: identifier      , identifierReference
+    type   (DOMException   )                :: exception
+    logical                                 :: found
 
     ! Begin walking the parameter tree.
     currentParameter => inputParametersWalkTree(self%parameters)
@@ -544,6 +586,7 @@ contains
             &   hasAttribute(currentParameter%content,'idRef')                 &
             & ) then
           ! Search for a parameter with the referenced ID and the same name.
+          found               =  .false.
           referencedParameter => inputParametersWalkTree(self%parameters)
           do while (associated(referencedParameter))
              ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
@@ -557,14 +600,24 @@ contains
                 identifierNode          => getAttributeNode(referencedParameter    %content,   'id'     )
                 identifierReferenceNode => getAttributeNode(currentParameter       %content,   'idRef'  )
                 identifier              =  getTextContent  (identifierNode                 ,ex=exception)
-                if (inException(exception)) call Galacticus_Error_Report('unable to parse identifier'//{introspection:location})
+                if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
                 identifierReference     =  getTextContent  (identifierReferenceNode        ,ex=exception)
-                if (inException(exception)) call Galacticus_Error_Report('unable to parse identifier'//{introspection:location})
-                if (identifier == identifierReference) currentParameter%referenced => referencedParameter
+                if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
+                if (identifier == identifierReference) then
+                   currentParameter%referenced => referencedParameter
+                   found=.true.
+                   exit
+                end if
              end if
              ! Walk to next node.
              referencedParameter => inputParametersWalkTree(referencedParameter)
           end do
+          if (.not.found) then
+             identifierReferenceNode => getAttributeNode(currentParameter       %content,   'idRef'  )
+             identifierReference     =  getTextContent  (identifierReferenceNode        ,ex=exception)
+             if (inException(exception)) call Error_Report('unable to parse identifier'//{introspection:location})
+             call Error_Report('unable to find referenced parameter "'//char(identifierReference)//'"'//{introspection:location})
+          end if
        end if
        ! Walk to next node.
        currentParameter => inputParametersWalkTree(currentParameter)
@@ -629,7 +682,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Remove
     use :: FoX_dom           , only : destroy
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
     type(inputParameters), intent(inout) :: self
@@ -644,6 +697,8 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
+    if (allocated (self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (associated(self%lock          )) deallocate(self%lock          )
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
        if (self%outputParametersTemporary) then
@@ -741,8 +796,8 @@ contains
     !!{
     Return a pointer to the object associated with this parameter.
     !!}
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    use    :: Error  , only : Error_Report
+    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
     class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
@@ -757,7 +812,7 @@ contains
        !$ end if
        inputParameterObjectGet => self%objects(instance)%object
     else
-       call Galacticus_Error_Report('object not allocated for this parameter'//{introspection:location})
+       call Error_Report('object not allocated for this parameter'//{introspection:location})
     end if
     !$omp end critical (inputParameterObjects)
     return
@@ -792,20 +847,22 @@ contains
     return
   end subroutine inputParameterObjectSet
 
-  recursive subroutine inputParameterReset(self,children)
+  recursive subroutine inputParameterReset(self,children,evaluations)
     !!{
     Reset objects associated with this parameter and any sub-parameters.
     !!}
-    use :: FoX_dom, only : destroy
+    use :: FoX_DOM, only : destroy
     implicit none
     class  (inputParameter), intent(inout), target   :: self
-    logical                , intent(in   ), optional :: children
-    type   (inputParameter), pointer                 :: child, childNext
+    logical                , intent(in   ), optional :: children, evaluations
+    type   (inputParameter), pointer                 :: child   , childNext
     integer                                          :: i
     !![
-    <optionalArgument name="children" defaultsTo=".true."/>
+    <optionalArgument name="children"    defaultsTo=".true." />
+    <optionalArgument name="evaluations" defaultsTo=".false."/>
     !!]
 
+    ! Destroy any objects associated with this parameter node.
     if (allocated(self%objects)) then
        do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
           if (associated(self%objects(i)%object)) then
@@ -815,6 +872,13 @@ contains
           end if
        end do
     end if
+    ! For evaluated parameters, restore them to their unevaluated state.
+    if (evaluations_) then
+       if (self%evaluated) then
+          self%evaluated=.false.
+          call self%set(self%contentOriginal)
+       end if
+    end if
     ! Clean up children if requested.
     if (children_) then
        ! Remove if this parameter was created.
@@ -823,7 +887,7 @@ contains
        child => self%firstChild
        do while (associated(child))
           childNext => child%sibling
-          call child%reset()
+          call child%reset(children,evaluations)
           child => childNext
        end do
     end if
@@ -863,15 +927,11 @@ contains
     !!{
     Get the value of a parameter.
     !!}
-    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException            , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: FoX_dom           , only : DOMException                      , getAttributeNode, getNodeName, hasAttribute, &
+          &                           inException                       , node
     use :: ISO_Varying_String, only : assignment(=)
-    use :: IO_XML            , only : getTextContent          => getTextContentTS
-    use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException            , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
+    use :: IO_XML            , only : getTextContent => getTextContentTS
+    use :: Error             , only : Error_Report
     implicit none
     type   (varying_string)                :: inputParameterGet
     class  (inputParameter), intent(inout) :: self
@@ -884,42 +944,48 @@ contains
     if (hasValueAttribute) then
        valueElement      => getAttributeNode(self%content,"value"     )
        inputParameterGet =  getTextContent  (valueElement,ex=exception)
-       if (inException(exception)) call Galacticus_Error_Report(                                 &
-            &                                                   'unable to parse parameter [' // &
-            &                                                    getNodeName   (self%content) // &
-            &                                                   ']'                           // &
-            &                                                    {introspection:location}        &
-            &                                                  )
+       if (inException(exception)) call Error_Report(                                 &
+            &                                        'unable to parse parameter [' // &
+            &                                         getNodeName   (self%content) // &
+            &                                        ']'                           // &
+            &                                         {introspection:location}        &
+            &                                       )
     else
-       call Galacticus_Error_Report('no parameter value present'//{introspection:location})
+       call Error_Report('no parameter value present'//{introspection:location})
     end if
     !$omp end critical (FoX_DOM_Access)
     return
   end function inputParameterGet
 
-  subroutine inputParametersCheckParameters(self,allowedParameterNames)
-    use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
-          &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
-    use :: FoX_dom            , only : destroy                        , getNodeName         , node
-    use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char
+  subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
+    use :: Error              , only : Error_Report
+    use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
+          &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
+    use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
+          &                            getNodeName                , hasAttribute    , inException                    , node
+    use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (node           ), pointer                               :: node_
+    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
+    type     (node           ), pointer                               :: node_                     , ignoreWarningsNode
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                           :: warningsFound         , parameterMatched    , &
-         &                                                               verbose
-    integer                                                           :: allowedParametersCount, errorStatus         , &
-         &                                                               distance              , distanceMinimum     , &
+    logical                                                           :: warningsFound             , parameterMatched    , &
+         &                                                               verbose                   , ignoreWarnings      , &
+         &                                                               isException
+    integer                                                           :: allowedParametersCount    , errorStatus         , &
+         &                                                               distance                  , distanceMinimum     , &
          &                                                               j
     character(len=1024       )                                        :: parameterValue
-    character(len=1024       )                                        :: unknownName           , allowedParameterName, &
+    character(len=1024       )                                        :: unknownName               , allowedParameterName, &
          &                                                               parameterNameGuess
-    type     (varying_string )                                        :: message               , verbosityLevel
+    type     (varying_string )                                        :: message                   , verbosityLevel
+    type     (integerHash    )                                        :: parameterNamesSeen
+    type     (DOMException   )                                        :: exception
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -928,7 +994,8 @@ contains
        verbose=enumerationVerbosityLevelEncode(char(verbosityLevel),includesPrefix=.false.) > verbosityLevelSilent
     end if
     ! Validate parameters.
-    warningsFound=.false.
+    warningsFound     =.false.
+    parameterNamesSeen=integerHash()
     if (associated(self%parameters)) then
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
@@ -936,6 +1003,15 @@ contains
              node_ => currentParameter%content
              ! Attempt to read the parameter value.
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
+             ! Determine if warnings should be ignored for this parameter.
+             ignoreWarnings=.false.
+             if (hasAttribute(node_,'ignoreWarnings')) then
+                ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
+                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
+                isException=inException(exception)
+                if (isException .or. errorStatus /= 0) &
+                     & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
+             end if
              ! Check for a match with allowed parameter names.
              allowedParametersCount=0
              if (present(allowedParameterNames)) allowedParametersCount=size(allowedParameterNames)
@@ -964,12 +1040,14 @@ contains
                   &     .not.parameterMatched                           &
                   &   )                                                 &
                   &  .and.                                              &
+                  &   .not.ignoreWarnings                               &
+                  &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
                 if (verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                 warningsFound=.true.
              end if
-             if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
+             if (errorStatus /= inputParameterErrorStatusSuccess .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 select case (errorStatus)
                 case (inputParameterErrorStatusEmptyValue    )
@@ -980,7 +1058,7 @@ contains
                 !$omp end critical (FoX_DOM_Access)
                 call displayMessage(message)
              end if
-             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
+             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 unknownName    =getNodeName(node_)
                 !$omp end critical (FoX_DOM_Access)
@@ -1000,6 +1078,24 @@ contains
                    call displayMessage(message)
                 end if
              end if
+             ! Check for duplicated parameters.
+             !$omp critical (FoX_DOM_Access)
+             if (parameterNamesSeen%exists(getNodeName(node_))) then
+                parameterMatched=.false.
+                if (present(allowedMultiParameterNames)) &
+                     & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
+                if (.not.parameterMatched .and. .not.ignoreWarnings) then
+                   if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
+                   warningsFound=.true.
+                   if (verbose) then
+                      message='multiple copies of parameter ['//getNodeName(node_)//'] present - only the first will be utilized'
+                      call displayMessage(message)
+                   end if
+                end if
+             else
+                call parameterNamesSeen%set(getNodeName(node_),1)
+             end if
+             !$omp end critical (FoX_DOM_Access)
           end if
           currentParameter => currentParameter%sibling
        end do
@@ -1008,38 +1104,12 @@ contains
     return
   end subroutine inputParametersCheckParameters
 
-  subroutine inputParametersMarkGlobal(self)
-    !!{
-    Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(inputParameters), intent(inout), target :: self
-
-    ! Mark as global.
-    self%global=.true.
-    ! Set global parameters pointer.
-    globalParameters => self
-    return
-  end subroutine inputParametersMarkGlobal
-
-  logical function inputParametersIsGlobal(self)
-    !!{
-    Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
-    !!}
-    implicit none
-    class(inputParameters), intent(in   ), target :: self
-
-    inputParametersIsGlobal=self%global
-    return
-  end function inputParametersIsGlobal
-
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !!{
     Open an output group for parameters in the given HDF5 object.
     !!}
     use :: File_Utilities    , only : File_Remove
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
@@ -1069,7 +1139,7 @@ contains
     !!{
     Copy an output group for parameters in the given HDF5 object.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(inputParameters), intent(inout) :: self
     class(inputParameters), intent(in   ) :: inputParameters_
@@ -1085,13 +1155,13 @@ contains
     !!{
     Validate a parameter name.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class    (inputParameters), intent(in   ) :: self
     character(len=*          ), intent(in   ) :: parameterName
     !$GLC attributes unused :: self
 
-    if (trim(parameterName) == "value") call Galacticus_Error_Report('"value" is not a valid parameter name'//{introspection:location})
+    if (trim(parameterName) == "value") call Error_Report('"value" is not a valid parameter name'//{introspection:location})
     return
   end subroutine inputParametersValidateName
 
@@ -1099,10 +1169,10 @@ contains
     !!{
     Return the node containing the parameter.
     !!}
-    use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
-          &                         node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Path_Exists
+    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
+          &                node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Path_Exists
     implicit none
     type     (inputParameter ), pointer                 :: inputParametersNode
     class    (inputParameters), intent(in   )           :: self
@@ -1148,7 +1218,7 @@ contains
        inputParametersNode => inputParametersNode%sibling
     end do
     !$omp end critical (FoX_DOM_Access)
-    if (.not.associated(inputParametersNode)) call Galacticus_Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
+    if (.not.associated(inputParametersNode)) call Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
     if (associated(inputParametersNode%referenced)) inputParametersNode => inputParametersNode%referenced
     return
   end function inputParametersNode
@@ -1207,10 +1277,10 @@ contains
     !!{
     Return true if the specified parameter is present.
     !!}
-    use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
-          &                         node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Path_Exists
+    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
+          &                node
+    use :: Error  , only : Error_Report
+    use :: IO_XML , only : XML_Path_Exists
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1256,7 +1326,7 @@ contains
        inputParametersCopiesCount=0
     else
        inputParametersCopiesCount=0
-       call Galacticus_Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
+       call Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
     end if
     return
   end function inputParametersCopiesCount
@@ -1265,7 +1335,7 @@ contains
     !!{
     Return a count of the number of values in a parameter.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char
     use :: String_Handling   , only : String_Count_Words
     implicit none
@@ -1285,7 +1355,7 @@ contains
           inputParametersCount=0
        else
           inputParametersCount=0
-          call Galacticus_Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
+          call Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
        end if
     end if
     return
@@ -1296,9 +1366,10 @@ contains
     Return sub-parameters of the specified parameter.
     !!}
     use :: FoX_dom           , only : node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access
-    use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)
+    use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : ioHDF5AccessInitialize
+    use :: ISO_Varying_String, only : assignment(=)         , char, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
@@ -1309,26 +1380,26 @@ contains
     type     (inputParameter ), pointer                 :: parameterNode
     integer                                             :: copyCount
     type     (varying_string )                          :: groupName
-
     !![
     <optionalArgument name="requirePresent" defaultsTo=".true." />
     !!]
 
+    ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
+    call ioHDF5AccessInitialize()
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
-          call Galacticus_Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
+          call Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
        else
           inputParametersSubParameters=inputParameters()
        end if
        copyCount                               =  1
     else
-       copyCount                               =  self%copiesCount(parameterName                                                                                           ,requireValue=requireValue                          )
+       copyCount                               =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
        parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
        inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode
     end if
     inputParametersSubParameters%parent => self
-    inputParametersSubParameters%global =  self%global
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) then
        groupName=parameterName
@@ -1339,22 +1410,45 @@ contains
     return
   end function inputParametersSubParameters
 
+  function inputParametersPath(self)
+    !!{
+    Return the path to the given parameters.
+    !!}
+    use :: FoX_dom           , only : getNodeName
+    use :: ISO_Varying_String, only : assignment(=), operator(//)
+    implicit none
+    type (varying_string )                        :: inputParametersPath
+    class(inputParameters), intent(inout), target :: self
+    type (inputParameter ), pointer               :: parameterNode
+    
+    parameterNode       => self%parameters
+    inputParametersPath =  ""
+    do while (associated(parameterNode))
+       if (associated(parameterNode%content)) inputParametersPath=inputParametersPath//getNodeName(parameterNode%content)//"/"
+       parameterNode => parameterNode%parent
+    end do
+    return
+  end function inputParametersPath
+
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !!{
     Return the value of the parameter specified by name.
     !!}
-    use :: FoX_dom         , only : hasAttribute           , node
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
+    use :: FoX_dom           , only : hasAttribute, getNodeName
+    use :: Error             , only : Error_Report, Warn
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : char
     implicit none
-    class           (inputParameters), intent(inout)           :: self
+    class           (inputParameters), intent(inout), target   :: self
     character       (len=*          ), intent(in   )           :: parameterName
     {Type¦intrinsic}                 , intent(  out)           :: parameterValue
     {Type¦intrinsic}                 , intent(in   ), optional :: defaultValue
     integer                          , intent(  out), optional :: errorStatus
     integer                          , intent(in   ), optional :: copyInstance
     logical                          , intent(in   ), optional :: writeOutput
+    type            (inputParameters), pointer                 :: parametersRoot
     type            (inputParameter ), pointer                 :: parameterNode
+    type            (varying_string )                          :: parameterPath
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
     !!]
@@ -1363,6 +1457,17 @@ contains
        parameterNode => self%node(parameterName,copyInstance=copyInstance)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput)
     else if (present(defaultValue)) then
+       parametersRoot => self
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       parameterPath=self%path()
+       call parametersRoot%lock%set()
+       if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
+          call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
+          call parametersRoot%warnedDefaults%set(parameterPath,1)
+       end if
+       call parametersRoot%lock%unset()
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (self%outputParameters%isOpen().and.writeOutput_) then
@@ -1373,7 +1478,7 @@ contains
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
     else
-       call Galacticus_Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
+       call Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
     end if
     return
   end subroutine inputParametersValueName{Type¦label}
@@ -1382,23 +1487,14 @@ contains
     !!{
     Return the value of the specified parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
+    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
           &                           inException                      , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)                       , operator(==)                              , &
           &                           trim
     use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
-          &                           inException                      , node
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
-          &                           trim
-    use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
+    use :: HDF5_Access       , only : hdf5Access
     implicit none
     class           (inputParameters           ), intent(inout), target      :: self
     type            (inputParameter            ), intent(inout), target      :: parameterNode
@@ -1442,7 +1538,7 @@ contains
        if (present(errorStatus)) then
           errorStatus=inputParameterErrorStatusAmbiguousValue
        else
-          call Galacticus_Error_Report('ambiguous value attribute and element'//{introspection:location})
+          call Error_Report('ambiguous value attribute and element'//{introspection:location})
        end if
     else if (hasValueAttribute .or. hasValueElement) then
        !$omp critical (FoX_DOM_Access)
@@ -1456,12 +1552,12 @@ contains
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
           else
-             call Galacticus_Error_Report(                                       &
-                  &                       'empty value in parameter ['        // &
-                  &                        getNodeName(parameterNode%content) // &
-                  &                       ']'                                 // &
-                  &                       {introspection:location}               &
-                  &                      )
+             call Error_Report(                                       &
+                  &            'empty value in parameter ['        // &
+                  &             getNodeName(parameterNode%content) // &
+                  &            ']'                                 // &
+                  &            {introspection:location}               &
+                  &           )
           end if
        else
           ! Evaluate if an expression.
@@ -1470,7 +1566,11 @@ contains
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=") then
              {Type¦match¦^Double$¦if (.true.) then¦if (.false.) then}
-                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.
+                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.             
+                !! Mark this parameter as being evaluated and store its original content. This allows the parameter to be reset to
+                !! its original (unevaluated) state if necessary.
+                parameterNode%evaluated      =.true.
+                parameterNode%contentOriginal=expression
                 !! Remove the initial "=".
                 expression=expression(2:len_trim(expression))
                 !! Replace other parameter values inside the parameter.
@@ -1514,7 +1614,7 @@ contains
                 valueElement => getAttributeNode                 (parameterNode%content,"value"                          )
                 !$omp end critical (FoX_DOM_Access)
 #else
-                call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+                call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
 #endif
              end if
           end if
@@ -1534,13 +1634,13 @@ contains
                 attributeName=getNodeName   (parameterNode%content)
                 content      =getTextContent(valueElement         )
                 !$omp end critical (FoX_DOM_Access) 
-                call Galacticus_Error_Report(                                &
-                     &                       'unable to parse parameter ['// &
-                     &                        attributeName               // &
-                     &                       ']='                         // &
-                     &                        content                     // &
-                     &                        {introspection:location}       &
-                     &                      )
+                call Error_Report(                                &
+                     &            'unable to parse parameter ['// &
+                     &             attributeName               // &
+                     &            ']='                         // &
+                     &             content                     // &
+                     &             {introspection:location}       &
+                     &           )
              end if
           else
              ! Convert type as necessary.
@@ -1697,7 +1797,7 @@ contains
     !!}
     use :: FoX_DOM           , only : serialize
     use :: ISO_Varying_String, only : char
-   implicit none
+    implicit none
     class(inputParameters), intent(in   ) :: self
     type (varying_string ), intent(in   ) :: parameterFile
 
@@ -1769,6 +1869,7 @@ contains
        currentParameter%sibling    => null()
        currentParameter%referenced => null()
        currentParameter%created    =  .true.
+       currentParameter%evaluated  =  .false.
     end if
     currentParameter%removed=.false.
     return
@@ -1781,8 +1882,23 @@ contains
     implicit none
     class(inputParameters), intent(inout) :: self
 
-    call self%parameters%reset()
+    call self%parameters%reset(evaluations=.true.)
     return
   end subroutine inputParametersReset
+
+  subroutine inputParametersLockReinitialize(self)
+    !!{
+    Reinitialize the OpenMP lock.
+    !!}
+    implicit none
+    class(inputParameters), intent(inout) :: self
+
+   if (associated(self%lock)) then
+       nullify(self%lock)
+       allocate(self%lock)
+       self%lock=ompLock()
+    end if
+    return
+  end subroutine inputParametersLockReinitialize
 
 end module Input_Parameters

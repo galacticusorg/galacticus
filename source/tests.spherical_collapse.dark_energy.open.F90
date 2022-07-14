@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -106,7 +106,8 @@ program Tests_Spherical_Collapse_Dark_Energy_Open
      &amp;                                                    index_                             =+1.0d0                                 , &amp;
      &amp;                                                    running                            =+0.0d0                                 , &amp;
      &amp;                                                    runningRunning                     =+0.0d0                                 , &amp;
-     &amp;                                                    wavenumberReference                =+1.0d0                                   &amp;
+     &amp;                                                    wavenumberReference                =+1.0d0                                 , &amp;
+     &amp;                                                    runningSmallScalesOnly             =.false.                                  &amp;
      &amp;                                                   )
    </constructor>
   </referenceConstruct>

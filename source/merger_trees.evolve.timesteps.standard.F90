@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -129,7 +129,7 @@ contains
     Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple},
     {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
@@ -150,6 +150,9 @@ contains
     !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
     ! Find all timesteps.
+    lockNodeSimple               => null()
+    lockNodeSatellite            => null()
+    lockNodeSatelliteDestruction => null()
     timeEvolveToSimple              =self%simple              %timeEvolveTo(timeEnd,node,taskSimple              ,taskSelfSimple              ,report,lockNode,lockType)
     if (present(lockNode)) lockNodeSimple               => lockNode
     if (present(lockType)) lockTypeSimple               =  lockType
@@ -195,7 +198,7 @@ contains
        if (present(lockType)) lockType =  lockTypeSimple
     case default
        standardTimeEvolveTo            =  huge(0.0d0)
-       call Galacticus_Error_Report('unknown smallest timestep'//{introspection:location})
+       call Error_Report('unknown smallest timestep'//{introspection:location})
     end select
     return
   end function standardTimeEvolveTo

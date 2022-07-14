@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,6 +28,7 @@
   use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   use :: Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
   use :: Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
+  use :: Galactic_Structure        , only : galacticStructureClass
 
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
@@ -120,6 +121,7 @@
      class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_         => null()
      class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_           => null()
      class           (mergerTreeInitializorClass   ), pointer :: mergerTreeInitializor_           => null()
+     class           (galacticStructureClass       ), pointer :: galacticStructure_               => null()
      logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
           &                                                      backtrackToSatellites
      double precision                                         :: timestepHostAbsolute                      , timestepHostRelative , &
@@ -163,6 +165,7 @@ contains
     class           (galacticStructureSolverClass ), pointer       :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
+    class           (galacticStructureClass       ), pointer       :: galacticStructure_
     logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
          &                                                            backtrackToSatellites
     double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
@@ -215,8 +218,9 @@ contains
     <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
     <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
     <objectBuilder class="mergerTreeInitializor"    name="mergerTreeInitializor_"    source="parameters"/>
+    <objectBuilder class="galacticStructure"        name="galacticStructure_"        source="parameters"/>
     !!]
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_)
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -224,11 +228,12 @@ contains
     <objectDestructor name="mergerTreeNodeEvolver_"   />
     <objectDestructor name="galacticStructureSolver_" />
     <objectDestructor name="mergerTreeInitializor_"   />
+    <objectDestructor name="galacticStructure_"       />
     !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     !!}
@@ -239,12 +244,13 @@ contains
     class           (galacticStructureSolverClass ), intent(in   ), target :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), intent(in   ), target :: mergerTreeNodeEvolver_
     class           (mergerTreeInitializorClass   ), intent(in   ), target :: mergerTreeInitializor_
+    class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
          &                                                                    backtrackToSatellites
     double precision                               , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                    fractionTimestepSatelliteMinimum
     !![
-    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_"/>
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *galacticStructure_"/>
     !!]
 
     self%deadlockHeadNode => null()
@@ -264,6 +270,7 @@ contains
     <objectDestructor name="self%galacticStructureSolver_" />
     <objectDestructor name="self%mergerTreeNodeEvolver_"   />
     <objectDestructor name="self%mergerTreeInitializor_"   />
+    <objectDestructor name="self%galacticStructure_"       />
     !!]
     return
   end subroutine standardDestructor
@@ -274,7 +281,7 @@ contains
     !!}
     use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity           , &
          &                                                displayGreen                , displayReset
-    use    :: Galacticus_Error                   , only : Galacticus_Error_Report     , errorStatusSuccess
+    use    :: Error                              , only : Error_Report                , errorStatusSuccess
     use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic       , nodeEvent                  , &
           &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
     use    :: Merger_Tree_Timesteps              , only : timestepTask
@@ -327,13 +334,13 @@ contains
     currentTree               => tree
     do while (associated(currentTree))
        ! Skip empty trees.
-       if (associated(currentTree%baseNode)) then
+       if (associated(currentTree%nodeBase)) then
           ! Initialize the tree if necessary.
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
           call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
           ! Check that the output time is not after the end time of this tree.
-          basicBase => currentTree%baseNode%basic()
+          basicBase => currentTree%nodeBase%basic()
           if (timeEnd > basicBase%time()) then
              ! Final time is exceeded. Check if by a significant factor.
              if (timeEnd > basicBase%time()*(1.0d0+timeTolerance)) then
@@ -345,12 +352,12 @@ contains
                    vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
                    vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
                    vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
-                   call Galacticus_Error_Report(vMessage//{introspection:location})
+                   call Error_Report(vMessage//{introspection:location})
                 end if
              else
                 ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
                 ! associated with this node at the current time, simply reset to actual time requested.
-                event => currentTree%baseNode%event
+                event => currentTree%nodeBase%event
                 do while (associated(event))
                    if (event%time == basicBase%time()) then
                       vMessage=          'requested time exceeds the final time in the tree by a small factor'  //char(10)
@@ -367,7 +374,7 @@ contains
                       vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
                       vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
                       vMessage=vMessage//                                          '       precisely at the output times you request'
-                      call Galacticus_Error_Report(vMessage//{introspection:location})
+                      call Error_Report(vMessage//{introspection:location})
                    end if
                    event => event%next
                 end do
@@ -432,9 +439,9 @@ contains
           currentTree => tree
           treesLoop: do while (associated(currentTree))
              ! Skip empty trees.
-             if (associated(currentTree%baseNode)) then
+             if (associated(currentTree%nodeBase)) then
                 ! Find the final time in this tree.
-                node            => currentTree%baseNode
+                node            => currentTree%nodeBase
                 basic           => node       %basic   ()
                 finalTimeInTree =  basic      %time    ()
                 ! Report on current tree if deadlocked.
@@ -444,7 +451,7 @@ contains
                    call displayIndent(vMessage)
                 end if
                 ! Point to the base of the tree.
-                node => currentTree%baseNode
+                node => currentTree%nodeBase
                 ! Get the basic component of the node.
                 basic => node%basic()
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
@@ -727,7 +734,7 @@ contains
                 call displayUnindent("report done")
                 call self%deadlockOutputTree(timeEnd)
                 if (.not.deadlockReporting) then
-                   call Galacticus_Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
+                   call Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
                 else
                    return
                 end if
@@ -759,7 +766,7 @@ contains
     !!}
     use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
-    use :: Galacticus_Error      , only : Galacticus_Error_Report
+    use :: Error                 , only : Error_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite, nodeEvent      , nodeEventBranchJumpInterTree, &
           &                               nodeEventSubhaloPromotionInterTree, treeEvent             , treeNode
     use :: Merger_Tree_Timesteps , only : timestepTask
@@ -803,7 +810,7 @@ contains
     treeEvent_ => node%hostTree%event
     do while (associated(treeEvent_))
        if (max(treeEvent_%time,timeNode) <= evolveToTime) then
-          if (present(nodeLock)) nodeLock => node%hostTree%baseNode
+          if (present(nodeLock)) nodeLock => node%hostTree%nodeBase
           if (present(lockType)) then
              lockType =  "tree event ("
              lockType=lockType//treeEvent_%ID//")"
@@ -813,7 +820,7 @@ contains
        if (report) then
           message="tree event ("
           message=message//treeEvent_%ID//"): "
-          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%baseNode%index())
+          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%nodeBase%index())
        end if
        treeEvent_ => treeEvent_%next
     end do
@@ -995,7 +1002,7 @@ contains
           ! on the time limits.
           message=message//' Gyr)'
           if (.not.report) time=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true.)
-          call Galacticus_Error_Report(message//{introspection:location})
+          call Error_Report(message//{introspection:location})
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'
@@ -1060,7 +1067,7 @@ contains
     ! If no deadlock list exists, simply return.
     if (.not.associated(self%deadlockHeadNode)) return
     ! Begin tree.
-    deadlockFileName=var_str('galacticusDeadlockTree_')//self%deadlockHeadNode%node%hostTree%baseNode%uniqueID()//'.gv'
+    deadlockFileName=var_str('galacticusDeadlockTree_')//self%deadlockHeadNode%node%hostTree%nodeBase%uniqueID()//'.gv'
     open(newUnit=treeUnit,file=char(deadlockFileName),status='unknown',form='formatted')
     write (treeUnit,*) 'digraph Tree {'
     ! Find any nodes that cause a lock but which are not in our list.

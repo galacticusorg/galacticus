@@ -8,7 +8,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::LinearAlgebra;
 use PDL::MatrixOps;
-use UNIVERSAL qw(isa);
+use Scalar::Util 'reftype';
 
 # Generate sets of cosmological parameters drawn at random from the WMAP-9 constraints using the full covariance matrix.
 # Andrew Benson (15-September-2010)
@@ -30,7 +30,7 @@ foreach my $parameterA ( @{$data->{'parameter'}} ) {
     my $indexA = $parameterMap{$parameterA->{'label'}};
     $mean(($indexA)) .= $parameterA->{'mean'};
     my @parametersB;
-    if (isa($parameterA->{'parameter'},'ARRAY')) {
+    if (reftype($parameterA->{'parameter'}) eq 'ARRAY') {
 	@parametersB = @{$parameterA->{'parameter'}};
     } else {
 	@parametersB = ( $parameterA->{'parameter'} );

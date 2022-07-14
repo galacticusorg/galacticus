@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use threads;
 use Date::Format;
 use XML::Simple;
 use MIME::Lite;
@@ -18,16 +19,28 @@ use Galacticus::Options;
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
 
-# Get options.
-my %options;
-&Galacticus::Options::Parse_Options(\@ARGV,\%options);
-
 # Read in any configuration options.
-my $config;
-if ( -e "galacticusConfig.xml" ) {
-    my $xml = new XML::Simple;
-    $config = $xml->XMLin("galacticusConfig.xml");
-}
+my $config = &Galacticus::Options::LoadConfig();
+
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
+
+# Set default options.
+my %options =
+    (
+     'from-scratch'        => "yes",
+     'skip-slow'           => "no" ,
+     'timing'              => "no" ,
+     'build-documentation' => "yes",
+     'pbsJobMaximum'       => (defined($queueConfig) && exists($queueConfig->{'jobMaximum'})) ? $queueConfig->{'jobMaximum'} : 100,
+     'processesPerNode'    => (defined($queueConfig) && exists($queueConfig->{'ppn'       })) ? $queueConfig->{'ppn'       } :   1,
+     'submitSleepDuration' =>                                                                                                    1,
+     'waitSleepDuration'   =>                                                                                                   10
+    );
+
+# Get any command line options.
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Identify e-mail options for this host.
 my $emailConfig;
@@ -63,12 +76,16 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
     }
 }
 
+# Read any existing timing data.
+my $timing;
+if ( -e "testSuite/timing.xml" ) {
+    my $xml = new XML::Simple;
+    $timing = $xml->XMLin("testSuite/timing.xml");
+}
+
 # Open a log file.
 my $logFile = "testSuite/allTests.log";
 open(lHndl,">".$logFile);
-
-# Clean up previous build.
-system("rm -rf work/build/*");
 
 # Create a directory for test suite outputs.
 if ( exists($options{'outputPath'}) ) {
@@ -88,16 +105,8 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # Stack to be used for PBS jobs.
 my @jobStack;
 
-# Set options for PBS launch.
-my %pbsOptions =
-    (
-     pbsJobMaximum       => 100,
-     submitSleepDuration =>   1,
-     waitSleepDuration   =>  10
-    );
-
 # Determine if slow tests are to be skipped.
-my $skipSlow = exists($options{'skip-slow'}) && $options{'skip-slow'} eq "yes";
+my $skipSlow = $options{'skip-slow'} eq "yes";
 
 # Define a list of executables to run. Each hash must give the name of the executable, should specify whether or not the
 # executable should be run inside of Valgrind (this is useful for detecting errors which lead to misuse of memory but which don't
@@ -150,6 +159,11 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.meshes.exe",                                                   # Tests of mesh functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.convex_hulls.exe",                                             # Tests of convex hull functions.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -274,6 +288,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.binary_search_trees.exe",                                      # Tests of binary search tree functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.string_utilities.exe",                                         # Tests of string handling utilities.
 	valgrind => 0,
 	mpi      => 0
@@ -323,6 +342,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe",      # .
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe", # .
 	valgrind => 0,
 	mpi      => 0
@@ -345,6 +369,11 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.spherical_collapse.nonlinear.exe",                             # .
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.warm_dark_matter.exe",                                         # Tests of critical overdensity for collapse in warm dark matter model.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -375,6 +404,16 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.halo_mass_function.Tinker.exe",                                # Tests of dark matter halo mass functions.
+ 	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.halo_mass_function.Reed2007.exe",                              # Tests of dark matter halo mass functions.
+ 	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.halo_mass_function.environment_averaged.exe",                  # Tests of dark matter halo mass functions.
  	valgrind => 0,
 	mpi      => 0
     },
@@ -454,6 +493,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.power_spectrum.primordial.exe",                                # Primordial power spectrum.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.transfer_functions.exe",                                       # Transfer functions.
 	valgrind => 0,
 	mpi      => 0
@@ -515,10 +559,25 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.dark_matter_profiles.tidal_tracks.exe",                        # Tests of dark matter profile tidal tracks.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.dark_matter_profiles.generic.exe",                             # Tests of generic, numerical implementations of dark matter profile functions.
 	valgrind => 0,
 	mpi      => 0,
 	isSlow   => 1
+    },
+    {
+	name     => "tests.dark_matter_profiles.finite_resolution.exe",                   # Tests of finite resolution dark matter profiles.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.spectra.postprocess.Inoue2014.exe",                            # Tests of Inoue (2014) IGM attenutation model.
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
@@ -575,7 +634,7 @@ my @executablesToRun = (
     {
 	name     => "tests.excursion_sets.exe",                                           # Tests of excursion set solvers.
 	valgrind =>  0,
-	ppn      => 16,
+	ppn      => $options{'processesPerNode'},
 	mpi      =>  0,
 	isSlow   =>  1
     },
@@ -593,34 +652,80 @@ my @executablesToRun = (
     );
 
 # Build all executables.
+@jobStack = ();
 my @executablesNonMPI  = map {($_->{'mpi'} == 0) && (! $skipSlow || ! exists($_->{'isSlow'}) || $_->{'isSlow'} == 0) ? $_->{'name'} : ()} @executablesToRun;
 my @executablesMPI     = map {($_->{'mpi'} >  0) && (! $skipSlow || ! exists($_->{'isSlow'}) || $_->{'isSlow'} == 0) ? $_->{'name'} : ()} @executablesToRun;
-my $compileCommand     = "rm -rf ./work/build ./work/buildMPI\n";
-$compileCommand       .= "make -j16 "                            .join(" ",@executablesNonMPI)."\n"
-    if ( scalar(@executablesNonMPI) > 0 );
-$compileCommand       .= "make -j16 GALACTICUS_BUILD_OPTION=MPI ".join(" ",@executablesMPI   )."\n"
-    if ( scalar(@executablesMPI   ) > 0 );
-my %testBuildJob =
-    (
-     launchFile   => "testSuite/compileTests.pbs",
-     label        => "testSuite-compileTests"    ,
-     logFile      => "testSuite/compileTests.log",
-     command      =>  $compileCommand            ,
-     ppn          => 16                          ,
-     tracejob     => "yes"                       ,
-     onCompletion => 
-     {
-	 function  => \&testCompileFailure,
-	 arguments => [ "testSuite/compileTests.log", "Test code compilation" ]
-     }
-    );
-push(@jobStack,\%testBuildJob);
-&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
-unlink("testSuite/compileTests.pbs");
+{
+    my $compileCommand;
+    $compileCommand .= "rm -rf ./work/build\n"
+	if ( $options{'from-scratch'} eq "yes" );
+    $compileCommand .= "make -j".$options{'processesPerNode'}." GALACTICUS_BUILD_DOCS=yes "             .join(" ",@executablesNonMPI)." Galacticus.exe\n";
+    my %testBuildJob =
+	(
+	 launchFile   => "testSuite/compileCodeNonMPI.pbs",
+	 label        => "testSuite-compileCode-nonMPI"   ,
+	 logFile      => "testSuite/compileCodeNonMPI.log",
+	 command      =>  $compileCommand                 ,
+	 ppn          =>  $options{'processesPerNode'}    ,
+	 tracejob     => "yes"                            ,
+	 onCompletion => 
+	 {
+	     function  => \&testCompileFailure,
+	     arguments => [ "testSuite/compileCodeNonMPI.log", "Test code (non-MPI) compilation" ]
+	 }
+	);
+    push(@jobStack,\%testBuildJob);
+}
+{
+    my $compileCommand;
+    $compileCommand .= "rm -rf ./work/buildMPI\n"
+	if ( $options{'from-scratch'} eq "yes" );
+    $compileCommand .= "make -j".$options{'processesPerNode'}." GALACTICUS_BUILD_OPTION=MPI "           .join(" ",@executablesMPI   ).               "\n"
+	if ( scalar(@executablesMPI) > 0 );
+    $compileCommand .= "make -j".$options{'processesPerNode'}." GALACTICUS_BUILD_OPTION=MPI SUFFIX=_MPI".     " "                    ." Galacticus.exe\n";
+    my %testBuildJob =
+	(
+	 launchFile   => "testSuite/compileCodeMPI.pbs"   ,
+	 label        => "testSuite-compileCode-MPI"      ,
+	 logFile      => "testSuite/compileCodeMPI.log"   ,
+	 command      =>  $compileCommand                 ,
+	 ppn          =>  $options{'processesPerNode'}    ,
+	 tracejob     => "yes"                            ,
+	 onCompletion => 
+	 {
+	     function  => \&testCompileFailure,
+	     arguments => [ "testSuite/compileCodeMPI.log", "Test code (MPI) compilation"       ]
+	 }
+	);
+    push(@jobStack,\%testBuildJob);
+}
+&Galacticus::Launch::PBS::SubmitJobs(\%options,@jobStack);
+unlink("testSuite/compileCodeNonMPI.pbs","testSuite/compileCodeMPI.pbs");
 
-# Launch all executables.
+# Create a job queue.
 my @launchFiles;
 @jobStack = ();
+
+# Queue documentation build.
+if ( $options{'build-documentation'} eq "yes" ) {
+    my %job =
+	(
+	 launchFile   => "testSuite/docBuild.pbs",
+	 label        => "testSuite-docBuild"    ,
+	 logFile      => "testSuite/docBuild.log",
+	 ppn          => $options{'processesPerNode'},
+	 command      => "./scripts/doc/Build_Documentation.sh -p ".$options{'processesPerNode'}." -f no",
+	 tracejob     => "yes"                   ,
+	 onCompletion => 
+	 {
+	     function  => \&testDocBuild,
+	     arguments => [ "testSuite/docBuild.log" ]
+	 }
+	);
+    push(@jobStack,\%job);
+}
+
+# Queue all executables.
 foreach my $executable ( @executablesToRun ) {
     next
 	if ( $skipSlow && exists($executable->{'isSlow'}) && $executable->{'isSlow'} == 1 );
@@ -659,59 +764,53 @@ foreach my $executable ( @executablesToRun ) {
 	push(@jobStack,\%job);
     }
 }
-&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
-unlink(@launchFiles);
 
 # Perform tests utilizing Galacticus itself, both without and with MPI.
 our $mpi;
-my  @launchPBS;
 my  @launchLocal;
 foreach $mpi ( "noMPI", "MPI" ) {
-    # Build Galacticus itself.
-    @jobStack    = ();
-    @launchPBS   = ();
-    @launchLocal = ();
-    my %galacticusBuildJob =
-	(
-	 launchFile   => "testSuite/compileGalacticus".$mpi.".pbs",
-	 label        => "testSuite-compileGalacticus".$mpi       ,
-	 logFile      => "testSuite/compileGalacticus".$mpi.".log",
-	 command      => "rm *.exe; make ".($mpi eq "MPI" ? "GALACTICUS_BUILD_OPTION=MPI" : "")." -j16 all; cp Galacticus.exe Galacticus_".$mpi.".exe",
-	 ppn          => 16                                       ,
-	 tracejob     => "yes"                                    ,
-	 onCompletion => 
-	 {
-	     function  => \&testCompileFailure,
-	     arguments => [ "testSuite/compileGalacticus".$mpi.".log", "Galacticus compilation (".$mpi.")" ]
-	 }
-	);
-    push(@jobStack,\%galacticusBuildJob);
-    &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
-    unlink("testSuite/compileGalacticus".$mpi.".pbs");
-    if ( -e "./Galacticus.exe" ) {
+    my $suffix = $mpi eq "MPI" ? "_MPI" : "";
+    if ( -e "./Galacticus.exe".$suffix ) {
 	# Find all test scripts to run.
 	my @testDirs = ( "testSuite/" );
 	find(\&runTestScript,@testDirs);
-	# Run scripts that require us to launch them under PBS.
-	&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@launchPBS);
-	# Run scripts that can launch themselves using PBS.
-	print           ":-> Running test scripts:\n";
-	print lHndl "\n\n:-> Running test scripts:\n";
-	print       join("\n",map {"\t".$_} @launchLocal)."\n";
-	print lHndl join("\n",map {"\t".$_} @launchLocal)."\n";
-	open(my $script,">testSuite/outputs/launchLocal.sh");
-	print $script "cd testSuite\n";
-	foreach my $localScript ( @launchLocal ) {
-	    print $script $localScript." &\n";
-	}
-	print $script "wait\n";
-	print $script "exit\n";
-	close($script);
-	&System::Redirect::tofile("chmod u=wrx testSuite/outputs/launchLocal.sh; testSuite/outputs/launchLocal.sh","testSuite/allTests.tmp");
-	print lHndl slurp("testSuite/allTests.tmp");
-	unlink("testSuite/allTests.tmp");
     }
 }
+
+# Run scripts that can launch themselves using PBS.
+my $thread = threads->create(\&launchLocalTests, \@launchLocal, $options{'pbsJobMaximum'}, $options{'submitSleepDuration'}, $options{'waitSleepDuration'});
+
+# Launch all PBS job tests.
+&Galacticus::Launch::PBS::SubmitJobs(\%options,@jobStack);
+unlink(@launchFiles);
+
+# Wait for local jobs to complete.
+$thread->join();
+# Scan for any job meta-data from local jobs.
+open(my $localJobLog,"testSuite/allTests.tmp");
+while ( my $localLine = <$localJobLog> ) {
+    # Append local log to the main log.
+    print lHndl $localLine;
+    # Detect meta-data.
+    if ( $localLine =~ m/\-> Job metadata:.*=/ ) {
+	chomp($localLine);
+	$localLine     =~ s/^.*=\s*//;
+	my @data       =  split(/\s+:\s+/,$localLine);
+	(my $jobPath   =  $data[0]) =~ s/[\/:]/_/g;
+	my $exitStatus =  $data[1];
+	my $startAt    =  $data[2];
+	my $endAt      =  $data[3];
+	$timing->{$jobPath} =
+	{
+	    startTime => $startAt,
+	    endTime   => $endAt
+	}
+	if ( $exitStatus == 0 );
+    }
+}
+close($localJobLog);
+# Remove the local job output.
+unlink("testSuite/allTests.tmp");
 
 # Close the log file.
 close(lHndl);
@@ -745,6 +844,14 @@ if ( scalar(@failLines) == 0 ) {
     $exitStatus = 1;
 }
 close(lHndl);
+
+# Output timing data.
+if ( defined($timing) && $options{'timing'} eq "yes" ) {
+    my $xml = new XML::Simple;
+    open(my $timingFile,">testSuite/timing.xml");
+    print $timingFile $xml->XMLout($timing,RootName => "timing");
+    close($timingFile);
+}
 
 # If we have an e-mail address to send the log to, then do so.
 if ( defined($config->{'contact'}->{'email'}) ) {
@@ -804,14 +911,14 @@ sub runTestScript {
 		# We need to launch this script.
 		(my $label = $fileName) =~ s/\.pl$//;
 		push(
-		    @launchPBS,
+		    @jobStack,
 		    {
-			launchFile   => "testSuite/".$label.".pbs",
-			label        => "testSuite-".$label       ,
-			logFile      => "testSuite/".$label.".log",
-			command      => "cd testSuite; ".$fileName,
-			ppn          => 16                        ,
-			tracejob     => "yes"                     ,
+			launchFile   => "testSuite/".$label.".pbs"  ,
+			label        => "testSuite-".$label         ,
+			logFile      => "testSuite/".$label.".log"  ,
+			command      => "cd testSuite; ".$fileName." ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)),
+			ppn          => $options{'processesPerNode'},
+			tracejob     => "yes"                       ,
 			onCompletion => 
 			{
 			    function  => \&testFailure,
@@ -848,6 +955,10 @@ sub testFailure {
     my $expect     = shift();
     my $jobID      = shift();
     my $exitStatus = shift();
+    shift();
+    my $job        = shift();
+    my $startTime  = shift();
+    my $endTime    = shift();
     my $result;
     # Branch on expected behavior.
     if ( $expect eq "crash" ) {
@@ -893,6 +1004,14 @@ sub testFailure {
 	    $result = "FAILED: ".$jobMessage." (crashed unexpectedly)\n";
 	}
     }
+    # Add metadata to the timing data file.
+    if ( $result =~ m/SUCCESS/ ) {
+	$timing->{$job->{'label'}} =
+	{
+	    startTime => $startTime,
+	    endTime   => $endTime
+	};
+    }
     # Report success or failure.
     print lHndl $result;
     if ( $result =~ m/^FAILED:/ ) {
@@ -908,6 +1027,10 @@ sub testCompileFailure {
     my $jobMessage  = shift();
     my $jobID       = shift();
     my $errorStatus = shift();
+    shift();
+    my $job        = shift();
+    my $startTime  = shift();
+    my $endTime    = shift();
     # Check for failure message in log file.
     if ( $errorStatus == 0 ) {
 	system("grep -q FAIL ".$logFile);
@@ -932,7 +1055,7 @@ sub testCompileFailure {
     }
     # Check for make error message in log file.
     if ( $errorStatus == 0 ) {
-	system("grep -q make: ".$logFile);
+	system("grep -v 'is up to date' ".$logFile." | grep -q make: ");
 	if ( $? == 0 ) {
 	    $errorStatus = 1;
 	    $jobMessage = "Make errors issued\n".$jobMessage;
@@ -942,11 +1065,97 @@ sub testCompileFailure {
     if ( $errorStatus == 0 ) {
 	# Job succeeded.
 	print lHndl "SUCCESS: ".$jobMessage."\n";
-	unlink($logFile);
+	unlink($logFile); 
+	# Add metadata to the timing data file.
+	$timing->{$job->{'label'}} =
+	{
+	    startTime => $startTime,
+	    endTime   => $endTime
+	};
     } else {
 	# Job failed.
 	print lHndl "FAILED: ".$jobMessage."\n";
 	print lHndl "Job output follows:\n";
 	print lHndl slurp($logFile);
     }
+}
+
+sub testDocBuild {
+    # Callback function which checks for failure of documentation build jobs run in PBS.
+    my $logFile     = shift();
+    my $jobID       = shift();
+    my $errorStatus = shift();
+    shift();
+    my $job        = shift();
+    my $startTime  = shift();
+    my $endTime    = shift();
+    # Check for failure message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q FAIL ".$logFile);
+	$errorStatus = 1
+	    if ( $? == 0 );	
+    }
+    my $jobMessage = ($errorStatus == 0 ? "SUCCESS" : "FAILED").": documentation build\n";
+    # Check for compiler error message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q \"Warning: missing method descriptions in class\" ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = $jobMessage."FAILED [undefined method]\n";
+	}
+	system("grep -q -e \"pdfTeX warning\" -e \"referenced but does not exist\" ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = $jobMessage."FAILED [undefined hyperreferences]\n";
+	}
+	system("grep -q \"There were multiply-defined labels\" ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = $jobMessage."FAILED [multiply-defined labels]\n";
+	}
+	system("grep -q \"There were undefined references\" ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = $jobMessage."FAILED [undefined labels]\n";
+	}
+    }
+    # Add metadata to the timing data file.
+    if ( $errorStatus == 0 ) {
+	$timing->{$job->{'label'}} =
+	{
+	    startTime => $startTime,
+	    endTime   => $endTime
+	};
+    }
+    # Report success or failure.
+    print lHndl $jobMessage;
+    if ( $errorStatus == 0 ) {
+	# Job succeeded.
+	unlink($logFile);
+    } else {
+	# Job failed.
+	print lHndl "Job output follows:\n";
+	print lHndl slurp($logFile);
+    }
+}
+
+sub launchLocalTests {
+    # Run scripts that can launch themselves using PBS.
+    my @launchLocal         = @{shift()};
+    my $pbsJobMaximum       =   shift() ;
+    my $submitSleepDuration =   shift() ;
+    my $waitSleepDuration   =   shift() ;
+    print           ":-> Running test scripts:\n";
+    print lHndl "\n\n:-> Running test scripts:\n";
+    print       join("\n",map {"\t".$_} @launchLocal)."\n";
+    print lHndl join("\n",map {"\t".$_} @launchLocal)."\n";
+    open(my $script,">testSuite/outputs/launchLocal.sh");
+    print $script "cd testSuite\n";
+    foreach my $localScript ( @launchLocal ) {
+	print $script $localScript." --pbsJobMaximum ".$pbsJobMaximum." --submitSleepDuration ".$submitSleepDuration." --waitSleepDuration ".$waitSleepDuration." &\n";
+    }
+    print $script "wait\n";
+    print $script "exit\n";
+    close($script);
+    &System::Redirect::tofile("chmod u=wrx testSuite/outputs/launchLocal.sh; testSuite/outputs/launchLocal.sh","testSuite/allTests.tmp");
 }

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -233,8 +233,8 @@ contains
     !!{
     Internal constructor for the ``metallicitySplit'' star formation history class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLogarithmic
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
     implicit none
     type            (starFormationHistoryMetallicitySplit)                                        :: self
     double precision                                      , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -254,26 +254,26 @@ contains
             &   present(metallicityMinimum   ) &
             &  .or.                            &
             &   present(metallicityMaximum   ) &
-            & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
+            & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        allocate(self%metallicityTable(size(metallicityBoundaries)))
        self%metallicityTable=metallicityBoundaries
     else
        if     (                                &
             &   present(metallicityBoundaries) &
-            & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
+            & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
        if     (                                     &
             &   .not.present(countMetallicities   ) &
             &  .or.                                 &
             &   .not.present(metallicityMinimum   ) &
             &  .or.                                 &
             &   .not.present(metallicityMaximum   ) &
-            & ) call Galacticus_Error_Report('metallicity range is incompletely specified'//{introspection:location})
+            & ) call Error_Report('metallicity range is incompletely specified'//{introspection:location})
        ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
        ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
        ! resolution is required.
        select case (countMetallicities)
        case (:-1,1)
-          call Galacticus_Error_Report('number of bins must be 0, or greater than 1'//{introspection:location})
+          call Error_Report('number of bins must be 0, or greater than 1'//{introspection:location})
        case default
           allocate(self%metallicityTable(countMetallicities+1))
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,countMetallicities,rangeType=rangeTypeLogarithmic)
@@ -321,10 +321,10 @@ contains
     !!{
     Set the rate the star formation history for {\normalfont \ttfamily node}.
     !!}
-    use :: Abundances_Structure, only : abundances             , metallicityTypeLinearByMassSolar
+    use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
-    use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, treeNode
+    use :: Error               , only : Error_Report
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -354,19 +354,20 @@ contains
        historyStarFormation%data(iHistory,iMetallicity)=rateStarFormation
     else
        ! No history exists - this is acceptable only if the star formation rate is zero.
-       if (rateStarFormation > 0.0d0) call Galacticus_Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
+       if (rateStarFormation > 0.0d0) call Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
     end if
     return
   end subroutine metallicitySplitRate
 
-  subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+  subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
     !!{
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Output_HDF5               , only : outputFile
     use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: HDF5_Access               , only : hdf5Access
+    use :: IO_HDF5                   , only : hdf5Object
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)         :: self
@@ -376,6 +377,7 @@ contains
     integer         (c_size_t                            ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8                      ), intent(in   )         :: indexTree
     integer                                               , intent(in   )         :: componentType
+    type            (ompLock                             ), intent(inout)         :: treeLock
     class           (nodeComponentBasic                  ), pointer               :: basicParent
     type            (treeNode                            ), pointer               :: nodeParent
     double precision                                                              :: timeBegin           , timeEnd
@@ -383,17 +385,19 @@ contains
     type            (hdf5Object                          )                        :: historyGroup        , outputGroup, &
          &                                                                           treeGroup
     type            (history                             )                        :: newHistory
+    !$GLC attributes unused :: treeLock
 
+ 
     if (.not.historyStarFormation%exists()) return
     if (nodePassesFilter) then
        !$ call hdf5Access%set()
        if (.not.self%metallicityTableWritten) then
-          historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data.")
+          historyGroup=outputFile%openGroup("starFormationHistories","Star formation history data.")
           call historyGroup%writeDataset(self%metallicityTable,"metallicities","Metallicities at which star formation histories are tabulated.")
           call historyGroup%close       (                                                                                                      )
           self%metallicityTableWritten=.true.
        end if
-       historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data."                          )
+       historyGroup=outputFile          %openGroup("starFormationHistories","Star formation history data."                          )
        groupName=var_str("Output"    )//indexOutput
        outputGroup =historyGroup        %openGroup(char(groupName)         ,"Star formation histories for all trees at each output.")
        groupName=var_str("mergerTree")//indexTree
@@ -453,8 +457,8 @@ contains
     !!{
     Create the history required for storing star formation history.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Numerical_Ranges, only : Make_Range             , rangeTypeLinear
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLinear
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)                         :: self
     type            (history                             ), intent(inout)                         :: historyStarFormation
@@ -477,9 +481,9 @@ contains
     ! If we have a set of times tabulated already, do some sanity checks.
     if (present(timesCurrent)) then
        ! Complain if the beginning time is before the given list of times.
-       if (timeBegin < timesCurrent(1                 )) call Galacticus_Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
+       if (timeBegin < timesCurrent(1                 )) call Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
        ! Complain if the end time is less than the maximum tabulated time.
-       if (timeEnd   < timesCurrent(size(timesCurrent))) call Galacticus_Error_Report('requested end time is within currently tabulated times'  //{introspection:location})
+       if (timeEnd   < timesCurrent(size(timesCurrent))) call Error_Report('requested end time is within currently tabulated times'  //{introspection:location})
     end if
     ! Step through time, creating a set of timesteps as needed.
     if (present(timesCurrent)) then

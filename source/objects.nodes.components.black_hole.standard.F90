@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,13 +34,15 @@ module Node_Component_Black_Hole_Standard
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Temperature_Profiles       , only : hotHaloTemperatureProfileClass
+  use :: Galactic_Structure                  , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set        , &
        &    Node_Component_Black_Hole_Standard_Thread_Uninitialize, Node_Component_Black_Hole_Standard_Output_Properties, &
        &    Node_Component_Black_Hole_Standard_Output_Names       , Node_Component_Black_Hole_Standard_Output_Count     , &
        &    Node_Component_Black_Hole_Standard_Output             , Node_Component_Black_Hole_Standard_Initialize       , &
-       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize
+       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Standard_State_Store        , Node_Component_Black_Hole_Standard_State_Restore
 
   !![
   <component>
@@ -123,7 +125,8 @@ module Node_Component_Black_Hole_Standard
   class(coolingRadiusClass                      ), pointer :: coolingRadius_
   class(hotHaloTemperatureProfileClass          ), pointer :: hotHaloTemperatureProfile_
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,hotHaloTemperatureProfile_,darkMatterHaloScale_)
+  class(galacticStructureClass                  ), pointer :: galacticStructure_
+  !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,hotHaloTemperatureProfile_,darkMatterHaloScale_,galacticStructure_)
 
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
@@ -306,6 +309,7 @@ contains
        <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters_"/>
        <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="parameters_"/>
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
+       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="parameters_"/>
        !!]
     end if
     return
@@ -325,7 +329,7 @@ contains
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-       call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
+       if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
        !![
        <objectDestructor name="cosmologyParameters_"                />
        <objectDestructor name="accretionDisks_"                     />
@@ -336,6 +340,7 @@ contains
        <objectDestructor name="coolingRadius_"                      />
        <objectDestructor name="hotHaloTemperatureProfile_"          />
        <objectDestructor name="darkMatterHaloScale_"                />
+       <objectDestructor name="galacticStructure_"                  />
        !!]
     end if
     return
@@ -350,8 +355,8 @@ contains
     !!{
     Compute the black hole node mass rate of change.
     !!}
-    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic  , nodeComponentBlackHole, &
-          &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive, treeNode
+    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic, nodeComponentBlackHole, &
+          &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyInactive  , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Math        , only : Pi
@@ -375,12 +380,12 @@ contains
          &                                                                heatingRate                                                                                                                                       , jetEfficiency                                                  , &
          &                                                                massAccretionRate                                                                                                                                 , radiativeEfficiency                                            , &
          &                                                                restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
-         &                                                                spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
-         &                                                                spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
-         &                                                                windFraction                                                                                                                                      , hotModeFraction
+         &                                                                spheroidDensityRadius2                                                                                                                            , massGasSpheroid                                                , &
+         &                                                                radiusSpheroid                                                                                                                                    , windEfficiencyNet                                              , &
+         &                                                                windFraction
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
@@ -428,13 +433,6 @@ contains
           if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(accretionDisks_%rateSpinUp(blackHole,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
-             ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
-             ! content in the halo drops below the cosmological mean.
-             if (coldModeTracked) then
-                hotModeFraction=1.0d0
-             else
-                hotModeFraction=Hot_Mode_Fraction(node)
-             end if
              ! Get jet power.
              heatingRate=blackHoleRadioModeFeedbackEfficiency*jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2
              ! Pipe this power to the hot halo.
@@ -442,11 +440,11 @@ contains
           end if
           ! Add energy to the spheroid component.
           if (blackHoleWindEfficiency > 0.0d0) then
-             spheroidGasMass=spheroid%massGas()
-             if (spheroidGasMass > 0.0d0) then
-                spheroidRadius=spheroid%radius()
-                if (spheroidRadius > 0.0d0) then
-                   spheroidDensityRadius2=3.0d0*spheroidGasMass/4.0d0/Pi/spheroidRadius
+             massGasSpheroid=spheroid%massGas()
+             if (massGasSpheroid > 0.0d0) then
+                radiusSpheroid=spheroid%radius()
+                if (radiusSpheroid > 0.0d0) then
+                   spheroidDensityRadius2=3.0d0*massGasSpheroid/4.0d0/Pi/radiusSpheroid
                    criticalDensityRadius2=criticalDensityNormalization*blackHoleWindEfficiency*restMassAccretionRate
                    ! Construct an interpolating factor such that the energy input from the wind drops to zero below half of the
                    ! critical density.
@@ -547,9 +545,9 @@ contains
     class           (nodeComponentBlackHole), pointer       :: blackHoleHostCentral, blackHole         , &
          &                                                     blackHolePrimary    , blackHoleSecondary
     integer                                                 :: instance
-    double precision                                        :: blackHoleMassNew    , blackHoleSpinNew  , &
+    double precision                                        :: massBlackHoleNew    , spinBlackHoleNew  , &
          &                                                     massBlackHole1      , massBlackHole2    , &
-         &                                                     radiusInitial       , recoilVelocity    , &
+         &                                                     radiusInitial       , velocityRecoil    , &
          &                                                     spinBlackHole1      , spinBlackHole2
     !$GLC attributes unused :: self
     
@@ -571,8 +569,8 @@ contains
                &                            blackHoleHostCentral%mass(), &
                &                            blackHole           %spin(), &
                &                            blackHoleHostCentral%spin(), &
-               &                            blackHoleMassNew           , &
-               &                            blackHoleSpinNew             &
+               &                            massBlackHoleNew           , &
+               &                            spinBlackHoleNew             &
                &                           )
           ! Merge the black holes instantaneously.
           ! Check which black hole is more massive in order to compute an appropriate recoil velocity
@@ -588,15 +586,15 @@ contains
           spinBlackHole1=blackHolePrimary  %spin()
           spinBlackHole2=blackHoleSecondary%spin()
           ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy.
-          recoilVelocity=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
-          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
-             blackHoleMassNew=0.0d0
-             blackHoleSpinNew=0.0d0
+          velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
+          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+             massBlackHoleNew=0.0d0
+             spinBlackHoleNew=0.0d0
           end if
           ! Move the black hole to the host.
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-          call blackHoleHostCentral%massSet(blackHoleMassNew           )
-          call blackHoleHostCentral%spinSet(blackHoleSpinNew           )
+          call blackHoleHostCentral%massSet(massBlackHoleNew           )
+          call blackHoleHostCentral%spinSet(spinBlackHoleNew           )
           ! Reset the satellite black hole to zero mass.
           call blackHole           %massSet(blackHole       %massSeed())
           call blackHole           %spinSet(blackHole       %spinSeed())
@@ -617,27 +615,31 @@ contains
     return
   end subroutine satelliteMerger
 
-  logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
+  logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
-    use :: Galactic_Structure_Options   , only : componentTypeBlackHole
-    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
-    use :: Galacticus_Nodes             , only : treeNode
+    use :: Galactic_Structure_Options, only : componentTypeBlackHole
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: recoilVelocity        , radius
+    double precision          , intent(in   ) :: velocityRecoil        , radius
     logical                   , intent(in   ) :: ignoreCentralBlackHole
     double precision                          :: potentialCentral      , potentialCentralSelf, &
          &                                       potentialHalo         , potentialHaloSelf
 
+    ! Return false immediately if the recoil velocity is zero.
+    if (velocityRecoil <= 0.0d0) then
+       Node_Component_Black_Hole_Standard_Recoil_Escapes=.false.
+       return
+    end if
     ! Compute relevant potentials.
-    potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )
-    potentialHalo   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
+    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
-       potentialCentralSelf=Galactic_Structure_Potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+       potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
+       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node),componentType=componentTypeBlackHole)
     else
        ! No correction for central black hole as it is to be included.
        potentialCentralSelf=0.0d0
@@ -645,7 +647,7 @@ contains
     end if
     ! Evaluate the escape condition.
     Node_Component_Black_Hole_Standard_Recoil_Escapes= &
-         &  +0.5d0*recoilVelocity      **2             &
+         &  +0.5d0*velocityRecoil      **2             &
          &  +      potentialCentral                    &
          &  -      potentialCentralSelf                &
          & >                                           &
@@ -660,7 +662,6 @@ contains
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
     use :: Bondi_Hoyle_Lyttleton_Accretion , only : Bondi_Hoyle_Lyttleton_Accretion_Radius, Bondi_Hoyle_Lyttleton_Accretion_Rate
-    use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
     use :: Galactic_Structure_Options      , only : componentTypeColdHalo                 , componentTypeHotHalo                , componentTypeSpheroid, coordinateSystemCylindrical, &
           &                                         massTypeGaseous
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, treeNode
@@ -675,7 +676,7 @@ contains
     class           (nodeComponentHotHalo  )               , pointer :: hotHalo
     double precision                        , parameter              :: gasDensityMinimum   =1.0d0                              ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
     double precision                                                 :: accretionRadius           , accretionRateMaximum    , &
-         &                                                              blackHoleMass             , gasDensity              , &
+         &                                                              massBlackHole             , gasDensity              , &
          &                                                              hotHaloTemperature        , hotModeFraction         , &
          &                                                              jeansLength               , position             (3), &
          &                                                              radiativeEfficiency       , relativeVelocity        , &
@@ -684,9 +685,9 @@ contains
     ! Get the host node.
     node => blackHole%host()
     ! Get black hole mass.
-    blackHoleMass=blackHole%mass()
+    massBlackHole=blackHole%mass()
     ! Check black hole mass is positive.
-    if (blackHoleMass > 0.0d0) then
+    if (massBlackHole > 0.0d0) then
        ! Compute the relative velocity of black hole and gas. We assume that relative motion arises only from the radial
        ! migration of the black hole.
        relativeVelocity=blackHoleBinarySeparationGrowthRate_%growthRate(blackHole)*Mpc_per_km_per_s_To_Gyr
@@ -694,14 +695,13 @@ contains
        ! Get the accretion radius. We take this to be the larger of the Bondi-Hoyle radius and the current radius position of
        ! the black hole.
        accretionRadius=max(                                                                                              &
-            &               Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,bondiHoyleAccretionTemperatureSpheroid) &
+            &               Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,bondiHoyleAccretionTemperatureSpheroid) &
             &              ,blackHole%radialPosition()                                                      &
             &             )
        ! Set the position.
        position=[accretionRadius,0.0d0,0.0d0]
        ! Get density of gas at the galactic center.
-       gasDensity=Galactic_Structure_Density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType&
-            &=componentTypeSpheroid,massType =massTypeGaseous)
+       gasDensity=galacticStructure_%density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeSpheroid,massType =massTypeGaseous)
        ! Check if we have a non-negligible gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Get the spheroid component.
@@ -716,11 +716,10 @@ contains
              ! Set the position.
              position=[jeansLength,0.0d0,0.0d0]
              ! Get density of gas at the galactic center.
-             gasDensity=Galactic_Structure_Density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType&
-                  &=componentTypeSpheroid,massType =massTypeGaseous)
+             gasDensity=galacticStructure_%density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeSpheroid,massType =massTypeGaseous)
           end if
           ! Compute the accretion rate.
-          accretionRateSpheroid=max(bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
+          accretionRateSpheroid=max(bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(massBlackHole&
                &,gasDensity ,relativeVelocity,bondiHoyleAccretionTemperatureSpheroid),0.0d0)
           ! Get the radiative efficiency of the accretion.
           radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,accretionRateSpheroid)
@@ -737,7 +736,7 @@ contains
        ! Get halo gas temperature.
        hotHaloTemperature=hotHaloTemperatureProfile_%temperature(node,radius=0.0d0)
        ! Get the accretion radius.
-       accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,hotHaloTemperature)
+       accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,hotHaloTemperature)
        accretionRadius=min(accretionRadius,hotHalo%outerRadius())
        ! Set the position.
        position=[accretionRadius,0.0d0,0.0d0]
@@ -760,21 +759,21 @@ contains
           end if
        end select
        ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
-       gasDensity=                                                                                 &
-            &      hotModeFraction                                                                 &
-            &     *Galactic_Structure_Density(                                                     &
-            &                                 node                                           , &
-            &                                 position                                           , &
-            &                                 coordinateSystem=coordinateSystemCylindrical       , &
-            &                                 componentType   =componentTypeHotHalo              , &
-            &                                 massType        =massTypeGaseous                     &
+       gasDensity=                                                                            &
+            &      hotModeFraction                                                            &
+            &     *galacticStructure_%density(                                                &
+            &                                 node                                          , &
+            &                                 position                                      , &
+            &                                 coordinateSystem=coordinateSystemCylindrical  , &
+            &                                 componentType   =componentTypeHotHalo         , &
+            &                                 massType        =massTypeGaseous                &
             &                                )
        if (coldModeTracked.and.coldModeFraction > 0.0d0)                                           &
             & gasDensity=                                                                          &
             &             gasDensity                                                               &
             &            +coldModeFraction                                                         &
-            &            *Galactic_Structure_Density(                                              &
-            &                                        node                                    , &
+            &            *galacticStructure_%density(                                              &
+            &                                        node                                        , &
             &                                        position                                    , &
             &                                        coordinateSystem=coordinateSystemCylindrical, &
             &                                        componentType   =componentTypeColdHalo      , &
@@ -783,7 +782,7 @@ contains
        ! Check if we have a non-zero gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Compute the accretion rate.
-          accretionRateHotHalo=max(bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
+          accretionRateHotHalo=max(bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(massBlackHole&
                &,gasDensity,relativeVelocity,hotHaloTemperature,accretionRadius),0.0d0)
           ! Limit the accretion rate to the total mass of the hot halo, divided by the sound crossing time.
           accretionRateMaximum=max(hotHalo%mass()/(hotHalo%outerRadius()/(kilo*gigaYear/megaParsec)&
@@ -968,9 +967,10 @@ contains
     !!{
     Outputs properties of merging black holes.
     !!}
-    use :: Galacticus_HDF5 , only : galacticusOutputFile
-    use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
-    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: Output_HDF5     , only : outputFile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     implicit none
     type            (treeNode          ), intent(inout) :: node
     double precision                    , intent(in   ) :: massBlackHole1    , massBlackHole2
@@ -988,15 +988,14 @@ contains
 
     ! Open the group to which black hole mergers should be written.
     !$ call hdf5Access%set()
-    mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
+    mergersGroup=outputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
-    call mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
-    call mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
-    call mergersGroup%writeDataset([basic%time()              ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
-    call mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
-    ! Close the group.
-    call mergersGroup%close()
-    !$ call hdf5Access%unset()
+    call    mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
+    call    mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
+    call    mergersGroup%writeDataset([basic%time()              ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
+    call    mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
+    call    mergersGroup%close       (                                                                                                      )
+    !$ call hdf5Access  %unset       (                                                                                                      )
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 
@@ -1005,23 +1004,26 @@ contains
    <unitName>Node_Component_Black_Hole_Standard_Output_Properties</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Black_Hole_Standard_Output_Properties(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Black_Hole_Standard_Output_Properties(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Output properties for all black holes in {\normalfont \ttfamily node}.
     !!}
-    use            :: Galacticus_HDF5   , only : galacticusOutputFile
+    use            :: Output_HDF5       , only : outputFile
     use            :: Galacticus_Nodes  , only : nodeComponentBlackHole, treeNode
-    use            :: IO_HDF5           , only : hdf5Access            , hdf5Object
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: IO_HDF5           , only : hdf5Object
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=)         , char           , varying_string
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : allocateArray         , deallocateArray
     use            :: String_Handling   , only : operator(//)
+    use            :: Locks             , only : ompLock
     implicit none
     type            (treeNode              ), intent(inout), pointer      :: node
     integer         (kind=kind_int8        ), intent(in   )               :: treeIndex
     integer         (c_size_t              ), intent(in   )               :: iOutput
     logical                                 , intent(in   )               :: nodePassesFilter
+    type            (ompLock               ), intent(inout)               :: treeLock
     class           (nodeComponentBlackHole)               , pointer      :: blackHole
     integer         (kind=kind_int8        ), allocatable  , dimension(:) :: mergerTreeIndex     , nodeIndex
     double precision                        , allocatable  , dimension(:) :: mass                , massAccretionRate    , radiativeEfficiency, &
@@ -1030,18 +1032,19 @@ contains
     integer                                                               :: blackHoleCount      , instance
     type            (hdf5Object            )                              :: blackHolesGroup     , outputGroup
     type            (varying_string        )                              :: groupName
+    !$GLC attributes unused :: treeLock
 
     ! If black hole output was requested , output their properties.
     if (nodePassesFilter .and. blackHoleOutputData) then
        ! Get a count of the number of black holes present.
        blackHoleCount=node%blackHoleCount()
        ! Open the output group.
-       call hdf5Access%set()
-       blackHolesGroup=galacticusOutputFile%openGroup("blackHole","Black hole data.")
+       !$ call hdf5Access%set()
+       blackHolesGroup=outputFile%openGroup("blackHole","Black hole data.")
        groupName="Output"
        groupName=groupName//iOutput
        outputGroup=blackHolesGroup%openGroup(char(groupName),"Properties of black holes for all trees at each output.")
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
        ! Allocate array to store profile.
        call allocateArray(radius             ,[blackHoleCount])
        call allocateArray(spin               ,[blackHoleCount])
@@ -1075,16 +1078,18 @@ contains
           end if
        end do
        ! Write dataset to the group, first the arrays containing all data.
-       call hdf5Access%set()
-       call outputGroup%writeDataset(mass,               "mass"               ,"The black hole masses.",                appendTo=.true.)
-       call outputGroup%writeDataset(spin,               "spin"               ,"The black hole spins.",                 appendTo=.true.)
-       call outputGroup%writeDataset(radius,             "radius"             ,"The black hole radial positions.",      appendTo=.true.)
-       call outputGroup%writeDataset(timescale,          "timescale"          ,"The black hole timescales for merger.", appendTo=.true.)
-       call outputGroup%writeDataset(radiativeEfficiency,"radiativeEfficiency","The black hole radiative efficiencies.",appendTo=.true.)
-       call outputGroup%writeDataset(massAccretionRate,  "accretionRate"      ,"The black hole accretion rates.",       appendTo=.true.)
-       call outputGroup%writeDataset(nodeIndex,          "nodeIndex"          ,"The black hole host galaxy inices.",    appendTo=.true.)
-       call outputGroup%writeDataset(mergerTreeIndex,    "mergerTreeIndex"    ,"The black hole merger tree indices.",   appendTo=.true.)
-
+       !$ call hdf5Access     %set         (                                                                                                  )
+       call    outputGroup    %writeDataset(mass               ,"mass"               ,"The black hole masses."                ,appendTo=.true.)
+       call    outputGroup    %writeDataset(spin               ,"spin"               ,"The black hole spins."                 ,appendTo=.true.)
+       call    outputGroup    %writeDataset(radius             ,"radius"             ,"The black hole radial positions."      ,appendTo=.true.)
+       call    outputGroup    %writeDataset(timescale          ,"timescale"          ,"The black hole timescales for merger." ,appendTo=.true.)
+       call    outputGroup    %writeDataset(radiativeEfficiency,"radiativeEfficiency","The black hole radiative efficiencies.",appendTo=.true.)
+       call    outputGroup    %writeDataset(massAccretionRate  ,"accretionRate"      ,"The black hole accretion rates."       ,appendTo=.true.)
+       call    outputGroup    %writeDataset(nodeIndex          ,"nodeIndex"          ,"The black hole host galaxy inices."    ,appendTo=.true.)
+       call    outputGroup    %writeDataset(mergerTreeIndex    ,"mergerTreeIndex"    ,"The black hole merger tree indices."   ,appendTo=.true.)
+       call    outputGroup    %close       (                                                                                                  )
+       call    blackHolesGroup%close       (                                                                                                  )
+       !$ call hdf5Access%unset()
        ! Deallocatate profile arrays.
        call deallocateArray(mass               )
        call deallocateArray(spin               )
@@ -1094,9 +1099,6 @@ contains
        call deallocateArray(massAccretionRate  )
        call deallocateArray(nodeIndex          )
        call deallocateArray(mergerTreeIndex    )
-       call outputGroup    %close()
-       call blackHolesGroup%close()
-       call hdf5Access%unset()
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Properties
@@ -1113,7 +1115,7 @@ contains
     double precision                          :: coolingRadiusFractional                       , x
 
     coolingRadiusFractional=+coolingRadius_      %      radius(node) &
-         &                  /darkMatterHaloScale_%virialRadius(node)
+         &                  /darkMatterHaloScale_%radiusVirial(node)
     if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
        Hot_Mode_Fraction=1.0d0
     else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
@@ -1154,7 +1156,7 @@ contains
 
   !![
   <postStepTask>
-  <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
+    <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
   </postStepTask>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
@@ -1162,7 +1164,7 @@ contains
     Keep black hole spin in physical range.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
-    use :: Interface_GSL   , only : GSL_Failure
+    use :: Interface_GSL   , only : GSL_Success              , GSL_Continue
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status
@@ -1181,9 +1183,12 @@ contains
              ! Get the black hole component.
              blackHole => node%blackHole(instance=i)
              if (blackHole%spin() > spinMaximum .or. blackHole%spin() < 0.0d0) then
-                status    =GSL_Failure
-                spin      =max(min(blackHole%spin(),spinMaximum),0.0d0)
+                ! Note that "status" is not set to failure as this change in state of the black hole should not change any
+                ! calculation of differential evolution rates as the spin was in an unphysical regime anyway
+                spin=max(min(blackHole%spin(),spinMaximum),0.0d0)
                 call blackHole%spinSet(spin)
+                ! Indicate that ODE evolution should continue after this state change.
+                if (status == GSL_Success) status=GSL_Continue
              end if
           end do
        end if
@@ -1203,5 +1208,51 @@ contains
     Node_Component_Black_Hole_Standard_Seed_Mass=blackHoleSeedMass
     return
   end function Node_Component_Black_Hole_Standard_Seed_Mass
+
+  !![
+  <stateStoreTask>
+   <unitName>Node_Component_Black_Hole_Standard_State_Store</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ hotHaloTemperatureProfile_ darkMatterHaloScale_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_Standard_State_Store
+
+  !![
+  <stateRetrieveTask>
+   <unitName>Node_Component_Black_Hole_Standard_State_Restore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine Node_Component_Black_Hole_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ hotHaloTemperatureProfile_ darkMatterHaloScale_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_Standard_State_Restore
 
 end module Node_Component_Black_Hole_Standard

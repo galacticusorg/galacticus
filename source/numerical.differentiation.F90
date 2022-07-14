@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,7 @@ module Numerical_Differentiation
   !!{
   Implements numerical differentiation.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr
+  use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr              , c_null_ptr
   use            :: Interface_GSL, only : gslFunction, gslFunctionDestroy, gslFunctionTemplate
   implicit none
   private
@@ -39,7 +39,7 @@ module Numerical_Differentiation
      Type which computes numerical derivatives.
      !!}
      private
-     type(c_ptr) :: f
+     type(c_ptr) :: f=c_null_ptr
    contains
      !![
      <methods>
@@ -86,10 +86,11 @@ contains
     !!{
     Destructor for the numerical derivative class.
     !!}
+    use, intrinsic :: ISO_C_Binding, only : c_associated
     implicit none
     type(differentiator), intent(inout) :: self
 
-    call gslFunctionDestroy(self%f)
+    if (c_associated(self%f)) call gslFunctionDestroy(self%f)
     return
   end subroutine differentiatorDestructor
 
@@ -98,7 +99,7 @@ contains
     Compute a numerical derivative of the function at {\normalfont \ttfamily x}. The initial stepsize is {\normalfont \ttfamily
     h}. If present, the absolute error estimate is returned in {\normalfont \ttfamily errorAbsolute}.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
+    use :: Error, only : Error_Report, errorStatusSuccess
     implicit none
     class           (differentiator), intent(in   )           :: self
     double precision                , intent(in   )           :: x             , h
@@ -107,7 +108,7 @@ contains
     integer         (c_int         )                          :: status
 
     status=gsl_deriv_central(self%f,x,h,differentiatorDerivative,errorAbsolute_)
-    if (status /= errorStatusSuccess) call Galacticus_Error_Report('failed to compute numerical derivative'//{introspection:location})
+    if (status /= errorStatusSuccess) call Error_Report('failed to compute numerical derivative'//{introspection:location})
     if (present(errorAbsolute)) errorAbsolute=errorAbsolute_
     return
   end function differentiatorDerivative

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,7 @@ module NBody_Simulation_Data
   use :: IO_HDF5           , only : hdf5Object
   use :: ISO_Varying_String, only : varying_string
   use :: Hashes            , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
-       &                            integerSizeTHash        , doubleHash              , varyingStringHash
+       &                            integerSizeTHash        , doubleHash              , varyingStringHash , genericHash
   implicit none
   private
   public :: nBodyData, nBodyDataPropertyType
@@ -42,6 +42,7 @@ module NBody_Simulation_Data
      type(integerSizeTHash        ) :: attributesInteger
      type(doubleHash              ) :: attributesReal
      type(varyingStringHash       ) :: attributesText
+     type(genericHash             ) :: attributesGeneric
      type(rank1IntegerSizeTPtrHash) :: propertiesInteger
      type(rank1DoublePtrHash      ) :: propertiesReal
      type(rank2IntegerSizeTPtrHash) :: propertiesIntegerRank1
@@ -89,6 +90,7 @@ contains
     integer         (c_size_t ), pointer      , dimension(:,:) :: propertyIntegerRank1
     double precision           , pointer      , dimension(:  ) :: propertyReal
     double precision           , pointer      , dimension(:,:) :: propertyRealRank1
+    class           (*        ), pointer                       :: attributeGeneric
     integer                                                    :: i
 
     do i=1,self%propertiesInteger%size()
@@ -106,6 +108,10 @@ contains
     do i=1,self%propertiesRealRank1%size()
        propertyRealRank1    => self%propertiesRealRank1   %value(i)
        deallocate(propertyRealRank1   )
+    end do       
+    do i=1,self%attributesGeneric%size()
+       attributeGeneric     => self%attributesGeneric     %value(i)
+       deallocate(attributeGeneric    )
     end do       
     return
   end subroutine nBodyDataDestructorScalar
@@ -161,6 +167,8 @@ contains
     case('spin'                     )
        nBodyDataPropertyType=propertyTypeReal
     case('virialRatio'              )
+       nBodyDataPropertyType=propertyTypeReal
+    case('distanceFromPoint'        )
        nBodyDataPropertyType=propertyTypeReal
     case default
        nBodyDataPropertyType=propertyTypeUnknown

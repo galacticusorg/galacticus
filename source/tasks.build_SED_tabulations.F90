@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,10 +35,11 @@
      Implementation of a task which pre-builds tabulations needed for SED calculations.
      !!}
      private
-     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
-     class(outputTimesClass          ), pointer :: outputTimes_           => null()
-     class(starFormationHistoryClass ), pointer :: starFormationHistory_  => null()
-     type (inputParameters           )          :: parameters
+     class  (nodePropertyExtractorClass), pointer :: nodePropertyExtractor_    => null()
+     class  (outputTimesClass          ), pointer :: outputTimes_              => null()
+     class  (starFormationHistoryClass ), pointer :: starFormationHistory_     => null()
+     type   (inputParameters           )          :: parameters
+     logical                                      :: nodeComponentsInitialized =  .false.
    contains
      final     ::                       buildSEDDestructor
      procedure :: perform            => buildSEDTabulationsPerform
@@ -83,6 +84,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
@@ -130,7 +132,7 @@ contains
     <objectDestructor name="self%starFormationHistory_" />
     <objectDestructor name="self%outputTimes_"          />
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine buildSEDDestructor
 
@@ -139,15 +141,16 @@ contains
     Builds the tabulation.
     !!}
     use :: Display                   , only : displayIndent                    , displayUnindent
-    use :: Galacticus_Error          , only : errorStatusSuccess               , Galacticus_Error_Report
+    use :: Error                     , only : Error_Report                     , errorStatusSuccess
     use :: Histories                 , only : history
-    use :: Galacticus_Nodes          , only : treeNode                         , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
-         &                                    mergerTree
-    use :: Poly_Ranks                , only : polyRankDouble                   , assignment(=)
+    use :: Galacticus_Nodes          , only : mergerTree                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSpheroid, &
+          &                                   treeNode
+    use :: Poly_Ranks                , only : assignment(=)                    , polyRankDouble
     use :: Multi_Counters            , only : multiCounter
-    use :: Node_Property_Extractors  , only : nodePropertyExtractorSED         , nodePropertyExtractorMulti
+    use :: Node_Property_Extractors  , only : nodePropertyExtractorMulti       , nodePropertyExtractorSED
     use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
     use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use :: Locks                     , only : ompLock
 #ifdef USEMPI
     use :: MPI_Utilities             , only : mpiBarrier                       , mpiSelf
 #endif
@@ -161,11 +164,13 @@ contains
     class           (nodeComponentBasic     ), pointer                       :: basic
     class           (nodeComponentDisk      ), pointer                       :: disk
     class           (nodeComponentSpheroid  ), pointer                       :: spheroid
-    double precision                         , parameter                     :: mass                    =1.0d12
-    type            (history                )                                :: starFormationHistoryDisk       , starFormationHistorySpheroid
+    double precision                         , parameter                     :: mass                    =1.0d+12
+    double precision                         , parameter                     :: epsilon                 =1.0d-06
+    type            (history                )                                :: starFormationHistoryDisk        , starFormationHistorySpheroid
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance
+    type            (ompLock                )                                :: treeLock
     !$GLC attributes unused :: self
 
     call displayIndent ('Begin task: build SED tabulations')
@@ -173,15 +178,24 @@ contains
     call Node_Components_Thread_Initialize(self%parameters)
     ! Build a node and components.
     node     => treeNode         (                 )
-    tree    %baseNode => node
+    tree    %nodeBase => node
     node%hostTree => tree
     disk     => node    %disk    (autoCreate=.true.)
     spheroid => node    %spheroid(autoCreate=.true.)
     basic    => node    %basic   (autoCreate=.true.)
+    call tree%properties%initialize()
     ! Initialize a single instance.
     instance=multiCounter([1_c_size_t])
-    ! Choose a beginning time.
-    time=self%outputTimes_%time(1_c_size_t)
+    ! Initialize a tree output lock - this is required by the star formation history output functions, even though we don't
+    ! actually need any locking here.
+    treeLock=ompLock()
+    ! Choose a beginning time. Set this to slightly before the first output time to ensure that the initial set of times assigned
+    ! to each history corresponds to the first (and not the second) output time).
+    time   =+self%outputTimes_%time(1_c_size_t) &
+         &  *(                                  &
+         &    +1.0d0                            &
+         &    -epsilon                          &
+         &   )
     call basic%timeSet            (time)
     call basic%timeLastIsolatedSet(time)
     call basic%massSet            (mass)
@@ -194,24 +208,27 @@ contains
     call spheroid%starFormationHistorySet       (     starFormationHistorySpheroid     )
     ! Iterate over output times.
     do i=1_c_size_t,self%outputTimes_%count()
-#ifdef USEMPI
-       if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
-#endif
        time=self%outputTimes_%time(i)
        call basic   %timeSet            (time)
        call basic   %timeLastIsolatedSet(time)
        call instance%reset              (    )
-       if (.not.instance%increment()) call Galacticus_Error_Report('failed to increment instance'//{introspection:location})
-       select type (extractor_ => self%nodePropertyExtractor_)
-       class is (nodePropertyExtractorSED  )
-          ! SED property extractor - extract and store the values.
-          doubleArray     =extractor_%extract      (node,time,instance)
-          deallocate(doubleArray     )
-       class is (nodePropertyExtractorMulti)
-          ! Multi property extractor - extract and store the values.
-          doubleProperties=extractor_%extractDouble(node,time,instance)
-          deallocate(doubleProperties)
-       end select
+       if (.not.instance%increment()) call Error_Report('failed to increment instance'//{introspection:location})
+#ifdef USEMPI
+       if (mod(i,mpiSelf%count()) == mpiSelf%rank()) then
+#endif
+          select type (extractor_ => self%nodePropertyExtractor_)
+          class is (nodePropertyExtractorSED  )
+             ! SED property extractor - extract and store the values.
+             doubleArray     =extractor_%extract      (node,time,instance)
+             deallocate(doubleArray     )
+          class is (nodePropertyExtractorMulti)
+             ! Multi property extractor - extract and store the values.
+             doubleProperties=extractor_%extractDouble(node,time,instance)
+             deallocate(doubleProperties)
+          end select
+#ifdef USEMPI
+       end if
+#endif
        ! Output star formation history, which also triggers update of the history.
        call starFormationHistoryDisk    %destroy                (                                                   &
             &                                                   )
@@ -225,7 +242,8 @@ contains
             &                                                    historyStarFormation=starFormationHistoryDisk    , &
             &                                                    indexOutput         =i                           , &
             &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeDisk             &
+            &                                                    componentType       =componentTypeDisk           , &
+            &                                                    treeLock            =treeLock                      &
             &                                                   )
        call self%starFormationHistory_%output                   (                                                   &
             &                                                    node                =node                        , &
@@ -233,7 +251,8 @@ contains
             &                                                    historyStarFormation=starFormationHistorySpheroid, &
             &                                                    indexOutput         =i                           , &
             &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeSpheroid         &
+            &                                                    componentType       =componentTypeSpheroid       , &
+            &                                                    treeLock            =treeLock                      &
             &                                                   )
        starFormationHistoryDisk    %data=1.0d0
        starFormationHistorySpheroid%data=1.0d0

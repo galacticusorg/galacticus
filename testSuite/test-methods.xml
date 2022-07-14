@@ -47,7 +47,7 @@
     <nodePropertyExtract value="multi">
       <nodePropertyExtract value="haloBias"/>
       <nodePropertyExtract value="indicesHost">
-	<topLevel value="true"/>
+  	<topLevel value="true"/>
       </nodePropertyExtract>
     </nodePropertyExtract>
     <darkMatterHaloBias value="sheth2001"/>
@@ -61,7 +61,54 @@
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileDMO value="einasto">
       <componentDarkMatterProfile value="scaleShape" parameterLevel="top"/>
-      <virialOrbit value="fixed" parameterLevel="top"/>
+      <virialOrbit value="fixed" parameterLevel="top">
+  	<virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </virialOrbit>
+      <nodeOperator value="multi" parameterLevel="top">
+  	<!-- Cosmological epoch -->
+  	<nodeOperator value="cosmicTime" iterable="no"/>
+  	<!-- DMO evolution -->
+  	<nodeOperator value="DMOInterpolate" iterable="no"/>
+  	<!-- Halo concentrations -->
+  	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+  	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+  	<!-- Halo shapes -->
+  	<nodeOperator value="darkMatterProfileShapeSet"         iterable="no"/>
+  	<nodeOperator value="darkMatterProfileShapeInterpolate" iterable="no"/>
+  	<!-- Halo spins -->
+  	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+  	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+  	<!-- Star formation -->
+  	<nodeOperator value="starFormationDisks" iterable="no"/>
+  	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+  	<!--Stellar feedback outflows-->
+  	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
+    </darkMatterProfileDMO>
+    <darkMatterProfileDMO value="accretionFlow">
+      <toleranceRelativePotential value="1.0e-4"/>
+      <darkMatterProfileDMO value="NFW"/>
+      <accretionFlows value="diemerKravtsov2014" parameterLevel="top">
+  	<darkMatterProfileDMO value="NFW"/>
+      </accretionFlows>
     </darkMatterProfileDMO>
   </parameters>
   <parameters>
@@ -108,15 +155,33 @@
     <version>0.9.4</version>
     <mergerTreeConstructor value="build">
       <redshiftBase value="0.0"/>
-      <mergerTreeBuilder value="smoothAccretion">
-	<massHaloDeclineFactor value="0.9"/>
+      <mergerTreeBuilder value="excursionSetSimulator">
+  	<redshiftMaximum value="12.0" />
       </mergerTreeBuilder>
       <mergerTreeMassResolution value="fixed">
-	<massResolution value="1.0e9"/>
+  	<massResolution value="1.0e9"/>
       </mergerTreeMassResolution>
       <mergerTreeBuildMasses value="fixedMass">
-	<massTree value="1.0e12"/>
-	<treeCount  value="1"/>
+  	<massTree value="1.0e12"/>
+  	<treeCount  value="1"/>
+      </mergerTreeBuildMasses>
+    </mergerTreeConstructor>
+    <mergerTreeConstructor value="build">
+      <redshiftBase value="0.0"/>
+      <mergerTreeBuilder value="smoothAccretion">
+  	<massHaloDeclineFactor value="0.9"/>
+      </mergerTreeBuilder>
+      <mergerTreeMassResolution value="fixed">
+  	<massResolution value="1.0e9"/>
+      </mergerTreeMassResolution>
+      <mergerTreeBuildMasses value="fixedMass">
+  	<massTree value="1.0e12"/>
+  	<treeCount  value="1"/>
+      </mergerTreeBuildMasses>
+      <mergerTreeBuildMasses value="fixedMass">
+  	<massTree value="1.0e12"/>
+  	<radiusTree value="300.0e-3"/>
+  	<treeCount  value="1"/>
       </mergerTreeBuildMasses>
       <darkMatterHaloMassAccretionHistory value="wechsler2002" parameterLevel="top"/>
       <darkMatterHaloMassAccretionHistory value="zhao2009" parameterLevel="top"/>
@@ -124,43 +189,43 @@
     </mergerTreeConstructor>
     <mergerTreeConstructor value="build">
       <mergerTreeBuildMasses value="sampledDistributionUniform" parameterLevel="top">
-	<mergerTreeBuildMassDistribution value="gaussian" parameterLevel="top">
-	  <mean value="1.0e12"/>
-	  <rootVariance value="0.2e12"/>
-	</mergerTreeBuildMassDistribution>
-	<mergerTreeBuildMassDistribution value="powerLaw" parameterLevel="top">
-	  <mergerTreeMassResolution value="fixed" parameterLevel="top">
-	    <massResolution value="5.0e11"/>
-	  </mergerTreeMassResolution>
-	</mergerTreeBuildMassDistribution>
-	<mergerTreeBuildMassDistribution value="haloMassFunction" parameterLevel="top"/>
-	<mergerTreeBuildMassDistribution value="stllrMssFnctn" parameterLevel="top">
-	  <massMaximum value="7.5857758e11"/>
-	  <massMinimum value="1.2589254e8"/>
-	  <constant value="1.0e-8"/>
-	  <alpha value="-0.3"/>
-	  <beta value="0.75"/>
-	  <massCharacteristic value="5.5e10"/>
-	  <normalization value="2.0e-4"/>
-	  <binWidthLogarithmic value="0.097"/>
-	  <metaTreeProcessingTime value="file" parameterLevel="top">
-	    <fileName value="testSuite/data/treeTiming.xml"/>
-	  </metaTreeProcessingTime>
-	  <mergerTreeMassResolution value="fixed" parameterLevel="top">
-	    <massResolution value="5.0e11"/>
-	  </mergerTreeMassResolution>
-	</mergerTreeBuildMassDistribution>
+  	<mergerTreeBuildMassDistribution value="gaussian" parameterLevel="top">
+  	  <mean value="1.0e12"/>
+  	  <rootVariance value="0.2e12"/>
+  	</mergerTreeBuildMassDistribution>
+  	<mergerTreeBuildMassDistribution value="powerLaw" parameterLevel="top">
+  	  <mergerTreeMassResolution value="fixed" parameterLevel="top">
+  	    <massResolution value="5.0e11"/>
+  	  </mergerTreeMassResolution>
+  	</mergerTreeBuildMassDistribution>
+  	<mergerTreeBuildMassDistribution value="haloMassFunction" parameterLevel="top"/>
+  	<mergerTreeBuildMassDistribution value="stllrMssFnctn" parameterLevel="top">
+  	  <massMaximum value="7.5857758e11"/>
+  	  <massMinimum value="1.2589254e8"/>
+  	  <constant value="1.0e-8"/>
+  	  <alpha value="-0.3"/>
+  	  <beta value="0.75"/>
+  	  <massCharacteristic value="5.5e10"/>
+  	  <normalization value="2.0e-4"/>
+  	  <binWidthLogarithmic value="0.097"/>
+  	  <metaTreeProcessingTime value="file" parameterLevel="top">
+  	    <fileName value="testSuite/data/treeTiming.xml"/>
+  	  </metaTreeProcessingTime>
+  	  <mergerTreeMassResolution value="fixed" parameterLevel="top">
+  	    <massResolution value="5.0e11"/>
+  	  </mergerTreeMassResolution>
+  	</mergerTreeBuildMassDistribution>
       </mergerTreeBuildMasses>
       <mergerTreeBuildMasses value="sampledDistributionPseudoRandom" parameterLevel="top"/>
       <mergerTreeBuildMasses value="sampledDistributionQuasiRandom" parameterLevel="top"/>
       <mergerTreeBuildMasses value="readXML" parameterLevel="top">
- 	<fileName value="testSuite/data/mergerTreeBuilding/treeMasses.xml"/>
-      </mergerTreeBuildMasses>      
+  	<fileName value="testSuite/data/mergerTreeBuilding/treeMasses.xml"/>
+      </mergerTreeBuildMasses>
     </mergerTreeConstructor>
     
     <mergerTreeConstructor value="read">
       <fileNames value="testSuite/test-MergerTrees.hdf5"/>
-      <nodeOperatorTreeInitializor value="darkMatterProfileScaleInterpolate"/>
+      <nodeOperatorTreeInitializor value="darkMatterProfileScaleSet"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
@@ -176,22 +241,92 @@
     	<satelliteMergingTimescalesSubresolution value="zero"              parameterLevel="-1"/>
     	<satelliteMergingTimescalesSubresolution value="boylanKolchin2008" parameterLevel="-1"/>
       </componentSatellite>
-      <componentPosition value="preset"             parameterLevel="top"/>
-      <componentPosition value="presetInterpolated" parameterLevel="top"/>
+      <componentPosition value="cartesian"          parameterLevel="top"/>
+      <componentPosition value="cartesian"          parameterLevel="top">
+	<nodeOperator value="multi" parameterLevel="top">
+	  <!-- Cosmological epoch -->
+	  <nodeOperator value="cosmicTime" iterable="no"/>
+	  <!-- DMO evolution -->
+	  <nodeOperator value="DMOInterpolate" iterable="no"/>
+	  <!-- Halo concentrations -->
+	  <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	  <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	  <!-- Halo spins -->
+	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	  <!-- Star formation -->
+	  <nodeOperator value="starFormationDisks" iterable="no"/>
+	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
+	  <!--Stellar feedback outflows-->
+	  <nodeOperator value="stellarFeedbackDisks" iterable="no">
+	    <stellarFeedbackOutflows value="rateLimit">
+              <timescaleOutflowFractionalMinimum value="0.001"/>
+              <stellarFeedbackOutflows value="powerLaw">
+		<velocityCharacteristic value="250.0"/>
+		<exponent value="3.5"/>
+              </stellarFeedbackOutflows>
+	    </stellarFeedbackOutflows>
+	  </nodeOperator>
+	  <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	    <stellarFeedbackOutflows value="rateLimit">
+              <timescaleOutflowFractionalMinimum value="0.001"/>
+              <stellarFeedbackOutflows value="powerLaw">
+		<velocityCharacteristic value="250.0"/>
+		<exponent value="3.5"/>
+              </stellarFeedbackOutflows>
+	    </stellarFeedbackOutflows>
+	  </nodeOperator>
+	  <nodeOperator value="positionInterpolated" iterable="no"/>
+	</nodeOperator>
+      </componentPosition>
+      <componentPosition value="cartesian"          parameterLevel="top">
+	<nodeOperator value="multi" parameterLevel="top">
+	  <!-- Cosmological epoch -->
+	  <nodeOperator value="cosmicTime" iterable="no"/>
+	  <!-- DMO evolution -->
+	  <nodeOperator value="DMOInterpolate" iterable="no"/>
+	  <!-- Halo concentrations -->
+	  <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	  <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	  <!-- Halo spins -->
+	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	  <!-- Star formation -->
+	  <nodeOperator value="starFormationDisks" iterable="no"/>
+	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
+	  <!--Stellar feedback outflows-->
+	  <nodeOperator value="stellarFeedbackDisks" iterable="no">
+	    <stellarFeedbackOutflows value="rateLimit">
+              <timescaleOutflowFractionalMinimum value="0.001"/>
+              <stellarFeedbackOutflows value="powerLaw">
+		<velocityCharacteristic value="250.0"/>
+		<exponent value="3.5"/>
+              </stellarFeedbackOutflows>
+	    </stellarFeedbackOutflows>
+	  </nodeOperator>
+	  <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	    <stellarFeedbackOutflows value="rateLimit">
+              <timescaleOutflowFractionalMinimum value="0.001"/>
+              <stellarFeedbackOutflows value="powerLaw">
+		<velocityCharacteristic value="250.0"/>
+		<exponent value="3.5"/>
+              </stellarFeedbackOutflows>
+	    </stellarFeedbackOutflows>
+	  </nodeOperator>
+	  <nodeOperator value="positionOrphans" iterable="no"/>
+	</nodeOperator>
+      </componentPosition>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">
 	<allTreesExistAtFinalTime value="false"/>
       </mergerTreeEvolver>
-      <componentPosition value="preset" parameterLevel="top"/>
       <presetMergerTimes value="true"/>
       <presetPositions value="true"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
       <presetScaleRadii value="false"/>
     </mergerTreeConstructor>
-
-
 
     <!-- Tree filtering -->
     <mergerTreeConstructor value="filter">
@@ -309,21 +444,27 @@
     <transferFunction value="file">
       <fileName value="%DATASTATICPATH%/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
       <cosmologyParameters value="simple" parameterLevel="top">
- 	<HubbleConstant value="73.0"/>
- 	<OmegaMatter vaqlue="0.25"/>
- 	<OmegaDarkEnergy value="0.75"/>
- 	<OmegaBaryon value="0.0455"/>
+  	<HubbleConstant value="73.0"/>
+  	<OmegaMatter vaqlue="0.25"/>
+  	<OmegaDarkEnergy value="0.75"/>
+  	<OmegaBaryon value="0.0455"/>
       </cosmologyParameters>
       <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
- 	<tolerance value="3.0e-4"/>
- 	<toleranceTopHat value="3.0e-4"/>
+  	<tolerance value="3.0e-4"/>
+  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVariance>
     </transferFunction>
     <transferFunction value="BBKS"/>
     <transferFunction value="CAMB">
       <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
- 	<tolerance value="3.0e-4"/>
- 	<toleranceTopHat value="3.0e-4"/>
+  	<tolerance value="3.0e-4"/>
+  	<toleranceTopHat value="3.0e-4"/>
+      </cosmologicalMassVariance>
+    </transferFunction>
+    <transferFunction value="CLASSCDM">
+      <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
+  	<tolerance value="3.0e-4"/>
+  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVariance>
     </transferFunction>
     <transferFunction value="eisensteinHu1999"/>
@@ -342,7 +483,12 @@
     <virialOrbit value="benson2005"/>
     <virialOrbit value="wetzel2010"/>
     <virialOrbit value="jiang2014"/>
-    <virialOrbit value="fixed"/>
+    <virialOrbit value="fixed">
+      <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    </virialOrbit>
+    <virialOrbit value="massReduced">
+      <virialOrbit value="benson2005"/>
+    </virialOrbit>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -389,33 +535,33 @@
   <version>0.9.4</version>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="">
- 	<criticalOverdensity value="fixed">
- 	  <criticalOverdensity value="1.686"/>
- 	</criticalOverdensity>
- 	<cosmologicalMassVariance value="filteredPower">
- 	  <sigma_8 value="0.9"/>
- 	</cosmologicalMassVariance>
- 	<cosmologyParameters value="simple">
- 	  <HubbleConstant value="70.0"/>
- 	  <OmegaMatter value="0.32"/>
- 	  <OmegaDarkEnergy value="0.68"/>
- 	  <OmegaBaryon value="0.045"/>
- 	  <temperatureCMB value="2.725"/>
- 	</cosmologyParameters>
- 	<darkMatterProfileConcentration value="gao2008"/>
- 	<linearGrowth value="collisionlessMatter"/>
- 	<cosmologyFunctions value="matterLambda"/>
- 	<powerSpectrumPrimordial value="powerLaw">
- 	  <index value="1.0"/>
- 	  <wavenumberReference value="1.0"/>
- 	  <running value="0.0"/>
- 	</powerSpectrumPrimordial>
- 	<powerSpectrumPrimordialTransferred value="simple"/>
- 	<powerSpectrumWindowFunction value="topHat"/>
- 	<transferFunction value="eisensteinHu1999">
- 	  <neutrinoNumberEffective value="3.046"/>
- 	  <neutrinoMassSummed value="0.000"/>
- 	</transferFunction>
+  	<criticalOverdensity value="fixed">
+  	  <criticalOverdensity value="1.686"/>
+  	</criticalOverdensity>
+  	<cosmologicalMassVariance value="filteredPower">
+  	  <sigma_8 value="0.9"/>
+  	</cosmologicalMassVariance>
+  	<cosmologyParameters value="simple">
+  	  <HubbleConstant value="70.0"/>
+  	  <OmegaMatter value="0.32"/>
+  	  <OmegaDarkEnergy value="0.68"/>
+  	  <OmegaBaryon value="0.045"/>
+  	  <temperatureCMB value="2.725"/>
+  	</cosmologyParameters>
+  	<darkMatterProfileConcentration value="gao2008"/>
+  	<linearGrowth value="collisionlessMatter"/>
+  	<cosmologyFunctions value="matterLambda"/>
+  	<powerSpectrumPrimordial value="powerLaw">
+  	  <index value="1.0"/>
+  	  <wavenumberReference value="1.0"/>
+  	  <running value="0.0"/>
+  	</powerSpectrumPrimordial>
+  	<powerSpectrumPrimordialTransferred value="simple"/>
+  	<powerSpectrumWindowFunction value="topHat"/>
+  	<transferFunction value="eisensteinHu1999">
+  	  <neutrinoNumberEffective value="3.046"/>
+  	  <neutrinoMassSummed value="0.000"/>
+  	</transferFunction>
       </reference>
     </darkMatterProfileConcentration>
   </parameters>
@@ -446,14 +592,14 @@
     <blackHoleBinaryInitialSeparation value="tidalRadius">
       <blackHoleBinaryRecoil value="zero" parameterLevel="top"/>
       <blackHoleBinaryRecoil value="campanelli2007" parameterLevel="top">
- 	<blackHoleBinarySeparationGrowthRate value="zero" parameterLevel="top"/>
- 	<blackHoleBinarySeparationGrowthRate value="standard" parameterLevel="top">
- 	  <tripleBlackHoleInteraction value="false" parameterLevel="top"/>
- 	  <tripleBlackHoleInteraction value="true" parameterLevel="top">
- 	    <blackHoleOutputMergers value="false" parameterLevel="top"/>
- 	    <blackHoleOutputMergers value="true" parameterLevel="top"/>
- 	  </tripleBlackHoleInteraction>
- 	</blackHoleBinarySeparationGrowthRate>
+  	<blackHoleBinarySeparationGrowthRate value="zero" parameterLevel="top"/>
+  	<blackHoleBinarySeparationGrowthRate value="standard" parameterLevel="top">
+  	  <tripleBlackHoleInteraction value="false" parameterLevel="top"/>
+  	  <tripleBlackHoleInteraction value="true" parameterLevel="top">
+  	    <blackHoleOutputMergers value="false" parameterLevel="top"/>
+  	    <blackHoleOutputMergers value="true" parameterLevel="top"/>
+  	  </tripleBlackHoleInteraction>
+  	</blackHoleBinarySeparationGrowthRate>
       </blackHoleBinaryRecoil>
     </blackHoleBinaryInitialSeparation>
     <blackHoleBinaryInitialSeparation value="volonteri2003"/>
@@ -473,9 +619,42 @@
       <coolingTimeAvailable value="whiteFrenk1991" parameterLevel="top"/>
       <coolingTimeAvailable value="formationTime" parameterLevel="top"/>
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
-      <componentFormationTime value="Cole2000" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+  	<!-- Cosmological epoch -->
+  	<nodeOperator value="cosmicTime" iterable="no"/>
+  	<!-- DMO evolution -->
+  	<nodeOperator value="DMOInterpolate" iterable="no"/>
+  	<!-- Halo concentrations -->
+  	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+  	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+  	<!-- Halo spins -->
+  	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+  	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+  	<!-- Star formation -->
+  	<nodeOperator value="starFormationDisks" iterable="no"/>
+  	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+  	<!--Stellar feedback outflows-->
+  	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
       <nodePropertyExtractor value="rateCooling" parameterLevel="top"/>
-      <nodePropertyExtractor value="null" parameterLevel="top"/>
     </coolingRate>
   </parameters>
   
@@ -507,7 +686,41 @@
     <coolingInfallRadius value="coolingFreefall">
       <freefallRadius value="darkMatterHalo"/>
       <freefallTimeAvailable value="haloFormation" parameterLevel="top"/>
-      <componentFormationTime value="Cole2000" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+  	<!-- Cosmological epoch -->
+  	<nodeOperator value="cosmicTime" iterable="no"/>
+  	<!-- DMO evolution -->
+  	<nodeOperator value="DMOInterpolate" iterable="no"/>
+  	<!-- Halo concentrations -->
+  	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+  	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+  	<!-- Halo spins -->
+  	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+  	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+  	<!-- Star formation -->
+  	<nodeOperator value="starFormationDisks" iterable="no"/>
+  	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+  	<!--Stellar feedback outflows-->
+  	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
     </coolingInfallRadius>
   </parameters>
   
@@ -517,7 +730,41 @@
     <version>0.9.4</version>
     <coolingTimeAvailable value="whiteFrenk1991"/>
     <coolingTimeAvailable value="formationTime">
-      <componentFormationTime value="Cole2000" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+  	<!-- Cosmological epoch -->
+  	<nodeOperator value="cosmicTime" iterable="no"/>
+  	<!-- DMO evolution -->
+  	<nodeOperator value="DMOInterpolate" iterable="no"/>
+  	<!-- Halo concentrations -->
+  	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+  	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+  	<!-- Halo spins -->
+  	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+  	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+  	<!-- Star formation -->
+  	<nodeOperator value="starFormationDisks" iterable="no"/>
+  	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+  	<!--Stellar feedback outflows-->
+  	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
     </coolingTimeAvailable>
   </parameters>
   
@@ -528,8 +775,8 @@
     <coolingSpecificAngularMomentum value="mean"/>
     <coolingSpecificAngularMomentum value="constantRotation">
       <sourceAngularMomentumSpecificMean value="hotGas">
- 	<useInteriorMean value="true"/>
- 	<useInteriorMean value="false"/>
+  	<useInteriorMean value="true"/>
+  	<useInteriorMean value="false"/>
       </sourceAngularMomentumSpecificMean>
       <sourceAngularMomentumSpecificMean value="darkMatter"/>
     </coolingSpecificAngularMomentum>
@@ -583,16 +830,16 @@
       <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
       <imfSelectionFixed value="Scalo" parameterLevel="top"/>
       <imfSelectionFixed value="PiecewisePowerLaw" parameterLevel="top">
- 	<imfPiecewisePowerLawMassPoints value="0.1 1.0 125.0" parameterLevel="top"/>
- 	<imfPiecewisePowerLawExponents value="-1.5 -2.3" parameterLevel="top"/>
+  	<imfPiecewisePowerLawMassPoints value="0.1 1.0 125.0" parameterLevel="top"/>
+  	<imfPiecewisePowerLawExponents value="-1.5 -2.3" parameterLevel="top"/>
       </imfSelectionFixed>
     </stellarPopulationSelector>
     <stellarPopulationSelector value="diskSpheroid">
       <stellarPopulationDisk value="standard">
-	<initialMassFunction value="chabrier2001"/>
+  	<initialMassFunction value="chabrier2001"/>
       </stellarPopulationDisk>
       <stellarPopulationSpheroid value="standard">
-	<initialMassFunction value="kennicutt1983"/>
+  	<initialMassFunction value="kennicutt1983"/>
       </stellarPopulationSpheroid>
     </stellarPopulationSelector>
   </parameters>
@@ -608,6 +855,16 @@
     </hotHaloMassDistribution>
   </parameters>
   
+  <!-- Output bar instability properties -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="adiabaticRatioOrbitalDisk" iterable="no"/>
+      <nodePropertyExtractor value="timescaleBarInstability"   iterable="no"/>
+    </nodePropertyExtractor>
+  </parameters>
+
   <!-- Output density contrasts -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -637,25 +894,16 @@
     <nodePropertyExtractor value="mainBranchStatus"/>
   </parameters>
 
-  <!-- Output mass profile -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <nodePropertyExtractor value="massProfile">
-      <radii value="10.0e-3 100.0d-3"/>
-    </nodePropertyExtractor>
-  </parameters>
-
   <!-- Output star formation rates -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="starFormationRate" >
-	<component value="disk"    />
+  	<component value="disk"    />
       </nodePropertyExtractor>
       <nodePropertyExtractor value="starFormationRate" >
-	<component value="spheroid"/>
+  	<component value="spheroid"/>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
   </parameters>
@@ -770,33 +1018,39 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
-      <nodeOperator value="haloSpinRandom" iterable="no">
-	<factorReset value="2.0"/>
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
+  	<factorReset value="2.0"/>
       </nodeOperator>
+      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
       <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="ramPressureMassLossDisks" iterable="no"/>
     </nodeOperator>
@@ -806,33 +1060,38 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
-      <nodeOperator value="haloSpinRandom" iterable="no">
-	<factorReset value="2.0"/>
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
+  	<factorReset value="2.0"/>
       </nodeOperator>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
       <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="ramPressureMassLossSpheroids" iterable="no"/>
     </nodeOperator>
@@ -844,33 +1103,38 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
-      <nodeOperator value="haloSpinRandom" iterable="no">
-	<factorReset value="2.0"/>
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
+  	<factorReset value="2.0"/>
       </nodeOperator>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
       <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="tidalMassLossDisks" iterable="no"/>
     </nodeOperator>
@@ -881,33 +1145,38 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
-      <nodeOperator value="haloSpinRandom" iterable="no">
-	<factorReset value="2.0"/>
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
+  	<factorReset value="2.0"/>
       </nodeOperator>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
       <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
+  	<stellarFeedbackOutflows value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflows value="powerLaw">
             <velocityCharacteristic value="250.0"/>
             <exponent value="3.5"/>
           </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+  	</stellarFeedbackOutflows>
       </nodeOperator>
       <nodeOperator value="tidalMassLossSpheroids" iterable="no"/>
       <nodeOperator value="tidalHeatingSpheroids" iterable="no"/>
@@ -987,7 +1256,7 @@
     <universeOperator value="intergalacticMediumStateEvolve">
       <timeCountPerDecade value="2"/>
       <redshiftMaximum value="150"/>
-    </universeOperator>    
+    </universeOperator>
     <!-- Background radiation -->
     <radiationFieldIntergalacticBackground value="intergalacticBackgroundInternal">
       <wavelengthCountPerDecade value="5"/>
@@ -1037,6 +1306,7 @@
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentSatellite value="orbiting"/>
     <componentSpheroid value="null"/>
     <spheroidMassDistribution value="hernquist">
@@ -1044,20 +1314,25 @@
     </spheroidMassDistribution>
     <componentSpin value="scalar"/>
     <nodeOperator value="multi" >
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
-      <nodeOperator value="haloSpinRandom" iterable="no">
-	<factorReset value="2.0"/>
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
+  	<factorReset value="2.0"/>
       </nodeOperator>
       <nodeOperator value="satelliteOrbit"                    iterable="no"/>
       <nodeOperator value="satelliteDynamicalFriction"        iterable="no"/>
       <nodeOperator value="satelliteTidalMassLoss"            iterable="no"/>
       <nodeOperator value="satelliteTidalHeating"             iterable="no"/>
       <nodeOperator value="satelliteMergingRadiusTrigger"     iterable="no" >
-	<radiusVirialFraction      value="0.01"/>
+  	<radiusVirialFraction      value="0.01"/>
       </nodeOperator>
       <nodeOperator value="satelliteDestructionMassThreshold" iterable="no" >
-	<massDestruction           value="0.00"/>
-	<massDestructionFractional value="0.01"/>
+  	<massDestruction           value="0.00"/>
+  	<massDestructionFractional value="0.01"/>
       </nodeOperator>
     </nodeOperator>
     <satelliteDynamicalFriction value="chandrasekhar1943"/>
@@ -1085,7 +1360,9 @@
     <haloMassFunction value="tinker2008"/>
     <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <virialOrbit value="isotropic">
-      <virialOrbit value="fixed"/>
+      <virialOrbit value="fixed">
+  	<virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+     </virialOrbit>
     </virialOrbit>
     <mergerTreeConstructor value="build"/>
     <mergerTreeBuilder value="cole2000">
@@ -1101,12 +1378,12 @@
     <mergerTreeNodeMerger value="singleLevelHierarchy"/>
     <mergerTreeEvolveTimestep value="multi">
       <mergerTreeEvolveTimestep value="simple"               iterable="no" >
-	<timeStepAbsolute          value="1.000"/>
-	<timeStepRelative          value="0.100"/>
+  	<timeStepAbsolute          value="1.000"/>
+  	<timeStepRelative          value="0.100"/>
       </mergerTreeEvolveTimestep>
       <mergerTreeEvolveTimestep value="satellite"            iterable="no" >
-	<timeOffsetMaximumAbsolute value="0.010"/>
-	<timeOffsetMaximumRelative value="0.001"/>
+  	<timeOffsetMaximumAbsolute value="0.010"/>
+  	<timeOffsetMaximumRelative value="0.001"/>
       </mergerTreeEvolveTimestep>
       <mergerTreeEvolveTimestep value="satelliteDestruction" iterable="no"/>
     </mergerTreeEvolveTimestep>
@@ -1127,26 +1404,8 @@
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>
     </accretionHalo>
-    <hotHaloMassDistribution value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <mergerRemnantSize value="null"/>
-  </parameters>
-
-  <!-- Statistics and tracking components -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentHostHistory value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentMassFlowStatistics value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentDynamicsStatistics value="bars"/>
   </parameters>
 
   <!-- Parallel processing of individual trees -->
@@ -1186,55 +1445,62 @@
     </mergerTreeMassResolution>
     <mergerTreeOperator value="sequence">
       <mergerTreeOperator value="selectWithinRange" iterable="no">
- 	<baseMassMaximum value="1.0e16"/>
- 	<baseMassMinimum value="1.0e7"/>
+  	<baseMassMaximum value="1.0e16"/>
+  	<baseMassMinimum value="1.0e7"/>
       </mergerTreeOperator>
       <mergerTreeOperator value="regridTimes" iterable="no">
-	<outputTimes value="simulationSnapshots">
-	  <fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
-	</outputTimes>
+  	<outputTimes value="simulationSnapshots">
+  	  <fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
+  	</outputTimes>
       </mergerTreeOperator>
       <mergerTreeOperator value="pruneByMass" iterable="no">
- 	<massThreshold value="7.08e10"/>
- 	<preservePrimaryProgenitor value="true"/>
+  	<massThreshold value="7.08e10"/>
+  	<preservePrimaryProgenitor value="true"/>
       </mergerTreeOperator>
       <mergerTreeOperator value="augment" iterable="no">
- 	<attemptsMaximum value="10000"/>
- 	<massCutOff value="7.08e10"/>
- 	<massCutOffAttemptsMaximum value="50"/>
- 	<massCutOffScaleFactor value="0.0"/>
- 	<mergerTreeBuilder value="cole2000">
+  	<attemptsMaximum value="10000"/>
+  	<massCutOff value="7.08e10"/>
+  	<massCutOffAttemptsMaximum value="50"/>
+  	<massCutOffScaleFactor value="0.0"/>
+  	<mergerTreeBuilder value="cole2000">
           <accretionLimit value="0.1"/>
           <branchIntervalStep value="true"/>
           <mergeProbability value="0.1"/>
           <mergerTreeMassResolution value="fixed">
             <massResolution value="2.5e9"/>
           </mergerTreeMassResolution>
- 	</mergerTreeBuilder>
- 	<rescaleMaximum value="20"/>
- 	<retryMaximum value="50"/>
- 	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780        11.896569 10.943864 10.073462  9.277915  8.549912  7.883204        7.272188  6.711586  6.196833  5.723864  5.288833  4.888449        4.519556  4.179469  3.865683  3.575905  3.308098  3.060419        2.831182  2.618862  2.422044  2.239486  2.070027  1.912633        1.766336  1.630271  1.503636  1.385718  1.275846  1.173417        1.077875  0.988708  0.905463  0.827699  0.755036  0.687109        0.623590  0.564177  0.508591  0.456577  0.407899  0.362340        0.319703  0.279802  0.242469  0.207549  0.174898  0.144383        0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
- 	<toleranceScale value="0.15"/>
+  	</mergerTreeBuilder>
+  	<rescaleMaximum value="20"/>
+  	<retryMaximum value="50"/>
+  	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780        11.896569 10.943864 10.073462  9.277915  8.549912  7.883204        7.272188  6.711586  6.196833  5.723864  5.288833  4.888449        4.519556  4.179469  3.865683  3.575905  3.308098  3.060419        2.831182  2.618862  2.422044  2.239486  2.070027  1.912633        1.766336  1.630271  1.503636  1.385718  1.275846  1.173417        1.077875  0.988708  0.905463  0.827699  0.755036  0.687109        0.623590  0.564177  0.508591  0.456577  0.407899  0.362340        0.319703  0.279802  0.242469  0.207549  0.174898  0.144383        0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
+  	<toleranceScale value="0.15"/>
       </mergerTreeOperator>
       <mergerTreeOperator value="conditionalMF" iterable="no">
- 	<massRatioCount value="25"/>
- 	<massRatioMaximum value="2.0"/>
- 	<massRatioMinimum value="2.0e-6"/>
- 	<outputGroupName value="treeStatisticsAfterInsertion"/>
- 	<parentMassCount value="20"/>
- 	<parentMassMaximum value="1.0e15"/>
- 	<parentMassMinimum value="2.36e10"/>
- 	<parentRedshifts value="0.0 0.0"/>
- 	<primaryProgenitorDepth value="4"/>
- 	<progenitorRedshifts value="0.508591 1.077875"/>
+  	<massRatioCount value="25"/>
+  	<massRatioMaximum value="2.0"/>
+  	<massRatioMinimum value="2.0e-6"/>
+  	<outputGroupName value="treeStatisticsAfterInsertion"/>
+  	<parentMassCount value="20"/>
+  	<parentMassMaximum value="1.0e15"/>
+  	<parentMassMinimum value="2.36e10"/>
+  	<parentRedshifts value="0.0 0.0"/>
+  	<primaryProgenitorDepth value="4"/>
+  	<progenitorRedshifts value="0.508591 1.077875"/>
       </mergerTreeOperator>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentPosition value="null"/>
     <componentSatellite value="standard"/>
     <componentSpheroid value="null"/>
@@ -1270,10 +1536,17 @@
     </mergerTreeMassResolution>
     <mergerTreeOperator value="regridTimes">
       <outputTimes value="simulationSnapshots">
-	<fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
+  	<fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
       </outputTimes>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1320,7 +1593,14 @@
       <primaryProgenitorDepth value="4"/>
       <progenitorRedshifts value="0.508591 1.077875"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1356,7 +1636,14 @@
       <massResolution value="1.0e10"/>
     </mergerTreeMassResolution>
     <mergerTreeOperator value="informationContent"/>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1395,7 +1682,14 @@
       <massMinimum value="2.0e12"/>
       <massMaximum value="6.0e12"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1433,7 +1727,14 @@
     <mergerTreeOperator value="pruneByMass">
       <massThreshold value="1.0e11"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1471,7 +1772,14 @@
     <mergerTreeOperator value="pruneHierarchy">
       <hierarchyDepth value="1"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1509,7 +1817,14 @@
     <mergerTreeOperator value="pruneByTime">
       <redshiftEarliest value="1.0"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1524,17 +1839,17 @@
   
   <!-- Merger tree particulate -->
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <massTreeMaximum value="6.0e12"/>
-    <massTreeMinimum value="2.0e12"/>
-    <treesPerDecade value="10"/>
-  </mergerTreeBuildMasses>
+      <massTreeMaximum value="6.0e12"/>
+      <massTreeMinimum value="2.0e12"/>
+      <treesPerDecade value="10"/>
+    </mergerTreeBuildMasses>
     <mergerTreeBuilder value="cole2000">
       <accretionLimit value="0.1"/>
       <branchIntervalStep value="false"/>
@@ -1553,7 +1868,13 @@
       <selection value="hosts"/>
       <nonCosmological value="true"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1591,7 +1912,14 @@
     <mergerTreeOperator value="dumpToGraphViz">
       <path value="testSuite/outputs"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1624,7 +1952,7 @@
       <presetSubhaloIndices value="false"/>
       <presetPositions value="false"/>
       <presetScaleRadii value="false"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
       <presetOrbits value="false"/>
     </mergerTreeConstructor>
     <cosmologicalMassVariance value="filteredPower">
@@ -1642,10 +1970,17 @@
     </mergerTreeEvolver>
     <mergerTreeOperator value="perturbMasses">
       <nbodyHaloMassError value="friendsOfFriends">
- 	<massParticle value="1.0e9"/>
+  	<massParticle value="1.0e9"/>
       </nbodyHaloMassError>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1678,7 +2013,7 @@
       <presetSubhaloIndices value="false"/>
       <presetPositions value="false"/>
       <presetScaleRadii value="false"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
       <presetOrbits value="false"/>
     </mergerTreeConstructor>
     <cosmologicalMassVariance value="filteredPower">
@@ -1695,7 +2030,14 @@
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolver>
     <mergerTreeOperator value="monotonizeMassGrowth"/>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"     iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1738,7 +2080,7 @@
       <presetSubhaloIndices value="false"/>
       <presetPositions value="false"/>
       <presetScaleRadii value="false"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
       <presetOrbits value="false"/>
     </mergerTreeConstructor>
     <mergerTreeEvolver value="standard">
@@ -1748,7 +2090,16 @@
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Subhalo hierarchy -->
+      <nodeOperator value="hierarchy" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1763,9 +2114,18 @@
   
   <!-- WDM model -->
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
-    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"                        iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"                    iterable="no"/>
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+    </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentHotHalo value="null"/>
     <componentBlackHole value="null"/>
@@ -1796,7 +2156,7 @@
       <monotonicInterpolation value="false"/>
       <nonMonotonicIsFatal value="false"/>
       <powerSpectrumWindowFunction value="sharpKSpace">
-	<normalization value="2.5"/>
+  	<normalization value="2.5"/>
       </powerSpectrumWindowFunction>
     </cosmologicalMassVariance>
     <transferFunction value="bode2001">
@@ -1804,15 +2164,15 @@
       <nu value="1.1"/>
       <eta value="3.81"/>
       <transferFunction value="eisensteinHu1999">
-	<neutrinoNumberEffective value="3.04"/>
-	<neutrinoMassSummed value="0.000"/>
-	<darkMatterParticle value="CDM"/>
+  	<neutrinoNumberEffective value="3.04"/>
+  	<neutrinoMassSummed value="0.000"/>
+  	<darkMatterParticle value="CDM"/>
       </transferFunction>
     </transferFunction>
     <linearGrowth value="collisionlessMatter"/>
     <criticalOverdensity value="barkana2001WDM">
       <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
-	<darkMatterParticle value="CDM"/>
+  	<darkMatterParticle value="CDM"/>
       </criticalOverdensity>
     </criticalOverdensity>
     <haloMassFunction value="pressSchechter"/>
@@ -1820,47 +2180,50 @@
       <factor value="1.1965"/>
       <applyTo value="nonRates"/>
       <excursionSetBarrier value="remapShethMoTormen">
-	<a value="0.707"/>
-	<b value="0.500"/>
-	<c value="0.600"/>
-	<applyTo value="nonRates"/>
-	<excursionSetBarrier value="criticalOverdensity"/>
+  	<a value="0.707"/>
+  	<b value="0.500"/>
+  	<c value="0.600"/>
+  	<applyTo value="nonRates"/>
+  	<excursionSetBarrier value="criticalOverdensity"/>
       </excursionSetBarrier>
     </excursionSetBarrier>
     <excursionSetFirstCrossing value="farahi">
       <timeStepFractional value="0.01"/>
-      <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx2.0Gx1.5.hdf5"/>
+      <fileName value="auto"/>
+      <varianceNumberPerUnitProbability value="100"/>
+      <varianceNumberPerUnit value="20"/>
+      <varianceNumberPerDecade value="40"/>
     </excursionSetFirstCrossing>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="">
-	<cosmologicalMassVariance value="filteredPower">
- 	  <sigma_8 value="0.817"/>
- 	  <powerSpectrumWindowFunction value="sharpKSpace">
- 	    <normalization value="2.5"/>
- 	  </powerSpectrumWindowFunction>
- 	  <powerSpectrumPrimordialTransferred value="simple"/>
- 	  <transferFunction value="eisensteinHu1999">
- 	    <neutrinoNumberEffective value="3.04"/>
- 	    <neutrinoMassSummed value="0.000"/>
- 	    <darkMatterParticle value="CDM"/>
- 	  </transferFunction>
- 	  <powerSpectrumPrimordial value="powerLaw">
- 	    <index value="0.961"/>
- 	    <wavenumberReference value="1.000"/>
- 	    <running value="0.000"/>
- 	  </powerSpectrumPrimordial>
-	</cosmologicalMassVariance>
-	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
- 	  <darkMatterParticle value="CDM"/>
-	</criticalOverdensity>
-	<cosmologyFunctions value="matterLambda"/>
-	<cosmologyParameters value="simple">
- 	  <OmegaMatter value="0.2812"/>
- 	  <OmegaDarkEnergy value="0.7188"/>
- 	  <OmegaBaryon value="0.04611"/>
- 	  <HubbleConstant value="69.7"/>
-	</cosmologyParameters>
-	<darkMatterProfileConcentration value="diemerKravtsov2014"/>
+  	<cosmologicalMassVariance value="filteredPower">
+  	  <sigma_8 value="0.817"/>
+  	  <powerSpectrumWindowFunction value="sharpKSpace">
+  	    <normalization value="2.5"/>
+  	  </powerSpectrumWindowFunction>
+  	  <powerSpectrumPrimordialTransferred value="simple"/>
+  	  <transferFunction value="eisensteinHu1999">
+  	    <neutrinoNumberEffective value="3.04"/>
+  	    <neutrinoMassSummed value="0.000"/>
+  	    <darkMatterParticle value="CDM"/>
+  	  </transferFunction>
+  	  <powerSpectrumPrimordial value="powerLaw">
+  	    <index value="0.961"/>
+  	    <wavenumberReference value="1.000"/>
+  	    <running value="0.000"/>
+  	  </powerSpectrumPrimordial>
+  	</cosmologicalMassVariance>
+  	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+  	  <darkMatterParticle value="CDM"/>
+  	</criticalOverdensity>
+  	<cosmologyFunctions value="matterLambda"/>
+  	<cosmologyParameters value="simple">
+  	  <OmegaMatter value="0.2812"/>
+  	  <OmegaDarkEnergy value="0.7188"/>
+  	  <OmegaBaryon value="0.04611"/>
+  	  <HubbleConstant value="69.7"/>
+  	</cosmologyParameters>
+  	<darkMatterProfileConcentration value="diemerKravtsov2014"/>
       </reference>
     </darkMatterProfileConcentration>
     <mergerTreeConstructor value="build"/>
@@ -1879,9 +2242,9 @@
       <gamma2 value="-0.01"/>
     </mergerTreeBranchingProbabilityModifier>
     <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <massTreeMinimum value="1.0e12"/>
-    <massTreeMaximum value="2.0e12"/>
-    <treesPerDecade value="20"/>
+      <massTreeMinimum value="1.0e12"/>
+      <massTreeMaximum value="2.0e12"/>
+      <treesPerDecade value="20"/>
     </mergerTreeBuildMasses>
     <mergerTreeMassResolution value="fixed">
       <massResolution value="1.0e9"/>
@@ -1892,28 +2255,27 @@
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="0.01"/>
-    <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolver>
+      <odeToleranceAbsolute value="0.01"/>
+      <odeToleranceRelative value="0.01"/>
+    </mergerTreeNodeEvolver>
 
-  <mergerTreeEvolver value="standard">
-    <timestepHostAbsolute value="1.00"/>
-    <timestepHostRelative value="0.10"/>
-  </mergerTreeEvolver>
+    <mergerTreeEvolver value="standard">
+      <timestepHostAbsolute value="1.00"/>
+      <timestepHostRelative value="0.10"/>
+    </mergerTreeEvolver>
 
-  <mergerTreeEvolveTimestep value="multi">
-    <mergerTreeEvolveTimestep value="simple"    iterable="no" >
-      <timeStepAbsolute value="10.00"/>
-      <timeStepRelative value="10.00"/>
+    <mergerTreeEvolveTimestep value="multi">
+      <mergerTreeEvolveTimestep value="simple"    iterable="no" >
+  	<timeStepAbsolute value="10.00"/>
+  	<timeStepRelative value="10.00"/>
+      </mergerTreeEvolveTimestep>
+      <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
     </mergerTreeEvolveTimestep>
-    <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
-  </mergerTreeEvolveTimestep>
-  <outputTimestepHistory value="false"/>
-  <outputTimes value="list">
-    <redshifts value="0.0"/>
-  </outputTimes>
-  
-  <verbosityLevel value="standard"/>
+    <outputTimestepHistory value="false"/>
+    <outputTimes value="list">
+      <redshifts value="0.0"/>
+    </outputTimes>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Power spectrum calculation -->
@@ -1929,14 +2291,68 @@
     <cosmologyParameters value="simple">
       <HubbleConstant value="70.7"/>
       <OmegaMatter value="0.2695"/>
-      <OmegaDarkEnergy value="0.7305"/> 
+      <OmegaDarkEnergy value="0.7305"/>
       <OmegaBaryon value="0.04541"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParameters>
     <outputTimes value="list">
-    <redshifts value="0.0 1.0"/>
-  </outputTimes>
-
+      <redshifts value="0.0 1.0"/>
+    </outputTimes>
   </parameters>
 
+  <!-- Broadband luminosity tabulation -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <task value="buildBroadbandLuminosityTabulations"/>
+    <outputTimes value="list">
+      <redshifts value="0.0 1.0"/>
+    </outputTimes>
+    <luminosityFilter   value="LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z   LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z"/>
+    <luminosityType     value="observed observed observed observed observed observed rest     rest     rest     rest     rest     rest  "/>
+    <luminosityRedshift value="all      all      all      all      all      all      all      all      all      all      all      all   "/>
+  </parameters>
+
+  <!-- Assign positions to subhalos -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <componentPosition value="cartesian"/>
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+      <!-- Halo spins -->
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Star formation -->
+      <nodeOperator value="starFormationDisks" iterable="no"/>
+      <nodeOperator value="starFormationSpheroids" iterable="no"/>
+      <!--Stellar feedback outflows-->
+      <nodeOperator value="stellarFeedbackDisks" iterable="no">
+	<stellarFeedbackOutflows value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflows value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflows>
+	</stellarFeedbackOutflows>
+      </nodeOperator>
+      <nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	<stellarFeedbackOutflows value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="0.001"/>
+          <stellarFeedbackOutflows value="powerLaw">
+            <velocityCharacteristic value="250.0"/>
+            <exponent value="3.5"/>
+          </stellarFeedbackOutflows>
+	</stellarFeedbackOutflows>
+      </nodeOperator>
+      <nodeOperator value="positionTraceDarkMatter" iterable="no"/>
+    </nodeOperator>
+  </parameters>
+  
 </parameterGrid>

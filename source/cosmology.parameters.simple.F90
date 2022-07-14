@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,8 +58,8 @@ contains
     !!{
     Constructor for the simple cosmological parameters class which takes a parameter set as input.
     !!}
-    use :: Display         , only : displayMagenta , displayReset
-    use :: Galacticus_Error, only : Galacticus_Warn
+    use :: Display, only : displayMagenta, displayReset
+    use :: Error  , only : Warn
     implicit none
     type(cosmologyParametersSimple)                :: simpleConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
@@ -108,7 +108,7 @@ contains
     !!]
     ! Validate the input.
     if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                    &
-         & call Galacticus_Warn(displayMagenta()//"WARNING:"//displayReset()//" [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
+         & call Warn(displayMagenta()//"WARNING:"//displayReset()//" [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -137,7 +137,6 @@ contains
     !!{
     Return the cosmological matter density in units of the critical density at the present day.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -149,7 +148,6 @@ contains
     !!{
     Return the cosmological baryon density in units of the critical density at the present day.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -161,7 +159,6 @@ contains
     !!{
     Return the cosmological dark energy density in units of the critical density at the present day.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
@@ -215,8 +212,8 @@ contains
     !!{
     Return the present day value of the Hubble constant.
     !!}
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Astronomical, only : gigaYear               , megaParsec
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (cosmologyParametersSimple), intent(inout)           :: self
@@ -239,7 +236,7 @@ contains
             &                    /HubbleConstantNormalization
     case default
        simpleHubbleConstant=0.0d0
-       call Galacticus_Error_Report('unknown units for Hubble parameter'//{introspection:location})
+       call Error_Report('unknown units for Hubble parameter'//{introspection:location})
     end select
     return
   end function simpleHubbleConstant

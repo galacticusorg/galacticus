@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,7 +81,7 @@ contains
     !!{
     Default constructor for the \cite{montero-dorta_sdss_2009} survey geometry class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type            (surveyGeometryMonteroDorta2009SDSS)                          :: self
     character       (len=1                             ), intent(in   )           :: band
@@ -119,7 +119,7 @@ contains
        self%magnitudeApparentMinimum=13.40d0
        self%magnitudeApparentMaximum=16.97d0
     case default
-       call Galacticus_Error_Report('band ∈ {u,g,r,i,z} is required'//{introspection:location})
+       call Error_Report('band ∈ {u,g,r,i,z} is required'//{introspection:location})
     end select
     ! If redshift ranges are provided, override the defaults.
     if (present(redshiftMinimum)) self%redshiftMinimum=redshiftMinimum
@@ -146,7 +146,7 @@ contains
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -154,7 +154,7 @@ contains
     !$GLC attributes unused :: field, mass, luminosity
 
     ! Validate input.
-    if (.not.present(magnitudeAbsolute)) call Galacticus_Error_Report('absolute magnitude must be supplied '//{introspection:location})
+    if (.not.present(magnitudeAbsolute)) call Error_Report('absolute magnitude must be supplied '//{introspection:location})
     ! Compute limiting distances. This is due only to the redshift limit.
     monteroDorta2009SDSSDistanceMinimum=self   %cosmologyFunctions_%distanceComoving           (                        &
          &                               self  %cosmologyFunctions_%cosmicTime                  (                       &
@@ -171,7 +171,7 @@ contains
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
-    use :: Galacticus_Error           , only : Galacticus_Error_Report
+    use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity
@@ -180,7 +180,7 @@ contains
     !$GLC attributes unused :: field, mass, luminosity
 
     ! Validate input.
-    if (.not.present(magnitudeAbsolute)) call Galacticus_Error_Report('absolute magnitude must be supplied '//{introspection:location})
+    if (.not.present(magnitudeAbsolute)) call Error_Report('absolute magnitude must be supplied '//{introspection:location})
     ! Compute limiting distances. Note that for the magnitudes we have:
     !  m = M₀.₁ + D(z) - 2.5log₁₀(1+z) - K
     ! where D(z)=25+5log(Dₗ) is the regular distance modulus, Dₗ(z)=(1+z)Dᵪ(z) is the luminosity distance, Dᵪ(z) is the comoving

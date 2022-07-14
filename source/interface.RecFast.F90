@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,13 +34,15 @@ contains
     !!{
     Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
     !!}
-    use :: Display           , only : displayMessage         , verbosityLevelWorking
-    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock   , &
+    use :: Display           , only : displayMessage   , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock   , File_Unlock   , &
           &                           lockDescriptor
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic  , pathTypeExec
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeExec
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), varying_string
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler         , languageFortran
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
     logical                  , intent(in   ), optional :: static
@@ -53,35 +55,35 @@ contains
     !!]
 
     ! Set path.
-    recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"
+    recfastPath=inputPath(pathTypeDataDynamic)//"RecFast/"
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
-       call Directory_Make(recfastPath)
-       call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     recfastPath                                              )
+       call File_Lock     (char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
        ! Patch the code if not already patched.
        if (.not.File_Exists(recfastPath//"patched")) then
           ! Download the code if not already downloaded.
           if (.not.File_Exists(recfastPath//"recfast.for")) then
              call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-             call System_Command_Do("wget --no-check-certificate https://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
+             call download("https://www.astro.ubc.ca/people/scott/recfast.for",char(recfastPath)//"recfast.for")
              if (.not.File_Exists(recfastPath//"recfast.for")) &
-                  & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location})
+                  & call Error_Report("failed to download RecFast code"//{introspection:location})
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
-          if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
+          call System_Command_Do("cp "//inputPath(pathTypeExec)//"aux/RecFast_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
+          if (status /= 0) call Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
           call System_Command_Do("touch "//recfastPath//"patched")
        end if
        call displayMessage("compiling RecFast code....",verbosityLevelWorking)
-       command="cd "//recfastPath//"; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
+       command="cd "//recfastPath//"; "//compiler(languageFortran)//" recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
        if (static_) command=command//" -static"
        call System_Command_Do(char(command))
        if (.not.File_Exists(recfastPath//"recfast.exe")) &
-            & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location})
+            & call Error_Report("failed to build RecFast code"//{introspection:location})
        call File_Unlock(fileLock)
     end if
     ! Determine the version.
-    call File_Lock(char(galacticusPath(pathTypeDataDynamic))//'RecFast.currentVersion',fileLock,lockIsShared=.false.)
+    call File_Lock(char(inputPath(pathTypeDataDynamic))//'RecFast.currentVersion',fileLock,lockIsShared=.false.)
     if (.not.File_Exists(recfastPath//"currentVersion")) then
        recFastVersion="unknown"
        open(newUnit=recFastUnit,file=char(recfastPath)//"recfast.for",status='old',form='formatted',ioStat=status)
@@ -89,7 +91,7 @@ contains
           read (recFastUnit,'(a)',ioStat=status) line
           if (line(1:2) == "CV" .and. line(4:11) == "Version:") then
              read (line(13:),'(a)') versionLabel
-             recFastVersion=versionLabel
+             recFastVersion=trim(versionLabel)
           end if
        end do
        close(recFastUnit)
@@ -100,7 +102,7 @@ contains
        open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='old',form='formatted')
        read (recfastUnit,'(a)') versionLabel
        close(recFastUnit)
-       recFastVersion=versionLabel
+       recFastVersion=trim(versionLabel)
     end if
     call File_Unlock(fileLock)
     return

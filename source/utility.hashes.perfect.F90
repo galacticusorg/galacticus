@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -77,9 +77,9 @@ contains
     !!{
     Create a perfect hash for a given set of keys.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Error            , only : Error_Report
     use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (hashPerfect   )                             , intent(inout)           :: hash
     integer(kind=kind_int8)             , dimension(:)  , intent(in   )           :: keys
@@ -180,7 +180,7 @@ contains
             exit
          end if
       end do
-      if (offset == hashTableMax-hash%rowSize-1) call Galacticus_Error_Report('failed to fit row into hash table - this should not happen'//{introspection:location})
+      if (offset == hashTableMax-hash%rowSize-1) call Error_Report('failed to fit row into hash table - this should not happen'//{introspection:location})
       i=i+1
    end do
 
@@ -237,12 +237,12 @@ contains
    !!{
    Return the size of the hash table.
    !!}
-   use :: Galacticus_Error, only : Galacticus_Error_Report
+   use :: Error, only : Error_Report
    implicit none
    integer(c_size_t   )                :: Hash_Perfect_Size
    class  (hashPerfect), intent(in   ) :: hash
 
-   if (.not.hash%created) call Galacticus_Error_Report('hash has not been created'//{introspection:location})
+   if (.not.hash%created) call Error_Report('hash has not been created'//{introspection:location})
    Hash_Perfect_Size=hash%hashSize
    return
  end function Hash_Perfect_Size
@@ -251,15 +251,15 @@ contains
    !!{
    Return the index corresponding to a hash key.
    !!}
-   use :: Galacticus_Error, only : Galacticus_Error_Report
-   use :: Kind_Numbers    , only : kind_int8
+   use :: Error       , only : Error_Report
+   use :: Kind_Numbers, only : kind_int8
    implicit none
    integer(c_size_t      )                :: Hash_Perfect_Index
    class  (hashPerfect   ), intent(in   ) :: hash
    integer(kind=kind_int8), intent(in   ) :: key
    integer(c_size_t      )                :: x                 , y
 
-   if (.not.hash%created) call Galacticus_Error_Report('hash has not been created'//{introspection:location})
+   if (.not.hash%created) call Error_Report('hash has not been created'//{introspection:location})
    x                 =    key/hash%rowSize
    y                 =mod(key,hash%rowSize)
    Hash_Perfect_Index=hash%r(x)+y
@@ -270,15 +270,15 @@ contains
    !!{
    Returns true if the hash contains the key.
    !!}
-   use :: Galacticus_Error, only : Galacticus_Error_Report
-   use :: Kind_Numbers    , only : kind_int8
+   use :: Error       , only : Error_Report
+   use :: Kind_Numbers, only : kind_int8
    implicit none
    class  (hashPerfect   ), intent(in   ) :: hash
    integer(kind=kind_int8), intent(in   ) :: key
    integer(c_size_t      )                :: hashIndex
 
    hashIndex=hash%index(key)
-   if (.not.hash%hasInverseTable) call Galacticus_Error_Report('hash does not store inverse table'//{introspection:location})
+   if (.not.hash%hasInverseTable) call Error_Report('hash does not store inverse table'//{introspection:location})
    Hash_Perfect_Is_Present=(hash%C(hashIndex) == key)
    return
  end function Hash_Perfect_Is_Present
@@ -287,8 +287,8 @@ contains
    !!{
    Returns the value for a specified key.
    !!}
-   use :: Galacticus_Error, only : Galacticus_Error_Report
-   use :: Kind_Numbers    , only : kind_int8
+   use :: Error       , only : Error_Report
+   use :: Kind_Numbers, only : kind_int8
    implicit none
    integer(kind=kind_int8)                :: Hash_Perfect_Value
    class  (hashPerfect   ), intent(in   ) :: hash
@@ -296,7 +296,7 @@ contains
    integer(c_size_t      )                :: hashIndex
 
    hashIndex=hash%index(key)
-   if (.not.hash%hasValues) call Galacticus_Error_Report('hash does not store values'//{introspection:location})
+   if (.not.hash%hasValues) call Error_Report('hash does not store values'//{introspection:location})
    Hash_Perfect_Value=hash%v(hashIndex)
    return
  end function Hash_Perfect_Value

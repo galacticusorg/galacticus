@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,8 +53,8 @@ contains
     !!{
     Set system resource limits.
     !!}
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    use    :: Input_Parameters, only : inputParameters        , inputParameter
+    use    :: Error           , only : Error_Report
+    use    :: Input_Parameters, only : inputParameter     , inputParameters
     !$ use :: OMP_Lib         , only : OMP_Get_Max_Threads
     implicit none
     type   (inputParameters), intent(inout) :: parameters
@@ -72,7 +72,7 @@ contains
     if (cpuLimit > 0_c_long) then
        !$ cpuLimit=cpuLimit*OMP_Get_Max_Threads()
        status=setResourceLimit(rLimitCPU,cpuLimit)
-       if (status /= 0) call Galacticus_Error_Report('failed to set resource limit: CPU'//{introspection:location})
+       if (status /= 0) call Error_Report('failed to set resource limit: CPU'//{introspection:location})
     end if
     return
   end subroutine System_Limits_Set

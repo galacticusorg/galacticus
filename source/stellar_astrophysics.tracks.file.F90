@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -105,7 +105,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily file} stellar tracks class which takes a parameter list as input.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
+    use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarTracksFile)                :: self
@@ -115,7 +115,7 @@ contains
     !![
     <inputParameter>
       <name>fileName</name>
-      <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
+      <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
       <description>The name of the HDF5 file from which to read stellar tracks.</description>
       <source>parameters</source>
     </inputParameter>
@@ -131,9 +131,10 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily file} stellar tracks class.
     !!}
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String, only : assignment(=)          , operator(//), varying_string
+    use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     use :: Memory_Management , only : allocateArray
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -155,7 +156,7 @@ contains
     call stellarTracks%openFile(fileName,readOnly=.true.)
     ! Check that this file has the correct format.
     call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
-    if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
     ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
     metallicityCountMaximum=0
     initialMassCountMaximum=0

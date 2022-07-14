@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,8 +51,8 @@
      Implementation of a merger tree evolution timestep class which limits the step to the next satellite merger.
      !!}
      private
-     class           (nodeOperatorClass), pointer :: nodeOperator_
-     double precision                             :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+     class           (nodeOperatorClass), pointer :: nodeOperator_             => null()
+     double precision                             :: timeOffsetMaximumAbsolute          , timeOffsetMaximumRelative
      logical                                      :: limitTimesteps
    contains
      final     ::                 satelliteDestructor
@@ -116,7 +116,7 @@ contains
     <constructorAssign variables="timeOffsetMaximumAbsolute, timeOffsetMaximumRelative, *nodeOperator_"/>
     !!]
 
-    self%limitTimesteps=defaultSatelliteComponent%mergeTimeIsGettable()
+    self%limitTimesteps=defaultSatelliteComponent%timeUntilMergingIsGettable()
     return
   end function satelliteConstructorInternal
 
@@ -165,8 +165,8 @@ contains
     ! If not limiting timesteps return.
     if (.not.self%limitTimesteps) return
     ! Find the time of merging.
-    satellite        => node     %satellite()
-    timeUntilMerging =  satellite%mergeTime()
+    satellite        => node     %satellite       ()
+    timeUntilMerging =  satellite%timeUntilMerging()
     ! If time is negative, implies this is not a satellite, so return.
     if (timeUntilMerging < 0.0d0) return
     ! Compute the minimum time to which the node we will merge with must have been evolved before merging is allowed.
@@ -211,7 +211,7 @@ contains
     Process a satellite node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Error                   , only : Galacticus_Error_Report
+    use :: Error                              , only : Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
@@ -237,7 +237,7 @@ contains
     class is (mergerTreeEvolveTimestepSatellite)
        call self%nodeOperator_%galaxiesMerge(node)
     class default
-       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('incorrect class'//{introspection:location})
     end select
     !![
     <eventHook name="satelliteMerger">

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,7 @@ program Test_Nodes
   use :: Array_Utilities           , only : Array_Reverse
   use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
   use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Error          , only : Galacticus_Error_Report
+  use :: Error                     , only : Error_Report
   use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize, nodeClassHierarchyInitialize, nodeComponent       , nodeComponentBasic, &
           &                                 nodeComponentPosition     , propertyTypeAll             , treeNode
   use :: ISO_Varying_String        , only : assignment(=)             , char                        , varying_string
@@ -81,7 +81,7 @@ program Test_Nodes
      propertyValueGet=component%mass()
      call Assert('Set followed by get returns expected value',propertyValueGet,propertyValueSet)
      class default
-     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
+     call Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Get the spheroid component of the node - assert that it is of the expected type.
@@ -96,7 +96,7 @@ program Test_Nodes
      propertyArray=component%velocity()
      call Assert('1D array property get/set consistency',propertyArray,[1.0d0,3.0d0,-12.3d0])
   class default
-     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
+     call Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Destroy the node.
@@ -110,7 +110,7 @@ program Test_Nodes
      ! Ensure that the size of a scalar property is correctly reported.
      call Assert('Scalar property size',component%massCount(),1)
      class default
-     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
+     call Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Get the basic component from the spheroid component - assert that it has the expected type.
@@ -129,6 +129,11 @@ program Test_Nodes
   ! Test serialization functions.
   !
 
+  ! Establish property offsets.
+  call node%serializationOffsets      (propertyTypeAll)
+  call node%odeStepInactivesInitialize(               )
+  call node%odeStepAnalyticsInitialize(               )
+
   ! Check that total count of properties is correct.
   call Assert('Total count of properties in tree node',node%serializeCount(propertyTypeAll),2)
 
@@ -142,7 +147,7 @@ program Test_Nodes
      call node%deserializeValues(serializedArray,propertyTypeAll)
      call Assert('Serialize/deserialize values consistency',[component%mass(),component%time()],[2.0d0,1.0d0])
   class default
-     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
+     call Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Check that we can create and retrieve instances of a component.
