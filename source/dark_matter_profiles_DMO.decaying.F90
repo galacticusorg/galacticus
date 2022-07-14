@@ -102,7 +102,7 @@ contains
     return
   end function decayingConstructorParameters
 
-  function decayingConstructorInternal(lifetime, massSplitting, nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function decayingConstructorInternal(darkMatterParticle_, nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
     !!}
@@ -112,7 +112,6 @@ contains
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterParticleClass      ), intent(in   ), target :: darkMatterParticle_
-    double precision                              , intent(in   )         :: lifetime, massSplitting
     integer                                       , intent(in   )         :: nonAnalyticSolver
     !![
     <constructorAssign variables="*darkMatterParticle_, nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
@@ -172,7 +171,7 @@ contains
     double precision                               , intent(in   ) :: radius
     double precision                                               :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     decayingDensity=+self%darkMatterProfileDMO_%density(node,radius) * factor
     return
   end function decayingDensity
@@ -203,7 +202,7 @@ contains
     double precision                              , intent(in   )         :: density
     double precision                                                      :: factor, oldDensity
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     oldDensity = density / factor
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingRadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node, oldDensity)
@@ -226,7 +225,7 @@ contains
     class           (nodeComponentBasic          ), pointer               :: basic
     double precision                                                      :: factor, oldDensity
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     oldMass = mass / factor
     basic  => node%basic()
     factor = +1.0d0 - self%massSplitting * (+1.0d0 - exp(-basic%time() / self%lifetime))
@@ -250,7 +249,7 @@ contains
     double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
     double precision                                                        :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
       decayingRadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum) * factor
     else
@@ -270,7 +269,7 @@ contains
     double precision                              , intent(in   ) :: radius
     double precision                                              :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     decayingEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius) * factor
     return
   end function decayingEnclosedMass
@@ -287,7 +286,7 @@ contains
     integer                                       , intent(  out), optional :: status
     double precision                                                        :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingPotential=self%darkMatterProfileDMO_%potential         (node,radius,status) * factor
     else
@@ -307,7 +306,7 @@ contains
     double precision                               , intent(in   ) :: radius
     double precision                                               :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
       decayingCircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius) * sqrt(factor)
     else
@@ -325,7 +324,7 @@ contains
     type (treeNode                     ), intent(inout) :: node
     double precision                                    :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
       decayingCircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum         (node) * sqrt(factor)
     else
@@ -346,7 +345,7 @@ contains
     double precision                              , intent(in   ) :: radius
     double precision                                              :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius) * sqrt(factor)
     else
@@ -366,7 +365,7 @@ contains
     double precision                              , intent(in   ) :: specificAngularMomentum
     double precision                                              :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum / (sqrt(factor)))
     else
@@ -384,7 +383,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
     double precision                                   :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingRotationNormalization=self%darkMatterProfileDMO_%rotationNormalization(node)
     else
@@ -402,7 +401,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
     double precision                                   :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingEnergy=self%darkMatterProfileDMO_%energy         (node) * factor**2
     else
@@ -422,7 +421,7 @@ contains
     double precision                              , intent(in   )         :: waveNumber
     double precision                                                      :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber) * factor
     else
@@ -443,7 +442,7 @@ contains
     double precision                              , intent(in   )         :: time
     double precision                                                      :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time * sqrt(factor))
     else
@@ -463,7 +462,7 @@ contains
     double precision                              , intent(in   )         :: time
     double precision                                                      :: factor
     
-    call self%decayingDecayingFactor(factor)
+    call self%decayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        decayingFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time * sqrt(factor))
     else
