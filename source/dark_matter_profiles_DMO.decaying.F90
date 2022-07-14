@@ -131,6 +131,21 @@ contains
     return
   end function decayingConstructorInternal
 
+  subroutine decayingDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily decaying} dark matter halo profile class.
+    !!}
+    implicit none
+    type(darkMatterProfileDMODecaying), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterParticle_"/>
+    !!]
+    return
+  end subroutine decayingDestructor
+
   subroutine decayingDecayingFactor(self, factor)
     !!{
     Return the change in mass factor.
@@ -327,9 +342,9 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: radius
-    double precision                                               :: factor
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: factor
     
     call self%decayingDecayingFactor(factor)
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
