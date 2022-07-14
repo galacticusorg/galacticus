@@ -82,7 +82,7 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=darkMatterParticleSelfInteractingDarkMatter(lifetime,massSplitting,darkMatterParticle_)
+    self=darkMatterParticleDecayingDarkMatter(lifetime,massSplitting,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_" />
@@ -118,7 +118,7 @@ contains
     <objectDestructor name="self%darkMatterParticle_" />
     !!]
     return
-  end subroutine selfInteractingDMDestructor
+  end subroutine decayingDMDestructor
 
   double precision function decayingDMMass(self)
     !!{

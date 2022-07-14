@@ -42,7 +42,7 @@
      procedure :: specificEnergy                  => DDMv2SpecificEnergy
      procedure :: specificEnergyGradient          => DDMv2SpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero  => DDMv2SpecificEnergyIsEverywhereZero
-  end type darkMatterProfileHeatingDDM
+  end type darkMatterProfileHeatingDDMv2
 
   interface darkMatterProfileHeatingDDMv2
      !!{
@@ -93,9 +93,9 @@ contains
     <objectDestructor name="darkMatterParticle_"  />
     !!]
     return
-  end function DDMConstructorParameters
+  end function DDMv2ConstructorParameters
 
-  function DDMConstructorInternal(darkMatterParticle_, heating, massLoss, gamma) result(self)
+  function DDMv2ConstructorInternal(darkMatterParticle_, heating, massLoss, gamma) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily DDM} dark matter profile heating scales class.
     !!}
@@ -117,7 +117,7 @@ contains
        self%massSplitting=0.0d0
     end select
     return
-  end function DDMConstructorInternal
+  end function DDMv2ConstructorInternal
 
   double precision function DDMv2SpecificEnergy(self,node,radius,darkMatterProfileDMO_)
     !!{
@@ -178,7 +178,7 @@ contains
       DDMv2SpecificEnergyGradient=+0.0d0
     end if
     return
-  end function DDMSpecificEnergyGradient
+  end function DDMv2SpecificEnergyGradient
 
   logical function DDMv2SpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
     !!{

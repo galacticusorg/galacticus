@@ -89,6 +89,8 @@ c_lib.cosmologyParametersTemperatureCMBL.argtypes = [ c_void_p, c_int ]
 c_lib.cosmologyParametersDestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.darkMatterParticleCDML.restype  = c_void_p
 c_lib.darkMatterParticleCDML.argtypes = [  ]
+c_lib.darkMatterParticleDecayingDarkMatterL.restype  = c_void_p
+c_lib.darkMatterParticleDecayingDarkMatterL.argtypes = [ c_double, c_double, c_void_p, c_int ]
 c_lib.darkMatterParticleFuzzyDarkMatterL.restype  = c_void_p
 c_lib.darkMatterParticleFuzzyDarkMatterL.argtypes = [ c_double, c_double ]
 c_lib.darkMatterParticleSelfInteractingDarkMatterL.restype  = c_void_p
@@ -137,6 +139,8 @@ c_lib.darkMatterProfileDMOAcceleratorL.restype  = c_void_p
 c_lib.darkMatterProfileDMOAcceleratorL.argtypes = [ c_double, c_double, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOAccretionFlowL.restype  = c_void_p
 c_lib.darkMatterProfileDMOAccretionFlowL.argtypes = [ c_double, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_void_p, c_int, c_void_p, c_int ]
+c_lib.darkMatterProfileDMODecayingL.restype  = c_void_p
+c_lib.darkMatterProfileDMODecayingL.argtypes = [ c_double, c_double, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOFiniteResolutionL.restype  = c_void_p
 c_lib.darkMatterProfileDMOFiniteResolutionL.argtypes = [ c_double, c_double, c_bool, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOFiniteResolutionNFWL.restype  = c_void_p
@@ -190,6 +194,8 @@ c_lib.darkMatterProfileDMORotationNormalizationL.argtypes = [ c_void_p, c_int, c
 c_lib.darkMatterProfileDMODestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.darkMatterProfileHeatingDDML.restype  = c_void_p
 c_lib.darkMatterProfileHeatingDDML.argtypes = [ c_double, c_double ]
+c_lib.darkMatterProfileHeatingDDMv2L.restype  = c_void_p
+c_lib.darkMatterProfileHeatingDDMv2L.argtypes = [ c_void_p, c_int, POINTER(c_bool), POINTER(c_bool), c_double ]
 c_lib.darkMatterProfileHeatingImpulsiveOutflowL.restype  = c_void_p
 c_lib.darkMatterProfileHeatingImpulsiveOutflowL.argtypes = [ c_double, c_void_p ]
 c_lib.darkMatterProfileHeatingNullL.restype  = c_void_p
@@ -1051,6 +1057,26 @@ class darkMatterProfileDMO:
     def circularVelocity(self,node,radius):
         return c_lib.darkMatterProfileDMOCircularVelocityL(self._glcObj,self._classID,node,radius)
 
+class darkMatterProfileHeating:
+
+    # Constructor
+    def __init__(self):
+        # Assign class ID to a negative number - indicating this is not a concrete class.
+        self._classID = -1
+
+    # Destructor
+    def __del__(self):
+        c_lib.darkMatterProfileHeatingDestructorL(self._glcObj,self._classID)
+
+    def specificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_):
+        return c_lib.darkMatterProfileHeatingSpecificEnergyIsEverywhereZeroL(self._glcObj,self._classID,node,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID)
+
+    def specificEnergyGradient(self,node,radius,darkMatterProfileDMO_):
+        return c_lib.darkMatterProfileHeatingSpecificEnergyGradientL(self._glcObj,self._classID,node,radius,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID)
+
+    def specificEnergy(self,node,radius,darkMatterProfileDMO_):
+        return c_lib.darkMatterProfileHeatingSpecificEnergyL(self._glcObj,self._classID,node,radius,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID)
+
 class excursionSetFirstCrossing:
 
     # Constructor
@@ -1114,26 +1140,6 @@ class transferFunction:
 
     def epochTime(self):
         return c_lib.transferFunctionEpochTimeL(self._glcObj,self._classID)
-
-class darkMatterProfileHeating:
-
-    # Constructor
-    def __init__(self):
-        # Assign class ID to a negative number - indicating this is not a concrete class.
-        self._classID = -1
-
-    # Destructor
-    def __del__(self):
-        c_lib.darkMatterProfileHeatingDestructorL(self._glcObj,self._classID)
-
-    def specificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_):
-        return c_lib.darkMatterProfileHeatingSpecificEnergyIsEverywhereZeroL(self._glcObj,self._classID,node,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID)
-
-    def specificEnergyGradient(self,node,radius,darkMatterProfileDMO_):
-        return c_lib.darkMatterProfileHeatingSpecificEnergyGradientL(self._glcObj,self._classID,node,radius,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID)
-
-    def specificEnergy(self,node,radius,darkMatterProfileDMO_):
-        return c_lib.darkMatterProfileHeatingSpecificEnergyL(self._glcObj,self._classID,node,radius,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID)
 
 class criticalOverdensity:
 
@@ -2510,14 +2516,14 @@ class transferFunctionHu2000FDM(transferFunction):
     
         self._glcObj = c_lib.transferFunctionHu2000FDML(transferFunctionCDM._glcObj,transferFunctionCDM._classID,time,cosmologyParameters_._glcObj,cosmologyParameters_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
 
-class virialDensityContrastKitayamaSuto1996(virialDensityContrast):
+class virialDensityContrastFriendsOfFriends(virialDensityContrast):
 
     # Constructor
-    def __init__(self,cosmologyFunctions_):
+    def __init__(self,linkingLength,densityRatio):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 2
+        self._classID = 4
     
-        self._glcObj = c_lib.virialDensityContrastKitayamaSuto1996L(cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
+        self._glcObj = c_lib.virialDensityContrastFriendsOfFriendsL(linkingLength,densityRatio)
 
 class haloMassFunctionTinker2008Generic(haloMassFunction):
 
@@ -2770,24 +2776,14 @@ class excursionSetFirstCrossingFarahi(excursionSetFirstCrossing):
     
         self._glcObj = c_lib.excursionSetFirstCrossingFarahiL(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,excursionSetBarrier_._glcObj,excursionSetBarrier_._classID,cosmologicalMassVariance_._glcObj,cosmologicalMassVariance_._classID)
 
-class virialDensityContrastPercolation(virialDensityContrast):
+class virialDensityContrastKitayamaSuto1996(virialDensityContrast):
 
     # Constructor
-    def __init__(self,linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf=None):
+    def __init__(self,cosmologyFunctions_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 5
-        if recursiveSelf:
-            recursiveSelf_glcObj =recursiveSelf._glcObj
-            recursiveSelf_classID=recursiveSelf._classID
-        else:
-            recursiveSelf_glcObj =None
-            recursiveSelf_classID=None
+        self._classID = 2
     
-        if not recursiveSelf:
-            self._glcObj = c_lib.virialDensityContrastPercolationL(linkingLength,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,percolationObjects_,None,None)
-        elif recursiveSelf:
-            self._glcObj = c_lib.virialDensityContrastPercolationL(linkingLength,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,percolationObjects_,byref(c_void_p(recursiveSelf_glcObj)),byref(c_int(recursiveSelf_classID)))
-    
+        self._glcObj = c_lib.virialDensityContrastKitayamaSuto1996L(cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
 
 class excursionSetBarrierRemapShethMoTormen(excursionSetBarrier):
 
@@ -2848,7 +2844,7 @@ class darkMatterProfileHeatingTwoBodyRelaxation(darkMatterProfileHeating):
     # Constructor
     def __init__(self,massParticle,lengthSoftening,timeStart,efficiency):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 6
+        self._classID = 7
     
         self._glcObj = c_lib.darkMatterProfileHeatingTwoBodyRelaxationL(massParticle,lengthSoftening,timeStart,efficiency)
 
@@ -2857,7 +2853,7 @@ class darkMatterProfileHeatingTidal(darkMatterProfileHeating):
     # Constructor
     def __init__(self,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 5
+        self._classID = 6
     
         self._glcObj = c_lib.darkMatterProfileHeatingTidalL(coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius)
 
@@ -2866,7 +2862,7 @@ class darkMatterProfileHeatingSummation(darkMatterProfileHeating):
     # Constructor
     def __init__(self,heatSources):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 4
+        self._classID = 5
     
         self._glcObj = c_lib.darkMatterProfileHeatingSummationL(heatSources)
 
@@ -2875,7 +2871,7 @@ class darkMatterProfileHeatingNull(darkMatterProfileHeating):
     # Constructor
     def __init__(self):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 3
+        self._classID = 4
     
         self._glcObj = c_lib.darkMatterProfileHeatingNullL()
 
@@ -2884,9 +2880,18 @@ class darkMatterProfileHeatingImpulsiveOutflow(darkMatterProfileHeating):
     # Constructor
     def __init__(self,impulsiveEnergyFactor,galacticStructure_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 2
+        self._classID = 3
     
         self._glcObj = c_lib.darkMatterProfileHeatingImpulsiveOutflowL(impulsiveEnergyFactor,galacticStructure_)
+
+class darkMatterProfileHeatingDDMv2(darkMatterProfileHeating):
+
+    # Constructor
+    def __init__(self,darkMatterParticle_,heating,massLoss,gamma):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 2
+    
+        self._glcObj = c_lib.darkMatterProfileHeatingDDMv2L(darkMatterParticle_._glcObj,darkMatterParticle_._classID,heating,massLoss,gamma)
 
 class darkMatterProfileHeatingDDM(darkMatterProfileHeating):
 
@@ -2897,14 +2902,24 @@ class darkMatterProfileHeatingDDM(darkMatterProfileHeating):
     
         self._glcObj = c_lib.darkMatterProfileHeatingDDML(lifetime,massSplitting)
 
-class virialDensityContrastFriendsOfFriends(virialDensityContrast):
+class virialDensityContrastPercolation(virialDensityContrast):
 
     # Constructor
-    def __init__(self,linkingLength,densityRatio):
+    def __init__(self,linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf=None):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 4
+        self._classID = 5
+        if recursiveSelf:
+            recursiveSelf_glcObj =recursiveSelf._glcObj
+            recursiveSelf_classID=recursiveSelf._classID
+        else:
+            recursiveSelf_glcObj =None
+            recursiveSelf_classID=None
     
-        self._glcObj = c_lib.virialDensityContrastFriendsOfFriendsL(linkingLength,densityRatio)
+        if not recursiveSelf:
+            self._glcObj = c_lib.virialDensityContrastPercolationL(linkingLength,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,percolationObjects_,None,None)
+        elif recursiveSelf:
+            self._glcObj = c_lib.virialDensityContrastPercolationL(linkingLength,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID,percolationObjects_,byref(c_void_p(recursiveSelf_glcObj)),byref(c_int(recursiveSelf_classID)))
+    
 
 class darkMatterProfileDMOZhao1996(darkMatterProfileDMO):
 
@@ -2920,7 +2935,7 @@ class darkMatterProfileDMOTruncatedExponential(darkMatterProfileDMO):
     # Constructor
     def __init__(self,radiusFractionalDecay,alpha,beta,gamma,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 18
+        self._classID = 19
     
         self._glcObj = c_lib.darkMatterProfileDMOTruncatedExponentialL(radiusFractionalDecay,alpha,beta,gamma,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
 
@@ -2929,7 +2944,7 @@ class darkMatterProfileDMOTruncated(darkMatterProfileDMO):
     # Constructor
     def __init__(self,radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 17
+        self._classID = 18
     
         self._glcObj = c_lib.darkMatterProfileDMOTruncatedL(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
 
@@ -2974,7 +2989,7 @@ class darkMatterProfileDMOMultiple(darkMatterProfileDMO):
     # Constructor
     def __init__(self,darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 16
+        self._classID = 17
     
         self._glcObj = c_lib.darkMatterProfileDMOMultipleL(darkMatterProfileDMOHost_._glcObj,darkMatterProfileDMOHost_._classID,darkMatterProfileDMOSatellite_._glcObj,darkMatterProfileDMOSatellite_._classID)
 
@@ -2983,7 +2998,7 @@ class darkMatterProfileDMOIsothermal(darkMatterProfileDMO):
     # Constructor
     def __init__(self,darkMatterHaloScale_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 15
+        self._classID = 16
     
         self._glcObj = c_lib.darkMatterProfileDMOIsothermalL(darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
 
@@ -2992,7 +3007,7 @@ class darkMatterProfileDMOHeatedMonotonic(darkMatterProfileDMO):
     # Constructor
     def __init__(self,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_,radiusFractionMinimum,radiusFractionMaximum,countPerDecadeRadius):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 14
+        self._classID = 15
     
         self._glcObj = c_lib.darkMatterProfileDMOHeatedMonotonicL(nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID,darkMatterProfileHeating_._glcObj,darkMatterProfileHeating_._classID,radiusFractionMinimum,radiusFractionMaximum,countPerDecadeRadius)
 
@@ -3001,7 +3016,7 @@ class darkMatterProfileDMOHeated(darkMatterProfileDMO):
     # Constructor
     def __init__(self,nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 13
+        self._classID = 14
     
         self._glcObj = c_lib.darkMatterProfileDMOHeatedL(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID,darkMatterProfileHeating_._glcObj,darkMatterProfileHeating_._classID)
 
@@ -3010,7 +3025,7 @@ class darkMatterProfileDMOFiniteResolutionNFW(darkMatterProfileDMO):
     # Constructor
     def __init__(self,lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_,cosmologyFunctions_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 12
+        self._classID = 13
     
         self._glcObj = c_lib.darkMatterProfileDMOFiniteResolutionNFWL(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
 
@@ -3019,7 +3034,7 @@ class darkMatterProfileDMOFiniteResolution(darkMatterProfileDMO):
     # Constructor
     def __init__(self,lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,cosmologyFunctions_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 11
+        self._classID = 12
     
         self._glcObj = c_lib.darkMatterProfileDMOFiniteResolutionL(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID,cosmologyFunctions_._glcObj,cosmologyFunctions_._classID)
 
@@ -3031,6 +3046,15 @@ class darkMatterProfileDMOEinasto(darkMatterProfileDMO):
         self._classID = 2
     
         self._glcObj = c_lib.darkMatterProfileDMOEinastoL(darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
+
+class darkMatterProfileDMODecaying(darkMatterProfileDMO):
+
+    # Constructor
+    def __init__(self,lifetime,massSplitting,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 11
+    
+        self._glcObj = c_lib.darkMatterProfileDMODecayingL(lifetime,massSplitting,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
 
 class darkMatterProfileDMOBurkert(darkMatterProfileDMO):
 
@@ -3073,7 +3097,7 @@ class darkMatterParticleWDMThermal(darkMatterParticle):
     # Constructor
     def __init__(self,mass,degreesOfFreedomEffective,cosmologyParameters_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 4
+        self._classID = 5
     
         self._glcObj = c_lib.darkMatterParticleWDMThermalL(mass,degreesOfFreedomEffective,cosmologyParameters_._glcObj,cosmologyParameters_._classID)
 
@@ -3082,7 +3106,7 @@ class darkMatterParticleSelfInteractingDarkMatter(darkMatterParticle):
     # Constructor
     def __init__(self,crossSectionSelfInteraction,darkMatterParticle_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 3
+        self._classID = 4
     
         self._glcObj = c_lib.darkMatterParticleSelfInteractingDarkMatterL(crossSectionSelfInteraction,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
 
@@ -3091,9 +3115,18 @@ class darkMatterParticleFuzzyDarkMatter(darkMatterParticle):
     # Constructor
     def __init__(self,mass,densityFraction):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
-        self._classID = 2
+        self._classID = 3
     
         self._glcObj = c_lib.darkMatterParticleFuzzyDarkMatterL(mass,densityFraction)
+
+class darkMatterParticleDecayingDarkMatter(darkMatterParticle):
+
+    # Constructor
+    def __init__(self,lifetime,massSplitting,darkMatterParticle_):
+        # Assign class ID so relevant pointers can be constructed on the Fortran side.
+        self._classID = 2
+    
+        self._glcObj = c_lib.darkMatterParticleDecayingDarkMatterL(lifetime,massSplitting,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
 
 class darkMatterParticleCDM(darkMatterParticle):
 

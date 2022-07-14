@@ -34,7 +34,7 @@
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
-     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_         => null()
+     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_                => null()
      integer                                              :: nonAnalyticSolver
      double precision                                     :: lifetime  , massSplitting
    contains
@@ -78,16 +78,10 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
-    class(darkMatterParticleClass                 ), pointer       :: darkMatterParticle_
+    class           (darkMatterParticleClass      ), pointer       :: darkMatterParticle_
     type            (varying_string               )                :: nonAnalyticSolver
-    double precision                                               :: lifetime, massSplitting
 
     !![
-    <inputParameter>
-      <name>darkMatterParticle_</name>
-      <source>parameters</source>
-      <description>Dark matter particle.</description>
-    </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
@@ -106,9 +100,9 @@ contains
     <objectDestructor name="darkMatterParticle_"  />
     !!]
     return
-  end function DecayingConstructorParameters
+  end function decayingConstructorParameters
 
-  function DecayingConstructorInternal(lifetime, massSplitting, nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function decayingConstructorInternal(lifetime, massSplitting, nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
     !!}
@@ -135,7 +129,7 @@ contains
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     return
-  end function DecayingConstructorInternal
+  end function decayingConstructorInternal
 
   subroutine decayingDecayingFactor(self, factor)
     !!{
