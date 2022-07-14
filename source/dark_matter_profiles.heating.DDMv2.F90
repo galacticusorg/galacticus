@@ -46,7 +46,7 @@
 
   interface darkMatterProfileHeatingDDMv2
      !!{
-     Constructors for the {\normalfont \ttfamily DDM} dark matter profile heating class.
+     Constructors for the {\normalfont \ttfamily DDMv2} dark matter profile heating class.
      !!}
      module procedure DDMv2ConstructorParameters
      module procedure DDMv2ConstructorInternal
@@ -60,7 +60,7 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (darkMatterProfileHeatingDDM), target                :: self
+    type            (darkMatterProfileHeatingDDMv2), target                :: self
     type            (inputParameters            ), intent(inout)         :: parameters
     class           (darkMatterParticleClass               ), pointer  :: darkMatterParticle_
     logical                                                              :: heating   , massLoss
@@ -127,11 +127,12 @@ contains
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
-    class           (darkMatterProfileHeatingDDM), intent(inout) :: self
+    class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius, heatingEnergy, massLossEnergy
+    double precision                             , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass  ), intent(inout) :: darkMatterProfileDMO_
     class           (nodeComponentBasic         ), pointer       :: basic
+    double precision :: heatingEnergy, massLossEnergy
 
     basic             => node%basic()
     if (self%heating) then
@@ -162,7 +163,7 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileHeatingDDM), intent(inout) :: self
+    class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
@@ -185,7 +186,7 @@ contains
     Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class(darkMatterProfileHeatingDDM), intent(inout) :: self
+    class(darkMatterProfileHeatingDDMv2), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
     class(darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     !$GLC attributes unused :: darkMatterProfileDMO_
