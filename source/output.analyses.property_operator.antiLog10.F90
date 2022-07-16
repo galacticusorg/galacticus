@@ -67,11 +67,11 @@ contains
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeUnknown
     implicit none
-    class           (outputAnalysisPropertyOperatorAntiLog10), intent(inout)           :: self
-    double precision                                         , intent(in   )           :: propertyValue
-    type            (treeNode                               ), intent(inout), optional :: node
-    integer                                                  , intent(inout), optional :: propertyType
-    integer         (c_size_t                               ), intent(in   ), optional :: outputIndex
+    class           (outputAnalysisPropertyOperatorAntiLog10  ), intent(inout)           :: self
+    double precision                                           , intent(in   )           :: propertyValue
+    type            (treeNode                                 ), intent(inout), optional :: node
+    type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType
+    integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex
     !$GLC attributes unused :: self, outputIndex, node
 
     antiLog10Operate=10.0d0**propertyValue

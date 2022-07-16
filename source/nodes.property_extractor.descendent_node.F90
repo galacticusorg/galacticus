@@ -36,7 +36,6 @@ Contains a module which implements an output analysis property extractor class t
    contains
      final     ::                descendentNodeDestructor
      procedure :: extract     => descendentNodeExtract
-     procedure :: type        => descendentNodeType
      procedure :: name        => descendentNodeName
      procedure :: description => descendentNodeDescription
      procedure :: unitsInSI   => descendentNodeUnitsInSI
@@ -146,17 +145,6 @@ contains
     return
   end function descendentNodeExtract
 
-  integer function descendentNodeType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorDescendentNode), intent(inout) :: self
-
-    descendentNodeType=self%nodePropertyExtractor_%type()
-    return
-  end function descendentNodeType
 
   function descendentNodeName(self)
     !!{

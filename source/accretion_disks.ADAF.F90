@@ -25,144 +25,6 @@
   use    :: Tables , only : table1DLogarithmicLinear
 
   !![
-  <accretionDisks name="accretionDisksADAF">
-   <description>
-    A circumnuclear accretion disk class, in which accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994}
-    which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a
-    pure \gls{adaf}, is controlled by {\normalfont \ttfamily [efficiencyRadiationType]}. If set to {\normalfont \ttfamily
-    fixed}, then the radiative efficiency is set to the value of the input parameter {\normalfont \ttfamily
-    [efficiencyRadiation]}. Alternatively, if set to {\normalfont \ttfamily thinDisk} the radiative efficiency will be set to
-    that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes
-    into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in
-    units of the accretion power $\dot{M} \mathrm{c}^2$) is set by {\normalfont \ttfamily [efficiencyJetMaximum]}---in the
-    model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum is important to
-    avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected
-    for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\normalfont \ttfamily [energyOption]} parameter (set
-    to {\normalfont \ttfamily pureADAF} or {\normalfont \ttfamily ISCO} respectively). The \gls{adaf} structure is controlled
-    by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\normalfont \ttfamily
-    [adiabaticIndex]} and {\normalfont \ttfamily [viscosityOption]} input parameters respectively. The field-enhancing shear,
-    $g$, is computed using $g=\exp(\omega \tau)$ if {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``exponential''
-    where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity
-    timescales. If {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``linear'' then the alternative version,
-    $g=1+\omega \tau$ is used instead. {\normalfont \ttfamily [viscosityOption]} may be set to ``{\normalfont \ttfamily fit}'',
-    in which case the fitting function for $\alpha$ as a function of black hole spin is used:
-    \begin{eqnarray}
-     \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  }&amp; g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
-     \alpha(j)=0.025+0.08 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
-     \alpha(j)=0.010+0.00 j^4 &amp; \hbox{ if } &amp; g=\exp(\omega\tau) \hbox{ and } E=1, \\
-     \alpha(j)=0.025+0.02 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=1.  
-    \end{eqnarray}
-   </description>
-  </accretionDisks>
-  !!]
-  type, extends(accretionDisksClass) :: accretionDisksADAF
-     !!{
-     Implementation of an ADAF accretion disk class.
-     !!}
-     private
-     integer                                        :: efficiencyRadiationType                , viscosityOption                      , &
-          &                                            fieldEnhancementOption                 , energyOption
-     double precision                               :: efficiencyRadiation                    , adiabaticIndex                       , &
-          &                                            pressureThermalFractional              , efficiencyJetMaximum                 , &
-          &                                            viscosityAlpha
-     type            (table1DLogarithmicLinear    ) :: tabulations
-     !$ integer      (omp_lock_kind               ) :: tabulationsLock
-     type            (accretionDisksShakuraSunyaev) :: thinDisk
-     ! Stored solutions.
-     !! Height.
-     double precision                               :: heightStored                           , heightSpinPrevious                   , &
-          &                                            heightRadiusPrevious
-     !! Velocity.
-     double precision                               :: velocityRadiusPrevious                 , velocitySpinPrevious                 , &
-          &                                            velocityStored
-     !! Temperature.
-     double precision                               :: temperatureRadiusPrevious              , temperatureSpinPrevious              , &
-          &                                            temperatureStored
-     !! Enthalpy.
-     double precision                               :: enthalpyRadiusPrevious                 , enthalpySpinPrevious                 , &
-          &                                            enthalpyStored
-     !! Enthalpy-angular momentum product.
-     double precision                               :: enthlpyAngMPrdctRadiusPrevious         , enthlpyAngMPrdctSpinPrevious         , &
-          &                                            enthlpyAngMPrdctStored
-     !! Angular momentum product.
-     double precision                               :: angularMomentumRadiusPrevious         , angularMomentumSpinPrevious          , &
-          &                                            angularMomentumStored
-     !! Radial gamma factor.
-     double precision                               :: gammaRadialRadiusPrevious              , gammaRadialSpinPrevious              , &
-          &                                            gammaRadialStored
-     !! Azimuthal gamma factor.
-     double precision                               :: gammaAzimuthalRadiusPrevious           , gammaAzimuthalSpinPrevious           , &
-          &                                            gammaAzimuthalStored
-     !! Total gamma factor.
-     double precision                               :: gammaRadiusPrevious                    , gammaSpinPrevious                    , &
-          &                                            gammaStored
-     !! Viscosity parameter.
-     double precision                               :: alphaStored                            , alphaSpinPrevious
-     !! Fluid angular velocity.
-     double precision                               :: fluidAngularVelocityRadiusPrevious     , fluidAngularVelocitySpinPrevious     , &
-          &                                            fluidAngularVelocityStored
-     !! Field enhancement.
-     double precision                               :: fieldEnhancementRadiusPrevious         , fieldEnhancementSpinPrevious         , &
-          &                                            fieldEnhancementStored
-     !! Black hole-launched jet power.
-     double precision                               :: jetPowerBlackHoleRadiusPrevious        , jetPowerBlackHoleSpinPrevious        , &
-          &                                            jetPowerBlackHoleStored
-     !! Disk-launched jet power.
-     double precision                               :: jetPowerDiskRadiusPrevious             , jetPowerDiskSpinPrevious             , &
-          &                                            jetPowerDiskStored
-     !! Disk-launched black hole jet power.
-     double precision                               :: jetPowerDiskFromBlackHoleRadiusPrevious, jetPowerDiskFromBlackHoleSpinPrevious, &
-          &                                            jetPowerDiskFromBlackHoleStored
-   contains
-     !![
-     <methods>
-       <method description="Return the dimensionless height of the ADAF at a given radius." method="height" />
-       <method description="Return the dimensionless velocity of the ADAF at a given radius." method="velocity" />
-       <method description="Return the dimensionless temperature of the ADAF at a given radius." method="temperature" />
-       <method description="Return the dimensionless enthalpy of the ADAF at a given radius." method="enthalpy" />
-       <method description="Return the product of dimensionless enthalpy and angular momentum of the ADAF at a given radius." method="enthalpyAngularMomentumProduct" />
-       <method description="Return the dimensionless angular momentum of the ADAF at a given radius." method="angularMomentum" />
-       <method description="Return the radial part of the relativistic boost factor in the ADAF at a given radius." method="gammaRadial" />
-       <method description="Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius." method="gammaAzimuthal" />
-       <method description="Return the relativistic boost factor in the ADAF at a given radius." method="gamma" />
-       <method description="Return the viscosity parameter, $\alpha$, in the ADAF." method="viscosityParameter" />
-       <method description="Return the dimensionless angular velocity of the ADAF fluid at the given radius." method="fluidAngularVelocity" />
-       <method description="Return the magnetic field enhancement factor in the ADAF at the given radius." method="fieldEnhancement" />
-       <method description="Return the power of the jet launched by the black hole for the ADAF." method="jetPowerBlackHole" />
-       <method description="Return the power of the jet launched from the disk for the ADAF." method="jetPowerDisk" />
-       <method description="Return the power of the jet launched from the disk which is derived frm the black hole." method="jetPowerDiskFromBlackHole" />
-     </methods>
-     !!]
-     final     ::                                   adafDestructor
-     procedure :: efficiencyRadiative            => adafEfficiencyRadiative
-     procedure :: powerJet                       => adafPowerJet
-     procedure :: rateSpinUp                     => adafRateSpinUp
-     procedure :: height                         => adafHeight
-     procedure :: velocity                       => adafVelocity
-     procedure :: temperature                    => adafTemperature
-     procedure :: enthalpy                       => adafEnthalpy
-     procedure :: enthalpyAngularMomentumProduct => adafEnthalpyAngularMomentumProduct
-     procedure :: angularMomentum                => adafAngularMomentum
-     procedure :: gammaRadial                    => adafGammaRadial
-     procedure :: gammaAzimuthal                 => adafGammaAzimuthal
-     procedure :: gamma                          => adafGamma
-     procedure :: viscosityParameter             => adafViscosityParameter
-     procedure :: fluidAngularVelocity           => adafFluidAngularVelocity
-     procedure :: fieldEnhancement               => adafFieldEnhancement
-     procedure :: jetPowerBlackHole              => adafJetPowerBlackHole
-     procedure :: jetPowerDisk                   => adafJetPowerDisk
-     procedure :: jetPowerDiskFromBlackHole      => adafJetPowerDiskFromBlackHole
-  end type accretionDisksADAF
-
-  interface accretionDisksADAF
-     !!{
-     Constructors for the ADAF accretion disk class.
-     !!}
-     module procedure adafConstructorParameters
-     module procedure adafConstructorInternal
-  end interface accretionDisksADAF
-
-  !![
   <enumeration>
    <name>adafRadiativeEfficiencyType</name>
    <description>Type of radiative efficiency model to use for ADAFs.</description>
@@ -216,6 +78,146 @@
    <entry label="rateSpinUp"/>
   </enumeration>
   !!]
+
+  !![
+  <accretionDisks name="accretionDisksADAF">
+   <description>
+    A circumnuclear accretion disk class, in which accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994}
+    which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a
+    pure \gls{adaf}, is controlled by {\normalfont \ttfamily [efficiencyRadiationType]}. If set to {\normalfont \ttfamily
+    fixed}, then the radiative efficiency is set to the value of the input parameter {\normalfont \ttfamily
+    [efficiencyRadiation]}. Alternatively, if set to {\normalfont \ttfamily thinDisk} the radiative efficiency will be set to
+    that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes
+    into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in
+    units of the accretion power $\dot{M} \mathrm{c}^2$) is set by {\normalfont \ttfamily [efficiencyJetMaximum]}---in the
+    model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum is important to
+    avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected
+    for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\normalfont \ttfamily [energyOption]} parameter (set
+    to {\normalfont \ttfamily pureADAF} or {\normalfont \ttfamily ISCO} respectively). The \gls{adaf} structure is controlled
+    by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\normalfont \ttfamily
+    [adiabaticIndex]} and {\normalfont \ttfamily [viscosityOption]} input parameters respectively. The field-enhancing shear,
+    $g$, is computed using $g=\exp(\omega \tau)$ if {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``exponential''
+    where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity
+    timescales. If {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``linear'' then the alternative version,
+    $g=1+\omega \tau$ is used instead. {\normalfont \ttfamily [viscosityOption]} may be set to ``{\normalfont \ttfamily fit}'',
+    in which case the fitting function for $\alpha$ as a function of black hole spin is used:
+    \begin{eqnarray}
+     \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  }&amp; g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
+     \alpha(j)=0.025+0.08 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
+     \alpha(j)=0.010+0.00 j^4 &amp; \hbox{ if } &amp; g=\exp(\omega\tau) \hbox{ and } E=1, \\
+     \alpha(j)=0.025+0.02 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=1.  
+    \end{eqnarray}
+   </description>
+  </accretionDisks>
+  !!]
+  type, extends(accretionDisksClass) :: accretionDisksADAF
+     !!{
+     Implementation of an ADAF accretion disk class.
+     !!}
+     private
+     type            (enumerationADAFRadiativeEfficiencyTypeType) :: efficiencyRadiationType
+     type            (enumerationADAFViscosityType              ) :: viscosityOption
+     type            (enumerationADAFFieldEnhancementType       ) :: fieldEnhancementOption
+     type            (enumerationADAFEnergyType                 ) :: energyOption     
+     double precision                                             :: efficiencyRadiation                    , adiabaticIndex                       , &
+          &                                                          pressureThermalFractional              , efficiencyJetMaximum                 , &
+          &                                                          viscosityAlpha
+     type            (table1DLogarithmicLinear                  ) :: tabulations
+     !$ integer      (omp_lock_kind                             ) :: tabulationsLock
+     type            (accretionDisksShakuraSunyaev              ) :: thinDisk
+     ! Stored solutions.
+     !! Height.
+     double precision                                             :: heightStored                           , heightSpinPrevious                   , &
+          &                                                          heightRadiusPrevious
+     !! Velocity.
+     double precision                                             :: velocityRadiusPrevious                 , velocitySpinPrevious                 , &
+          &                                                          velocityStored
+     !! Temperature.
+     double precision                                             :: temperatureRadiusPrevious              , temperatureSpinPrevious              , &
+          &                                                          temperatureStored
+     !! Enthalpy.
+     double precision                                             :: enthalpyRadiusPrevious                 , enthalpySpinPrevious                 , &
+          &                                                          enthalpyStored
+     !! Enthalpy-angular momentum product.
+     double precision                                             :: enthlpyAngMPrdctRadiusPrevious         , enthlpyAngMPrdctSpinPrevious         , &
+          &                                                          enthlpyAngMPrdctStored
+     !! Angular momentum product.
+     double precision                                             :: angularMomentumRadiusPrevious         , angularMomentumSpinPrevious          , &
+          &                                                          angularMomentumStored
+     !! Radial gamma factor.
+     double precision                                             :: gammaRadialRadiusPrevious              , gammaRadialSpinPrevious              , &
+          &                                                          gammaRadialStored
+     !! Azimuthal gamma factor.
+     double precision                                             :: gammaAzimuthalRadiusPrevious           , gammaAzimuthalSpinPrevious           , &
+          &                                                          gammaAzimuthalStored
+     !! Total gamma factor.
+     double precision                                             :: gammaRadiusPrevious                    , gammaSpinPrevious                    , &
+          &                                                          gammaStored
+     !! Viscosity parameter.
+     double precision                                             :: alphaStored                            , alphaSpinPrevious
+     !! Fluid angular velocity.
+     double precision                                             :: fluidAngularVelocityRadiusPrevious     , fluidAngularVelocitySpinPrevious     , &
+          &                                                          fluidAngularVelocityStored
+     !! Field enhancement.
+     double precision                                             :: fieldEnhancementRadiusPrevious         , fieldEnhancementSpinPrevious         , &
+          &                                                          fieldEnhancementStored
+     !! Black hole-launched jet power.
+     double precision                                             :: jetPowerBlackHoleRadiusPrevious        , jetPowerBlackHoleSpinPrevious        , &
+          &                                                          jetPowerBlackHoleStored
+     !! Disk-launched jet power.
+     double precision                                             :: jetPowerDiskRadiusPrevious             , jetPowerDiskSpinPrevious             , &
+          &                                                          jetPowerDiskStored
+     !! Disk-launched black hole jet power.
+     double precision                                             :: jetPowerDiskFromBlackHoleRadiusPrevious, jetPowerDiskFromBlackHoleSpinPrevious, &
+          &                                                          jetPowerDiskFromBlackHoleStored
+   contains
+     !![
+     <methods>
+       <method description="Return the dimensionless height of the ADAF at a given radius." method="height" />
+       <method description="Return the dimensionless velocity of the ADAF at a given radius." method="velocity" />
+       <method description="Return the dimensionless temperature of the ADAF at a given radius." method="temperature" />
+       <method description="Return the dimensionless enthalpy of the ADAF at a given radius." method="enthalpy" />
+       <method description="Return the product of dimensionless enthalpy and angular momentum of the ADAF at a given radius." method="enthalpyAngularMomentumProduct" />
+       <method description="Return the dimensionless angular momentum of the ADAF at a given radius." method="angularMomentum" />
+       <method description="Return the radial part of the relativistic boost factor in the ADAF at a given radius." method="gammaRadial" />
+       <method description="Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius." method="gammaAzimuthal" />
+       <method description="Return the relativistic boost factor in the ADAF at a given radius." method="gamma" />
+       <method description="Return the viscosity parameter, $\alpha$, in the ADAF." method="viscosityParameter" />
+       <method description="Return the dimensionless angular velocity of the ADAF fluid at the given radius." method="fluidAngularVelocity" />
+       <method description="Return the magnetic field enhancement factor in the ADAF at the given radius." method="fieldEnhancement" />
+       <method description="Return the power of the jet launched by the black hole for the ADAF." method="jetPowerBlackHole" />
+       <method description="Return the power of the jet launched from the disk for the ADAF." method="jetPowerDisk" />
+       <method description="Return the power of the jet launched from the disk which is derived frm the black hole." method="jetPowerDiskFromBlackHole" />
+     </methods>
+     !!]
+     final     ::                                   adafDestructor
+     procedure :: efficiencyRadiative            => adafEfficiencyRadiative
+     procedure :: powerJet                       => adafPowerJet
+     procedure :: rateSpinUp                     => adafRateSpinUp
+     procedure :: height                         => adafHeight
+     procedure :: velocity                       => adafVelocity
+     procedure :: temperature                    => adafTemperature
+     procedure :: enthalpy                       => adafEnthalpy
+     procedure :: enthalpyAngularMomentumProduct => adafEnthalpyAngularMomentumProduct
+     procedure :: angularMomentum                => adafAngularMomentum
+     procedure :: gammaRadial                    => adafGammaRadial
+     procedure :: gammaAzimuthal                 => adafGammaAzimuthal
+     procedure :: gamma                          => adafGamma
+     procedure :: viscosityParameter             => adafViscosityParameter
+     procedure :: fluidAngularVelocity           => adafFluidAngularVelocity
+     procedure :: fieldEnhancement               => adafFieldEnhancement
+     procedure :: jetPowerBlackHole              => adafJetPowerBlackHole
+     procedure :: jetPowerDisk                   => adafJetPowerDisk
+     procedure :: jetPowerDiskFromBlackHole      => adafJetPowerDiskFromBlackHole
+  end type accretionDisksADAF
+
+  interface accretionDisksADAF
+     !!{
+     Constructors for the ADAF accretion disk class.
+     !!}
+     module procedure adafConstructorParameters
+     module procedure adafConstructorInternal
+  end interface accretionDisksADAF
 
   ! Number of points to use in ADAF look-up tables.
   integer, parameter :: adafTableCount=10000
@@ -313,23 +315,25 @@ contains
     !!{
     Internal constructor for the ADAF accretion disk class.
     !!}
-    use :: Black_Hole_Fundamentals     , only : Black_Hole_ISCO_Radius , Black_Hole_ISCO_Specific_Energy, Black_Hole_Rotational_Energy_Spin_Down, Black_Hole_Static_Radius, &
+    use :: Black_Hole_Fundamentals     , only : Black_Hole_ISCO_Radius, Black_Hole_ISCO_Specific_Energy, Black_Hole_Rotational_Energy_Spin_Down, Black_Hole_Static_Radius, &
           &                                     orbitPrograde
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Table_Labels                , only : extrapolationTypeFix
     implicit none
-    type            (accretionDisksADAF)                          :: self
-    integer                             , intent(in   )           :: energyOption                     , fieldEnhancementOption            , &
-         &                                                           efficiencyRadiationType          , viscosityOption
-    double precision                    , intent(in   )           :: efficiencyJetMaximum
-    double precision                    , intent(in   ), optional :: efficiencyRadiation              , adiabaticIndex                    , &
-         &                                                           viscosityAlpha
-    double precision                    , parameter               :: spinBlackHoleInverseMaximum=1.0d0, spinBlackHoleInverseMinimum=1.0d-6
-    integer                                                       :: iSpin
-    double precision                                              :: adafEnergy                       , radiusStatic                      , &
-         &                                                           spinBlackHole                    , radiusISCO
+    type            (accretionDisksADAF                        )                          :: self
+    type            (enumerationADAFRadiativeEfficiencyTypeType), intent(in   )           :: efficiencyRadiationType
+    type            (enumerationADAFViscosityType              ), intent(in   )           :: viscosityOption
+    type            (enumerationADAFFieldEnhancementType       ), intent(in   )           :: fieldEnhancementOption
+    type            (enumerationADAFEnergyType                 ), intent(in   )           :: energyOption     
+    double precision                                            , intent(in   )           :: efficiencyJetMaximum
+    double precision                                            , intent(in   ), optional :: efficiencyRadiation              , adiabaticIndex                    , &
+         &                                                                                   viscosityAlpha
+    double precision                                            , parameter               :: spinBlackHoleInverseMaximum=1.0d0, spinBlackHoleInverseMinimum=1.0d-6
+    integer                                                                               :: iSpin
+    double precision                                                                      :: adafEnergy                       , radiusStatic                      , &
+         &                                                                                   spinBlackHole                    , radiusISCO
 
     ! Validate arguments.
     if (efficiencyRadiationType == adafRadiativeEfficiencyTypeFixed .and. .not.present(efficiencyRadiation)) &
@@ -403,10 +407,10 @@ contains
        ! many points close to j=1.
        spinBlackHole=1.0d0-self%tabulations%x(iSpin)
        ! Determine the ADAF energy.
-       select case (self%energyOption)
-       case (adafEnergyPureADAF)
+       select case (self%energyOption%ID)
+       case (adafEnergyPureADAF%ID)
           adafEnergy=1.0d0
-       case (adafEnergyISCO    )
+       case (adafEnergyISCO    %ID)
           adafEnergy=Black_Hole_ISCO_Specific_Energy(spinBlackHole,orbitPrograde)
        case default
           adafEnergy=0.0d0
@@ -426,7 +430,7 @@ contains
             &                                   )                                                                &
             &                               *(speedLight/kilo)**2                                              , &
             &                               iSpin                                                              , &
-            &                         table=adafTablePowerJet                                                    &
+            &                         table=adafTablePowerJet%ID                                                 &
             &                 )
        ! Compute the rate of spin up to mass rate of change ratio.
        call self%tabulations%populate(                                                                           &
@@ -440,7 +444,7 @@ contains
             &                                 +self%jetPowerDiskFromBlackHole      (spinBlackHole,radiusISCO  )  &
             &                                )                                                                 , &
             &                               iSpin                                                              , &
-            &                         table=adafTableRateSpinUp                                                  &
+            &                         table=adafTableRateSpinUp%ID                                               &
             &                        )
     end do
     !$ call OMP_Init_Lock(self%tabulationsLock)
@@ -470,10 +474,10 @@ contains
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
     double precision                        , intent(in   ) :: accretionRateMass
 
-    select case (self%efficiencyRadiationType)
-    case (adafRadiativeEfficiencyTypeFixed   )
+    select case (self%efficiencyRadiationType%ID)
+    case (adafRadiativeEfficiencyTypeFixed   %ID)
        adafEfficiencyRadiative=self%efficiencyRadiation
-    case (adafRadiativeEfficiencyTypeThinDisk)
+    case (adafRadiativeEfficiencyTypeThinDisk%ID)
        adafEfficiencyRadiative=self%thinDisk%efficiencyRadiative(blackHole,accretionRateMass)
     case default
        adafEfficiencyRadiative=0.0d0
@@ -498,8 +502,8 @@ contains
     spinInverseBlackHole=+1.0d0-spinBlackHole
     ! Compute the jet power.
     !$ call OMP_Set_Lock(self%tabulationsLock)
-    adafPowerJet        =+accretionRateMass                                                    &
-         &               *self%tabulations%interpolate(spinInverseBlackHole,adafTablePowerJet)
+    adafPowerJet        =+accretionRateMass                                                       &
+         &               *self%tabulations%interpolate(spinInverseBlackHole,adafTablePowerJet%ID)
     !$ call OMP_Unset_Lock(self%tabulationsLock)
     return
   end function adafPowerJet
@@ -522,7 +526,7 @@ contains
     spinInverseBlackHole       =+1.0d0-spinBlackHole
     ! Compute the ratio of spin and mass rates of change.
     !$ call OMP_Set_Lock(self%tabulationsLock)
-    spinToMassRateOfChangeRatio=self%tabulations%interpolate(spinInverseBlackHole,adafTableRateSpinUp)
+    spinToMassRateOfChangeRatio=self%tabulations%interpolate(spinInverseBlackHole,adafTableRateSpinUp%ID)
     !$ call OMP_Unset_Lock(self%tabulationsLock)
     ! Scale to the mass rate of change.
     adafRateSpinUp             =+spinToMassRateOfChangeRatio &
@@ -700,10 +704,10 @@ contains
             &             /     self%velocity                  (spinBlackHole,radius)  &
             &             /sqrt(     Black_Hole_Metric_D_Factor(spinBlackHole,radius))
        timescale         =min(timescaleAzimuthal,timescaleRadial)
-       select case (self%fieldEnhancementOption)
-       case (adafFieldEnhancementExponential)
+       select case (self%fieldEnhancementOption%ID)
+       case (adafFieldEnhancementExponential%ID)
           self%fieldEnhancementStored=      +exp(Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)*timescale)
-       case (adafFieldEnhancementLinear     )
+       case (adafFieldEnhancementLinear     %ID)
           self%fieldEnhancementStored=+1.0d0+    Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)*timescale
        end select
        self%fieldEnhancementRadiusPrevious            =radius
@@ -749,19 +753,19 @@ contains
 
     ! Check if we are being called with the same arguments as the previous call.
     if (spinBlackHole /= self%alphaSpinPrevious) then
-       select case (self%energyOption)
-       case (adafEnergyISCO)
-          select case (self%fieldEnhancementOption)
-          case (adafFieldEnhancementExponential)
+       select case (self%energyOption%ID)
+       case (adafEnergyISCO%ID)
+          select case (self%fieldEnhancementOption%ID)
+          case (adafFieldEnhancementExponential%ID)
              self%alphaStored=0.015d0+0.02d0*spinBlackHole**4
-          case (adafFieldEnhancementLinear     )
+          case (adafFieldEnhancementLinear     %ID)
              self%alphaStored=0.025d0+0.08d0*spinBlackHole**4
           end select
-       case (adafEnergyPureADAF   )
-          select case (self%fieldEnhancementOption)
-          case (adafFieldEnhancementExponential)
+       case (adafEnergyPureADAF   %ID)
+          select case (self%fieldEnhancementOption%ID)
+          case (adafFieldEnhancementExponential%ID)
              self%alphaStored=0.010d0
-          case (adafFieldEnhancementLinear     )
+          case (adafFieldEnhancementLinear     %ID)
              self%alphaStored=0.025d0+0.02d0*spinBlackHole**4
           end select
        end select
@@ -1259,12 +1263,12 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    integer, intent(in   ) :: fieldEnhancementOption
+    type(enumerationADAFFieldEnhancementType), intent(in   ) :: fieldEnhancementOption
 
-    select case (fieldEnhancementOption)
-    case (adafFieldEnhancementExponential)
+    select case (fieldEnhancementOption%ID)
+    case (adafFieldEnhancementExponential%ID)
        adafAdiabaticIndexDefault=1.444d0
-    case (adafFieldEnhancementLinear     )
+    case (adafFieldEnhancementLinear     %ID)
        adafAdiabaticIndexDefault=1.333d0
     case default
        adafAdiabaticIndexDefault=0.000d0

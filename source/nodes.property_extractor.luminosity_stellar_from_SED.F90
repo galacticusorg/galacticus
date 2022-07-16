@@ -57,7 +57,6 @@ Contains a module which implements a stellar mass output analysis property extra
      final     ::                luminosityStellarFromSEDDestructor
      procedure :: elementCount => luminosityStellarFromSEDElementCount
      procedure :: extract      => luminosityStellarFromSEDExtract
-     procedure :: type         => luminosityStellarFromSEDType
      procedure :: quantity     => luminosityStellarFromSEDQuantity
      procedure :: names        => luminosityStellarFromSEDNames
      procedure :: descriptions => luminosityStellarFromSEDDescriptions
@@ -230,25 +229,14 @@ contains
     
   end function luminosityStellarFromSEDExtract
 
-  integer function luminosityStellarFromSEDType(self)
-    !!{
-    Return the type of the stellar luminosity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    luminosityStellarFromSEDType=outputAnalysisPropertyTypeLinear
-    return
-  end function luminosityStellarFromSEDType
-
-  integer function luminosityStellarFromSEDQuantity(self)
+  function luminosityStellarFromSEDQuantity(self)
     !!{
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: luminosityStellarFromSEDQuantity
     class(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
     !$GLC attributes unused :: self
 

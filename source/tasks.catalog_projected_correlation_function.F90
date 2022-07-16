@@ -23,6 +23,16 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
+  <enumeration>
+   <name>randomSampleCountType</name>
+   <description>Used to specify the type of random sample count.</description>
+   <visibility>private</visibility>
+   <entry label="fixed"        />
+   <entry label="multiplicative"/>
+  </enumeration>
+  !!]
+  
+  !![
   <task name="taskCatalogProjectedCorrelationFunction">
    <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
   </task>
@@ -32,22 +42,22 @@
      Implementation of a task which computes projected correlation functions based on a simple halo model approach.
      !!}
      private
-     class           (cosmologyParametersClass  ), pointer      :: cosmologyParameters_      => null()
-     class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_       => null()
-     class           (surveyGeometryClass       ), pointer      :: surveyGeometry_           => null()
-     class           (randomNumberGeneratorClass), pointer      :: randomNumberGenerator_    => null()
-     type            (varying_string            )               :: galaxyCatalogFileName
-     integer                                                    :: separationCount                     , randomSampleCount, &
-          &                                                        randomSampleCountType
-     double precision                                           :: massMinimum                         , massMaximum      , &
-          &                                                        separationMinimum                   , separationMaximum, &
-          &                                                        separationRadialMaximum,              widthBuffer      , &
-          &                                                        angleRotation
-     double precision                            , dimension(3) :: origin
-     double precision                            , dimension(2) :: vectorRotation
-     logical                                                    :: nodeComponentsInitialized =  .false., halfIntegral
+     class           (cosmologyParametersClass            ), pointer      :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass             ), pointer      :: cosmologyFunctions_       => null()
+     class           (surveyGeometryClass                 ), pointer      :: surveyGeometry_           => null()
+     class           (randomNumberGeneratorClass          ), pointer      :: randomNumberGenerator_    => null()
+     type            (varying_string                      )               :: galaxyCatalogFileName
+     integer                                                              :: separationCount                     , randomSampleCount
+     type            (enumerationRandomSampleCountTypeType)               :: randomSampleCountType
+     double precision                                                     :: massMinimum                         , massMaximum      , &
+          &                                                                  separationMinimum                   , separationMaximum, &
+          &                                                                  separationRadialMaximum,              widthBuffer      , &
+          &                                                                  angleRotation
+     double precision                                      , dimension(3) :: origin
+     double precision                                      , dimension(2) :: vectorRotation
+     logical                                                              :: nodeComponentsInitialized =  .false., halfIntegral
      ! Pointer to the parameters for this task.
-     type            (inputParameters           )               :: parameters
+     type            (inputParameters                     )               :: parameters
    contains
      final     ::            catalogProjectedCorrelationFunctionDestructor
      procedure :: perform => catalogProjectedCorrelationFunctionPerform
@@ -60,16 +70,6 @@
      module procedure catalogProjectedCorrelationFunctionConstructorParameters
      module procedure catalogProjectedCorrelationFunctionConstructorInternal
   end interface taskCatalogProjectedCorrelationFunction
-
-  !![
-  <enumeration>
-   <name>randomSampleCountType</name>
-   <description>Used to specify the type of random sample count.</description>
-   <visibility>private</visibility>
-   <entry label="fixed"        />
-   <entry label="multiplicative"/>
-  </enumeration>
-  !!]
 
 contains
 
@@ -89,8 +89,8 @@ contains
     class           (surveyGeometryClass                    ), pointer               :: surveyGeometry_
     class           (randomNumberGeneratorClass             ), pointer               :: randomNumberGenerator_
     type            (inputParameters                        ), pointer               :: parametersRoot
-    integer                                                                          :: separationCount        , randomSampleCount    , &
-         &                                                                              randomSampleCountType
+    integer                                                                          :: separationCount        , randomSampleCount
+    type            (enumerationRandomSampleCountTypeType   )                        :: randomSampleCountType
     double precision                                                                 :: massMinimum            , massMaximum          , &
          &                                                                              separationMinimum      , separationMaximum    , &
          &                                                                              separationRadialMaximum, widthBuffer          , &
@@ -231,8 +231,8 @@ contains
     implicit none
     type            (taskCatalogProjectedCorrelationFunction)                              :: self
     type            (varying_string                         ), intent(in   )               :: galaxyCatalogFileName
-    integer                                                  , intent(in   )               :: separationCount        , randomSampleCount, &
-         &                                                                                    randomSampleCountType
+    integer                                                  , intent(in   )               :: separationCount        , randomSampleCount
+    type            (enumerationRandomSampleCountTypeType   ), intent(in   )               :: randomSampleCountType
     double precision                                         , intent(in   )               :: massMinimum            , massMaximum      , &
          &                                                                                    separationMinimum      , separationMaximum, &
          &                                                                                    separationRadialMaximum, widthBuffer      , &
@@ -346,10 +346,10 @@ contains
     message=message//size(galaxyPosition,dim=2)//" galaxies"
     call displayMessage(message)
     ! Generate random points.
-    select case (self%randomSampleCountType)
-    case (randomSampleCountTypeFixed         )
+    select case (self%randomSampleCountType%ID)
+    case (randomSampleCountTypeFixed         %ID)
        randomPointCount=int(self%randomSampleCount)
-    case (randomSampleCountTypeMultiplicative)
+    case (randomSampleCountTypeMultiplicative%ID)
        randomPointCount=int(self%randomSampleCount*dble(size(galaxyPosition,dim=2)))
     case default
        randomPointCount=0
@@ -400,10 +400,10 @@ contains
     message=message//size(galaxyPosition,dim=2)//" galaxies"
     call displayMessage(message)
     ! Generate random points.
-    select case (self%randomSampleCountType)
-    case (randomSampleCountTypeFixed         )
+    select case (self%randomSampleCountType%ID)
+    case (randomSampleCountTypeFixed         %ID)
        randomPointCount=int(self%randomSampleCount*dble(replicatedGalaxyCount)/dble(size(galaxyPosition,dim=2)))
-    case (randomSampleCountTypeMultiplicative)
+    case (randomSampleCountTypeMultiplicative%ID)
        randomPointCount=int(self%randomSampleCount*dble(replicatedGalaxyCount))
     case default
        randomPointCount=0

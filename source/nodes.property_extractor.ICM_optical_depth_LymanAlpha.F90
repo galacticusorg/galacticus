@@ -41,7 +41,6 @@
      procedure :: name        => icmOpticalDepthLymanAlphaName
      procedure :: description => icmOpticalDepthLymanAlphaDescription
      procedure :: unitsInSI   => icmOpticalDepthLymanAlphaUnitsInSI
-     procedure :: type        => icmOpticalDepthLymanAlphaType
   end type nodePropertyExtractorICMOpticalDepthLymanAlpha
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
@@ -258,14 +257,4 @@ contains
     return
   end function icmOpticalDepthLymanAlphaUnitsInSI
 
-  integer function icmOpticalDepthLymanAlphaType(self)
-    !% Return the type of the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} properties.
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    icmOpticalDepthLymanAlphaType=outputAnalysisPropertyTypeLinear
-    return
-  end function icmOpticalDepthLymanAlphaType
 

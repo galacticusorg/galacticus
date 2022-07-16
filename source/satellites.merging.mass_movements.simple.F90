@@ -45,13 +45,13 @@
      A merger mass movements class which uses a simple calculation.
      !!}
      private
-     class           (galacticStructureClass), pointer :: galacticStructure_        => null()
-     double precision                                  :: massRatioMajorMerger
-     integer                                           :: destinationGasMinorMerger          , destinationStarsMinorMerger
-     integer         (kind=kind_int8        )          :: lastUniqueID
-     integer                                           :: destinationGasSatellite            , destinationStarsSatellite  , &
-          &                                               destinationGasHost                 , destinationStarsHost
-     logical                                           :: mergerIsMajor                      , movementsCalculated
+     class           (galacticStructureClass          ), pointer :: galacticStructure_        => null()
+     double precision                                            :: massRatioMajorMerger
+     type            (enumerationDestinationMergerType)          :: destinationGasMinorMerger          , destinationStarsMinorMerger
+     integer         (kind=kind_int8                  )          :: lastUniqueID
+     type            (enumerationDestinationMergerType)          :: destinationGasSatellite            , destinationStarsSatellite  , &
+          &                                                         destinationGasHost                 , destinationStarsHost
+     logical                                                     :: mergerIsMajor                      , movementsCalculated
    contains
      final     ::             simpleDestructor
      procedure :: autoHook => simpleAutoHook
@@ -114,19 +114,19 @@ contains
     Internal constructor for the {\normalfont \ttfamily simple} merger mass movements class.
     !!}
     implicit none
-    type            (mergerMassMovementsSimple)                        :: self
-    class           (galacticStructureClass   ), intent(in   ), target :: galacticStructure_
-    double precision                           , intent(in   )         :: massRatioMajorMerger
-    integer                                    , intent(in   )         :: destinationGasMinorMerger, destinationStarsMinorMerger
+    type            (mergerMassMovementsSimple       )                        :: self
+    class           (galacticStructureClass          ), intent(in   ), target :: galacticStructure_
+    double precision                                  , intent(in   )         :: massRatioMajorMerger
+    type            (enumerationDestinationMergerType), intent(in   )         :: destinationGasMinorMerger, destinationStarsMinorMerger
     !![
     <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, destinationStarsMinorMerger, *galacticStructure_"/>
     !!]
 
     self%lastUniqueID             =-huge(0_kind_int8)
-    self%destinationGasSatellite  =-huge(0          )
-    self%destinationStarsSatellite=-huge(0          )
-    self%destinationGasHost       =-huge(0          )
-    self%destinationStarsHost     =-huge(0          )
+    self%destinationGasSatellite  =destinationMergerUnmoved
+    self%destinationStarsSatellite=destinationMergerUnmoved
+    self%destinationGasHost       =destinationMergerUnmoved
+    self%destinationStarsHost     =destinationMergerUnmoved
     self%mergerIsMajor            =.false.
     self%movementsCalculated      =.false.
     return
@@ -186,11 +186,11 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (*       ), intent(inout)         :: self
-    type   (treeNode), intent(inout), target :: node
-    integer                                  :: destinationGasSatellite, destinationGasHost       , &
-         &                                      destinationStarsHost   , destinationStarsSatellite
-    logical                                  :: mergerIsMajor
+    class  (*                               ), intent(inout)         :: self
+    type   (treeNode                        ), intent(inout), target :: node
+    type   (enumerationDestinationMergerType)                        :: destinationGasSatellite, destinationGasHost       , &
+         &                                                              destinationStarsHost   , destinationStarsSatellite
+    logical                                                          :: mergerIsMajor
 
     select type (self)
     type is (mergerMassMovementsSimple)
@@ -207,15 +207,15 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeGalactic
     implicit none
-    class           (mergerMassMovementsSimple), intent(inout)         :: self
-    type            (treeNode                 ), intent(inout), target :: node
-    integer                                    , intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
-         &                                                                destinationStarsHost   , destinationStarsSatellite
-    logical                                    , intent(  out)         :: mergerIsMajor
-    type            (treeNode                 ), pointer               :: nodeHost               , nodeMajor
-    double precision                                                   :: massHost               , massSatellite            , &
-         &                                                                massSpheroid           , massDisk
-    integer                                                            :: destinationDominant
+    class           (mergerMassMovementsSimple       ), intent(inout)         :: self
+    type            (treeNode                        ), intent(inout), target :: node
+    type            (enumerationDestinationMergerType), intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
+         &                                                                       destinationStarsHost   , destinationStarsSatellite
+    logical                                           , intent(  out)         :: mergerIsMajor
+    type            (treeNode                        ), pointer               :: nodeHost               , nodeMajor
+    double precision                                                          :: massHost               , massSatellite            , &
+         &                                                                       massSpheroid           , massDisk
+    type            (enumerationDestinationMergerType)                        :: destinationDominant
 
     ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
     ! the results are determined by the properties of the merge target prior to any modification that will occur as node
@@ -233,6 +233,7 @@ contains
           self%destinationGasHost       =     destinationMergerSpheroid
           self%destinationStarsHost     =     destinationMergerSpheroid
        else
+          destinationDominant=destinationMergerUnmoved
           if (self%destinationGasMinorMerger == destinationMergerDominant .or. self%destinationStarsMinorMerger == destinationMergerDominant) then
              if (massSatellite < massHost) then
                 nodeMajor => nodeHost

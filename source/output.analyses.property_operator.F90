@@ -25,8 +25,9 @@ module Output_Analysis_Property_Operators
   !!{
   Provides a class that implements operators on properties for on-the-fly analyses.
   !!}
-  use            :: Galacticus_Nodes, only : treeNode
-  use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  use            :: Galacticus_Nodes       , only : treeNode
+  use            :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyTypeType
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
   private
 
   !![
@@ -39,10 +40,10 @@ module Output_Analysis_Property_Operators
     <description>Operate on the given property.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision          , intent(in   )           :: propertyValue</argument>
-    <argument>type            (treeNode), intent(inout), optional :: node</argument>
-    <argument>integer                   , intent(inout), optional :: propertyType</argument>
-    <argument>integer         (c_size_t), intent(in   ), optional :: outputIndex</argument>
+    <argument>double precision                                           , intent(in   )           :: propertyValue</argument>
+    <argument>type            (treeNode                                 ), intent(inout), optional :: node         </argument>
+    <argument>type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType </argument>
+    <argument>integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex  </argument>
    </method>
   </functionClass>
   !!]

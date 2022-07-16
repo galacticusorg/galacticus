@@ -174,18 +174,18 @@ contains
     class           (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue
     type            (treeNode                                       ), intent(inout), optional :: node
-    integer                                                          , intent(inout), optional :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType      ), intent(inout), optional :: propertyType
     integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
     !$GLC attributes unused :: propertyType, node
 
     ! Validate.
     if (.not.present(outputIndex)) call Error_Report('ouputIndex is required'//{introspection:location})
     ! Apply the correction.
-    select case (propertyType)
-    case (outputAnalysisPropertyTypeLinear   )
+    select case (propertyType%ID)
+    case (outputAnalysisPropertyTypeLinear   %ID)
        csmlgyLuminosityDistanceOperate=+propertyValue                             &
             &                          *      self%correctionFactor(outputIndex)
-    case (outputAnalysisPropertyTypeMagnitude)
+    case (outputAnalysisPropertyTypeMagnitude%ID)
        csmlgyLuminosityDistanceOperate=+propertyValue                             &
             &                          -2.5d0                                     &
             &                          *log10(self%correctionFactor(outputIndex))

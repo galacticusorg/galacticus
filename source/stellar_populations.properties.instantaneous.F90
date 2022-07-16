@@ -141,8 +141,8 @@ contains
     Return stellar population property rates of change given a star formation rate and fuel abundances.
     !!}
     use :: Abundances_Structure      , only : Abundances_Get_Metallicity            , adjustElementsReset
-    use :: Galactic_Structure_Options, only : componentTypeDisk                     , componentTypeSpheroid
-    use :: Galacticus_Nodes          , only : nodeComponent                         , nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid, &
+    use :: Galactic_Structure_Options, only : componentTypeDisk                     , componentTypeSpheroid, componentTypeAll , enumerationComponentTypeType
+    use :: Galacticus_Nodes          , only : nodeComponent                         , nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid       , &
           &                                   treeNode
     use :: Stellar_Feedback          , only : feedbackEnergyInputAtInfinityCanonical
     use :: Stellar_Populations       , only : stellarPopulationClass
@@ -161,7 +161,7 @@ contains
     class           (stellarPopulationClass                  ), pointer       :: stellarPopulation_
     class           (nodeComponentBasic                      ), pointer       :: basic
     integer         (c_size_t                                )                :: populationID
-    integer                                                                   :: componentIndex
+    type            (enumerationComponentTypeType            )                :: componentIndex
     double precision                                                          :: fuelMetallicity               , fuelMetalsRateOfChange   , &
          &                                                                       recycledFractionInstantaneous , stellarMetalsRateOfChange, &
          &                                                                       time                          , yieldInstantaneous
@@ -196,26 +196,26 @@ contains
        class is (nodeComponentSpheroid)
           componentIndex=componentTypeSpheroid
        class default
-          componentIndex=-1
+          componentIndex=componentTypeAll
        end select
-       select case (componentIndex)
-       case (componentTypeDisk,componentTypeSpheroid)
-          if     (                                                                     &
-               &   populationID      /= self%     populationIDPrevious(componentIndex) &
-               &  .or.                                                                 &
-               &   rateStarFormation /= self%rateStarFormationPrevious(componentIndex) &
-               &  .or.                                                                 &
-               &   time              /= self%             timePrevious(componentIndex) &
-               &  .or.                                                                 &
-               &   fuelMetallicity   /= self%  fuelMetallicityPrevious(componentIndex) &
+       select case (componentIndex%ID)
+       case (componentTypeDisk%ID,componentTypeSpheroid%ID)
+          if     (                                                                        &
+               &   populationID      /= self%     populationIDPrevious(componentIndex%ID) &
+               &  .or.                                                                    &
+               &   rateStarFormation /= self%rateStarFormationPrevious(componentIndex%ID) &
+               &  .or.                                                                    &
+               &   time              /= self%             timePrevious(componentIndex%ID) &
+               &  .or.                                                                    &
+               &   fuelMetallicity   /= self%  fuelMetallicityPrevious(componentIndex%ID) &
                & ) then
-             call self%rateLuminosityStellarPrevious(componentIndex)%setLuminosities(rateStarFormation,stellarPopulation_,self%stellarPopulationBroadBandLuminosities_,time,abundancesFuel)
-             self%populationIDPrevious     (componentIndex)=populationID
-             self%rateStarFormationPrevious(componentIndex)=rateStarFormation
-             self%timePrevious             (componentIndex)=time
-             self%fuelMetallicityPrevious  (componentIndex)=fuelMetallicity
+             call self%rateLuminosityStellarPrevious(componentIndex%ID)%setLuminosities(rateStarFormation,stellarPopulation_,self%stellarPopulationBroadBandLuminosities_,time,abundancesFuel)
+             self%populationIDPrevious     (componentIndex%ID)=populationID
+             self%rateStarFormationPrevious(componentIndex%ID)=rateStarFormation
+             self%timePrevious             (componentIndex%ID)=time
+             self%fuelMetallicityPrevious  (componentIndex%ID)=fuelMetallicity
           end if
-          rateLuminosityStellar=self%rateLuminosityStellarPrevious(componentIndex)
+          rateLuminosityStellar=self%rateLuminosityStellarPrevious(componentIndex%ID)
        case default
           call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,self%stellarPopulationBroadBandLuminosities_,time,abundancesFuel)
        end select

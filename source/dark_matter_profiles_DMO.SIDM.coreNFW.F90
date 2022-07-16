@@ -404,10 +404,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    double precision                                 , intent(in   )           :: radius
-    integer                                          , intent(  out), optional :: status
+    class           (darkMatterProfileDMOSIDMCoreNFW  ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     sidmCoreNFWPotential=self%potentialNumerical(node,radius,status)
     return

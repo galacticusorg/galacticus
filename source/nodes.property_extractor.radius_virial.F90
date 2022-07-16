@@ -47,7 +47,6 @@ Contains a module which implements a virial radius output analysis property extr
    contains
      final     ::                radiusVirialDestructor
      procedure :: extract     => radiusVirialExtract
-     procedure :: type        => radiusVirialType
      procedure :: name        => radiusVirialName
      procedure :: description => radiusVirialDescription
      procedure :: unitsInSI   => radiusVirialUnitsInSI
@@ -156,18 +155,6 @@ contains
     return
   end function radiusVirialExtract
 
-  integer function radiusVirialType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusVirial), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusVirialType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusVirialType
 
   function radiusVirialName(self)
     !!{

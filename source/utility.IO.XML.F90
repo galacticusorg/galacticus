@@ -472,15 +472,15 @@ contains
     !!}
     use :: FoX_dom     , only : extractDataContent                , node
     use :: Error       , only : Error_Report
-    use :: Table_Labels, only : enumerationExtrapolationTypeEncode
+    use :: Table_Labels, only : enumerationExtrapolationTypeEncode, enumerationExtrapolationTypeType
     implicit none
-    type     (node       )              , intent(in   ), pointer     :: extrapolationElement
-    character(len=*      )              , intent(  out)              :: limitType
-    integer                             , intent(  out)              :: extrapolationMethod
-    integer               , dimension(:), intent(in   ), optional    :: allowedMethods
-    type     (node       )                             , pointer     :: limitElement        , methodElement
-    type     (xmlNodeList), dimension(:)               , allocatable :: elementList
-    character(len=32     )                                           :: methodType
+    type     (node                            )              , intent(in   ), pointer     :: extrapolationElement
+    character(len=*                           )              , intent(  out)              :: limitType
+    type     (enumerationExtrapolationTypeType)              , intent(  out)              :: extrapolationMethod
+    type     (enumerationExtrapolationTypeType), dimension(:), intent(in   ), optional    :: allowedMethods
+    type     (node                            )                             , pointer     :: limitElement        , methodElement
+    type     (xmlNodeList                     ), dimension(:)               , allocatable :: elementList
+    character(len=32                          )                                           :: methodType
 
     ! Extract the limit type.
     call XML_Get_Elements_By_Tag_Name(extrapolationElement,"limit",elementList)

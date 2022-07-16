@@ -584,7 +584,7 @@ contains
     class           (atomicRecombinationRateRadiativeVerner1996), intent(inout)           :: self
     integer                                                     , intent(in   )           :: atomicNumber     , ionizationState
     double precision                                            , intent(in   )           :: temperature
-    integer                                                     , intent(in   ), optional :: level
+    type            (enumerationRecombinationCaseType          ), intent(in   ), optional :: level
     ! Coefficients in the fitting function of Fergusen & Ferland (1997).
     double precision                                            , parameter               :: ffFitA=-9.97652d0
     double precision                                            , parameter               :: ffFitB= 0.03506d0
@@ -608,8 +608,8 @@ contains
     ! If temperature is unphysical, return.
     if (temperature <= 0.0d0) return
     ! Determine type of recombination coefficient required.
-    select case (level_)
-    case (recombinationCaseA)
+    select case (level_%ID)
+    case (recombinationCaseA%ID)
        ! Ensure atomic number is in range.
        if (atomicNumber  < 1 .or. atomicNumber    > 30          ) call Error_Report('atomic number is out of range'  //{introspection:location})
        ! Compute number of electrons.
@@ -667,7 +667,7 @@ contains
                   &/temperatureScaled **verner1996FitCoefficients(2,atomicNumber,electronNumber)
           end if
        end if
-    case (recombinationCaseB)
+    case (recombinationCaseB%ID)
        ! Case B recombination coefficient was requested.
        select case (atomicNumber)
        case (1) ! Hydrogen

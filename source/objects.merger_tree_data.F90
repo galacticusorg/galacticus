@@ -162,12 +162,12 @@ module Merger_Tree_Data_Structure
      !!{
      Structure that holds metadata for the trees.
      !!}
-     integer                          :: metadataType
-     type            (varying_string) :: label
-     integer                          :: dataType
-     integer                          :: integerAttribute
-     double precision                 :: doubleAttribute
-     type            (varying_string) :: textAttribute
+     type            (enumerationMetaDataTypeType) :: metadataType
+     type            (varying_string             ) :: label
+     type            (enumerationDataTypeType    ) :: dataType
+     integer                                       :: integerAttribute
+     double precision                              :: doubleAttribute
+     type            (varying_string             ) :: textAttribute
   end type treeMetaData
 
   type mergerTreeData
@@ -175,63 +175,63 @@ module Merger_Tree_Data_Structure
      A structure that holds raw merger tree data.
      !!}
      private
-     integer                                                                                   :: dummyHostId                        , nodeCount                        , &
-          &                                                                                       particlesCount                     , forestCount
-     double precision                                                                          :: particleMass               =0.0d0
-     integer                         , allocatable, dimension(:                              ) :: columnProperties                   , particleColumnProperties         , &
-          &                                                                                       treeBeginsAt                       , treeNodeCount
-     integer         (kind=kind_int8), allocatable, dimension(:                              ) :: descendentIndex                    , hostIndex                        , &
-          &                                                                                       mostBoundParticleIndex             , nodeIndex                        , &
-          &                                                                                       particleIndex                      , forestID                         , &
-          &                                                                                       forestIndex
-     integer         (c_size_t      ), allocatable, dimension(:                              ) :: particleCount                      , snapshot                         , &
-          &                                                                                       particleReferenceCount             , particleReferenceStart           , &
-          &                                                                                       particleSnapshot
-     double precision                , allocatable, dimension(:                              ) :: angularMomentumMagnitude           , halfMassRadius                   , &
-          &                                                                                       nodeMass                           , particleRedshift                 , &
-          &                                                                                       redshift                           , scaleFactor                      , &
-          &                                                                                       scaleRadius                        , spinMagnitude                    , &
-          &                                                                                       treeWeight                         , forestWeightNode                 , &
-          &                                                                                       specificAngularMomentumMagnitude   , velocityMaximum                  , &
-          &                                                                                       velocityDispersion                 , nodeMass200Mean                  , &
-          &                                                                                       nodeMass200Crit
-     double precision                , allocatable, dimension(:,:                            ) :: angularMomentum                    , particlePosition                 , &
-          &                                                                                       particleVelocity                   , position                         , &
-          &                                                                                       spin                               , velocity                         , &
-          &                                                                                       specificAngularMomentum
-     double precision                             , dimension(propertyTypeMin:propertyTypeMax) :: convertProperty            =1.0d0
-     logical                                                                                   :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
-          &                                                                                       hasAngularMomentumY                , hasAngularMomentumZ              , &
-          &                                                                                       hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
-          &                                                                                       hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
-          &                                                                                       hasDescendentIndex                 , hasDummyHostId                   , &
-          &                                                                                       hasHalfMassRadius                                                     , &
-          &                                                                                       hasHostIndex                       , hasMostBoundParticleIndex        , &
-          &                                                                                       hasNodeIndex                       , hasNodeMass                      , &
-          &                                                                                       hasNodeMass200Mean                 , hasNodeMass200Crit               , &
-          &                                                                                       hasParticleCount                   , hasParticleIndex                 , &
-          &                                                                                       hasParticlePositionX               , hasParticlePositionY             , &
-          &                                                                                       hasParticlePositionZ               , hasParticleRedshift              , &
-          &                                                                                       hasParticleSnapshot                , hasParticleVelocityX             , &
-          &                                                                                       hasParticleVelocityY               , hasParticleVelocityZ             , &
-          &                                                                                       hasParticles               =.false., hasPositionX                     , &
-          &                                                                                       hasPositionY                       , hasPositionZ                     , &
-          &                                                                                       hasRedshift                        , hasScaleFactor                   , &
-          &                                                                                       hasScaleRadius                     , hasSnapshot                      , &
-          &                                                                                       hasSpinMagnitude                   , hasSpinX                         , &
-          &                                                                                       hasSpinY                           , hasSpinZ                         , &
-          &                                                                                       hasForestIndex                     , hasVelocityX                     , &
-          &                                                                                       hasVelocityY                       , hasVelocityZ                     , &
-          &                                                                                       hasVelocityMaximum                 , hasVelocityDispersion            , &
-          &                                                                                       hasForestWeight                                                       , &
-          &                                                                                       hasBoxSize
-     logical                                                                                   :: areSelfContained           =.true. , doMakeReferences         =.true. , &
-          &                                                                                       includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
-          &                                                                                       isPeriodic                 =.false.
-     type            (unitsMetaData )             , dimension(unitsMin       :unitsMax       ) :: units
-     logical                                      , dimension(unitsMin       :unitsMax       ) :: unitsSet                   =.false.
-     integer                                                                                   :: metaDataCount              =0
-     type            (treeMetaData  ), allocatable, dimension(               :               ) :: metaData
+     integer                                                                                                :: dummyHostId                        , nodeCount                        , &
+          &                                                                                                    particlesCount                     , forestCount
+     double precision                                                                                       :: particleMass               =0.0d0
+     type            (enumerationPropertyTypeType), allocatable, dimension(:                              ) :: columnProperties                   , particleColumnProperties 
+     integer                                      , allocatable, dimension(:                              ) :: treeBeginsAt                       , treeNodeCount
+     integer         (kind=kind_int8             ), allocatable, dimension(:                              ) :: descendentIndex                    , hostIndex                        , &
+          &                                                                                                    mostBoundParticleIndex             , nodeIndex                        , &
+          &                                                                                                    particleIndex                      , forestID                         , &
+          &                                                                                                    forestIndex
+     integer         (c_size_t                   ), allocatable, dimension(:                              ) :: particleCount                      , snapshot                         , &
+          &                                                                                                    particleReferenceCount             , particleReferenceStart           , &
+          &                                                                                                    particleSnapshot
+     double precision                             , allocatable, dimension(:                              ) :: angularMomentumMagnitude           , halfMassRadius                   , &
+          &                                                                                                    nodeMass                           , particleRedshift                 , &
+          &                                                                                                    redshift                           , scaleFactor                      , &
+          &                                                                                                    scaleRadius                        , spinMagnitude                    , &
+          &                                                                                                    treeWeight                         , forestWeightNode                 , &
+          &                                                                                                    specificAngularMomentumMagnitude   , velocityMaximum                  , &
+          &                                                                                                    velocityDispersion                 , nodeMass200Mean                  , &
+          &                                                                                                    nodeMass200Crit
+     double precision                             , allocatable, dimension(:,:                            ) :: angularMomentum                    , particlePosition                 , &
+          &                                                                                                    particleVelocity                   , position                         , &
+          &                                                                                                    spin                               , velocity                         , &
+          &                                                                                                    specificAngularMomentum
+     double precision                                          , dimension(propertyTypeMin:propertyTypeMax) :: convertProperty            =1.0d0
+     logical                                                                                                :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
+          &                                                                                                    hasAngularMomentumY                , hasAngularMomentumZ              , &
+          &                                                                                                    hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
+          &                                                                                                    hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
+          &                                                                                                    hasDescendentIndex                 , hasDummyHostId                   , &
+          &                                                                                                    hasHalfMassRadius                                                     , &
+          &                                                                                                    hasHostIndex                       , hasMostBoundParticleIndex        , &
+          &                                                                                                    hasNodeIndex                       , hasNodeMass                      , &
+          &                                                                                                    hasNodeMass200Mean                 , hasNodeMass200Crit               , &
+          &                                                                                                    hasParticleCount                   , hasParticleIndex                 , &
+          &                                                                                                    hasParticlePositionX               , hasParticlePositionY             , &
+          &                                                                                                    hasParticlePositionZ               , hasParticleRedshift              , &
+          &                                                                                                    hasParticleSnapshot                , hasParticleVelocityX             , &
+          &                                                                                                    hasParticleVelocityY               , hasParticleVelocityZ             , &
+          &                                                                                                    hasParticles               =.false., hasPositionX                     , &
+          &                                                                                                    hasPositionY                       , hasPositionZ                     , &
+          &                                                                                                    hasRedshift                        , hasScaleFactor                   , &
+          &                                                                                                    hasScaleRadius                     , hasSnapshot                      , &
+          &                                                                                                    hasSpinMagnitude                   , hasSpinX                         , &
+          &                                                                                                    hasSpinY                           , hasSpinZ                         , &
+          &                                                                                                    hasForestIndex                     , hasVelocityX                     , &
+          &                                                                                                    hasVelocityY                       , hasVelocityZ                     , &
+          &                                                                                                    hasVelocityMaximum                 , hasVelocityDispersion            , &
+          &                                                                                                    hasForestWeight                                                       , &
+          &                                                                                                    hasBoxSize
+     logical                                                                                                :: areSelfContained           =.true. , doMakeReferences         =.true. , &
+          &                                                                                                    includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
+          &                                                                                                    isPeriodic                 =.false.
+     type            (unitsMetaData              )             , dimension(unitsMin       :unitsMax       ) :: units
+     logical                                                   , dimension(unitsMin       :unitsMax       ) :: unitsSet                   =.false.
+     integer                                                                                                :: metaDataCount              =0
+     type            (treeMetaData               ), allocatable, dimension(               :               ) :: metaData
    contains
      !![
      <methods>
@@ -383,10 +383,10 @@ contains
     Add a double metadatum.
     !!}
     implicit none
-    class           (mergerTreeData), intent(inout) :: mergerTrees
-    integer                         , intent(in   ) :: metadataType
-    character       (len=*         ), intent(in   ) :: label
-    double precision                , intent(in   ) :: doubleValue
+    class           (mergerTreeData             ), intent(inout) :: mergerTrees
+    type            (enumerationMetaDataTypeType), intent(in   ) :: metadataType
+    character       (len=*                      ), intent(in   ) :: label
+    double precision                             , intent(in   ) :: doubleValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,doubleValue=doubleValue)
     ! Check if this is box size.
@@ -399,10 +399,10 @@ contains
     Add an integer metadatum.
     !!}
     implicit none
-    class    (mergerTreeData), intent(inout) :: mergerTrees
-    integer                  , intent(in   ) :: metadataType
-    character(len=*         ), intent(in   ) :: label
-    integer                  , intent(in   ) :: integerValue
+    class    (mergerTreeData             ), intent(inout) :: mergerTrees
+    type     (enumerationMetaDataTypeType), intent(in   ) :: metadataType
+    character(len=*                      ), intent(in   ) :: label
+    integer                               , intent(in   ) :: integerValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue=integerValue)
     return
@@ -413,10 +413,10 @@ contains
     Add a double metadatum.
     !!}
     implicit none
-    class    (mergerTreeData), intent(inout) :: mergerTrees
-    integer                  , intent(in   ) :: metadataType
-    character(len=*         ), intent(in   ) :: label
-    character(len=*         ), intent(in   ) :: textValue
+    class    (mergerTreeData             ), intent(inout) :: mergerTrees
+    type     (enumerationMetaDataTypeType), intent(in   ) :: metadataType
+    character(len=*                      ), intent(in   ) :: label
+    character(len=*                      ), intent(in   ) :: textValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,textValue=textValue)
     return
@@ -430,14 +430,14 @@ contains
     use :: ISO_Varying_String, only : assignment(=)
     use :: Memory_Management , only : Memory_Usage_Record
     implicit none
-    class           (mergerTreeData), intent(inout)               :: mergerTrees
-    integer                         , intent(in   )               :: metadataType
-    character       (len=*         ), intent(in   )               :: label
-    integer                         , intent(in   ), optional     :: integerValue
-    double precision                , intent(in   ), optional     :: doubleValue
-    character       (len=*         ), intent(in   ), optional     :: textValue
-    integer                         , parameter                   :: metadataBlockSize=100
-    type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary
+    class           (mergerTreeData             ), intent(inout)               :: mergerTrees
+    type            (enumerationMetaDataTypeType), intent(in   )               :: metadataType
+    character       (len=*                      ), intent(in   )               :: label
+    integer                                      , intent(in   ), optional     :: integerValue
+    double precision                             , intent(in   ), optional     :: doubleValue
+    character       (len=*                      ), intent(in   ), optional     :: textValue
+    integer                                      , parameter                   :: metadataBlockSize=100
+    type            (treeMetaData               ), allocatable  , dimension(:) :: metaDataTemporary
 
     ! Validate the metadata type.
     if (.not.enumerationMetadataTypeIsValid(metadataType)) call Error_Report('invalid metadata type'//{introspection:location})
@@ -618,15 +618,15 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees
-    integer                , intent(in   ) :: propertyType
-    double precision       , intent(in   ) :: conversionFactor
+    class           (mergerTreeData             ), intent(inout) :: mergerTrees
+    type            (enumerationPropertyTypeType), intent(in   ) :: propertyType
+    double precision                             , intent(in   ) :: conversionFactor
 
     ! Ensure the property type is valid.
     if (.not.enumerationPropertyTypeIsValid(propertyType)) call Error_Report('invalid property type'//{introspection:location})
 
     ! Store conversion factor into array.
-    mergerTrees%convertProperty(propertyType)=conversionFactor
+    mergerTrees%convertProperty(propertyType%ID)=conversionFactor
     return
   end subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor
 
@@ -637,45 +637,44 @@ contains
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    class           (mergerTreeData), intent(inout)           :: mergerTrees
-    integer                         , intent(in   )           :: unitType
-    double precision                , intent(in   )           :: unitsInSI
-    integer                         , intent(in   ), optional :: hubbleExponent, scaleFactorExponent
-    character       (len=*         ), intent(in   ), optional :: name
+    class           (mergerTreeData      ), intent(inout)           :: mergerTrees
+    type            (enumerationUnitsType), intent(in   )           :: unitType
+    double precision                      , intent(in   )           :: unitsInSI
+    integer                               , intent(in   ), optional :: hubbleExponent, scaleFactorExponent
+    character       (len=*               ), intent(in   ), optional :: name
 
     ! Ensure the unit type is valid.
     if (.not.enumerationUnitsIsValid(unitType)) call Error_Report('invalid unit type'//{introspection:location})
 
     ! Flag the units as set.
-    mergerTrees%unitsSet(unitType)=.true.
+    mergerTrees%unitsSet(unitType%ID)=.true.
 
     ! Store the units in the SI system.
-    mergerTrees%units(unitType)%unitsInSI=unitsInSI
+    mergerTrees%units(unitType%ID)%unitsInSI=unitsInSI
 
     ! Store Hubble parameter exponent if given.
     if (present(hubbleExponent)) then
-       mergerTrees%units(unitType)%hubbleExponent=hubbleExponent
+       mergerTrees%units(unitType%ID)%hubbleExponent=hubbleExponent
     else
        ! No Hubble parameter exponent provided - assume no dependence.
-       mergerTrees%units(unitType)%hubbleExponent=0
+       mergerTrees%units(unitType%ID)%hubbleExponent=0
     end if
 
     ! Store scale factor exponent if given.
     if (present(scaleFactorExponent)) then
-       mergerTrees%units(unitType)%scaleFactorExponent=scaleFactorExponent
+       mergerTrees%units(unitType%ID)%scaleFactorExponent=scaleFactorExponent
     else
        ! No scale factor parameter exponent provided - assume no dependence.
-       mergerTrees%units(unitType)%scaleFactorExponent=0
+       mergerTrees%units(unitType%ID)%scaleFactorExponent=0
     end if
 
     ! Store the name if given.
-    allocate(mergerTrees%units(unitType)%name)
+    allocate(mergerTrees%units(unitType%ID)%name)
     if (present(name)) then
-       mergerTrees%units(unitType)%name=name
+       mergerTrees%units(unitType%ID)%name=name
     else
-       mergerTrees%units(unitType)%name=""
+       mergerTrees%units(unitType%ID)%name=""
     end if
-
     return
   end subroutine Merger_Tree_Data_Structure_Set_Units
 
@@ -685,21 +684,22 @@ contains
     !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
-    class  (mergerTreeData), intent(inout)               :: mergerTrees
-    integer                , intent(in   )               :: columnNumber        , propertyType
-    integer                , allocatable  , dimension(:) :: columnPropertiesTemp
+    class  (mergerTreeData             ), intent(inout)               :: mergerTrees
+    integer                             , intent(in   )               :: columnNumber
+    type   (enumerationPropertyTypeType), intent(in   )               :: propertyType
+    type   (enumerationPropertyTypeType), allocatable  , dimension(:) :: columnPropertiesTemp
 
     ! Ensure the storage array is large enough.
     if (allocated(mergerTrees%particleColumnProperties)) then
        if (columnNumber > size(mergerTrees%particleColumnProperties)) then
           call Move_Alloc(mergerTrees%particleColumnProperties,columnPropertiesTemp)
-          call allocateArray(mergerTrees%particleColumnProperties,[columnNumber])
-          mergerTrees%particleColumnProperties(1                        :size(columnPropertiesTemp))=columnPropertiesTemp
-          mergerTrees%particleColumnProperties(1+size(columnPropertiesTemp):columnNumber           )=propertyTypeNull
-          call deallocateArray(columnPropertiesTemp)
+          allocate(mergerTrees%particleColumnProperties(columnNumber))
+          mergerTrees%particleColumnProperties(1                           :size(columnPropertiesTemp))=columnPropertiesTemp
+          mergerTrees%particleColumnProperties(1+size(columnPropertiesTemp):columnNumber              )=propertyTypeNull
+          deallocate(columnPropertiesTemp)
        end if
     else
-       call allocateArray(mergerTrees%particleColumnProperties,[columnNumber])
+       allocate(mergerTrees%particleColumnProperties(columnNumber))
        mergerTrees%particleColumnProperties=propertyTypeNull
     end if
     ! Store the property type.
@@ -713,21 +713,22 @@ contains
     !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
-    class  (mergerTreeData), intent(inout)               :: mergerTrees
-    integer                , intent(in   )               :: columnNumber        , propertyType
-    integer                , allocatable  , dimension(:) :: columnPropertiesTemp
+    class  (mergerTreeData             ), intent(inout)               :: mergerTrees
+    type   (enumerationPropertyTypeType), intent(in   )               :: propertyType
+    integer                             , intent(in   )               :: columnNumber
+    type   (enumerationPropertyTypeType), allocatable  , dimension(:) :: columnPropertiesTemp
 
     ! Ensure the storage array is large enough.
     if (allocated(mergerTrees%columnProperties)) then
        if (columnNumber > size(mergerTrees%columnProperties)) then
           call Move_Alloc(mergerTrees%columnProperties,columnPropertiesTemp)
-          call allocateArray(mergerTrees%columnProperties,[columnNumber])
-          mergerTrees%columnProperties(1                        :size(columnPropertiesTemp))=columnPropertiesTemp
-          mergerTrees%columnProperties(1+size(columnPropertiesTemp):columnNumber           )=propertyTypeNull
-          call deallocateArray(columnPropertiesTemp)
+          allocate(mergerTrees%columnProperties(columnNumber))
+          mergerTrees%columnProperties(1                           :size(columnPropertiesTemp))=columnPropertiesTemp
+          mergerTrees%columnProperties(1+size(columnPropertiesTemp):columnNumber              )=propertyTypeNull
+          deallocate(columnPropertiesTemp)
        end if
     else
-       call allocateArray(mergerTrees%columnProperties,[columnNumber])
+       allocate(mergerTrees%columnProperties(columnNumber))
        mergerTrees%columnProperties=propertyTypeNull
     end if
     ! Store the property type.
@@ -742,37 +743,37 @@ contains
     use :: Error            , only : Error_Report
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
-    class  (mergerTreeData)              , intent(inout) :: mergerTrees
-    integer                              , intent(in   ) :: propertyType
-    integer(kind=kind_int8), dimension(:), intent(in   ) :: property
+    class  (mergerTreeData             )              , intent(inout) :: mergerTrees
+    type   (enumerationPropertyTypeType)              , intent(in   ) :: propertyType
+    integer(kind=kind_int8             ), dimension(:), intent(in   ) :: property
 
     ! Check the supplied arrays is of the correct size.
     if (size(property) /= mergerTrees%nodeCount) call Error_Report('property array size is incorrect'//{introspection:location})
 
     ! Assign to the relevant property.
-    select case (propertyType)
-    case (propertyTypeTreeIndex      )
+    select case (propertyType%ID)
+    case (propertyTypeTreeIndex      %ID)
        mergerTrees%hasForestIndex    =.true.
        if (allocated(mergerTrees%forestIndex    )) call deallocateArray(mergerTrees%forestIndex    )
        call allocateArray(mergerTrees%forestIndex    ,[size(property)])
        mergerTrees%forestIndex    =property
        call Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
-    case (propertyTypeNodeIndex      )
+    case (propertyTypeNodeIndex      %ID)
        mergerTrees%hasNodeIndex      =.true.
        if (allocated(mergerTrees%nodeIndex      )) call deallocateArray(mergerTrees%nodeIndex      )
        call allocateArray(mergerTrees%nodeIndex      ,[size(property)])
        mergerTrees%nodeIndex      =property
-    case (propertyTypeHostIndex      )
+    case (propertyTypeHostIndex      %ID)
        mergerTrees%hasHostIndex      =.true.
        if (allocated(mergerTrees%hostIndex      )) call deallocateArray(mergerTrees%hostIndex      )
        call allocateArray(mergerTrees%hostIndex      ,[size(property)])
        mergerTrees%hostIndex      =property
-    case (propertyTypeDescendentIndex)
+    case (propertyTypeDescendentIndex%ID)
        mergerTrees%hasDescendentIndex=.true.
        if (allocated(mergerTrees%descendentIndex)) call deallocateArray(mergerTrees%descendentIndex)
        call allocateArray(mergerTrees%descendentIndex,[size(property)])
        mergerTrees%descendentIndex=property
-    case (propertyTypeSnapshot       )
+    case (propertyTypeSnapshot       %ID)
        mergerTrees%hasSnapshot       =.true.
        if (allocated(mergerTrees%snapshot       )) call deallocateArray(mergerTrees%snapshot       )
        call allocateArray(mergerTrees%snapshot       ,[size(property)])
@@ -790,41 +791,41 @@ contains
     use :: Error            , only : Error_Report
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
-    class           (mergerTreeData)              , intent(inout) :: mergerTrees
-    integer                                       , intent(in   ) :: propertyType
-    double precision                , dimension(:), intent(in   ) :: property
+    class           (mergerTreeData             )              , intent(inout) :: mergerTrees
+    type            (enumerationPropertyTypeType)              , intent(in   ) :: propertyType
+    double precision                             , dimension(:), intent(in   ) :: property
 
     ! Check the supplied arrays is of the correct size.
     if (size(property) /= mergerTrees%nodeCount) call Error_Report('property array size is incorrect'//{introspection:location})
 
     ! Assign to the relevant property.
-    select case (propertyType)
-    case (propertyTypeTreeWeight     )
+    select case (propertyType%ID)
+    case (propertyTypeTreeWeight     %ID)
        mergerTrees%hasForestWeight  =.true.
        if (allocated(mergerTrees%forestWeightNode)) call deallocateArray(mergerTrees%forestWeightNode)
        call allocateArray(mergerTrees%forestWeightNode ,[size(property)])
        mergerTrees%forestWeightNode =property
-    case (propertyTypeRedshift       )
+    case (propertyTypeRedshift       %ID)
        mergerTrees%hasRedshift       =.true.
        if (allocated(mergerTrees%redshift        )) call deallocateArray(mergerTrees%redshift        )
        call allocateArray(mergerTrees%redshift       ,[size(property)])
        mergerTrees%redshift       =property
-    case (propertyTypeNodeMass       )
+    case (propertyTypeNodeMass       %ID)
        mergerTrees%hasNodeMass       =.true.
        if (allocated(mergerTrees%nodeMass        )) call deallocateArray(mergerTrees%nodeMass        )
        call allocateArray(mergerTrees%nodeMass       ,[size(property)])
        mergerTrees%nodeMass       =property
-    case (propertyTypeNodeMass200Mean)
+    case (propertyTypeNodeMass200Mean%ID)
        mergerTrees%hasNodeMass200Mean=.true.
        if (allocated(mergerTrees%nodeMass200Mean )) call deallocateArray(mergerTrees%nodeMass200Mean )
        call allocateArray(mergerTrees%nodeMass200Mean,[size(property)])
        mergerTrees%nodeMass200Mean=property
-    case (propertyTypeNodeMass200Crit)
+    case (propertyTypeNodeMass200Crit%ID)
        mergerTrees%hasNodeMass200Crit=.true.
        if (allocated(mergerTrees%nodeMass200Crit )) call deallocateArray(mergerTrees%nodeMass200Crit )
        call allocateArray(mergerTrees%nodeMass200Crit,[size(property)])
        mergerTrees%nodeMass200Crit=property
-    case (propertyTypePositionX      )
+    case (propertyTypePositionX      %ID)
        if (                                             &
             & allocated(mergerTrees%position)           &
             & .and..not.mergerTrees%hasPositionX        &
@@ -834,7 +835,7 @@ contains
        mergerTrees%hasPositionX=.true.
        if (.not.allocated(mergerTrees%position)) call allocateArray(mergerTrees%position,[3,size(property)])
        mergerTrees%position(1,:)=property
-    case (propertyTypePositionY      )
+    case (propertyTypePositionY      %ID)
        if (                                             &
             & allocated(mergerTrees%position)           &
             & .and..not.mergerTrees%hasPositionX        &
@@ -844,7 +845,7 @@ contains
        mergerTrees%hasPositionY=.true.
        if (.not.allocated(mergerTrees%position)) call allocateArray(mergerTrees%position,[3,size(property)])
        mergerTrees%position(2,:)=property
-    case (propertyTypePositionZ      )
+    case (propertyTypePositionZ      %ID)
        if (                                             &
             & allocated(mergerTrees%position)           &
             & .and..not.mergerTrees%hasPositionX        &
@@ -854,7 +855,7 @@ contains
        mergerTrees%hasPositionZ=.true.
        if (.not.allocated(mergerTrees%position)) call allocateArray(mergerTrees%position,[3,size(property)])
        mergerTrees%position(3,:)=property
-    case (propertyTypeVelocityX      )
+    case (propertyTypeVelocityX      %ID)
        if (                                             &
             & allocated(mergerTrees%velocity)           &
             & .and..not.mergerTrees%hasVelocityX        &
@@ -864,7 +865,7 @@ contains
        mergerTrees%hasVelocityX=.true.
        if (.not.allocated(mergerTrees%velocity)) call allocateArray(mergerTrees%velocity,[3,size(property)])
        mergerTrees%velocity(1,:)=property
-    case (propertyTypeVelocityY      )
+    case (propertyTypeVelocityY      %ID)
        if (                                             &
             & allocated(mergerTrees%velocity)           &
             & .and..not.mergerTrees%hasVelocityX        &
@@ -874,7 +875,7 @@ contains
        mergerTrees%hasVelocityY=.true.
        if (.not.allocated(mergerTrees%velocity)) call allocateArray(mergerTrees%velocity,[3,size(property)])
        mergerTrees%velocity(2,:)=property
-    case (propertyTypeVelocityZ      )
+    case (propertyTypeVelocityZ      %ID)
        if (                                             &
             & allocated(mergerTrees%velocity)           &
             & .and..not.mergerTrees%hasVelocityX        &
@@ -1071,10 +1072,10 @@ contains
           iNode=iNode+1
           call String_Split_Words(inputColumns,inputLine,separator)
           do iColumn=1,min(columnsCount,size(mergerTrees%columnProperties))
-             select case (mergerTrees%columnProperties(iColumn))
-             case (propertyTypeNull                  )
+             select case (mergerTrees%columnProperties(iColumn)%ID)
+             case (propertyTypeNull                  %ID)
                 ! Ignore this column.
-             case (propertyTypeTreeIndex             )
+             case (propertyTypeTreeIndex             %ID)
                 ! Column is a tree index.
                 read (inputColumns(iColumn),*) mergerTrees%forestIndex(iNode)
                 if (iNode > 1) then
@@ -1084,106 +1085,106 @@ contains
                 else
                    mergerTrees%forestCount=1
                 end if
-             case (propertyTypeTreeWeight            )
+             case (propertyTypeTreeWeight              %ID)
                 ! Column is a tree weight.
-                read (inputColumns(iColumn),*) mergerTrees%forestWeightNode        (  iNode)
-             case (propertyTypeNodeIndex             )
+                read (inputColumns(iColumn),*) mergerTrees%forestWeightNode                (  iNode)
+             case (propertyTypeNodeIndex               %ID)
                 ! Column is a node index.
-                read (inputColumns(iColumn),*) mergerTrees%nodeIndex               (  iNode)
-             case (propertyTypeDescendentIndex       )
+                read (inputColumns(iColumn),*) mergerTrees%nodeIndex                       (  iNode)
+             case (propertyTypeDescendentIndex         %ID)
                 ! Column is a descendent node index.
-                read (inputColumns(iColumn),*) mergerTrees%descendentIndex         (  iNode)
-             case (propertyTypeHostIndex             )
+                read (inputColumns(iColumn),*) mergerTrees%descendentIndex                 (  iNode)
+             case (propertyTypeHostIndex               %ID)
                 ! Column is a host index.
-                read (inputColumns(iColumn),*) mergerTrees%hostIndex               (  iNode)
-             case (propertyTypeRedshift              )
+                read (inputColumns(iColumn),*) mergerTrees%hostIndex                       (  iNode)
+             case (propertyTypeRedshift                %ID)
                 ! Column is redshift.
-                read (inputColumns(iColumn),*) mergerTrees%redshift                (  iNode)
-              case (propertyTypeScaleFactor          )
+                read (inputColumns(iColumn),*) mergerTrees%redshift                        (  iNode)
+              case (propertyTypeScaleFactor            %ID)
                 ! Column is scale factor.
-                read (inputColumns(iColumn),*) mergerTrees%scaleFactor             (  iNode)
-             case (propertyTypeNodeMass              )
+                read (inputColumns(iColumn),*) mergerTrees%scaleFactor                     (  iNode)
+             case (propertyTypeNodeMass                %ID)
                 ! Column is mass.
-                read (inputColumns(iColumn),*) mergerTrees%nodeMass                (  iNode)
-             case (propertyTypeNodeMass200Mean       )
+                read (inputColumns(iColumn),*) mergerTrees%nodeMass                        (  iNode)
+             case (propertyTypeNodeMass200Mean         %ID)
                 ! Column is mass.
-                read (inputColumns(iColumn),*) mergerTrees%nodeMass200Mean         (  iNode)
-             case (propertyTypeNodeMass200Crit       )
+                read (inputColumns(iColumn),*) mergerTrees%nodeMass200Mean                 (  iNode)
+             case (propertyTypeNodeMass200Crit         %ID)
                 ! Column is mass.
-                read (inputColumns(iColumn),*) mergerTrees%nodeMass200Crit         (  iNode)
-             case (propertyTypeParticleCount         )
+                read (inputColumns(iColumn),*) mergerTrees%nodeMass200Crit                 (  iNode)
+             case (propertyTypeParticleCount           %ID)
                 ! Column is particle count.
-                read (inputColumns(iColumn),*) mergerTrees%particleCount           (  iNode)
-             case (propertyTypePositionX             )
+                read (inputColumns(iColumn),*) mergerTrees%particleCount                   (  iNode)
+             case (propertyTypePositionX               %ID)
                 ! Column is x position.
-                read (inputColumns(iColumn),*) mergerTrees%position                (1,iNode)
-             case (propertyTypePositionY             )
+                read (inputColumns(iColumn),*) mergerTrees%position                        (1,iNode)
+             case (propertyTypePositionY               %ID)
                 ! Column is y position.
-                read (inputColumns(iColumn),*) mergerTrees%position                (2,iNode)
-             case (propertyTypePositionZ             )
+                read (inputColumns(iColumn),*) mergerTrees%position                        (2,iNode)
+             case (propertyTypePositionZ               %ID)
                 ! Column is z position.
-                read (inputColumns(iColumn),*) mergerTrees%position                (3,iNode)
-             case (propertyTypeVelocityX             )
+                read (inputColumns(iColumn),*) mergerTrees%position                        (3,iNode)
+             case (propertyTypeVelocityX               %ID)
                 ! Column is x velocity.
-                read (inputColumns(iColumn),*) mergerTrees%velocity                (1,iNode)
-             case (propertyTypeVelocityY             )
+                read (inputColumns(iColumn),*) mergerTrees%velocity                        (1,iNode)
+             case (propertyTypeVelocityY               %ID)
                 ! Column is y velocity.
-                read (inputColumns(iColumn),*) mergerTrees%velocity                (2,iNode)
-             case (propertyTypeVelocityZ             )
+                read (inputColumns(iColumn),*) mergerTrees%velocity                        (2,iNode)
+             case (propertyTypeVelocityZ               %ID)
                 ! Column is z velocity.
-                read (inputColumns(iColumn),*) mergerTrees%velocity                (3,iNode)
-             case (propertyTypeSpinX                 )
+                read (inputColumns(iColumn),*) mergerTrees%velocity                        (3,iNode)
+             case (propertyTypeSpinX                   %ID)
                 ! Column is x spin.
-                read (inputColumns(iColumn),*) mergerTrees%spin                    (1,iNode)
-             case (propertyTypeSpinY                 )
+                read (inputColumns(iColumn),*) mergerTrees%spin                            (1,iNode)
+             case (propertyTypeSpinY                   %ID)
                 ! Column is y spin.
-                read (inputColumns(iColumn),*) mergerTrees%spin                    (2,iNode)
-             case (propertyTypeSpinZ                 )
+                read (inputColumns(iColumn),*) mergerTrees%spin                            (2,iNode)
+             case (propertyTypeSpinZ                   %ID)
                 ! Column is z spin.
-                read (inputColumns(iColumn),*) mergerTrees%spin                    (3,iNode)
-             case (propertyTypeSpin                  )
+                read (inputColumns(iColumn),*) mergerTrees%spin                            (3,iNode)
+             case (propertyTypeSpin                    %ID)
                 ! Column is scalar spin.
-                read (inputColumns(iColumn),*) mergerTrees%spinMagnitude           (  iNode)
-             case (propertyTypeAngularMomentumX      )
+                read (inputColumns(iColumn),*) mergerTrees%spinMagnitude                   (  iNode)
+             case (propertyTypeAngularMomentumX        %ID)
                 ! Column is x angular momentum.
-                read (inputColumns(iColumn),*) mergerTrees%angularMomentum         (1,iNode)
-             case (propertyTypeAngularMomentumY      )
+                read (inputColumns(iColumn),*) mergerTrees%angularMomentum                 (1,iNode)
+             case (propertyTypeAngularMomentumY        %ID)
                 ! Column is y angular momentum.
-                read (inputColumns(iColumn),*) mergerTrees%angularMomentum         (2,iNode)
-             case (propertyTypeAngularMomentumZ      )
+                read (inputColumns(iColumn),*) mergerTrees%angularMomentum                 (2,iNode)
+             case (propertyTypeAngularMomentumZ        %ID)
                 ! Column is z angular momentum.
-                read (inputColumns(iColumn),*) mergerTrees%angularMomentum         (3,iNode)
-             case (propertyTypeAngularMomentum       )
+                read (inputColumns(iColumn),*) mergerTrees%angularMomentum                 (3,iNode)
+             case (propertyTypeAngularMomentum         %ID)
                 ! Column is scalar angular momentum.
                 read (inputColumns(iColumn),*) mergerTrees%angularMomentumMagnitude        (  iNode)
-             case (propertyTypeSpecificAngularMomentumX)
+             case (propertyTypeSpecificAngularMomentumX%ID)
                 ! Column is x specific angular momentum.
                 read (inputColumns(iColumn),*) mergerTrees%specificAngularMomentum         (1,iNode)
-             case (propertyTypeSpecificAngularMomentumY)
+             case (propertyTypeSpecificAngularMomentumY%ID)
                 ! Column is y specific angular momentum.
                 read (inputColumns(iColumn),*) mergerTrees%specificAngularMomentum         (2,iNode)
-             case (propertyTypeSpecificAngularMomentumZ)
+             case (propertyTypeSpecificAngularMomentumZ%ID)
                 ! Column is z specific angular momentum.
                 read (inputColumns(iColumn),*) mergerTrees%specificAngularMomentum         (3,iNode)
-             case (propertyTypeSpecificAngularMomentum )
+             case (propertyTypeSpecificAngularMomentum %ID)
                 ! Column is scalar specific angular momentum.
                 read (inputColumns(iColumn),*) mergerTrees%specificAngularMomentumMagnitude(  iNode)
-             case (propertyTypeHalfMassRadius        )
+             case (propertyTypeHalfMassRadius          %ID)
                 ! Column is half mass radius.
-                read (inputColumns(iColumn),*) mergerTrees%halfMassRadius          (  iNode)
-             case (propertyTypeScaleRadius           )
+                read (inputColumns(iColumn),*) mergerTrees%halfMassRadius                  (  iNode)
+             case (propertyTypeScaleRadius             %ID)
                 ! Column is scale radius.
-                read (inputColumns(iColumn),*) mergerTrees%scaleRadius             (  iNode)
-             case (propertyTypeMostBoundParticleIndex  )
+                read (inputColumns(iColumn),*) mergerTrees%scaleRadius                     (  iNode)
+             case (propertyTypeMostBoundParticleIndex  %ID)
                 ! Column is a most bound particle index.
-                read (inputColumns(iColumn),*) mergerTrees%mostBoundParticleIndex  (  iNode)
-             case (propertyTypeSnapshot              )
+                read (inputColumns(iColumn),*) mergerTrees%mostBoundParticleIndex          (  iNode)
+             case (propertyTypeSnapshot                %ID)
                 ! Column is a snapshot index.
-                read (inputColumns(iColumn),*) mergerTrees%snapshot                (  iNode)
-             case (propertyTypeVelocityMaximum         )
+                read (inputColumns(iColumn),*) mergerTrees%snapshot                        (  iNode)
+             case (propertyTypeVelocityMaximum         %ID)
                 ! Column is a maximum velocity.
                 read (inputColumns(iColumn),*) mergerTrees%velocityMaximum                 (  iNode)
-             case (propertyTypeVelocityDispersion      )
+             case (propertyTypeVelocityDispersion      %ID)
                 ! Column is a velocity dispersion.
                 read (inputColumns(iColumn),*) mergerTrees%velocityDispersion              (  iNode)
              case default
@@ -1266,55 +1267,55 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Read_ASCII
 
-  subroutine Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees, propertyType, conversionFactor)
+  subroutine Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees,propertyType,conversionFactor)
     !!{
     Convert the property with inconsistent units.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(mergerTreeData), intent(inout) :: mergerTrees
-    integer              , intent(in   ) :: propertyType
-    double precision     , intent(in   ) :: conversionFactor
-    integer                              :: j
+    class           (mergerTreeData), intent(inout) :: mergerTrees
+    integer                         , intent(in   ) :: propertyType
+    double precision                , intent(in   ) :: conversionFactor
+    integer                                         :: j
 
     select case (propertyType)
-    case (propertyTypeNodeMass          )
+    case (propertyTypeNodeMass          %ID)
        ! Property is mass.
        mergerTrees%nodeMass                    =mergerTrees%nodeMass                     *conversionFactor
-    case (propertyTypeNodeMass200Mean   )
+    case (propertyTypeNodeMass200Mean   %ID)
        ! Property is mass.
        mergerTrees%nodeMass200Mean             =mergerTrees%nodeMass200Mean              *conversionFactor
-    case (propertyTypeNodeMass200Crit   )
+    case (propertyTypeNodeMass200Crit   %ID)
        ! Property is mass.
        mergerTrees%nodeMass200Crit             =mergerTrees%nodeMass200Crit              *conversionFactor
-    case (propertyTypePositionX         )
+    case (propertyTypePositionX         %ID)
        ! Property is position.
        forall(j=1:3)
           mergerTrees%position            (j,:)=mergerTrees%position                (j,:)*conversionFactor
        end forall
-    case (propertyTypeVelocityX         )
+    case (propertyTypeVelocityX         %ID)
        ! Property is velocity.
        forall(j=1:3)
           mergerTrees%velocity            (j,:)=mergerTrees%velocity                (j,:)*conversionFactor
        end forall
-    case (propertyTypeAngularMomentumX  )
+    case (propertyTypeAngularMomentumX  %ID)
        ! Property is angular momentum vector.
        forall(j=1:3)
           mergerTrees%angularMomentum     (j,:)=mergerTrees%angularMomentum         (j,:)*conversionFactor
        end forall
-    case (propertyTypeAngularMomentum   )
+    case (propertyTypeAngularMomentum   %ID)
        ! Property is scalar angular momentum.
        mergerTrees%angularMomentumMagnitude    =mergerTrees%angularMomentumMagnitude     *conversionFactor
-    case (propertyTypeHalfMassRadius    )
+    case (propertyTypeHalfMassRadius    %ID)
        ! Property is half mass radius.
        mergerTrees%halfMassRadius              =mergerTrees%halfMassRadius               *conversionFactor
-    case (propertyTypeScaleRadius       )
+    case (propertyTypeScaleRadius       %ID)
        ! Property is scale radius.
        mergerTrees%scaleRadius                 =mergerTrees%scaleRadius                  *conversionFactor
-    case (propertyTypeVelocityMaximum   )
+    case (propertyTypeVelocityMaximum   %ID)
        ! Property is maximum velocity.
        mergerTrees%velocityMaximum             =mergerTrees%velocityMaximum              *conversionFactor
-    case (propertyTypeVelocityDispersion)
+    case (propertyTypeVelocityDispersion%ID)
        ! Property is velocity dispersion.
        mergerTrees%velocityDispersion          =mergerTrees%velocityDispersion           *conversionFactor
     case default
@@ -1464,34 +1465,34 @@ contains
           iNode=iNode+1
           call String_Split_Words(inputColumns,inputLine,separator)
           do iColumn=1,min(columnsCount,size(mergerTrees%particleColumnProperties))
-             select case (mergerTrees%particleColumnProperties(iColumn))
-             case (propertyTypeNull         )
+             select case (mergerTrees%particleColumnProperties(iColumn)%ID)
+             case (propertyTypeNull         %ID)
                 ! Ignore this column.
-             case (propertyTypeParticleIndex)
+             case (propertyTypeParticleIndex%ID)
                 ! Column is particle index.
                 read (inputColumns(iColumn),*) mergerTrees%particleIndex   (  iNode)
-             case (propertyTypeRedshift     )
+             case (propertyTypeRedshift     %ID)
                 ! Column is redshift.
                 read (inputColumns(iColumn),*) mergerTrees%particleRedshift(  iNode)
-             case (propertyTypeSnapshot     )
+             case (propertyTypeSnapshot     %ID)
                 ! Column is snapshot.
                 read (inputColumns(iColumn),*) mergerTrees%particleSnapshot(  iNode)
-             case (propertyTypePositionX    )
+             case (propertyTypePositionX    %ID)
                 ! Column is x position.
                 read (inputColumns(iColumn),*) mergerTrees%particlePosition(1,iNode)
-             case (propertyTypePositionY    )
+             case (propertyTypePositionY    %ID)
                 ! Column is y position.
                 read (inputColumns(iColumn),*) mergerTrees%particlePosition(2,iNode)
-             case (propertyTypePositionZ    )
+             case (propertyTypePositionZ    %ID)
                 ! Column is z position.
                 read (inputColumns(iColumn),*) mergerTrees%particlePosition(3,iNode)
-             case (propertyTypeVelocityX    )
+             case (propertyTypeVelocityX    %ID)
                 ! Column is x velocity.
                 read (inputColumns(iColumn),*) mergerTrees%particleVelocity(1,iNode)
-             case (propertyTypeVelocityY    )
+             case (propertyTypeVelocityY    %ID)
                 ! Column is y velocity.
                 read (inputColumns(iColumn),*) mergerTrees%particleVelocity(2,iNode)
-             case (propertyTypeVelocityZ    )
+             case (propertyTypeVelocityZ    %ID)
                 ! Column is z velocity.
                 read (inputColumns(iColumn),*) mergerTrees%particleVelocity(3,iNode)
              case default
@@ -1515,11 +1516,12 @@ contains
     use :: Error, only : Error_Report
     use :: HDF5 , only : hsize_t
     implicit none
-    integer  (kind=hsize_t  ), intent(in   )           :: hdfChunkSize
-    integer                  , intent(in   )           :: hdfCompressionLevel, outputFormat
-    class    (mergerTreeData), intent(inout)           :: mergerTrees
-    character(len=*         ), intent(in   )           :: outputFileName
-    logical                  , intent(in   ), optional :: append
+    integer  (kind=hsize_t                   ), intent(in   )           :: hdfChunkSize
+    integer                                   , intent(in   )           :: hdfCompressionLevel
+    type     (enumerationMergerTreeFormatType), intent(in   )           :: outputFormat
+    class    (mergerTreeData                 ), intent(inout)           :: mergerTrees
+    character(len=*                          ), intent(in   )           :: outputFileName
+    logical                                   , intent(in   ), optional :: append
 
     ! Validate the merger tree.
     call Merger_Tree_Data_Validate_Trees            (mergerTrees)
@@ -1527,10 +1529,10 @@ contains
     ! If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
     call Merger_Tree_Data_Construct_Particle_Indices(mergerTrees)
 
-    select case (outputFormat)
-    case (mergerTreeFormatGalacticus)
+    select case (outputFormat%ID)
+    case (mergerTreeFormatGalacticus%ID)
        call Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
-    case (mergerTreeFormatIrate     )
+    case (mergerTreeFormatIrate     %ID)
        call Merger_Tree_Data_Structure_Export_IRATE     (mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     case default
        call Error_Report('output format is not recognized'//{introspection:location})
@@ -1628,14 +1630,14 @@ contains
           hyperslabCount(1)=mergerTrees%treeNodeCount(iTree)
           do iProperty=propertyTypeMin,propertyTypeMax
              ! Skip null and tree indxe cases.
-             if     (                                    &
-                  &   iProperty == propertyTypeNull      &
-                  &  .or.                                &
-                  &   iProperty == propertyTypeTreeIndex &
+             if     (                                       &
+                  &   iProperty == propertyTypeNull     %ID &
+                  &  .or.                                   &
+                  &   iProperty == propertyTypeTreeIndex%ID &
                   & ) cycle
              ! Skip cases where we have the corresponding 3-D dataset.
-             if (iProperty == propertyTypeSpin            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
-             if (iProperty == propertyTypeAngularMomentum .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
+             if (iProperty == propertyTypeSpin           %ID .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
+             if (iProperty == propertyTypeAngularMomentum%ID .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
              if (forestHalos%hasDataset(char(enumerationPropertyTypeDecode(iProperty)))) then
                 treeDataset=forestHalos%openDataset(char(enumerationPropertyTypeDecode(iProperty)))
                 call treeGroup%createReference1D(treeDataset,char(enumerationPropertyTypeDecode(iProperty)),hyperslabStart,hyperslabCount)
@@ -1742,10 +1744,10 @@ contains
 
        ! Store units.
        unitsGroup=outputFile%openGroup("units","The units system used.")
-       if (mergerTrees%unitsSet(unitsMass    )) call Store_Unit_Attributes_Galacticus(unitsMass    ,"mass"    ,mergerTrees,unitsGroup)
-       if (mergerTrees%unitsSet(unitsLength  )) call Store_Unit_Attributes_Galacticus(unitsLength  ,"length"  ,mergerTrees,unitsGroup)
-       if (mergerTrees%unitsSet(unitsTime    )) call Store_Unit_Attributes_Galacticus(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
-       if (mergerTrees%unitsSet(unitsVelocity)) call Store_Unit_Attributes_Galacticus(unitsVelocity,"velocity",mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsMass    %ID)) call Store_Unit_Attributes_Galacticus(unitsMass    ,"mass"    ,mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsLength  %ID)) call Store_Unit_Attributes_Galacticus(unitsLength  ,"length"  ,mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsTime    %ID)) call Store_Unit_Attributes_Galacticus(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
+       if (mergerTrees%unitsSet(unitsVelocity%ID)) call Store_Unit_Attributes_Galacticus(unitsVelocity,"velocity",mergerTrees,unitsGroup)
        call unitsGroup%close()
 
        ! Create groups for attributes.
@@ -1760,18 +1762,18 @@ contains
        do iAttribute=1,mergerTrees%metaDataCount
 
           ! Determine which group to write to.
-          select case (mergerTrees%metaData(iAttribute)%metadataType)
-          case (metaDataTypeGeneric    )
+          select case (mergerTrees%metaData(iAttribute)%metadataType%ID)
+          case (metaDataTypeGeneric    %ID)
              attributeGroup => genericGroup
-          case (metaDataTypeCosmology  )
+          case (metaDataTypeCosmology  %ID)
              attributeGroup => cosmologyGroup
-          case (metaDataTypeSimulation )
+          case (metaDataTypeSimulation %ID)
              attributeGroup => simulationGroup
-          case (metaDataTypeGroupFinder)
+          case (metaDataTypeGroupFinder%ID)
              attributeGroup => groupFinderGroup
-          case (metaDataTypeTreeBuilder)
+          case (metaDataTypeTreeBuilder%ID)
              attributeGroup => treeBuilderGroup
-          case (metaDataTypeProvenance )
+          case (metaDataTypeProvenance %ID)
              attributeGroup => provenanceGroup
           case default
              attributeGroup => null()
@@ -1779,12 +1781,12 @@ contains
           end select
 
           ! Determine what data type to write.
-          select case (mergerTrees%metaData(iAttribute)%dataType)
-          case (dataTypeInteger)
+          select case (mergerTrees%metaData(iAttribute)%dataType%ID)
+          case (dataTypeInteger%ID)
              call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,char(mergerTrees%metaData(iAttribute)%label))
-          case (dataTypeDouble )
+          case (dataTypeDouble %ID)
              call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,char(mergerTrees%metaData(iAttribute)%label))
-          case (dataTypeText   )
+          case (dataTypeText   %ID)
              call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
           end select
        end do
@@ -2070,10 +2072,10 @@ contains
 
           ! Determine which group to write to.
           attributeGroup => null()
-          select case (mergerTrees%metaData(iAttribute)%metadataType)
-          case (metaDataTypeCosmology  )
+          select case (mergerTrees%metaData(iAttribute)%metadataType%ID)
+          case (metaDataTypeCosmology %ID)
              attributeGroup => cosmologyGroup
-          case (metaDataTypeSimulation )
+          case (metaDataTypeSimulation%ID)
              attributeGroup => simulationGroup
           end select
 
@@ -2081,8 +2083,8 @@ contains
           if (associated(attributeGroup)) then
 
              ! Perform dictionary mapping from our internal names (which follow Galacticus format) to IRATE names.
-             select case (mergerTrees%metaData(iAttribute)%metadataType)
-             case (metaDataTypeCosmology  )
+             select case (mergerTrees%metaData(iAttribute)%metadataType%ID)
+             case (metaDataTypeCosmology%ID)
                 select case (char(mergerTrees%metaData(iAttribute)%label))
                 case ("powerSpectrumIndex")
                    mergerTrees%metaData(iAttribute)%label="PowerSpectrumIndex"
@@ -2090,12 +2092,12 @@ contains
              end select
 
              ! Determine what data type to write.
-             select case (mergerTrees%metaData(iAttribute)%dataType)
-             case (dataTypeInteger)
+             select case (mergerTrees%metaData(iAttribute)%dataType%ID)
+             case (dataTypeInteger%ID)
                 call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,char(mergerTrees%metaData(iAttribute)%label))
-             case (dataTypeDouble )
+             case (dataTypeDouble %ID)
                 call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,char(mergerTrees%metaData(iAttribute)%label))
-             case (dataTypeText   )
+             case (dataTypeText   %ID)
                 call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
              end select
 
@@ -2121,14 +2123,14 @@ contains
     !!}
     use :: IO_HDF5, only : hdf5Object
     implicit none
-    integer                  , intent(in   ) :: unitType
-    character(len=*         ), intent(in   ) :: unitLabel
-    class    (mergerTreeData), intent(in   ) :: mergerTrees
-    type     (hdf5Object    ), intent(inout) :: unitsGroup
+    type     (enumerationUnitsType), intent(in   ) :: unitType
+    character(len=*               ), intent(in   ) :: unitLabel
+    class    (mergerTreeData      ), intent(in   ) :: mergerTrees
+    type     (hdf5Object          ), intent(inout) :: unitsGroup
 
-    call unitsGroup%writeAttribute(mergerTrees%units(unitType)%unitsInSI          ,unitLabel//"UnitsInSI"          )
-    call unitsGroup%writeAttribute(mergerTrees%units(unitType)%hubbleExponent     ,unitLabel//"HubbleExponent"     )
-    call unitsGroup%writeAttribute(mergerTrees%units(unitType)%scaleFactorExponent,unitLabel//"ScaleFactorExponent")
+    call unitsGroup%writeAttribute(mergerTrees%units(unitType%ID)%unitsInSI          ,unitLabel//"UnitsInSI"          )
+    call unitsGroup%writeAttribute(mergerTrees%units(unitType%ID)%hubbleExponent     ,unitLabel//"HubbleExponent"     )
+    call unitsGroup%writeAttribute(mergerTrees%units(unitType%ID)%scaleFactorExponent,unitLabel//"ScaleFactorExponent")
     return
   end subroutine Store_Unit_Attributes_Galacticus
 
@@ -2140,12 +2142,12 @@ contains
     use :: ISO_Varying_String          , only : assignment(=), operator(//)
     use :: Numerical_Constants_Prefixes, only : hecto        , kilo
     implicit none
-    integer                         , dimension(:), intent(in   ) :: unitType
-    class           (mergerTreeData)              , intent(in   ) :: mergerTrees
-    type            (hdf5Object    )              , intent(inout) :: dataset
-    integer                                                       :: iUnit
-    double precision                                              :: cgsUnits   , hubbleExponent, scaleFactorExponent
-    type            (varying_string)                              :: unitName
+    type            (enumerationUnitsType), dimension(:), intent(in   ) :: unitType
+    class           (mergerTreeData      )              , intent(in   ) :: mergerTrees
+    type            (hdf5Object          )              , intent(inout) :: dataset
+    integer                                                             :: iUnit
+    double precision                                                    :: cgsUnits   , hubbleExponent, scaleFactorExponent
+    type            (varying_string      )                              :: unitName
 
     ! Get conversion factor to cgs units.
     cgsUnits           =1.0d0
@@ -2153,21 +2155,21 @@ contains
     scaleFactorExponent=0.0d0
     unitName           =""
     do iUnit=1,size(unitType)
-       cgsUnits=cgsUnits*mergerTrees%units(unitType(iUnit))%unitsInSI
-       select case (unitType(iUnit))
-       case (unitsMass    )
+       cgsUnits=cgsUnits*mergerTrees%units(unitType(iUnit)%ID)%unitsInSI
+       select case (unitType(iUnit)%ID)
+       case (unitsMass    %ID)
           cgsUnits=cgsUnits*kilo
-       case (unitsLength  )
+       case (unitsLength  %ID)
           cgsUnits=cgsUnits*hecto
-       case (unitsTime    )
+       case (unitsTime    %ID)
           cgsUnits=cgsUnits*1.0d0
-       case (unitsVelocity)
+       case (unitsVelocity%ID)
           cgsUnits=cgsUnits*hecto
        end select
-       hubbleExponent     =hubbleExponent     +dble(mergerTrees%units(unitType(iUnit))%hubbleExponent     )
-       scaleFactorExponent=scaleFactorExponent+dble(mergerTrees%units(unitType(iUnit))%scaleFactorExponent)
+       hubbleExponent     =hubbleExponent     +dble(mergerTrees%units(unitType(iUnit)%ID)%hubbleExponent     )
+       scaleFactorExponent=scaleFactorExponent+dble(mergerTrees%units(unitType(iUnit)%ID)%scaleFactorExponent)
        if (iUnit > 1) unitName=unitName//" * "
-       unitName=unitName//mergerTrees%units(unitType(iUnit))%name
+       unitName=unitName//mergerTrees%units(unitType(iUnit)%ID)%name
     end do
 
     ! Write the attributes.

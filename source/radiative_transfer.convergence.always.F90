@@ -62,11 +62,11 @@ contains
     Test convergence in the computational domain cell.
     !!}
     implicit none
-    class    (radiativeTransferConvergenceAlways     ), intent(inout) :: self
-    class    (radiativeTransferMatterClass           ), intent(inout) :: radiativeTransferMatter_
-    class    (radiativeTransferPropertiesMatter      ), intent(inout) :: properties
-    integer                                           , intent(in   ) :: statusCell
-    logical                                           , intent(  out) :: converged
+    class  (radiativeTransferConvergenceAlways), intent(inout) :: self
+    class  (radiativeTransferMatterClass      ), intent(inout) :: radiativeTransferMatter_
+    class  (radiativeTransferPropertiesMatter ), intent(inout) :: properties
+    type   (enumerationStatusCellType         ), intent(in   ) :: statusCell
+    logical                                    , intent(  out) :: converged
     !$GLC attributes unused :: self, radiativeTransferMatter_, properties, statusCell
     
     converged=.true.

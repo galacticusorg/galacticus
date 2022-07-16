@@ -151,7 +151,7 @@ contains
     use :: Galactic_Structure_Options      , only : massTypeGalactic
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid    , treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk, destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk, destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
     implicit none
     class           (mergerProgenitorPropertiesSimple), intent(inout), target :: self
     type            (treeNode                        ), intent(inout), target :: nodeSatellite            , nodeHost
@@ -162,7 +162,7 @@ contains
          &                                                                       radiusSatellite          , massSpheroidSatellite
     class           (nodeComponentDisk               ), pointer               :: diskHost                 , diskSatelite
     class           (nodeComponentSpheroid           ), pointer               :: spheroidHost             , spheroidSatellite
-    integer                                                                   :: destinationGasSatellite  , destinationGasHost       , &
+    type            (enumerationDestinationMergerType)                        :: destinationGasSatellite  , destinationGasHost       , &
          &                                                                       destinationStarsHost     , destinationStarsSatellite
     logical                                                                   :: mergerIsMajor
 
@@ -177,18 +177,18 @@ contains
     massSatellite=self%galacticStructure_%massEnclosed(nodeSatellite,massType=massTypeGalactic)
     massHost     =self%galacticStructure_%massEnclosed(nodeHost     ,massType=massTypeGalactic)
     ! Find the masses of material that will end up in the spheroid component of the remnant.
-    select case (destinationGasHost)
-    case (destinationMergerSpheroid)
+    select case (destinationGasHost%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidHost      =+spheroidHost%massGas()+diskHost    %massGas       ()
        massGasSpheroidRemnant=+spheroidHost%massGas()+diskHost    %massGas       ()
        massSpheroidRemnant   =+spheroidHost%massGas()+diskHost    %massGas       ()
        radiusHost            =+spheroidHost%massGas()*spheroidHost%halfMassRadius() &
             &                 +diskHost    %massGas()*diskHost    %halfMassRadius()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidHost      =+0.0d0
        massGasSpheroidRemnant=+0.0d0
        massSpheroidRemnant   =+0.0d0
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidHost      =+spheroidHost%massGas()
        massGasSpheroidRemnant=+spheroidHost%massGas()
        massSpheroidRemnant   =+spheroidHost%massGas()
@@ -196,31 +196,31 @@ contains
     case default
        call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (destinationStarsHost)
-    case (destinationMergerSpheroid)
+    select case (destinationStarsHost%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidHost     =+massSpheroidHost       +spheroidHost%massStellar()+    diskHost%massStellar   ()
        massSpheroidRemnant  =+massSpheroidRemnant    +spheroidHost%massStellar()+    diskHost%massStellar   ()
        radiusHost           =+radiusHost             +spheroidHost%massStellar()*spheroidHost%halfMassRadius() &
             &                                        +    diskHost%massStellar()*    diskHost%halfMassRadius()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidHost     =+massSpheroidHost
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidHost     =+massSpheroidHost       +spheroidHost%massStellar()
        massSpheroidRemnant  =+massSpheroidRemnant    +spheroidHost%massStellar()
        radiusHost           =+radiusHost             +spheroidHost%massStellar()*spheroidHost%halfMassRadius()
     case default
        call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (destinationGasSatellite)
-    case (destinationMergerSpheroid)
+    select case (destinationGasSatellite%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidSatellite =                       +spheroidSatellite%massGas()+     diskSatelite%massGas       ()
        massGasSpheroidRemnant=+massGasSpheroidRemnant+spheroidSatellite%massGas()+     diskSatelite%massGas       ()
        massSpheroidRemnant   =+massSpheroidRemnant   +spheroidSatellite%massGas()+     diskSatelite%massGas       ()
        radiusSatellite       =                       +spheroidSatellite%massGas()*spheroidSatellite%halfMassRadius() &
             &                                        +     diskSatelite%massGas()*     diskSatelite%halfMassRadius()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidSatellite =+0.0d0
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidSatellite =                       +spheroidSatellite%massGas()
        massGasSpheroidRemnant=+massGasSpheroidRemnant+spheroidSatellite%massGas()
        massSpheroidRemnant   =+massSpheroidRemnant   +spheroidSatellite%massGas()
@@ -228,15 +228,15 @@ contains
     case default
        call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (destinationStarsSatellite)
-    case (destinationMergerSpheroid)
+    select case (destinationStarsSatellite%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidSatellite=+massSpheroidSatellite+spheroidSatellite%massStellar()+     diskSatelite%massStellar   ()
        massSpheroidRemnant  =+massSpheroidRemnant  +spheroidSatellite%massStellar()+     diskSatelite%massStellar   ()
        radiusSatellite      =+radiusSatellite      +spheroidSatellite%massStellar()*spheroidSatellite%halfMassRadius() &
             &                                      +     diskSatelite%massStellar()*     diskSatelite%halfMassRadius()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidSatellite=+massSpheroidSatellite
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidSatellite=+massSpheroidSatellite+spheroidSatellite%massStellar()
        massSpheroidRemnant  =+massSpheroidRemnant  +spheroidSatellite%massStellar()
        radiusSatellite      =+radiusSatellite      +spheroidSatellite%massStellar()*spheroidSatellite%halfMassRadius()

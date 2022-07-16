@@ -147,12 +147,12 @@ contains
     Implement an sequence output analysis property operator.
     !!}
     implicit none
-    class           (outputAnalysisPropertyOperatorSequence), intent(inout)           :: self
-    double precision                                        , intent(in   )           :: propertyValue
-    type            (treeNode                              ), intent(inout), optional :: node
-    integer                                                 , intent(inout), optional :: propertyType
-    integer         (c_size_t                              ), intent(in   ), optional :: outputIndex
-    type            (propertyOperatorList                  ), pointer                 :: operator_
+    class           (outputAnalysisPropertyOperatorSequence   ), intent(inout)           :: self
+    double precision                                           , intent(in   )           :: propertyValue
+    type            (treeNode                                 ), intent(inout), optional :: node
+    type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType
+    integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex
+    type            (propertyOperatorList                     ), pointer                 :: operator_
 
     sequenceOperate =  propertyValue
     operator_       => self%operators

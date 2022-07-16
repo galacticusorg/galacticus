@@ -50,7 +50,6 @@ Contains a module which implements a concentration output analysis property extr
      procedure :: name        => concentrationName
      procedure :: description => concentrationDescription
      procedure :: unitsInSI   => concentrationUnitsInSI
-     procedure :: type        => concentrationType
   end type nodePropertyExtractorConcentration
 
   interface nodePropertyExtractorConcentration
@@ -198,15 +197,3 @@ contains
     return
   end function concentrationUnitsInSI
 
-  integer function concentrationType(self)
-    !!{
-    Return the type of the concentration property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorConcentration), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    concentrationType=outputAnalysisPropertyTypeLinear
-    return
-  end function concentrationType

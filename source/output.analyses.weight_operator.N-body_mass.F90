@@ -134,17 +134,18 @@ contains
     !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
-    class           (outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: propertyValue         , propertyValueIntrinsic
-    integer                                                , intent(in   ) :: propertyType          , propertyQuantity
-    integer         (c_size_t                             ), intent(in   ) :: outputIndex
-    double precision                                                       :: nbodyMassPropertyValue
-    integer                                                                :: nbodyMassPropertyType
+    class           (outputAnalysisWeightOperatorNbodyMass        ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: propertyValue         , propertyValueIntrinsic
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
+    double precision                                                               :: nbodyMassPropertyValue
+    type            (enumerationOutputAnalysisPropertyTypeType)                    :: nbodyMassPropertyType
     !$GLC attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     ! Extract property and operate on it.
-    nbodyMassPropertyType   =+self%nodePropertyExtractor_%type           (    )
+    nbodyMassPropertyType   = self%nodePropertyExtractor_%type           (    )
     select type (extractor_ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
        nbodyMassPropertyValue=+                extractor_%extract        (node)
@@ -155,4 +156,3 @@ contains
          &                   *nbodyMassPropertyValue
     return
   end function nbodyMassRootVariance
-

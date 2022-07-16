@@ -35,7 +35,6 @@ Contains a module which implements an output analysis property extractor class t
    contains
      final     ::                hostNodeDestructor
      procedure :: extract     => hostNodeExtract
-     procedure :: type        => hostNodeType
      procedure :: name        => hostNodeName
      procedure :: description => hostNodeDescription
      procedure :: unitsInSI   => hostNodeUnitsInSI
@@ -123,17 +122,6 @@ contains
     return
   end function hostNodeExtract
 
-  integer function hostNodeType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorHostNode), intent(inout) :: self
-
-    hostNodeType=self%nodePropertyExtractor_%type()
-    return
-  end function hostNodeType
 
   function hostNodeName(self)
     !!{

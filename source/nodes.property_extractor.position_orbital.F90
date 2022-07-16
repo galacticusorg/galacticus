@@ -43,7 +43,6 @@ Contains a module which implements an orbital position output analysis property 
    contains
      procedure :: elementCount => positionOrbitalElementCount
      procedure :: extract      => positionOrbitalExtract
-     procedure :: type         => positionOrbitalType
      procedure :: names        => positionOrbitalNames
      procedure :: descriptions => positionOrbitalDescriptions
      procedure :: unitsInSI    => positionOrbitalUnitsInSI
@@ -119,18 +118,6 @@ contains
     return
   end function positionOrbitalExtract
 
-  integer function positionOrbitalType(self)
-    !!{
-    Return the type of the orbital position property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorPositionOrbital), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    positionOrbitalType=outputAnalysisPropertyTypeLinear
-    return
-  end function positionOrbitalType
   
   subroutine positionOrbitalNames(self,time,names)
     !!{

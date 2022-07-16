@@ -282,13 +282,13 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
-    class           (accretionHaloSimple     ), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: basic
-    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
-    double precision                                          :: growthRate    , unaccretedMass, &
-         &                                                       failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    double precision                                              :: growthRate    , unaccretedMass, &
+         &                                                           failedFraction
 
     simpleAccretionRate=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -322,11 +322,11 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic ), pointer       :: basic
-    double precision                                     :: failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: failedFraction
 
     simpleAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -344,13 +344,13 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
-    class           (accretionHaloSimple ), intent(inout) :: self
-    type            (treeNode            ), intent(inout) :: node
-    integer                               , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic  ), pointer       :: basic
-    class           (nodeComponentHotHalo), pointer       :: hotHalo
-    double precision                                      :: growthRate    , unaccretedMass, &
-         &                                                   failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    double precision                                              :: growthRate    , unaccretedMass, &
+         &                                                           failedFraction
 
     simpleFailedAccretionRate=0.0d0
     if (accretionMode               == accretionModeCold) return
@@ -381,11 +381,11 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic ), pointer       :: basic
-    double precision                                     :: failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: failedFraction
 
     simpleFailedAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -403,10 +403,10 @@ contains
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
-    type  (abundances         )                :: simpleAccretionRateMetals
-    class (accretionHaloSimple), intent(inout) :: self
-    type  (treeNode           ), intent(inout) :: node
-    integer                    , intent(in   ) :: accretionMode
+    type  (abundances                  )                :: simpleAccretionRateMetals
+    class (accretionHaloSimple         ), intent(inout) :: self
+    type  (treeNode                    ), intent(inout) :: node
+    type  (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
@@ -423,7 +423,7 @@ contains
     type   (abundances         )                :: simpleAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
-    integer                     , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
@@ -439,11 +439,11 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
-    type            (chemicalAbundances )                :: simpleAccretionRateChemicals
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    double precision                                     :: massAccretionRate
+    type            (chemicalAbundances          )                :: simpleAccretionRateChemicals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                                              :: massAccretionRate
 
     ! Ensure that chemicals are reset to zero.
     call simpleAccretionRateChemicals%reset()
@@ -462,11 +462,11 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
-    type            (chemicalAbundances )                :: simpleAccretedMassChemicals
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    double precision                                     :: massAccreted
+    type            (chemicalAbundances          )                :: simpleAccretedMassChemicals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                                              :: massAccreted
 
     ! Ensure that chemicals are reset to zero.
     call simpleAccretedMassChemicals%reset()
@@ -490,16 +490,16 @@ contains
     use :: Numerical_Constants_Astronomical , only : hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
     implicit none
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (chemicalAbundances )                :: simpleChemicalMasses
-    type            (treeNode           ), intent(inout) :: node
-    double precision                     , intent(in   ) :: massAccreted
-    integer                              , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic ), pointer       :: basic
-    type            (chemicalAbundances ), save          :: chemicalDensities
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (chemicalAbundances          )                :: simpleChemicalMasses
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: massAccreted
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    type            (chemicalAbundances          ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                     :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                  temperature
+    double precision                                              :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                           temperature
 
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0

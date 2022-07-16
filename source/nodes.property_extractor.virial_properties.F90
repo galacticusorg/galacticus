@@ -44,7 +44,6 @@
      procedure :: names        => virialPropertiesNames
      procedure :: descriptions => virialPropertiesDescriptions
      procedure :: unitsInSI    => virialPropertiesUnitsInSI
-     procedure :: type         => virialPropertiesType
   end type nodePropertyExtractorVirialProperties
 
   interface nodePropertyExtractorVirialProperties
@@ -194,15 +193,3 @@ contains
     return
   end function virialPropertiesUnitsInSI
 
-  integer function virialPropertiesType(self)
-    !!{
-    Return the type of the virialProperties property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorVirialProperties), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    virialPropertiesType=outputAnalysisPropertyTypeLinear
-    return
-  end function virialPropertiesType

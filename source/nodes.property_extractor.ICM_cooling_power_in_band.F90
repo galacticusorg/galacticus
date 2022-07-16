@@ -50,7 +50,6 @@ Contains a module which implements an intracluster medium cooling power in band 
      procedure :: name        => icmCoolingPowerInBandName
      procedure :: description => icmCoolingPowerInBandDescription
      procedure :: unitsInSI   => icmCoolingPowerInBandUnitsInSI
-     procedure :: type        => icmCoolingPowerInBandType
   end type nodePropertyExtractorICMCoolingPowerInBand
 
   interface nodePropertyExtractorICMCoolingPowerInBand
@@ -321,16 +320,4 @@ contains
     return
   end function icmCoolingPowerInBandUnitsInSI
 
-  integer function icmCoolingPowerInBandType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily icmCoolingPowerInBand} properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    icmCoolingPowerInBandType=outputAnalysisPropertyTypeLinear
-    return
-  end function icmCoolingPowerInBandType
 

@@ -112,12 +112,13 @@
 
 contains
 
-  integer function cylindricalSymmetry(self)
+  function cylindricalSymmetry(self)
     !!{
     Returns symmetry label for mass dsitributions with cylindrical symmetry.
     !!}
     implicit none
-    class(massDistributionCylindrical), intent(inout) :: self
+    type (enumerationMassDistributionSymmetryType)                :: cylindricalSymmetry
+    class(massDistributionCylindrical            ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     cylindricalSymmetry=massDistributionSymmetryCylindrical

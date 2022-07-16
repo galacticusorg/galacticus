@@ -37,7 +37,6 @@ Contains a module which implements a stellar mass-weighted morphology output ana
    contains
      final     ::                massStellarMorphologyDestructor
      procedure :: extract     => massStellarMorphologyExtract
-     procedure :: type        => massStellarMorphologyType
      procedure :: name        => massStellarMorphologyName
      procedure :: description => massStellarMorphologyDescription
      procedure :: unitsInSI   => massStellarMorphologyUnitsInSI
@@ -127,18 +126,6 @@ contains
     return
   end function massStellarMorphologyExtract
 
-  integer function massStellarMorphologyType(self)
-    !!{
-    Return the type of the stellar mass-weighted morphology property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massStellarMorphologyType=outputAnalysisPropertyTypeLinear
-    return
-  end function massStellarMorphologyType
 
   function massStellarMorphologyName(self)
     !!{

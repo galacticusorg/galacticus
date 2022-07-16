@@ -47,7 +47,6 @@ Contains a module which implements satellite orbital extrema property extractor 
      procedure :: names        => satelliteOrbitalExtremaNames
      procedure :: descriptions => satelliteOrbitalExtremaDescriptions
      procedure :: unitsInSI    => satelliteOrbitalExtremaUnitsInSI
-     procedure :: type         => satelliteOrbitalExtremaType
   end type nodePropertyExtractorSatelliteOrbitalExtrema
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
@@ -255,15 +254,3 @@ contains
     return
   end function satelliteOrbitalExtremaUnitsInSI
 
-  integer function satelliteOrbitalExtremaType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    satelliteOrbitalExtremaType=outputAnalysisPropertyTypeLinear
-    return
-  end function satelliteOrbitalExtremaType

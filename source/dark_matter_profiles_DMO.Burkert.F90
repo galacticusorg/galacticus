@@ -465,17 +465,17 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     units of Mpc).
     !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
-    use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, treeNode
+    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
+    use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    class           (darkMatterProfileDMOBurkert   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), target   :: node
-    double precision                                , intent(in   )           :: radius
-    integer                                         , intent(  out), optional :: status
-    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
-    double precision                                , parameter               :: radiusSmall          =1.0d-10
-    double precision                                                          :: radiusOverScaleRadius        , virialRadiusOverScaleRadius
+    class           (darkMatterProfileDMOBurkert      ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    class           (nodeComponentDarkMatterProfile   )               , pointer  :: darkMatterProfile
+    double precision                                   , parameter               :: radiusSmall          =1.0d-10
+    double precision                                                             :: radiusOverScaleRadius        , virialRadiusOverScaleRadius
 
     if (present(status)) status=structureErrorCodeSuccess
     darkMatterProfile   => node%darkMatterProfile(autoCreate=.true.)

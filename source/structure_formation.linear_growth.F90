@@ -23,7 +23,7 @@ Contains a module which provides a class that implements linear growth of cosmol
 
 module Linear_Growth
   !!{
-  Provides an object that implements linear growth of cosmological structure.
+  Provides a class that implements linear growth of cosmological structure.
   !!}
   private
 
@@ -58,34 +58,35 @@ module Linear_Growth
     <description>Return the linear growth factor at the given time and mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-    <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
-    <argument>integer         , intent(in   ), optional :: normalize , component      </argument>
-    <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
+    <argument>double precision                          , intent(in   ), optional :: time      , expansionFactor</argument>
+    <argument>logical                                   , intent(in   ), optional :: collapsing                 </argument>
+    <argument>type            (enumerationNormalizeType), intent(in   ), optional :: normalize                  </argument>
+    <argument>type            (enumerationComponentType), intent(in   ), optional :: component                  </argument>
+    <argument>double precision                          , intent(in   ), optional :: wavenumber                 </argument>
    </method>
    <method name="logarithmicDerivativeExpansionFactor" >
     <description>Return the logarithmic derivative of linear growth factor with respect to expansion factor.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-    <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
-    <argument>integer         , intent(in   ), optional :: component                  </argument>
-    <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
+    <argument>double precision                          , intent(in   ), optional :: time      , expansionFactor</argument>
+    <argument>logical                                   , intent(in   ), optional :: collapsing                 </argument>
+    <argument>type            (enumerationComponentType), intent(in   ), optional :: component                  </argument>
+    <argument>double precision                          , intent(in   ), optional :: wavenumber                 </argument>
    </method>
    <method name="logarithmicDerivativeWavenumber" >
     <description>Return the logarithmic derivative of linear growth factor with respect to wavenumber.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
-    <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
-    <argument>integer         , intent(in   ), optional :: component                  </argument>
-    <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
+    <argument>double precision                          , intent(in   ), optional :: time      , expansionFactor</argument>
+    <argument>logical                                   , intent(in   ), optional :: collapsing                 </argument>
+    <argument>type            (enumerationComponentType), intent(in   ), optional :: component                  </argument>
+    <argument>double precision                          , intent(in   ), optional :: wavenumber                 </argument>
    </method>
    <method name="isWavenumberDependent" >
     <description>Return true if the growth function is wavenumber-dependent.</description>
     <type>logical</type>
     <pass>yes</pass>
-    <argument>integer, intent(in   ), optional :: component</argument>
+    <argument>type(enumerationComponentType), intent(in   ), optional :: component</argument>
    </method>
   </functionClass>
   !!]

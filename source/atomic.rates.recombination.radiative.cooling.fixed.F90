@@ -116,7 +116,7 @@ contains
     class           (atomicRecombinationRateRadiativeCoolingFixed), intent(inout)           :: self
     integer                                                       , intent(in   )           :: atomicNumber, ionizationState
     double precision                                              , intent(in   )           :: temperature
-    integer                                                       , intent(in   ), optional :: level
+    type            (enumerationRecombinationCaseType            ), intent(in   ), optional :: level
 
     fixedRate=+self%gamma                                                                                   &
          &     *self%atomicRecombinationRateRadiative_%rate(atomicNumber,ionizationState,temperature,level)

@@ -45,7 +45,6 @@ Contains a module which implements a star formation rate property extractor clas
    contains
      final     ::                starFormationRateDestructor
      procedure :: extract     => starFormationRateExtract
-     procedure :: type        => starFormationRateType
      procedure :: name        => starFormationRateName
      procedure :: description => starFormationRateDescription
      procedure :: unitsInSI   => starFormationRateUnitsInSI
@@ -72,6 +71,7 @@ contains
     class(starFormationRateDisksClass           ), pointer       :: starFormationRateDisks_
     class(starFormationRateSpheroidsClass       ), pointer       :: starFormationRateSpheroids_
     type (varying_string                        )                :: component
+    type (enumerationGalacticComponentType      )                :: component_
 
     !![
     <inputParameter>
@@ -80,18 +80,19 @@ contains
       <description>The component from which to extract star formation rate.</description>
     </inputParameter>
     !!]
-    select case (enumerationGalacticComponentEncode(char(component),includesPrefix=.false.))
-    case (galacticComponentDisk    )
+    component_=enumerationGalacticComponentEncode(char(component),includesPrefix=.false.)
+    select case (component_%ID)
+    case (galacticComponentDisk    %ID)
        !![
        <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
        !!]
        starFormationRateSpheroids_ => null()
-    case (galacticComponentSpheroid)
+    case (galacticComponentSpheroid%ID)
        !![
        <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
        !!]
        starFormationRateDisks_     => null()
-    case (galacticComponentTotal   )
+    case (galacticComponentTotal   %ID)
        !![
        <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
        <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
@@ -164,18 +165,6 @@ contains
     return
   end function starFormationRateExtract
 
-  integer function starFormationRateType(self)
-    !!{
-    Return the type of the star formation rate property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    starFormationRateType=outputAnalysisPropertyTypeLinear
-    return
-  end function starFormationRateType
 
   function starFormationRateName(self)
     !!{

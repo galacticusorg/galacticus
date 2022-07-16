@@ -51,11 +51,15 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   !!{
   Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
-          &                                 weightByMass    , massTypeGalactic
+  use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeBlackHole, massTypeAll                 , massTypeBlackHole      , &
+          &                                 weightByMass           , massTypeGalactic      , enumerationComponentTypeType, enumerationMassTypeType, &
+          &                                 enumerationWeightByType
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-  integer                                         , intent(in   ) :: componentType, massType, weightBy, weightIndex
+  type            (enumerationComponentTypeType  ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType       ), intent(in   ) :: massType
+  type            (enumerationWeightByType       ), intent(in   ) :: weightBy
+  integer                                         , intent(in   ) :: weightIndex
   double precision                                , intent(in   ) :: radius
   !$GLC attributes unused :: weightIndex
 
@@ -75,14 +79,15 @@ end function Node_Component_Black_Hole_Standard_Enclosed_Mass
   !!{
   Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   !!}
-   use :: Galactic_Structure_Options     , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
-        &                                         massTypeGalactic
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear              , megaParsec
+   use :: Galactic_Structure_Options     , only : componentTypeAll               , componentTypeBlackHole      , massTypeAll            , massTypeBlackHole, &
+        &                                         massTypeGalactic               , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear                    , megaParsec
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                               , dimension(3) :: Node_Component_Black_Hole_Standard_Acceleration
   class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
-  integer                                         , intent(in   )               :: componentType                                  , massType
+  type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
+  type            (enumerationMassTypeType       ), intent(in   )               :: massType
   double precision                                , intent(in   ), dimension(3) :: positionCartesian
   double precision                                                              :: radius
   
@@ -109,17 +114,18 @@ function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,
   !!{
   Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   !!}
-  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole, &
-       &                                          massTypeGalactic
+  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole      , massTypeAll            , massTypeBlackHole, &
+       &                                          massTypeGalactic               , enumerationComponentTypeType, enumerationMassTypeType
   use :: Numerical_Constants_Math        , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-  use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
+  use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym           , tensorIdentityR2D3Sym  , assignment(=)    , &
        &                                          operator(*)  
   use :: Vectors                         , only : Vector_Outer_Product
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Black_Hole_Standard_Tidal_Tensor
   class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
-  integer                                         , intent(in   )               :: componentType                                  , massType
+  type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
+  type            (enumerationMassTypeType       ), intent(in   )               :: massType
   double precision                                , intent(in   ), dimension(3) :: positionCartesian
   double precision                                                              :: radius
   type            (tensorRank2Dimension3Symmetric)                              :: positionTensor

@@ -66,11 +66,11 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (outputAnalysisPropertyOperatorBoolean), intent(inout)           :: self
-    double precision                                       , intent(in   )           :: propertyValue
-    type            (treeNode                             ), intent(inout), optional :: node
-    integer                                                , intent(inout), optional :: propertyType
-    integer         (c_size_t                             ), intent(in   ), optional :: outputIndex
+    class           (outputAnalysisPropertyOperatorBoolean    ), intent(inout)           :: self
+    double precision                                           , intent(in   )           :: propertyValue
+    type            (treeNode                                 ), intent(inout), optional :: node
+    type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType
+    integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex
     !$GLC attributes unused :: self, propertyType, outputIndex, node
 
     if (propertyValue == 0.0d0) then

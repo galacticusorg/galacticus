@@ -37,7 +37,6 @@
      procedure :: names        => hierarchyNames
      procedure :: descriptions => hierarchyDescriptions
      procedure :: unitsInSI    => hierarchyUnitsInSI
-     procedure :: type         => hierarchyType
   end type nodePropertyExtractorHierarchy
 
   interface nodePropertyExtractorHierarchy
@@ -168,15 +167,3 @@ contains
     return
   end function hierarchyUnitsInSI
 
-  integer function hierarchyType(self)
-    !!{
-    Return the type of the stellar mass-weighted age properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorHierarchy), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    hierarchyType=outputAnalysisPropertyTypeLinear
-    return
-  end function hierarchyType

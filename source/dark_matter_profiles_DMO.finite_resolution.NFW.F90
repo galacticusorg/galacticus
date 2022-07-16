@@ -23,7 +23,7 @@
   !!}
 
   use :: Cosmology_Functions         , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
   use :: Numerical_Interpolation     , only : interpolator
 
   !![
@@ -215,7 +215,7 @@ contains
     class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     double precision                                         , intent(in   )         :: lengthResolution    , massResolution
-    integer                                                  , intent(in   )         :: nonAnalyticSolver
+    type            (enumerationNonAnalyticSolversType      ), intent(in   )         :: nonAnalyticSolver
     logical                                                  , intent(in   )         :: resolutionIsComoving
     !![
     <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterHaloScale_, *cosmologyFunctions_"/>
@@ -1097,14 +1097,14 @@ contains
             & & /\left[\log (1+c)-\frac{c}{1+c}\right]
     \end{eqnarray}
     !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
-    use :: Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
+    use :: Galacticus_Nodes                , only : nodeComponentBasic              , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOFiniteResolutionNFW), intent(inout)           :: self
     type            (treeNode                               ), intent(inout), target   :: node
     double precision                                         , intent(in   )           :: radius
-    integer                                                  , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType      ), intent(  out), optional :: status
     class           (nodeComponentBasic                     ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile         ), pointer                 :: darkMatterProfile
     double precision                                                                   :: concentration                   , radiusScaleFree, &

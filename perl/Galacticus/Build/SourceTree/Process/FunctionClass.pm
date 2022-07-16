@@ -3002,16 +3002,30 @@ CODE
 			} elsif ( $classNode->{'type'} eq "declaration" ) {
 			    # Variables declared pre-contains are usually placed in the submodule, unless they are publicly
 			    # visible, or if explicitly stated to have module-scope.
-			    my @declarationsModule;
 			    my @declarationsSubmodule;
 			    foreach my $declaration ( @{$classNode->{'declarations'}} ) {
 				my $moduleScope = 0;
 				if ( grep {lc($_) eq "public"} @{$declaration->{'attributes'}} ) {
 				    # Public variables must go in the module.
-				    push(@declarationsModule   ,$declaration);
+				    my $declarationNew = {
+					type       => "declaration",
+					sibling    => undef()      ,
+					parent     => undef()
+				    };
+				    $declarationNew->{'firstChild'} =
+				    {
+					type       => "code"   ,
+					content    => ""       ,
+					sibling    => undef()  ,
+					parent     => $declarationNew,
+					firstChild => undef()
+				    };
+				    push(@{$declarationNew->{'declarations'}},$declaration);
+				    push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
+				    &Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($declarationNew);
 				    $moduleScope = 1;
 				} else {
-				    # Private variables do in the module only if explicitly scoped.
+				    # Private variables go in the module only if explicitly scoped.
 				    my @moduleVariables;
 				    my @submoduleVariables;
 				    for(my $i=0;$i<scalar(@{$declaration->{'variables'}});++$i) {
@@ -3024,9 +3038,24 @@ CODE
 				    }
 				    if ( scalar(@moduleVariables) > 0 ) {
 					my $moduleDeclaration = dclone($declaration);
-					@{$moduleDeclaration->{'variables'     }} = map {$_->{'variable'    }} @moduleVariables;
-					@{$moduleDeclaration->{'variableNamess'}} = map {$_->{'variableName'}} @moduleVariables;
-					push(@declarationsModule,$moduleDeclaration);
+					@{$moduleDeclaration->{'variables'    }} = map {$_->{'variable'    }} @moduleVariables;
+					@{$moduleDeclaration->{'variableNames'}} = map {$_->{'variableName'}} @moduleVariables;
+					my $declarationNew = {
+					    type       => "declaration",
+					    sibling    => undef()      ,
+					    parent     => undef()
+					};
+					$declarationNew->{'firstChild'} =
+					{
+					    type       => "code"   ,
+					    content    => ""       ,
+					    sibling    => undef()  ,
+					    parent     => $declarationNew,
+					    firstChild => undef()
+					};
+					push(@{$declarationNew->{'declarations'}},$moduleDeclaration);
+					push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
+					&Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($declarationNew);
 					$moduleScope = 1;
 				    }
 				    if ( scalar(@submoduleVariables) > 0 ) {
@@ -3051,9 +3080,6 @@ CODE
 				    }
 				}
 			    }
-			    # Add all accumulated declarations to the module.
-			    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarationsModule)
-				if ( scalar(@declarationsModule) > 0 );
 			    # Add all accumulated declarations to the submodule.
 			    @{$classNode->{'declarations'}} = @declarationsSubmodule;
 			    &Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($classNode);
@@ -3444,7 +3470,7 @@ CODE
 	    &Galacticus::Build::SourceTree::ProcessTree       (                   $treePostcontainsTmp                             );
 	    &Galacticus::Build::SourceTree::InsertAfterNode   ($node            ,[$treePrecontainsTmp                             ]);
 	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'}, $codeContent        ->{'module'}->{'interfaces'} );
-	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);	   
 	    # Generate submodule files.
 	    foreach my $className ( keys(%{$codeContent->{'submodule'}}) ) {
                 # Submodule names are just the class name with an underscore appended.

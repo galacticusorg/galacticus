@@ -250,13 +250,13 @@ contains
     use            :: Galacticus_Nodes          , only : mergerTree      , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
-    class           (*                 ), intent(inout)          :: self
-    type            (mergerTree        ), intent(in   )          :: tree
-    type            (treeNode          ), intent(inout), pointer :: node
-    integer                             , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic)               , pointer :: basic
-    integer         (c_size_t          )                         :: indexTime
-    double precision                                             :: time
+    class           (*                            ), intent(inout)          :: self
+    type            (mergerTree                   ), intent(in   )          :: tree
+    type            (treeNode                     ), intent(inout), pointer :: node
+    type            (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    class           (nodeComponentBasic           )               , pointer :: basic
+    integer         (c_size_t                     )                         :: indexTime
+    double precision                                                        :: time
     !$GLC attributes unused :: deadlockStatus, tree
 
     select type (self)

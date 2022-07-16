@@ -54,12 +54,13 @@
 
 contains
 
-  integer function sphericalSymmetry(self)
+  function sphericalSymmetry(self)
     !!{
     Returns symmetry label for mass dsitributions with spherical symmetry.
     !!}
     implicit none
-    class(massDistributionSpherical), intent(inout) :: self
+    type (enumerationMassDistributionSymmetryType)                :: sphericalSymmetry
+    class(massDistributionSpherical              ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     sphericalSymmetry=massDistributionSymmetrySpherical

@@ -46,7 +46,6 @@
      procedure :: names        => agesStellarMassWeightedNames
      procedure :: descriptions => agesStellarMassWeightedDescriptions
      procedure :: unitsInSI    => agesStellarMassWeightedUnitsInSI
-     procedure :: type         => agesStellarMassWeightedType
   end type nodePropertyExtractorAgesStellarMassWeighted
 
   interface nodePropertyExtractorAgesStellarMassWeighted
@@ -215,15 +214,3 @@ contains
     return
   end function agesStellarMassWeightedUnitsInSI
 
-  integer function agesStellarMassWeightedType(self)
-    !!{
-    Return the type of the stellar mass-weighted age properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorAgesStellarMassWeighted), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    agesStellarMassWeightedType=outputAnalysisPropertyTypeLinear
-    return
-  end function agesStellarMassWeightedType

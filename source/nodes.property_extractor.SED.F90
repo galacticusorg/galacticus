@@ -21,6 +21,7 @@
   Contains a module which implements a property extractor class for the SED of a component.
   !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType
   use :: Output_Times              , only : outputTimesClass
   use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   use :: Star_Formation_Histories  , only : starFormationHistoryClass
@@ -40,6 +41,7 @@
     <name>frame</name>
     <description>Frame for SED calculations.</description>
     <encodeFunction>yes</encodeFunction>
+    <decodeFunction>yes</decodeFunction>
     <entry label="rest"    />
     <entry label="observed"/>
   </enumeration>
@@ -59,14 +61,16 @@
      class           (starFormationHistoryClass    ), pointer                   :: starFormationHistory_        => null()
      class           (outputTimesClass             ), pointer                   :: outputTimes_                 => null()
      class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_          => null()
-     integer                                                                    :: countWavelengths                      , component
+     type            (enumerationComponentTypeType )                            :: component
+     integer                                                                    :: countWavelengths
      double precision                               , allocatable, dimension(:) :: wavelengths_                          , metallicityBoundaries
      type            (sedTemplate                  ), allocatable, dimension(:) :: templates
      double precision                                                           :: metallicityPopulationMinimum          , metallicityPopulationMaximum, &
           &                                                                        wavelengthMinimum                     , wavelengthMaximum           , &
           &                                                                        agePopulationMaximum                  , resolution                  , &
           &                                                                        factorWavelength                      , toleranceRelative
-     integer                                                                    :: abundanceIndex                        , frame
+     integer                                                                    :: abundanceIndex
+     type            (enumerationFrameType         )                            :: frame
      logical                                                                    :: useSEDTemplates
    contains
      !![
@@ -88,7 +92,6 @@
      procedure :: names                   => sedNames
      procedure :: descriptions            => sedDescriptions
      procedure :: unitsInSI               => sedUnitsInSI
-     procedure :: type                    => sedType
      procedure :: luminosityMean          => sedLuminosityMean
      procedure :: indexTemplateTime       => sedIndexTemplateTime
      procedure :: indexTemplateNode       => sedIndexTemplateNode
@@ -183,7 +186,8 @@ contains
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (nodePropertyExtractorSED     )                              :: self
-    integer                                        , intent(in   )               :: component                , frame
+    type            (enumerationComponentTypeType ), intent(in   )               :: component
+    type            (enumerationFrameType         ), intent(in   )               :: frame
     class           (stellarPopulationSpectraClass), intent(in   ), target       :: stellarPopulationSpectra_
     class           (starFormationHistoryClass    ), intent(in   ), target       :: starFormationHistory_
     class           (outputTimesClass             ), intent(in   ), target       :: outputTimes_
@@ -259,14 +263,14 @@ contains
     if (self%resolution < 0.0d0) then
        ! Full resolution, so the number of wavelengths is simply the total number available within the wavelength range.
        allocate(selection(self%countWavelengths))
-       select case (self%frame)
-       case (frameRest    )
+       select case (self%frame%ID)
+       case (frameRest    %ID)
           expansionFactor=1.0d0
           selection      =                                                             &
                &           self%wavelengths_                 >= self%wavelengthMinimum &
                &          .and.                                                        &
                &           self%wavelengths_                 <= self%wavelengthMaximum
-       case (frameObserved)
+       case (frameObserved%ID)
           expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
           selection      =                                                             &
                &           self%wavelengths_/expansionFactor >= self%wavelengthMinimum &
@@ -342,11 +346,11 @@ contains
     allocate(sedExtract(self%size(time),1))
     sedExtract=0.0d0
     ! Get the relevant star formation history.
-    select case (self%component)
-    case (componentTypeDisk)
+    select case (self%component%ID)
+    case (componentTypeDisk    %ID)
        disk                 => node    %disk                ()
        starFormationHistory =  disk    %starFormationHistory()
-    case (componentTypeSpheroid)
+    case (componentTypeSpheroid%ID)
        spheroid             => node    %spheroid            ()
        starFormationHistory =  spheroid%starFormationHistory()
     end select
@@ -415,10 +419,10 @@ contains
     allocate(sedWavelengths(self%size(time)))
     indexTemplate  =self%indexTemplateTime(time)
     j              =0
-    select case (self%frame)
-    case (frameRest    )
+    select case (self%frame%ID)
+    case (frameRest    %ID)
        expansionFactor=1.0d0
-    case (frameObserved)
+    case (frameObserved%ID)
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
     case default
        expansionFactor=0.0d0
@@ -499,18 +503,6 @@ contains
     return
   end function sedUnitsInSI
 
-  integer function sedType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily sed} properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorSED), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    sedType=outputAnalysisPropertyTypeLinear
-    return
-  end function sedType
 
   integer function sedIndexTemplateTime(self,time)
     !!{
@@ -652,10 +644,10 @@ contains
     !!]
     
     allocate(sedLuminosityMean(self%size(time),size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)))
-    select case (self%frame)
-    case (frameRest    )
+    select case (self%frame%ID)
+    case (frameRest    %ID)
        expansionFactor=1.0d0
-    case (frameObserved)
+    case (frameObserved%ID)
        expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
     case default
        expansionFactor=0.0d0
@@ -897,10 +889,7 @@ contains
     
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
-    !$omp critical(gfortranInternalIO)
-    write (parameterLabel,'(i17)'   ) self%frame
-    !$omp end critical(gfortranInternalIO)
-    call descriptor%addParameter('frame'            ,trim(adjustl(parameterLabel)))
+    call descriptor%addParameter('frame'            ,char(enumerationFrameDecode(self%frame,includePrefix=.false.)))
     !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMinimum
     !$omp end critical(gfortranInternalIO)

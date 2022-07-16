@@ -39,7 +39,6 @@
      private
    contains
      procedure :: extract     => mainBranchStatusExtract
-     procedure :: type        => mainBranchStatusType
      procedure :: name        => mainBranchStatusName
      procedure :: description => mainBranchStatusDescription
   end type nodePropertyExtractorMainBranchStatus
@@ -89,18 +88,6 @@ contains
     return
   end function mainBranchStatusExtract
 
-  integer function mainBranchStatusType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    mainBranchStatusType=outputAnalysisPropertyTypeLinear
-    return
-  end function mainBranchStatusType
 
   function mainBranchStatusName(self)
     !!{

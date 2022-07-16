@@ -40,7 +40,6 @@ Contains a module which implements a redshift property extractor class.
      procedure :: name        => redshiftName
      procedure :: description => redshiftDescription
      procedure :: unitsInSI   => redshiftUnitsInSI
-     procedure :: type        => redshiftType
   end type nodePropertyExtractorRedshift
 
   interface nodePropertyExtractorRedshift
@@ -160,15 +159,3 @@ contains
     return
   end function redshiftUnitsInSI
 
-  integer function redshiftType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRedshift), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    redshiftType=outputAnalysisPropertyTypeLinear
-    return
-  end function redshiftType

@@ -120,14 +120,15 @@ contains
     use, intrinsic :: ISO_C_Binding           , only : c_size_t
     use            :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
-    class           (outputAnalysisWeightOperatorProperty), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: propertyValue      , propertyValueIntrinsic, &
-         &                                                                   weightValue
-    integer                                               , intent(in   ) :: propertyType       , propertyQuantity
-    integer         (c_size_t                            ), intent(in   ) :: outputIndex
-    double precision                                                      :: weightPropertyValue
-    integer                                                               :: weightPropertyType
+    class           (outputAnalysisWeightOperatorProperty         ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: propertyValue      , propertyValueIntrinsic, &
+         &                                                                            weightValue
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
+    double precision                                                               :: weightPropertyValue
+    type            (enumerationOutputAnalysisPropertyTypeType    )                :: weightPropertyType
     !$GLC attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
 
     select type (extractor_ => self%extractor_)

@@ -216,7 +216,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout)                                        :: self
     double precision                                                   , intent(in   )                                        :: propertyValue
-    integer                                                            , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType        ), intent(in   )                                        :: propertyType
     double precision                                                   , intent(in   ), dimension(:)                          :: propertyValueMinimum            , propertyValueMaximum
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
@@ -242,7 +242,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout)                                        :: self
     double precision                                                   , intent(in   ), dimension(:)                          :: distribution
-    integer                                                            , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType        ), intent(in   )                                        :: propertyType
     double precision                                                   , intent(in   ), dimension(:)                          :: propertyValueMinimum                  , propertyValueMaximum
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node

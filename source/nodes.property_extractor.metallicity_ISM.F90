@@ -34,7 +34,6 @@ Contains a module which implements an ISM metallicity output analysis property e
      integer :: indexElement
    contains
      procedure :: extract     => metallicityISMExtract
-     procedure :: type        => metallicityISMType
      procedure :: name        => metallicityISMName
      procedure :: description => metallicityISMDescription
      procedure :: unitsInSI   => metallicityISMUnitsInSI
@@ -134,18 +133,6 @@ contains
     return
   end function metallicityISMExtract
 
-  integer function metallicityISMType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    metallicityISMType=outputAnalysisPropertyTypeLinear
-    return
-  end function metallicityISMType
 
   function metallicityISMName(self)
     !!{

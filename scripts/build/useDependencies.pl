@@ -183,8 +183,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	if (
 	    (grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes" && ! exists($_->{'errorValue'})} @{$directives->{'enumeration'}})
 	    ||
-	    (grep {exists($_->{'decodeFunction'}) && $_->{'decodeFunction'} eq "yes"                                } @{$directives->{'enumeration'}})
+	    (grep {exists($_->{'decodeFunction'}) && $_->{'decodeFunction'} eq "yes" && ! exists($_->{'errorValue'})} @{$directives->{'enumeration'}})
 	);
+    # Add dependence on enumerations module if necessary.
+    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."enumerations.mod")
+	if ( scalar(@{$directives->{'enumeration'}}) > 0 );
     # Find modules used in functionClass directives.
     foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
 	next 

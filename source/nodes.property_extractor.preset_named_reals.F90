@@ -38,7 +38,6 @@
      procedure :: names        => presetNamedRealsNames
      procedure :: descriptions => presetNamedRealsDescriptions
      procedure :: unitsInSI    => presetNamedRealsUnitsInSI
-     procedure :: type         => presetNamedRealsType
   end type nodePropertyExtractorPresetNamedReals
 
   interface nodePropertyExtractorPresetNamedReals
@@ -180,15 +179,3 @@ contains
     return
   end function presetNamedRealsUnitsInSI
 
-  integer function presetNamedRealsType(self)
-    !!{
-    Return the type of the presetNamedReals property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorPresetNamedReals), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    presetNamedRealsType=outputAnalysisPropertyTypeLinear
-    return
-  end function presetNamedRealsType

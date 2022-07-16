@@ -41,7 +41,6 @@ Contains a module which implements a node property extractor class for halo envi
      procedure :: names        => haloEnvironmentNames
      procedure :: descriptions => haloEnvironmentDescriptions
      procedure :: unitsInSI    => haloEnvironmentUnitsInSI
-     procedure :: type         => haloEnvironmentType
   end type nodePropertyExtractorHaloEnvironment
 
   interface nodePropertyExtractorHaloEnvironment
@@ -182,15 +181,3 @@ contains
     return
   end function haloEnvironmentUnitsInSI
 
-  integer function haloEnvironmentType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily haloEnvironment} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorHaloEnvironment), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    haloEnvironmentType=outputAnalysisPropertyTypeLinear
-    return
-  end function haloEnvironmentType

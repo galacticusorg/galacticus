@@ -466,7 +466,8 @@ contains
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time      , expansionFactor
     logical                                        , intent(in   ), optional :: collapsing
-    integer                                        , intent(in   ), optional :: normalize , component
+    type            (enumerationNormalizeType     ), intent(in   ), optional :: normalize
+    type            (enumerationComponentType     ), intent(in   ), optional :: component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_     , wavenumber_
     !![
@@ -487,8 +488,8 @@ contains
     ! Interpolate to get the expansion factor.
     baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=baryonsDarkMatterDarkMatter)
     ! Normalize.
-    select case (normalize_)
-    case (normalizeMatterDominated)
+    select case (normalize_%ID)
+    case (normalizeMatterDominated%ID)
        ! Normalize such that the radii of long-wavelength, growing perturbations behave as the scale factor at early times.
        baryonsDarkMatterValue=+baryonsDarkMatterValue            &
             &                 *self%normalizationMatterDominated
@@ -504,7 +505,7 @@ contains
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time       , expansionFactor
     logical                                        , intent(in   ), optional :: collapsing
-    integer                                        , intent(in   ), optional :: component
+    type            (enumerationComponentType     ), intent(in   ), optional :: component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
@@ -535,7 +536,7 @@ contains
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time       , expansionFactor
     logical                                        , intent(in   ), optional :: collapsing
-    integer                                        , intent(in   ), optional :: component
+    type            (enumerationComponentType     ), intent(in   ), optional :: component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
@@ -563,8 +564,8 @@ contains
     Return true indicating that the growth function is wavenumber-dependent.
     !!}
     implicit none
-    class  (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
-    integer                               , intent(in   ), optional :: component
+    class(linearGrowthBaryonsDarkMatter), intent(inout)           :: self
+    type (enumerationComponentType     ), intent(in   ), optional :: component
     !$GLC attributes unused :: self, component
 
     baryonsDarkMatterIsWavenumberDependent=.true.
@@ -623,7 +624,7 @@ contains
          &                          extrapolationTypeY=extrapolationTypeFix                                                                        &
          &                         )
     call self%growthFactor%populate(growthFactorDarkMatter,table=baryonsDarkMatterDarkMatter)
-    call self%growthFactor%populate(growthFactorBaryons,table=baryonsDarkMatterBaryons)
+    call self%growthFactor%populate(growthFactorBaryons   ,table=baryonsDarkMatterBaryons   )
     deallocate(growthFactorDarkMatter)
     deallocate(growthFactorBaryons   )
     self%tableInitialized=.true.
