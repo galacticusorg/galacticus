@@ -140,7 +140,7 @@ c_lib.darkMatterProfileDMOAcceleratorL.argtypes = [ c_double, c_double, c_void_p
 c_lib.darkMatterProfileDMOAccretionFlowL.restype  = c_void_p
 c_lib.darkMatterProfileDMOAccretionFlowL.argtypes = [ c_double, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMODecayingL.restype  = c_void_p
-c_lib.darkMatterProfileDMODecayingL.argtypes = [ c_double, c_double, c_int, c_void_p, c_int, c_void_p, c_int ]
+c_lib.darkMatterProfileDMODecayingL.argtypes = [ c_void_p, c_int, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOFiniteResolutionL.restype  = c_void_p
 c_lib.darkMatterProfileDMOFiniteResolutionL.argtypes = [ c_double, c_double, c_bool, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOFiniteResolutionNFWL.restype  = c_void_p
@@ -195,7 +195,7 @@ c_lib.darkMatterProfileDMODestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.darkMatterProfileHeatingDDML.restype  = c_void_p
 c_lib.darkMatterProfileHeatingDDML.argtypes = [ c_double, c_double ]
 c_lib.darkMatterProfileHeatingDDMv2L.restype  = c_void_p
-c_lib.darkMatterProfileHeatingDDMv2L.argtypes = [ c_void_p, c_int, POINTER(c_bool), POINTER(c_bool), c_double ]
+c_lib.darkMatterProfileHeatingDDMv2L.argtypes = [ c_void_p, c_int, c_bool, c_bool, c_double ]
 c_lib.darkMatterProfileHeatingImpulsiveOutflowL.restype  = c_void_p
 c_lib.darkMatterProfileHeatingImpulsiveOutflowL.argtypes = [ c_double, c_void_p ]
 c_lib.darkMatterProfileHeatingNullL.restype  = c_void_p
@@ -3050,11 +3050,11 @@ class darkMatterProfileDMOEinasto(darkMatterProfileDMO):
 class darkMatterProfileDMODecaying(darkMatterProfileDMO):
 
     # Constructor
-    def __init__(self,lifetime,massSplitting,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_):
+    def __init__(self,darkMatterParticle_,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 11
     
-        self._glcObj = c_lib.darkMatterProfileDMODecayingL(lifetime,massSplitting,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
+        self._glcObj = c_lib.darkMatterProfileDMODecayingL(darkMatterParticle_._glcObj,darkMatterParticle_._classID,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
 
 class darkMatterProfileDMOBurkert(darkMatterProfileDMO):
 
