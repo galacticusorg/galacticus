@@ -3000,7 +3000,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.adiabaticGnedin2004.exe
-          ./tests.dark_matter_profilesa.diabaticGnedin2004.exe 2>&1 | tee test.log
+          ./tests.dark_matter_profiles.adiabaticGnedin2004.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."        
   Tests-Dark-Matter-Profiles-Heated:
