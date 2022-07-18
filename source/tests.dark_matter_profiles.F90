@@ -479,6 +479,7 @@ program Test_Dark_Matter_Profiles
      darkMatterProfileAdiabaticGnedin2004             (                                                                                        &amp;
      &amp;                                             A                                   =0.85d0                                           , &amp;
      &amp;                                             omega                               =0.80d0                                           , &amp;
+     &amp;                                             radiusFractionalPivot               =1.00d0                                           , &amp;
      &amp;                                             nonAnalyticSolver                   =nonAnalyticSolversNumerical                      , &amp;
      &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                       , &amp;
      &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
