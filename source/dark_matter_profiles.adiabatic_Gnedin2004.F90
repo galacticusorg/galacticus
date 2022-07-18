@@ -58,13 +58,18 @@
     $f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}$,
     $M_\mathrm{satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_\mathrm{total}$ is the node mass, and
     \begin{equation}
-    {\bar{r} \over r_\mathrm{vir}} = A \left({r \over r_\mathrm{vir}}\right)^\omega,
-    \end{equation}
-    where $r_\mathrm{vir}$ is the virial radius. Note that we explicitly assume that the initial, uncontracted total density
-    profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell
-    crossing, and that satellite halos trace the dark matter profile of their host halo.
-    The derivative, $\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}$ is found by taking the
-    derivative of eqn.~(\ref{eq:adiabaticContractionGnedinSolution}) to give:
+    {\bar{r} \over r_0} = A \left({r \over r_0}\right)^\omega,
+    \label{eq:adiabaticContractionGnedinPowerLaw}
+    \end{equation}    
+    where the pivot radius $r_0$ is set to $f_0 r_\mathrm{vir}$ where $f_0=${\normalfont \ttfamily [radiusFractionalPivot]}, and
+    $r_\mathrm{vir}$ is the virial radius. The original \cite{gnedin_response_2004} assumed $f_0=1$, but the revised model of
+    \cite{gnedin_halo_2011} found that $f_0=0.03$ lead to an improved model (less scatter in the best fit values of $(A,\omega)$
+    when comparing to N-body simulations).
+
+    Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark
+    matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark
+    matter profile of their host halo.  The derivative, $\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}$
+    is found by taking the derivative of eqn.~(\ref{eq:adiabaticContractionGnedinSolution}) to give:    
     \begin{eqnarray}
      &amp; &amp; f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r^\prime_\mathrm{i} + f_\mathrm{i} 4 \pi
      \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}}
@@ -79,7 +84,7 @@
     \end{eqnarray}
     where
     \begin{equation}
-     {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_\mathrm{vir}}\right)^{\omega-1},
+     {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_0}\right)^{\omega-1},
     \end{equation}
     and which can then be solved numerically for $r^\prime_\mathrm{i}$.
    </description>
@@ -104,7 +109,8 @@
      integer                                                                                          :: nonAnalyticSolver
      type            (rootFinder                          )                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
-     double precision                                                                                 :: A                                        , omega
+     double precision                                                                                 :: A                                        , omega                     , &
+          &                                                                                              radiusFractionalPivot
      ! Stored solutions for reuse.
      integer         (kind=kind_int8                      )                                           :: lastUniqueID
      integer                                                                                          :: radiusPreviousIndex                      , radiusPreviousIndexMaximum
@@ -190,7 +196,8 @@ contains
     class           (darkMatterProfileDMOClass           ), pointer                 :: darkMatterProfileDMO_
     class           (*                                   ), pointer                 :: galacticStructure_
     type            (varying_string                      )                          :: nonAnalyticSolver
-    double precision                                                                :: A                    , omega
+    double precision                                                                :: A                    , omega, &
+          &                                                                            radiusFractionalPivot
     !![
     <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
     !!]
@@ -211,6 +218,13 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>radiusFractionalPivot</name>
+      <defaultSource>\citep{gnedin_response_2004}</defaultSource>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The pivot radius (in units of the virial radius), $r_0$, appearing in equation~(\ref{eq:adiabaticContractionGnedinPowerLaw}).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
@@ -225,7 +239,7 @@ contains
     else
        call galacticStructureConstruct_(parameters,galacticStructure_)
     end if
-    self=darkMatterProfileAdiabaticGnedin2004(A,omega,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf)
+    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf)
     !![
     <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -236,14 +250,15 @@ contains
     return
   end function adiabaticGnedin2004ConstructorParameters
 
-  function adiabaticGnedin2004ConstructorInternal(A,omega,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf) result(self)
+  function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                                  :: self
-    double precision                                      , intent(in   )                   :: A                    , omega
+    double precision                                      , intent(in   )                   :: A                    , omega, &
+         &                                                                                     radiusFractionalPivot
     class           (cosmologyParametersClass            ), intent(in   ), target           :: cosmologyParameters_
     class           (darkMatterProfileDMOClass           ), intent(in   ), target           :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass            ), intent(in   ), target           :: darkMatterHaloScale_
@@ -253,7 +268,7 @@ contains
     class           (darkMatterProfileClass              ), intent(in   ), target, optional :: recursiveSelf
     !![
     <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
-    <constructorAssign variables="A, omega, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="A, omega, radiusFractionalPivot, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
     
     ! Validate.
@@ -988,9 +1003,14 @@ contains
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     double precision                                      , intent(in   ) :: radius
 
-    adiabaticGnedin2004RadiusOrbitalMean=+self%A                                                          &
-         &                               *self%radiusVirial                                               &
-         &                               *self%radiusExponentiator%exponentiate(radius/self%radiusVirial)
+    adiabaticGnedin2004RadiusOrbitalMean=+self%A                                                            &
+         &                               *self%radiusFractionalPivot                                        &
+         &                               *self%radiusVirial                                                 &
+         &                               *self%radiusExponentiator%exponentiate(                            &
+         &                                                                      +     radius                &
+         &                                                                      /self%radiusFractionalPivot &
+         &                                                                      /self%radiusVirial          &
+         &                                                                     )
     return
   end function adiabaticGnedin2004RadiusOrbitalMean
 
@@ -1003,11 +1023,12 @@ contains
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     double precision                                      , intent(in   ) :: radius
 
-    adiabaticGnedin2004RadiusOrbitalMeanDerivative=+self%A                &
-         &                                         *self%omega            &
-         &                                         *(                     &
-         &                                           +     radius         &
-         &                                           /self%radiusVirial   &
+    adiabaticGnedin2004RadiusOrbitalMeanDerivative=+self%A                       &
+         &                                         *self%omega                   &
+         &                                         *(                            &
+         &                                           +     radius                &
+         &                                           /self%radiusFractionalPivot &
+         &                                           /self%radiusVirial          &
          &                                          )**(self%omega-1.0d0)
     return
   end function adiabaticGnedin2004RadiusOrbitalMeanDerivative
@@ -1083,6 +1104,7 @@ contains
        destination%finder                         =self%finder                          
        destination%A                              =self%A                                       
        destination%omega                          =self%omega                           
+       destination%radiusFractionalPivot          =self%radiusFractionalPivot                           
        destination%lastUniqueID                   =self%lastUniqueID                    
        destination%radiusPreviousIndex            =self%radiusPreviousIndex                     
        destination%radiusPreviousIndexMaximum     =self%radiusPreviousIndexMaximum      
