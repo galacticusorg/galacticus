@@ -37,11 +37,11 @@ module Enumerations
    contains
      !![
      <methods>
-       <method description="Test if two enumeration entries are equal."                   method="operator(==   )"/>
-       <method description="Test if two enumeration entries are not equal."               method="operator(/=   )"/>
-       <method description="Test if one enumeration is less than another."                method="operator(&lt; )"/>
+       <method description="Test if two enumeration entries are equal."                   method="operator(==)"  />
+       <method description="Test if two enumeration entries are not equal."               method="operator(/=)"  />
+       <method description="Test if one enumeration is less than another."                method="operator(&lt;)" />
        <method description="Test if one enumeration is less or equal tothan another."     method="operator(&lt;=)"/>
-       <method description="Test if one enumeration is greater than another."             method="operator(&gt; )"/>
+       <method description="Test if one enumeration is greater than another."             method="operator(&gt;)" />
        <method description="Test if one enumeration is greater than or equal to another." method="operator(&gt;=)"/>
        <method description="Subtract an integer from an enumeration member."              method="subtract"       />
      </methods>
