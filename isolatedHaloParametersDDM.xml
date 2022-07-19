@@ -25,7 +25,11 @@
   <componentPosition               value="null"     />
 
   <!-- Dark matter properties -->
-  <darkMatterParticle value="CDM"/>
+  <darkMatterParticle value="decayingDarkMatter">
+    <darkMatterParticle value="CDM"/>
+    <massSplitting value="0.0001"/>
+    <lifetime value="20"/>
+  </darkMatterParticle>
 
   <!-- Cosmological parameters -->
   <!-- Use a static universe (no expansion) here for simplicity -->
@@ -57,17 +61,21 @@
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfile        value="darkMatterOnly"/>
-  <darkMatterProfileDMO value="heatedMonotonic">
-    <darkMatterProfileDMO value="NFW"      />
+  <darkMatterProfileDMO value="decaying">
+    <darkMatterProfileDMO value="heatedMonotonic">
+      <darkMatterProfileDMO value="NFW"      />
+      <nonAnalyticSolver    value="numerical"/>
+      <radiusFractionMinimum value="0.00001"/>
+      <countPerDecadeRadius value="100"/>
+    </darkMatterProfileDMO>
     <nonAnalyticSolver    value="numerical"/>
-    <radiusFractionMinimum value="0.00001"/>
-    <countPerDecadeRadius value="300"/>
   </darkMatterProfileDMO>
 
   <!-- Heating model - currently set to null - replace with the DDM model -->
-  <darkMatterProfileHeating value="DDM">
-    <lifetime value="10.0"/>
-    <massSplitting value="0.0001"/>
+  <darkMatterProfileHeating value="DDMv2">
+    <heating value="true"/>
+    <massLoss value="true"/>
+    <gamma value="1.0"/>
   </darkMatterProfileHeating>
 
   <!-- Node evolution and physics -->
@@ -101,7 +109,7 @@
   
   <!-- Output options -->
   <!-- Output at uniformly spaced times between t=0 and t=13 -->
-  <outputFileName value="galacticusDDMrmore.hdf5"/>
+  <outputFileName value="galacticusDDM.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>  

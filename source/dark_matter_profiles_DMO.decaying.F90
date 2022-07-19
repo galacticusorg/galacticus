@@ -157,7 +157,8 @@ contains
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(  out) :: factor
     class           (nodeComponentBasic          ), pointer       :: basic
-
+    
+    basic             => node%basic()
     factor = +1.0d0 - self%massSplitting_                   &
        &    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     return
