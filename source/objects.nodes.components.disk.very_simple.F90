@@ -633,8 +633,7 @@ contains
           if (associated(node)) then
              basic     => node%basic    ()
              satellite => node%satellite()
-             call basic    %            timeSet(                             timeEnd )
-             call satellite%timeUntilMergingSet(satellite%timeUntilMerging()-timeStep)
+             call basic%timeSet(timeEnd)
           end if
           ! Record that we solved this system analytically.
           solved=.true.

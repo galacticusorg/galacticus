@@ -44,22 +44,11 @@ module Node_Component_Satellite_Standard
    <isDefault>true</isDefault>
    <properties>
     <property>
-      <name>timeUntilMerging</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Standard_Time_Until_Merging</getFunction>
-      <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-    </property>
-    <property>
       <name>timeOfMerging</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
-      <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Standard_Time_Of_Merging</getFunction>
-      <setFunction>Node_Component_Satellite_Standard_Time_Of_Merging_Set</setFunction>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>huge(0.0d0)</classDefault>
     </property>
     <property>
       <name>boundMass</name>
@@ -76,7 +65,6 @@ module Node_Component_Satellite_Standard
       <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
     </property>
    </properties>
-   <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
   </component>
   !!]
 
@@ -276,7 +264,6 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        if (node%isSatellite()) then
-          call satellite%timeUntilMergingRate(-1.0d0)
           ! Compute mass loss rate if necessary.
           if (propertyEvaluate(propertyType,satelliteBoundMassIsInactive)) then
              massLossRate=darkMatterHaloMassLossRate_%rate(node)
@@ -324,11 +311,12 @@ contains
     !!{
     Set the orbit of the satellite at the virial radius.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentSatelliteStandard, treeNode
     implicit none
     class           (nodeComponentSatellite         ), intent(inout) :: self
     type            (keplerOrbit                    ), intent(in   ) :: orbit
     type            (treeNode                       ), pointer       :: selfNode
+    type            (nodeComponentBasic             ), pointer       :: selfBasic
     double precision                                                 :: timeUntilMerging
     type            (keplerOrbit                    )                :: virialOrbit
 
@@ -341,7 +329,10 @@ contains
        ! Update the stored time until merging to reflect the new orbit.
        virialOrbit=orbit
        timeUntilMerging  =satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
-       if (timeUntilMerging >= 0.0d0) call self%timeUntilMergingSet(timeUntilMerging)
+       if (timeUntilMerging >= 0.0d0) then
+          selfBasic => selfNode%basic()
+          call self%timeOfMergingSet(timeUntilMerging+selfBasic%time())
+       end if
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
     end select
@@ -371,8 +362,6 @@ contains
     class is (nodeComponentSatelliteStandard)
        ! Get the basic component.
        basic => node%basic()
-       ! Set scale for time.
-       call satellite%timeUntilMergingScale(timeScale                       )
        ! Set scale for bound mass.
        call satellite%boundMassScale(massScaleFractional*basic%mass())
     end select
@@ -479,7 +468,10 @@ contains
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
        timeUntilMerging=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
-       if (timeUntilMerging >= 0.0d0) call satellite%timeUntilMergingSet(timeUntilMerging)
+       if (timeUntilMerging >= 0.0d0) then
+          basic => node%basic()
+          call satellite%timeOfMergingSet(timeUntilMerging+basic%time())
+       end if
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Create

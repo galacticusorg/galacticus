@@ -55,7 +55,18 @@ contains
     !![
     </include>
     !!]
-
+    
+    !![
+    <eventHook name="haloFormation">
+     <import>
+      <module name="Galacticus_Nodes" symbols="treeNode"/>
+     </import>
+     <interface>
+      type(treeNode), intent(inout) :: node
+     </interface>
+     <callWith>node</callWith>
+    </eventHook>
+    !!]
     return
   end subroutine Event_Halo_Formation
 
