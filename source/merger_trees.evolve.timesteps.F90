@@ -25,7 +25,8 @@ module Merger_Tree_Timesteps
   !!{
   Implements a class for merger tree evolution timestepping.
   !!}
-  use :: Galacticus_Nodes, only : mergerTree, treeNode
+  use :: Galacticus_Nodes                   , only : mergerTree                   , treeNode
+  use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
   implicit none
   private
   public :: timestepTask
@@ -48,10 +49,10 @@ module Merger_Tree_Timesteps
      \begin{verbatim}
        subroutine timestepTask(self,tree,node,deadlockStatus)
          implicit none
-         class  (*         ), intent(inout)          :: self
-         type   (mergerTree), intent(inout)          :: tree
-         type   (treeNode  ), intent(inout), pointer :: node
-         integer            , intent(inout)          :: deadlockStatus
+         class(*                            ), intent(inout)          :: self
+         type (mergerTree                   ), intent(inout)          :: tree
+         type (treeNode                     ), intent(inout), pointer :: node
+         type (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
          .
          .
          .
@@ -93,11 +94,11 @@ module Merger_Tree_Timesteps
 
   abstract interface
      subroutine timestepTask(self,tree,node,deadlockStatus)
-       import mergerTree, treeNode
-       class  (*         ), intent(inout)          :: self
-       type   (mergerTree), intent(in   )          :: tree
-       type   (treeNode  ), intent(inout), pointer :: node
-       integer            , intent(inout)          :: deadlockStatus
+       import mergerTree, treeNode, enumerationDeadlockStatusType
+       class(*                            ), intent(inout)          :: self
+       type (mergerTree                   ), intent(in   )          :: tree
+       type (treeNode                     ), intent(inout), pointer :: node
+       type (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
      end subroutine timestepTask
   end interface
 

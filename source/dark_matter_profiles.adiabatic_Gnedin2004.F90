@@ -21,12 +21,12 @@
   An implementation of adiabaticGnedin2004 dark matter halo profiles.
   !!}
 
-  use :: Cosmology_Parameters        , only : cosmologyParameters                , cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO               , darkMatterProfileDMOClass
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
-  use :: Galactic_Structure_Options  , only : componentTypeAll                   , massTypeBaryonic                    , radiusLarge                  , weightByMass, &
-          &                                   weightIndexNull
+  use :: Cosmology_Parameters        , only : cosmologyParameters              , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale              , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO             , darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Galactic_Structure_Options  , only : componentTypeAll                 , massTypeBaryonic                   , radiusLarge                         , weightByMass                 , &
+          &                                   weightIndexNull                  , enumerationComponentTypeType       , enumerationMassTypeType             , enumerationWeightByType
   use :: Math_Exponentiation         , only : fastExponentiator
   use :: Root_Finder                 , only : rootFinder
 
@@ -106,7 +106,7 @@
      class           (cosmologyParametersClass            ), pointer                                  :: cosmologyParameters_            => null()
      class           (darkMatterProfileDMOClass           ), pointer                                  :: darkMatterProfileDMO_           => null()
      class           (*                                   ), pointer                                  :: galacticStructure_              => null()
-     integer                                                                                          :: nonAnalyticSolver
+     type            (enumerationNonAnalyticSolversType   )                                           :: nonAnalyticSolver
      type            (rootFinder                          )                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
      double precision                                                                                 :: A                                        , omega                     , &
@@ -171,8 +171,10 @@
   end interface darkMatterProfileAdiabaticGnedin2004
     
   ! Module-scope quantities used in solving the initial radius root function.
-  integer                                               , parameter :: adiabaticGnedin2004ComponentType=componentTypeAll, adiabaticGnedin2004MassType   =massTypeBaryonic, &
-       &                                                               adiabaticGnedin2004WeightBy     =weightByMass    , adiabaticGnedin2004WeightIndex=weightIndexNull
+  type             (enumerationComponentTypeType       ), parameter :: adiabaticGnedin2004ComponentType=componentTypeAll
+  type             (enumerationMassTypeType            ), parameter :: adiabaticGnedin2004MassType     =massTypeBaryonic
+  type             (enumerationWeightByType            ), parameter :: adiabaticGnedin2004WeightBy     =weightByMass
+  integer                                               , parameter :: adiabaticGnedin2004WeightIndex  =weightIndexNull
   double precision                                      , parameter :: toleranceAbsolute               =0.0d0           , toleranceRelative             =1.0d-2
   type            (treeNode                            ), pointer   :: adiabaticGnedin2004Node
   class           (darkMatterProfileAdiabaticGnedin2004), pointer   :: adiabaticGnedin2004Self
@@ -263,7 +265,7 @@ contains
     class           (darkMatterProfileDMOClass           ), intent(in   ), target           :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass            ), intent(in   ), target           :: darkMatterHaloScale_
     class           (*                                   ), intent(in   ), target           :: galacticStructure_
-    integer                                               , intent(in   )                   :: nonAnalyticSolver
+    type            (enumerationNonAnalyticSolversType   ), intent(in   )                   :: nonAnalyticSolver
     logical                                               , intent(in   )        , optional :: recursiveConstruct
     class           (darkMatterProfileClass              ), intent(in   ), target, optional :: recursiveSelf
     !![
@@ -520,7 +522,7 @@ contains
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout), target   :: self
     type            (treeNode                            ), intent(inout), target   :: node
     double precision                                      , intent(in   )           :: radius
-    integer                                               , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
     logical                                                                         :: fallThrough
 
     ! Use recursive self if necessary.

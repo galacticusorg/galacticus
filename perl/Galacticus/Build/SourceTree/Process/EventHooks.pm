@@ -119,14 +119,15 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBi
   use    :: ISO_Varying_String, only : assignment(=)
   !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
   implicit none
-  class    (eventHook{$interfaceType}), intent(inout)                         :: self
-  class    (*                        ), intent(in   ), target                 :: object_
-  integer                             , intent(in   ), optional               :: openMPThreadBinding
-  character(len=*                    ), intent(in   ), optional               :: label
-  class    (dependency               ), intent(in   ), optional, dimension(:) :: dependencies
-  procedure(interface{$interfaceType})                                        :: function_
-  class    (hook                     )               , pointer                :: hook_
-  integer                                                                     :: i                  , openMPThreadBinding_
+  class    (eventHook{$interfaceType}         ), intent(inout)                         :: self
+  class    (*                                 ), intent(in   ), target                 :: object_
+  type     (enumerationOpenMPThreadBindingType), intent(in   ), optional               :: openMPThreadBinding
+  character(len=*                             ), intent(in   ), optional               :: label
+  class    (dependency                        ), intent(in   ), optional, dimension(:) :: dependencies
+  procedure(interface{$interfaceType}         )                                        :: function_
+  class    (hook                              )               , pointer                :: hook_
+  integer                                                                              :: i
+  type     (enumerationOpenMPThreadBindingType)                                        :: openMPThreadBinding_
 
   !$ if (.not.self%initialized_) call Error_Report('event has not been initialized'//{$location})
   call self%lock()
@@ -420,8 +421,8 @@ hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
    type is (hook{$interfaceType})
-      select case (hook_%openMPThreadBinding)
-      case (openMPThreadBindingAtLevel,openMPThreadBindingAllLevels)
+      select case (hook_%openMPThreadBinding%ID)
+      case (openMPThreadBindingAtLevel%ID,openMPThreadBindingAllLevels%ID)
          !$ if (.not.ompAncestorGot_) then
          !$    ompLevelCurrent_=OMP_Get_Level()
          !$    allocate(ompAncestorThreadNum_(0:ompLevelCurrent_))
@@ -431,11 +432,11 @@ do while (associated(hook_))
          !$    ompAncestorGot_=.true.
          !$ end if
       end select
-      !$ select case (hook_%openMPThreadBinding)
-      !$ case (openMPThreadBindingNone)
+      !$ select case (hook_%openMPThreadBinding%ID)
+      !$ case (openMPThreadBindingNone%ID)
          ! Not bound to any OpenMP thread, so always call.
          functionActive_=.true.
-      !$ case (openMPThreadBindingAtLevel)
+      !$ case (openMPThreadBindingAtLevel%ID)
       !$    ! Binds at the OpenMP level - check levels match, and that this hooked object matches the OpenMP thread number across all levels.
       !$    if (hook_%openMPLevel == ompLevelCurrent_) then
       !$       functionActive_=.true.
@@ -448,7 +449,7 @@ do while (associated(hook_))
       !$    else
       !$       functionActive_=.false.
       !$    end if
-      !$ case (openMPThreadBindingAllLevels)
+      !$ case (openMPThreadBindingAllLevels%ID)
       !$    ! Binds at all levels at or above the level of the hooked object - check this condition is met, and that the hooked object matches the OpenMP thread number across all levels.
       !$    if (hook_%openMPLevel <= ompLevelCurrent_) then
       !$       functionActive_=.true.

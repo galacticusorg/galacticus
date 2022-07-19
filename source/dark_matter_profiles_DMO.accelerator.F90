@@ -323,10 +323,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOAccelerator), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    double precision                                 , intent(in   )           :: radius
-    integer                                          , intent(  out), optional :: status
+    class           (darkMatterProfileDMOAccelerator  ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     acceleratorPotential=self%darkMatterProfileDMO_%potential(node,radius,status)
     return

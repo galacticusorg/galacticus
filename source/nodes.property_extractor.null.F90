@@ -60,13 +60,14 @@ contains
     return
   end function nullConstructorParameters
 
-  integer function nullType(self)
+  function nullType(self)
     !!{
     Return the type of the null property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeUnknown
     implicit none
-    class(nodePropertyExtractorNull), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyTypeType)                :: nullType
+    class(nodePropertyExtractorNull                ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     nullType=outputAnalysisPropertyTypeUnknown

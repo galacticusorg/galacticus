@@ -30,6 +30,18 @@ Contains a module which implements a gravitational lensing output analysis distr
   end type grvtnlLnsngTransferMatrix
 
   !![
+  <enumeration>
+   <name>lensedProperty</name>
+   <description>Enumeration of properties affected by gravitational lensing.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="luminosity"/>
+   <entry label="size"      />
+  </enumeration>
+  !!]
+
+  !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng">
    <description>A gravitational lensing output analysis distribution operator class.</description>
   </outputAnalysisDistributionOperator>
@@ -39,12 +51,12 @@ Contains a module which implements a gravitational lensing output analysis distr
      A gravitational lensing output distribution operator class.
      !!}
      private
-     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_ => null()
-     class           (outputTimesClass         ), pointer                   :: outputTimes_          => null()
-     type            (grvtnlLnsngTransferMatrix), allocatable, dimension(:) :: transfer_
-     integer                                                                :: lensedProperty
-     double precision                                                       :: sizeSource
-     !$ type         (ompReadWriteLock         ), allocatable, dimension(:) :: tabulateLock
+     class           (gravitationalLensingClass    ), pointer                   :: gravitationalLensing_ => null()
+     class           (outputTimesClass             ), pointer                   :: outputTimes_          => null()
+     type            (grvtnlLnsngTransferMatrix    ), allocatable, dimension(:) :: transfer_
+     type            (enumerationLensedPropertyType)                            :: lensedProperty
+     double precision                                                           :: sizeSource
+     !$ type         (ompReadWriteLock             ), allocatable, dimension(:) :: tabulateLock
    contains
      final     ::                        grvtnlLnsngDestructor
      procedure :: operateScalar       => grvtnlLnsngOperateScalar
@@ -63,18 +75,6 @@ Contains a module which implements a gravitational lensing output analysis distr
   integer(c_size_t                 )          :: grvtnLnsngK
   class  (gravitationalLensingClass), pointer :: grvtnlLnsngGravitationalLensing_
   !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
-
-  !![
-  <enumeration>
-   <name>lensedProperty</name>
-   <description>Enumeration of properties affected by gravitational lensing.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="luminosity"/>
-   <entry label="size"      />
-  </enumeration>
-  !!]
 
 contains
 
@@ -127,7 +127,7 @@ contains
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                          :: self
     class           (gravitationalLensingClass                    ), intent(in   ), target   :: gravitationalLensing_
     class           (outputTimesClass                             ), intent(in   ), target   :: outputTimes_
-    integer                                                        , intent(in   ), optional :: lensedProperty
+    type            (enumerationLensedPropertyType                ), intent(in   ), optional :: lensedProperty
     double precision                                               , intent(in   )           :: sizeSource
     !$ integer      (c_size_t                                     )                          :: i
     !![
@@ -168,7 +168,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   )                                        :: propertyValue
-    integer                                                        , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
@@ -189,7 +189,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
-    integer                                                        , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   )                                        :: propertyType
     double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum , propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
@@ -264,14 +264,14 @@ contains
       double precision                :: ratioMinimum , ratioMaximum
 
       ! Find the minimum and maximum magnification ratios.
-      select case (propertyType)
-      case (outputAnalysisPropertyTypeLinear   )
+      select case (propertyType%ID)
+      case (outputAnalysisPropertyTypeLinear   %ID)
          ratioMinimum=                 propertyValueMaximum(grvtnLnsngK)/propertyValue
          ratioMaximum=                 propertyValueMinimum(grvtnLnsngK)/propertyValue
-      case (outputAnalysisPropertyTypeLog10    )
+      case (outputAnalysisPropertyTypeLog10    %ID)
          ratioMinimum=10.0d0**(        propertyValueMinimum(grvtnLnsngK)-propertyValue)
          ratioMaximum=10.0d0**(        propertyValueMaximum(grvtnLnsngK)-propertyValue)
-      case (outputAnalysisPropertyTypeMagnitude)
+      case (outputAnalysisPropertyTypeMagnitude%ID)
          ! Note that ratio min/max is related to property value max/min because magnitudes are brighter when more negative.
          ratioMinimum=10.0d0**(-0.4d0*(propertyValueMaximum(grvtnLnsngK)-propertyValue))
          ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(grvtnLnsngK)-propertyValue))
@@ -280,10 +280,10 @@ contains
       end select
 
       ! Scale ratios depending on the property being lensed.
-      select case (self%lensedProperty)
-      case (lensedPropertyLuminosity)
+      select case (self%lensedProperty%ID)
+      case (lensedPropertyLuminosity%ID)
          ! Luminosity scales linearly with magnification - no need to modify ratios.
-      case (lensedPropertySize      )
+      case (lensedPropertySize      %ID)
          ! Size scales as the square-root of magnification. Our ratios as computed so far are ratios of size. To find the
          ! corresponding ratios of magnification we must therefore square the ratios.
          ratioMinimum=ratioMinimum**2

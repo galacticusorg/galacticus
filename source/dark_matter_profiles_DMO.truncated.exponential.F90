@@ -23,7 +23,7 @@
   An implementation of exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.
   !!}
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
@@ -35,18 +35,17 @@
      A dark matter halo profile class implementing exponentially truncated dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     double precision                                     :: radiusFractionalDecay                       , alpha                                                  , &
-          &                                                  beta                                        , gamma
-     integer                                              :: nonAnalyticSolver
-
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                             :: radiusFractionalDecay                       , alpha                                                  , &
+          &                                                          beta                                        , gamma
+     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
      ! Record of unique ID of node which we last computed results for.
-     integer         (kind=kind_int8          )           :: lastUniqueID
+     integer         (kind=kind_int8                  )           :: lastUniqueID
      ! Stored values of computed quantities.
-     double precision                                     :: radialVelocityDispersionVirialRadiusPrevious, radialVelocityDispersionVirialRadiusUntruncatedPrevious, &
-          &                                                  enclosingMassRadiusPrevious                 , kappaPrevious                                          , &
-          &                                                  gammaFunctionIncompletePrevious             , densityNormalizationPrevious                           , &
-          &                                                  massVirialPrevious
+     double precision                                             :: radialVelocityDispersionVirialRadiusPrevious, radialVelocityDispersionVirialRadiusUntruncatedPrevious, &
+          &                                                          enclosingMassRadiusPrevious                 , kappaPrevious                                          , &
+          &                                                          gammaFunctionIncompletePrevious             , densityNormalizationPrevious                           , &
+          &                                                          massVirialPrevious
    contains
      !![
      <methods>
@@ -155,7 +154,7 @@ contains
     class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                          , intent(in   )         :: radiusFractionalDecay, alpha, &
          &                                                                               beta                 , gamma
-    integer                                                   , intent(in   )         :: nonAnalyticSolver
+    type            (enumerationNonAnalyticSolversType       ), intent(in   )         :: nonAnalyticSolver
     !![
     <constructorAssign variables="radiusFractionalDecay,alpha,beta,gamma,nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
@@ -448,7 +447,7 @@ contains
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
     type            (treeNode                                ), intent(inout), target   :: node
     double precision                                          , intent(in   )           :: radius
-    integer                                                   , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType       ), intent(  out), optional :: status
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)

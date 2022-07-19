@@ -21,7 +21,8 @@
   Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
   !!}
 
-  use :: Output_Analyses, only : outputAnalysis, outputAnalysisClass
+  use :: Display        , only : enumerationVerbosityLevelType
+  use :: Output_Analyses, only : outputAnalysis               , outputAnalysisClass
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
@@ -33,11 +34,11 @@
      Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
      !!}
      private
-     type   (varying_string     )         :: failedParametersFileName
-     logical                              :: randomize
-     integer                              :: evolveForestsVerbosity
-     class  (*                  ), pointer:: task_
-     class  (outputAnalysisClass), pointer:: outputAnalysis_          => null()
+     type   (varying_string               )          :: failedParametersFileName
+     logical                                         :: randomize
+     type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
+     class  (*                            ), pointer :: task_
+     class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
    contains
      final     ::                    galaxyPopulationDestructor
      procedure :: evaluate        => galaxyPopulationEvaluate
@@ -60,14 +61,14 @@ contains
     Constructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class which builds the object
     from a parameter set.
     !!}
-    use :: Display         , only : displayVerbosity
+    use :: Display         , only : displayVerbosity, enumerationVerbosityLevelDecode, enumerationVerbosityLevelEncode
     use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
     type   (inputParameters                          ), intent(inout) :: parameters
     type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
     logical                                                           :: randomize
-    integer                                                           :: evolveForestsVerbosity
+    type   (varying_string)                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
     !![
@@ -85,7 +86,7 @@ contains
     <inputParameter>
       <name>evolveForestsVerbosity</name>
       <description>The verbosity level to use while performing evolve forests tasks.</description>
-      <defaultValue>displayVerbosity()</defaultValue>
+      <defaultValue>enumerationVerbosityLevelDecode(displayVerbosity(),includePrefix=.false.)</defaultValue>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -97,7 +98,7 @@ contains
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,evolveForestsVerbosity,failedParametersFileName)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -113,7 +114,7 @@ contains
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
     logical                                           , intent(in   )         :: randomize
-    integer                                           , intent(in   )         :: evolveForestsVerbosity
+    type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )         :: failedParametersFileName
     !![
     <constructorAssign variables="*parametersModel, randomize, evolveForestsVerbosity, failedParametersFileName"/>
@@ -164,8 +165,8 @@ contains
     logical                                                    , intent(inout), optional       :: forceAcceptance
     double precision                                           , allocatable  , dimension(:  ) :: logPriorsProposed
     double precision                                           , allocatable  , dimension(:,:) :: stateVector
-    integer                                                                                    :: iRank                 , status                  , &
-         &                                                                                        verbosityLevel
+    integer                                                                                    :: iRank                 , status
+    type            (enumerationVerbosityLevelType            )                                :: verbosityLevel
     real                                                                                       :: timeBegin             , timeEnd
     double precision                                                                           :: logLikelihoodProposed
     character       (len=24                                   )                                :: valueText

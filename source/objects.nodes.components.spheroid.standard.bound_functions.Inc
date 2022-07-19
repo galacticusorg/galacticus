@@ -45,13 +45,17 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   !!{
   Computes the mass within a given radius for an standard spheroid.
   !!}
-  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic, &
-          &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, radiusLarge     , &
-          &                                            weightByLuminosity      , weightByMass
+  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll                 , massTypeBaryonic       , &
+          &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar             , radiusLarge            , &
+          &                                            weightByLuminosity      , weightByMass         , enumerationComponentTypeType, enumerationMassTypeType, &
+          &                                            enumerationWeightByType
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType       , massType      , weightBy, weightIndex
+  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType      ), intent(in   ) :: massType
+  type            (enumerationWeightByType      ), intent(in   ) :: weightBy
+  integer                                        , intent(in   ) :: weightIndex
   double precision                               , intent(in   ) :: radius
   double precision                                               :: fractionalRadius    , radiusSpheroid
   type            (stellarLuminosities          ), save          :: luminositiesSpheroid
@@ -61,19 +65,19 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
   ! Get the total mass.
-  select case (weightBy)
-  case (weightByMass      )
-     select case (massType)
-     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+  select case (weightBy%ID)
+  case (weightByMass      %ID)
+     select case (massType%ID)
+     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
         Node_Component_Spheroid_Standard_Enclosed_Mass=self%massGas()+self%massStellar()
-     case (massTypeGaseous)
+     case (massTypeGaseous%ID)
         Node_Component_Spheroid_Standard_Enclosed_Mass=self%massGas()
-     case (massTypeStellar)
+     case (massTypeStellar%ID)
         Node_Component_Spheroid_Standard_Enclosed_Mass=               self%massStellar()
      end select
-  case (weightByLuminosity)
-     select case (massType)
-     case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+  case (weightByLuminosity%ID)
+     select case (massType%ID)
+     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
         luminositiesSpheroid=self%luminositiesStellar()
         Node_Component_Spheroid_Standard_Enclosed_Mass       =luminositiesSpheroid%luminosity(weightIndex)
      end select
@@ -95,15 +99,16 @@ function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,co
   !!{
   Computes the gravitational acceleration at a given position for a standard spheroid.
   !!}
-  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull
-  use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+  use :: Galactic_Structure_Options      , only : componentTypeAll            , componentTypeSpheroid  , weightByMass                   , weightIndexNull, &
+       &                                          enumerationComponentTypeType, enumerationMassTypeType
+  use :: Numerical_Constants_Astronomical, only : gigaYear                    , megaParsec             , gravitationalConstantGalacticus
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Acceleration
   class           (nodeComponentSpheroidStandard), intent(inout)               :: self
   double precision                               , intent(in   ), dimension(3) :: positionCartesian
-  integer                                        , intent(in   )               :: componentType                                , massType
+  type            (enumerationComponentTypeType ), intent(in   )               :: componentType
+  type            (enumerationMassTypeType      ), intent(in   )               :: massType
   double precision                                                             :: radius                                       , massEnclosed
   
   ! Return if the spheroid component is not selected.
@@ -127,8 +132,8 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   Computes the gravitational tidal tensor at a given position for a standard spheroid.
   !!}
   use :: Coordinates                          , only : assignment(=)                  , coordinateCartesian
-  use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull, &
-       &                                               radiusLarge
+  use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid       , weightByMass           , weightIndexNull, &
+       &                                               radiusLarge                    , enumerationComponentTypeType, enumerationMassTypeType
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   use :: Tensors                              , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym    , operator(*)
@@ -136,7 +141,8 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Spheroid_Standard_Tidal_Tensor
   class           (nodeComponentSpheroidStandard ), intent(inout)               :: self
   double precision                                , intent(in   ), dimension(3) :: positionCartesian
-  integer                                         , intent(in   )               :: componentType                                , massType
+  type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
+  type            (enumerationMassTypeType       ), intent(in   )               :: massType
   double precision                                                              :: massTotal
   type            (coordinateCartesian           )                              :: positionScaleFree
 
@@ -159,13 +165,15 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCa
   !!{
   Computes the gravitational acceleration at a given position for a standard spheroid.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeSpheroid, weightByMass, weightIndexNull
+  use :: Galactic_Structure_Options, only : componentTypeAll            , componentTypeSpheroid  , weightByMass, weightIndexNull, &
+       &                                    enumerationComponentTypeType, enumerationMassTypeType
   use :: Numerical_Constants_Math  , only : Pi
   implicit none
   double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Chandrasekhar_Integral
   class           (nodeComponentSpheroidStandard), intent(inout)               :: self
   double precision                               , intent(in   ), dimension(3) :: positionCartesian                                             , velocityCartesian
-  integer                                        , intent(in   )               :: componentType                                                 , massType
+  type            (enumerationComponentTypeType ), intent(in   )               :: componentType
+  type            (enumerationMassTypeType      ), intent(in   )               :: massType
   double precision                                              , dimension(3) :: positionSpherical
   double precision                               , parameter                   :: XvMaximum                                              =10.0d0
   double precision                                                             :: radius                                                        , velocity          , &
@@ -206,11 +214,12 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,r
   !!{
   Computes the rotation curve at a given radius for a standard spheroid.
   !!}
-  use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+  use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType, massType
+  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType      ), intent(in   ) :: massType
   double precision                               , intent(in   ) :: radius
   double precision                                               :: componentMass
 
@@ -231,12 +240,13 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
   !!{
   Computes the rotation curve gradient for the standard spheroid.
   !!}
-  use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-  use :: Numerical_Constants_Math    , only : Pi
+  use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
+  use :: Numerical_Constants_Math        , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType   , massType
+  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType      ), intent(in   ) :: massType
   double precision                               , intent(in   ) :: radius
   double precision                                               :: componentDensity, componentMass, positionSpherical(3)
 
@@ -265,14 +275,16 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   Computes the density at a given position for an standard spheroid.
   !!}
   use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
-  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic  , &
-          &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, weightByLuminosity, &
-          &                                            weightByMass
+  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid       , massTypeAll            , massTypeBaryonic       , &
+          &                                            massTypeGalactic        , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
+          &                                            weightByMass            , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType       , massType, weightBy, &
-       &                                                            weightIndex
+  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType      ), intent(in   ) :: massType
+  type            (enumerationWeightByType      ), intent(in   ) :: weightBy
+  integer                                        , intent(in   ) :: weightIndex
   double precision                               , intent(in   ) :: positionSpherical(3)
   double precision                               , parameter     :: radiusHuge          =1.0d+100
   type            (coordinateSpherical          )                :: position
@@ -287,19 +299,19 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
      class is (nodeComponentSpheroidStandard)
 
      if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
-     select case (weightBy)
-     case (weightByMass      )
-        select case (massType)
-        case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+     select case (weightBy%ID)
+     case (weightByMass      %ID)
+        select case (massType%ID)
+        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
            Node_Component_Spheroid_Standard_Density=self%massGas()+self%massStellar()
-        case (massTypeGaseous)
+        case (massTypeGaseous%ID)
            Node_Component_Spheroid_Standard_Density=self%massGas()
-        case (massTypeStellar)
+        case (massTypeStellar%ID)
            Node_Component_Spheroid_Standard_Density=               self%massStellar()
         end select
-     case (weightByLuminosity)
-        select case (massType)
-        case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+     case (weightByLuminosity%ID)
+        select case (massType%ID)
+        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
            luminositiesSpheroid=self%luminositiesStellar()
            Node_Component_Spheroid_Standard_Density=luminositiesSpheroid%luminosity(weightIndex)
         end select
@@ -325,14 +337,16 @@ double precision function Node_Component_Spheroid_Standard_Density_Spherical_Ave
   Computes the spherically-averaged density at a given radius for an standard spheroid.
   !!}
   use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
-  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic  , &
-          &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, weightByLuminosity, &
-          &                                            weightByMass
+  use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid       , massTypeAll            , massTypeBaryonic       , &
+          &                                            massTypeGalactic        , massTypeGaseous             , massTypeStellar        , weightByLuminosity     , &
+          &                                            weightByMass            , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType                , massType   , &
-       &                                                            weightBy                     , weightIndex
+  type            (enumerationComponentTypeType ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType      ), intent(in   ) :: massType
+  type            (enumerationWeightByType      ), intent(in   ) :: weightBy
+  integer                                        , intent(in   ) :: weightIndex
   double precision                               , intent(in   ) :: radius
   double precision                               , parameter     :: radiusHuge          =1.0d+100
   type            (coordinateSpherical          )                :: position
@@ -347,19 +361,19 @@ double precision function Node_Component_Spheroid_Standard_Density_Spherical_Ave
      class is (nodeComponentSpheroidStandard)
 
      if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
-     select case (weightBy)
-     case (weightByMass      )
-        select case (massType)
-        case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+     select case (weightBy%ID)
+     case (weightByMass      %ID)
+        select case (massType%ID)
+        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
            Node_Component_Spheroid_Standard_Density_Spherical_Average=self%massGas()+self%massStellar()
-        case (massTypeGaseous)
+        case (massTypeGaseous%ID)
            Node_Component_Spheroid_Standard_Density_Spherical_Average=self%massGas()
-        case (massTypeStellar)
+        case (massTypeStellar%ID)
            Node_Component_Spheroid_Standard_Density_Spherical_Average=               self%massStellar()
         end select
-     case (weightByLuminosity)
-        select case (massType)
-        case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+     case (weightByLuminosity%ID)
+        select case (massType%ID)
+        case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID,massTypeStellar%ID)
            luminositiesSpheroid=self%luminositiesStellar()
            Node_Component_Spheroid_Standard_Density_Spherical_Average=luminositiesSpheroid%luminosity(weightIndex)
         end select
@@ -382,18 +396,20 @@ end function Node_Component_Spheroid_Standard_Density_Spherical_Average
 
 double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status)
   use :: Coordinates                          , only : assignment(=)                  , coordinateSpherical
-  use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass       , weightIndexNull
+  use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass                     , weightIndexNull, enumerationComponentTypeType, &
+       &                                               enumerationMassTypeType        , enumerationStructureErrorCodeType
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   !!{
   Return the potential due to the standard spheroid.
   !!}
-  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
-  integer                                        , intent(in   )           :: componentType, massType
-  double precision                               , intent(in   )           :: radius
-  integer                                        , intent(inout), optional :: status
-  double precision                                                         :: componentMass
-  type            (coordinateSpherical          )                          :: position
+  class           (nodeComponentSpheroidStandard    ), intent(inout)           :: self
+  type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
+  type            (enumerationMassTypeType          ), intent(in   )           :: massType
+  double precision                                   , intent(in   )           :: radius
+  type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
+  double precision                                                             :: componentMass
+  type            (coordinateSpherical              )                          :: position
   !$GLC attributes unused :: status
 
   ! Set to zero by default.

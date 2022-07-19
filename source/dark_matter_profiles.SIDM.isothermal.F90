@@ -474,10 +474,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileSIDMIsothermal), intent(inout), target:: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    double precision                                 , intent(in   )           :: radius
-    integer                                          , intent(  out), optional :: status
+    class           (darkMatterProfileSIDMIsothermal  ), intent(inout), target   :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalPotential=self%darkMatterProfile_%potential(node,radius)

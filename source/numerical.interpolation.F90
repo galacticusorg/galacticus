@@ -33,7 +33,8 @@ module Numerical_Interpolation
   A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
   \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t, c_int, c_double
+  use, intrinsic :: ISO_C_Binding, only : c_ptr                           , c_size_t, c_int, c_double
+  use            :: Table_Labels , only : enumerationExtrapolationTypeType
   implicit none
   private
   public :: interpolator
@@ -162,13 +163,13 @@ module Numerical_Interpolation
      Type providing interpolation in 1-D arrays.
      !!}
      private
-     type            (c_ptr   ), allocatable               :: gsl_interp       , gsl_interp_accel , &
-          &                                                   gsl_interp_type
-     integer                                               :: interpolationType
-     integer                                , dimension(2) :: extrapolationType
-     integer         (c_size_t)                            :: countArray
-     logical                                               :: initialized      , interpolatable
-     double precision          , allocatable, dimension(:) :: x                , y 
+     type            (c_ptr                           ), allocatable               :: gsl_interp       , gsl_interp_accel , &
+          &                                                                           gsl_interp_type
+     integer                                                                       :: interpolationType
+     type            (enumerationExtrapolationTypeType)             , dimension(2) :: extrapolationType
+     integer         (c_size_t                        )                            :: countArray
+     logical                                                                       :: initialized      , interpolatable
+     double precision                                  , allocatable, dimension(:) :: x                , y 
    contains
      !![
      <methods>
@@ -219,11 +220,11 @@ contains
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort
     implicit none
-    type            (interpolator)                                         :: self
-    double precision              , intent(in   ), dimension(: )           :: x
-    double precision              , intent(in   ), dimension(: ), optional :: y
-    integer                       , intent(in   )               , optional :: interpolationType
-    integer                       , intent(in   ), dimension(..), optional :: extrapolationType
+    type            (interpolator                    )                                         :: self
+    double precision                                  , intent(in   ), dimension(: )           :: x
+    double precision                                  , intent(in   ), dimension(: ), optional :: y
+    integer                                           , intent(in   )               , optional :: interpolationType
+    type            (enumerationExtrapolationTypeType), intent(in   ), dimension(..), optional :: extrapolationType
     !![
     <optionalArgument name="interpolationType" defaultsTo="gsl_interp_linear"     />
     !!]
@@ -468,17 +469,17 @@ contains
     use :: ISO_Varying_String, only : assignment(=)         , operator(//)                , varying_string
     use :: Table_Labels      , only : extrapolationTypeAbort, extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
-    class           (interpolator  ), intent(inout)               :: self
-    double precision                , intent(in   )               :: x
-    double precision                , intent(in   ), dimension(:) :: ya
-    double precision                , parameter                   :: rangeTolerance   =1.0d-6
-    integer                                                       :: extrapolationType
-    integer         (c_size_t      )                              :: basePoint
-    type            (varying_string)                              :: message
-    integer         (c_int         )                              :: statusGSL
-    double precision                                              :: gradient                , x_
-    character       (len=12        )                              :: labelX                  , labelX_      , &
-         &                                                           labelXMaximum           , labelXMinimum
+    class           (interpolator                    ), intent(inout)               :: self
+    double precision                                  , intent(in   )               :: x
+    double precision                                  , intent(in   ), dimension(:) :: ya
+    double precision                                  , parameter                   :: rangeTolerance   =1.0d-6
+    type            (enumerationExtrapolationTypeType)                              :: extrapolationType
+    integer         (c_size_t                        )                              :: basePoint
+    type            (varying_string                  )                              :: message
+    integer         (c_int                           )                              :: statusGSL
+    double precision                                                                :: gradient                , x_
+    character       (len=12                          )                              :: labelX                  , labelX_      , &
+         &                                                                             labelXMaximum           , labelXMinimum
 
     call self%assertInterpolatable()
     if (.not.self%initialized) call self%GSLInitialize(ya)
@@ -516,8 +517,8 @@ contains
     else
        ! Allow for rounding errors.
        x_=x
-       select case (extrapolationType)
-       case (extrapolationTypeFix)
+       select case (extrapolationType%ID)
+       case (extrapolationTypeFix%ID)
           if (x < self%x(1              )                                                                              ) x_=self%x(1              )
           if (x > self%x(self%countArray)                                                                              ) x_=self%x(self%countArray)
        case default
@@ -576,13 +577,13 @@ contains
     use            :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
     use            :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
-    class           (interpolator  ), intent(inout)               :: self
-    double precision                , intent(in   )               :: x
-    double precision                , intent(in   ), dimension(:) :: ya
-    type            (varying_string)                              :: message
-    integer                                                       :: extrapolationType
-    integer         (c_int         )                              :: statusGSL
-    double precision                                              :: x_
+    class           (interpolator                    ), intent(inout)               :: self
+    double precision                                  , intent(in   )               :: x
+    double precision                                  , intent(in   ), dimension(:) :: ya
+    type            (varying_string                  )                              :: message
+    type            (enumerationExtrapolationTypeType)                              :: extrapolationType
+    integer         (c_int                           )                              :: statusGSL
+    double precision                                                                :: x_
 
     call self%assertInterpolatable()
     if (.not.self%initialized) call self%GSLInitialize(ya)
@@ -593,8 +594,8 @@ contains
        extrapolationType=self%extrapolationType(1)
     end if
     x_=x
-    select case (extrapolationType)
-    case (extrapolationTypeExtrapolate,extrapolationTypeFix)
+    select case (extrapolationType%ID)
+    case (extrapolationTypeExtrapolate%ID,extrapolationTypeFix%ID)
        if (x < self%x(1              )) x_=self%x(1              )
        if (x > self%x(self%countArray)) x_=self%x(self%countArray)
     end select

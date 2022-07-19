@@ -23,6 +23,18 @@
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
+  ! Enumeration for whether cut off is before or after the given epoch.
+  !![
+  <enumeration>
+   <name>cutOffWhen</name>
+   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="before"/>
+   <entry label="after" />
+  </enumeration>
+  !!]
+
   !![
   <coolingFunction name="coolingFunctionVelocityCutOff">
    <description>A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.</description>
@@ -33,11 +45,11 @@
      A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
      !!}
      private
-     class           (coolingFunctionClass    ), pointer :: coolingFunction_     => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: velocityCutOff                , timeCutOff
-     integer                                             :: whenCutOff
-     logical                                             :: useFormationNode
+     class           (coolingFunctionClass     ), pointer :: coolingFunction_     => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
+     double precision                                     :: velocityCutOff                , timeCutOff
+     type            (enumerationCutOffWhenType)          :: whenCutOff
+     logical                                              :: useFormationNode
    contains
      !![
      <methods>
@@ -59,18 +71,6 @@
      module procedure velocityCutOffConstructorParameters
      module procedure velocityCutOffConstructorInternal
   end interface coolingFunctionVelocityCutOff
-
-  ! Enumeration for whether cut off is before or after the given epoch.
-  !![
-  <enumeration>
-   <name>cutOffWhen</name>
-   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
-   <encodeFunction>yes</encodeFunction>
-   <validator>yes</validator>
-   <entry label="before"/>
-   <entry label="after" />
-  </enumeration>
-  !!]
 
 contains
 
@@ -149,7 +149,7 @@ contains
     implicit none
     type            (coolingFunctionVelocityCutOff)                        :: self
     double precision                               , intent(in   )         :: velocityCutOff      , timeCutOff
-    integer                                        , intent(in   )         :: whenCutOff
+    type            (enumerationCutOffWhenType    ), intent(in   )         :: whenCutOff
     logical                                        , intent(in   )         :: useFormationNode
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (coolingFunctionClass         ), intent(in   ), target :: coolingFunction_

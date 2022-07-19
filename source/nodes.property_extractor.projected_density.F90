@@ -57,7 +57,6 @@
      procedure :: names              => projectedDensityNames
      procedure :: descriptions       => projectedDensityDescriptions
      procedure :: unitsInSI          => projectedDensityUnitsInSI
-     procedure :: type               => projectedDensityType
   end type nodePropertyExtractorProjectedDensity
 
   interface nodePropertyExtractorProjectedDensity
@@ -218,23 +217,23 @@ contains
     integrator_=integrator(projectedDensityIntegrand,toleranceRelative=1.0d-3)
     do i=1,self%radiiCount
        projectedDensityRadius=self%radii(i)%value
-       select case (self%radii(i)%type)
-       case   (radiusTypeRadius                )
+       select case (self%radii(i)%type%ID)
+       case   (radiusTypeRadius                %ID)
           ! Nothing to do.
-       case   (radiusTypeVirialRadius          )
+       case   (radiusTypeVirialRadius          %ID)
           projectedDensityRadius=+projectedDensityRadius*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius )
+       case   (radiusTypeDarkMatterScaleRadius %ID)
           projectedDensityRadius=+projectedDensityRadius*darkMatterProfile%         scale()
-       case   (radiusTypeDiskRadius            )
+       case   (radiusTypeDiskRadius            %ID)
           projectedDensityRadius=+projectedDensityRadius*disk             %        radius()
-       case   (radiusTypeSpheroidRadius        )
+       case   (radiusTypeSpheroidRadius        %ID)
           projectedDensityRadius=+projectedDensityRadius*spheroid         %        radius()
-       case   (radiusTypeDiskHalfMassRadius    )
+       case   (radiusTypeDiskHalfMassRadius    %ID)
           projectedDensityRadius=+projectedDensityRadius*disk             %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius)
+       case   (radiusTypeSpheroidHalfMassRadius%ID)
           projectedDensityRadius=+projectedDensityRadius*spheroid         %halfMassRadius()
-       case   (radiusTypeGalacticMassFraction ,  &
-            &  radiusTypeGalacticLightFraction )
+       case   (radiusTypeGalacticMassFraction  %ID,  &
+            &  radiusTypeGalacticLightFraction %ID)
           projectedDensityRadius=+projectedDensityRadius           &
                & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
@@ -245,7 +244,7 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
-       case   (radiusTypeStellarMassFraction  )
+       case   (radiusTypeStellarMassFraction  %ID)
           projectedDensityRadius=+projectedDensityRadius           &
                & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
@@ -365,15 +364,3 @@ contains
     return
   end function projectedDensityUnitsInSI
 
-  integer function projectedDensityType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily projectedDensity} properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorProjectedDensity), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    projectedDensityType=outputAnalysisPropertyTypeLinear
-    return
-  end function projectedDensityType

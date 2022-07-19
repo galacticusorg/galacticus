@@ -27,10 +27,10 @@ program Test_Recombination_Computed
   !!}
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialVerner
-  use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeComputed
+  use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeComputed       , recombinationCase1
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed
   use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
-  use :: Error                            , only : errorStatusSuccess
+  use :: Error                                       , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(atomicCrossSectionIonizationPhotoVerner        ), pointer :: atomicCrossSectionIonizationPhoto_
@@ -79,18 +79,18 @@ program Test_Recombination_Computed
   call Unit_Tests_Begin_Group("Recombination coefficient")
   ! 1²2S level of hydrogen, target values from Table 2.1 of "Astrophysics of Gaseous Nebulae and Active Galactic Nuclei", 2nd
   ! edition, by Osterbrock and Ferland, 2006, University Science Books.
-  call Assert("H; 1²S; 5.0 × 10³K",atomicRecombinationRateRadiative_       %rate(1,1,5.0d3,level=1),2.28d-13,relTol=1.0d-2)
-  call Assert("H; 1²S; 1.0 × 10⁴K",atomicRecombinationRateRadiative_       %rate(1,1,1.0d4,level=1),1.58d-13,relTol=1.0d-2)
-  call Assert("H; 1²S; 2.0 × 10⁴K",atomicRecombinationRateRadiative_       %rate(1,1,2.0d4,level=1),1.08d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 5.0 × 10³K",atomicRecombinationRateRadiative_       %rate(1,1,5.0d3,level=recombinationCase1),2.28d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 1.0 × 10⁴K",atomicRecombinationRateRadiative_       %rate(1,1,1.0d4,level=recombinationCase1),1.58d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 2.0 × 10⁴K",atomicRecombinationRateRadiative_       %rate(1,1,2.0d4,level=recombinationCase1),1.08d-13,relTol=1.0d-2)
   call Unit_Tests_End_Group()
   ! Cooling coefficients.
   call Unit_Tests_Begin_Group("Recombination cooling coefficient")
   ! 1²2S level of hydrogen, target values from Table 3.2 of "Astrophysics of Gaseous Nebulae and Active Galactic Nuclei", 2nd
   ! edition, by Osterbrock and Ferland, 2006, University Science Books.
-  call Assert("H; 1²S; 2.5 × 10³K",atomicRecombinationRateRadiativeCooling_%rate(1,1,2.5d3,level=1),3.22d-13,relTol=1.0d-2)
-  call Assert("H; 1²S; 5.0 × 10³K",atomicRecombinationRateRadiativeCooling_%rate(1,1,5.0d3,level=1),2.23d-13,relTol=1.0d-2)
-  call Assert("H; 1²S; 1.0 × 10⁴K",atomicRecombinationRateRadiativeCooling_%rate(1,1,1.0d4,level=1),1.52d-13,relTol=1.0d-2)
-  call Assert("H; 1²S; 2.0 × 10⁴K",atomicRecombinationRateRadiativeCooling_%rate(1,1,2.0d4,level=1),1.00d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 2.5 × 10³K",atomicRecombinationRateRadiativeCooling_%rate(1,1,2.5d3,level=recombinationCase1),3.22d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 5.0 × 10³K",atomicRecombinationRateRadiativeCooling_%rate(1,1,5.0d3,level=recombinationCase1),2.23d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 1.0 × 10⁴K",atomicRecombinationRateRadiativeCooling_%rate(1,1,1.0d4,level=recombinationCase1),1.52d-13,relTol=1.0d-2)
+  call Assert("H; 1²S; 2.0 × 10⁴K",atomicRecombinationRateRadiativeCooling_%rate(1,1,2.0d4,level=recombinationCase1),1.00d-13,relTol=1.0d-2)
   call Unit_Tests_End_Group()
   ! Done with unit tests.
   !![

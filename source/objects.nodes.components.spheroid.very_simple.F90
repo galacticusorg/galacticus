@@ -460,19 +460,19 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
     use :: Histories                       , only : history
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved       , enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class  (*                    ), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    type   (treeNode             ), pointer       :: nodeHost
-    class  (nodeComponentSpheroid), pointer       :: spheroidHost           , spheroid
-    class  (nodeComponentDisk    ), pointer       :: diskHost
-    type   (history              )                :: historyDisk            , historySpheroid          , &
-         &                                           historyHost
-    integer                                       :: destinationGasSatellite, destinationGasHost       , &
-         &                                           destinationStarsHost   , destinationStarsSatellite
-    logical                                       :: mergerIsMajor
+    class  (*                               ), intent(inout) :: self
+    type   (treeNode                        ), intent(inout) :: node
+    type   (treeNode                        ), pointer       :: nodeHost
+    class  (nodeComponentSpheroid           ), pointer       :: spheroidHost           , spheroid
+    class  (nodeComponentDisk               ), pointer       :: diskHost
+    type   (history                         )                :: historyDisk            , historySpheroid          , &
+         &                                                      historyHost
+    type   (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                      destinationStarsHost   , destinationStarsSatellite
+    logical                                                  :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Get the spheroid component, creating it if need be.
@@ -486,8 +486,8 @@ contains
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move gas material within the host if necessary.
-       select case (destinationGasHost)
-       case (destinationMergerDisk)
+       select case (destinationGasHost%ID)
+       case (destinationMergerDisk   %ID)
           call diskHost    %          massGasSet(                                       &
                &                                          +diskHost    %massGas      () &
                &                                          +spheroidHost%massGas      () &
@@ -502,7 +502,7 @@ contains
           call spheroidHost%    abundancesGasSet(                                       &
                &                                           zeroAbundances               &
                &                                         )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%          massGasSet(                                       &
                &                                          +spheroidHost%massGas      () &
                &                                          +diskHost    %massGas      () &
@@ -517,7 +517,7 @@ contains
           call diskHost    %    abundancesGasSet(                                       &
                &                                           zeroAbundances               &
                &                                         )
-       case (destinationMergerUnmoved)
+       case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
           call Error_Report(                                    &
@@ -526,8 +526,8 @@ contains
                &           )
        end select
        ! Move stellar material within the host if necessary.
-       select case (destinationStarsHost)
-       case (destinationMergerDisk)
+       select case (destinationStarsHost%ID)
+       case (destinationMergerDisk   %ID)
           call diskHost    %      massStellarSet  (                                    &
                &                                   +diskHost    %        massStellar() &
                &                                   +spheroidHost%        massStellar() &
@@ -556,7 +556,7 @@ contains
           call historySpheroid%reset                      (               )
           call diskHost       %stellarPropertiesHistorySet(historyDisk    )
           call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%        massStellarSet(                                    &
                &                                    spheroidHost%        massStellar() &
                &                                   +diskHost    %        massStellar() &
@@ -585,7 +585,7 @@ contains
           call historyDisk    %reset                      (               )
           call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
           call diskHost       %stellarPropertiesHistorySet(historyDisk    )
-       case (destinationMergerUnmoved)
+       case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
           call Error_Report(                                    &
@@ -594,8 +594,8 @@ contains
                &           )
        end select
        ! Move the gas component of the very simple spheroid to the host.
-       select case (destinationGasSatellite)
-       case (destinationMergerDisk    )
+       select case (destinationGasSatellite%ID)
+       case (destinationMergerDisk    %ID)
           call diskHost%massGasSet              (                                       &
                &                                          +diskHost    %      massGas() &
                &                                          +spheroid    %      massGas() &
@@ -604,7 +604,7 @@ contains
                &                                          +diskHost    %abundancesGas() &
                &                                          +spheroid    %abundancesGas() &
                &                                         )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massGasSet          (                                       &
                &                                          +spheroidHost%      massGas() &
                &                                          +spheroid    %      massGas() &
@@ -626,8 +626,8 @@ contains
             &                                                            zeroAbundances &
             &                                            )
        ! Move the stellar component of the very simple spheroid to the host.
-       select case (destinationStarsSatellite)
-       case (destinationMergerDisk    )
+       select case (destinationStarsSatellite%ID)
+       case (destinationMergerDisk    %ID)
           call diskHost%        massStellarSet(                                &
                &                               +diskHost%        massStellar() &
                &                               +spheroid%        massStellar() &
@@ -647,7 +647,7 @@ contains
           call historySpheroid%reset                      (               )
           call diskHost       %stellarPropertiesHistorySet(historyHost    )
           call spheroid       %stellarPropertiesHistorySet(historySpheroid)
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%        massStellarSet(                                    &
                &                                   +spheroidHost%        massStellar() &
                &                                   +spheroid    %        massStellar() &

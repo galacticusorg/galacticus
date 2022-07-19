@@ -27,45 +27,6 @@
   use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
-   <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
-  </posteriorSampleLikelihood>
-  !!]
-  type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
-     !!{
-     Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
-     !!}
-     private
-     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_                           => null()
-     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_                    => null()
-     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_ => null()
-     class           (stellarPopulationBroadBandLuminositiesClass      ), pointer                   :: stellarPopulationBroadBandLuminosities_       => null()
-     integer                                                                                        :: photometryCount                                        , dustType           , &
-          &                                                                                            burstCount                                             , startTimeType
-     integer                                                            , allocatable, dimension(:) :: filterIndex                                            , luminosityIndex
-     type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: postprocessor
-     double precision                                                   , allocatable, dimension(:) :: magnitude                                              , error              , &
-          &                                                                                            redshift                                               , burstFraction      , &
-          &                                                                                            age                                                    , wavelengthEffective, &
-          &                                                                                            burstTimeStart                                         , burstTimescale
-     type            (varying_string                                   ), allocatable, dimension(:) :: filter                                                 , system
-     type            (varying_string                                   )                            :: startTime
-     double precision                                                                , dimension(1) :: massToLightRatio
-   contains
-     final     ::                    sedFitDestructor
-     procedure :: evaluate        => sedFitEvaluate
-     procedure :: functionChanged => sedFitFunctionChanged
-  end type posteriorSampleLikelihoodSEDFit
-
-  interface posteriorSampleLikelihoodSEDFit
-     !!{
-     Constructors for the {\normalfont \ttfamily sedFit} posterior sampling convergence class.
-     !!}
-     module procedure sedFitConstructorParameters
-     module procedure sedFitConstructorInternal
-  end interface posteriorSampleLikelihoodSEDFit
-
-  !![
   <enumeration>
    <name>sedFitDustType</name>
    <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
@@ -92,6 +53,46 @@
    <entry label="age" />
   </enumeration>
   !!]
+
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
+   <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
+  </posteriorSampleLikelihood>
+  !!]
+  type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+     !!}
+     private
+     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_                           => null()
+     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_                    => null()
+     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_ => null()
+     class           (stellarPopulationBroadBandLuminositiesClass      ), pointer                   :: stellarPopulationBroadBandLuminosities_       => null()
+     type            (enumerationSEDFitDustTypeType                    )                            :: dustType
+     type            (enumerationSEDFitStartTimeType                   )                            :: startTimeType
+     integer                                                                                        :: photometryCount                                        , burstCount
+     integer                                                            , allocatable, dimension(:) :: filterIndex                                            , luminosityIndex
+     type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: postprocessor
+     double precision                                                   , allocatable, dimension(:) :: magnitude                                              , error              , &
+          &                                                                                            redshift                                               , burstFraction      , &
+          &                                                                                            age                                                    , wavelengthEffective, &
+          &                                                                                            burstTimeStart                                         , burstTimescale
+     type            (varying_string                                   ), allocatable, dimension(:) :: filter                                                 , system
+     type            (varying_string                                   )                            :: startTime
+     double precision                                                                , dimension(1) :: massToLightRatio
+   contains
+     final     ::                    sedFitDestructor
+     procedure :: evaluate        => sedFitEvaluate
+     procedure :: functionChanged => sedFitFunctionChanged
+  end type posteriorSampleLikelihoodSEDFit
+
+  interface posteriorSampleLikelihoodSEDFit
+     !!{
+     Constructors for the {\normalfont \ttfamily sedFit} posterior sampling convergence class.
+     !!}
+     module procedure sedFitConstructorParameters
+     module procedure sedFitConstructorInternal
+  end interface posteriorSampleLikelihoodSEDFit
 
 contains
 
@@ -188,8 +189,9 @@ contains
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
     double precision                                                   , intent(in   ), dimension(:) :: magnitude                                    , error
     type            (varying_string                                   ), intent(in   ), dimension(:) :: filter                                       , system
-    integer                                                            , intent(in   )               :: burstCount                                   , dustType, &
-         &                                                                                              startTimeType
+    type            (enumerationSEDFitDustTypeType                    ), intent(in   )               :: dustType
+    type            (enumerationSEDFitStartTimeType                   ), intent(in   )               :: startTimeType
+    integer                                                            , intent(in   )               :: burstCount
     class           (cosmologyFunctionsClass                          ), intent(in   ), target       :: cosmologyFunctions_
     class           (stellarPopulationSelectorClass                   ), intent(in   ), target       :: stellarPopulationSelector_
     class           (stellarPopulationSpectraPostprocessorBuilderClass), intent(in   ), target       :: stellarPopulationSpectraPostprocessorBuilder_
@@ -323,10 +325,10 @@ contains
          &                                                            )         &
          &                                                           )
     ! Determine start time.
-    select case (self%startTimeType)
-    case (sedFitStartTimeTime)
+    select case (self%startTimeType%ID)
+    case (sedFitStartTimeTime%ID)
        timeStart=             stateVector(2)
-    case (sedFitStartTimeAge )
+    case (sedFitStartTimeAge %ID)
        timeStart=timeObserved-stateVector(2)
     end select
     ! Return impossibility if start time is after the observed time or before the Big Bang.
@@ -335,8 +337,8 @@ contains
        return
     end if
     ! Construct dust attenuation object.
-    select case (self%dustType)
-    case (sedFitDustTypeNull           )
+    select case (self%dustType%ID)
+    case (sedFitDustTypeNull           %ID)
        allocate(stellarSpectraDustAttenuationZero :: dust)
        select type (dust)
        type is (stellarSpectraDustAttenuationZero)
@@ -344,7 +346,7 @@ contains
           dust=stellarSpectraDustAttenuationZero()
        end select
        burstIndexOffset=5
-    case (sedFitDustTypeCharlotFall2000)
+    case (sedFitDustTypeCharlotFall2000%ID)
        allocate(stellarSpectraDustAttenuationCharlotFall2000 :: dust)
        select type (dust)
        type is (stellarSpectraDustAttenuationCharlotFall2000)
@@ -358,7 +360,7 @@ contains
                &                                           )
        end select
        burstIndexOffset=7
-    case (sedFitDustTypeCardelli1989)
+    case (sedFitDustTypeCardelli1989%ID)
        allocate(stellarSpectraDustAttenuationCardelli1989    :: dust)
        select type (dust)
        type is (stellarSpectraDustAttenuationCardelli1989)
@@ -369,7 +371,7 @@ contains
                &                                           )
        end select
        burstIndexOffset=7
-    case (sedFitDustTypeGordon2003)
+    case (sedFitDustTypeGordon2003%ID)
        allocate(stellarSpectraDustAttenuationGordon2003      :: dust)
        select type (dust)
        type is (stellarSpectraDustAttenuationGordon2003)
@@ -379,7 +381,7 @@ contains
                &                                           )
        end select
        burstIndexOffset=6
-    case (sedFitDustTypeCalzetti2000)
+    case (sedFitDustTypeCalzetti2000%ID)
        allocate(stellarSpectraDustAttenuationCalzetti2000    :: dust)
        select type (dust)
        type is (stellarSpectraDustAttenuationCalzetti2000)
@@ -388,7 +390,7 @@ contains
                &                                           )
        end select
        burstIndexOffset=6
-    case (sedFitDustTypeWittGordon2000)
+    case (sedFitDustTypeWittGordon2000%ID)
        allocate(stellarSpectraDustAttenuationWittGordon2000  :: dust)
        select type (dust)
        type is (stellarSpectraDustAttenuationWittGordon2000)

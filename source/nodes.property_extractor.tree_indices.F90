@@ -33,7 +33,6 @@ Contains a module which implements an ISM mass output analysis property extracto
      private
    contains
      procedure :: extract     => indicesTreeExtract
-     procedure :: type        => indicesTreeType
      procedure :: name        => indicesTreeName
      procedure :: description => indicesTreeDescription
   end type nodePropertyExtractorIndicesTree
@@ -79,18 +78,6 @@ contains
     return
   end function indicesTreeExtract
 
-  integer function indicesTreeType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorIndicesTree), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    indicesTreeType=outputAnalysisPropertyTypeLinear
-    return
-  end function indicesTreeType
 
   function indicesTreeName(self)
     !!{

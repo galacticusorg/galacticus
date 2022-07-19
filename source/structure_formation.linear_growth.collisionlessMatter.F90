@@ -276,7 +276,8 @@ contains
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor
     logical                                          , intent(in   ), optional :: collapsing
-    integer                                          , intent(in   ), optional :: normalize , component
+    type            (enumerationNormalizeType       ), intent(in   ), optional :: normalize
+    type            (enumerationComponentType       ), intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_
     !![
@@ -291,8 +292,8 @@ contains
     ! Interpolate to get the expansion factor.
     collisionlessMatterValue=self%growthFactor%interpolate(time_)
     ! Normalize.
-    select case (normalize_)
-    case (normalizeMatterDominated)
+    select case (normalize_%ID)
+    case (normalizeMatterDominated%ID)
        collisionlessMatterValue=collisionlessMatterValue*self%normalizationMatterDominated
     end select
     return
@@ -307,7 +308,7 @@ contains
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor
     logical                                          , intent(in   ), optional :: collapsing
-    integer                                          , intent(in   ), optional :: component
+    type            (enumerationComponentType       ), intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_     , expansionFactor_
     !$GLC attributes unused :: component, wavenumber
@@ -331,7 +332,7 @@ contains
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor
     logical                                          , intent(in   ), optional :: collapsing
-    integer                                          , intent(in   ), optional :: component
+    type            (enumerationComponentType       ), intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
     !$GLC attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
 
@@ -345,8 +346,8 @@ contains
     Return false indicating that the growth function is not wavenumber-dependent.
     !!}
     implicit none
-    class  (linearGrowthCollisionlessMatter), intent(inout)           :: self
-    integer                                 , intent(in   ), optional :: component
+    class(linearGrowthCollisionlessMatter), intent(inout)           :: self
+    type (enumerationComponentType       ), intent(in   ), optional :: component
     !$GLC attributes unused :: self, component
 
     collisionlessMatterIsWavenumberDependent=.false.

@@ -127,7 +127,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
     double precision                                                   , intent(in   )                                        :: propertyValue
-    integer                                                            , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType        ), intent(in   )                                        :: propertyType
     double precision                                                   , intent(in   ), dimension(:)                          :: propertyValueMinimum        , propertyValueMaximum
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
@@ -139,11 +139,11 @@ contains
     type            (integrator                                       )                                                       :: integrator_
     !$GLC attributes unused :: outputIndex, propertyValue
 
-    select case (propertyType)
-    case (outputAnalysisPropertyTypeLinear)
+    select case (propertyType%ID)
+    case (outputAnalysisPropertyTypeLinear%ID)
        spinMeasuredRangeMinimum=        propertyValueMinimum(                        1 )
        spinMeasuredRangeMaximum=        propertyValueMaximum(size(propertyValueMaximum))
-    case (outputAnalysisPropertyTypeLog10)
+    case (outputAnalysisPropertyTypeLog10%ID)
        spinMeasuredRangeMinimum=10.0d0**propertyValueMinimum(                        1 )
        spinMeasuredRangeMaximum=10.0d0**propertyValueMaximum(size(propertyValueMaximum))
     case default
@@ -151,11 +151,11 @@ contains
     end select
     integrator_=integrator(spinDistributionIntegrate,toleranceRelative=1.0d-6)
     do i=1,size(propertyValueMinimum)
-       select case (propertyType)
-       case (outputAnalysisPropertyTypeLinear)
+       select case (propertyType%ID)
+       case (outputAnalysisPropertyTypeLinear%ID)
           spinMeasuredMinimum=        propertyValueMinimum(i)
           spinMeasuredMaximum=        propertyValueMaximum(i)
-       case (outputAnalysisPropertyTypeLog10)
+       case (outputAnalysisPropertyTypeLog10%ID)
           spinMeasuredMinimum=10.0d0**propertyValueMinimum(i)
           spinMeasuredMaximum=10.0d0**propertyValueMaximum(i)
        case default
@@ -203,7 +203,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout)                                        :: self
     double precision                                                   , intent(in   ), dimension(:)                          :: distribution
-    integer                                                            , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType        ), intent(in   )                                        :: propertyType
     double precision                                                   , intent(in   ), dimension(:)                          :: propertyValueMinimum              , propertyValueMaximum
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node

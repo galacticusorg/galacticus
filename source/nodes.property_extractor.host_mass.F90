@@ -36,7 +36,6 @@ Contains a module which implements a massHost property extractor class.
      procedure :: name        => massHostName
      procedure :: description => massHostDescription
      procedure :: unitsInSI   => massHostUnitsInSI
-     procedure :: type        => massHostType
   end type nodePropertyExtractorMassHost
 
   interface nodePropertyExtractorMassHost
@@ -126,15 +125,3 @@ contains
     return
   end function massHostUnitsInSI
 
-  integer function massHostType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassHost), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massHostType=outputAnalysisPropertyTypeLinear
-    return
-  end function massHostType

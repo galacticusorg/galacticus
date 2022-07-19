@@ -28,6 +28,16 @@ module Halo_Model_Power_Spectrum_Modifiers
   private
 
   !![
+  <enumeration>
+   <name>haloModelTerm</name>
+   <description>Enumeration of terms in the halo model.</description>
+   <visibility>public</visibility>
+   <entry label="oneHalo"/>
+   <entry label="twoHalo"/>
+  </enumeration>
+  !!]
+
+  !![
   <functionClass>
    <name>haloModelPowerSpectrumModifier</name>
    <descriptiveName>Halo Model Power Spectrum Modifier</descriptiveName>
@@ -39,23 +49,13 @@ module Halo_Model_Power_Spectrum_Modifiers
     <description>Modify the power spectra in the halo model of clustering.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), dimension(:  )           :: wavenumber</argument>
-    <argument>integer         , intent(in   )                           :: term</argument>
-    <argument>double precision, intent(inout), dimension(:  )           :: powerSpectrum</argument>
-    <argument>double precision, intent(inout), dimension(:,:), optional :: powerSpectrumCovariance</argument>
-    <argument>double precision, intent(in   )                , optional :: mass</argument>
+    <argument>double precision                              , intent(in   ), dimension(:  )           :: wavenumber</argument>
+    <argument>type            (enumerationHaloModelTermType), intent(in   )                           :: term</argument>
+    <argument>double precision                              , intent(inout), dimension(:  )           :: powerSpectrum</argument>
+    <argument>double precision                              , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance</argument>
+    <argument>double precision                              , intent(in   )                , optional :: mass</argument>
    </method>
   </functionClass>
-  !!]
-
-  !![
-  <enumeration>
-   <name>haloModelTerm</name>
-   <description>Enumeration of terms in the halo model.</description>
-   <visibility>public</visibility>
-   <entry label="oneHalo"/>
-   <entry label="twoHalo"/>
-  </enumeration>
   !!]
 
 end module Halo_Model_Power_Spectrum_Modifiers

@@ -293,9 +293,9 @@ contains
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
     double precision                                     , intent(in   )           :: massHalo        , mass
-    integer                                              , intent(in   ), optional :: galaxyType
+    type            (enumerationHaloModelGalaxyTypeType ), intent(in   ), optional :: galaxyType
     double precision                                                               :: numberCentrals  , numberSatellites
-    integer                                                                        :: galaxyTypeActual
+    type            (enumerationHaloModelGalaxyTypeType )                          :: galaxyTypeActual
 
     ! Get the number of satellites and centrals.
     call self%compute(massHalo,mass,numberCentrals,numberSatellites)
@@ -306,13 +306,13 @@ contains
        galaxyTypeActual=haloModelGalaxyTypeAll
     end if
     ! Return required number.
-    select case (galaxyTypeActual)
-    case (haloModelGalaxyTypeAll      )
+    select case (galaxyTypeActual%ID)
+    case (haloModelGalaxyTypeAll      %ID)
        ! Sum central and satellite contributions.
        behroozi2010MassFunction=numberCentrals+numberSatellites
-    case (haloModelGalaxyTypeCentral  )
+    case (haloModelGalaxyTypeCentral  %ID)
        behroozi2010MassFunction=numberCentrals
-    case (haloModelGalaxyTypeSatellite)
+    case (haloModelGalaxyTypeSatellite%ID)
        behroozi2010MassFunction=               numberSatellites
     case default
        behroozi2010MassFunction=0.0d0

@@ -21,10 +21,9 @@
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
 
-  use :: Cosmology_Functions         , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters        , only : cosmologyParametersClass
-  use :: Cosmological_Density_Field  , only : cosmologicalMassVarianceClass      , criticalOverdensityClass
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlow">
@@ -326,7 +325,7 @@ contains
     class           (darkMatterProfileDMOAccretionFlow), intent(inout)           :: self
     type            (treeNode                         ), intent(inout), target   :: node
     double precision                                   , intent(in   )           :: radius
-    integer                                            , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (node%isSatellite()) then
        accretionFlowPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)

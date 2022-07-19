@@ -37,7 +37,6 @@ Contains a module which implements a half-galactic mass radius output analysis p
    contains
      final     ::                radiusHalfMassGalacticDestructor
      procedure :: extract     => radiusHalfMassGalacticExtract
-     procedure :: type        => radiusHalfMassGalacticType
      procedure :: name        => radiusHalfMassGalacticName
      procedure :: description => radiusHalfMassGalacticDescription
      procedure :: unitsInSI   => radiusHalfMassGalacticUnitsInSI
@@ -116,18 +115,6 @@ contains
     return
   end function radiusHalfMassGalacticExtract
 
-  integer function radiusHalfMassGalacticType(self)
-    !!{
-    Return the type of the half-mass radius property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusHalfMassGalacticType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusHalfMassGalacticType
 
   function radiusHalfMassGalacticName(self)
     !!{

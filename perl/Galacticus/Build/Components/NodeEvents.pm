@@ -202,7 +202,8 @@ sub Node_Event_Task_Interface {
 		 variables  => [ "thisNode" ]
 	     },
 	     {
-		 intrinsic  => "integer",
+		 intrinsic  => "type",
+		 type       => "enumerationDeadlockStatusType",
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "deadlockStatus" ]
 	     }

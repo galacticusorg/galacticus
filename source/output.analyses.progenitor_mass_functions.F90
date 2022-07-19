@@ -700,19 +700,21 @@ contains
     !!{
     Record the weight of parent nodes.
     !!}
-    use :: Galacticus_Nodes    , only : nodeComponentBasic
-    use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
-    use :: Numerical_Comparison, only : Values_Agree
+    use :: Galacticus_Nodes       , only : nodeComponentBasic
+    use :: Merger_Tree_Walkers    , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Comparison   , only : Values_Agree
+    use :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
     implicit none
-    class           (outputAnalysisProgenitorMassFunction), intent(inout) :: self
-    type            (mergerTree                          ), intent(inout) :: tree
-    integer         (c_size_t                            ), intent(in   ) :: iOutput
-    double precision                                      , parameter     :: timeTolerance=1.0d-4
-    type            (treeNode                            ), pointer       :: node
-    class           (nodeComponentBasic                  ), pointer       :: basic
-    type            (mergerTreeWalkerIsolatedNodes       )                :: treeWalker
-    double precision                                                      :: weight                , mass
-    integer                                                               :: propertyType          , propertyQuantity
+    class           (outputAnalysisProgenitorMassFunction         ), intent(inout) :: self
+    type            (mergerTree                                   ), intent(inout) :: tree
+    integer         (c_size_t                                     ), intent(in   ) :: iOutput
+    double precision                                               , parameter     :: timeTolerance=1.0d-4
+    type            (treeNode                                     ), pointer       :: node
+    class           (nodeComponentBasic                           ), pointer       :: basic
+    type            (mergerTreeWalkerIsolatedNodes                )                :: treeWalker
+    double precision                                                               :: weight                , mass
+    type            (enumerationOutputAnalysisPropertyTypeType    )                :: propertyType 
+    type            (enumerationOutputAnalysisPropertyQuantityType)                :: propertyQuantity
 
     ! Only accumulate tree weight if the output corresponds to the one for which we are constructing the conditional mass
     ! function.
@@ -724,8 +726,8 @@ contains
               if (Values_Agree(basic%time(),self%timeParent,absTol=timeTolerance) .and. self%galacticFilterParentMass_%passes(node)) then
           weight            =+node%hostTree%volumeWeight
           mass              =+self%nodePropertyExtractorMassParent_      %extract      (       node                                                )
-          propertyType      =+self%nodePropertyExtractorMassParent_      %type         (                                                           )
-          propertyQuantity  =+self%nodePropertyExtractorMassParent_      %quantity     (                                                           )
+          propertyType      = self%nodePropertyExtractorMassParent_      %type         (                                                           )
+          propertyQuantity  = self%nodePropertyExtractorMassParent_      %quantity     (                                                           )
           weight            =+self%outputAnalysisWeightOperatorNbodyMass_%operate      (weight,node,mass,mass,propertyType,propertyQuantity,iOutput)
           self%weightParents=+self                                       %weightParents                                                              &
                &             +                                            weight

@@ -639,7 +639,7 @@ contains
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)           :: self
     type            (treeNode                          ), intent(inout), target   :: node
     double precision                                    , intent(in   )           :: radius
-    integer                                             , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType ), intent(  out), optional :: status
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalPotential=self%darkMatterProfileDMO_%potential(node,radius)

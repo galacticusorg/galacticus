@@ -21,30 +21,6 @@
   A spherical collapse solver class for universes consisting of collisionless matter and dark energy.
   !!}
 
-  !![
-  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrDarkEnergy">
-   <description>A spherical collapse solver for universes consisting of collisionless matter and dark energy.</description>
-  </sphericalCollapseSolver>
-  !!]
-  type, extends(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt) :: sphericalCollapseSolverCllsnlssMttrDarkEnergy
-     !!{
-     A spherical collapse solver for universes consisting of collisionless matter and dark energy.
-     !!}
-     private
-     integer :: energyFixedAt
-   contains
-     procedure :: linearNonlinearMap => cllsnlssMttrDarkEnergyLinearNonlinearMap
-     procedure :: tabulate           => cllsnlssMttrDarkEnergyTabulate
-  end type sphericalCollapseSolverCllsnlssMttrDarkEnergy
-
-  interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
-     !!{
-     Constructors for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
-     !!}
-     module procedure cllsnlssMttrDarkEnergyConstructorParameters
-     module procedure cllsnlssMttrDarkEnergyConstructorInternal
-  end interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
-
   ! Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
   !![
   <enumeration>
@@ -58,6 +34,30 @@
    <entry label="virialization"/>
   </enumeration>
   !!]
+
+  !![
+  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrDarkEnergy">
+   <description>A spherical collapse solver for universes consisting of collisionless matter and dark energy.</description>
+  </sphericalCollapseSolver>
+  !!]
+  type, extends(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt) :: sphericalCollapseSolverCllsnlssMttrDarkEnergy
+     !!{
+     A spherical collapse solver for universes consisting of collisionless matter and dark energy.
+     !!}
+     private
+     type(enumerationCllsnlssMttrDarkEnergyFixedAtType) :: energyFixedAt
+   contains
+     procedure :: linearNonlinearMap => cllsnlssMttrDarkEnergyLinearNonlinearMap
+     procedure :: tabulate           => cllsnlssMttrDarkEnergyTabulate
+  end type sphericalCollapseSolverCllsnlssMttrDarkEnergy
+
+  interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
+     !!{
+     Constructors for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+     !!}
+     module procedure cllsnlssMttrDarkEnergyConstructorParameters
+     module procedure cllsnlssMttrDarkEnergyConstructorInternal
+  end interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
 
   ! Pointer to the default cosmology functions object.
   class           (cosmologyFunctionsClass), pointer   :: cllsnlssMttrDarkEnergyCosmologyFunctions_            => null()
@@ -112,10 +112,10 @@ contains
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
     implicit none
-    type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
-    integer                                               , intent(in   )                   :: energyFixedAt
-    class  (cosmologyFunctionsClass                      ), intent(in   ), target           :: cosmologyFunctions_
-    class  (linearGrowthClass                            ), intent(in   ), target, optional :: linearGrowth_
+    type (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
+    type (enumerationCllsnlssMttrDarkEnergyFixedAtType ), intent(in   )                   :: energyFixedAt
+    class(cosmologyFunctionsClass                      ), intent(in   ), target           :: cosmologyFunctions_
+    class(linearGrowthClass                            ), intent(in   ), target, optional :: linearGrowth_
     !![
     <constructorAssign variables="energyFixedAt, *cosmologyFunctions_, *linearGrowth_"/>
     !!]
@@ -155,7 +155,7 @@ contains
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
     double precision                                                            , intent(in   ) :: time
-    integer                                                                     , intent(in   ) :: calculationType
+    type            (enumerationCllsnlssMttCsmlgclCnstntClcltnType)             , intent(in   ) :: calculationType
     class           (table1D                                      ), allocatable, intent(inout) :: sphericalCollapse_
     class           (linearGrowthClass                            ), pointer                    :: linearGrowth_                  => null()
     double precision                                               , parameter                  :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-9
@@ -269,8 +269,8 @@ contains
              finderAmplitudeConstructed=.true.
           end if
           epsilonPerturbation=finderAmplitudePerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
-          select case (calculationType)
-          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity)
+          select case (calculationType%ID)
+          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity%ID)
              ! Critical linear overdensity.
              normalization=+linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated) &
                   &        /                    expansionFactor
@@ -286,7 +286,7 @@ contains
                   &                           /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      , &
                   &                           iTime                                              &
                   &                          )
-          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround%ID)
              ! Find the epoch of maximum expansion for the perturbation.
              if (.not.finderExpansionConstructed) then
                 finderExpansionMaximum=rootFinder(                                                                   &
@@ -322,10 +322,10 @@ contains
                   & /densityContrastExpansionMaximum
              y=      expansionFactorExpansionMaximum**cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=maximumExpansionTime        ) &
                   & /expansionFactor                **cllsnlssMttrDarkEnergyCosmologyFunctions_%exponentDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime)
-             select case (self%energyFixedAt)
-             case (cllsnlssMttrDarkEnergyFixedAtTurnaround   )
+             select case (self%energyFixedAt%ID)
+             case (cllsnlssMttrDarkEnergyFixedAtTurnaround   %ID)
                 timeEnergyFixed=maximumExpansionTime
-             case (cllsnlssMttrDarkEnergyFixedAtVirialization)
+             case (cllsnlssMttrDarkEnergyFixedAtVirialization%ID)
                 timeEnergyFixed=cllsnlssMttCsmlgclCnstntTime
              case default
                 call Error_Report('unrecognized epoch'//{introspection:location})
@@ -347,13 +347,13 @@ contains
                      & -(1.0d0/b*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(+1.0d0/3.0d0)/12.0d0) &
                      & +(      a*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(-1.0d0/3.0d0)       )
              end if
-             select case (calculationType)
-             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast)
+             select case (calculationType%ID)
+             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID)
                 call sphericalCollapse_%populate(                                           &
                      &                           1.0d0/(dble(x)*radiusExpansionMaximum)**3, &
                      &                           iTime                                      &
                      &                          )
-             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround     %ID)
                 call sphericalCollapse_%populate(                                           &
                      &                           1.0d0/ dble(x)                           , &
                      &                           iTime                                      &

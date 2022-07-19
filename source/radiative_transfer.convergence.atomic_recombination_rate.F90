@@ -96,7 +96,7 @@ contains
     class    (radiativeTransferConvergenceHydrogenRecombinationRate), intent(inout) :: self
     class    (radiativeTransferMatterClass                         ), intent(inout) :: radiativeTransferMatter_
     class    (radiativeTransferPropertiesMatter                    ), intent(inout) :: properties
-    integer                                                         , intent(in   ) :: statusCell
+    type     (enumerationStatusCellType                            ), intent(in   ) :: statusCell
     logical                                                         , intent(  out) :: converged
     character(len=128                                              )                :: message
     

@@ -389,9 +389,9 @@ contains
     Reset an orbit to a null state.
     !!}
     implicit none
-    class  (keplerOrbit), intent(inout)                         :: orbit
-    integer             , intent(in   ), dimension(:), optional :: keep
-    integer             , allocatable  , dimension(:)           :: keep_
+    class  (keplerOrbit               ), intent(inout)                         :: orbit
+    type   (enumerationKeplerOrbitType), intent(in   ), dimension(:), optional :: keep
+    type   (enumerationKeplerOrbitType), allocatable  , dimension(:)           :: keep_
 
     ! Set list of properties to keep.
     if (present(keep)) then

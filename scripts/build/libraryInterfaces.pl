@@ -41,12 +41,16 @@ foreach my $functionClass ( &List::ExtraUtils::hashList($libraryFunctionClasses-
 
 # Iterate over all files containing function class definitions.
 foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
-    my $tree   = &Galacticus::Build::SourceTree::ParseFile($fileName);
-    my $node_  = $tree;
-    my $depth  = 0;
+    my $tree       = &Galacticus::Build::SourceTree::ParseFile($fileName);
+    my $node_      = $tree;
+    my $depth      = 0;
+    my @moduleUses;
     while ( $node_ ) {
 	my $node = $node_;
 	$node_ = &Galacticus::Build::SourceTree::Walk_Tree($node_,\$depth);
+	# Extract any module uses.
+	push(@moduleUses,$node->{'moduleUse'})
+	    if ( $node->{'type'} eq "moduleUse" );
 	# Skip anything that isn't a functionClass node.
 	next
 	    unless ( $node->{'type'} eq "functionClass" );
@@ -60,6 +64,7 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 	} else {
 	    $functionClass->{'methods'}                                               = $node->{'directive'}->{'method'};	
 	}
+	$functionClass->{'moduleUses'} = \@moduleUses;
 	# Find all implementations of this class.
 	my $classID = 0;
 	foreach my $fileNameImplementation ( &List::ExtraUtils::as_array($directiveLocations->{$functionClass->{'name'}}->{'file'}) ) {
@@ -70,6 +75,7 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 	    my $nameImplementation;
 	    my $nameConstructor;
 	    my @argumentsConstructor;
+	    my @moduleUsesImplementation;
 	    while ( $nodeImplementation_ ) {
 		my $nodeImplementation = $nodeImplementation_;
 		$nodeImplementation_ = &Galacticus::Build::SourceTree::Walk_Tree($nodeImplementation_,\$depthImplementation);
@@ -110,7 +116,9 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 			}
 			$nodeConstructor = $nodeConstructor->{'sibling'};
 		    }
-
+		} elsif ( $nodeImplementation->{'type'} eq "moduleUse" ) {
+		    # Module use statements, extract for later reference.
+		    push(@moduleUsesImplementation,$nodeImplementation->{'moduleUse'});
 		}
 	    }
 	    die("Unable to find implementation of '".$functionClass->{'name'}."' in '".$fileNameImplementation."'")
@@ -121,10 +129,11 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 	    ++$classID;
 	    my $implementation =
 	    {
-		name      => $nameImplementation    ,
-		classID   => $classID               ,
-		fileName  => $fileNameImplementation,
-		arguments => @argumentsConstructor ? \@argumentsConstructor : []
+		name       => $nameImplementation       ,
+		classID    => $classID                  ,
+		fileName   => $fileNameImplementation   ,
+		moduleUses => \@moduleUsesImplementation,
+		arguments  => @argumentsConstructor ? \@argumentsConstructor : []
 	    };
 	    push(
 		@{$functionClass->{'implementations'}},
@@ -581,6 +590,10 @@ sub assignCTypes {
 		# Varying strings are represented as C char pointers.
 		$argument->{'ctypes' }->{'type'} = "c_char_p";
 		$argument->{'fortran'}->{'type'} = "character(c_char)";
+	    } elsif ( $argument->{'type'} =~ m/^enumeration[a-z0-9_]+type/i ) {
+		# Enumerations are represented as C ints.
+		$argument->{'ctypes' }->{'type'} = "c_int";
+		$argument->{'fortran'}->{'type'} = "integer(c_int)";
 	    } else {
 		# Other types are represented as opaque (void) pointers.
 		$argument->{'ctypes' }->{'type'} = "c_void_p";
@@ -756,6 +769,36 @@ sub buildFortranReassignments {
 		# varying_string arguments are passed as type c_char_p. We can convert it to varying_string via the String_C_to_Fortran() function.
 		$argument->{'fortran'}->{'modules'}->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
 		$argument->{'fortran'}->{'passAs' }                                               = "String_C_to_Fortran(".$argument->{'name'}.")"
+	    } elsif ( $argument->{'type'} =~ m/^enumeration[a-z0-9_]+type$/i ) {
+		# Enumerations are passed as type c_int and must be set into the appropriate enumeration type.
+		$argument  ->{'fortran'}->{'declarations'} = "type(".$argument->{'type'}.") :: ".$argument->{'name'}."_\n";
+		$argument  ->{'fortran'}->{'passAs'      } = $argument->{'name'}."_";
+		$argument  ->{'fortran'}->{'reassignment'} = ((grep {$_ eq "optional"} @{$argument->{'attributes'}}) ? "if (present(".$argument->{'name'}.")) " : "").$argument->{'name'}."_%ID=".$argument->{'name'}."\n";
+		# Search for any module import of this enumeration type.
+		my $importModule;
+		if ( defined($implementation) ) {
+		    foreach my $useBlock ( @{$implementation->{'moduleUses'}} ) {
+			foreach my $module ( keys(%{$useBlock}) ) {
+			    if ( grep {$_ eq $argument->{'type'}} keys(%{$useBlock->{$module}->{'only'}}) ) {
+				$importModule = $module;
+			    }
+			}
+		    }
+		}
+		unless ( defined($importModule) ) {
+		    foreach my $useBlock ( @{$functionClass->{'moduleUses'}} ) {
+			foreach my $module ( keys(%{$useBlock}) ) {
+			    if ( grep {$_ eq $argument->{'type'}} keys(%{$useBlock->{$module}->{'only'}}) ) {
+				$importModule = $module;
+			    }
+			}
+		    }
+		}
+		unless ( defined($importModule) ) {
+		    $importModule = $functionClass->{'module'};
+		}
+		$argument  ->{'fortran'}->{'modules'}->{$importModule}->{$argument->{'type'}}  = 1
+		    if ( defined($importModule) );
 	    } elsif ( $argument->{'type'} eq "treeNode" ) {
 		# treeNode arguments are passed as type c_ptr and must be dereferenced.
 		$argument  ->{'fortran'}->{'declarations'      }                                      = "type(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";

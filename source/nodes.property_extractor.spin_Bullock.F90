@@ -43,7 +43,6 @@ Contains a module which implements a node property extractor class for the \cite
      procedure :: names        => spinBullockNames
      procedure :: descriptions => spinBullockDescriptions
      procedure :: unitsInSI    => spinBullockUnitsInSI
-     procedure :: type         => spinBullockType
   end type nodePropertyExtractorSpinBullock
 
   interface nodePropertyExtractorSpinBullock
@@ -214,15 +213,3 @@ contains
     return
   end function spinBullockUnitsInSI
 
-  integer function spinBullockType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily spinBullock} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorSpinBullock), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    spinBullockType=outputAnalysisPropertyTypeLinear
-    return
-  end function spinBullockType

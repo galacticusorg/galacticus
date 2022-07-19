@@ -92,12 +92,13 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (outputAnalysisWeightOperatorFilterHighPass), intent(inout) :: self
-    type            (treeNode                                  ), intent(inout) :: node
-    double precision                                            , intent(in   ) :: propertyValue, propertyValueIntrinsic, &
-         &                                                                         weightValue
-    integer                                                     , intent(in   ) :: propertyType , propertyQuantity
-    integer         (c_size_t                                  ), intent(in   ) :: outputIndex
+    class           (outputAnalysisWeightOperatorFilterHighPass   ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: propertyValue   , propertyValueIntrinsic, &
+         &                                                                            weightValue
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
     !$GLC attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
 
     if (propertyValue > self%filterThreshold) then

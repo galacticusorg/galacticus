@@ -40,7 +40,6 @@ Contains a module which implements a hot mode accretion fraction rate property e
      procedure :: name        => fractionAccretionHotModeName
      procedure :: description => fractionAccretionHotModeDescription
      procedure :: unitsInSI   => fractionAccretionHotModeUnitsInSI
-     procedure :: type        => fractionAccretionHotModeType
   end type nodePropertyExtractorFractionAccretionHotMode
 
   interface nodePropertyExtractorFractionAccretionHotMode
@@ -161,16 +160,4 @@ contains
     return
   end function fractionAccretionHotModeUnitsInSI
 
-  integer function fractionAccretionHotModeType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily fractionAccretionHotMode} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    fractionAccretionHotModeType=outputAnalysisPropertyTypeLinear
-    return
-  end function fractionAccretionHotModeType
 

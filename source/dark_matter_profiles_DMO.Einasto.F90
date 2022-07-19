@@ -574,18 +574,18 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     units of Mpc).
     !!}
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
+    use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
+    use :: Galacticus_Nodes                , only : nodeComponentBasic               , nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), target   :: node
-    double precision                                , intent(in   )           :: radius
-    integer                                         , intent(  out), optional :: status
-    class           (nodeComponentBasic            )               , pointer  :: basic
-    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
-    double precision                                                          :: alpha            , radiusOverScaleRadius      , &
-         &                                                                       scaleRadius      , virialRadiusOverScaleRadius
+    class           (darkMatterProfileDMOEinasto      ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    class           (nodeComponentBasic               )               , pointer  :: basic
+    class           (nodeComponentDarkMatterProfile   )               , pointer  :: darkMatterProfile
+    double precision                                                             :: alpha            , radiusOverScaleRadius      , &
+         &                                                                          scaleRadius      , virialRadiusOverScaleRadius
 
     ! Assume success.
     if (present(status)) status=structureErrorCodeSuccess

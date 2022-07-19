@@ -25,6 +25,18 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
+  <enumeration>
+   <name>intervalType</name>
+   <description>Options for ``recent'' major merger interval types.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
+   <entry label="absolute" />
+   <entry label="dynamical"/>
+  </enumeration>
+  !!]
+
+  !![
   <nodeOperator name="nodeOperatorNodeMajorMergerRecentCount">
    <description>A node operator class that counts the number of recent major mergers between nodes prior to each output time.</description>
   </nodeOperator>
@@ -34,11 +46,12 @@
      A node operator class that counts the number of recent major mergers between nodes prior to each output time.
      !!}
      private
-     class           (outputTimesClass        ), pointer :: outputTimes_                 => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_         => null()
-     integer                                             :: nodeMajorMergerRecentCountID          , intervalType
-     double precision                                    :: intervalRecent                        , massRatioMajor
-     logical                                             :: intervalFromInfall
+     class           (outputTimesClass           ), pointer :: outputTimes_                 => null()
+     class           (darkMatterHaloScaleClass   ), pointer :: darkMatterHaloScale_         => null()
+     integer                                                :: nodeMajorMergerRecentCountID
+     type            (enumerationIntervalTypeType)          :: intervalType
+     double precision                                       :: intervalRecent                        , massRatioMajor
+     logical                                                :: intervalFromInfall
   contains
      final     ::                   nodeMajorMergerRecentCountDestructor
      procedure :: nodesMerge     => nodeMajorMergerRecentCountNodesMerge
@@ -54,18 +67,6 @@
      module procedure nodeMajorMergerRecentCountConstructorInternal
   end interface nodeOperatorNodeMajorMergerRecentCount
   
-  !![
-  <enumeration>
-   <name>intervalType</name>
-   <description>Options for ``recent'' major merger interval types.</description>
-   <encodeFunction>yes</encodeFunction>
-   <validator>yes</validator>
-   <visibility>private</visibility>
-   <entry label="absolute" />
-   <entry label="dynamical"/>
-  </enumeration>
-  !!]
-
 contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
@@ -141,7 +142,7 @@ contains
     implicit none
     type            (nodeOperatorNodeMajorMergerRecentCount)                        :: self
     double precision                                        , intent(in   )         :: intervalRecent     , massRatioMajor
-    integer                                                 , intent(in   )         :: intervalType
+    type            (enumerationIntervalTypeType           ), intent(in   )         :: intervalType
     logical                                                 , intent(in   )         :: intervalFromInfall
     class  (outputTimesClass                               ), intent(in   ), target :: outputTimes_
     class  (darkMatterHaloScaleClass                       ), intent(in   ), target :: darkMatterHaloScale_
@@ -229,10 +230,10 @@ contains
     basicParent => node%parent%basic()
     if (basic%mass() < self%massRatioMajor*basicParent%mass()) return 
     ! Determine the interval.
-    select case (self%intervalType)
-    case (intervalTypeAbsolute)
+    select case (self%intervalType%ID)
+    case (intervalTypeAbsolute %ID)
        intervalRecent=self%intervalRecent
-    case (intervalTypeDynamical)
+    case (intervalTypeDynamical%ID)
        intervalRecent=self%intervalRecent*self%darkMatterHaloScale_%timescaleDynamical(node)
     case default
        intervalRecent=0.0d0

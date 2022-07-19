@@ -67,14 +67,15 @@ contains
     parameter set.
     !!}
     use :: Error           , only : Error_Report
-    use :: Input_Parameters, only : inputParameter    , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters
-    use :: String_Handling , only : String_Count_Words, String_Split_Words                 , char
+    use :: Input_Parameters, only : inputParameter                         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters, &
+         &                          enumerationInputParameterErrorStatusType
+    use :: String_Handling , only : String_Count_Words                      , String_Split_Words                 , char
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
     type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_
-    integer                                                                 :: i                 , parameterMapCount, &
-         &                                                                     errorStatus
+    integer                                                                 :: i                 , parameterMapCount
+    type   (enumerationInputParameterErrorStatusType       )                :: errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
 
     !![

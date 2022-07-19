@@ -226,7 +226,7 @@ contains
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesDarkMatter,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesDarkMatter%ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -236,7 +236,7 @@ contains
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesBaryons   ,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesBaryons   %ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -425,7 +425,7 @@ contains
              if (status == 0) then
                 if (cambTransferLine(1:1) /= "#") then
                    i=i+1
-                   read (cambTransferLine,*) wavenumbers(i),transferFunctions(i,cambSpeciesDarkMatter,j),transferFunctions(i,cambSpeciesBaryons,j)
+                   read (cambTransferLine,*) wavenumbers(i),transferFunctions(i,cambSpeciesDarkMatter%ID,j),transferFunctions(i,cambSpeciesBaryons%ID,j)
                 end if
              else
                 call Error_Report('unable to read CAMB transfer function file'//{introspection:location})
@@ -451,17 +451,17 @@ contains
        call    cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
        call    cambOutput  %writeAttribute('Transfer functions created by CAMB.','description')
        call    cambOutput  %writeAttribute(cambFormatVersionCurrent,'fileFormat')
-       call    cambOutput  %writeDataset(wavenumbers    ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
+       call    cambOutput  %writeDataset(wavenumbers    ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
        speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesDarkMatter,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        speciesGroup=cambOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesBaryons   ,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        parametersGroup=cambOutput%openGroup('parameters')

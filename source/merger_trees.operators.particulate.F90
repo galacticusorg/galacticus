@@ -36,48 +36,6 @@
   use :: Tables                  , only : table1D                  , table1DLogarithmicCSpline
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorParticulate">
-   <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
-  </mergerTreeOperator>
-  !!]
-  type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
-     !!{
-     A merger tree operator which create particle representations of \glc\ halos.
-     !!}
-     private
-     class           (cosmologyParametersClass ), pointer :: cosmologyParameters_  => null()
-     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
-     type            (varying_string           )          :: outputFileName
-     double precision                                     :: massParticle                   , radiusTruncateOverRadiusVirial   , &
-          &                                                  timeSnapshot                   , energyDistributionPointsPerDecade, &
-          &                                                  lengthSoftening                , toleranceRelativeSmoothing       , &
-          &                                                  toleranceMass
-     logical                                              :: satelliteOffset                , nonCosmological                  , &
-          &                                                  positionOffset                 , addHubbleFlow                    , &
-          &                                                  haloIdToParticleType           , sampleParticleNumber             , &
-          &                                                  subtractRandomOffset
-     integer                                              :: selection                      , kernelSoftening
-     integer         (hsize_t                  )          :: chunkSize
-     integer         (kind_int8                )          :: idMultiplier
-     ! Pointer to the parameters for this task.
-     type            (inputParameters          )          :: parameters
-   contains
-     final     ::                        particulateDestructor
-     procedure :: operatePreEvolution => particulateOperatePreEvolution
-  end type mergerTreeOperatorParticulate
-
-  interface mergerTreeOperatorParticulate
-     !!{
-     Constructors for the particulate merger tree operator class.
-     !!}
-     module procedure particulateConstructorParameters
-     module procedure particulateConstructorInternal
-  end interface mergerTreeOperatorParticulate
-
-  !![
   <enumeration>
    <name>selection</name>
    <description>Options for selection of nodes to particulate.</description>
@@ -103,23 +61,66 @@
   </enumeration>
   !!]
 
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorParticulate">
+   <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
+  </mergerTreeOperator>
+  !!]
+  type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
+     !!{
+     A merger tree operator which create particle representations of \glc\ halos.
+     !!}
+     private
+     class           (cosmologyParametersClass        ), pointer :: cosmologyParameters_  => null()
+     class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_   => null()
+     class           (darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_ => null()
+     class           (galacticStructureClass          ), pointer :: galacticStructure_    => null()
+     type            (varying_string                  )          :: outputFileName
+     double precision                                            :: massParticle                   , radiusTruncateOverRadiusVirial   , &
+          &                                                         timeSnapshot                   , energyDistributionPointsPerDecade, &
+          &                                                         lengthSoftening                , toleranceRelativeSmoothing       , &
+          &                                                         toleranceMass
+     logical                                                     :: satelliteOffset                , nonCosmological                  , &
+          &                                                         positionOffset                 , addHubbleFlow                    , &
+          &                                                         haloIdToParticleType           , sampleParticleNumber             , &
+          &                                                         subtractRandomOffset
+     type            (enumerationParticulateKernelType)          :: kernelSoftening
+     type            (enumerationSelectionType        )          :: selection
+     integer         (hsize_t                         )          :: chunkSize
+     integer         (kind_int8                       )          :: idMultiplier
+     ! Pointer to the parameters for this task.
+     type            (inputParameters                 )          :: parameters
+   contains
+     final     ::                        particulateDestructor
+     procedure :: operatePreEvolution => particulateOperatePreEvolution
+  end type mergerTreeOperatorParticulate
+
+  interface mergerTreeOperatorParticulate
+     !!{
+     Constructors for the particulate merger tree operator class.
+     !!}
+     module procedure particulateConstructorParameters
+     module procedure particulateConstructorInternal
+  end interface mergerTreeOperatorParticulate
+
   ! Entries in the energy distribution table.
-  integer                                        , parameter   :: energyDistributionTableDensity        =1
-  integer                                        , parameter   :: energyDistributionTablePotential      =2
-  integer                                        , parameter   :: energyDistributionTableDistribution   =3
-  integer                                        , parameter   :: energyDistributionTableDensitySmoothed=4
-  integer                                        , parameter   :: energyDistributionTableMass           =5
+  integer                                           , parameter   :: energyDistributionTableDensity        =1
+  integer                                           , parameter   :: energyDistributionTablePotential      =2
+  integer                                           , parameter   :: energyDistributionTableDistribution   =3
+  integer                                           , parameter   :: energyDistributionTableDensitySmoothed=4
+  integer                                           , parameter   :: energyDistributionTableMass           =5
 
   ! Tables used in construction of distribution functions.
-  class           (mergerTreeOperatorParticulate), allocatable :: particulateSelf
-  type            (treeNode                     ), pointer     :: particulateNode
-  logical                                                      :: particularEnergyDistributionInitialized
-  class           (table1D                      ), allocatable :: particulateRadiusDistribution
-  type            (table1DLogarithmicCSpline    )              :: particulateEnergyDistribution
-  integer                                                      :: particulateSofteningKernel
-  double precision                                             :: particulateEnergy                , particulateRadiusTruncate, &
-       &                                                          particulateHeight                , particulateRadius        , &
-       &                                                          particulateLengthSoftening
+  class           (mergerTreeOperatorParticulate   ), allocatable :: particulateSelf
+  type            (treeNode                        ), pointer     :: particulateNode
+  logical                                                         :: particularEnergyDistributionInitialized
+  class           (table1D                         ), allocatable :: particulateRadiusDistribution
+  type            (table1DLogarithmicCSpline       )              :: particulateEnergyDistribution
+  type            (enumerationParticulateKernelType)              :: particulateSofteningKernel
+  double precision                                                :: particulateEnergy                , particulateRadiusTruncate, &
+       &                                                             particulateHeight                , particulateRadius        , &
+       &                                                             particulateLengthSoftening
   !$omp threadprivate(particulateSelf,particulateNode,particulateRadiusDistribution,particulateEnergyDistribution,particularEnergyDistributionInitialized,particulateSofteningKernel,particulateEnergy,particulateRadiusTruncate,particulateHeight,particulateRadius,particulateLengthSoftening)
 
 contains
@@ -130,27 +131,28 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (mergerTreeOperatorParticulate)                :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    type            (varying_string               )                :: outputFileName
-    integer         (kind_int8                    )                :: idMultiplier
-    double precision                                               :: massParticle                   , radiusTruncateOverRadiusVirial   , &
-         &                                                            timeSnapshot                   , energyDistributionPointsPerDecade, &
-         &                                                            lengthSoftening                , toleranceRelativeSmoothing       , &
-         &                                                            toleranceMass
-    logical                                                        :: satelliteOffset                , nonCosmological                  , &
-         &                                                            positionOffset                 , addHubbleFlow                    , &
-         &                                                            haloIdToParticleType           , sampleParticleNumber             , &
-         &                                                            subtractRandomOffset
-    integer                                                        :: selection                      , chunkSize                        , &
-         &                                                            kernelSoftening
-    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
-    class           (galacticStructureClass       ), pointer       :: galacticStructure_
-    type            (inputParameters              ), pointer       :: parametersRoot        => null()
-    type            (varying_string               )                :: selectionText                  , kernelSofteningText
+    type            (mergerTreeOperatorParticulate   )                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    type            (varying_string                  )                :: outputFileName
+    integer         (kind_int8                       )                :: idMultiplier
+    double precision                                                  :: massParticle                   , radiusTruncateOverRadiusVirial   , &
+         &                                                               timeSnapshot                   , energyDistributionPointsPerDecade, &
+         &                                                               lengthSoftening                , toleranceRelativeSmoothing       , &
+         &                                                               toleranceMass
+    logical                                                           :: satelliteOffset                , nonCosmological                  , &
+         &                                                               positionOffset                 , addHubbleFlow                    , &
+         &                                                               haloIdToParticleType           , sampleParticleNumber             , &
+         &                                                               subtractRandomOffset
+    integer                                                           :: chunkSize
+    type            (enumerationParticulateKernelType)                :: kernelSoftening
+    type            (enumerationSelectionType        )                :: selection
+    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass       ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass          ), pointer       :: galacticStructure_
+    type            (inputParameters                 ), pointer       :: parametersRoot        => null()
+    type            (varying_string                  )                :: selectionText                  , kernelSofteningText
 
     !![
     <inputParameter>
@@ -302,25 +304,26 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (mergerTreeOperatorParticulate)                        :: self
-    type            (varying_string               ), intent(in   )         :: outputFileName
-    integer         (kind_int8                    ), intent(in   )         :: idMultiplier
-    double precision                               , intent(in   )         :: massParticle         , radiusTruncateOverRadiusVirial   , &
-         &                                                                    timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                                    lengthSoftening      , toleranceRelativeSmoothing       , &
-         &                                                                    toleranceMass
-    logical                                        , intent(in   )         :: satelliteOffset      , nonCosmological                  , &
-         &                                                                    positionOffset       , addHubbleFlow                    , &
-         &                                                                    haloIdToParticleType , sampleParticleNumber             , &
-         &                                                                    subtractRandomOffset
-    integer                                        , intent(in   )         :: selection            , chunkSize                        , &
-         &                                                                    kernelSoftening
-    class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
-    type            (inputParameters              ), intent(in   ), target :: parameters
+    type            (mergerTreeOperatorParticulate   )                        :: self
+    type            (varying_string                  ), intent(in   )         :: outputFileName
+    integer         (kind_int8                       ), intent(in   )         :: idMultiplier
+    double precision                                  , intent(in   )         :: massParticle         , radiusTruncateOverRadiusVirial   , &
+         &                                                                       timeSnapshot         , energyDistributionPointsPerDecade, &
+         &                                                                       lengthSoftening      , toleranceRelativeSmoothing       , &
+         &                                                                       toleranceMass
+    logical                                           , intent(in   )         :: satelliteOffset      , nonCosmological                  , &
+         &                                                                       positionOffset       , addHubbleFlow                    , &
+         &                                                                       haloIdToParticleType , sampleParticleNumber             , &
+         &                                                                       subtractRandomOffset
+    integer                                           , intent(in   )         :: chunkSize
+    type            (enumerationParticulateKernelType), intent(in   )         :: kernelSoftening
+    type            (enumerationSelectionType        ), intent(in   )         :: selection
+    class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass        ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass          ), intent(in   ), target :: galacticStructure_
+    type            (inputParameters                 ), intent(in   ), target :: parameters
     !![
     <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_,*galacticStructure_"/>
     !!]
@@ -819,8 +822,8 @@ contains
             &                              tableCount       = 5                                          , &
             &                              extrapolationType= [extrapolationTypeFix,extrapolationTypeFix]  &
             &                             )
-       select case (particulateSofteningKernel)
-       case (particulateKernelDelta)
+       select case (particulateSofteningKernel%ID)
+       case (particulateKernelDelta%ID)
           energyPotentialTruncate=+particulateSelf%darkMatterProfileDMO_%potential(                            &
                &                                                                    particulateNode          , &
                &                                                                   +particulateRadiusTruncate  &
@@ -840,8 +843,8 @@ contains
                &                                table        =energyDistributionTableDensity                                                     , &
                &                                computeSpline=i==radiusCount                                                                       &
                &                               )
-          select case (particulateSofteningKernel)
-          case (particulateKernelDelta)
+          select case (particulateSofteningKernel%ID)
+          case (particulateKernelDelta%ID)
              ! No softening is applied, so use the actual density and potential.
              call particulateEnergyDistribution%populate(                                                                                 &
                   &                                              particulateEnergyDistribution%y(i,table=energyDistributionTableDensity), &
@@ -864,8 +867,8 @@ contains
              ! potential.
              particulateSmoothingIntegrationRangeUpper=+particulateRadiusTruncate-particulateRadius
              particulateSmoothingIntegrationRangeLower=-particulateRadiusTruncate-particulateRadius
-             select case (particulateSofteningKernel)
-             case (particulateKernelGadget )
+             select case (particulateSofteningKernel%ID)
+             case (particulateKernelGadget %ID)
                 particulateSmoothingIntegrationRangeUpper=min(particulateSmoothingIntegrationRangeUpper,+2.8d0*particulateLengthSoftening)
                 particulateSmoothingIntegrationRangeLower=max(particulateSmoothingIntegrationRangeLower,-2.8d0*particulateLengthSoftening)
              end select
@@ -1060,8 +1063,8 @@ contains
     else
        radiusMaximum    =sqrt(argumentSqrt)
        particulateHeight=     height
-       select case (particulateSofteningKernel)
-       case (particulateKernelGadget )
+       select case (particulateSofteningKernel%ID)
+       case (particulateKernelGadget %ID)
           radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*particulateLengthSoftening)**2-particulateHeight**2))
        end select
        integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=particulateSelf%toleranceRelativeSmoothing)
@@ -1091,8 +1094,8 @@ contains
          &                                                                            )                         &
          &                                                                       )
     ! Apply the softening kernel density distribution.
-    select case (particulateSofteningKernel)
-    case (particulateKernelPlummer)
+    select case (particulateSofteningKernel%ID)
+    case (particulateKernelPlummer%ID)
        particulateSmoothingIntegrandR=+particulateSmoothingIntegrandR &
             &                         *1.5d0                          &
             &                         *particulateLengthSoftening **2 &
@@ -1101,7 +1104,7 @@ contains
             &                          +particulateHeight         **2 &
             &                          +particulateLengthSoftening**2 &
             &                         )**2.5d0
-    case (particulateKernelGadget )
+    case (particulateKernelGadget %ID)
        ! Compute the radius in units of the spline kernel length scale.
        lengthSplineKernel=+2.8d0                      &
             &             *particulateLengthSoftening

@@ -101,14 +101,14 @@ contains
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (starFormationHistoryNull), intent(inout)         :: self
-    type   (treeNode                ), intent(inout), target :: node
-    logical                          , intent(in   )         :: nodePassesFilter
-    type   (history                 ), intent(inout)         :: historyStarFormation
-    integer(c_size_t                ), intent(in   )         :: indexOutput
-    integer(kind=kind_int8          ), intent(in   )         :: indexTree
-    integer                            intent(in   )         :: componentType
-    type   (ompLock                 ), intent(inout)         :: treeLock
+    class  (starFormationHistoryNull    ), intent(inout)         :: self
+    type   (treeNode                    ), intent(inout), target :: node
+    logical                              , intent(in   )         :: nodePassesFilter
+    type   (history                     ), intent(inout)         :: historyStarFormation
+    integer(c_size_t                    ), intent(in   )         :: indexOutput
+    integer(kind=kind_int8              ), intent(in   )         :: indexTree
+    type   (enumerationComponentTypeType), intent(in   )         :: componentType
+    type   (ompLock                     ), intent(inout)         :: treeLock
     !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType, treeLock
 
     ! Do nothing.

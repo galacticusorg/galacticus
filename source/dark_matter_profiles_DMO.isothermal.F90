@@ -214,14 +214,14 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     units of Mpc).
     !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeInfinite, structureErrorCodeSuccess
+    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeInfinite, structureErrorCodeSuccess
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), target   :: node
-    double precision                                , intent(in   )           :: radius
-    integer                                         , intent(  out), optional :: status
-    double precision                                , parameter               :: radiusFractionalMinimum=1.0d-30
-    double precision                                                       :: radiusFractional
+    class           (darkMatterProfileDMOIsothermal   ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    double precision                                   , parameter               :: radiusFractionalMinimum=1.0d-30
+    double precision                                                             :: radiusFractional
 
     radiusFractional      =  radius/self%darkMatterHaloScale_%radiusVirial(node)
     if (radiusFractional <= 0.0d0) then

@@ -70,7 +70,6 @@
      procedure :: descriptions => lightconeDescriptions
      procedure :: unitsInSI    => lightconeUnitsInSI
      procedure :: addInstances => lightconeAddInstances
-     procedure :: type         => lightconeType
   end type nodePropertyExtractorLightcone
 
   interface nodePropertyExtractorLightcone
@@ -371,15 +370,3 @@ contains
     return
   end function lightconeUnitsInSI
 
-  integer function lightconeType(self)
-    !!{
-    Return the type of the lightcone property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorLightcone), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    lightconeType=outputAnalysisPropertyTypeLinear
-    return
-  end function lightconeType

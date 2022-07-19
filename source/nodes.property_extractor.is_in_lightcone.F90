@@ -37,7 +37,6 @@ Implements a property extractor for ``in lightcone'' status.
    contains
      final     ::                isInLightconeDestructor
      procedure :: extract     => isInLightconeExtract
-     procedure :: type        => isInLightconeType
      procedure :: name        => isInLightconeName
      procedure :: description => isInLightconeDescription
   end type nodePropertyExtractorIsInLightcone
@@ -120,18 +119,6 @@ contains
     return
   end function isInLightconeExtract
 
-  integer function isInLightconeType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorIsInLightcone), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    isInLightconeType=outputAnalysisPropertyTypeLinear
-    return
-  end function isInLightconeType
 
   function isInLightconeName(self)
     !!{

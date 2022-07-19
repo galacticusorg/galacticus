@@ -145,13 +145,14 @@ contains
     Implement an sequence output analysis weight operator.
     !!}
     implicit none
-    class           (outputAnalysisWeightOperatorSequence), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(in   ) :: weightValue  , propertyValueIntrinsic, &
-         &                                                                   propertyValue
-    integer                                               , intent(in   ) :: propertyType , propertyQuantity
-    integer         (c_size_t                            ), intent(in   ) :: outputIndex
-    type            (weightOperatorList                  ), pointer       :: operator_
+    class           (outputAnalysisWeightOperatorSequence         ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: weightValue     , propertyValueIntrinsic, &
+         &                                                                            propertyValue
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
+    type            (weightOperatorList                           ), pointer       :: operator_
 
     sequenceOperate =  weightValue
     operator_       => self%operators
