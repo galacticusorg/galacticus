@@ -129,6 +129,7 @@
      procedure :: potential                                  => einastoPotential
      procedure :: circularVelocity                           => einastoCircularVelocity
      procedure :: circularVelocityMaximum                    => einastoCircularVelocityMaximum
+     procedure :: radiusCircularVelocityMaximum              => einastoRadiusCircularVelocityMaximum
      procedure :: radialVelocityDispersion                   => einastoRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum          => einastoRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization                      => einastoRotationNormalization
@@ -469,6 +470,19 @@ contains
     !!{
     Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
+    implicit none
+    class(darkMatterProfileDMOEinasto), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
+
+    ! Find the peak velocity.
+    einastoCircularVelocityMaximum=self%circularVelocity(node,self%radiusCircularVelocityMaximum(node))
+    return
+  end function einastoCircularVelocityMaximum
+  
+  double precision function einastoRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
@@ -484,10 +498,10 @@ contains
     ! Solve for the radius (in units of the scale radius) at which the rotation curve peaks.
     einastoAlpha=alpha
     radiusPeak  =self%finderVelocityPeak%find(rootGuess=radiusScale)
-    ! Find the peak velocity.
-    einastoCircularVelocityMaximum=self%circularVelocity(node,radiusPeak*radiusScale)
+    ! Convert to a physical radius.
+    einastoRadiusCircularVelocityMaximum=radiusPeak*radiusScale
     return
-  end function einastoCircularVelocityMaximum
+  end function einastoRadiusCircularVelocityMaximum
   
   double precision function einastoCircularVelocityPeakRadius(radius)
     !!{

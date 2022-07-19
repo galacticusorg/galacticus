@@ -126,6 +126,7 @@
      procedure :: potential                         => burkertPotential
      procedure :: circularVelocity                  => burkertCircularVelocity
      procedure :: circularVelocityMaximum           => burkertCircularVelocityMaximum
+     procedure :: radiusCircularVelocityMaximum     => burkertRadiusCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => burkertRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => burkertRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => burkertRotationNormalization
@@ -563,6 +564,24 @@ contains
     burkertCircularVelocityMaximum=self%maximumVelocityPrevious
     return
   end function burkertCircularVelocityMaximum
+
+  double precision function burkertRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
+    implicit none
+    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    ! The radius (in units of the scale radius) at which the rotation speed peaks in a Burkert halo.
+    double precision                                , parameter     :: radiusMaximum    =3.2446257246042642d0
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    
+    darkMatterProfile                    =>  node             %darkMatterProfile(autoCreate=.true.)
+    burkertRadiusCircularVelocityMaximum =  +                  radiusMaximum                        &
+         &                                  *darkMatterProfile%scale            (                 )
+    return
+  end function burkertRadiusCircularVelocityMaximum
 
   double precision function burkertRadialVelocityDispersion(self,node,radius)
     !!{
