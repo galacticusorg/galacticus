@@ -622,8 +622,8 @@ contains
     logical                                        , intent(inout), optional          :: interrupt
     procedure       (interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
     double precision                               , intent(in   )                    :: rate
-    class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent
-    type            (treeNode                     )                         , pointer :: selfNode
+    class           (nodeComponentHotHalo         )                         , pointer :: hotHalo
+    type            (treeNode                     )                         , pointer :: node
     type            (abundances                   )                                   :: abundancesOutflowRate
     double precision                                                                  :: angularMomentumOutflowRate, gasMass         , &
          &                                                                               massOutflowRate           , spheroidVelocity, &
@@ -654,11 +654,11 @@ contains
           call self%angularMomentumRate(-angularMomentumOutflowRate)
           call self%  abundancesGasRate(-     abundancesOutflowRate)
           ! Add outflowing rates to the hot halo component.
-          selfNode             => self    %host   ()
-          selfHotHaloComponent => selfNode%hotHalo()
-          call selfHotHaloComponent%           outflowingMassRate(           massOutflowRate)
-          call selfHotHaloComponent%outflowingAngularMomentumRate(angularMomentumOutflowRate)
-          call selfHotHaloComponent%     outflowingAbundancesRate(     abundancesOutflowRate)
+          node    => self%host   ()
+          hotHalo => node%hotHalo()
+          call hotHalo%           outflowingMassRate(           massOutflowRate)
+          call hotHalo%outflowingAngularMomentumRate(angularMomentumOutflowRate)
+          call hotHalo%     outflowingAbundancesRate(     abundancesOutflowRate)
        end if
     end if
     return
@@ -1392,7 +1392,7 @@ contains
     use :: Histories       , only : history
     implicit none
     type            (nodeComponentSpheroidStandard)          :: self
-    type            (treeNode                     ), pointer :: selfNode
+    type            (treeNode                     ), pointer :: node
     class           (nodeComponentDisk            ), pointer :: disk
     class           (nodeComponentBasic           ), pointer :: basic
     type            (history                      )          :: historyStarFormation        , stellarPropertiesHistory      , &
@@ -1403,7 +1403,7 @@ contains
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the associated node.
-    selfNode => self%host()
+    node => self%host()
     ! Determine which histories must be created.
     historyStarFormation          =self%starFormationHistory            ()
     createStarFormationHistory    =.not.historyStarFormation    %exists ()
@@ -1413,21 +1413,21 @@ contains
     call                                stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
-       call stellarPopulationProperties_%historyCreate(selfNode,stellarPropertiesHistory)
-       call self%stellarPropertiesHistorySet(                     stellarPropertiesHistory)
+       call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
+       call self%stellarPropertiesHistorySet(               stellarPropertiesHistory)
     end if
     ! Create the star formation history.
-    if (createStarFormationHistory    ) then
-       disk => selfNode%disk()
-       diskStarFormationHistory=disk%starFormationHistory()
+    if (createStarFormationHistory) then
+       disk                     => node%disk                ()
+       diskStarFormationHistory =  disk%starFormationHistory()
        if (diskStarFormationHistory%exists()) then
-          timeBegin=  diskStarFormationHistory%time(1)
+          timeBegin = diskStarFormationHistory%time(1)
        else
-          basic    => selfNode%basic()
-          timeBegin=  basic   %time ()
+          basic    => node %basic()
+          timeBegin = basic%time ()
        end if
-       call starFormationHistory_%create (selfNode,historyStarFormation,timeBegin)
-       call self% starFormationHistorySet(         historyStarFormation          )
+       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
+       call self                 %starFormationHistorySet(     historyStarFormation          )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
