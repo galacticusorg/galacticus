@@ -227,7 +227,7 @@
      integer                                                                                     :: fileCurrent
      type            (varying_string                                ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
           &                                                                                         presetNamedIntegers
-     integer                                                        , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
+     integer                                                         , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
      logical                                                                                     :: importerOpen                          =  .false.
      integer         (kind_int8                                     )                            :: beginAt
      double precision                                                                            :: treeWeightCurrent
@@ -2447,9 +2447,11 @@ contains
                    ! If on the isolated node index assigning pass, skip to the next halo.
                    cycle
                 else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
-                   ! Descendent is not a subhalo but this node is not the primary progenitor. Assume instantaneous merging.
-                   basic => nodeList(iIsolatedNode)%node%basic()
-                   timeSubhaloMerges=basic%time()
+                   ! Descendent is not a subhalo but this node is not the primary progenitor. Assume the halo merges
+                   ! instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of the
+                   ! parent halo.)
+                   basic             => nodeList(iIsolatedNode)%node%parent%basic()
+                   timeSubhaloMerges =  basic                              %time ()
                    ! Flag that this node will merge.
                    nodeWillMerge=.true.
                    ! Record the node with which the merger occurs.
