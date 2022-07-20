@@ -112,10 +112,10 @@ sub Class_Property_Default {
 	    $requiredModules->{'Memory_Management,only:allocateArray'} = 1
 		if ( exists($implementationProperty->{'classDefault'}->{'count'}) );
 	    my $classDefault = $implementationProperty->{'classDefault'}->{'code'};
-	    while ( $classDefault =~ m/self([a-zA-Z]+)Component\s*%/ ) {
+	    while ( $classDefault =~ m/self([a-zA-Z]+)\s*%/ ) {
 		$requiredComponents->{'all'            }->{$1} = 1;
 		$requiredComponents->{$member->{'name'}}->{$1} = 1;
-		$classDefault                                  =~ s/self([a-zA-Z]+)Component\s*%//;
+		$classDefault                                  =~ s/self([a-zA-Z]+)\s*%//;
 	    }
 	}
 	# Insert any required modules.
@@ -128,7 +128,7 @@ sub Class_Property_Default {
 		intrinsic  => "type",
 		type       => "treeNode",
 		attributes => [ "pointer" ],
-		variables  => [ "selfNode" ]
+		variables  => [ "node" ]
 	    }
 	    )
 	    if ( scalar(keys(%{$requiredComponents->{'all'}})) > 0 );
@@ -139,7 +139,7 @@ sub Class_Property_Default {
 		intrinsic  => "class",
 		type       => "nodeComponent".ucfirst($_),
 		attributes => [ "pointer" ],
-		variables  => [ "self".ucfirst($_)."Component" ]
+		variables  => [ "self".ucfirst($_) ]
 	    }
 	    )
 	    foreach ( &List::ExtraUtils::sortedKeys($requiredComponents->{'all'}) );
@@ -157,12 +157,12 @@ if (nodeComponent{ucfirst($class->{'name'}).ucfirst($member->{'name'})}IsActiveV
 CODE
 	    if ( scalar(keys(%{$requiredComponents->{$code::member->{'name'}}})) > 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   selfNode => self%host()
+   node => self%host()
 CODE
 	    }
 	    foreach $code::component ( &List::ExtraUtils::sortedKeys($requiredComponents->{$code::member->{'name'}}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   self{$component}Component => selfNode%{$component}()
+   self{$component} => node%{$component}()
 CODE
 	    }
 	    if ( exists($code::implementationProperty->{'classDefault'}->{'count'}) ) {

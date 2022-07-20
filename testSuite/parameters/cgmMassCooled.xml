@@ -75,6 +75,9 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
     <!-- Gas cooling -->
     <nodeOperator value="massCooled"/>
   </nodeOperator>

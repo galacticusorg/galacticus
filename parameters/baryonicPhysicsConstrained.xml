@@ -195,9 +195,6 @@
   <blackHoleEfficiency value="0.00361121531459326"/>
   <blackHoleJetFraction value="0.0436415271218433"/>
 
-  <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
-
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020"/>
   <satelliteMergingTimescales value="villalobos2013">
@@ -265,6 +262,9 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
     <!-- Positions for subhalos -->
     <nodeOperator value="positionTraceDarkMatter"/>
   </nodeOperator>

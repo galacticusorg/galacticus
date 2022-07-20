@@ -142,6 +142,9 @@
     <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
     <nodeOperator value="hierarchy"                         iterable="no"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
   </nodeOperator>
 
 </parameters>

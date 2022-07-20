@@ -58,10 +58,6 @@
      module procedure satelliteMergingTimeConstructorInternal
   end interface nodeOperatorSatelliteMergingTime
 
-  ! Submodule-scope pointer to self, used in callback functions.
-  class(nodeOperatorSatelliteMergingTime), pointer :: self_
-  !$omp threadprivate(self_)
-  
 contains
 
   function satelliteMergingTimeConstructorParameters(parameters) result(self)
@@ -147,7 +143,15 @@ contains
     class(nodeOperatorSatelliteMergingTime), intent(inout), target :: self
     type (treeNode                        ), intent(inout), target :: node
 
-    if (node%isSatellite()) call self%timeMergingSet(node)
+    if     (                                               &
+         &                     node%isSatellite        ()  &
+         &  .or.                                           &
+         &   (                                             &
+         &     .not.           node%isPrimaryProgenitor()  &
+         &    .and.                                        &
+         &          associated(node%parent               ) &
+         &   )                                             &
+         & ) call self%timeMergingSet(node)
     return
   end subroutine satelliteMergingTimeNodeTreeInitialize
   
@@ -213,7 +217,8 @@ contains
     Set the time of merging for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
-    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Kepler_Orbits   , only : keplerOrbit       , keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta, &
+         &                          keplerOrbitPhi    , keplerOrbitVelocityRadial, keplerOrbitVelocityTangential
     implicit none
     class           (nodeOperatorSatelliteMergingTime), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -221,25 +226,37 @@ contains
     class           (nodeComponentSatellite          ), pointer       :: satellite
     type            (treeNode                        ), pointer       :: nodeHost
     logical                                           , parameter     :: acceptUnboundOrbits=.false.
-    double precision                                                  :: timeUntilMerging
+    double precision                                                  :: timeUntilMerging           , timeHost
     type            (keplerOrbit                     )                :: orbit
 
     ! Get the satellite component.
     satellite => node%satellite(autoCreate=.true.)
     ! Get an orbit for this satellite.
     if (node%isSatellite()) then
-       nodeHost => node%parent
+       nodeHost => node %parent
+       basic    => node %basic            ()
+       timeHost =  basic%time             ()
     else
-       nodeHost => node%parent%firstChild
+       nodeHost => node %parent%firstChild
+       basic    => node %parent%basic     ()
+       timeHost =  basic%time             ()
     end if
-    orbit=self%virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
+    call orbit%reset()
+    if (satellite%virialOrbitIsGettable()) &
+         & orbit=satellite%virialOrbit()
+    if (orbit%isDefined()) then
+       call orbit%reset(keep=[keplerOrbitMasses,keplerOrbitRadius,keplerOrbitTheta,keplerOrbitPhi,keplerOrbitVelocityRadial,keplerOrbitVelocityTangential])
+    else
+       orbit=self%virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
+    end if
+    if (satellite%virialOrbitIsSettable())      &
+         & call satellite%virialOrbitSet(orbit)
     ! Compute and store a time until merging.
     timeUntilMerging=self%satelliteMergingTimescales_%timeUntilMerging(node,orbit)
     if (timeUntilMerging >= 0.0d0) then
-       basic => node%basic()
-       call satellite%timeOfMergingSet(                          &
-            &                          +      timeUntilMerging   &
-            &                          +basic%time            () &
+       call satellite%timeOfMergingSet(                  &
+            &                          +timeUntilMerging &
+            &                          +timeHost         &
             &                         )
     end if
     return

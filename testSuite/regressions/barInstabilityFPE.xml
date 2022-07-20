@@ -305,9 +305,6 @@
   <blackHoleEfficiency value="0.213288020410184"/>
   <blackHoleJetFraction value="0.00657974778017468"/>
 
-  <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
-
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020">
     <darkMatterHaloScale   value="virialDensityContrastDefinition"/>
@@ -333,9 +330,6 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
-
-    
-
     
     <!-- Cosmological epoch -->
     <nodeOperator value="cosmicTime"/>
@@ -351,7 +345,11 @@
       <factorReset value="2.0"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
-    
+
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+
     <!-- Star formation options -->
     <nodeOperator value="starFormationDisks">
       <luminositiesStellarInactive value="true"/>

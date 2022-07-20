@@ -84,7 +84,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <classDefault>selfBasicComponent%mass()</classDefault>
+      <classDefault>selfBasic%mass()</classDefault>
       <output unitsInSI="massSolar" comment="Bound mass of the node."/>
     </property>
     <property>

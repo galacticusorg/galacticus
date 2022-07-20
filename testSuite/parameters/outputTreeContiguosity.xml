@@ -206,9 +206,6 @@
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <bondiHoyleAccretionHotModeOnly value="true"/>
 
-  <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
-
   <!-- Galaxy merger options -->
   <virialOrbit value="benson2005"/>
   <satelliteMergingTimescales value="jiang2008">
@@ -238,6 +235,11 @@
       <spinVarianceSpecific value="1.0e-3"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"    >
+      <massBoundIsInactive value="true"/>
+    </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks">
       <luminositiesStellarInactive value="true"/>

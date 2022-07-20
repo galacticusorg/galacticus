@@ -78,6 +78,9 @@
   	<!-- Halo spins -->
   	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime" iterable="no"/>
+	<nodeOperator value="satelliteMassLoss" iterable="no"   />
   	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -228,7 +231,6 @@
       <nodeOperatorTreeInitializor value="darkMatterProfileScaleSet"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
-      <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
       <presetOrbits value="true"/>
       <presetOrbitsBoundOnly value="true"/>
       <componentSatellite value="standard" parameterLevel="top">
@@ -254,6 +256,9 @@
 	  <!-- Halo spins -->
 	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
 	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	  <!-- Satellite evolution -->
+	  <nodeOperator value="satelliteMergingTime" iterable="no"/>
+	  <nodeOperator value="satelliteMassLoss" iterable="no"   />
 	  <!-- Star formation -->
 	  <nodeOperator value="starFormationDisks" iterable="no"/>
 	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -291,6 +296,9 @@
 	  <!-- Halo spins -->
 	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
 	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	  <!-- Satellite evolution -->
+	  <nodeOperator value="satelliteMergingTime" iterable="no"/>
+	  <nodeOperator value="satelliteMassLoss" iterable="no"   />
 	  <!-- Star formation -->
 	  <nodeOperator value="starFormationDisks" iterable="no"/>
 	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -630,7 +638,10 @@
   	<!-- Halo spins -->
   	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
-  	<!-- Star formation -->
+  	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime" iterable="no"/>
+	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
   	<!--Stellar feedback outflows-->
@@ -697,7 +708,10 @@
   	<!-- Halo spins -->
   	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
-  	<!-- Star formation -->
+ 	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime" iterable="no"/>
+	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+ 	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
   	<!--Stellar feedback outflows-->
@@ -741,7 +755,10 @@
   	<!-- Halo spins -->
   	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
   	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
-  	<!-- Star formation -->
+  	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime" iterable="no"/>
+	<nodeOperator value="satelliteMassLoss" iterable="no"   />
+	<!-- Star formation -->
   	<nodeOperator value="starFormationDisks" iterable="no"/>
   	<nodeOperator value="starFormationSpheroids" iterable="no"/>
   	<!--Stellar feedback outflows-->
@@ -1030,6 +1047,9 @@
   	<factorReset value="2.0"/>
       </nodeOperator>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1071,6 +1091,9 @@
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
   	<factorReset value="2.0"/>
       </nodeOperator>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1114,6 +1137,9 @@
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
   	<factorReset value="2.0"/>
       </nodeOperator>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1156,6 +1182,9 @@
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
   	<factorReset value="2.0"/>
       </nodeOperator>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -1404,7 +1433,6 @@
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>
     </accretionHalo>
-    <satelliteOrbitStoreOrbitalParameters value="true"/>
     <mergerRemnantSize value="null"/>
   </parameters>
 
@@ -1494,6 +1522,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1545,6 +1576,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1599,6 +1633,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1642,6 +1679,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1688,6 +1728,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1733,6 +1776,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1778,6 +1824,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1823,6 +1872,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1874,6 +1926,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1918,6 +1973,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -1979,6 +2037,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2036,6 +2097,9 @@
       <nodeOperator value="cosmicTime"     iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2098,6 +2162,9 @@
       <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Subhalo hierarchy -->
       <nodeOperator value="hierarchy" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2124,6 +2191,9 @@
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
     </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
@@ -2329,6 +2399,9 @@
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss" iterable="no"   />
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>

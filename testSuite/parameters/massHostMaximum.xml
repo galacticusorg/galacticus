@@ -90,6 +90,9 @@
     <nodeOperator value="DMOInterpolate"/>
     <!-- Maximum host mass -->
     <nodeOperator value="massHostMaximum"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
   </nodeOperator>
   
   <!-- Numerical tolerances -->
