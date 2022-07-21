@@ -256,9 +256,6 @@
 	  <!-- Halo spins -->
 	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
 	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
-	  <!-- Satellite evolution -->
-	  <nodeOperator value="satelliteMergingTime" iterable="no"/>
-	  <nodeOperator value="satelliteMassLoss" iterable="no"   />
 	  <!-- Star formation -->
 	  <nodeOperator value="starFormationDisks" iterable="no"/>
 	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -296,9 +293,6 @@
 	  <!-- Halo spins -->
 	  <nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
 	  <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
-	  <!-- Satellite evolution -->
-	  <nodeOperator value="satelliteMergingTime" iterable="no"/>
-	  <nodeOperator value="satelliteMassLoss" iterable="no"   />
 	  <!-- Star formation -->
 	  <nodeOperator value="starFormationDisks" iterable="no"/>
 	  <nodeOperator value="starFormationSpheroids" iterable="no"/>
@@ -334,6 +328,40 @@
       <presetPositions value="true"/>
       <presetAngularMomenta value="false"/>
       <presetScaleRadii value="false"/>
+      <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
+	<!-- Halo concentrations -->
+	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	<!-- Halo spins -->
+	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Star formation -->
+	<nodeOperator value="starFormationDisks" iterable="no"/>
+	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+	<!--Stellar feedback outflows-->
+	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+	      <velocityCharacteristic value="250.0"/>
+	      <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+	      <velocityCharacteristic value="250.0"/>
+	      <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+      </nodeOperator>
     </mergerTreeConstructor>
 
     <!-- Tree filtering -->
