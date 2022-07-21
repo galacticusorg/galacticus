@@ -204,7 +204,7 @@ jobs:
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Update release
-        if: ${{ steps.extract_branch.outputs.branch }} == 'master'
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -214,7 +214,7 @@ jobs:
           message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
-        if: ${{ steps.extract_branch.outputs.branch }} == 'master'
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: richardsimko/update-tag@v1
         with:
           tag_name: bleeding-edge
