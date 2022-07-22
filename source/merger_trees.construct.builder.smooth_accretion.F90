@@ -122,7 +122,11 @@ contains
     <constructorAssign variables="massHaloDeclineFactor, timeEarliest, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *mergerTreeMassResolution_"/>
     !!]
 
-    self%redshiftEarliest=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeEarliest))
+    if (timeEarliest > 0.0d0) then
+       self%redshiftEarliest=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeEarliest))
+    else
+       self%redshiftEarliest=huge(0.0d0)
+    end if
     return
   end function smoothAccretionConstructorInternal
 
