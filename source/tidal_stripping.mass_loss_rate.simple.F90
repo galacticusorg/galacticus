@@ -26,7 +26,24 @@
 
   !![
   <tidalStripping name="tidalStrippingSimple">
-   <description>A simple model of tidal stripping.</description>
+    <description>
+      A simple model of tidal stripping.  Specifically, the mass loss rate is
+      \begin{equation}
+      \dot{M} = -\alpha M/\tau,
+      \end{equation}
+      where
+      \begin{equation}
+      \alpha = \beta F_\mathrm{tidal}/F_\mathrm{gravity},
+      \end{equation}
+      $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tidal}$ is the tidal field from the host halo
+      (see \refPhysics{satelliteTidalField}),      
+      \begin{equation}
+      F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
+      \end{equation}      
+      is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$, and $\tau =
+      r_\mathrm{s}/v_\mathrm{c}(r_\mathrm{s})$ is the dynamical time of the galactic component with $r_\mathrm{s}$ being the scale
+      radius of the component, and $v_\mathrm{c}(r)$ the circular velocity of the component at radius $r$.
+    </description>
   </tidalStripping>
   !!]
   type, extends(tidalStrippingClass) :: tidalStrippingSimple
@@ -121,20 +138,7 @@ contains
 
   double precision function simpleRateMassLoss(self,component)
     !!{
-    Computes the mass loss rate due to tidal stripping assuming a simple model. Specifically, the mass loss
-    rate is
-    \begin{equation}
-    \dot{M} = -\alpha M/\tau,
-    \end{equation}
-    where
-    \begin{equation}
-    \alpha = \beta F_\mathrm{tidal}/F_\mathrm{gravity},
-    \end{equation}
-    $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tidal}$ is the tidal field from the host halo (see \refPhysics{satelliteTidalField}), and
-    \begin{equation}
-    F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
-    \end{equation}
-    is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
+    Computes the mass loss rate due to tidal stripping assuming a simple model.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear         , megaParsec
