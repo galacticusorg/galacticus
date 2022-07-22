@@ -128,9 +128,9 @@ contains
                         &                     )                                    &
                         &              *self%massSplitting_**2                     &
                         &              *(speedLight/kilo)**2
-    if (self%massLoss_) massLossEnergy = self%gamma_*self%massSplitting_                   &
-                            &            *darkMatterProfileDMO_%potential(node, radius)    &
-                            &            *(+1.0d0 - exp(-basic%time() / self%lifetime_))
+    if (self%massLoss_) massLossEnergy = -self%gamma_*self%massSplitting_                   &
+                            &             *darkMatterProfileDMO_%potential(node, radius)    &
+                            &             *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     DDMv2SpecificEnergy = heatingEnergy + massLossEnergy
     return
   end function DDMv2SpecificEnergy
@@ -152,7 +152,7 @@ contains
     basic             => node%basic()
     if (self%massLoss_) then
       DDMv2SpecificEnergyGradient=self%gamma_*self%massSplitting_                                                                &
-             &                    *(-darkMatterProfileDMO_%potential(node, radius)/radius                                       &
+             &                    *(darkMatterProfileDMO_%potential(node, radius)/radius                                       &
              &                    +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius) &
              &                    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     else
