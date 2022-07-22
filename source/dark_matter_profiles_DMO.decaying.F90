@@ -38,6 +38,7 @@
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_                => null()
      integer                                              :: nonAnalyticSolver
      double precision                                     :: lifetime_, massSplitting_
+     logical                                              :: massLoss_
    contains
      final     ::                                      decayingDestructor
      procedure :: density                           => decayingDensity
@@ -48,6 +49,7 @@
      procedure :: enclosedMass                      => decayingEnclosedMass
      procedure :: potential                         => decayingPotential
      procedure :: circularVelocity                  => decayingCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => decayingRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => decayingCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => decayingRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => decayingRadiusFromSpecificAngularMomentum
@@ -122,10 +124,12 @@ contains
     class is (darkMatterParticleDecayingDarkMatter)
        self%lifetime_ = darkMatterParticle_%lifetime()
        self%massSplitting_ = darkMatterParticle_%massSplitting()
+       self%massLoss_ = darkMatterParticle_%massLoss()
     class default
        ! No decays.
        self%lifetime_=-1.0d0
        self%massSplitting_=0.0d0
+       self%massLoss_=.false.
     end select
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
@@ -159,8 +163,12 @@ contains
     class           (nodeComponentBasic          ), pointer       :: basic
     
     basic             => node%basic()
-    factor = +1.0d0 - self%massSplitting_                   &
-       &    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
+    if (self%massLoss_) then 
+      factor = +1.0d0 - self%massSplitting_                   &
+        &    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
+    else
+      factor = +1.0d0
+    end if
     return
   end subroutine decayingDecayingFactor
 
@@ -322,7 +330,7 @@ contains
     !!}
     implicit none
     class(darkMatterProfileDMODecaying), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
+    type (treeNode                    ), intent(inout) :: node
     double precision                                    :: factor
     
     call self%decayingFactor(node, factor)
@@ -333,6 +341,22 @@ contains
     end if
     return
   end function decayingCircularVelocityMaximum
+
+  double precision function decayingRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class(darkMatterProfileDMODecaying), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       decayingRadiusCircularVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum         (node)
+    else
+       decayingRadiusCircularVelocityMaximum=self                      %radiusCircularVelocityMaximumNumerical(node)
+    end if
+    return
+  end function decayingRadiusCircularVelocityMaximum
 
   ! Multiply by sqrt of factor
   double precision function decayingRadialVelocityDispersion(self,node,radius)

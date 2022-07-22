@@ -90,7 +90,7 @@ c_lib.cosmologyParametersDestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.darkMatterParticleCDML.restype  = c_void_p
 c_lib.darkMatterParticleCDML.argtypes = [  ]
 c_lib.darkMatterParticleDecayingDarkMatterL.restype  = c_void_p
-c_lib.darkMatterParticleDecayingDarkMatterL.argtypes = [ c_double, c_double, c_void_p, c_int ]
+c_lib.darkMatterParticleDecayingDarkMatterL.argtypes = [ c_double, c_double, c_bool, c_bool, c_double, c_void_p, c_int ]
 c_lib.darkMatterParticleFuzzyDarkMatterL.restype  = c_void_p
 c_lib.darkMatterParticleFuzzyDarkMatterL.argtypes = [ c_double, c_double ]
 c_lib.darkMatterParticleSelfInteractingDarkMatterL.restype  = c_void_p
@@ -195,7 +195,7 @@ c_lib.darkMatterProfileDMODestructorL.argtypes = [ c_void_p, c_int ]
 c_lib.darkMatterProfileHeatingDDML.restype  = c_void_p
 c_lib.darkMatterProfileHeatingDDML.argtypes = [ c_double, c_double ]
 c_lib.darkMatterProfileHeatingDDMv2L.restype  = c_void_p
-c_lib.darkMatterProfileHeatingDDMv2L.argtypes = [ c_void_p, c_int, c_bool, c_bool, c_double ]
+c_lib.darkMatterProfileHeatingDDMv2L.argtypes = [ c_void_p, c_int ]
 c_lib.darkMatterProfileHeatingImpulsiveOutflowL.restype  = c_void_p
 c_lib.darkMatterProfileHeatingImpulsiveOutflowL.argtypes = [ c_double, c_void_p ]
 c_lib.darkMatterProfileHeatingNullL.restype  = c_void_p
@@ -2887,11 +2887,11 @@ class darkMatterProfileHeatingImpulsiveOutflow(darkMatterProfileHeating):
 class darkMatterProfileHeatingDDMv2(darkMatterProfileHeating):
 
     # Constructor
-    def __init__(self,darkMatterParticle_,heating,massLoss,gamma):
+    def __init__(self,darkMatterParticle_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 2
     
-        self._glcObj = c_lib.darkMatterProfileHeatingDDMv2L(darkMatterParticle_._glcObj,darkMatterParticle_._classID,heating,massLoss,gamma)
+        self._glcObj = c_lib.darkMatterProfileHeatingDDMv2L(darkMatterParticle_._glcObj,darkMatterParticle_._classID)
 
 class darkMatterProfileHeatingDDM(darkMatterProfileHeating):
 
@@ -3122,11 +3122,11 @@ class darkMatterParticleFuzzyDarkMatter(darkMatterParticle):
 class darkMatterParticleDecayingDarkMatter(darkMatterParticle):
 
     # Constructor
-    def __init__(self,lifetime,massSplitting,darkMatterParticle_):
+    def __init__(self,lifetime,massSplitting,heating,massLoss,gamma,darkMatterParticle_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 2
     
-        self._glcObj = c_lib.darkMatterParticleDecayingDarkMatterL(lifetime,massSplitting,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
+        self._glcObj = c_lib.darkMatterParticleDecayingDarkMatterL(lifetime,massSplitting,heating,massLoss,gamma,darkMatterParticle_._glcObj,darkMatterParticle_._classID)
 
 class darkMatterParticleCDM(darkMatterParticle):
 

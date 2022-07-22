@@ -37,8 +37,8 @@
      !!}
      private
      class           (darkMatterParticleClass), pointer     :: darkMatterParticle_     => null()
-     logical                                                :: heating, massLoss
-     double precision                                       :: lifetime_, massSplitting_, gamma
+     logical                                                :: heating_, massLoss_
+     double precision                                       :: lifetime_, massSplitting_, gamma_
   contains
      procedure :: specificEnergy                  => DDMv2SpecificEnergy
      procedure :: specificEnergyGradient          => DDMv2SpecificEnergyGradient
@@ -64,31 +64,11 @@ contains
     type            (darkMatterProfileHeatingDDMv2), target              :: self
     type            (inputParameters              ), intent(inout)       :: parameters
     class           (darkMatterParticleClass      ), pointer             :: darkMatterParticle_
-    logical                                                              :: heating   , massLoss
-    double precision                                                     :: gamma
          
     !![
-    <inputParameter>
-      <name>heating</name>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-      <description>Indicates if heating from decays should be considered.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>massLoss</name>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-      <description>Indicates if mass loss effects should be considered.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>gamma</name>
-      <defaultValue>+1.0d0</defaultValue>
-      <source>parameters</source>
-      <description>Free parameter in mass loss heating term.</description>
-    </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     !!]
-    self=darkMatterProfileHeatingDDMv2(darkMatterParticle_, heating, massLoss, gamma)
+    self=darkMatterProfileHeatingDDMv2(darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"  />
@@ -96,7 +76,7 @@ contains
     return
   end function DDMv2ConstructorParameters
 
-  function DDMv2ConstructorInternal(darkMatterParticle_, heating, massLoss, gamma) result(self)
+  function DDMv2ConstructorInternal(darkMatterParticle_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily DDM} dark matter profile heating scales class.
     !!}
@@ -104,19 +84,23 @@ contains
     implicit none
     type            (darkMatterProfileHeatingDDMv2)                        :: self
     class           (darkMatterParticleClass      ), intent(in   ), target :: darkMatterParticle_
-    logical                                        , intent(in   )         :: heating , massLoss
-    double precision                               , intent(in   )         :: gamma
     !![
-    <constructorAssign variables="*darkMatterParticle_, heating, massLoss, gamma"/>
+    <constructorAssign variables="*darkMatterParticle_"/>
     !!]
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
        self%lifetime_ = darkMatterParticle_%lifetime()
        self%massSplitting_ = darkMatterParticle_%massSplitting()
+       self%heating_ = darkMatterParticle_%heating()
+       self%massLoss_ = darkMatterParticle_%massLoss()
+       self%gamma_ = darkMatterParticle_%gamma()
     class default
        ! No decays.
        self%lifetime_=-1.0d0
        self%massSplitting_=0.0d0
+       self%heating_ = .false.
+       self%massLoss_ = .false.
+       self%gamma_ =+1.0d0
     end select
     return
   end function DDMv2ConstructorInternal
@@ -130,30 +114,23 @@ contains
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
-    class           (darkMatterProfileDMOClass  ), intent(inout) :: darkMatterProfileDMO_
-    class           (nodeComponentBasic         ), pointer       :: basic
-    double precision :: heatingEnergy, massLossEnergy
+    type            (treeNode                     ), intent(inout) :: node
+    double precision                               , intent(in   ) :: radius
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
+    class           (nodeComponentBasic           ), pointer       :: basic
+    double precision                                               :: heatingEnergy, massLossEnergy
 
     basic             => node%basic()
-    if (self%heating) then
-      heatingEnergy = +0.5d0*(                                    &
-           &          +1.0d0 - exp(-basic%time() / self%lifetime_)&
-           &                 )                                    &
-           &          *self%massSplitting_**2                     &
-           &              *(speedLight/kilo)**2
-    else
-      heatingEnergy = 0.0d0
-    end if
-    if (self%massLoss) then
-      massLossEnergy = (+0.5d0*self%massSplitting_**2*(speedLight/kilo)**2&
-           &            +self%gamma*self%massSplitting_                   &
-           &            *darkMatterProfileDMO_%potential(node, radius)    &
-           &           )*(+1.0d0 - exp(-basic%time() / self%lifetime_))
-    else
-      massLossEnergy = 0.0d0
-    end if
+    heatingEnergy = 0.0d0
+    massLossEnergy = 0.0d0
+    if (self%heating_) heatingEnergy = +0.5d0*(                                    &
+                        &              +1.0d0 - exp(-basic%time() / self%lifetime_)&
+                        &                     )                                    &
+                        &              *self%massSplitting_**2                     &
+                        &              *(speedLight/kilo)**2
+    if (self%massLoss_) massLossEnergy = self%gamma_*self%massSplitting_                   &
+                            &            *darkMatterProfileDMO_%potential(node, radius)    &
+                            &            *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     DDMv2SpecificEnergy = heatingEnergy + massLossEnergy
     return
   end function DDMv2SpecificEnergy
@@ -173,8 +150,8 @@ contains
     class           (nodeComponentBasic           ), pointer       :: basic
     
     basic             => node%basic()
-    if (self%massLoss) then
-      DDMv2SpecificEnergyGradient=self%gamma*self%massSplitting_                                                                &
+    if (self%massLoss_) then
+      DDMv2SpecificEnergyGradient=self%gamma_*self%massSplitting_                                                                &
              &                    *(-darkMatterProfileDMO_%potential(node, radius)/radius                                       &
              &                    +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius) &
              &                    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
@@ -194,6 +171,6 @@ contains
     class(darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     !$GLC attributes unused :: darkMatterProfileDMO_
 
-    DDMv2SpecificEnergyIsEverywhereZero=(self%lifetime_ <= 0.0d0) .or. (self%massSplitting_ <= 0.0d0) .or. (.not. (self%heating .or. self%massLoss))
+    DDMv2SpecificEnergyIsEverywhereZero=(self%lifetime_ <= 0.0d0) .or. (self%massSplitting_ <= 0.0d0) .or. (.not. (self%heating_ .or. self%massLoss_))
     return
   end function DDMv2SpecificEnergyIsEverywhereZero

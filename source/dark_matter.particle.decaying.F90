@@ -32,18 +32,25 @@ Contains a module which implements a decaying dark matter particle class.
      !!}
      private
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()
-     double precision                                   :: lifetime_, massSplitting_
+     double precision                                   :: lifetime_, massSplitting_, gamma_
+     logical                                            :: heating_, massLoss_
    contains
      !![
      <methods>
-       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
-       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential" />
+       <method description="Return the lifetime of the dark matter particle." method="lifetime" />
+       <method description="Return the mass splitting of the decay." method="massSplitting" />
+       <method description="Return boolean that indicates if heating from decays should be included." method="heating" />
+       <method description="Return boolean that indicates if mass loss from decays should be included." method="massLoss" />
+       <method description="Return free parameter in heating in response to mass loss." method="gamma" />
      </methods>
      !!]
      final     ::                         decayingDMDestructor
      procedure :: mass                 => decayingDMMass
      procedure :: lifetime             => decayingDMLifetime
      procedure :: massSplitting        => decayingDMMassSplitting
+     procedure :: heating              => decayingDMHeating
+     procedure :: massLoss             => decayingDMMassLoss
+     procedure :: gamma                => decayingDMGamma
   end type darkMatterParticleDecayingDarkMatter
 
   interface darkMatterParticleDecayingDarkMatter
@@ -65,7 +72,8 @@ contains
     type            (darkMatterParticleDecayingDarkMatter)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (darkMatterParticleClass             ), pointer       :: darkMatterParticle_
-    double precision                                                      :: lifetime, massSplitting
+    double precision                                                      :: lifetime, massSplitting, gamma
+    logical                                                               :: heating, massLoss
 
     !![
     <inputParameter>
@@ -80,9 +88,30 @@ contains
       <variable>massSplitting</variable>
       <description>Mass splitting of the dark matter decay.</description>
     </inputParameter>
+    <inputParameter>
+      <name>heating</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <variable>heating</variable>
+      <description>Boolean that indicates if heating from decays should be included.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massLoss</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <variable>massLoss</variable>
+      <description>Boolean that indicates if mass loss should be included.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma</name>
+      <defaultValue>1.0d0</defaultValue>
+      <source>parameters</source>
+      <variable>gamma</variable>
+      <description>Free parameter in heating in response to mass loss.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=darkMatterParticleDecayingDarkMatter(lifetime,massSplitting,darkMatterParticle_)
+    self=darkMatterParticleDecayingDarkMatter(lifetime,massSplitting,heating,massLoss,gamma,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_" />
@@ -90,20 +119,23 @@ contains
     return
   end function decayingDMConstructorParameters
 
-  function decayingDMConstructorInternal(lifetime,massSplitting,darkMatterParticle_) result(self)
+  function decayingDMConstructorInternal(lifetime,massSplitting,heating,massLoss,gamma,darkMatterParticle_) result(self)
     !!{
     Internal constructor for the ``{\normalfont \ttfamily decayingDarkMatter}'' dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleDecayingDarkMatter)                        :: self
     class           (darkMatterParticleClass             ), intent(in   ), target :: darkMatterParticle_
-    double precision                                      , intent(in   )         :: lifetime, massSplitting
+    double precision                                      , intent(in   )         :: lifetime, massSplitting, gamma
+    logical                                               , intent(in   )         :: heating, massLoss
     !![
     <constructorAssign variables="*darkMatterParticle_"/>
     !!]
-
-    self%lifetime_=lifetime
-    self%massSplitting_=massSplitting
+    self%lifetime_ = lifetime
+    self%massSplitting_ = massSplitting
+    self%heating_ = heating
+    self%massLoss_ = massLoss
+    self%gamma_ = gamma 
     return
   end function decayingDMConstructorInternal
 
@@ -152,3 +184,36 @@ contains
     decayingDMMassSplitting=self%massSplitting_
     return
   end function decayingDMMassSplitting
+
+  logical function decayingDMHeating(self)
+    !!{
+    Return boolean that indicates if heating from decays is included.
+    !!}
+    implicit none
+    class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
+
+    decayingDMHeating=self%heating_
+    return
+  end function decayingDMHeating
+
+  logical function decayingDMMassLoss(self)
+    !!{
+    Return boolean that indicates is mass loss is included.
+    !!}
+    implicit none
+    class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
+
+    decayingDMMassLoss=self%massLoss_
+    return
+  end function decayingDMMassLoss
+
+  double precision function decayingDMGamma(self)
+    !!{
+    Return the free parameter in the heating in response to mass loss.
+    !!}
+    implicit none
+    class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
+
+    decayingDMGamma=self%gamma_
+    return
+  end function decayingDMGamma
