@@ -23,6 +23,7 @@
 
   use :: Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass
   use :: Virial_Orbits               , only : virialOrbitClass
+  use :: Kind_Numbers                , only : kind_int8
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingTime">
@@ -36,6 +37,7 @@
      private
      class  (virialOrbitClass               ), pointer :: virialOrbit_                => null()
      class  (satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
+     integer(kind_int8                      )          :: uniqueIDProcessed
      logical                                           :: resetOnHaloFormation
    contains
      !![
@@ -139,19 +141,30 @@ contains
     !!{
     Initialize merging time of any initial satellites in a tree.
     !!}
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    class(nodeOperatorSatelliteMergingTime), intent(inout), target :: self
-    type (treeNode                        ), intent(inout), target :: node
+    class(nodeOperatorSatelliteMergingTime), intent(inout), target  :: self
+    type (treeNode                        ), intent(inout), target  :: node
+    type (treeNode                        )               , pointer :: nodeWork
+    type (mergerTreeWalkerAllNodes        )                         :: treeWalker
 
-    if     (                                               &
-         &                     node%isSatellite        ()  &
-         &  .or.                                           &
-         &   (                                             &
-         &     .not.           node%isPrimaryProgenitor()  &
-         &    .and.                                        &
-         &          associated(node%parent               ) &
-         &   )                                             &
-         & ) call self%timeMergingSet(node)
+!    ! If we have already processed this tree, no need to do it again.
+!    if (node%hostTree%nodeBase%uniqueID() == self%uniqueIDProcessed) return
+!    self%uniqueIDProcessed=node%hostTree%nodeBase%uniqueID()
+!    ! Perform our own depth-first tree walk to set scales in all nodes of the tree.
+!    treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
+!    do while (treeWalker%next(nodeWork))
+    nodeWork => node
+    if     (                                                   &
+            &                     nodeWork%isSatellite        ()  &
+            &  .or.                                               &
+            &   (                                                 &
+            &     .not.           nodeWork%isPrimaryProgenitor()  &
+            &    .and.                                            &
+            &          associated(nodeWork%parent               ) &
+            &   )                                                 &
+            & ) call self%timeMergingSet(nodeWork)
+    !end do
     return
   end subroutine satelliteMergingTimeNodeTreeInitialize
   

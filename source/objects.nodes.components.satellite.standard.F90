@@ -26,6 +26,7 @@ module Node_Component_Satellite_Standard
   !!}
   implicit none
   private
+  public :: Node_Component_Satellite_Standard_Initialize, Node_Component_Satellite_Standard_Inactive, Node_Component_Satellite_Standard_Scale_Set
 
   !![
   <component>
@@ -55,4 +56,90 @@ module Node_Component_Satellite_Standard
   </component>
   !!]
 
+  ! Record of whether satellite bound mass is an inactive variable.
+  logical :: satelliteBoundMassIsInactive
+
+contains
+
+  !![
+  <nodeComponentInitializationTask>
+    <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Initialize(parameters_)
+    !!{
+    Initializes the standard satellite orbit component module.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatelliteStandard
+    use :: Input_Parameters, only : inputParameter                , inputParameters
+    implicit none
+    type(inputParameters               ), intent(inout) :: parameters_
+    type(nodeComponentSatelliteStandard)                :: satellite
+    
+    if (satellite%standardIsActive()) then
+       !![
+       <inputParameter>
+         <name>satelliteBoundMassIsInactive</name>
+         <defaultValue>.false.</defaultValue>
+         <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
+    end if
+    return
+  end subroutine Node_Component_Satellite_Standard_Initialize
+  
+  !![
+  <inactiveSetTask>
+    <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
+  </inactiveSetTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Inactive(node)
+    !!{
+    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
+    implicit none
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentSatellite)               , pointer :: satellite
+    
+    ! Get the satellite component.
+    satellite => node%satellite()
+    ! Check if an standard satellite component exists.
+    select type (satellite)
+    class is (nodeComponentSatelliteStandard)
+       if (satelliteBoundMassIsInactive) call satellite%boundMassInactive()
+    end select
+    return
+  end subroutine Node_Component_Satellite_Standard_Inactive
+  
+  !![
+  <scaleSetTask>
+    <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Scale_Set(node)
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
+    implicit none
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentSatellite)               , pointer :: satellite
+    class           (nodeComponentBasic    )               , pointer :: basic
+    double precision                        , parameter              :: massScaleFractional=1.0d-6
+
+    ! Get the satellite component.
+    satellite => node%satellite()
+    ! Ensure that it is of the standard class.
+    select type (satellite)
+    class is (nodeComponentSatelliteStandard)
+       ! Get the basic component.
+       basic => node%basic()
+       ! Set scale for bound mass.
+       call satellite%boundMassScale(massScaleFractional*basic%mass())
+    end select
+    return
+  end subroutine Node_Component_Satellite_Standard_Scale_Set
+ 
 end module Node_Component_Satellite_Standard

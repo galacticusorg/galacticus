@@ -41,15 +41,13 @@
        <method method="massBoundSet" description="Set the time of merging for a satellite node."/>
      </methods>
      !!]
-     final     ::                                   satelliteMassLossDestructor
-     procedure :: autoHook                       => satelliteMassLossAutoHook
-     procedure :: nodeTreeInitialize             => satelliteMassLossNodeTreeInitialize
-     procedure :: nodePromote                    => satelliteMassLossNodePromote
-     procedure :: nodesMerge                     => satelliteMassLossNodesMerge
-     procedure :: massBoundSet                   => satelliteMassLossMassBoundSet
-     procedure :: differentialEvolutionScales    => satelliteMassLossDifferentialEvolutionScales
-     procedure :: differentialEvolutionInactives => satelliteMassLossDifferentialEvolutionInactives
-     procedure :: differentialEvolution          => satelliteMassLossDifferentialEvolution
+     final     ::                          satelliteMassLossDestructor
+     procedure :: autoHook              => satelliteMassLossAutoHook
+     procedure :: nodeInitialize        => satelliteMassLossNodeInitialize
+     procedure :: nodePromote           => satelliteMassLossNodePromote
+     procedure :: nodesMerge            => satelliteMassLossNodesMerge
+     procedure :: massBoundSet          => satelliteMassLossMassBoundSet
+     procedure :: differentialEvolution => satelliteMassLossDifferentialEvolution
   end type nodeOperatorSatelliteMassLoss
   
   interface nodeOperatorSatelliteMassLoss
@@ -131,12 +129,12 @@ contains
     return
   end subroutine satelliteMassLossDestructor
 
-  subroutine satelliteMassLossNodeTreeInitialize(self,node)
+  subroutine satelliteMassLossNodeInitialize(self,node)
     !!{
     Initialize bound mass of any initial satellites in a tree.
     !!}
     implicit none
-    class(nodeOperatorSatelliteMassLoss), intent(inout), target :: self
+    class(nodeOperatorSatelliteMassLoss), intent(inout)         :: self
     type (treeNode                     ), intent(inout), target :: node
 
     if     (                                               &
@@ -149,14 +147,13 @@ contains
          &   )                                             &
          & ) call self%massBoundSet(node)
     return
-  end subroutine satelliteMassLossNodeTreeInitialize
+  end subroutine satelliteMassLossNodeInitialize
 
   subroutine subhaloPromotion(self,node,nodePromotion)
     !!{
     Handle cases where a subhalo is promoted to be an isolated host.    
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
-    use :: Error           , only : Error_Report
     implicit none
     class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node          , nodePromotion
@@ -166,15 +163,10 @@ contains
     select type (self)
     class is (nodeOperatorSatelliteMassLoss)
        satellite => node%satellite()
-       select type (satellite)
-       type is (nodeComponentSatellite)
-          ! No satellite component exists in this node, so no need to do anything.
-       class default
+       if (satellite%boundMassIsSettable()) then
           basicPromotion => nodePromotion%basic()
           call satellite%boundMassSet(basicPromotion%mass())
-       end select
-    class default
-       call Error_Report('incorrect class'//{introspection:location})
+       end if
     end select
     return
   end subroutine subhaloPromotion
@@ -191,13 +183,10 @@ contains
     class(nodeComponentBasic           ), pointer       :: basicParent
 
     satellite => node%satellite()
-    select type (satellite)
-    type is (nodeComponentSatellite)
-       ! No satellite component exists in this node, so no need to do anything.
-    class default
+    if (satellite%boundMassIsSettable()) then
        basicParent => node%parent%basic()
        call satellite%boundMassSet(basicParent%mass())
-    end select
+    end if
     return
   end subroutine satelliteMassLossNodePromote
 
@@ -228,45 +217,11 @@ contains
 
     basic     => node%basic    ()
     satellite => node%satellite()
-    call satellite%boundMassSet(basic%mass())
+    if (satellite%boundMassIsSettable()) &
+         & call satellite%boundMassSet(basic%mass())
     return
   end subroutine satelliteMassLossMassBoundSet
 
-  subroutine satelliteMassLossDifferentialEvolutionScales(self,node)
-    !!{
-    Set scales for differential evolution.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
-    implicit none
-    class           (nodeOperatorSatelliteMassLoss), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    class           (nodeComponentSatellite       ), pointer       :: satellite
-    class           (nodeComponentBasic           ), pointer       :: basic
-    double precision                               , parameter     :: massScaleFractional=1.0d-6
-
-    basic     => node%basic    ()
-    satellite => node%satellite()
-    call satellite%boundMassScale(massScaleFractional*basic%mass())
-    return
-  end subroutine satelliteMassLossDifferentialEvolutionScales
-  
-  subroutine satelliteMassLossDifferentialEvolutionInactives(self,node)
-    !!{
-    Set scales for differential evolution.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    implicit none
-    class(nodeOperatorSatelliteMassLoss), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
-    class(nodeComponentSatellite       ), pointer       :: satellite
-
-    if (self%massBoundIsInactive) then
-       satellite => node%satellite()
-       call satellite%boundMassInactive()
-    end if
-    return
-  end subroutine satelliteMassLossDifferentialEvolutionInactives
-  
   subroutine satelliteMassLossDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Set scales for differential evolution.
@@ -285,18 +240,13 @@ contains
 
     if (propertyEvaluate(propertyType,self%massBoundIsInactive)) then
        satellite => node%satellite()
-       select type (satellite)
-       type is (nodeComponentSatellite)
-          ! No satellite component exists in this node, so no need to do anything.
-       class default
-          if (node%isSatellite()) then
-             massRate =  self %darkMatterHaloMassLossRate_%rate         (node)
-          else
-             basic    => node                             %basic        (    )
-             massRate =  basic                            %accretionRate(    )
-          end if
-          call satellite%boundMassRate(massRate)
-       end select
+       if (node%isSatellite()) then
+          massRate =  self %darkMatterHaloMassLossRate_%rate         (node)
+       else
+          basic    => node                             %basic        (    )
+          massRate =  basic                            %accretionRate(    )
+       end if
+       call satellite%boundMassRate(massRate)
     end if
     return
   end subroutine satelliteMassLossDifferentialEvolution

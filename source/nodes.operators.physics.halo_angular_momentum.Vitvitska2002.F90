@@ -176,13 +176,11 @@ contains
     use :: Beta_Functions          , only : Beta_Function                          , Beta_Function_Incomplete_Normalized
     use :: Numerical_Constants_Math, only : Pi
     use :: Vectors                 , only : Vector_Magnitude
-    use :: Merger_Tree_Walkers     , only : mergerTreeWalkerAllNodes
-    use :: kind_numbers, only : kind_int8
     implicit none
     class           (nodeOperatorHaloAngularMomentumVitvitska2002), intent(inout), target    :: self
     type            (treeNode                                    ), intent(inout), target    :: node
     type            (treeNode                                    )               , pointer   :: nodeChild                         , nodeSibling                       , &
-         &                                                                                      nodeUnresolved                    , nodeWork
+         &                                                                                      nodeUnresolved
     class           (nodeComponentBasic                          )               , pointer   :: basicChild                        , basicSibling                      , &
          &                                                                                      basic                             , basicUnresolved
     class           (nodeComponentSpin                           )               , pointer   :: spin                              , spinSibling                       , &
@@ -198,129 +196,119 @@ contains
          &                                                                                      a                                 , b                                 , &
          &                                                                                      angularMomentumScale              , angularMomentumScaleChild         , &
          &                                                                                      angularMomentumRootVariance
-    type            (mergerTreeWalkerAllNodes                    )                           :: treeWalker
     integer                                                                                  :: i
-
-    spin => node%spin(autoCreate=.true.)
-    if (spin%angularMomentum() == 0.0d0) then
-       ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
-       ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
-       ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-       treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-       do while (treeWalker%next(nodeWork))
-          basic => nodeWork%basic(                 )
-          spin  => nodeWork%spin (autoCreate=.true.)
-          ! If this node has no children, draw its spin from a distribution, and assign a direction which is isotropically
-          ! distributed.
-          if (.not.associated(nodeWork%firstChild)) then
-             theta               =acos(2.0d0   *nodeWork%hostTree%randomNumberGenerator_%uniformSample()-1.0d0)
-             phi                 =     2.0d0*Pi*nodeWork%hostTree%randomNumberGenerator_%uniformSample()
-             angularMomentumValue=self%haloSpinDistribution_%sample(nodeWork)*Dark_Matter_Halo_Angular_Momentum_Scale(nodeWork,self%darkMatterProfileDMO_)
-             angularMomentumTotal=angularMomentumValue*[sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
-          else
-             nodeChild      =>  nodeWork  %firstChild
-             spinChild      =>  nodeChild %spin      ()
-             basicChild     =>  nodeChild %basic     ()
-             massUnresolved =  +basic     %mass      () &
-                  &            -basicChild%mass      ()
-             ! Get the resolution of the tree.
-             massResolution=self%mergerTreeMassResolution_%resolution(nodeWork%hostTree)
-             ! Node has multiple progenitors - iterate over them and sum their angular momenta.
-             angularMomentumTotal =   0.0d0
-             nodeSibling          =>  nodeChild
-             do while(associated(nodeSibling%sibling))
-                nodeSibling                =>  nodeSibling %sibling
-                basicSibling               =>  nodeSibling %basic         (                 )
-                spinSibling                =>  nodeSibling %spin          (                 )
-                satelliteSibling           =>  nodeSibling %satellite     (autoCreate=.true.)
-                massRatio                  =  +basicSibling%mass          (                 ) &
-                     &                        /basicChild  %mass          (                 )
-                massUnresolved             =  +             massUnresolved                    &
-                     &                        -basicSibling%mass          (                 )
-                ! Add orbital angular momentum of this sibling scaled by the reduced mass to correct to the center of mass of the
-                ! sibling-child binary system.
-                angularMomentumTotal=+angularMomentumTotal                &
-                     &               +angularMomentumOrbital(nodeSibling) &
-                     &               /(                                   &
-                     &                 +1.0d0                             &
-                     &                 +massRatio                         &
-                     &                )**self%exponentMass
-                ! Add the spin angular momentum of the sibling.
-                angularMomentumTotal=+            angularMomentumTotal    &
-                     &               +spinSibling%angularMomentumVector()
-             end do
-             ! Add in the spin angular momentum of the primary child.
-             angularMomentumTotal=+           angularMomentumTotal   &
-                  &               +spinChild%angularMomentumVector()
-             ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular
-             ! momentum averaged over the distribution of virial orbits.
-             nodeUnresolved                       => treeNode                                                      (                         )
-             nodeUnresolved             %hostTree => node%hostTree
-             basicUnresolved                      => nodeUnresolved                              %basic            (autoCreate=.true.        )
-             darkMatterProfileUnresolved          => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
-             call basicUnresolved            %massSet            (massResolution       )
-             call basicUnresolved            %timeSet            (basicChild%time()    )
-             call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
-             radiusScaleUnresolved                =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
-             call darkMatterProfileUnresolved%scaleSet           (radiusScaleUnresolved)
-             ! Compute a correction factor to the orbital angular momentum which takes into account the mass dependence of the
-             ! 1/(1+m/M)ᵅ term that is applied to the angular momentum, and the reduced mass factor that appears in the orbital
-             ! angular momentum. Averaging this over a power-law mass function gives the result below. In the case that α=0 the
-             ! result is identically 1 - in this case we avoid computing beta functions.
-             massRatio=+basicUnresolved%mass()       &
-                  &    /basicChild     %mass()
-             a        =+2.0d0                        &
-                  &    -massFunctionSlopeLogarithmic
-             if (self%exponentMass == 0.0d0) then
-                angularMomentumSubresolutionFactor=+1.0d0
-             else
-                b                                 =+massFunctionSlopeLogarithmic                                         &
-                     &                             +self%exponentMAss                                                    &
-                     &                             -2.0d0
-                angularMomentumSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
-                     &                             *Beta_Function                      (a,b                            ) &
-                     &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
-                     &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
-             end if
-             ! Accumulate the mean angular momentum of the unresolved mass.
-             angularMomentumUnresolved=+                  massUnresolved                                               &
-                  &                    *self%virialOrbit_%angularMomentumVectorMean         (nodeUnresolved,nodeChild) &
-                  &                    *                  angularMomentumSubresolutionFactor      
-             angularMomentumTotal     =+                  angularMomentumTotal                                         &
-                  &                    +                  angularMomentumUnresolved
-             call nodeUnresolved%destroy()
-             deallocate(nodeUnresolved)
-             ! Account for stochastic variations in the angular momentum contributed by the unresolved mass.
-             angularMomentumScale       =+self      %darkMatterHaloScale_%radiusVirial  (nodeWork ) &
-                  &                      *self      %darkMatterHaloScale_%velocityVirial(nodeWork ) &
-                  &                      *basic                          %mass          (         )
-             angularMomentumScaleChild  =+self      %darkMatterHaloScale_%radiusVirial  (nodeChild) &
-                  &                      *self      %darkMatterHaloScale_%velocityVirial(nodeChild) &
-                  &                      *basicChild                     %mass          (         )
-             angularMomentumRootVariance=+sqrt(                                      &
-                  &                            +self%angularMomentumVarianceSpecific &
-                  &                            *(                                    &
-                  &                              +angularMomentumScale       **2     &
-                  &                              -angularMomentumScaleChild  **2     &
-                  &                              *(                                  &
-                  &                                +basic   %mass          ()        &
-                  &                                -         massUnresolved          &
-                  &                               )                          **2     &
-                  &                              /basicChild%mass          ()**2     &
-                  &                             )                                    &
-                  &                           )
-             do i=1,3
-                angularMomentumTotal(i)=+angularMomentumTotal       (i)                                  &
-                     &                  +angularMomentumRootVariance                                     &
-                     &                  *nodeWork%hostTree%randomNumberGenerator_%standardNormalSample()
-             end do
-             ! Compute the magnitude of the angular momentum.
-             angularMomentumValue=Vector_Magnitude(angularMomentumTotal)
-          end if
-          call spin%angularMomentumSet      (angularMomentumValue)
-          call spin%angularMomentumVectorSet(angularMomentumTotal)
+    
+    basic => node%basic(                 )
+    spin  => node%spin (autoCreate=.true.)
+    ! If this node has no children, draw its spin from a distribution, and assign a direction which is isotropically
+    ! distributed.
+    if (.not.associated(node%firstChild)) then
+       theta               =acos(2.0d0   *node%hostTree%randomNumberGenerator_%uniformSample()-1.0d0)
+       phi                 =     2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample()
+       angularMomentumValue=self%haloSpinDistribution_%sample(node)*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+       angularMomentumTotal=angularMomentumValue*[sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
+    else
+       nodeChild      =>  node  %firstChild
+       spinChild      =>  nodeChild %spin      ()
+       basicChild     =>  nodeChild %basic     ()
+       massUnresolved =  +basic     %mass      () &
+            &            -basicChild%mass      ()
+       ! Get the resolution of the tree.
+       massResolution=self%mergerTreeMassResolution_%resolution(node%hostTree)
+       ! Node has multiple progenitors - iterate over them and sum their angular momenta.
+       angularMomentumTotal =   0.0d0
+       nodeSibling          =>  nodeChild
+       do while(associated(nodeSibling%sibling))
+          nodeSibling                =>  nodeSibling %sibling
+          basicSibling               =>  nodeSibling %basic         (                 )
+          spinSibling                =>  nodeSibling %spin          (                 )
+          satelliteSibling           =>  nodeSibling %satellite     (autoCreate=.true.)
+          massRatio                  =  +basicSibling%mass          (                 ) &
+               &                        /basicChild  %mass          (                 )
+          massUnresolved             =  +             massUnresolved                    &
+               &                        -basicSibling%mass          (                 )
+          ! Add orbital angular momentum of this sibling scaled by the reduced mass to correct to the center of mass of the
+          ! sibling-child binary system.                
+          angularMomentumTotal=+angularMomentumTotal                &
+               &               +angularMomentumOrbital(nodeSibling) &
+               &               /(                                   &
+               &                 +1.0d0                             &
+               &                 +massRatio                         &
+               &                )**self%exponentMass
+          ! Add the spin angular momentum of the sibling.
+          angularMomentumTotal=+            angularMomentumTotal    &
+               &               +spinSibling%angularMomentumVector()
        end do
+       ! Add in the spin angular momentum of the primary child.
+       angularMomentumTotal=+           angularMomentumTotal   &
+            &               +spinChild%angularMomentumVector()
+       ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular
+       ! momentum averaged over the distribution of virial orbits.
+       nodeUnresolved                       => treeNode                                                      (                         )
+       nodeUnresolved             %hostTree => node%hostTree
+       basicUnresolved                      => nodeUnresolved                              %basic            (autoCreate=.true.        )
+       darkMatterProfileUnresolved          => nodeUnresolved                              %darkMatterProfile(autoCreate=.true.        )
+       call basicUnresolved            %massSet            (massResolution       )
+       call basicUnresolved            %timeSet            (basicChild%time()    )
+       call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
+       radiusScaleUnresolved                =  self          %darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
+       call darkMatterProfileUnresolved%scaleSet           (radiusScaleUnresolved)
+       ! Compute a correction factor to the orbital angular momentum which takes into account the mass dependence of the
+       ! 1/(1+m/M)ᵅ term that is applied to the angular momentum, and the reduced mass factor that appears in the orbital
+       ! angular momentum. Averaging this over a power-law mass function gives the result below. In the case that α=0 the
+       ! result is identically 1 - in this case we avoid computing beta functions.
+       massRatio=+basicUnresolved%mass()       &
+            &    /basicChild     %mass()
+       a        =+2.0d0                        &
+            &    -massFunctionSlopeLogarithmic
+       if (self%exponentMass == 0.0d0) then
+          angularMomentumSubresolutionFactor=+1.0d0
+       else
+          b                                 =+massFunctionSlopeLogarithmic                                         &
+               &                             +self%exponentMAss                                                    &
+               &                             -2.0d0
+          angularMomentumSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
+               &                             *Beta_Function                      (a,b                            ) &
+               &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
+               &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
+       end if
+       ! Accumulate the mean angular momentum of the unresolved mass.
+       angularMomentumUnresolved=+                  massUnresolved                                               &
+            &                    *self%virialOrbit_%angularMomentumVectorMean         (nodeUnresolved,nodeChild) &
+            &                    *                  angularMomentumSubresolutionFactor      
+       angularMomentumTotal     =+                  angularMomentumTotal                                         &
+            &                    +                  angularMomentumUnresolved
+       call nodeUnresolved%destroy()
+       deallocate(nodeUnresolved)
+       ! Account for stochastic variations in the angular momentum contributed by the unresolved mass.
+       angularMomentumScale       =+self      %darkMatterHaloScale_%radiusVirial  (node ) &
+            &                      *self      %darkMatterHaloScale_%velocityVirial(node ) &
+            &                      *basic                          %mass          (         )
+       angularMomentumScaleChild  =+self      %darkMatterHaloScale_%radiusVirial  (nodeChild) &
+            &                      *self      %darkMatterHaloScale_%velocityVirial(nodeChild) &
+            &                      *basicChild                     %mass          (         )
+       angularMomentumRootVariance=+sqrt(                                      &
+            &                            +self%angularMomentumVarianceSpecific &
+            &                            *(                                    &
+            &                              +angularMomentumScale       **2     &
+            &                              -angularMomentumScaleChild  **2     &
+            &                              *(                                  &
+            &                                +basic   %mass          ()        &
+            &                                -         massUnresolved          &
+            &                               )                          **2     &
+            &                              /basicChild%mass          ()**2     &
+            &                             )                                    &
+            &                           )
+       do i=1,3
+          angularMomentumTotal(i)=+angularMomentumTotal       (i)                                  &
+               &                  +angularMomentumRootVariance                                     &
+               &                  *node%hostTree%randomNumberGenerator_%standardNormalSample()
+       end do
+       ! Compute the magnitude of the angular momentum.
+       angularMomentumValue=Vector_Magnitude(angularMomentumTotal)
     end if
+    call spin%angularMomentumSet      (angularMomentumValue)
+    call spin%angularMomentumVectorSet(angularMomentumTotal)
     return
   end subroutine haloAngularMomentumVitvitska2002NodeTreeInitialize
 
