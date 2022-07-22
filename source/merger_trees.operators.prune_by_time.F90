@@ -31,9 +31,11 @@
      A merger tree operator class which prunes branches to end at a fixed time.
      !!}
      private
-     double precision :: massMinimum , massMaximum, &
-          &              timeEarliest
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: massMinimum        , massMaximum     , &
+          &                                                timeEarliest       , redshiftEarliest
    contains
+     final     ::                        pruneByTimeDestructor
      procedure :: operatePreEvolution => pruneByTimeOperatePreEvolution
   end type mergerTreeOperatorPruneByTime
 
@@ -47,46 +49,45 @@
 
 contains
 
-  function pruneByTimeConstructorParameters(parameters)
+  function pruneByTimeConstructorParameters(parameters) result(self)
     !!{
     Constructor for the prune-by-time merger tree operator class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
-    type (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorParameters
-    type (inputParameters              ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    type            (mergerTreeOperatorPruneByTime)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    double precision                                               :: massMinimum        , massMaximum     , &
+         &                                                            timeEarliest       , redshiftEarliest
 
     !![
     <inputParameter>
       <name>redshiftEarliest</name>
       <source>parameters</source>
-      <variable>pruneByTimeConstructorParameters%timeEarliest</variable>
       <defaultValue>0.0d0</defaultValue>
       <description>Redshift at which to truncate merger tree branches.</description>
     </inputParameter>
     <inputParameter>
       <name>massMinimum</name>
       <source>parameters</source>
-      <variable>pruneByTimeConstructorParameters%massMinimum</variable>
       <defaultValue>0.0d0</defaultValue>
       <description>Minimum mass for which to consider merger tree branches for truncation.</description>
     </inputParameter>
     <inputParameter>
       <name>massMaximum</name>
       <source>parameters</source>
-      <variable>pruneByTimeConstructorParameters%massMaximum</variable>
       <defaultValue>huge(0.0d0)</defaultValue>
       <description>Maximum mass for which to consider merger tree branches for truncation.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    pruneByTimeConstructorParameters%timeEarliest             &
-         & =cosmologyFunctions_ %cosmicTime(                  &
-         &   cosmologyFunctions_%expansionFactorFromRedshift( &
-         &    pruneByTimeConstructorParameters%timeEarliest   &
-         &                                                  ) &
-         &                                 )
+    timeEarliest=cosmologyFunctions_ %cosmicTime                 (              &
+         &        cosmologyFunctions_%expansionFactorFromRedshift (             &
+         &                                                         timeEarliest &
+         &                                                        )             &
+         &                                                       )
+    self=mergerTreeOperatorPruneByTime(timeEarliest,massMinimum,massMaximum,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -94,20 +95,35 @@ contains
     return
   end function pruneByTimeConstructorParameters
 
-  function pruneByTimeConstructorInternal(timeEarliest,massMinimum,massMaximum)
+  function pruneByTimeConstructorInternal(timeEarliest,massMinimum,massMaximum,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the prune-by-time merger tree operator class.
     !!}
     implicit none
-    type            (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorInternal
-    double precision                               , intent(in   ) :: massMinimum                   , massMaximum, &
-         &                                                            timeEarliest
-
-    pruneByTimeConstructorInternal%timeEarliest=timeEarliest
-    pruneByTimeConstructorInternal%massMinimum =massMinimum
-    pruneByTimeConstructorInternal%massMaximum =massMaximum
+    type            (mergerTreeOperatorPruneByTime)                        :: self
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    double precision                               , intent(in   )         :: massMinimum        , massMaximum, &
+         &                                                                    timeEarliest
+    !![
+    <constructorAssign variables="timeEarliest, massMinimum, massMaximum, *cosmologyFunctions_"/>
+    !!]
+    
+    self%redshiftEarliest=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeEarliest))
     return
   end function pruneByTimeConstructorInternal
+
+  subroutine pruneByTimeDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily pruneByTime} merger tree operator class.
+    !!}
+    implicit none
+    type(mergerTreeOperatorPruneByTime), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine pruneByTimeDestructor
 
   subroutine pruneByTimeOperatePreEvolution(self,tree)
     !!{

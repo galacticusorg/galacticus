@@ -423,13 +423,13 @@ sub Process_FunctionClass {
 					} else {
 					    $name = $constructorNode->{'directive'}->{'name'};
 					}
-					if ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'parameters'}}) ) {
+					if ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
 					    push(@{$descriptorParameters->{'parameters'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
 					    # Find the matched variable.
 					    my $descriptor;
 					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
 						$descriptor = $potentialDescriptor
-						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+						    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
 					    }
 					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'enumerations'}}) ) {
 					    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});

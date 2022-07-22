@@ -83,7 +83,7 @@
      class           (intergalacticMediumStateClass          ), pointer :: intergalacticMediumState_ => null()
      class           (chemicalStateClass                     ), pointer :: chemicalState_            => null()
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
-          &                                                                opticalDepthReionization
+          &                                                                opticalDepthReionization           , redshiftReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals                     , massProgenitorMaximumID
@@ -231,7 +231,9 @@ contains
        <addMetaProperty component="basic" name="massProgenitorMaximum" id="self%massProgenitorMaximumID" isEvolvable="no"/>
        !!]
     end if
-    self%countChemicals=Chemicals_Property_Count()
+    self%countChemicals          =Chemicals_Property_Count()
+    self%redshiftReionization    =                                                     self%intergalacticMediumState_%electronScatteringOpticalDepth(timeReionization,assumeFullyIonized=.true.)
+    self%opticalDepthReionization=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_      %expansionFactor               (timeReionization                          ))
     return
   end function simpleConstructorInternal
 
