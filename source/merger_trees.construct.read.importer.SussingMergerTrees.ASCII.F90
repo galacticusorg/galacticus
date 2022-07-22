@@ -193,20 +193,21 @@ contains
     Internal constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer.
     !!}
     implicit none
-    type            (mergerTreeImporterSussingASCII)                              :: self
-    class           (cosmologyParametersClass      ), intent(in   ), target       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass       ), intent(in   ), target       :: cosmologyFunctions_
-    class           (randomNumberGeneratorClass    ), intent(in   ), target       :: randomNumberGenerator_
-    integer                                         , intent(in   ), dimension(3) :: subvolumeIndex
-    logical                                         , intent(in   )               :: fatalMismatches           , fatalNonTreeNode, &
-         &                                                                           convertToBinary           , binaryFormatOld , &
-         &                                                                           forestReverseSnapshotOrder
-    integer                                         , intent(in   )               :: subvolumeCount            , badValueTest    , &
-         &                                                                           massOption                , forestFirst     , &
-         &                                                                           forestLast
-    double precision                                , intent(in   )               :: subvolumeBuffer           , badValue        , &
-         &                                                                           treeSampleRate
-    type            (varying_string                ), intent(in   )               :: forestFile
+    type            (mergerTreeImporterSussingASCII    )                              :: self
+    class           (cosmologyParametersClass          ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass           ), intent(in   ), target       :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass        ), intent(in   ), target       :: randomNumberGenerator_
+    integer                                             , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                             , intent(in   )               :: fatalMismatches           , fatalNonTreeNode, &
+         &                                                                               convertToBinary           , binaryFormatOld , &
+         &                                                                               forestReverseSnapshotOrder
+    integer                                             , intent(in   )               :: subvolumeCount            , forestFirst     , &
+         &                                                                               forestLast
+    type            (enumerationSussingBadValueTestType), intent(in   )               :: badValueTest
+    type            (enumerationSussingMassOptionType  ), intent(in   )               :: massOption
+    double precision                                    , intent(in   )               :: subvolumeBuffer           , badValue        , &
+         &                                                                               treeSampleRate
+    type            (varying_string                    ), intent(in   )               :: forestFile
     !![
     <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*randomNumberGenerator_"/>
     !!]
@@ -368,73 +369,73 @@ contains
     use            :: Sorting                         , only : sort                   , sortIndex
     use            :: String_Handling                 , only : operator(//)
     implicit none
-    class    (mergerTreeImporterSussingASCII), intent(inout)                              :: self
-    integer  (kind_int8                     ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices              , nodeTreeIndices
-    integer  (c_size_t                      ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks               , nodeDescendentLocations
-    logical                                  , intent(  out), dimension(:  ), allocatable :: nodeIncomplete
-    integer  (kind=c_size_t                 ), intent(  out)                              :: nodeCountTrees
-    logical                                  , intent(  out)                              :: treeIndicesAssigned          , branchJumpCheckRequired
-    type     (importerUnits                 ), intent(  out)                              :: massUnits                    , lengthUnits            , &
-         &                                                                                   velocityUnits
-    integer  (kind=kind_int8                )               , dimension(:  ), allocatable :: nodesInSubvolume             , nodesTmp                    , &
+    class           (mergerTreeImporterSussingASCII), intent(inout)                              :: self
+    integer         (kind_int8                     ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices              , nodeTreeIndices
+    integer         (c_size_t                      ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks               , nodeDescendentLocations
+    logical                                         , intent(  out), dimension(:  ), allocatable :: nodeIncomplete
+    integer         (kind=c_size_t                 ), intent(  out)                              :: nodeCountTrees
+    logical                                         , intent(  out)                              :: treeIndicesAssigned          , branchJumpCheckRequired
+    type            (importerUnits                 ), intent(  out)                              :: massUnits                    , lengthUnits            , &
+         &                                                                                          velocityUnits
+    integer         (kind=kind_int8                )               , dimension(:  ), allocatable :: nodesInSubvolume             , nodesTmp                    , &
          &                                                                                   hostsInSubvolume
-    logical                                                 , dimension(:  ), allocatable :: nodeIncompleteTmp
-    integer  (c_size_t                      )               , dimension(:  ), allocatable :: forestSnapshotHaloCount      , forestSnapshotHaloCountFirst, &
-         &                                                                                   forestSnapshotHaloCountLast  , forestID
-    integer  (c_size_t                      )               , dimension(:,:), allocatable :: forestSnapshotHaloCounts
-    integer                                  , parameter                                  :: fileFormatVersionCurrent   =1
-    logical                                                                               :: nodeIsActive                 , doBinaryConversion          , &
-         &                                                                                   readBinary                   , mergerTreeFileIsBinary      , &
-         &                                                                                   mergerTreeFileConvert        , processHalo
-    integer                                                                               :: fileUnit                     , progenitorCount             , &
-         &                                                                                   fileFormatVersion            , fileUnitOut                 , &
-         &                                                                                   snapshotUnit                 , snapshotOutUnit             , &
-         &                                                                                   ioStat
-    character(len=1024                      )                                             :: line
-    integer  (kind=c_size_t                 )                                             :: l                            , i                           , &
-         &                                                                                   j                                                          , &
-         &                                                                                   iNode                                                      , &
-         &                                                                                   jNode                        , iCount                      , &
-         &                                                                                   nodeCount                    , nodeCountSubvolume          , &
-         &                                                                                   iProgenitor                  , jCount                      , &
-         &                                                                                   jForest
-    integer  (kind=kind_int8                )                                             :: nodeIndex
-    type     (varying_string                )                                             :: message
-    integer  (kind=kind_int8                )                                             :: ID                           , hostHalo                    , &
-         &                                                                                   progenitorIndex
-    integer  (c_size_t                      )                                             :: forestCount                  , forestHaloCount             , &
-         &                                                                                   forestFirst                  , forestLast                  , &
-         &                                                                                   forestHaloCountLast          , forestHaloCountFirst
-    integer                                                                               :: numSubStruct                 , npart                       , &
-         &                                                                                   haloFormat
-    double precision                                                                      :: Mvir                         , Xc                          , &
-               &                                                                             Yc                           , Zc                          , &
-               &                                                                             VXc                          , Vyc                         , &
-               &                                                                             VZc                          , Rvir                        , &
-               &                                                                             Rmax                         , r2                          , &
-               &                                                                             mbp_offset                   , com_offset                  , &
-               &                                                                             Vmax                         , v_esc                       , &
-               &                                                                             sigV                         , lambda                      , &
-               &                                                                             lambdaE                      , Lx                          , &
-               &                                                                             Ly                           , Lz                          , &
-               &                                                                             b                            , c                           , &
-               &                                                                             Eax                          , Eay                         , &
-               &                                                                             Eaz                          , Ebx                         , &
-               &                                                                             Eby                          , Ebz                         , &
-               &                                                                             Ecx                          , Ecy                         , &
-               &                                                                             Ecz                          , ovdens                      , &
-               &                                                                             fMhires                      , Ekin                        , &
-               &                                                                             Epot                         , SurfP                       , &
-               &                                                                             Phi0                         , cNFW                        , &
-               &                                                                             nbins                        , FoFMass                     , &
-               &                                                                             M_200Mean                    , M_200Crit                   , &
-               &                                                                             M_TopHat                     , R_200Mean                   , &
-               &                                                                             R_200Crit                    , R_TopHat                    , &
-               &                                                                             HalfMassRadius               , sigV_200Mean                , &
-               &                                                                             sigV_200Crit                 , sigV_TopHat                 , &
-               &                                                                             Xcm                          , Ycm                         , &
-               &                                                                             Zcm                          , Xgroup                      , &
-               &                                                                             Ygroup                       , Zgroup
+    logical                                                        , dimension(:  ), allocatable :: nodeIncompleteTmp
+    integer         (c_size_t                      )               , dimension(:  ), allocatable :: forestSnapshotHaloCount      , forestSnapshotHaloCountFirst, &
+         &                                                                                          forestSnapshotHaloCountLast  , forestID
+    integer         (c_size_t                      )               , dimension(:,:), allocatable :: forestSnapshotHaloCounts
+    integer                                         , parameter                                  :: fileFormatVersionCurrent   =1
+    logical                                                                                      :: nodeIsActive                 , doBinaryConversion          , &
+         &                                                                                          readBinary                   , mergerTreeFileIsBinary      , &
+         &                                                                                          mergerTreeFileConvert        , processHalo
+    integer                                                                                      :: fileUnit                     , progenitorCount             , &
+         &                                                                                          fileFormatVersion            , fileUnitOut                 , &
+         &                                                                                          snapshotUnit                 , snapshotOutUnit             , &
+         &                                                                                          ioStat
+    character       (len=1024                      )                                             :: line
+    integer         (kind=c_size_t                 )                                             :: l                            , i                           , &
+         &                                                                                          j                                                          , &
+         &                                                                                          iNode                                                      , &
+         &                                                                                          jNode                        , iCount                      , &
+         &                                                                                          nodeCount                    , nodeCountSubvolume          , &
+         &                                                                                          iProgenitor                  , jCount                      , &
+         &                                                                                          jForest
+    integer         (kind=kind_int8                )                                             :: nodeIndex
+    type            (varying_string                )                                             :: message
+    integer         (kind=kind_int8                )                                             :: ID                           , hostHalo                    , &
+         &                                                                                          progenitorIndex
+    integer         (c_size_t                      )                                             :: forestCount                  , forestHaloCount             , &
+         &                                                                                          forestFirst                  , forestLast                  , &
+         &                                                                                          forestHaloCountLast          , forestHaloCountFirst
+    integer                                                                                      :: numSubStruct                 , npart
+    type            (enumerationSussingHaloFormatType)                                           :: haloFormat
+    double precision                                                                             :: Mvir                         , Xc                          , &
+               &                                                                                    Yc                           , Zc                          , &
+               &                                                                                    VXc                          , Vyc                         , &
+               &                                                                                    VZc                          , Rvir                        , &
+               &                                                                                    Rmax                         , r2                          , &
+               &                                                                                    mbp_offset                   , com_offset                  , &
+               &                                                                                    Vmax                         , v_esc                       , &
+               &                                                                                    sigV                         , lambda                      , &
+               &                                                                                    lambdaE                      , Lx                          , &
+               &                                                                                    Ly                           , Lz                          , &
+               &                                                                                    b                            , c                           , &
+               &                                                                                    Eax                          , Eay                         , &
+               &                                                                                    Eaz                          , Ebx                         , &
+               &                                                                                    Eby                          , Ebz                         , &
+               &                                                                                    Ecx                          , Ecy                         , &
+               &                                                                                    Ecz                          , ovdens                      , &
+               &                                                                                    fMhires                      , Ekin                        , &
+               &                                                                                    Epot                         , SurfP                       , &
+               &                                                                                    Phi0                         , cNFW                        , &
+               &                                                                                    nbins                        , FoFMass                     , &
+               &                                                                                    M_200Mean                    , M_200Crit                   , &
+               &                                                                                    M_TopHat                     , R_200Mean                   , &
+               &                                                                                    R_200Crit                    , R_TopHat                    , &
+               &                                                                                    HalfMassRadius               , sigV_200Mean                , &
+               &                                                                                    sigV_200Crit                 , sigV_TopHat                 , &
+               &                                                                                    Xcm                          , Ycm                         , &
+               &                                                                                    Zcm                          , Xgroup                      , &
+               &                                                                                    Ygroup                       , Zgroup
 
     ! Display counter.
     call displayIndent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityLevelWorking)
@@ -1301,16 +1302,16 @@ contains
                 end if
                 self   %nodes(l)%particleCount     =npart
                 ! Select a mass to use.
-                select case (self%massOption)
-                case (sussingMassOptionDefault)
+                select case (self%massOption%ID)
+                case (sussingMassOptionDefault%ID)
                    self%nodes(l)%nodeMass          =Mvir
-                case (sussingMassOptionFoF    )
+                case (sussingMassOptionFoF    %ID)
                    self%nodes(l)%nodeMass          =FoFMass
-                case (sussingMassOption200Mean)
+                case (sussingMassOption200Mean%ID)
                    self%nodes(l)%nodeMass          =M_200Mean
-                case (sussingMassOption200Crit)
+                case (sussingMassOption200Crit%ID)
                    self%nodes(l)%nodeMass          =M_200Crit
-                case (sussingMassOptionTopHat )
+                case (sussingMassOptionTopHat %ID)
                    self%nodes(l)%nodeMass          =M_TopHat
                 case default
                    call Error_Report('unrecognized mass option'//{introspection:location})
@@ -1437,39 +1438,40 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    integer                         , intent(in   )           :: haloFormat    , snapshotUnit
-    double precision                                          :: Mvir          , Xc          , &
-         &                                                       Yc            , Zc          , &
-         &                                                       VXc           , Vyc         , &
-         &                                                       VZc           , Rvir        , &
-         &                                                       Rmax          , r2          , &
-         &                                                       mbp_offset    , com_offset  , &
-         &                                                       Vmax          , v_esc       , &
-         &                                                       sigV          , lambda      , &
-         &                                                       lambdaE       , Lx          , &
-         &                                                       Ly            , Lz          , &
-         &                                                       b             , c           , &
-         &                                                       Eax           , Eay         , &
-         &                                                       Eaz           , Ebx         , &
-         &                                                       Eby           , Ebz         , &
-         &                                                       Ecx           , Ecy         , &
-         &                                                       Ecz           , ovdens      , &
-         &                                                       fMhires       , Ekin        , &
-         &                                                       Epot          , SurfP       , &
-         &                                                       Phi0          , cNFW        , &
-         &                                                       nbins         , FoFMass     , &
-         &                                                       M_200Mean     , M_200Crit   , &
-         &                                                       M_TopHat      , R_200Mean   , &
-         &                                                       R_200Crit     , R_TopHat    , &
-         &                                                       HalfMassRadius, sigV_200Mean, &
-         &                                                       sigV_200Crit  , sigV_TopHat , &
-         &                                                       Xcm           , Ycm         , &
-         &                                                       Zcm           , Xgroup      , &
-         &                                                       Ygroup        , Zgroup
-    integer         (kind=kind_int8), intent(  out)           :: ID            , hostHalo
-    integer                         , intent(  out)           :: numSubStruct  , npart       , &
-         &                                                       ioStat
-    logical                         , intent(in   ), optional :: quickRead
+    type            (enumerationSussingHaloFormatType), intent(in   )           :: haloFormat
+    integer                                           , intent(in   )           :: snapshotUnit
+    double precision                                                            :: Mvir          , Xc          , &
+         &                                                                         Yc            , Zc          , &
+         &                                                                         VXc           , Vyc         , &
+         &                                                                         VZc           , Rvir        , &
+         &                                                                         Rmax          , r2          , &
+         &                                                                         mbp_offset    , com_offset  , &
+         &                                                                         Vmax          , v_esc       , &
+         &                                                                         sigV          , lambda      , &
+         &                                                                         lambdaE       , Lx          , &
+         &                                                                         Ly            , Lz          , &
+         &                                                                         b             , c           , &
+         &                                                                         Eax           , Eay         , &
+         &                                                                         Eaz           , Ebx         , &
+         &                                                                         Eby           , Ebz         , &
+         &                                                                         Ecx           , Ecy         , &
+         &                                                                         Ecz           , ovdens      , &
+         &                                                                         fMhires       , Ekin        , &
+         &                                                                         Epot          , SurfP       , &
+         &                                                                         Phi0          , cNFW        , &
+         &                                                                         nbins         , FoFMass     , &
+         &                                                                         M_200Mean     , M_200Crit   , &
+         &                                                                         M_TopHat      , R_200Mean   , &
+         &                                                                         R_200Crit     , R_TopHat    , &
+         &                                                                         HalfMassRadius, sigV_200Mean, &
+         &                                                                         sigV_200Crit  , sigV_TopHat , &
+         &                                                                         Xcm           , Ycm         , &
+         &                                                                         Zcm           , Xgroup      , &
+         &                                                                         Ygroup        , Zgroup
+    integer         (kind=kind_int8                  ), intent(  out)           :: ID            , hostHalo
+    integer                                           , intent(  out)           :: numSubStruct  , npart       , &
+         &                                                                         ioStat
+    logical                                           , intent(in   ), optional :: quickRead
 
     if (present(quickRead).and.quickRead) then
        read (snapshotUnit,*,ioStat=ioStat)

@@ -702,32 +702,32 @@ contains
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Vectors      , only : Vector_Magnitude
     implicit none
-    class           (geometryLightconeSquare), intent(inout)                           :: self
-    integer         (c_size_t               ), intent(in   )                           :: output
-    double precision                         , intent(in   ), dimension(3  )           :: nodePosition
-    integer                                  , intent(in   )                           :: action
-    integer         (c_size_t               ), intent(  out)                , optional :: count
-    integer         (c_size_t               ), intent(in   )                , optional :: instance
-    logical                                  , intent(  out)                , optional :: isInLightcone
-    double precision                         , intent(in   )                , optional :: radiusBuffer
-    double precision                         , intent(  out), dimension(3  ), optional :: position
-    double precision                                        , dimension(3  )           :: nodePositionComoving, nodePositionReplicant, &
-         &                                                                                origin
-    integer                                                 , dimension(3,2)           :: periodicRange
-    integer                                                                            :: i                   , j                    , &
-         &                                                                                k                   , iAxis                , &
-         &                                                                                replicantCount
-    logical                                                                            :: isInFieldOfView     , found
-    double precision                                                                   :: distanceMinimum     , distanceMaximum      , &
-         &                                                                                distanceRadial
+    class           (geometryLightconeSquare       ), intent(inout)                           :: self
+    integer         (c_size_t                      ), intent(in   )                           :: output
+    double precision                                , intent(in   ), dimension(3  )           :: nodePosition
+    type            (enumerationReplicantActionType), intent(in   )                           :: action
+    integer         (c_size_t                      ), intent(  out)                , optional :: count
+    integer         (c_size_t                      ), intent(in   )                , optional :: instance
+    logical                                         , intent(  out)                , optional :: isInLightcone
+    double precision                                , intent(in   )                , optional :: radiusBuffer
+    double precision                                , intent(  out), dimension(3  ), optional :: position
+    double precision                                               , dimension(3  )           :: nodePositionComoving, nodePositionReplicant, &
+         &                                                                                       origin
+    integer                                                        , dimension(3,2)           :: periodicRange
+    integer                                                                                   :: i                   , j                    , &
+         &                                                                                       k                   , iAxis                , &
+         &                                                                                       replicantCount
+    logical                                                                                   :: isInFieldOfView     , found
+    double precision                                                                          :: distanceMinimum     , distanceMaximum      , &
+         &                                                                                       distanceRadial
 
     ! Validate input.
-    select case (action)
-    case (replicantActionCount   )
+    select case (action%ID)
+    case (replicantActionCount   %ID)
        if (.not.present(count        )) call Error_Report('count argument not provided'        //{introspection:location})
-    case (replicantActionAny     )
+    case (replicantActionAny     %ID)
        if (.not.present(isInLightcone)) call Error_Report('isInLightcone argument not provided'//{introspection:location})
-    case (replicantActionInstance)
+    case (replicantActionInstance%ID)
        if (.not.present(instance     )) call Error_Report('instance argument not provided'     //{introspection:location})
        if (.not.present(position     )) call Error_Report('position argument not provided'     //{introspection:location})
     case default
@@ -773,12 +773,12 @@ contains
        end do
     end do
     ! Set output.
-    select case (action)
-    case (replicantActionCount   )
+    select case (action%ID)
+    case (replicantActionCount   %ID)
        count        =replicantCount
-    case (replicantActionAny     )
+    case (replicantActionAny     %ID)
        isInLightcone=.false.
-    case (replicantActionInstance)
+    case (replicantActionInstance%ID)
        call Error_Report('instance not found'//{introspection:location})
     case default
        call Error_Report('unknown action'    //{introspection:location})

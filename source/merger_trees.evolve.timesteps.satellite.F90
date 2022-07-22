@@ -217,13 +217,13 @@ contains
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
     use :: String_Handling                    , only : operator(//)
     implicit none
-    class  (*             ), intent(inout)          :: self
-    type   (mergerTree    ), intent(in   )          :: tree
-    type   (treeNode      ), intent(inout), pointer :: node
-    integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: mergee        , mergeeNext       , &
-         &                                             nodeSatellite , nodeSatelliteNext
-    type   (varying_string)                         :: message
+    class(*                            ), intent(inout)          :: self
+    type (mergerTree                   ), intent(in   )          :: tree
+    type (treeNode                     ), intent(inout), pointer :: node
+    type (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    type (treeNode                     )               , pointer :: mergee        , mergeeNext       , &
+         &                                                          nodeSatellite , nodeSatelliteNext
+    type (varying_string               )                         :: message
     !$GLC attributes unused :: tree
 
     ! Report if necessary.

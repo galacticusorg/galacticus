@@ -42,9 +42,9 @@ module Satellite_Merging_Mass_Movements
     <description>Determine movements of mass during mergers.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout), target :: node                                                                                        </argument>
-    <argument>integer          , intent(  out)         :: destinationGasSatellite, destinationStarsSatellite, destinationGasHost, destinationStarsHost</argument>
-    <argument>logical          , intent(  out)         :: mergerIsMajor                                                                               </argument>
+    <argument>type   (treeNode                        ), intent(inout), target :: node                                                                                        </argument>
+    <argument>type   (enumerationDestinationMergerType), intent(  out)         :: destinationGasSatellite, destinationStarsSatellite, destinationGasHost, destinationStarsHost</argument>
+    <argument>logical                                  , intent(  out)         :: mergerIsMajor                                                                               </argument>
    </method>
   </functionClass>
   !!]

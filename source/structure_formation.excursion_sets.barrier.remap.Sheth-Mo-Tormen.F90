@@ -38,11 +38,11 @@
      An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
      !!}
      private
-     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
-     double precision                                    :: a                             , b, &
-          &                                                 c
-     integer                                             :: applyTo
-     type            (varying_string          )          :: applyToText
+     class           (excursionSetBarrierClass        ), pointer :: excursionSetBarrier_ => null()
+     double precision                                            :: a                             , b, &
+          &                                                         c
+     type            (enumerationExcursionSetRemapType)          :: applyTo
+     type            (varying_string                  )          :: applyToText
    contains
      final     ::                    remapShethMoTormenDestructor
      procedure :: barrier         => remapShethMoTormenBarrier
@@ -70,7 +70,7 @@ contains
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-    integer                                                                :: applyTo
+    type            (enumerationExcursionSetRemapType     )                :: applyTo
     
     ! Check and read parameters.
     !![
@@ -123,7 +123,7 @@ contains
     class           (excursionSetBarrierClass             ), intent(in   ), target :: excursionSetBarrier_
     double precision                                       , intent(in   )         :: a                   , b, &
          &                                                                            c
-    integer                                                , intent(in   )         :: applyTo
+    type            (enumerationExcursionSetRemapType     ), intent(in   )         :: applyTo
     !![
     <constructorAssign variables="a, b, c, applyTo, *excursionSetBarrier_"/>
     !!]

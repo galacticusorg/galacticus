@@ -29,6 +29,16 @@
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
+  <enumeration>
+   <name>spinDistributionType</name>
+   <description>Used to specify the type of intrinsic spin distribution.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="logNormal"/>
+   <entry label="bett2007" />
+  </enumeration>
+  !!]
+
+  !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
    <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
   </posteriorSampleLikelihood>
@@ -38,20 +48,21 @@
      Implementation of a posterior sampling likelihood class which implements a likelihood for fitting dark matter halo spin distributions.
      !!}
      private
-     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_           => null()
-     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
-     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
-     class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_         => null()
-     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
-     class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
-     double precision                                   , dimension(:  ), allocatable :: spin                                   , distribution                      , &
-          &                                                                              spinMinimum                            , spinMaximum                       , &
-          &                                                                              distributionError
-     double precision                                                                 :: time                                   , massParticle                      , &
-          &                                                                              massHaloMinimum                        , energyEstimateParticleCountMaximum, &
-          &                                                                              redshift                               , logNormalRange
-     integer                                                                          :: particleCountMinimum                   , distributionType
-     type            (varying_string                   )                              :: fileName
+     class           (cosmologyFunctionsClass            ), pointer                     :: cosmologyFunctions_           => null()
+     class           (haloMassFunctionClass              ), pointer                     :: haloMassFunction_             => null()
+     class           (nbodyHaloMassErrorClass            ), pointer                     :: nbodyHaloMassError_           => null()
+     class           (darkMatterProfileDMOClass          ), pointer                     :: darkMatterProfileDMO_         => null()
+     class           (darkMatterHaloScaleClass           ), pointer                     :: darkMatterHaloScale_          => null()
+     class           (darkMatterProfileScaleRadiusClass  ), pointer                     :: darkMatterProfileScaleRadius_ => null()
+     double precision                                     , dimension(:  ), allocatable :: spin                                   , distribution                      , &
+          &                                                                                spinMinimum                            , spinMaximum                       , &
+          &                                                                                distributionError
+     double precision                                                                   :: time                                   , massParticle                      , &
+          &                                                                                massHaloMinimum                        , energyEstimateParticleCountMaximum, &
+          &                                                                                redshift                               , logNormalRange
+     integer                                                                            :: particleCountMinimum
+     type            (enumerationSpinDistributionTypeType)                              :: distributionType
+     type            (varying_string                     )                              :: fileName
    contains
      final     ::                    spinDistributionDestructor
      procedure :: evaluate        => spinDistributionEvaluate
@@ -65,16 +76,6 @@
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
   end interface posteriorSampleLikelihoodSpinDistribution
-
-  !![
-  <enumeration>
-   <name>spinDistributionType</name>
-   <description>Used to specify the type of intrinsic spin distribution.</description>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="logNormal"/>
-   <entry label="bett2007" />
-  </enumeration>
-  !!]
 
 contains
 
@@ -176,7 +177,8 @@ contains
     double precision                                           , intent(in   )         :: redshift                     , massHaloMinimum                   , &
          &                                                                                massParticle                 , energyEstimateParticleCountMaximum, &
          &                                                                                logNormalRange
-    integer                                                    , intent(in   )         :: particleCountMinimum         , distributionType
+    integer                                                    , intent(in   )         :: particleCountMinimum
+    type            (enumerationSpinDistributionTypeType      ), intent(in   )         :: distributionType
     class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class           (haloMassFunctionClass                    ), intent(in   ), target :: haloMassFunction_
     class           (nbodyHaloMassErrorClass                  ), intent(in   ), target :: nbodyHaloMassError_
@@ -285,8 +287,8 @@ contains
        stateVector(i)=modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
     end do
     ! Build the halo spin distribution object.
-    select case (self%distributionType)
-    case (spinDistributionTypeLogNormal)
+    select case (self%distributionType%ID)
+    case (spinDistributionTypeLogNormal%ID)
        if (size(stateVector) /= 2)                                                                  &
             & call Error_Report(                                                                    &
             &                   '2 parameters are required for the "lognormal" spin distribution'// &
@@ -314,7 +316,7 @@ contains
                &                                                self%darkMatterProfileScaleRadius_       &
                &                                               )
        end select
-    case (spinDistributionTypeBett2007)
+    case (spinDistributionTypeBett2007%ID)
        if (size(stateVector) /= 2)                                                                 &
             & call Error_Report(                                                                   &
             &                   '2 parameters are required for the "bett2007" spin distribution'// &

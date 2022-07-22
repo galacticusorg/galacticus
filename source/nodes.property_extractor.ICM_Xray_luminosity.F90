@@ -48,7 +48,6 @@ Contains a module which implements an intracluster medium X-ray luminosity prope
      procedure :: name        => icmXRayLuminosityName
      procedure :: description => icmXRayLuminosityDescription
      procedure :: unitsInSI   => icmXRayLuminosityUnitsInSI
-     procedure :: type        => icmXRayLuminosityType
   end type nodePropertyExtractorICMXRayLuminosity
 
   interface nodePropertyExtractorICMXRayLuminosity
@@ -261,15 +260,3 @@ contains
     return
   end function icmXRayLuminosityUnitsInSI
 
-  integer function icmXRayLuminosityType(self)
-    !!{
-    Return the type of the ICM X-ray luminosity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    icmXRayLuminosityType=outputAnalysisPropertyTypeLinear
-    return
-  end function icmXRayLuminosityType

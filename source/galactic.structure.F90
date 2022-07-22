@@ -25,7 +25,9 @@ module Galactic_Structure
   !!{
   Provides an object that implements galactic structure functions.
   !!}
-  use :: Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes          , only : treeNode
+  use :: Galactic_Structure_Options, only : enumerationCoordinateSystemType  , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, &
+       &                                    enumerationStructureErrorCodeType
   private
 
   !![
@@ -38,76 +40,99 @@ module Galactic_Structure
     <description>Return the density at the given {\normalfont \ttfamily position} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)               :: node</argument>
-    <argument>double precision          , intent(in   ), dimension(3) :: position</argument>
-    <argument>integer                   , intent(in   ), optional     :: coordinateSystem, componentType, massType, weightBy, weightIndex</argument>
+    <argument>type            (treeNode                       ), intent(inout)               :: node</argument>
+    <argument>double precision                                 , intent(in   ), dimension(3) :: position</argument>
+    <argument>type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType</argument>
+    <argument>type            (enumerationWeightByType        ), intent(in   ), optional     :: weightBy</argument>
+    <argument>integer                                          , intent(in   ), optional     :: weightIndex</argument>
    </method>
    <method name="densitySphericalAverage">
     <description>Return the spherically-averaged density at the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)           :: node</argument>
-    <argument>double precision          , intent(in   )           :: radius</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType, weightBy, weightIndex</argument>
+    <argument>type            (treeNode                       ), intent(inout)           :: node</argument>
+    <argument>double precision                                 , intent(in   )           :: radius</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
+    <argument>type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy</argument>
+    <argument>integer                                          , intent(in   ), optional :: weightIndex</argument>
    </method>
    <method name="massEnclosed">
     <description>Return the mass enclosed within the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)           :: node</argument>
-    <argument>double precision          , intent(in   ), optional :: radius</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType, weightBy, weightIndex</argument>
+    <argument>type            (treeNode                       ), intent(inout)           :: node</argument>
+    <argument>double precision                                 , intent(in   ), optional :: radius</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
+    <argument>type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy</argument>
+    <argument>integer                                          , intent(in   ), optional :: weightIndex</argument>
    </method>
    <method name="radiusEnclosingMass">
     <description>Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type            (treeNode), intent(inout), target   :: node</argument>
-    <argument>double precision          , intent(in   ), optional :: mass         , massFractional</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType      , weightBy, weightIndex</argument>
+    <argument>type            (treeNode                       ), intent(inout), target   :: node</argument>
+    <argument>double precision                                 , intent(in   ), optional :: mass         , massFractional</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
+    <argument>type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy</argument>
+    <argument>integer                                          , intent(in   ), optional :: weightIndex</argument>
    </method>
    <method name="velocityRotation">
     <description>Return the rotation velocity for a circular orbit at the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)           :: node</argument>
-    <argument>double precision          , intent(in   )           :: radius</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType</argument>
+    <argument>type            (treeNode                       ), intent(inout)           :: node</argument>
+    <argument>double precision                                 , intent(in   )           :: radius</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
    </method>
    <method name="velocityRotationGradient">
     <description>Return the gradient of the rotation velocity for a circular orbit at the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)           :: node</argument>
-    <argument>double precision          , intent(in   )           :: radius</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType</argument>
+    <argument>type            (treeNode                       ), intent(inout)           :: node</argument>
+    <argument>double precision                                 , intent(in   )           :: radius</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
    </method>
    <method name="potential">
     <description>Return the gravitational potential at the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)           :: node</argument>
-    <argument>double precision          , intent(in   )           :: radius</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType</argument>
-    <argument>integer                   , intent(  out), optional :: status</argument>
+    <argument>type            (treeNode                         ), intent(inout)           :: node</argument>
+    <argument>double precision                                   , intent(in   )           :: radius</argument>
+    <argument>type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType          ), intent(in   ), optional :: massType</argument>
+    <argument>type            (enumerationStructureErrorCodeType), intent(  out), optional :: status</argument>
    </method>
    <method name="surfaceDensity">
     <description>Return the surface density of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)               :: node</argument>
-    <argument>double precision          , intent(in   ), dimension(3) :: position</argument>
-    <argument>integer                   , intent(in   ), optional     :: coordinateSystem, componentType, massType, weightBy, weightIndex</argument>
+    <argument>type            (treeNode                       ), intent(inout)               :: node</argument>
+    <argument>double precision                                 , intent(in   ), dimension(3) :: position</argument>
+    <argument>type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType</argument>
+    <argument>type            (enumerationWeightByType        ), intent(in   ), optional     :: weightBy</argument>
+    <argument>integer                                          , intent(in   ), optional     :: weightIndex</argument>
    </method>
    <method name="radiusEnclosingSurfaceDensity">
     <description>Return the radius enclosing a given surface density in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type            (treeNode), intent(inout), target   :: node</argument>
-    <argument>double precision          , intent(in   )           :: surfaceDensity</argument>
-    <argument>integer                   , intent(in   ), optional :: componentType, massType, weightBy, weightIndex</argument>
+    <argument>type            (treeNode                       ), intent(inout), target   :: node</argument>
+    <argument>double precision                                 , intent(in   )           :: surfaceDensity</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
+    <argument>type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy</argument>
+    <argument>integer                                          , intent(in   ), optional :: weightIndex</argument>
    </method>
    <method name="acceleration">
     <description>Compute the gravitational acceleration at a given position in {\normalfont \ttfamily node}.</description>
@@ -115,32 +140,36 @@ module Galactic_Structure
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout)               :: node</argument>
     <argument>double precision          , intent(in   ), dimension(3) :: positionCartesian</argument>
-    <argument>integer                   , intent(in   ), optional     :: componentType, massType</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
    </method>
    <method name="tidalTensor">
     <description>Compute the gravitational tidal tensor at a given position in {\normalfont \ttfamily node}.</description>
     <type>type(tensorRank2Dimension3Symmetric)</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)               :: node</argument>
-    <argument>double precision          , intent(in   ), dimension(3) :: positionCartesian</argument>
-    <argument>integer                   , intent(in   ), optional     :: componentType, massType</argument>
+    <argument>type            (treeNode                       ), intent(inout)               :: node</argument>
+    <argument>double precision                                 , intent(in   ), dimension(3) :: positionCartesian</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType</argument>
    </method>
    <method name="chandrasekharIntegral">
     <description>Compute the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction model in {\normalfont \ttfamily node}.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)               :: node</argument>
-    <argument>double precision          , intent(in   ), dimension(3) :: positionCartesian, velocityCartesian</argument>
-    <argument>integer                   , intent(in   ), optional     :: componentType    , massType</argument>
-   </method>
+    <argument>type            (treeNode                       ), intent(inout)               :: node</argument>
+    <argument>double precision                                 , intent(in   ), dimension(3) :: positionCartesian, velocityCartesian</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType</argument>
+   </method>   
    <method name="velocityDispersion">
     <description>Return the velocity dispersion at the given {\normalfont \ttfamily radius} in {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type            (treeNode), intent(inout), target :: node</argument>
-    <argument>double precision          , intent(in   )         :: radius       , radiusOuter</argument>
-    <argument>integer                   , intent(in   )         :: componentType, massType</argument>
+    <argument>type            (treeNode                       ), intent(inout), target   :: node</argument>
+    <argument>double precision                                 , intent(in   )           :: radius       , radiusOuter</argument>
+    <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType</argument>
+    <argument>type            (enumerationMassTypeType        ), intent(in   ), optional :: massType</argument>
    </method>
   </functionClass>
   !!]

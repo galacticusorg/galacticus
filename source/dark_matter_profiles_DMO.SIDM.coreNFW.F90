@@ -60,6 +60,7 @@
      procedure :: potential                         => sidmCoreNFWPotential
      procedure :: circularVelocity                  => sidmCoreNFWCircularVelocity
      procedure :: circularVelocityMaximum           => sidmCoreNFWCircularVelocityMaximum
+     procedure :: radiusCircularVelocityMaximum     => sidmCoreNFWRadiusCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => sidmCoreNFWRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => sidmCoreNFWRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => sidmCoreNFWRotationNormalization
@@ -404,10 +405,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    double precision                                 , intent(in   )           :: radius
-    integer                                          , intent(  out), optional :: status
+    class           (darkMatterProfileDMOSIDMCoreNFW  ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     sidmCoreNFWPotential=self%potentialNumerical(node,radius,status)
     return
@@ -438,6 +439,18 @@ contains
     sidmCoreNFWCircularVelocityMaximum=self%circularVelocityMaximumNumerical(node)
     return
   end function sidmCoreNFWCircularVelocityMaximum
+
+  double precision function sidmCoreNFWRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
+
+    sidmCoreNFWRadiusCircularVelocityMaximum=self%radiusCircularVelocityMaximumNumerical(node)
+    return
+  end function sidmCoreNFWRadiusCircularVelocityMaximum
 
   double precision function sidmCoreNFWRadialVelocityDispersion(self,node,radius)
     !!{

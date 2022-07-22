@@ -25,9 +25,10 @@ module Dark_Matter_Profiles_DMO
   !!{
   Provides an object that implements dark matter halo profiles.
   !!}
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale     , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScale              , darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
   use :: Galacticus_Nodes            , only : treeNode
+  use :: Galactic_Structure_Options  , only : enumerationStructureErrorCodeType
   private
 
   !![
@@ -110,9 +111,9 @@ module Dark_Matter_Profiles_DMO
     <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout), target   :: node</argument>
-    <argument>double precision          , intent(in   )           :: radius</argument>
-    <argument>integer                   , intent(  out), optional :: status</argument>
+    <argument>type            (treeNode                         ), intent(inout), target   :: node</argument>
+    <argument>double precision                                   , intent(in   )           :: radius</argument>
+    <argument>type            (enumerationStructureErrorCodeType), intent(  out), optional :: status</argument>
    </method>
    <method name="enclosedMass" >
     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>

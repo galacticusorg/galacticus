@@ -37,7 +37,6 @@ Contains a module which implements a spin parameter output analysis property ext
    contains
      final     ::                spinDestructor
      procedure :: extract     => spinExtract
-     procedure :: type        => spinType
      procedure :: name        => spinName
      procedure :: description => spinDescription
      procedure :: unitsInSI   => spinUnitsInSI
@@ -121,18 +120,6 @@ contains
     return
   end function spinExtract
 
-  integer function spinType(self)
-    !!{
-    Return the type of the spin parameter property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorSpin), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    spinType=outputAnalysisPropertyTypeLinear
-    return
-  end function spinType
 
   function spinName(self)
     !!{

@@ -49,7 +49,7 @@
   </darkMatterProfileDMO>
   !!]
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
   use :: Kind_Numbers                , only : kind_int8
   use :: Numerical_Interpolation     , only : interpolator
 
@@ -58,14 +58,14 @@
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass    ), pointer     :: darkMatterProfileDMO_     => null()
-     class           (darkMatterProfileHeatingClass), pointer     :: darkMatterProfileHeating_ => null()
-     integer         (kind=kind_int8               )              :: lastUniqueID
-     integer                                                      :: nonAnalyticSolver
-     double precision                                             :: radiusInitialMinimum               , radiusInitialMaximum, &
-          &                                                          radiusFinalMinimum                 , radiusFinalMaximum
-     type            (interpolator                 ), allocatable :: massProfile
-     logical                                                      :: isBound
+     class           (darkMatterProfileDMOClass        ), pointer     :: darkMatterProfileDMO_     => null()
+     class           (darkMatterProfileHeatingClass    ), pointer     :: darkMatterProfileHeating_ => null()
+     integer         (kind=kind_int8                   )              :: lastUniqueID
+     type            (enumerationNonAnalyticSolversType)              :: nonAnalyticSolver
+     double precision                                                 :: radiusInitialMinimum               , radiusInitialMaximum, &
+          &                                                              radiusFinalMinimum                 , radiusFinalMaximum
+     type            (interpolator                     ), allocatable :: massProfile
+     logical                                                          :: isBound
    contains
      !![
      <methods>
@@ -163,7 +163,7 @@ contains
     class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileHeatingClass      ), intent(in   ), target :: darkMatterProfileHeating_
-    integer                                              , intent(in   )         :: nonAnalyticSolver
+    type            (enumerationNonAnalyticSolversType  ), intent(in   )         :: nonAnalyticSolver
     double precision                                     , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
     <constructorAssign variables="nonAnalyticSolver, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
@@ -496,7 +496,7 @@ contains
     class           (darkMatterProfileDMOHeatedMonotonic), intent(inout)           :: self
     type            (treeNode                           ), intent(inout), target   :: node
     double precision                                     , intent(in   )           :: radius
-    integer                                              , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType  ), intent(  out), optional :: status
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedMonotonicPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)

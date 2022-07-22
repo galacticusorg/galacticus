@@ -359,11 +359,11 @@ contains
     {\normalfont \ttfamily massResolution}.
     !!}
     implicit none
-    class          (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
-    double precision                                                , intent(in   )         :: deltaCritical , haloMass, &
-         &                                                                                     massResolution, time
-    integer                                                         , intent(in   )         :: bound
-    type            (treeNode                                      ), intent(inout), target :: node
+    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
+    double precision                                                 , intent(in   )         :: deltaCritical , haloMass, &
+         &                                                                                      massResolution, time
+    type            (enumerationMergerTreeBranchingBoundType        ), intent(in   )         :: bound
+    type            (treeNode                                       ), intent(inout), target :: node
     !$GLC attributes unused :: bound
 
     generalizedPressSchechterProbabilityBound=self%probability(haloMass,deltaCritical,time,massResolution,node)

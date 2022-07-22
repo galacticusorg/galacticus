@@ -104,7 +104,7 @@ contains
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                        :: self
     logical                                                    , intent(in   )         :: baryonsCluster
-    integer                                                    , intent(in   )         :: energyFixedAt
+    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType      ), intent(in   )         :: energyFixedAt
     class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
     !![
@@ -173,7 +173,7 @@ contains
     implicit none
     class           (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)             , intent(inout) :: self
     double precision                                                                 , intent(in   ) :: time
-    integer                                                                          , intent(in   ) :: calculationType
+    type            (enumerationCllsnlssMttCsmlgclCnstntClcltnType     )             , intent(in   ) :: calculationType
     class           (table1D                                           ), allocatable, intent(inout) :: sphericalCollapse_
     class           (linearGrowthClass                                 ), pointer                    :: linearGrowth_                  => null()
     double precision                                                    , parameter                  :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-12
@@ -298,8 +298,8 @@ contains
              finderPerturbationConstructed=.true.
           end if
           epsilonPerturbation=finderPerturbationInitial%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
-          select case (calculationType)
-          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity)
+          select case (calculationType%ID)
+          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity%ID)
              ! Critical linear overdensity.
              normalization=+linearGrowth_%value                                                                                                                            (cllsnlssMttCsmlgclCnstntTime) &
                   &        /linearGrowth_%value(                                                                                                                                                          &
@@ -312,7 +312,7 @@ contains
                   &                           normalization*epsilonPerturbation, &
                   &                           iTime                              &
                   &                          )
-          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround%ID)
              ! Find the epoch of maximum expansion for the perturbation.
              if (.not.finderExpansionConstructed) then
                 finderExpansionMaximum=rootFinder(                                                                   &
@@ -343,10 +343,10 @@ contains
              densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor/radiusExpansionMaximum)**3
              ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38; but modified to include the effects of baryons)
              ! to give the ratio of virial to turnaround radii, x.
-             select case (self%energyFixedAt)
-             case (cllsnlssMttrDarkEnergyFixedAtTurnaround   )
+             select case (self%energyFixedAt%ID)
+             case (cllsnlssMttrDarkEnergyFixedAtTurnaround   %ID)
                 timeEnergyFixed=timeExpansionMaximum
-             case (cllsnlssMttrDarkEnergyFixedAtVirialization)
+             case (cllsnlssMttrDarkEnergyFixedAtVirialization%ID)
                 timeEnergyFixed=cllsnlssMttCsmlgclCnstntTime
              case default
                 call Error_Report('unrecognized epoch'//{introspection:location})
@@ -391,8 +391,8 @@ contains
                   &   )                                                                                                  &
                   &  - (1.0d0/b*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(+1.0d0/3.0d0)/12.0d0) &
                   &  + (      a*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(-1.0d0/3.0d0)       )
-             select case (calculationType)
-             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast)
+             select case (calculationType%ID)
+             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID)
                 ! The density contrast calculated as Δ=1/(x Rmax)³ is Δ=ρvir/⟨ρDM⟩ - i.e. the density of the virialized dark
                 ! matter perturbation relative to the mean density of dark matter. However, what we want (for the definition used
                 ! by Galacticus) is the density of the perturbation relative to the total mean density. So we perform that
@@ -406,7 +406,7 @@ contains
                      &                           /(dble(x)*radiusExpansionMaximum)**3      , &
                      &                           iTime                                       &
                      &                          )
-             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround    %ID)
                 call sphericalCollapse_%populate(                                            &
                      &                           1.0d0/ dble(x)                            , &
                      &                           iTime                                       &

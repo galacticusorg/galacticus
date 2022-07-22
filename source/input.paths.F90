@@ -52,9 +52,9 @@ contains
     !!}
     use :: ISO_Varying_String, only : assignment(=), operator(//), trim, char
     implicit none
-    type   (varying_string)                :: inputPath
-    integer                , intent(in   ) :: pathType
-    integer                                :: pathLength    , pathStatus
+    type   (varying_string         )                :: inputPath
+    type   (enumerationPathTypeType), intent(in   ) :: pathType
+    integer                                         :: pathLength, pathStatus
 
     ! Retrieve the paths if necessary.
     if (.not.pathsRetrieved) then
@@ -65,16 +65,16 @@ contains
           if (pathStatus == 0) then
              call pathsRetrieve(pathTypeExec,"GALACTICUS_EXEC_PATH",pathLength)
           else
-             paths(pathTypeExec)="./"
+             paths(pathTypeExec      %ID)="./"
           end if
           call Get_Environment_Variable("GALACTICUS_DATA_PATH",length=pathLength,status=pathStatus)
           if (pathStatus == 0) then
              call pathsRetrieve(pathTypeDataStatic,"GALACTICUS_DATA_PATH",pathLength)
           else
-             paths(pathTypeDataStatic)="./"
+             paths(pathTypeDataStatic%ID)="./"
           end if
-          paths(pathTypeDataDynamic)=paths(pathTypeDataStatic)//"dynamic/"
-          paths(pathTypeDataStatic )=paths(pathTypeDataStatic)//"static/"
+          paths(pathTypeDataDynamic%ID)=paths(pathTypeDataStatic%ID)//"dynamic/"
+          paths(pathTypeDataStatic %ID)=paths(pathTypeDataStatic%ID)//"static/"
           call Get_Environment_Variable("GALACTICUS_DYNAMIC_DATA_PATH",length=pathLength,status=pathStatus)
           if (pathStatus == 0)                                                                     &
                & call pathsRetrieve(pathTypeDataDynamic,"GALACTICUS_DYNAMIC_DATA_PATH",pathLength)
@@ -82,7 +82,7 @@ contains
        end if
        !$omp end critical (Input_Path_Initialize)
     end if
-    inputPath=trim(char(paths(pathType)))
+    inputPath=trim(char(paths(pathType%ID)))
     return
   end function inputPath
 
@@ -92,16 +92,17 @@ contains
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    integer                    , intent(in   ) :: pathType, pathLength
-    character(len=*           ), intent(in   ) :: pathName
-    character(len=pathLength+1)                :: pathValue
+    type(enumerationPathTypeType), intent(in   ) :: pathType
+    integer                      , intent(in   ) :: pathLength
+    character(len=*             ), intent(in   ) :: pathName
+    character(len=pathLength+1  )                :: pathValue
 
     ! Get the path.
     call Get_Environment_Variable(pathName,value=pathValue)
     ! Append a final "/" if necessary.
     if (pathValue(pathLength:pathLength) /= "/") pathValue=trim(pathValue)//"/"
     ! Store the path.
-    paths(pathType)=pathValue
+    paths(pathType%ID)=pathValue
     return
   end subroutine pathsRetrieve
 

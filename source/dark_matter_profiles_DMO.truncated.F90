@@ -21,7 +21,7 @@
   An implementation of truncated dark matter halo profiles.
   !!}
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
@@ -33,15 +33,15 @@
      A dark matter halo profile class implementing truncated dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
-     double precision                                     :: radiusFractionalTruncateMinimum                           , radiusFractionalTruncateMaximum
-     integer                                              :: nonAnalyticSolver
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_              => null()
+     double precision                                             :: radiusFractionalTruncateMinimum                           , radiusFractionalTruncateMaximum
+     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
      ! Record of unique ID of node which we last computed results for.
-     integer         (kind=kind_int8          )           :: lastUniqueID
+     integer         (kind=kind_int8          )                   :: lastUniqueID
      ! Stored values of computed quantities.
-     double precision                                     :: enclosedMassTruncateMinimumPrevious                       , enclosedMassTruncateMaximumPrevious            , &
-          &                                                  enclosingMassRadiusPrevious                               , radialVelocityDispersionTruncateMinimumPrevious, &
-          &                                                  radialVelocityDispersionTruncateMinimumUntruncatedPrevious
+     double precision                                             :: enclosedMassTruncateMinimumPrevious                       , enclosedMassTruncateMaximumPrevious            , &
+          &                                                          enclosingMassRadiusPrevious                               , radialVelocityDispersionTruncateMinimumPrevious, &
+          &                                                          radialVelocityDispersionTruncateMinimumUntruncatedPrevious
    contains
      !![
      <methods>
@@ -61,6 +61,7 @@
      procedure :: potential                         => truncatedPotential
      procedure :: circularVelocity                  => truncatedCircularVelocity
      procedure :: circularVelocityMaximum           => truncatedCircularVelocityMaximum
+     procedure :: radiusCircularVelocityMaximum     => truncatedRadiusCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => truncatedRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => truncatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => truncatedRotationNormalization
@@ -131,11 +132,11 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (darkMatterProfileDMOTruncated)                        :: self
-    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                               , intent(in   )         :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
-    integer                                        , intent(in   )         :: nonAnalyticSolver
+    type            (darkMatterProfileDMOTruncated    )                        :: self
+    class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
+    double precision                                   , intent(in   )         :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
+    type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
     !![
     <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
@@ -371,10 +372,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout)           :: self
-    type            (treeNode                     ), intent(inout), target   :: node
-    double precision                               , intent(in   )           :: radius
-    integer                                        , intent(  out), optional :: status
+    class           (darkMatterProfileDMOTruncated    ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)
@@ -417,6 +418,22 @@ contains
     end if
     return
   end function truncatedCircularVelocityMaximum
+
+  double precision function truncatedRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class(darkMatterProfileDMOTruncated), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       truncatedRadiusCircularVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum         (node)
+    else
+       truncatedRadiusCircularVelocityMaximum=self                      %radiusCircularVelocityMaximumNumerical(node)
+    end if
+    return
+  end function truncatedRadiusCircularVelocityMaximum
 
   double precision function truncatedRadialVelocityDispersion(self,node,radius)
     !!{

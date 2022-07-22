@@ -33,7 +33,6 @@ Contains a module which implements a cosmic time output analysis property extrac
      private
    contains
      procedure :: extract     => timeExtract
-     procedure :: type        => timeType
      procedure :: name        => timeName
      procedure :: description => timeDescription
      procedure :: unitsInSI   => timeUnitsInSI
@@ -81,18 +80,6 @@ contains
     return
   end function timeExtract
 
-  integer function timeType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorTime), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    timeType=outputAnalysisPropertyTypeLinear
-    return
-  end function timeType
 
   function timeName(self)
     !!{

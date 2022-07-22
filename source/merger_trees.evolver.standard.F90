@@ -279,53 +279,54 @@ contains
     !!{
     Evolves all properties of a merger tree to the specified time.
     !!}
-    use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity           , &
-         &                                                displayGreen                , displayReset
-    use    :: Error                              , only : Error_Report                , errorStatusSuccess
-    use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic       , nodeEvent                  , &
-          &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
+    use    :: Display                            , only : displayIndent                , displayMessage                    , displayUnindent              , displayVerbosity           , &
+         &                                                displayGreen                 , displayReset                      , enumerationVerbosityLevelType, verbosityLevelWarn
+    use    :: Error                              , only : Error_Report                 , errorStatusSuccess
+    use    :: Galacticus_Nodes                   , only : interruptTask                , mergerTree                        , nodeComponentBasic           , nodeEvent                  , &
+          &                                               nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree, treeNode
     use    :: Merger_Tree_Timesteps              , only : timestepTask
     use    :: Merger_Tree_Walkers                , only : mergerTreeWalkerAllNodes
     use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
-    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable
-    !$ use :: OMP_Lib                            , only : OMP_Set_Lock                , OMP_Unset_Lock                    , omp_lock_kind
+    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked   , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable, &
+         &                                                enumerationDeadlockStatusType
+    !$ use :: OMP_Lib                            , only : OMP_Set_Lock                 , OMP_Unset_Lock                    , omp_lock_kind
     use    :: String_Handling                    , only : operator(//)
     implicit none
-    class           (mergerTreeEvolverStandard )                    , intent(inout) :: self
-    integer                                     , optional          , intent(  out) :: status
-    type            (mergerTree                )           , target , intent(inout) :: tree
-    double precision                                                , intent(in   ) :: timeEnd
-    logical                                                         , intent(  out) :: treeDidEvolve                     , suspendTree
-    logical                                                         , intent(in   ) :: deadlockReporting
-    integer         (kind_int8                 ), optional          , intent(in   ) :: systemClockMaximum
-    integer         (omp_lock_kind             ), optional          , intent(inout) :: initializationLock
-    type            (treeNode                  )           , pointer                :: nodeLock                          , nodeNext         , &
-         &                                                                             nodeParent                        , node             , &
-         &                                                                             nodeSiblingNext                   , nodeParentNext
-    class           (nodeEvent                 )           , pointer                :: event
-    double precision                            , parameter                         :: timeTolerance              =1.0d-5
-    double precision                            , parameter                         :: largeTime                  =1.0d10
-    procedure       (interruptTask             )           , pointer                :: interruptProcedure
-    procedure       (timestepTask              )           , pointer                :: timestepTask_
-    class           (*                         )           , pointer                :: timestepSelf
-    integer                                     , parameter                         :: verbosityLevel             =3
-    class           (nodeComponentBasic        )           , pointer                :: basicBase                         , basicParent      , &
-         &                                                                             basic
-    type            (mergerTree                )           , pointer                :: currentTree
-    type            (mergerTreeWalkerAllNodes  )                                    :: treeWalker
-    integer                                                                         :: statusDeadlock                    , nodesEvolvedCount, &
-         &                                                                             nodesTotalCount                   , treeWalkCount    , &
-         &                                                                             treeWalkCountPreviousOutput
-    double precision                                                                :: earliestTimeInTree                , timeEndThisNode  , &
-         &                                                                             finalTimeInTree
-    character       (len=24                    )                                    :: label
-    character       (len=35                    )                                    :: message
-    type            (varying_string            )                                    :: lockType                          , vMessage
-    logical                                                                         :: anyTreeExistsAtOutputTime         , hasIntertreeEvent, &
-         &                                                                             hasParent                         , treeLimited      , &
-         &                                                                             nodeProgressed                    , nextNodeFound    , &
-         &                                                                             didEvolve                         , interrupted      , &
-         &                                                                             nodesRemain
+    class           (mergerTreeEvolverStandard    )                    , intent(inout) :: self
+    integer                                        , optional          , intent(  out) :: status
+    type            (mergerTree                   )           , target , intent(inout) :: tree
+    double precision                                                   , intent(in   ) :: timeEnd
+    logical                                                            , intent(  out) :: treeDidEvolve                                  , suspendTree
+    logical                                                            , intent(in   ) :: deadlockReporting
+    integer         (kind_int8                    ), optional          , intent(in   ) :: systemClockMaximum
+    integer         (omp_lock_kind                ), optional          , intent(inout) :: initializationLock
+    type            (treeNode                     )           , pointer                :: nodeLock                                       , nodeNext         , &
+         &                                                                                nodeParent                                     , node             , &
+         &                                                                                nodeSiblingNext                                , nodeParentNext
+    class           (nodeEvent                    )           , pointer                :: event
+    double precision                               , parameter                         :: timeTolerance              =1.0d-5
+    double precision                               , parameter                         :: largeTime                  =1.0d10
+    procedure       (interruptTask                )           , pointer                :: interruptProcedure
+    procedure       (timestepTask                 )           , pointer                :: timestepTask_
+    class           (*                            )           , pointer                :: timestepSelf
+    type            (enumerationVerbosityLevelType), parameter                         :: verbosityLevel             =verbosityLevelWarn
+    class           (nodeComponentBasic           )           , pointer                :: basicBase                                     , basicParent      , &
+         &                                                                                basic
+    type            (mergerTree                   )           , pointer                :: currentTree
+    type            (mergerTreeWalkerAllNodes     )                                    :: treeWalker
+    type            (enumerationDeadlockStatusType)                                    :: statusDeadlock
+    integer                                                                            :: treeWalkCountPreviousOutput                    , nodesEvolvedCount, &
+         &                                                                                nodesTotalCount                                , treeWalkCount
+    double precision                                                                   :: earliestTimeInTree                             , timeEndThisNode  , &
+         &                                                                                finalTimeInTree
+    character       (len=24                       )                                    :: label
+    character       (len=35                       )                                    :: message
+    type            (varying_string               )                                    :: lockType                                       , vMessage
+    logical                                                                            :: anyTreeExistsAtOutputTime                      , hasIntertreeEvent, &
+         &                                                                                hasParent                                      , treeLimited      , &
+         &                                                                                nodeProgressed                                 , nextNodeFound    , &
+         &                                                                                didEvolve                                      , interrupted      , &
+         &                                                                                nodesRemain
 
     ! Iterate through all trees.
     suspendTree               =  .false.
@@ -1166,17 +1167,18 @@ contains
     !!{
     Perform any events associated with {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, nodeEvent, treeNode
+    use :: Galacticus_Nodes                   , only : mergerTree                   , nodeComponentBasic, nodeEvent, treeNode
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
     implicit none
-    class           (*                 ), intent(inout)          :: self
-    type            (mergerTree        ), intent(in   )          :: tree
-    type            (treeNode          ), intent(inout), pointer :: node
-    integer                             , intent(inout)          :: statusDeadlock
-    class           (nodeEvent         )               , pointer :: eventLast            , eventNext        , &
-         &                                                          event
-    class           (nodeComponentBasic)               , pointer :: basic
-    double precision                                             :: timeNode             , timeEventEarliest
-    logical                                                      :: mergerTreeEvolverDone
+    class           (*                            ), intent(inout)          :: self
+    type            (mergerTree                   ), intent(in   )          :: tree
+    type            (treeNode                     ), intent(inout), pointer :: node
+    type            (enumerationDeadlockStatusType), intent(inout)          :: statusDeadlock
+    class           (nodeEvent                    )               , pointer :: eventLast            , eventNext        , &
+         &                                                                     event
+    class           (nodeComponentBasic           )               , pointer :: basic
+    double precision                                                        :: timeNode             , timeEventEarliest
+    logical                                                                 :: mergerTreeEvolverDone
     !$GLC attributes unused :: self, tree
 
     ! Get the current time.
@@ -1228,13 +1230,14 @@ contains
     !!{
     Perform any events associated with {\normalfont \ttfamily tree}.
     !!}
-    use :: Galacticus_Nodes, only : mergerTree, treeEvent
+    use :: Galacticus_Nodes                   , only : mergerTree                   , treeEvent
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
     implicit none
-    type            (mergerTree), intent(inout), target  :: tree
-    integer                     , intent(inout)          :: statusDeadlock
-    type            (treeEvent )               , pointer :: eventLast            , eventNext, event
-    double precision                                     :: treeTimeEarliest
-    logical                                              :: mergerTreeEvolverDone
+    type            (mergerTree                   ), intent(inout), target  :: tree
+    type            (enumerationDeadlockStatusType), intent(inout)          :: statusDeadlock
+    type            (treeEvent                    )               , pointer :: eventLast            , eventNext, event
+    double precision                                                        :: treeTimeEarliest
+    logical                                                                 :: mergerTreeEvolverDone
 
     ! Find the earliest time in the tree.
     treeTimeEarliest=tree%earliestTime()

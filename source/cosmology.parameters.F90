@@ -74,7 +74,7 @@ module Cosmology_Parameters
     <description>Return the Hubble constant at the present day. The optional {\normalfont \ttfamily units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>integer, intent(in   ), optional :: units</argument>
+    <argument>type(enumerationHubbleUnitsType), intent(in   ), optional :: units</argument>
    </method>
    <method name="temperatureCMB" >
     <description>Return the temperature of the cosmic microwave background radiation (in units of Kelvin) at the present day.</description>

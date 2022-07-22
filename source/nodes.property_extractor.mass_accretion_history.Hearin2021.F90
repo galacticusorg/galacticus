@@ -37,7 +37,6 @@ Contains a module which implements a node property extractor class for parameter
      procedure :: names        => massAccretionHistoryHearin2021Names
      procedure :: descriptions => massAccretionHistoryHearin2021Descriptions
      procedure :: unitsInSI    => massAccretionHistoryHearin2021UnitsInSI
-     procedure :: type         => massAccretionHistoryHearin2021Type
   end type nodePropertyExtractorMassAccretionHistoryHearin2021
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -168,15 +167,3 @@ contains
     return
   end function massAccretionHistoryHearin2021UnitsInSI
 
-  integer function massAccretionHistoryHearin2021Type(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massAccretionHistoryHearin2021Type=outputAnalysisPropertyTypeLinear
-    return
-  end function massAccretionHistoryHearin2021Type

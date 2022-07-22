@@ -821,21 +821,21 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid           , treeNode
     use :: Histories                       , only : history
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class           (*                    ), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    class           (nodeComponentDisk    ), pointer       :: diskHost               , disk
-    class           (nodeComponentSpheroid), pointer       :: spheroidHost           , spheroid
-    type            (treeNode             ), pointer       :: nodeHost
-    type            (history              )                :: historyHost            , historyNode
-    double precision                                       :: specificAngularMomentum
-    integer                                                :: destinationGasSatellite, destinationGasHost       , &
-         &                                                    destinationStarsHost   , destinationStarsSatellite
-    logical                                                :: mergerIsMajor
+    class           (*                               ), intent(inout) :: self
+    type            (treeNode                        ), intent(inout) :: node
+    class           (nodeComponentDisk               ), pointer       :: diskHost               , disk
+    class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           , spheroid
+    type            (treeNode                        ), pointer       :: nodeHost
+    type            (history                         )                :: historyHost            , historyNode
+    double precision                                                  :: specificAngularMomentum
+    type            (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                               destinationStarsHost   , destinationStarsSatellite
+    logical                                                           :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Check that the disk is of the standard class.
@@ -856,8 +856,8 @@ contains
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the gas component of the standard disk to the host.
-       select case (destinationGasSatellite)
-       case (destinationMergerDisk)
+       select case (destinationGasSatellite%ID)
+       case (destinationMergerDisk%ID)
           call diskHost    %massGasSet            (                                                                     &
                &                                             diskHost    %massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -870,7 +870,7 @@ contains
                &                                             diskHost    %angularMomentum    ()                         &
                &                                            +disk        %massGas            ()*specificAngularMomentum &
                &                                           )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massGasSet            (                                                                     &
                &                                             spheroidHost%massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -885,8 +885,8 @@ contains
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
        ! Move the stellar component of the standard disk to the host.
-       select case (destinationStarsSatellite)
-       case (destinationMergerDisk)
+       select case (destinationStarsSatellite%ID)
+       case (destinationMergerDisk%ID)
           call diskHost    %massStellarSet        (                                                                     &
                &                                             diskHost    %massStellar        ()                         &
                &                                            +disk        %massStellar        ()                         &
@@ -919,7 +919,7 @@ contains
           call disk       %starFormationHistorySet(historyNode                     )
           call historyNode%destroy                (            recordMemory=.false.)
           call historyHost%destroy                (            recordMemory=.false.)
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
                &                                            +disk        %massStellar        ()                         &

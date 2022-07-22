@@ -132,17 +132,18 @@ contains
     !!{
     Record times of galaxy-galaxy major mergers.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Error                           , only : Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
+    use :: Satellite_Merging_Mass_Movements, only : enumerationDestinationMergerType
     implicit none
-    class           (*                 ), intent(inout)              :: self
-    type            (treeNode          ), intent(inout), target      :: node
-    type            (treeNode          )               , pointer     :: nodeHost
-    class           (nodeComponentBasic)               , pointer     :: basicHost
-    double precision                    , dimension(:) , allocatable :: majorMergerTimesCurrent, majorMergerTimesNew
-    integer                                                          :: destinationGasSatellite, destinationGasHost       , &
-         &                                                              destinationStarsHost   , destinationStarsSatellite
-    logical                                                          :: mergerIsMajor
+    class           (*                               ), intent(inout)              :: self
+    type            (treeNode                        ), intent(inout), target      :: node
+    type            (treeNode                        )               , pointer     :: nodeHost
+    class           (nodeComponentBasic              )               , pointer     :: basicHost
+    double precision                                  , dimension(:) , allocatable :: majorMergerTimesCurrent, majorMergerTimesNew
+    type            (enumerationDestinationMergerType)                             :: destinationGasSatellite, destinationStarsSatellite, &
+         &                                                                            destinationGasHost     , destinationStarsHost
+    logical                                                                        :: mergerIsMajor
  
     select type (self)
     class is (nodeOperatorGalaxyMajorMergerTime)

@@ -49,19 +49,19 @@ contains
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char        , var_str, varying_string
     implicit none
-    type   (varying_string)                :: compiler
-    integer                , intent(in   ) :: language
-    type   (varying_string)                :: compilerEnvironmentVariable
-    integer                                :: status                     , compilerLength
+    type   (varying_string         )                :: compiler
+    type   (enumerationLanguageType), intent(in   ) :: language
+    type   (varying_string         )                :: compilerEnvironmentVariable
+    integer                                         :: status                     , compilerLength
 
-    select case (language)
-    case (languageFortran  )
+    select case (language%ID)
+    case (languageFortran  %ID)
        compilerEnvironmentVariable=var_str('FCCOMPILER' )
        compiler                   =var_str('gfortran'   )
-    case (languageC        )
+    case (languageC        %ID)
        compilerEnvironmentVariable=var_str('CCOMPILER'  )
        compiler                   =var_str('gcc'        )
-    case (languageCPlusPlus)
+    case (languageCPlusPlus%ID)
        compilerEnvironmentVariable=var_str('CPPCOMPILER')
        compiler                   =var_str('g++'        )
     case default
@@ -79,18 +79,18 @@ contains
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : char        , var_str, varying_string
     implicit none
-    type   (varying_string)                :: compilerOptions
-    integer                , intent(in   ) :: language
-    type   (varying_string)                :: compilerEnvironmentVariable
-    integer                                :: status                     , compilerLength
+    type   (varying_string         )                :: compilerOptions
+    type   (enumerationLanguageType), intent(in   ) :: language
+    type   (varying_string         )                :: compilerEnvironmentVariable
+    integer                                         :: status                     , compilerLength
 
     compilerOptions=var_str('')
-    select case (language)
-    case (languageFortran  )
+    select case (language%ID)
+    case (languageFortran  %ID)
        compilerEnvironmentVariable=var_str('GALACTICUS_FCFLAGS' )
-    case (languageC        )
+    case (languageC        %ID)
        compilerEnvironmentVariable=var_str('GALACTICUS_CFLAGS'  )
-    case (languageCPlusPlus)
+    case (languageCPlusPlus%ID)
        compilerEnvironmentVariable=var_str('GALACTICUS_CPPFLAGS')
     case default
        call Error_Report('unknown language'//{introspection:location})

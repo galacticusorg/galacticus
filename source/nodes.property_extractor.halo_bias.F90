@@ -40,7 +40,6 @@ Contains a module which implements an ISM mass output analysis property extracto
    contains
      final     ::                haloBiasDestructor
      procedure :: extract     => haloBiasExtract
-     procedure :: type        => haloBiasType
      procedure :: name        => haloBiasName
      procedure :: description => haloBiasDescription
      procedure :: unitsInSI   => haloBiasUnitsInSI
@@ -123,18 +122,6 @@ contains
     return
   end function haloBiasExtract
 
-  integer function haloBiasType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    haloBiasType=outputAnalysisPropertyTypeLinear
-    return
-  end function haloBiasType
 
   function haloBiasName(self)
     !!{

@@ -25,13 +25,16 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
   !!{
   Computes the mass within a given radius for an very simple spheroid.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeSpheroid, massTypeAll    , massTypeBaryonic, &
-          &                                 massTypeGalactic       , massTypeGaseous      , massTypeStellar, radiusLarge     , &
-          &                                 weightByMass
+  use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeSpheroid       , massTypeAll            , massTypeBaryonic       , &
+          &                                 massTypeGalactic, massTypeGaseous             , massTypeStellar        , radiusLarge            , &
+          &                                 weightByMass    , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   use :: Error                     , only : Error_Report
   implicit none
   class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
-  integer                                          , intent(in   ) :: componentType, massType, weightBy, weightIndex
+  type            (enumerationComponentTypeType   ), intent(in   ) :: componentType
+  type            (enumerationMassTypeType        ), intent(in   ) :: massType
+  type            (enumerationWeightByType        ), intent(in   ) :: weightBy
+  integer                                          , intent(in   ) :: weightIndex
   double precision                                 , intent(in   ) :: radius
   !$GLC attributes unused :: weightIndex
 
@@ -39,14 +42,14 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
   Node_Component_Spheroid_Very_Simple_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
   ! Determine mass contributed.
-  select case (weightBy)
-  case (weightByMass      )
-     select case (massType)
-     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+  select case (weightBy%ID)
+  case (weightByMass      %ID)
+     select case (massType%ID)
+     case (massTypeAll%ID,massTypeBaryonic%ID,massTypeGalactic%ID)
         Node_Component_Spheroid_Very_Simple_Enclosed_Mass=self%massGas()+self%massStellar()
-     case (massTypeGaseous)
+     case (massTypeGaseous%ID)
         Node_Component_Spheroid_Very_Simple_Enclosed_Mass=self%massGas()
-     case (massTypeStellar)
+     case (massTypeStellar%ID)
         Node_Component_Spheroid_Very_Simple_Enclosed_Mass=               self%massStellar()
      end select
   case default

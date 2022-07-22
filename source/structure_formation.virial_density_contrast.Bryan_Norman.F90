@@ -24,6 +24,16 @@
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
+  ! Enumeration for different fitting function types.
+  !![
+  <enumeration>
+   <name>bryanNorman1998Fit</name>
+   <description>Specifies fit type for \cite{bryan_statistical_1998} virial density contrast.</description>
+   <entry label="flatUniverse" />
+   <entry label="zeroLambda"   />
+  </enumeration>
+  !!]
+
   !![
   <virialDensityContrast name="virialDensityContrastBryanNorman1998">
    <description>
@@ -38,9 +48,9 @@
      A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
      !!}
      private
-     class (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     integer                                   :: fitType
+     class(cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
+     class(cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_  => null()
+     type (enumerationBryanNorman1998FitType)          :: fitType
    contains
      final     ::                                bryanNorman1998Destructor
      procedure :: densityContrast             => bryanNorman1998DensityContrast
@@ -55,16 +65,6 @@
      module procedure bryanNorman1998ConstructorParameters
      module procedure bryanNorman1998ConstructorInternal
   end interface virialDensityContrastBryanNorman1998
-
-  ! Enumeration for different fitting function types.
-  !![
-  <enumeration>
-   <name>bryanNorman1998Fit</name>
-   <description>Specifies fit type for \cite{bryan_statistical_1998} virial density contrast.</description>
-   <entry label="flatUniverse" />
-   <entry label="zeroLambda"   />
-  </enumeration>
-  !!]
 
 contains
 
@@ -146,10 +146,10 @@ contains
     !$GLC attributes unused :: mass
 
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
-    select case (self%fitType)
-    case (bryanNorman1998FitZeroLambda)
+    select case (self%fitType%ID)
+    case (bryanNorman1998FitZeroLambda  %ID)
        bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/(x+1.0d0)
-    case (bryanNorman1998FitFlatUniverse)
+    case (bryanNorman1998FitFlatUniverse%ID)
        bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/(x+1.0d0)
     case default
        bryanNorman1998DensityContrast=0.0d0
@@ -173,8 +173,8 @@ contains
     !$GLC attributes unused :: mass
 
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
-    select case (self%fitType)
-    case (bryanNorman1998FitZeroLambda)
+    select case (self%fitType%ID)
+    case (bryanNorman1998FitZeroLambda  %ID)
        bryanNorman1998DensityContrastRateOfChange=                                               &
             & (                                                                                  &
             &  +(            +60.0d0  -64.0d0*x   )                                              &
@@ -183,7 +183,7 @@ contains
             & )                                                                                  &
             & *self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
             & / (x+1.0d0)
-    case (bryanNorman1998FitFlatUniverse)
+    case (bryanNorman1998FitFlatUniverse%ID)
        bryanNorman1998DensityContrastRateOfChange=                                               &
             & (                                                                                  &
             &  +(            +82.0d0  -78.0d0*x   )                                              &

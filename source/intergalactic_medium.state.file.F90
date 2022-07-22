@@ -24,6 +24,7 @@
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
+  use :: Table_Labels           , only : enumerationExtrapolationTypeType
 
   ! Current file format version for intergalactic medium state files.
   integer, parameter :: fileFormatVersionCurrent=1
@@ -141,17 +142,17 @@
      !!}
      private
      ! Name of the file from which to read intergalactic medium state data.
-     type            (varying_string)                            :: fileName
+     type            (varying_string                  )                            :: fileName
      ! Flag indicating whether or not data has been read.
-     logical                                                     :: dataRead                           =.false.
+     logical                                                                       :: dataRead                           =.false.
      ! Data tables.
-     integer                                                     :: redshiftCount
-     double precision                , allocatable, dimension(:) :: electronFractionTable                      , temperatureTable                 , &
-          &                                                         timeTable                                  , ionizedHydrogenFractionTable     , &
-          &                                                         ionizedHeliumFractionTable
-     type            (interpolator  )                            :: interpolatorElectronFraction               , interpolatorTemperature          , &
-          &                                                         interpolatorIonizedHydrogenFraction        , interpolatorIonizedHeliumFraction
-     integer                                                     :: extrapolationType
+     integer                                                                       :: redshiftCount
+     double precision                                  , allocatable, dimension(:) :: electronFractionTable                      , temperatureTable                 , &
+          &                                                                           timeTable                                  , ionizedHydrogenFractionTable     , &
+          &                                                                           ionizedHeliumFractionTable
+     type            (interpolator                    )                            :: interpolatorElectronFraction               , interpolatorTemperature          , &
+          &                                                                           interpolatorIonizedHydrogenFraction        , interpolatorIonizedHeliumFraction
+     type            (enumerationExtrapolationTypeType)                            :: extrapolationType
    contains
      final     ::                                fileDestructor
      procedure :: electronFraction            => fileElectronFraction
@@ -279,10 +280,10 @@ contains
           self%timeTable(iRedshift)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
        end do
        ! Build interpolators.
-       self%interpolatorElectronFraction       =interpolator(self%timeTable,self%electronFractionTable,extrapolationType=self%extrapolationType)
-       self%interpolatorTemperature            =interpolator(self%timeTable,self%temperatureTable,extrapolationType=self%extrapolationType)
+       self%interpolatorElectronFraction       =interpolator(self%timeTable,self%electronFractionTable       ,extrapolationType=self%extrapolationType)
+       self%interpolatorTemperature            =interpolator(self%timeTable,self%temperatureTable            ,extrapolationType=self%extrapolationType)
        self%interpolatorIonizedHydrogenFraction=interpolator(self%timeTable,self%ionizedHydrogenFractionTable,extrapolationType=self%extrapolationType)
-       self%interpolatorIonizedHeliumFraction  =interpolator(self%timeTable,self%ionizedHeliumFractionTable,extrapolationType=self%extrapolationType)
+       self%interpolatorIonizedHeliumFraction  =interpolator(self%timeTable,self%ionizedHeliumFractionTable  ,extrapolationType=self%extrapolationType)
        ! Flag that data has now been read.
        self%dataRead=.true.
     end if

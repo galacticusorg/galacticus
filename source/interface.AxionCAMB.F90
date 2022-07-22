@@ -223,13 +223,13 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        call    axionCambOutput%openFile(char(fileName_))
-       call    axionCambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
+       call    axionCambOutput%readDataset           ('wavenumber'  ,wavenumbers                                    )
        allocate(transferFunctions(size(wavenumbers),4,size(redshifts)))
        speciesGroup=axionCambOutput%openGroup('darkMatter')
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesDarkMatter     ,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesDarkMatter     %ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -239,7 +239,7 @@ contains
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesColdDarkMatter ,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesColdDarkMatter %ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -249,7 +249,7 @@ contains
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesFuzzyDarkMatter,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesFuzzyDarkMatter%ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -259,7 +259,7 @@ contains
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesBaryons        ,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,axionCambSpeciesBaryons        %ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -469,16 +469,16 @@ contains
              if (status == 0) then
                 if (axionCambTransferLine(1:1) /= "#") then
                    i=i+1
-                   read (axionCambTransferLine,*) wavenumbers           (i                                  ),transferFunctions(i,axionCambSpeciesColdDarkMatter,j), &
-                        &                         transferFunctions     (i,axionCambSpeciesBaryons        ,j),transferFunctionUnused                               , &
-                        &                         transferFunctionUnused                                     ,transferFunctionUnused                               , &
-                        &                         transferFunctions     (i,axionCambSpeciesFuzzyDarkMatter,j)
+                   read (axionCambTransferLine,*) wavenumbers           (i                                     ),transferFunctions(i,axionCambSpeciesColdDarkMatter%ID,j), &
+                        &                         transferFunctions     (i,axionCambSpeciesBaryons        %ID,j),transferFunctionUnused                                  , &
+                        &                         transferFunctionUnused                                        ,transferFunctionUnused                                  , &
+                        &                         transferFunctions     (i,axionCambSpeciesFuzzyDarkMatter%ID,j)
                    ! Transfer function for total dark matter perturbations.
-                   transferFunctions(i,axionCambSpeciesDarkMatter,j)=(                                                                                       &
-                        &                                              transferFunctions(i,axionCambSpeciesColdDarkMatter ,j)*coldDarkMatterDensityFraction  &
-                        &                                             +transferFunctions(i,axionCambSpeciesFuzzyDarkMatter,j)*fuzzyDarkMatterDensityFraction &
-                        &                                            )                                                                                       &
-                        &                                            /(coldDarkMatterDensityFraction+fuzzyDarkMatterDensityFraction)
+                   transferFunctions(i,axionCambSpeciesDarkMatter%ID,j)=(                                                                                          &
+                        &                                                 transferFunctions(i,axionCambSpeciesColdDarkMatter %ID,j)*coldDarkMatterDensityFraction  &
+                        &                                                +transferFunctions(i,axionCambSpeciesFuzzyDarkMatter%ID,j)*fuzzyDarkMatterDensityFraction &
+                        &                                               )                                                                                          &
+                        &                                               /(coldDarkMatterDensityFraction+fuzzyDarkMatterDensityFraction)
                 end if
              else
                 call Error_Report('unable to read AxionCAMB transfer function file'//{introspection:location})
@@ -510,25 +510,25 @@ contains
        speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesDarkMatter     ,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesDarkMatter     %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        speciesGroup=axionCambOutput%openGroup('coldDarkMatter' ,'Group containing transfer functions for cold dark matter.' )
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesColdDarkMatter ,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesColdDarkMatter %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        speciesGroup=axionCambOutput%openGroup('fuzzyDarkMatter','Group containing transfer functions for fuzzy dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesFuzzyDarkMatter,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesFuzzyDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        speciesGroup=axionCambOutput%openGroup('baryons'        ,'Group containing transfer functions for baryons.'          )
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesBaryons        ,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,axionCambSpeciesBaryons        %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        parametersGroup=axionCambOutput%openGroup('parameters')

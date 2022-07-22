@@ -350,38 +350,39 @@ contains
     !!{
     Constructor for the ``scatterFunction1D'' output analysis class for internal use.
     !!}
-    use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
-    use :: Output_Analysis_Weight_Operators  , only : outputAnalysisWeightOperatorClass  , weightOperatorList
+    use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
+    use :: Output_Analysis_Weight_Operators  , only : outputAnalysisWeightOperatorClass           , weightOperatorList
+    use :: Output_Analyses_Options           , only : enumerationOutputAnalysisCovarianceModelType
     implicit none
-    type            (outputAnalysisScatterFunction1D        )                                          :: self
-    type            (varying_string                         ), intent(in   )                           :: label                                       , comment                                      , &
-         &                                                                                                propertyLabel                               , propertyComment                              , &
-         &                                                                                                scatterLabel                                , scatterComment                               , &
-         &                                                                                                propertyUnits                               , scatterUnits
-    type            (varying_string                         ), intent(in   ), optional                 :: xAxisLabel                                  , yAxisLabel                                   , &
-         &                                                                                                targetLabel
-    double precision                                         , intent(in   )                           :: propertyUnitsInSI                           , scatterUnitsInSI
-    double precision                                         , intent(in   )          , dimension(:  ) :: binCenter
-    integer         (c_size_t                               ), intent(in   )                           :: bufferCount
-    double precision                                         , intent(in   )          , dimension(:,:) :: outputWeight
-    logical                                                  , intent(in   ), optional                 :: xAxisIsLog                                  , yAxisIsLog                                   , &
-         &                                                                                                likelihoodNormalize
-    class           (nodePropertyExtractorClass             ), intent(inout), target                   :: nodePropertyExtractor_            , outputAnalysisWeightPropertyExtractor_
-    class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target                   :: outputAnalysisPropertyOperator_             , outputAnalysisPropertyUnoperator_            , &
-         &                                                                                                outputAnalysisWeightPropertyOperator_
-    class           (outputAnalysisWeightOperatorClass      ), intent(inout), target                   :: outputAnalysisWeightOperator_
-    class           (outputAnalysisDistributionOperatorClass), intent(inout), target                   :: outputAnalysisDistributionOperator_
-    class           (galacticFilterClass                    ), intent(inout), target                   :: galacticFilter_
-    class           (outputTimesClass                       ), intent(inout), target                   :: outputTimes_
-    integer                                                  , intent(in   )                           :: covarianceModel
-    integer                                                  , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
-    double precision                                         , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum           , covarianceBinomialMassHaloMaximum
-    double precision                                         , intent(in   ), optional, dimension(:  ) :: scatterValueTarget
-    double precision                                         , intent(in   ), optional, dimension(:,:) :: scatterCovarianceTarget
-    type            (weightOperatorList                     ), pointer                                 :: weightOperatorWeight_                       , weightOperatorSquared_
-    type            (propertyOperatorList                   ), pointer                                 :: propertyOperators_
-    type            (outputAnalysisPropertyOperatorSequence ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
-    type            (outputAnalysisPropertyOperatorSquare   ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
+    type            (outputAnalysisScatterFunction1D             )                                          :: self
+    type            (varying_string                              ), intent(in   )                           :: label                                       , comment                                      , &
+         &                                                                                                     propertyLabel                               , propertyComment                              , &
+         &                                                                                                     scatterLabel                                , scatterComment                               , &
+         &                                                                                                     propertyUnits                               , scatterUnits
+    type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                                  , yAxisLabel                                   , &
+         &                                                                                                     targetLabel
+    double precision                                              , intent(in   )                           :: propertyUnitsInSI                           , scatterUnitsInSI
+    double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
+    integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
+    double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
+    logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                  , yAxisIsLog                                   , &
+         &                                                                                                     likelihoodNormalize
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_            , outputAnalysisWeightPropertyExtractor_
+    class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_             , outputAnalysisPropertyUnoperator_            , &
+         &                                                                                                     outputAnalysisWeightPropertyOperator_
+    class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperator_
+    class           (outputAnalysisDistributionOperatorClass     ), intent(inout), target                   :: outputAnalysisDistributionOperator_
+    class           (galacticFilterClass                         ), intent(inout), target                   :: galacticFilter_
+    class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
+    type            (enumerationOutputAnalysisCovarianceModelType), intent(in   )                           :: covarianceModel
+    integer                                                       , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
+    double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum           , covarianceBinomialMassHaloMaximum
+    double precision                                              , intent(in   ), optional, dimension(:  ) :: scatterValueTarget
+    double precision                                              , intent(in   ), optional, dimension(:,:) :: scatterCovarianceTarget
+    type            (weightOperatorList                          ), pointer                                 :: weightOperatorWeight_                       , weightOperatorSquared_
+    type            (propertyOperatorList                        ), pointer                                 :: propertyOperators_
+    type            (outputAnalysisPropertyOperatorSequence      ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
+    type            (outputAnalysisPropertyOperatorSquare        ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
     !![
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget"/>
     !!]

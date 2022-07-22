@@ -26,6 +26,7 @@ module Tables
   Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
   !!}
   use :: Numerical_Interpolation, only : interpolator
+  use :: Table_Labels           , only : enumerationExtrapolationTypeType
   private
   public :: table                          , table1D                          , table1DGeneric                    , &
        &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
@@ -92,10 +93,10 @@ module Tables
      !!{
      Basic table type.
      !!}
-     integer                                       :: xCount
-     integer                      , dimension(2  ) :: extrapolationType
-     double precision, allocatable, dimension(:  ) :: xv
-     double precision, allocatable, dimension(:,:) :: yv
+     integer                                                                         :: xCount
+     type            (enumerationExtrapolationTypeType)             , dimension(2  ) :: extrapolationType
+     double precision                                  , allocatable, dimension(:  ) :: xv
+     double precision                                  , allocatable, dimension(:,:) :: yv
    contains
      !![
      <methods>
@@ -334,18 +335,18 @@ module Tables
      !!{
      Two-dimensional table type with logarithmic spacing in x and y dimensions, and linear interpolation in z.
      !!}
-     integer                                         :: extrapolationTypeX  , extrapolationTypeY  , &
-          &                                             xCount              , yCount              , &
-          &                                             i                   , j                   , &
-          &                                             tablePrevious       , dimPrevious
-     double precision                                :: xLinearPrevious     , yLinearPrevious     , &
-          &                                             xLogarithmicPrevious, yLogarithmicPrevious, &
-          &                                             hx                  , hy                  , &
-          &                                             inverseDeltaX       , inverseDeltaY       , &
-          &                                             zPrevious           , dzPrevious
-     logical                                         :: xPreviousSet        , yPreviousSet
-     double precision, allocatable, dimension(:    ) :: xv                  , yv
-     double precision, allocatable, dimension(:,:,:) :: zv
+     type            (enumerationExtrapolationTypeType)                                :: extrapolationTypeX  , extrapolationTypeY
+     integer                                                                           :: xCount              , yCount              , &
+          &                                                                               i                   , j                   , &
+          &                                                                               tablePrevious       , dimPrevious
+     double precision                                                                  :: xLinearPrevious     , yLinearPrevious     , &
+          &                                                                               xLogarithmicPrevious, yLogarithmicPrevious, &
+          &                                                                               hx                  , hy                  , &
+          &                                                                               inverseDeltaX       , inverseDeltaY       , &
+          &                                                                               zPrevious           , dzPrevious
+     logical                                                                           :: xPreviousSet        , yPreviousSet
+     double precision                                  , allocatable, dimension(:    ) :: xv                  , yv
+     double precision                                  , allocatable, dimension(:,:,:) :: zv
    contains
      !![
      <methods>
@@ -574,10 +575,10 @@ contains
     use :: Numerical_Interpolation, only : GSL_Interp_Linear
     use :: Table_Labels           , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
-    class           (table1DGeneric  )              , intent(inout)           :: self
-    double precision                  , dimension(:), intent(in   )           :: x
-    integer                                         , intent(in   ), optional :: interpolationType, tableCount
-    integer                           , dimension(2), intent(in   ), optional :: extrapolationType
+    class           (table1DGeneric                  )              , intent(inout)           :: self
+    double precision                                  , dimension(:), intent(in   )           :: x
+    integer                                                         , intent(in   ), optional :: interpolationType, tableCount
+    type            (enumerationExtrapolationTypeType), dimension(2), intent(in   ), optional :: extrapolationType
     !![
     <optionalArgument name="tableCount"        defaultsTo="1"                           />
     <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeExtrapolate"/>
@@ -753,12 +754,12 @@ contains
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
-    class           (table1DLinearLinear), intent(inout)                         :: self
-    double precision                     , intent(in   )                         :: xMaximum         , xMinimum
-    integer                              , intent(in   )                         :: xCount
-    integer                              , intent(in   ), optional               :: tableCount
-    integer                              , intent(in   ), optional, dimension(2) :: extrapolationType
-    integer                                                                      :: tableCountActual
+    class           (table1DLinearLinear             ), intent(inout)                         :: self
+    double precision                                  , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                           , intent(in   )                         :: xCount
+    integer                                           , intent(in   ), optional               :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                                   :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -933,11 +934,11 @@ contains
     Create a 1-D logarithmic table.
     !!}
     implicit none
-    class           (table1DLogarithmicLinear), intent(inout)                         :: self
-    double precision                          , intent(in   )                         :: xMaximum         , xMinimum
-    integer                                   , intent(in   )                         :: xCount
-    integer                                   , intent(in   ), optional               :: tableCount
-    integer                                   , intent(in   ), optional, dimension(2) :: extrapolationType
+    class           (table1DLogarithmicLinear        ), intent(inout)                         :: self
+    double precision                                  , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                           , intent(in   )                         :: xCount
+    integer                                           , intent(in   ), optional               :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional, dimension(2) :: extrapolationType
 
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
@@ -1142,12 +1143,12 @@ contains
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
-    class           (table1DLinearCSpline), intent(inout)                         :: self
-    double precision                      , intent(in   )                         :: xMaximum         , xMinimum
-    integer                               , intent(in   )                         :: xCount
-    integer                               , intent(in   ), optional               :: tableCount
-    integer                               , intent(in   ), optional, dimension(2) :: extrapolationType
-    integer                                                                       :: tableCountActual
+    class           (table1DLinearCSpline            ), intent(inout)                         :: self
+    double precision                                  , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                           , intent(in   )                         :: xCount
+    integer                                           , intent(in   ), optional               :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                                   :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -1388,11 +1389,11 @@ contains
     Create a 1-D logarithmic table.
     !!}
     implicit none
-    class           (table1DLogarithmicCSpline), intent(inout)                         :: self
-    double precision                           , intent(in   )                         :: xMaximum         , xMinimum
-    integer                                    , intent(in   )                         :: xCount
-    integer                                    , intent(in   ), optional               :: tableCount
-    integer                                    , intent(in   ), optional, dimension(2) :: extrapolationType
+    class           (table1DLogarithmicCSpline       ), intent(inout)                         :: self
+    double precision                                  , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                           , intent(in   )                         :: xCount
+    integer                                           , intent(in   ), optional               :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional, dimension(2) :: extrapolationType
 
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
@@ -1501,20 +1502,20 @@ contains
     double precision         , intent(in   ) :: x
 
     if      (x < self%x(+1)) then
-       select case (self%extrapolationType(1))
-       case (extrapolationTypeExtrapolate,extrapolationTypeZero)
+       select case (self%extrapolationType(1)%ID)
+       case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
           Table1D_Find_Effective_X=x
-       case (extrapolationTypeFix        )
+       case (extrapolationTypeFix        %ID)
           Table1D_Find_Effective_X=self%x(+1)
        case default
           Table1D_Find_Effective_X=0.0d0
           call Error_Report('x is below range'//{introspection:location})
        end select
     else if (x > self%x(-1)) then
-       select case (self%extrapolationType(2))
-       case (extrapolationTypeExtrapolate,extrapolationTypeZero)
+       select case (self%extrapolationType(2)%ID)
+       case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
           Table1D_Find_Effective_X=x
-       case (extrapolationTypeFix        )
+       case (extrapolationTypeFix        %ID)
           Table1D_Find_Effective_X=self%x(-1)
        case default
           Table1D_Find_Effective_X=0.0d0
@@ -1634,13 +1635,13 @@ contains
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate
     implicit none
-    class           (table2DLogLogLin), intent(inout)           :: self
-    double precision                  , intent(in   )           :: xMaximum          , xMinimum          , &
-         &                                                         yMaximum          , yMinimum
-    integer                           , intent(in   )           :: xCount            , yCount
-    integer                           , intent(in   ), optional :: extrapolationTypeX, extrapolationTypeY, &
-         &                                                         tableCount
-    integer                                                     :: tableCountActual
+    class           (table2DLogLogLin                ), intent(inout)           :: self
+    double precision                                  , intent(in   )           :: xMaximum          , xMinimum          , &
+         &                                                                         yMaximum          , yMinimum
+    integer                                           , intent(in   )           :: xCount            , yCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional :: extrapolationTypeX, extrapolationTypeY
+    integer                                           , intent(in   ), optional :: tableCount
+    integer                                                                     :: tableCountActual
 
     ! Initialize state.
     self%xPreviousSet        =.false.
@@ -1986,12 +1987,12 @@ contains
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
-    class           (table1DLinearMonotoneCSpline), intent(inout)                         :: self
-    double precision                              , intent(in   )                         :: xMaximum         , xMinimum
-    integer                                       , intent(in   )                         :: xCount
-    integer                                       , intent(in   ), optional               :: tableCount
-    integer                                       , intent(in   ), optional, dimension(2) :: extrapolationType
-    integer                                                                               :: tableCountActual
+    class           (table1DLinearMonotoneCSpline    ), intent(inout)                         :: self
+    double precision                                  , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                           , intent(in   )                         :: xCount
+    integer                                           , intent(in   ), optional               :: tableCount
+    type            (enumerationextrapolationTypeType), intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                                   :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -2245,7 +2246,7 @@ contains
     class           (table1DLogarithmicMonotoneCSpline), intent(inout)                         :: self
     double precision                                   , intent(in   )                         :: xMaximum         , xMinimum
     integer                                            , intent(in   )                         :: xCount
-    integer                                            , intent(in   ), optional, dimension(2) :: extrapolationType
+    type            (enumerationExtrapolationTypeType ), intent(in   ), optional, dimension(2) :: extrapolationType
     integer                                            , intent(in   ), optional               ::  tableCount
 
     self%previousSet         =.false.

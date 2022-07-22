@@ -44,7 +44,6 @@
      procedure :: name        => radiusVelocityMaximumName
      procedure :: description => radiusVelocityMaximumDescription
      procedure :: unitsInSI   => radiusVelocityMaximumUnitsInSI
-     procedure :: type        => radiusVelocityMaximumType
   end type nodePropertyExtractorRadiusVelocityMaximum
 
   interface nodePropertyExtractorRadiusVelocityMaximum
@@ -167,15 +166,3 @@ contains
     return
   end function radiusVelocityMaximumUnitsInSI
 
-  integer function radiusVelocityMaximumType(self)
-    !!{
-    Return the type of the radius of maximum velocity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusVelocityMaximum), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusVelocityMaximumType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusVelocityMaximumType

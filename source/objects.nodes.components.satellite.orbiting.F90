@@ -141,11 +141,11 @@ module Node_Component_Satellite_Orbiting
   !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_,galacticStructure_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical         , parameter :: acceptUnboundOrbits=.false.
+  logical                                                          , parameter :: acceptUnboundOrbits=.false.
 
   ! Option controlling how to initialize the bound mass of satellite halos.
-  integer                     :: satelliteBoundMassInitializeType
-  double precision            :: satelliteMaximumRadiusOverVirialRadius      , satelliteDensityContrast
+  type            (enumerationSatelliteBoundMassInitializeTypeType)            :: satelliteBoundMassInitializeType
+  double precision                                                             :: satelliteMaximumRadiusOverVirialRadius      , satelliteDensityContrast
 
 contains
 
@@ -195,12 +195,12 @@ contains
        </inputParameter>
        !!]
        ! Validate the parameters.
-       select case (satelliteBoundMassInitializeType)
-       case (satelliteBoundMassInitializeTypeMaximumRadius  )
+       select case (satelliteBoundMassInitializeType%ID)
+       case (satelliteBoundMassInitializeTypeMaximumRadius  %ID)
           if (satelliteMaximumRadiusOverVirialRadius <= 0.0d0) then
              call Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
           end if
-       case (satelliteBoundMassInitializeTypeDensityContrast)
+       case (satelliteBoundMassInitializeTypeDensityContrast%ID)
           if (satelliteDensityContrast               <= 0.0d0) then
              call Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
           end if
@@ -526,16 +526,16 @@ contains
 
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
-       select case (satelliteBoundMassInitializeType)
-       case (satelliteBoundMassInitializeTypeBasicMass      )
+       select case (satelliteBoundMassInitializeType%ID)
+       case (satelliteBoundMassInitializeTypeBasicMass      %ID)
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
-       case (satelliteBoundMassInitializeTypeMaximumRadius  )
+       case (satelliteBoundMassInitializeTypeMaximumRadius  %ID)
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
           virialRadius =darkMatterHaloScale_%radiusVirial(node              )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
           massSatellite=galacticStructure_  %massEnclosed(node,maximumRadius)
           call satellite%boundMassSet(massSatellite)
-       case (satelliteBoundMassInitializeTypeDensityContrast)
+       case (satelliteBoundMassInitializeTypeDensityContrast%ID)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
           massSatellite=Dark_Matter_Profile_Mass_Definition(                                                 &
                &                                                                   node                    , &

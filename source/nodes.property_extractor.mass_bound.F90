@@ -33,7 +33,6 @@ Contains a module which implements an output analysis property extractor class t
      private
    contains
      procedure :: extract     => massBoundExtract
-     procedure :: type        => massBoundType
      procedure :: name        => massBoundName
      procedure :: description => massBoundDescription
      procedure :: unitsInSI   => massBoundUnitsInSI
@@ -81,18 +80,6 @@ contains
     return
   end function massBoundExtract
 
-  integer function massBoundType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassBound), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massBoundType=outputAnalysisPropertyTypeLinear
-    return
-  end function massBoundType
 
   function massBoundName(self)
     !!{

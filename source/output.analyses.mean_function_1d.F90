@@ -404,7 +404,7 @@ contains
     class           (outputAnalysisDistributionOperatorClass     ), intent(inout), target                   :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                         ), intent(inout), target                   :: galacticFilter_
     class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
-    integer                                                       , intent(in   )                           :: covarianceModel
+    type            (enumerationOutputAnalysisCovarianceModelType), intent(in   )                           :: covarianceModel
     integer                                                       , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
     double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum        , covarianceBinomialMassHaloMaximum
     double precision                                              , intent(in   ), optional, dimension(:  ) :: meanValueTarget

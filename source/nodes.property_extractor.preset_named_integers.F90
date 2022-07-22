@@ -38,7 +38,6 @@
      procedure :: names        => presetNamedIntegersNames
      procedure :: descriptions => presetNamedIntegersDescriptions
      procedure :: unitsInSI    => presetNamedIntegersUnitsInSI
-     procedure :: type         => presetNamedIntegersType
   end type nodePropertyExtractorPresetNamedIntegers
 
   interface nodePropertyExtractorPresetNamedIntegers
@@ -178,15 +177,3 @@ contains
     return
   end function presetNamedIntegersUnitsInSI
 
-  integer function presetNamedIntegersType(self)
-    !!{
-    Return the type of the presetNamedIntegers property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorPresetNamedIntegers), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    presetNamedIntegersType=outputAnalysisPropertyTypeLinear
-    return
-  end function presetNamedIntegersType

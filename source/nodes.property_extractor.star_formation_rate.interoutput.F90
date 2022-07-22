@@ -38,7 +38,6 @@
      procedure :: names        => starFormationRateInterOutputNames
      procedure :: descriptions => starFormationRateInterOutputDescriptions
      procedure :: unitsInSI    => starFormationRateInterOutputUnitsInSI
-     procedure :: type         => starFormationRateInterOutputType
   end type nodePropertyExtractorStarFormationRateInterOutput
 
   interface nodePropertyExtractorStarFormationRateInterOutput
@@ -183,15 +182,3 @@ contains
     return
   end function starFormationRateInterOutputUnitsInSI
 
-  integer function starFormationRateInterOutputType(self)
-    !!{
-    Return the type of the starFormationRateInterOutput property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorStarFormationRateInterOutput), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    starFormationRateInterOutputType=outputAnalysisPropertyTypeLinear
-    return
-  end function starFormationRateInterOutputType

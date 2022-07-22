@@ -76,26 +76,33 @@ contains
   <functionGlobal>
    <unitName>galacticStructureMassEnclosed</unitName>
    <type>double precision</type>
-   <module>Galacticus_Nodes, only : treeNode</module>
-   <arguments>class           (*       ), intent(inout)           :: galacticStructure_</arguments>
-   <arguments>type            (treeNode), intent(inout)           :: node</arguments>
-   <arguments>double precision          , intent(in   ), optional :: radius</arguments>
-   <arguments>integer                   , intent(in   ), optional :: componentType, massType, weightBy, weightIndex</arguments>
+   <module>Galacticus_Nodes          , only : treeNode</module>
+   <module>Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType</module>
+   <arguments>class           (*                           ), intent(inout)           :: galacticStructure_</arguments>
+   <arguments>type            (treeNode                    ), intent(inout)           :: node</arguments>
+   <arguments>double precision                              , intent(in   ), optional :: radius</arguments>
+   <arguments>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</arguments>
+   <arguments>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType</arguments>
+   <arguments>type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy</arguments>
+   <arguments>integer                                       , intent(in   ), optional :: weightIndex</arguments>
   </functionGlobal>
   !!]
   double precision function galacticStructureMassEnclosed(galacticStructure_,node,radius,componentType,massType,weightBy,weightIndex)
     !!{
     Compute the mass enclosed for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Error             , only : Error_Report
-    use :: Galactic_Structure, only : galacticStructureClass
-    use :: Galacticus_Nodes  , only : treeNode
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure        , only : galacticStructureClass
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    class           (*       ), intent(inout)           :: galacticStructure_
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   ), optional :: componentType     , massType   , &
-         &                                                 weightBy          , weightIndex
-    double precision          , intent(in   ), optional :: radius
+    class           (*                           ), intent(inout)           :: galacticStructure_
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                                       , intent(in   ), optional :: weightIndex
+    double precision                              , intent(in   ), optional :: radius
  
     select type (galacticStructure_)
     class is (galacticStructureClass)
@@ -109,29 +116,37 @@ contains
 
   !![
   <functionGlobal>
-   <unitName>galacticStructureDensity</unitName>
-   <type>double precision</type>
-   <module>Galacticus_Nodes, only : treeNode</module>
-   <arguments>class           (*       ), intent(inout)               :: galacticStructure_</arguments>
-   <arguments>type            (treeNode), intent(inout)               :: node</arguments>
-   <arguments>double precision          , intent(in   ), dimension(3) :: position</arguments>
-   <arguments>integer                   , intent(in   ), optional     :: coordinateSystem, componentType, massType, weightBy, weightIndex</arguments>
+    <unitName>galacticStructureDensity</unitName>
+    <type>double precision</type>
+    <module>Galacticus_Nodes          , only : treeNode</module>
+    <module>Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, enumerationCoordinateSystemType</module>
+    <arguments>class           (*                              ), intent(inout)               :: galacticStructure_</arguments>
+    <arguments>type            (treeNode                       ), intent(inout)               :: node</arguments>
+    <arguments>double precision                                 , intent(in   ), dimension(3) :: position</arguments>
+    <arguments>type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem</arguments>
+    <arguments>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType</arguments>
+    <arguments>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType</arguments>
+    <arguments>type            (enumerationWeightByType        ), intent(in   ), optional     :: weightBy</arguments>
+    <arguments>integer                                          , intent(in   ), optional     :: weightIndex</arguments>
   </functionGlobal>
   !!]
   double precision function galacticStructureDensity(galacticStructure_,node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !!{
     Compute the density for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Error             , only : Error_Report
-    use :: Galactic_Structure, only : galacticStructureClass
-    use :: Galacticus_Nodes  , only : treeNode
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure        , only : galacticStructureClass
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, enumerationCoordinateSystemType
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    class           (*       ), intent(inout)               :: galacticStructure_
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   ), optional     :: componentType     , massType   , &
-         &                                                     weightBy          , weightIndex, &
-         &                                                     coordinateSystem
-    double precision          , intent(in   ), dimension(3) :: position
+    class           (*                              ), intent(inout)               :: galacticStructure_
+    type            (treeNode                       ), intent(inout)               :: node
+    type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType
+    type            (enumerationWeightByType        ), intent(in   ), optional     :: weightBy
+    type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem
+    integer                                          , intent(in   ), optional     :: weightIndex
+    double precision                                 , intent(in   ), dimension(3) :: position
  
     select type (galacticStructure_)
     class is (galacticStructureClass)
@@ -147,25 +162,29 @@ contains
   <functionGlobal>
    <unitName>galacticStructureVelocityRotation</unitName>
    <type>double precision</type>
-   <module>Galacticus_Nodes, only : treeNode</module>
-   <arguments>class           (*       ), intent(inout)           :: galacticStructure_</arguments>
-   <arguments>type            (treeNode), intent(inout)           :: node</arguments>
-   <arguments>double precision          , intent(in   ), optional :: radius</arguments>
-   <arguments>integer                   , intent(in   ), optional :: componentType, massType</arguments>
+   <module>Galacticus_Nodes          , only : treeNode</module>
+   <module>Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType</module>
+   <arguments>class           (*                           ), intent(inout)           :: galacticStructure_</arguments>
+   <arguments>type            (treeNode                    ), intent(inout)           :: node</arguments>
+   <arguments>double precision                              , intent(in   ), optional :: radius</arguments>
+   <arguments>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</arguments>
+   <arguments>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType</arguments>
   </functionGlobal>
   !!]
   double precision function galacticStructureVelocityRotation(galacticStructure_,node,radius,componentType,massType)
     !!{
     Compute the rotation velocity for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Error             , only : Error_Report
-    use :: Galactic_Structure, only : galacticStructureClass
-    use :: Galacticus_Nodes  , only : treeNode
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure        , only : galacticStructureClass
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    class           (*       ), intent(inout)           :: galacticStructure_
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   ), optional :: componentType     , massType
-    double precision          , intent(in   ), optional :: radius
+    class           (*                           ), intent(inout)           :: galacticStructure_
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , intent(in   ), optional :: radius
  
     select type (galacticStructure_)
     class is (galacticStructureClass)
@@ -181,26 +200,30 @@ contains
   <functionGlobal>
    <unitName>galacticStructureVelocityRotationGradient</unitName>
    <type>double precision</type>
-   <module>Galacticus_Nodes, only : treeNode</module>
-   <arguments>class           (*       ), intent(inout)           :: galacticStructure_</arguments>
-   <arguments>type            (treeNode), intent(inout)           :: node</arguments>
-   <arguments>double precision          , intent(in   ), optional :: radius</arguments>
-   <arguments>integer                   , intent(in   ), optional :: componentType, massType</arguments>
+   <module>Galacticus_Nodes          , only : treeNode</module>
+   <module>Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType</module>
+   <arguments>class           (*                           ), intent(inout)           :: galacticStructure_</arguments>
+   <arguments>type            (treeNode                    ), intent(inout)           :: node</arguments>
+   <arguments>double precision                              , intent(in   ), optional :: radius</arguments>
+   <arguments>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</arguments>
+   <arguments>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType</arguments>
   </functionGlobal>
   !!]
   double precision function galacticStructureVelocityRotationGradient(galacticStructure_,node,radius,componentType,massType)
     !!{
     Compute the rotation velocity gradient for a {\normalfont \ttfamily galacticStructure} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Error             , only : Error_Report
-    use :: Galactic_Structure, only : galacticStructureClass
-    use :: Galacticus_Nodes  , only : treeNode
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure        , only : galacticStructureClass
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    class           (*       ), intent(inout)           :: galacticStructure_
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   ), optional :: componentType     , massType
-    double precision          , intent(in   ), optional :: radius
- 
+    class           (*                           ), intent(inout)           :: galacticStructure_
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , intent(in   ), optional :: radius
+
     select type (galacticStructure_)
     class is (galacticStructureClass)
        galacticStructureVelocityRotationGradient=galacticStructure_%velocityRotationGradient(node,radius,componentType,massType)

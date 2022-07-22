@@ -128,18 +128,19 @@ contains
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity, outputAnalysisPropertyQuantityMass, outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, &
           &                                           outputAnalysisPropertyTypeMagnitude
     implicit none
-    class           (outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self
-    type            (treeNode                                ), intent(inout) :: node
-    double precision                                          , intent(in   ) :: propertyValue         , propertyValueIntrinsic, &
-         &                                                                       weightValue
-    integer                                                   , intent(in   ) :: propertyType          , propertyQuantity
-    integer         (c_size_t                                ), intent(in   ) :: outputIndex
-    double precision                                                          :: distanceModelMinimum  , distanceDataMinimum   , &
-         &                                                                       distanceModelMaximum  , distanceDataMaximum   , &
-         &                                                                       expansionFactorMinimum, expansionFactorMaximum, &
-         &                                                                       volumeData            , volumeModel           , &
-         &                                                                       correctionFactor
-    integer                                                                      field
+    class           (outputAnalysisWeightOperatorCsmlgyVolume     ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: propertyValue         , propertyValueIntrinsic, &
+         &                                                                            weightValue
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
+    double precision                                                               :: distanceModelMinimum  , distanceDataMinimum   , &
+         &                                                                            distanceModelMaximum  , distanceDataMaximum   , &
+         &                                                                            expansionFactorMinimum, expansionFactorMaximum, &
+         &                                                                            volumeData            , volumeModel           , &
+         &                                                                            correctionFactor
+    integer                                                                           field
     !$GLC attributes unused :: outputIndex, propertyValue, propertyType, node
 
     ! Compute the correction factor - the assumption here is that the volume density was derived from a 1/Vₘₐₓ type approach. To
@@ -148,10 +149,10 @@ contains
     volumeData =0.0d0
     volumeModel=0.0d0
     do field=1,self%surveyGeometry_%fieldCount()
-       select case (propertyQuantity)
-       case (outputAnalysisPropertyQuantityMass      )
-          select case (propertyType)
-          case (outputAnalysisPropertyTypeLinear   )
+       select case (propertyQuantity%ID)
+       case (outputAnalysisPropertyQuantityMass      %ID)
+          select case (propertyType%ID)
+          case (outputAnalysisPropertyTypeLinear   %ID)
              distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
                   &                                                                      mass             =propertyValue         , &
                   &                                                                      field            =field                   &
@@ -160,7 +161,7 @@ contains
                   &                                                                      mass             =propertyValue         , &
                   &                                                                      field            =field                   &
                   &                                                                    )
-          case (outputAnalysisPropertyTypeLog10    )
+          case (outputAnalysisPropertyTypeLog10    %ID)
              distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
                   &                                                                      mass             =propertyValueIntrinsic, &
                   &                                                                      field            =field                   &
@@ -172,9 +173,9 @@ contains
           case default
              call Error_Report('unsupported property type'//{introspection:location})
           end select
-       case (outputAnalysisPropertyQuantityLuminosity)
-          select case (propertyType)
-          case (outputAnalysisPropertyTypeLinear   )
+       case (outputAnalysisPropertyQuantityLuminosity%ID)
+          select case (propertyType%ID)
+          case (outputAnalysisPropertyTypeLinear   %ID)
              distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
                   &                                                                      luminosity       =propertyValue         , &
                   &                                                                      field            =field                   &
@@ -183,7 +184,7 @@ contains
                   &                                                                      luminosity       =propertyValue         , &
                   &                                                                      field            =field                   &
                   &                                                                    )
-          case (outputAnalysisPropertyTypeLog10    )
+          case (outputAnalysisPropertyTypeLog10    %ID)
              distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
                   &                                                                      luminosity       =propertyValueIntrinsic, &
                   &                                                                      field            =field                   &
@@ -192,7 +193,7 @@ contains
                   &                                                                      luminosity       =propertyValueIntrinsic, &
                   &                                                                      field            =field                   &
                   &                                                                    )
-          case (outputAnalysisPropertyTypeMagnitude    )
+          case (outputAnalysisPropertyTypeMagnitude    %ID)
              distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
                   &                                                                      magnitudeAbsolute=propertyValue         , &
                   &                                                                      field            =field                   &

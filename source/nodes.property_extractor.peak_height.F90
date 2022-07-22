@@ -38,7 +38,6 @@
      procedure :: names        => peakHeightNames
      procedure :: descriptions => peakHeightDescriptions
      procedure :: unitsInSI    => peakHeightUnitsInSI
-     procedure :: type         => peakHeightType
   end type nodePropertyExtractorPeakHeight
 
   interface nodePropertyExtractorPeakHeight
@@ -196,15 +195,3 @@ contains
     return
   end function peakHeightUnitsInSI
 
-  integer function peakHeightType(self)
-    !!{
-    Return the type of the peakHeight property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorPeakHeight), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    peakHeightType=outputAnalysisPropertyTypeLinear
-    return
-  end function peakHeightType

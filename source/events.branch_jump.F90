@@ -37,8 +37,8 @@ contains
     !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo
     use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
-    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)      , varying_string
-    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)                 , varying_string
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked, enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
     !![
     <include directive="branchJumpPostProcess" type="moduleUse">
@@ -48,12 +48,12 @@ contains
     </include>
     !!]
     implicit none
-    class    (nodeEvent     ), intent(in   )          :: event
-    type     (treeNode      ), intent(inout), pointer :: node
-    integer                  , intent(inout)          :: deadlockStatus
-    type     (treeNode      )               , pointer :: lastSatellite , newHost
-    type     (varying_string)                         :: message
-    character(len=12        )                         :: label
+    class    (nodeEvent                    ), intent(in   )          :: event
+    type     (treeNode                     ), intent(inout), pointer :: node
+    type     (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    type     (treeNode                     )               , pointer :: lastSatellite , newHost
+    type     (varying_string               )                         :: message
+    character(len=12                       )                         :: label
 
     ! If the node is not yet a satellite, wait until it is before peforming this task.
     if (.not.node%isSatellite()) then

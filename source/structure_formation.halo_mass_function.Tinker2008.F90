@@ -164,7 +164,7 @@ contains
     call XML_Array_Read(columnElement,"data",dataTmp)
     call self%densityContrast%create(dataTmp,tinker2008ParameterCount,[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
     deallocate(dataTmp)
-    do i=tinker2008ParameterMin,tinker2008ParameterMax
+    do i=tinker2008ParameterMin,tinker2008ParameterMax       
        columnElement => XML_Get_First_Element_By_Tag_Name(columnsElement,char(enumerationTinker2008ParameterDecode(i,includePrefix=.false.)))
        call XML_Array_Read(columnElement,"data",dataTmp)
        call self%densityContrast%populate(dataTmp,table=i+1)
@@ -239,8 +239,8 @@ contains
     double precision                                            :: expansionFactor
 
     call self%parametersEvaluate(time,mass)
-    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008Normalization=self%parameters                         (tinker2008ParameterNormalization)*expansionFactor**0.14d0
+    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time   )
+    tinker2008Normalization=self%parameters                         (tinker2008ParameterNormalization%ID)*expansionFactor**0.14d0
     return
   end function tinker2008Normalization
 
@@ -254,8 +254,8 @@ contains
     double precision                                            :: expansionFactor
 
     call self%parametersEvaluate(time,mass)
-    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008A            =self%parameters                         (tinker2008ParameterA            )*expansionFactor**0.06d0
+    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time   )
+    tinker2008A            =self%parameters                         (tinker2008ParameterA            %ID)*expansionFactor**0.06d0
     return
   end function tinker2008A
 
@@ -269,8 +269,8 @@ contains
     double precision                                            :: expansionFactor
 
     call self%parametersEvaluate(time,mass)
-    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008B            =self%parameters                         (tinker2008ParameterB            )*expansionFactor**self%alphaDensityContrast
+    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time   )
+    tinker2008B            =self%parameters                         (tinker2008ParameterB            %ID)*expansionFactor**self%alphaDensityContrast
     return
   end function tinker2008B
 
@@ -284,8 +284,8 @@ contains
     double precision                                            :: expansionFactor
 
     call self%parametersEvaluate(time,mass)
-    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008C            =self%parameters                         (tinker2008ParameterC            )
+    expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time   )
+    tinker2008C            =self%parameters                         (tinker2008ParameterC            %ID)
     return
   end function tinker2008C
 

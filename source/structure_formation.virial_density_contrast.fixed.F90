@@ -24,6 +24,19 @@
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
+  ! Enumeration for different reference densities.
+  !![
+  <enumeration>
+   <name>fixedDensityType</name>
+   <description>Specifies reference density type for fixed virial density contrast.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="critical" />
+   <entry label="mean"     />
+  </enumeration>
+  !!]
+
   !![
   <virialDensityContrast name="virialDensityContrastFixed">
    <description>
@@ -38,10 +51,10 @@
      A dark matter halo virial density contrast class assuming fixed contrast.
      !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     double precision                                    :: densityContrastValue          , turnAroundOverVirialRadius
-     integer                                             :: densityType
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_  => null()
+     double precision                                           :: densityContrastValue          , turnAroundOverVirialRadius
+     type            (enumerationFixedDensityTypeType)          :: densityType
    contains
      final     ::                                fixedDestructor
      procedure :: densityContrast             => fixedDensityContrast
@@ -56,19 +69,6 @@
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface virialDensityContrastFixed
-
-  ! Enumeration for different reference densities.
-  !![
-  <enumeration>
-   <name>fixedDensityType</name>
-   <description>Specifies reference density type for fixed virial density contrast.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="critical" />
-   <entry label="mean"     />
-  </enumeration>
-  !!]
 
 contains
 
@@ -123,11 +123,11 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (virialDensityContrastFixed)                        :: self
-    double precision                            , intent(in   )         :: densityContrastValue, turnAroundOverVirialRadius
-    integer                                     , intent(in   )         :: densityType
-    class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
+    type            (virialDensityContrastFixed     )                        :: self
+    double precision                                 , intent(in   )         :: densityContrastValue, turnAroundOverVirialRadius
+    type            (enumerationFixedDensityTypeType), intent(in   )         :: densityType
+    class           (cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     !![
     <constructorAssign variables="densityContrastValue, densityType, turnAroundOverVirialRadius, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]

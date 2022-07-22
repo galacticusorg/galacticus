@@ -24,6 +24,28 @@
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
+  ! Density contrast methods.
+  !![
+  <enumeration>
+   <name>duttonMaccio2014DensityContrastMethod</name>
+   <description>Enumeration of density contrast methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <visibility>private</visibility>
+   <entry label="virial"     />
+   <entry label="critical200"/>
+  </enumeration>
+  !!]
+
+  ! Density profile methods.
+  !![
+  <enumeration>
+   <name>duttonMaccio2014DensityProfileMethod</name>
+   <description>Enumeration of density profile methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <visibility>private</visibility>
+   <entry label="NFW"    />
+   <entry label="einasto"/>
+  </enumeration>
+  !!]
+  
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
    <description>
@@ -67,14 +89,15 @@
      A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
      !!}
      private
-     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
-     class           (virialDensityContrastClass), pointer :: virialDensityContrastDefinition_ => null()
-     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMODefinition_  => null()
-     double precision                                      :: a1                                        , a2                  , &
-          &                                                   a3                                        , a4                  , &
-          &                                                   b1                                        , b2
-     integer                                               :: densityContrastMethod                     , densityProfileMethod
+     class           (cosmologyParametersClass                            ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass                             ), pointer :: cosmologyFunctions_              => null()
+     class           (virialDensityContrastClass                          ), pointer :: virialDensityContrastDefinition_ => null()
+     class           (darkMatterProfileDMOClass                           ), pointer :: darkMatterProfileDMODefinition_  => null()
+     double precision                                                                :: a1                                        , a2, &
+          &                                                                             a3                                        , a4, &
+          &                                                                             b1                                        , b2
+     type            (enumerationDuttonMaccio2014DensityContrastMethodType)          :: densityContrastMethod
+     type            (enumerationDuttonMaccio2014DensityProfileMethodType )          :: densityProfileMethod
    contains
      !![
      <methods>
@@ -96,28 +119,6 @@
      module procedure duttonMaccio2014ConstructorInternalType
      module procedure duttonMaccio2014ConstructorInternalDefined
   end interface darkMatterProfileConcentrationDuttonMaccio2014
-
-  ! Density contrast methods.
-  !![
-  <enumeration>
-   <name>duttonMaccio2014DensityContrastMethod</name>
-   <description>Enumeration of density contrast methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
-   <visibility>private</visibility>
-   <entry label="virial"     />
-   <entry label="critical200"/>
-  </enumeration>
-  !!]
-
-  ! Density profile methods.
-  !![
-  <enumeration>
-   <name>duttonMaccio2014DensityProfileMethod</name>
-   <description>Enumeration of density profile methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
-   <visibility>private</visibility>
-   <entry label="NFW"    />
-   <entry label="einasto"/>
-  </enumeration>
-  !!]
 
 contains
 
@@ -271,8 +272,8 @@ contains
     class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout), target  :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
 
-    select case (self%densityContrastMethod)
-    case (duttonMaccio2014DensityContrastMethodCritical200)
+    select case (self%densityContrastMethod%ID)
+    case (duttonMaccio2014DensityContrastMethodCritical200%ID)
        allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed                                     )
@@ -290,7 +291,7 @@ contains
           </referenceConstruct>
           !!]
        end select
-    case (duttonMaccio2014DensityContrastMethodVirial    )
+    case (duttonMaccio2014DensityContrastMethodVirial    %ID)
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
@@ -318,8 +319,8 @@ contains
            </constructor>
           </referenceConstruct>
           !!]
-    select case (self%densityProfileMethod)
-    case (duttonMaccio2014DensityProfileMethodNFW    )
+    select case (self%densityProfileMethod%ID)
+    case (duttonMaccio2014DensityProfileMethodNFW    %ID)
        allocate(darkMatterProfileDMONFW     :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMONFW    )
@@ -334,7 +335,7 @@ contains
           </referenceConstruct>
           !!]
        end select
-    case (duttonMaccio2014DensityProfileMethodEinasto)
+    case (duttonMaccio2014DensityProfileMethodEinasto%ID)
        allocate(darkMatterProfileDMOEinasto :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMOEinasto)

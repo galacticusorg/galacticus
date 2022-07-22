@@ -73,7 +73,6 @@
      procedure :: unitsInSI          => multiUnitsInSI
      procedure :: ranks              => multiRanks
      procedure :: addInstances       => multiAddInstances
-     procedure :: type               => multiType
      procedure :: metaData           => multiMetaData
   end type nodePropertyExtractorMulti
 
@@ -177,7 +176,7 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
-    integer                                     , intent(in   ) :: elementType
+    type            (enumerationElementTypeType), intent(in   ) :: elementType
     double precision                            , intent(in   ) :: time
     type            (multiExtractorList        ), pointer       :: extractor_
 
@@ -345,7 +344,7 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)                             :: self
-    integer                                     , intent(in   )                             :: elementType
+    type            (enumerationElementTypeType), intent(in   )                             :: elementType
     double precision                            , intent(in   )                             :: time
     type            (varying_string            ), intent(inout), dimension(:) , allocatable :: names
     type            (varying_string            )               , dimension(:) , allocatable :: namesTmp
@@ -415,12 +414,13 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (nodePropertyExtractorMulti), intent(inout)              :: self
-    integer                                     , intent(in   )              :: elementType            , i
-    double precision                            , intent(in   )              :: time
+    class           (nodePropertyExtractorMulti), intent(inout)                             :: self
+    type            (enumerationElementTypeType), intent(in   )                             :: elementType
+    integer                                     , intent(in   )                             :: i
+    double precision                            , intent(in   )                             :: time
     type            (varying_string            ), intent(  out), dimension(:) , allocatable :: descriptions
-    type            (multiExtractorList        ), pointer                    :: extractor_
-    integer                                                                  :: elementCount           , offset
+    type            (multiExtractorList        ), pointer                                   :: extractor_
+    integer                                                                                 :: elementCount, offset
 
     offset     =  0
     extractor_ => self%extractors
@@ -491,7 +491,7 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)                             :: self
-    integer                                     , intent(in   )                             :: elementType
+    type            (enumerationElementTypeType), intent(in   )                             :: elementType
     double precision                            , intent(in   )                             :: time
     type            (varying_string            ), intent(inout), dimension(:) , allocatable :: descriptions
     type            (varying_string            )               , dimension(:) , allocatable :: descriptionsTmp
@@ -563,7 +563,7 @@ contains
     implicit none
     double precision                            , dimension(:) , allocatable :: multiUnitsInSI
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
-    integer                                     , intent(in   )              :: elementType
+    type            (enumerationElementTypeType), intent(in   )              :: elementType
     double precision                            , intent(in   )              :: time
     type            (multiExtractorList        ), pointer                    :: extractor_
     integer                                                                  :: offset        , elementCount
@@ -621,10 +621,10 @@ contains
     implicit none
     integer                                     , dimension(:) , allocatable :: multiRanks
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
-    integer                                     , intent(in   )              :: elementType
+    type            (enumerationElementTypeType), intent(in   )              :: elementType
     double precision                            , intent(in   )              :: time
     type            (multiExtractorList        ), pointer                    :: extractor_
-    integer                                                                  :: offset        , elementCount
+    integer                                                                  :: offset     , elementCount
 
     allocate(multiRanks(self%elementCount(elementType,time)))
     offset     =  0
@@ -671,18 +671,6 @@ contains
     return
   end function multiRanks
 
-  integer function multiType(self)
-    !!{
-    Return the type of the multi property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMulti), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    multiType=outputAnalysisPropertyTypeLinear
-    return
-  end function multiType
 
   subroutine multiMetaData(self,elementType,time,iProperty,metaData)
     !!{
@@ -691,7 +679,7 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
-    integer                                     , intent(in   ) :: elementType
+    type            (enumerationElementTypeType), intent(in   ) :: elementType
     double precision                            , intent(in   ) :: time
     integer                                     , intent(in   ) :: iProperty
     type            (doubleHash                ), intent(inout) :: metaData

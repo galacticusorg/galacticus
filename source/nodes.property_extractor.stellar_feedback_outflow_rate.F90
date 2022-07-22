@@ -41,16 +41,15 @@
      A stellar feedback-driven mass outflow rate property extractor class.
      !!}
      private
-     class  (starFormationRateDisksClass     ), pointer :: starFormationRateDisks_      => null()
-     class  (starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_  => null()
-     class  (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_ => null()
-     class  (stellarFeedbackOutflowsClass    ), pointer :: stellarFeedbackOutflows_     => null()
-     type   (varying_string                  )          :: name_                                , description_
-     integer                                            :: component
+     class(starFormationRateDisksClass     ), pointer :: starFormationRateDisks_      => null()
+     class(starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_  => null()
+     class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_ => null()
+     class(stellarFeedbackOutflowsClass    ), pointer :: stellarFeedbackOutflows_     => null()
+     type (varying_string                  )          :: name_                                 , description_
+     type (enumerationGalacticComponentType)          :: component
    contains
      final     ::                stellarFeedbackOutflowRateDestructor
      procedure :: extract     => stellarFeedbackOutflowRateExtract
-     procedure :: type        => stellarFeedbackOutflowRateType
      procedure :: name        => stellarFeedbackOutflowRateName
      procedure :: description => stellarFeedbackOutflowRateDescription
      procedure :: unitsInSI   => stellarFeedbackOutflowRateUnitsInSI
@@ -108,24 +107,24 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (nodePropertyExtractorStellarFeedbackOutflowRate)                        :: self
-    integer                                                 , intent(in   )         :: component
-    class  (starFormationRateDisksClass                    ), intent(in   ), target :: starFormationRateDisks_
-    class  (starFormationRateSpheroidsClass                ), intent(in   ), target :: starFormationRateSpheroids_
-    class  (stellarPopulationPropertiesClass               ), intent(in   ), target :: stellarPopulationProperties_
-    class  (stellarFeedbackOutflowsClass                   ), intent(in   ), target :: stellarFeedbackOutflows_
+    type (nodePropertyExtractorStellarFeedbackOutflowRate)                        :: self
+    type (enumerationGalacticComponentType               ), intent(in   )         :: component
+    class(starFormationRateDisksClass                    ), intent(in   ), target :: starFormationRateDisks_
+    class(starFormationRateSpheroidsClass                ), intent(in   ), target :: starFormationRateSpheroids_
+    class(stellarPopulationPropertiesClass               ), intent(in   ), target :: stellarPopulationProperties_
+    class(stellarFeedbackOutflowsClass                   ), intent(in   ), target :: stellarFeedbackOutflows_
     !![
     <constructorAssign variables="component, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
     !!]
 
-    select case (component)
-    case (galacticComponentTotal)
+    select case (component%ID)
+    case (galacticComponentTotal   %ID)
        self%name_       ="totalStellarFeedbackOutflowRate"
        self%description_="Total (disk + spheroid) stellar feedback-driven outflow rate [M☉ Gyr⁻¹]."
-    case (galacticComponentDisk)
+    case (galacticComponentDisk    %ID)
        self%name_       ="diskStellarFeedbackOutflowRate"
        self%description_="Disk stellar feedback-driven outflow rate [M☉ Gyr⁻¹]."
-    case (galacticComponentSpheroid)
+    case (galacticComponentSpheroid%ID)
        self%name_       ="spheroidStellarFeedbackOutflowRate"
        self%description_="Spheroid stellar feedback-driven outflow rate [M☉ Gyr⁻¹]."
     case default
@@ -249,18 +248,6 @@ contains
     return
   end function stellarFeedbackOutflowRateExtract
 
-  integer function stellarFeedbackOutflowRateType(self)
-    !!{
-    Return the type of the emission line luminosity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    stellarFeedbackOutflowRateType=outputAnalysisPropertyTypeLinear
-    return
-  end function stellarFeedbackOutflowRateType
 
   function stellarFeedbackOutflowRateName(self)
     !!{

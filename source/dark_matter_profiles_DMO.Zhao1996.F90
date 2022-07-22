@@ -22,6 +22,18 @@
   !!}
 
   !![
+  <enumeration>
+   <name>specialCase</name>
+   <description>Special cases for {\normalfont \ttfamily zhao1996} dark matter halo profile class.</description>
+   <entry label="general"    />
+   <entry label="coredNFW"   />
+   <entry label="gamma0_5NFW"/>
+   <entry label="NFW"        />
+   <entry label="gamma1_5NFW"/>
+  </enumeration>
+  !!]
+
+  !![
   <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996">
    <description>
     A dark matter profile DMO class which implements the \cite{zhao_analytical_1996} density profile
@@ -39,9 +51,9 @@
      A dark matter halo profile class implementing \cite{zhao_analytical_1996} dark matter halos.
      !!}
      private
-     integer          :: specialCase
-     double precision :: alpha      , beta, &
-          &              gamma
+     type            (enumerationSpecialCaseType) :: specialCase
+     double precision                             :: alpha      , beta, &
+          &                                          gamma
    contains
      !![
      <methods>
@@ -85,18 +97,6 @@
      module procedure zhao1996ConstructorParameters
      module procedure zhao1996ConstructorInternal
   end interface darkMatterProfileDMOZhao1996
-
-  !![
-  <enumeration>
-   <name>specialCase</name>
-   <description>Special cases for {\normalfont \ttfamily zhao1996} dark matter halo profile class.</description>
-   <entry label="general"    />
-   <entry label="coredNFW"   />
-   <entry label="gamma0_5NFW"/>
-   <entry label="NFW"        />
-   <entry label="gamma1_5NFW"/>
-  </enumeration>
-  !!]
 
   ! Sub-module scope variables used in numerical solutions.
   class           (darkMatterProfileDMOZhao1996), pointer :: self_
@@ -315,15 +315,15 @@ contains
     double precision                                              :: alpha                     , beta, &
          &                                                           gamma
 
-    select case (self%specialCase)
-    case (specialCaseGeneral)
+    select case (self%specialCase%ID)
+    case (specialCaseGeneral%ID)
        call self%exponents(node,alpha,beta,gamma)
        zhao1996MassUnnormalized=+4.0d0                                                                                                            &
             &                   *Pi                                                                                                               &
             &                   *radiusScaleFree**(3.0d0-gamma)                                                                                   &
             &                   *Hypergeometric_2F1([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[1.0d0+(3.0d0-gamma)/alpha],-radiusScaleFree**alpha) &
             &                   /                    (3.0d0-gamma)
-    case (specialCaseNFW)
+    case (specialCaseNFW%ID)
        if (radiusScaleFree <radiusScaleFreeTiny) then
           ! Use series solution for small radii.
           zhao1996MassUnnormalized=+ 2.0d0      *Pi*radiusScaleFree**2 &
@@ -341,7 +341,7 @@ contains
                &                     /   (+1.0d0+radiusScaleFree) &
                &                   )
        end if
-    case (specialCaseGamma0_5NFW)
+    case (specialCaseGamma0_5NFW%ID)
        if (radiusScaleFree <radiusScaleFreeTiny) then
           ! Use series solution for small radii.
           zhao1996MassUnnormalized=+  8.0d0/ 5.0d0*Pi*radiusScaleFree**2.5d0 &
@@ -364,7 +364,7 @@ contains
                &                   *Pi                                     &
                &                   *asinh(sqrt(radiusScaleFree))
        end if
-    case (specialCaseGamma1_5NFW)
+    case (specialCaseGamma1_5NFW%ID)
        if (radiusScaleFree <radiusScaleFreeTiny) then
           ! Use series solution for small radii.
           zhao1996MassUnnormalized=+  8.0d0/  3.0d0*Pi*radiusScaleFree**1.5d0 &
@@ -381,7 +381,7 @@ contains
                &                     +asinh(sqrt(radiusScaleFree                        )) &
                &                    )
        end if
-    case (specialCaseCoredNFW)
+    case (specialCaseCoredNFW%ID)
        if (radiusScaleFree <radiusScaleFreeTiny) then
           ! Use series solution for small radii.
           zhao1996MassUnnormalized=+ 4.0d0/3.0d0*Pi*radiusScaleFree**3 &
@@ -424,8 +424,8 @@ contains
     radiusScale    = self%scaleRadius(node)
     radiusScaleFree=+     radius            &
          &          /     radiusScale
-    select case (self%specialCase)
-    case (specialCaseGeneral)
+    select case (self%specialCase%ID)
+    case (specialCaseGeneral%ID)
        call self%exponents(node,alpha,beta,gamma)
        zhao1996Density=+self%normalization(node) &
             &          /  radiusScaleFree**gamma &
@@ -433,27 +433,27 @@ contains
             &            +1.0d0                  &
             &            +radiusScaleFree**alpha &
             &           )**((beta-gamma)/alpha)
-    case (specialCaseNFW)
+    case (specialCaseNFW%ID)
        zhao1996Density=+self%normalization(node) &
             &          /  radiusScaleFree        &
             &          /(                        &
             &            +1.0d0                  &
             &            +radiusScaleFree        &
             &           )**2
-    case (specialCaseCoredNFW)
+    case (specialCaseCoredNFW%ID)
        zhao1996Density=+self%normalization(node) &
             &          /(                        &
             &            +1.0d0                  &
             &            +radiusScaleFree        &
             &           )**3
-    case (specialCaseGamma0_5NFW)
+    case (specialCaseGamma0_5NFW%ID)
        zhao1996Density=+self%normalization(node) &
             &          /sqrt(radiusScaleFree)    &
             &          /(                        &
             &            +1.0d0                  &
             &            +radiusScaleFree        &
             &           )**2.5d0
-    case (specialCaseGamma1_5NFW)
+    case (specialCaseGamma1_5NFW%ID)
        zhao1996Density=+self%normalization(node) &
             &          /  radiusScaleFree**1.5d0 &
             &          /(                        &
@@ -484,21 +484,21 @@ contains
     radiusScale    = self%scaleRadius(node)
     radiusScaleFree=+     radius            &
          &          /     radiusScale
-    select case (self%specialCase)
-    case (specialCaseGeneral)
+    select case (self%specialCase%ID)
+    case (specialCaseGeneral%ID)
        call self%exponents(node,alpha,beta,gamma)
        zhao1996DensityLogSlope=-(+gamma+beta*radiusScaleFree**alpha) &
             &                  /(+1.0d0+     radiusScaleFree**alpha)
-    case (specialCaseNFW)
+    case (specialCaseNFW%ID)
        zhao1996DensityLogSlope=-(+1.0d0+3.0d0*radiusScaleFree) &
             &                  /(+1.0d0+      radiusScaleFree)
-    case (specialCaseCoredNFW)
+    case (specialCaseCoredNFW%ID)
        zhao1996DensityLogSlope=-(      +3.0d0*radiusScaleFree) &
             &                  /(+1.0d0+      radiusScaleFree)
-    case (specialCaseGamma0_5NFW)
+    case (specialCaseGamma0_5NFW%ID)
        zhao1996DensityLogSlope=-(+0.5d0+3.0d0*radiusScaleFree) &
             &                  /(+1.0d0+      radiusScaleFree)
-    case (specialCaseGamma1_5NFW)
+    case (specialCaseGamma1_5NFW%ID)
        zhao1996DensityLogSlope=-(+1.5d0+3.0d0*radiusScaleFree) &
             &                  /(+1.0d0+      radiusScaleFree)
     case default
@@ -533,21 +533,21 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     units of Mpc).
     !!}
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
+    use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Gamma_Functions                 , only : Gamma_Function
     use :: Numerical_Constants_Math        , only : Pi
     use :: Hypergeometric_Functions        , only : Hypergeometric_pFq_Regularized
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileDMOZhao1996), intent(inout)           :: self
-    type            (treeNode                    ), intent(inout), target   :: node
-    double precision                              , intent(in   )           :: radius
-    integer                                       , intent(  out), optional :: status
-    class           (nodeComponentBasic          )               , pointer  :: basic
-    double precision                                                        :: alpha          , beta       , &
-         &                                                                     gamma          , radiusScale, &
-         &                                                                     radiusScaleFree
+    class           (darkMatterProfileDMOZhao1996     ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    class           (nodeComponentBasic               )               , pointer  :: basic
+    double precision                                                             :: alpha          , beta       , &
+         &                                                                          gamma          , radiusScale, &
+         &                                                                          radiusScaleFree
 
     if (present(status)) status=structureErrorCodeSuccess
     call self%exponents(node,alpha,beta,gamma)
@@ -631,10 +631,10 @@ contains
     double precision                                                :: radiusScale                              , radiusScaleFree, &
          &                                                             velocityDispersionSquaredScaleFree
     
-    select case (self%specialCase)
-    case (specialCaseGeneral)
+    select case (self%specialCase%ID)
+    case (specialCaseGeneral%ID)
        zhao1996RadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
-    case (specialCaseNFW)       
+    case (specialCaseNFW%ID)       
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
@@ -687,7 +687,7 @@ contains
             &                                 *     radiusScale                             **2 &
             &                                 *     velocityDispersionSquaredScaleFree          &
             &                                )
-    case (specialCaseCoredNFW)       
+    case (specialCaseCoredNFW%ID)       
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
@@ -735,12 +735,7 @@ contains
             &                                 *     radiusScale                             **2 &
             &                                 *     velocityDispersionSquaredScaleFree          &
             &                                )
-
-
-
-
-
-    case (specialCaseGamma0_5NFW)       
+    case (specialCaseGamma0_5NFW%ID)       
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
@@ -794,7 +789,7 @@ contains
             &                                 *     radiusScale                             **2 &
             &                                 *     velocityDispersionSquaredScaleFree          &
             &                                )
-    case (specialCaseGamma1_5NFW)       
+    case (specialCaseGamma1_5NFW%ID)       
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale

@@ -229,6 +229,15 @@ sub Process_FunctionClass {
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 				    );
+				# Identify enumerations.
+				push(@{$potentialNames->{'enumerations'}},$declaration)
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
+				    );
+				# Identify regular parameters.
 				push(@{$potentialNames->{'parameters'}},$declaration)
 				    if
 				    (
@@ -277,6 +286,15 @@ sub Process_FunctionClass {
 			 &&
 			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 			);
+		    # Identify enumerations.
+		    push(@{$potentialNames->{'enumerations'}},$declaration)
+			if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
+			);
+		    # Identify regular parameters.
 		    push(@{$potentialNames->{'parameters'}},$declaration)
 			if
 			(
@@ -306,6 +324,15 @@ sub Process_FunctionClass {
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 				    );
+				# Identify enumerations.
+				push(@{$potentialNames->{'enumerations'}},$declaration)
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type\s*$/i
+				    );
+				# Identify regular parameters.
 				push(@{$potentialNames->{'parameters'}},$declaration)
 				    if
 				    (
@@ -401,6 +428,14 @@ sub Process_FunctionClass {
 					    # Find the matched variable.
 					    my $descriptor;
 					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
+						$descriptor = $potentialDescriptor
+						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+					    }
+					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'enumerations'}}) ) {
+					    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+					    # Find the matched variable.
+					    my $descriptor;
+					    foreach my $potentialDescriptor ( @{$potentialNames->{'enumerations'}} ) {
 						$descriptor = $potentialDescriptor
 						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
 					    }
@@ -538,6 +573,44 @@ sub Process_FunctionClass {
 						    }
 						    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
 						}
+					    }
+					}
+				    }
+				}
+			    }
+			    # Enumerations.
+			    if ( defined($descriptorParameters->{'enumerations'}) ) {
+				foreach my $parameter ( @{$descriptorParameters->{'enumerations'}} ) {
+				    foreach my $declaration ( @{$potentialNames->{'enumerations'}} ) {
+					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+					    my $format = "i17";
+					    my $isLogical = 0;
+					    $addLabel  = 1;
+					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
+						# Non-scalar parameter - values must be concatenated.
+						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+						my $rank                = ($dimensionDeclarator =~ tr/,//)+1;
+						$rankMaximum            = $rank
+						    if ( $rank > $rankMaximum );
+						$descriptorCode .= "parameterValues=''\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
+						}
+						$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%ID\n");
+						$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $descriptorCode .= "end do\n";
+						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+							unless ( $i == 1 );
+						}
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
+					    } else {
+						# Scalar parameter.
+						$descriptorCode .= &performIO("write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%ID\n");
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
 					    }
 					}
 				    }
@@ -1653,6 +1726,27 @@ CODE
 					    $gslStateFileUsed = 1;
 					}
 				    } elsif (
+					$declaration->{'intrinsic'} eq "type"
+					&&
+					$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
+					) {
+					# Enumeration.
+					$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+					foreach ( @{$declaration->{'variableNames'}} ) {
+					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+					    #  <description>
+					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+					    #  </description>
+					    # </workaround>
+					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(".$_.")\n");
+					    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+					}
+					$outputCode .= " end if\n";
+					$outputCode .= &performIO("  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+					$inputCode  .= &performIO("  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+
+				    } elsif (
 					(  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 					||
 					(  grep {$_           eq $type    } &List::ExtraUtils::as_array($stateStorables->{'functionClassInstances'}))
@@ -1750,7 +1844,7 @@ CODE
 					    $stateFileUsed    = 1;
 					    $gslStateFileUsed = 1;
 					}
-				    }
+				    }				    
 				} else {
 				    # Intrinsic type.
 				    if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
@@ -1905,6 +1999,26 @@ CODE
 				$stateFileUsed    = 1;
 				$gslStateFileUsed = 1;
 			    }
+			} elsif (
+			    $declaration->{'intrinsic'} eq "type"
+			    &&
+			    $declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
+			    ) {
+			    # Enumeration.
+			    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+			    foreach ( @{$declaration->{'variableNames'}} ) {
+				# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+				#  <description>
+				#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+				#  </description>
+				# </workaround>
+				$outputCode .= &performIO("   write (label,'(i16)') 0\n");
+				#$outputCode .= &performIO("   write (label,'(i16)') sizeof(".$_.")\n");
+				$outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+			    }
+			    $outputCode .= " end if\n";
+			    $outputCode .= &performIO("  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+			    $inputCode  .= &performIO("  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
 			} elsif (
 			    (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 			    ||
@@ -2102,6 +2216,26 @@ CODE
 					    $gslStateFileUsed = 1;
 					}
 				    } elsif (
+					$declaration->{'intrinsic'} eq "type"
+					&&
+					$declaration->{'type'     } =~ m/^enumeration[a-z0-9_]+type/i
+					) {
+					# Enumeration.
+					$outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+					foreach ( @{$declaration->{'variableNames'}} ) {
+					    # <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+					    #  <description>
+					    #   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+					    #  </description>
+					    # </workaround>
+					    $outputCode .= &performIO("   write (label,'(i16)') 0\n");
+					    #$outputCode .= &performIO("   write (label,'(i16)') sizeof(".$_.")\n");
+					    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+					}
+					$outputCode .= " end if\n";
+					$outputCode .= &performIO("  write (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+					$inputCode  .= &performIO("  read  (stateFile) ".join(",",map {"self%".$_."%ID"} @{$declaration->{'variableNames'}})."\n");
+				    } elsif (
 					(
 					 (  grep {$_->{'type'} eq $type    } &List::ExtraUtils::as_array($stateStorables->{'stateStorables'        }))
 					 ||
@@ -2211,7 +2345,7 @@ CODE
 				    if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
 					# Pointers are currently not handled.
 				    } elsif ( exists($declaration->{'type'}) && defined($declaration->{'type'}) && $declaration->{'type'} =~ m/^\s*omp_lock_kind\s*/ ) {
-					# Do not store OpenMP lock variables.
+					# Do not store OpenMP lock variables.					
 				    } elsif ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
 					# For allocatable variables we must first store the shape so that they can be reallocated on restore.
 					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
@@ -3002,16 +3136,30 @@ CODE
 			} elsif ( $classNode->{'type'} eq "declaration" ) {
 			    # Variables declared pre-contains are usually placed in the submodule, unless they are publicly
 			    # visible, or if explicitly stated to have module-scope.
-			    my @declarationsModule;
 			    my @declarationsSubmodule;
 			    foreach my $declaration ( @{$classNode->{'declarations'}} ) {
 				my $moduleScope = 0;
 				if ( grep {lc($_) eq "public"} @{$declaration->{'attributes'}} ) {
 				    # Public variables must go in the module.
-				    push(@declarationsModule   ,$declaration);
+				    my $declarationNew = {
+					type       => "declaration",
+					sibling    => undef()      ,
+					parent     => undef()
+				    };
+				    $declarationNew->{'firstChild'} =
+				    {
+					type       => "code"   ,
+					content    => ""       ,
+					sibling    => undef()  ,
+					parent     => $declarationNew,
+					firstChild => undef()
+				    };
+				    push(@{$declarationNew->{'declarations'}},$declaration);
+				    push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
+				    &Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($declarationNew);
 				    $moduleScope = 1;
 				} else {
-				    # Private variables do in the module only if explicitly scoped.
+				    # Private variables go in the module only if explicitly scoped.
 				    my @moduleVariables;
 				    my @submoduleVariables;
 				    for(my $i=0;$i<scalar(@{$declaration->{'variables'}});++$i) {
@@ -3024,9 +3172,24 @@ CODE
 				    }
 				    if ( scalar(@moduleVariables) > 0 ) {
 					my $moduleDeclaration = dclone($declaration);
-					@{$moduleDeclaration->{'variables'     }} = map {$_->{'variable'    }} @moduleVariables;
-					@{$moduleDeclaration->{'variableNamess'}} = map {$_->{'variableName'}} @moduleVariables;
-					push(@declarationsModule,$moduleDeclaration);
+					@{$moduleDeclaration->{'variables'    }} = map {$_->{'variable'    }} @moduleVariables;
+					@{$moduleDeclaration->{'variableNames'}} = map {$_->{'variableName'}} @moduleVariables;
+					my $declarationNew = {
+					    type       => "declaration",
+					    sibling    => undef()      ,
+					    parent     => undef()
+					};
+					$declarationNew->{'firstChild'} =
+					{
+					    type       => "code"   ,
+					    content    => ""       ,
+					    sibling    => undef()  ,
+					    parent     => $declarationNew,
+					    firstChild => undef()
+					};
+					push(@{$declarationNew->{'declarations'}},$moduleDeclaration);
+					push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
+					&Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($declarationNew);
 					$moduleScope = 1;
 				    }
 				    if ( scalar(@submoduleVariables) > 0 ) {
@@ -3051,9 +3214,6 @@ CODE
 				    }
 				}
 			    }
-			    # Add all accumulated declarations to the module.
-			    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarationsModule)
-				if ( scalar(@declarationsModule) > 0 );
 			    # Add all accumulated declarations to the submodule.
 			    @{$classNode->{'declarations'}} = @declarationsSubmodule;
 			    &Galacticus::Build::SourceTree::Parse::Declarations::BuildDeclarations($classNode);
@@ -3444,7 +3604,7 @@ CODE
 	    &Galacticus::Build::SourceTree::ProcessTree       (                   $treePostcontainsTmp                             );
 	    &Galacticus::Build::SourceTree::InsertAfterNode   ($node            ,[$treePrecontainsTmp                             ]);
 	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'}, $codeContent        ->{'module'}->{'interfaces'} );
-	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);	   
 	    # Generate submodule files.
 	    foreach my $className ( keys(%{$codeContent->{'submodule'}}) ) {
                 # Submodule names are just the class name with an underscore appended.

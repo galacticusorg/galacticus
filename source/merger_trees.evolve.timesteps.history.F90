@@ -279,16 +279,16 @@ contains
           &                                              treeNode
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
-    class           (*                    ), intent(inout)          :: self
-    type            (mergerTree           ), intent(in   )          :: tree
-    type            (treeNode             ), intent(inout), pointer :: node
-    integer                                , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic   )               , pointer :: basic
-    class           (nodeComponentDisk    )               , pointer :: disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    integer         (c_size_t             )                         :: timeIndex
-    double precision                                                :: rateStarFormationDisk    , massHotGas, &
-         &                                                             rateStarFormationSpheroid, time
+    class           (*                            ), intent(inout)          :: self
+    type            (mergerTree                   ), intent(in   )          :: tree
+    type            (treeNode                     ), intent(inout), pointer :: node
+    type            (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    class           (nodeComponentBasic           )               , pointer :: basic
+    class           (nodeComponentDisk            )               , pointer :: disk
+    class           (nodeComponentSpheroid        )               , pointer :: spheroid
+    integer         (c_size_t                     )                         :: timeIndex
+    double precision                                                        :: rateStarFormationDisk    , massHotGas, &
+         &                                                                     rateStarFormationSpheroid, time
     !$GLC attributes unused :: deadlockStatus
 
     select type (self)

@@ -107,7 +107,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorMassIncompleteness), intent(inout)                                        :: self
     double precision                                                      , intent(in   )                                        :: propertyValue
-    integer                                                               , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType           ), intent(in   )                                        :: propertyType
     double precision                                                      , intent(in   ), dimension(:)                          :: propertyValueMinimum            , propertyValueMaximum
     integer         (c_size_t                                            ), intent(in   )                                        :: outputIndex
     type            (treeNode                                            ), intent(inout)                                        :: node
@@ -118,10 +118,10 @@ contains
 
     do i=1,size(propertyValueMinimum)
        if (propertyValue >= propertyValueMinimum(i) .and. propertyValue < propertyValueMaximum(i)) then
-          select case (propertyType)
-          case (outputAnalysisPropertyTypeLinear)
+          select case (propertyType%ID)
+          case (outputAnalysisPropertyTypeLinear%ID)
              mass=        propertyValue
-          case (outputAnalysisPropertyTypeLog10)
+          case (outputAnalysisPropertyTypeLog10 %ID)
              mass=10.0d0**propertyValue
           case default
              mass= 0.0d0
@@ -142,7 +142,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorMassIncompleteness), intent(inout)                                        :: self
     double precision                                                      , intent(in   ), dimension(:)                          :: distribution
-    integer                                                               , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType           ), intent(in   )                                        :: propertyType
     double precision                                                      , intent(in   ), dimension(:)                          :: propertyValueMinimum                  , propertyValueMaximum
     integer         (c_size_t                                            ), intent(in   )                                        :: outputIndex
     type            (treeNode                                            ), intent(inout)                                        :: node
@@ -152,10 +152,10 @@ contains
     !$GLC attributes unused :: outputIndex, node
 
     do i=1,size(propertyValueMinimum)
-       select case (propertyType)
-       case (outputAnalysisPropertyTypeLinear)
+       select case (propertyType%ID)
+       case (outputAnalysisPropertyTypeLinear%ID)
           mass=         0.5d0*(propertyValueMinimum(i)+propertyValueMaximum(i))
-       case (outputAnalysisPropertyTypeLog10)
+       case (outputAnalysisPropertyTypeLog10%ID)
           mass=10.0d0**(0.5d0*(propertyValueMinimum(i)+propertyValueMaximum(i)))
        case default
           mass= 0.0d0

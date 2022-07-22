@@ -16,7 +16,6 @@ use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PBS;
 use Galacticus::Launch::Slurm;
 use Galacticus::Launch::Local;
-use Galacticus::Options;
 
 # Generate a halo mass function using the optimal parameters.
 # Andrew Benson (22-September-2020)
@@ -262,18 +261,43 @@ foreach my $simulation ( @simulations ) {
 	    &{$simulation->{'validate'}}($simulation,$parameters,$realization,$expansionFactor)
 		if ( exists($simulation->{'validate'}) );
 
-	    # Generate a job.
-	    my $job;
-	    $job->{'command'   } =
-		"Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
-	    $job->{'launchFile'} = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
-	    $job->{'logFile'   } = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
-	    $job->{'label'     } =                   "haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
-	    $job->{'ppn'       } = 16;
-	    $job->{'nodes'     } =  1;
-	    $job->{'mpi'       } = "no";
-	    push(@jobs,$job)
-		unless ( -e $outputDirectory."/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
+	    # Generate a job to create our mass function fit.
+	    {
+		my $job;
+		$job->{'command'   } =
+		    "Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
+		$job->{'launchFile'} = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
+		$job->{'logFile'   } = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
+		$job->{'label'     } =                   "haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
+		$job->{'ppn'       } = 16;
+		$job->{'nodes'     } =  1;
+		$job->{'mpi'       } = "no";
+		push(@jobs,$job)
+		    unless ( -e $outputDirectory."/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
+	    }
+
+	    # Modify parameters to use the Despali et al. (2015) mass function.
+	    $parameters->{'outputFileName'}->{'value'} = $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
+	    $parameters->{'haloMassFunction'}->{'value'} = "despali2015";
+	    delete($parameters->{'haloMassFunction'}->{$_})
+		foreach ( "errorFractionalMaximum", "toleranceRelative", "haloMassFunction" );
+	    open(my $parameterFile,">",$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
+	    print $parameterFile $xml->XMLout($parameters,RootName => "parameters");
+	    close($parameterFile);
+	    # Generate a job to create Despali et al. (2015) mass functions.
+	    {
+		my $job;
+		$job->{'command'   } =
+		    "Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
+		$job->{'launchFile'} = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
+		$job->{'logFile'   } = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
+		$job->{'label'     } =                   "haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
+		$job->{'ppn'       } = 16;
+		$job->{'nodes'     } =  1;
+		$job->{'mpi'       } = "no";
+		push(@jobs,$job)
+		    unless ( -e $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
+	    }
 	}
     }
 }
