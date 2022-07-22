@@ -26,6 +26,17 @@ Contains a module which implements a transfer function class based on the therma
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
+  <enumeration>
+   <name>scaleCutOffModel</name>
+   <description>The model to use for the cut-off scale in the \cite{bode_halo_2001} transfer function.</description>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="bode2001"   />
+   <entry label="barkana2001"/>
+  </enumeration>
+  !!]
+
+  !![
   <transferFunction name="transferFunctionBode2001">
    <description>
     A transfer function class which applies the thermal \gls{wdm} modifier of \cite{bode_halo_2001} to the provided \gls{cdm}
@@ -44,14 +55,14 @@ Contains a module which implements a transfer function class based on the therma
      A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
      !!}
      private
-     integer                                             :: scaleCutOffModel
-     double precision                                    :: epsilon                       , eta        , &
-          &                                                 nu                            , scaleCutOff, &
-          &                                                 time                          , redshift
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     type            (enumerationScaleCutOffModelType)          :: scaleCutOffModel
+     double precision                                           :: epsilon                       , eta        , &
+          &                                                        nu                            , scaleCutOff, &
+          &                                                        time                          , redshift
+     class           (transferFunctionClass          ), pointer :: transferFunctionCDM  => null()
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_  => null()
+     class           (darkMatterParticleClass        ), pointer :: darkMatterParticle_  => null()
    contains
      !![
      <methods>
@@ -75,17 +86,6 @@ Contains a module which implements a transfer function class based on the therma
      module procedure bode2001ConstructorParameters
      module procedure bode2001ConstructorInternal
   end interface transferFunctionBode2001
-
-  !![
-  <enumeration>
-   <name>scaleCutOffModel</name>
-   <description>The model to use for the cut-off scale in the \cite{bode_halo_2001} transfer function.</description>
-   <validator>yes</validator>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="bode2001"   />
-   <entry label="barkana2001"/>
-  </enumeration>
-  !!]
 
 contains
 
@@ -169,15 +169,15 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Error                , only : Error_Report
     implicit none
-    type            (transferFunctionBode2001)                           :: self
-    class           (transferFunctionClass   ), target   , intent(in   ) :: transferFunctionCDM
-    integer                                              , intent(in   ) :: scaleCutOffModel
-    double precision                                     , intent(in   ) :: epsilon                   , eta                            , &
-         &                                                                  nu                        , time
-    class           (cosmologyParametersClass), target   , intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), target   , intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target   , intent(in   ) :: darkMatterParticle_
-    double precision                          , parameter                :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
+    type            (transferFunctionBode2001       )                           :: self
+    class           (transferFunctionClass          ), target   , intent(in   ) :: transferFunctionCDM
+    type            (enumerationScaleCutOffModelType)           , intent(in   ) :: scaleCutOffModel
+    double precision                                            , intent(in   ) :: epsilon                   , eta                            , &
+         &                                                                         nu                        , time
+    class           (cosmologyParametersClass       ), target   , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass        ), target   , intent(in   ) :: cosmologyFunctions_
+    class           (darkMatterParticleClass        ), target   , intent(in   ) :: darkMatterParticle_
+    double precision                                 , parameter                :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
     !![
     <constructorAssign variables="*transferFunctionCDM, scaleCutOffModel, epsilon, eta, nu, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
     !!]
@@ -186,8 +186,8 @@ contains
     ! Compute the comoving cut-off scale.
     select type (particle => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
-       select case (scaleCutOffModel)
-       case (scaleCutOffModelBarkana2001)
+       select case (scaleCutOffModel%ID)
+       case (scaleCutOffModelBarkana2001%ID)
           ! This uses equation (4) from Barkana et al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...558..482B), with the
           ! prefactor of 0.932 to give the cut-off scale at the epoch of matter-radiation equality as discussed in the paragraph
           ! following their equation (4).
@@ -203,7 +203,7 @@ contains
                &            )                                                               **0.15d0 &
                &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
                &           /(particle%mass                     ()/            massReference)**1.15d0
-       case (scaleCutOffModelBode2001   )
+       case (scaleCutOffModelBode2001   %ID)
           ! This uses equaton (A9) from Bode et al. (2001; https://ui.adsabs.harvard.edu/abs/2001ApJ...556...93B).
           self%scaleCutOff=+0.048d0                                                                  &
                &           *(                                                                        &
