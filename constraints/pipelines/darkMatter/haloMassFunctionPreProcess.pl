@@ -97,8 +97,8 @@ my @simulations =
      # that of the target halo in the originasl cosmological box simulation.
      label                   => "MilkyWay",
      subpath                 => "ZoomIns",
-     realizations            => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990", "Halo004", "Halo113" ],
-     hostHaloIDs             => [ "7019390", "31120521", "10208174", "28839883", "6646440", "7287306", "31107790", "8697419", "8391099", "15119051", "10301677", "9405794", "9487756", "29718260", "8297694", "14783515", "8932799", "30280719", "9659071", "7714515", "9967184", "8104130", "19722077", "27371347", "12638322", "30457872", "23284353", "28833029", "28077485", "12607178", "9948707", "9113976", "9721967", "6414883", "7961010", "10422676", "42248692", "8529408", "8839742", "9785057", "8282747", "18133566", "27982424", "18701512", "11431405", "7208101", "12594055" ],     
+   realizations            => [ "Halo023", "Halo088", "Halo119", "Halo188", "Halo247", "Halo268", "Halo270", "Halo288", "Halo327", "Halo349", "Halo364", "Halo374", "Halo414", "Halo415", "Halo416", "Halo440", "Halo460", "Halo469", "Halo490", "Halo530", "Halo558", "Halo567", "Halo570", "Halo606", "Halo628", "Halo641", "Halo675", "Halo718", "Halo738", "Halo749", "Halo797", "Halo800", "Halo825", "Halo829", "Halo852", "Halo878", "Halo881", "Halo925", "Halo926", "Halo937", "Halo939", "Halo967", "Halo9749", "Halo9829", "Halo990", "Halo004", "Halo113" ],
+   hostHaloIDs             => [ "7019390", "31120521", "10208174", "28839883", "6646440", "7287306", "31107790", "8697419", "8391099", "15119051", "10301677", "9405794", "9487756", "29718260", "8297694", "14783515", "8932799", "30280719", "9659071", "7714515", "9967184", "8104130", "19722077", "27371347", "12638322", "30457872", "23284353", "28833029", "28077485", "12607178", "9948707", "9113976", "9721967", "6414883", "7961010", "10422676", "42248692", "8529408", "8839742", "9785057", "8282747", "18133566", "27982424", "18701512", "11431405", "7208101", "12594055" ],     
      description             => "Halo mass function for non-backsplash halos from Milky Way zoom-in simulations.",
      simulationReference     => "Nadler et al.",
      simulationURL           => "https://www",
@@ -111,9 +111,9 @@ my @simulations =
      snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       => [
-	 \&zoomInsPreProcessExtractLocate,
-	 \&zoomInsPreProcessExtractUncontaminated,
-	 ],
+ 	 \&zoomInsPreProcessExtractLocate,
+ 	 \&zoomInsPreProcessExtractUncontaminated,
+ 	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
  	 [
@@ -276,40 +276,6 @@ my @simulations =
      subvolumes              => 1,
      expansionFactors        => [ 1.0000 ],
      snapshots               => [ 235    ],
-     processIdentify         => \&zoomInsProcessIdentify,
-     preprocessExtract       => [
- 	 \&zoomInsPreProcessExtractLocate,
- 	 \&zoomInsPreProcessExtractUncontaminated,
- 	 ],
-     processExtract          => \&zoomInsProcessExtract,
-     postprocessExtract      =>
- 	 [
- 	  \&zoomInsPostprocessSelectInSphere    ,
- 	  \&zoomInsPostprocessExtractSelectedIDs,
- 	  \&zoomInsPostprocessSelectInICs       ,
- 	  \&zoomInsPostprocessAnalyze           ,
- 	  \&zoomInsPostprocessSetVolume
- 	 ],
-     postprocessMassFunction =>
- 	 [
- 	  \&zoomInsPostProcessMassFunction
- 	 ]
- },
- {
-     label                   => "MilkyWay_WDM10",
-     subpath                 => "ZoomIns",
-     realizations            => [ "Halo004", "Halo113", "Halo023" ],
-     hostHaloIDs             => [ "5142328", "9029790", "5036676" ],     
-     description             => "Halo mass function for non-backsplash halos from Milky Way, 10keV WDM zoom-in simulations.",
-     simulationReference     => "Nadler et al.",
-     simulationURL           => "https://www",
-     hubbleConstant          => 0.7,
-     massParticle            => 2.81981e5,
-     massHostLogMin          => 12.0, 
-     massHostLogMax          => 12.3, 
-     subvolumes              => 1,
-     expansionFactors        => [   1.0000,   0.66503,   0.50239,   0.32987,   0.20064 ],
-     snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       => [
  	 \&zoomInsPreProcessExtractLocate,
@@ -631,7 +597,7 @@ my @simulations =
  	 [
  	  \&zoomInsPostProcessMassFunction
  	 ]
- }, 
+ },
  {
      # LMC zoom-in simulations from the Symphony suite. Host halo IDs were found (by Ethan Nadler) by matching the MAH to that of
      # the target halo in the originasl cosmological box simulation.
@@ -652,9 +618,9 @@ my @simulations =
      snapshots               => [ 235     , 203      , 181      , 148      , 109       ],
      processIdentify         => \&zoomInsProcessIdentify,
      preprocessExtract       =>
-	 [
-	  \&zoomInsPreProcessExtractLocate,
-	  \&zoomInsPreProcessExtractUncontaminated,
+ 	 [
+ 	  \&zoomInsPreProcessExtractLocate,
+ 	  \&zoomInsPreProcessExtractUncontaminated,
  	 ],
      processExtract          => \&zoomInsProcessExtract,
      postprocessExtract      =>
@@ -669,7 +635,7 @@ my @simulations =
  	 [
  	  \&zoomInsPostProcessMassFunction
  	 ]
- },
+ }
 );
 
 # Parse config options.
