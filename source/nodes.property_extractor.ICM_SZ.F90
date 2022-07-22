@@ -21,7 +21,7 @@
 Contains a module which implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
 !!}
   use :: Chemical_States              , only : chemicalState            , chemicalStateClass
-  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
+  use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass       , enumerationDensityCosmologicalType
   use :: Cosmology_Parameters         , only : cosmologyParameters      , cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScale      , darkMatterHaloScaleClass
   use :: Galactic_Structure           , only : galacticStructureClass
@@ -67,7 +67,7 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
      type            (nodePropertyExtractorDensityContrasts), pointer :: densityContrastExtractor_  => null()
      double precision                                                 :: densityContrast                     , distanceAngular
      logical                                                          :: useDensityContrast                  , useFixedDistance
-     integer                                                          :: densityContrastRelativeTo
+     type            (enumerationDensityCosmologicalType   )          :: densityContrastRelativeTo
      type            (varying_string                       )          :: name_
    contains
      final     ::                icmSZDestructor
@@ -75,7 +75,6 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
      procedure :: name        => icmSZName
      procedure :: description => icmSZDescription
      procedure :: unitsInSI   => icmSZUnitsInSI
-     procedure :: type        => icmSZType
   end type nodePropertyExtractorICMSZ
 
   interface nodePropertyExtractorICMSZ
@@ -163,21 +162,21 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily icmSZ} property extractor class.
     !!}
-    use :: Cosmology_Functions, only : densityCosmologicalMean, enumerationDensityCosmologicalDecode
+    use :: Cosmology_Functions, only : densityCosmologicalMean, enumerationDensityCosmologicalDecode, enumerationDensityCosmologicalType
     use :: ISO_Varying_String , only : char
     use :: String_Handling    , only : String_Upper_Case_First
     implicit none
-    type            (nodePropertyExtractorICMSZ    )                          :: self
-    class           (cosmologyParametersClass      ), intent(in   ), target   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass       ), intent(in   ), target   :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass      ), intent(in   ), target   :: darkMatterHaloScale_
-    class           (hotHaloMassDistributionClass  ), intent(in   ), target   :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass), intent(in   ), target   :: hotHaloTemperatureProfile_
-    class           (chemicalStateClass            ), intent(in   ), target   :: chemicalState_
-    class           (galacticStructureClass        ), intent(in   ), target   :: galacticStructure_
-    double precision                                , intent(in   ), optional :: densityContrast           , distanceAngular
-    integer                                         , intent(in   ), optional :: densityContrastRelativeTo
-    character       (len=8                         )                          :: label
+    type            (nodePropertyExtractorICMSZ        )                          :: self
+    class           (cosmologyParametersClass          ), intent(in   ), target   :: cosmologyParameters_
+    class           (cosmologyFunctionsClass           ), intent(in   ), target   :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass          ), intent(in   ), target   :: darkMatterHaloScale_
+    class           (hotHaloMassDistributionClass      ), intent(in   ), target   :: hotHaloMassDistribution_
+    class           (hotHaloTemperatureProfileClass    ), intent(in   ), target   :: hotHaloTemperatureProfile_
+    class           (chemicalStateClass                ), intent(in   ), target   :: chemicalState_
+    class           (galacticStructureClass            ), intent(in   ), target   :: galacticStructure_
+    double precision                                    , intent(in   ), optional :: densityContrast           , distanceAngular
+    type            (enumerationDensityCosmologicalType), intent(in   ), optional :: densityContrastRelativeTo
+    character       (len=8                             )                          :: label
     !![
     <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
     !!]
@@ -378,16 +377,4 @@ contains
     return
   end function icmSZUnitsInSI
 
-  integer function icmSZType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    icmSZType=outputAnalysisPropertyTypeLinear
-    return
-  end function icmSZType
 

@@ -37,7 +37,6 @@ Contains a module which implements a host index output analysis property extract
      logical :: topLevel
    contains
      procedure :: extract     => indicesHostExtract
-     procedure :: type        => indicesHostType
      procedure :: name        => indicesHostName
      procedure :: description => indicesHostDescription
   end type nodePropertyExtractorIndicesHost
@@ -118,18 +117,6 @@ contains
     return
   end function indicesHostExtract
 
-  integer function indicesHostType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    indicesHostType=outputAnalysisPropertyTypeLinear
-    return
-  end function indicesHostType
 
   function indicesHostName(self)
     !!{

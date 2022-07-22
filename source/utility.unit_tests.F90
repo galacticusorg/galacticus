@@ -77,10 +77,10 @@ module Unit_Tests
      !!{
      A derived type for storing results of asserts.
      !!}
-     integer                          :: result
-     logical                          :: beginGroup, endGroup
-     type   (varying_string)          :: label     , note
-     type   (assertResult  ), pointer :: nextResult
+     type    (enumerationTestType)          :: result
+     logical                                :: beginGroup, endGroup
+     type   (varying_string      )          :: label     , note
+     type   (assertResult        ), pointer :: nextResult
   end type assertResult
 
   ! Results list.
@@ -98,12 +98,13 @@ module Unit_Tests
 
 contains
 
-  integer function getStatus(passed)
+  function getStatus(passed)
     !!{
     Return the status code for a test on the basis of a boolean pass/fail.
     !!}
     implicit none
-    logical, intent(in   ) :: passed
+    type   (enumerationTestType)                :: getStatus
+    logical                     , intent(in   ) :: passed
 
     if (passed) then
        getStatus=testPassed
@@ -257,15 +258,15 @@ contains
        result => firstResult
        do while (associated(result))
           if (.not.(result%beginGroup.or.result%endGroup)) then
-             select case (result%result)
-             case (testFailed)
+             select case (result%result%ID)
+             case (testFailed%ID)
                 failCount=failCount+1
                 message=" FAILED: "//result%label
                 if (result%note /= "") message=message//" ["//result%note//"]"
-             case (testPassed)
+             case (testPassed%ID)
                 passCount=passCount+1
                 message=" passed: "//result%label
-             case (testSkipped)
+             case (testSkipped%ID)
                 message="skipped: "//result%label//" ["//result%note//"]"
              end select
              call displayMessage(message)

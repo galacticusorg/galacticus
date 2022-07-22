@@ -93,7 +93,7 @@ contains
     class           (atomicRecombinationRateRadiativeFixed), intent(inout)           :: self
     integer                                                , intent(in   )           :: atomicNumber, ionizationState
     double precision                                       , intent(in   )           :: temperature
-    integer                                                , intent(in   ), optional :: level
+    type            (enumerationRecombinationCaseType     ), intent(in   ), optional :: level
     !$GLC attributes unused :: atomicNumber, ionizationState, temperature, level
 
     fixedRate=self%rateCoefficient

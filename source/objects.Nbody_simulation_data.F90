@@ -130,12 +130,13 @@ contains
     return
   end subroutine nBodyDataDestructorRank1
   
-  integer function nBodyDataPropertyType(propertyName)
+  function nBodyDataPropertyType(propertyName)
     !!{
     Returns the type of the named property.
     !!}
     implicit none
-    character(len=*), intent(in   ) :: propertyName
+    type     (enumerationPropertyTypeType)                :: nBodyDataPropertyType
+    character(len=*                      ), intent(in   ) :: propertyName
 
     select case (propertyName)
     case('particleID'               )

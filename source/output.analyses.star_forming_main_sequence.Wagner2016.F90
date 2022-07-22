@@ -188,7 +188,8 @@ contains
     use :: Virial_Density_Contrast               , only : fixedDensityTypeCritical                           , virialDensityContrastClass   , virialDensityContrastFixed
     implicit none
     type            (outputAnalysisStarFormingMainSequenceWagner2016    )                              :: self
-    integer                                                              , intent(in   )               :: redshiftRange                                    , galaxyType
+    type            (enumerationWagner2016SSFRRedshiftRangeType         ), intent(in   )               :: redshiftRange
+    type            (enumerationWagner2016SSFRGalaxyTypeType            ), intent(in   )               :: galaxyType
     double precision                                                     , intent(in   )               :: randomErrorMinimum                               , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                 , systematicErrorPolynomialCoefficient  , &
          &                                                                                                weightSystematicErrorPolynomialCoefficient
@@ -226,12 +227,12 @@ contains
     label      ='Wagner2016'
     description='Mean sSFR sequence from Wagner et al. (2016) for '
     !! Determine galaxy type.
-    select case (galaxyType)
-    case (wagner2016SSFRGalaxyTypeQuiescent  )
+    select case (galaxyType%ID)
+    case (wagner2016SSFRGalaxyTypeQuiescent  %ID)
        fileName   =fileName   //'quiescent'
        label      =label      //'Quiescent'
        description=description//'quiescent'
-    case (wagner2016SSFRGalaxyTypeStarForming)
+    case (wagner2016SSFRGalaxyTypeStarForming%ID)
        fileName   =fileName   //'starForming'
        label      =label      //'StarForming'
        description=description//'star forming'
@@ -242,15 +243,15 @@ contains
     fileName   =fileName   //'MainSequenceWagner2016_z'
     description=description//' galaxies with '
     !! Determine redshift range properties. Host halo mass threshold is judged approximately from Figure 1 of Wagner et al. (2016).
-    select case (redshiftRange)
-    case (wagner2016SSFRRedshiftRangeLow )
+    select case (redshiftRange%ID)
+    case (wagner2016SSFRRedshiftRangeLow %ID)
        redshiftMinimum  =0.15d0
        redshiftMaximum  =0.80d0
        massHostThreshold=10.0d0**14.8d0
        fileName         =fileName   // '0.15_0.80'
        label            =label      //'Z0.15_0.80'
        description      =description//'$0.15 < z < 0.80$'
-    case (wagner2016SSFRRedshiftRangeHigh)
+    case (wagner2016SSFRRedshiftRangeHigh%ID)
        redshiftMinimum  =0.80d0
        redshiftMaximum  =1.50d0
        massHostThreshold=10.0d0**14.3d0
@@ -279,8 +280,8 @@ contains
     !![
     <referenceConstruct object="galacticFilterStarFormationRate_"        constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
     !!]
-    select case (galaxyType)
-    case (wagner2016SSFRGalaxyTypeQuiescent  )
+    select case (galaxyType%ID)
+    case (wagner2016SSFRGalaxyTypeQuiescent  %ID)
        allocate(galacticFilterNot  :: galacticFilterGalaxyType_)
        select type (galacticFilterGalaxyType_)
        type is (galacticFilterNot )
@@ -288,7 +289,7 @@ contains
           <referenceConstruct object="galacticFilterGalaxyType_" constructor="galacticFilterNot (galacticFilterStarFormationRate_)" />
           !!]
        end select
-    case (wagner2016SSFRGalaxyTypeStarForming)
+    case (wagner2016SSFRGalaxyTypeStarForming%ID)
        allocate(galacticFilterNull :: galacticFilterGalaxyType_)
        select type (galacticFilterGalaxyType_)
        type is (galacticFilterNull)

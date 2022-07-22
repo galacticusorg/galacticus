@@ -45,17 +45,18 @@ contains
     \emph{except} that the rotation speed is limited to never exceed the speed of light.
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
-    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull               , enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
-    type            (treeNode              ), intent(inout)           :: node
-    integer                                 , intent(in   )           :: componentType, massType
-    double precision                        , intent(in   )           :: radius
-    class           (nodeComponentBlackHole)               , pointer  :: blackHole
-    double precision                                                  :: componentMass
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    double precision                              , intent(in   )           :: radius
+    class           (nodeComponentBlackHole      )               , pointer  :: blackHole
+    double precision                                                        :: componentMass
 
     ! Set to zero by default.
     Node_Component_Black_Hole_Standard_Rotation_Curve=0.0d0
@@ -88,17 +89,19 @@ contains
     Compute the gravitational potential due to a black hole.
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll, massTypeBlackHole, &
-          &                                         weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
+    use :: Galactic_Structure_Options      , only : componentTypeAll                 , componentTypeBlackHole        , massTypeAll                 , massTypeBlackHole      , &
+         &                                          weightByMass                     , weightIndexNull               , enumerationComponentTypeType, enumerationMassTypeType, &
+         &                                          enumerationStructureErrorCodeType
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole           , nodeComponentBlackHoleStandard, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout)           :: node
-    integer                                 , intent(in   )           :: componentType, massType
-    double precision                        , intent(in   )           :: radius
-    integer                                 , intent(inout), optional :: status
-    class           (nodeComponentBlackHole)               , pointer  :: blackHole
-    double precision                                                  :: componentMass
+    type            (treeNode                         ), intent(inout)           :: node
+    type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
+    type            (enumerationMassTypeType          ), intent(in   )           :: massType
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
+    class           (nodeComponentBlackHole           )               , pointer  :: blackHole
+    double precision                                                             :: componentMass
     !$GLC attributes unused :: status
 
     Node_Component_Black_Hole_Standard_Potential=0.0d0
@@ -123,23 +126,23 @@ contains
    <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient</unitName>
   </rotationCurveGradientTask>
   !!]
-  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient(node,radius,componentType &
-       &,massType)
+  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient(node,radius,componentType,massType)
     !!{
     Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
     rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll, massTypeBlackHole, &
-          &                                         weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll                 , massTypeBlackHole      , &
+          &                                         weightByMass                   , weightIndexNull               , enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout)           :: node
-    integer                                 , intent(in   )           :: componentType, massType
-    double precision                        , intent(in   )           :: radius
-    class           (nodeComponentBlackHole)               , pointer  :: blackHole
-    double precision                                                  :: componentMass
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    double precision                              , intent(in   )           :: radius
+    class           (nodeComponentBlackHole      )               , pointer  :: blackHole
+    double precision                                                        :: componentMass
 
     ! Set to zero by default.
     Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient=0.0d0

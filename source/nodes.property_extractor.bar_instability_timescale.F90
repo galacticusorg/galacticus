@@ -40,7 +40,6 @@ Contains a module which implements a property extractor class for bar instabilit
      procedure :: name        => timescaleBarInstabilityName
      procedure :: description => timescaleBarInstabilityDescription
      procedure :: unitsInSI   => timescaleBarInstabilityUnitsInSI
-     procedure :: type        => timescaleBarInstabilityType
   end type nodePropertyExtractorTimescaleBarInstability
 
   interface nodePropertyExtractorTimescaleBarInstability
@@ -155,16 +154,4 @@ contains
     return
   end function timescaleBarInstabilityUnitsInSI
 
-  integer function timescaleBarInstabilityType(self)
-    !!{
-    Return the type of the bar instability timescale property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorTimescaleBarInstability), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    timescaleBarInstabilityType=outputAnalysisPropertyTypeLinear
-    return
-  end function timescaleBarInstabilityType
 

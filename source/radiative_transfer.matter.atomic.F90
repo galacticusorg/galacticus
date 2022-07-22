@@ -23,7 +23,7 @@
   use :: Atomic_Rates_Excitation_Collisional         , only : atomicExcitationRateCollisionalClass
   use :: Atomic_Rates_Ionization_Collisional         , only : atomicIonizationRateCollisionalClass
   use :: Atomic_Rates_Recombination_Dielectronic     , only : atomicRecombinationRateDielectronicClass
-  use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeClass
+  use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeClass       , enumerationRecombinationCaseType
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingClass
   use :: Mass_Distributions                          , only : massDistributionClass
   use :: Root_Finder                                 , only : rootFinder
@@ -125,7 +125,7 @@
   type            (element                                ), dimension( : ), allocatable :: atomicElementsPhotoRate
   type            (radiativeTransferPropertiesMatterAtomic)                , pointer     :: atomicProperties
   double precision                                                                       :: atomicDensityNumberElectrons
-  integer                                                                                :: atomicRecombinationCase
+  type            (enumerationRecombinationCaseType      )                               :: atomicRecombinationCase
   !$omp threadprivate(atomicSelf,atomicElementsPhotoRate,atomicProperties,atomicDensityNumberElectrons,atomicRecombinationCase)
 
   ! Tolerance parameters.

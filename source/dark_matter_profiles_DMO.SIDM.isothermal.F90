@@ -104,6 +104,7 @@
      procedure :: potential                         => sidmIsothermalPotential
      procedure :: circularVelocity                  => sidmIsothermalCircularVelocity
      procedure :: circularVelocityMaximum           => sidmIsothermalCircularVelocityMaximum
+     procedure :: radiusCircularVelocityMaximum     => sidmIsothermalRadiusCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => sidmIsothermalRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => sidmIsothermalRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => sidmIsothermalRotationNormalization
@@ -639,7 +640,7 @@ contains
     class           (darkMatterProfileDMOSIDMIsothermal), intent(inout)           :: self
     type            (treeNode                          ), intent(inout), target   :: node
     double precision                                    , intent(in   )           :: radius
-    integer                                             , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType ), intent(  out), optional :: status
 
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalPotential=self%darkMatterProfileDMO_%potential(node,radius)
@@ -681,6 +682,18 @@ contains
     sidmIsothermalCircularVelocityMaximum=self%circularVelocityMaximumNumerical(node)
     return
   end function sidmIsothermalCircularVelocityMaximum
+
+  double precision function sidmIsothermalRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+
+    sidmIsothermalRadiusCircularVelocityMaximum=self%radiusCircularVelocityMaximumNumerical(node)
+    return
+  end function sidmIsothermalRadiusCircularVelocityMaximum
 
   double precision function sidmIsothermalRadialVelocityDispersion(self,node,radius)
     !!{

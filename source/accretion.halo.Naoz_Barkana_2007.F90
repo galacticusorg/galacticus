@@ -396,7 +396,7 @@ contains
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     double precision                                              :: filteredFractionRate
@@ -441,7 +441,7 @@ contains
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     double precision                                              :: filteredFraction
 
@@ -468,7 +468,7 @@ contains
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     double precision                                              :: filteredFractionRate
@@ -517,7 +517,7 @@ contains
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     double precision                                              :: filteredFraction
 
@@ -549,7 +549,7 @@ contains
     type            (abundances                  )                :: naozBarkana2007AccretionRateMetals
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
@@ -610,7 +610,7 @@ contains
     type            (chemicalAbundances          )                :: naozBarkana2007AccretionRateChemicals
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (chemicalAbundances          ), save          :: fractionChemicals

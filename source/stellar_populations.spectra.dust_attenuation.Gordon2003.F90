@@ -89,16 +89,16 @@ contains
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none
-    type   (stellarSpectraDustAttenuationGordon2003)                :: self
-    integer                                         , intent(in   ) :: sample
+    type(stellarSpectraDustAttenuationGordon2003)                :: self
+    type(enumerationGordon2003SampleType        ), intent(in   ) :: sample
 
     ! Initialize fitting function parameters for the chosen sample (values from Tables 2 & 3 of Gordon et al.).
     if (.not.enumerationGordon2003SampleIsValid(sample)) call Error_Report('invalid sample'//{introspection:location})
-    select case (sample)
-    case (gordon2003SampleSMCBar)
+    select case (sample%ID)
+    case (gordon2003SampleSMCBar%ID)
        call self%attenuationTable%create([0.455d0,0.606d0,0.800d0,1.235d0,1.538d0,1.818d0,2.273d0,2.703d0,3.375d0,3.625d0,3.875d0,4.125d0,4.375d0,4.625d0,4.875d0,5.125d0,5.375d0,5.625d0,5.875d0,6.125d0,6.375d0,6.625d0,6.875d0,7.125d0,7.375d0,7.625d0,7.875d0,8.125d0,8.375d0,8.625d0],tableCount=1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
        call self%attenuationTable%populate([0.016d0,0.169d0,0.131d0,0.567d0,0.801d0,1.000d0,1.374d0,1.672d0,2.000d0,2.220d0,2.428d0,2.661d0,2.947d0,3.161d0,3.293d0,3.489d0,3.637d0,3.866d0,4.013d0,4.243d0,4.472d0,4.776d0,5.000d0,5.272d0,5.575d0,5.795d0,6.074d0,6.297d0,6.436d0,6.992d0])
-    case (gordon2003SampleLMC   )
+    case (gordon2003SampleLMC   %ID)
        call self%attenuationTable%create([0.455d0,0.606d0,0.800d0,1.818d0,2.273d0,2.703d0,3.375d0,3.625d0,3.875d0,4.125d0,4.375d0,4.625d0,4.875d0,5.125d0,5.375d0,5.625d0,5.875d0,6.125d0,6.375d0,6.625d0,6.875d0,7.125d0,7.375d0,7.625d0,7.875d0,8.125d0,8.375d0],1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
        call self%attenuationTable%populate([0.030d0,0.186d0,0.257d0,1.000d0,1.293d0,1.518d0,1.786d0,1.969d0,2.149d0,2.391d0,2.771d0,2.967d0,2.846d0,2.646d0,2.565d0,2.566d0,2.598d0,2.607d0,2.668d0,2.787d0,2.874d0,2.983d0,3.118d0,3.231d0,3.374d0,3.366d0,3.467d0])
     end select

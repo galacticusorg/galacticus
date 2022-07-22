@@ -27,6 +27,7 @@ module Dark_Matter_Profiles
   !!}
   use :: Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
   use :: Galacticus_Nodes            , only : treeNode
+  use :: Galactic_Structure_Options  , only : enumerationStructureErrorCodeType
   use :: Kind_Numbers                , only : kind_int8
   private
 
@@ -110,9 +111,9 @@ module Dark_Matter_Profiles
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type            (treeNode), intent(inout), target   :: node</argument>
-    <argument>double precision          , intent(in   )           :: radius</argument>
-    <argument>integer                   , intent(  out), optional :: status</argument>
+    <argument>type            (treeNode                         ), intent(inout), target   :: node</argument>
+    <argument>double precision                                   , intent(in   )           :: radius</argument>
+    <argument>type            (enumerationStructureErrorCodeType), intent(  out), optional :: status</argument>
    </method>
    <method name="enclosedMass" >
     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>

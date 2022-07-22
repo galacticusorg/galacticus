@@ -25,8 +25,9 @@ module Atomic_Rates_Recombination_Radiative_Cooling
   !!{
   Provides a class implenting recombination cooling rates.
   !!}
+  use :: Atomic_Rates_Recombination_Radiative, only : enumerationRecombinationCaseType
   private
-
+  
   !![
   <functionClass>
    <name>atomicRecombinationRateRadiativeCooling</name>
@@ -39,9 +40,9 @@ module Atomic_Rates_Recombination_Radiative_Cooling
     <description>Returns the recombination cooling rate coefficient in units of cm$^3$ s$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
-    <argument>double precision, intent(in   )           :: temperature</argument>
-    <argument>integer         , intent(in   ), optional :: level</argument>
+    <argument>integer                                           , intent(in   )           :: atomicNumber, ionizationState</argument>
+    <argument>double precision                                  , intent(in   )           :: temperature                  </argument>
+    <argument>type            (enumerationRecombinationCaseType), intent(in   ), optional :: level                        </argument>
    </method>
   </functionClass>
   !!]

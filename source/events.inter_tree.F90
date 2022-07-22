@@ -57,24 +57,24 @@ contains
     !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo
     use :: Error                              , only : Error_Report
-    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent         , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode                     , treeNodeLinkedList
-    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)      , varying_string
-    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)                 , varying_string
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked, enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
     implicit none
-    class    (nodeEvent         ), intent(in   )          :: event
-    type     (treeNode          ), intent(inout), pointer :: node
-    integer                      , intent(inout)          :: deadlockStatus
-    type     (treeNode          )               , pointer :: nodeMergee         , nodeWork
-    class    (nodeComponentBasic)               , pointer :: basic              , basicMergee
-    type     (interTreeTransfer )               , pointer :: waitListEntry
-    type     (treeNodeLinkedList)               , pointer :: nodeStack          , nodeNext, &
-         &                                                   nodeNew
-    integer  (c_size_t          )                         :: splitForestUniqueID
-    integer  (kind_int8         )                         :: pairedNodeID
-    type     (varying_string    )                         :: message
-    character(len=12            )                         :: label
+    class    (nodeEvent                    ), intent(in   )          :: event
+    type     (treeNode                     ), intent(inout), pointer :: node
+    type     (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    type     (treeNode                     )               , pointer :: nodeMergee         , nodeWork
+    class    (nodeComponentBasic           )               , pointer :: basic              , basicMergee
+    type     (interTreeTransfer            )               , pointer :: waitListEntry
+    type     (treeNodeLinkedList           )               , pointer :: nodeStack          , nodeNext, &
+         &                                                              nodeNew
+    integer  (c_size_t                     )                         :: splitForestUniqueID
+    integer  (kind_int8                    )                         :: pairedNodeID
+    type     (varying_string               )                         :: message
+    character(len=12                       )                         :: label
 
     ! If this node is not yet a subhalo, do not perform the event.
     if (.not.node%isSatellite()) then
@@ -185,7 +185,7 @@ contains
     use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode
     use :: ISO_Varying_String                 , only : assignment(=)             , operator(//)                 , varying_string
-    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable , enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
     !![
     <include directive="interTreeSatelliteAttach" type="moduleUse">
@@ -205,22 +205,22 @@ contains
     </include>
     !!]
     implicit none
-    class           (nodeEvent         ), intent(in   )          :: event
-    type            (treeNode          ), intent(inout), pointer :: node
-    integer                             , intent(inout)          :: deadlockStatus
-    type            (interTreeTransfer )               , pointer :: waitListEntry              , waitListEntryPrevious
-    type            (treeNode          )               , pointer :: pullNode                   , satelliteNode        , &
-         &                                                          attachNode                 , hostNode             , &
-         &                                                          mergeeNode                 , mergeeNext
-    class           (nodeComponentBasic)               , pointer :: pullBasic                  , attachBasic
-    class           (nodeEvent         )               , pointer :: attachedEvent              , lastEvent            , &
-         &                                                          pairedEvent
-    double precision                    , parameter              :: timeOffsetFractional=1.0d-6
-    integer         (c_size_t          )                         :: splitForestUniqueID        , pairedNodeID
-    type            (varying_string    )                         :: message
-    character       (len=12            )                         :: label
-    logical                                                      :: isPrimary                  , timeMatchRequired    , &
-         &                                                          inSatellite
+    class           (nodeEvent                    ), intent(in   )          :: event
+    type            (treeNode                     ), intent(inout), pointer :: node
+    type            (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    type            (interTreeTransfer            )               , pointer :: waitListEntry              , waitListEntryPrevious
+    type            (treeNode                     )               , pointer :: pullNode                   , satelliteNode        , &
+         &                                                                     attachNode                 , hostNode             , &
+         &                                                                     mergeeNode                 , mergeeNext
+    class           (nodeComponentBasic           )               , pointer :: pullBasic                  , attachBasic
+    class           (nodeEvent                    )               , pointer :: attachedEvent              , lastEvent            , &
+         &                                                                     pairedEvent
+    double precision                               , parameter              :: timeOffsetFractional=1.0d-6
+    integer         (c_size_t                     )                         :: splitForestUniqueID        , pairedNodeID
+    type            (varying_string               )                         :: message
+    character       (len=12                       )                         :: label
+    logical                                                                 :: isPrimary                  , timeMatchRequired    , &
+         &                                                                     inSatellite
 
     ! Assume that the event cannot be performed by default.
     Node_Pull_From_Tree=.false.

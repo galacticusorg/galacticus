@@ -48,7 +48,6 @@ Contains a module which implements an intracluster medium X-ray luminosity-weigh
      procedure :: name        => icmXRayTemperatureName
      procedure :: description => icmXRayTemperatureDescription
      procedure :: unitsInSI   => icmXRayTemperatureUnitsInSI
-     procedure :: type        => icmXRayTemperatureType
   end type nodePropertyExtractorICMXRayTemperature
 
   interface nodePropertyExtractorICMXRayTemperature
@@ -288,15 +287,3 @@ contains
     return
   end function icmXRayTemperatureUnitsInSI
 
-  integer function icmXRayTemperatureType(self)
-    !!{
-    Return the type of the ICM X-ray temperature property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    icmXRayTemperatureType=outputAnalysisPropertyTypeLinear
-    return
-  end function icmXRayTemperatureType

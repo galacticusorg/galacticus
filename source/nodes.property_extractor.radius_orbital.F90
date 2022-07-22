@@ -33,7 +33,6 @@ Contains a module which implements an orbital radius output analysis property ex
      private
    contains
      procedure :: extract     => radiusOrbitalExtract
-     procedure :: type        => radiusOrbitalType
      procedure :: name        => radiusOrbitalName
      procedure :: description => radiusOrbitalDescription
      procedure :: unitsInSI   => radiusOrbitalUnitsInSI
@@ -96,18 +95,6 @@ contains
     return
   end function radiusOrbitalExtract
 
-  integer function radiusOrbitalType(self)
-    !!{
-    Return the type of the radiusOrbital property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusOrbitalType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusOrbitalType
 
   function radiusOrbitalName(self)
     !!{

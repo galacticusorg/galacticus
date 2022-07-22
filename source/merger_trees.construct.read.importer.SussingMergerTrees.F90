@@ -26,6 +26,31 @@
   use :: ISO_Varying_String      , only : varying_string
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
+  ! Enumeration of bad value test options
+  !![
+  <enumeration>
+   <name>sussingBadValueTest</name>
+   <description>Bad value test options.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="lessThan"   />
+   <entry label="greaterThan"/>
+  </enumeration>
+  !!]
+
+  ! Enumeration of halo mass definitions.
+  !![
+  <enumeration>
+   <name>sussingMassOption</name>
+   <description>Halo mass definitions.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="default"/>
+   <entry label="FoF"    />
+   <entry label="200Mean"/>
+   <entry label="200Crit"/>
+   <entry label="topHat" />
+  </enumeration>
+  !!]
+
   !![
   <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
    <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
@@ -36,28 +61,29 @@
      A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
      !!}
      private
-     class           (cosmologyParametersClass  ), pointer                    :: cosmologyParameters_     => null()
-     class           (cosmologyFunctionsClass   ), pointer                    :: cosmologyFunctions_      => null()
-     class           (randomNumberGeneratorClass), pointer                    :: randomNumberGenerator_   => null()
-     logical                                                                  :: fatalMismatches                   , treeIndicesRead    , &
-          &                                                                      scaleRadiiAvailableValue          , spinsAvailableValue, &
-          &                                                                      fatalNonTreeNode
-     integer                                                                  :: treesCount                        , massOption
-     double precision                                                         :: boxLength
-     type            (importerUnits              )                            :: boxLengthUnits
-     type            (varying_string             )                            :: mergerTreeFile
-     type            (varying_string             ), allocatable, dimension(:) :: snapshotFileName
-     integer         (kind_int8                  ), allocatable, dimension(:) :: treeIndices
-     integer         (c_size_t                   ), allocatable, dimension(:) :: treeIndexRanks
-     integer         (c_size_t                   ), allocatable, dimension(:) :: treeSizes                         , treeBegins
-     type            (nodeData                   ), allocatable, dimension(:) :: nodes
-     double precision                             , allocatable, dimension(:) :: snapshotTimes
-     integer                                                                  :: subvolumeCount
-     integer                                                   , dimension(3) :: subvolumeIndex
-     double precision                                                         :: subvolumeBuffer
-     double precision                                                         :: badValue
-     integer                                                                  :: badValueTest
-     double precision                                                         :: treeSampleRate
+     class           (cosmologyParametersClass        ), pointer                    :: cosmologyParameters_     => null()
+     class           (cosmologyFunctionsClass         ), pointer                    :: cosmologyFunctions_      => null()
+     class           (randomNumberGeneratorClass      ), pointer                    :: randomNumberGenerator_   => null()
+     logical                                                                        :: fatalMismatches                   , treeIndicesRead    , &
+          &                                                                            scaleRadiiAvailableValue          , spinsAvailableValue, &
+          &                                                                            fatalNonTreeNode
+     integer                                                                        :: treesCount
+     type            (enumerationSussingMassOptionType)                             :: massOption
+     double precision                                                               :: boxLength
+     type            (importerUnits                    )                            :: boxLengthUnits
+     type            (varying_string                   )                            :: mergerTreeFile
+     type            (varying_string                   ), allocatable, dimension(:) :: snapshotFileName
+     integer         (kind_int8                        ), allocatable, dimension(:) :: treeIndices
+     integer         (c_size_t                         ), allocatable, dimension(:) :: treeIndexRanks
+     integer         (c_size_t                         ), allocatable, dimension(:) :: treeSizes                         , treeBegins
+     type            (nodeData                         ), allocatable, dimension(:) :: nodes
+     double precision                                   , allocatable, dimension(:) :: snapshotTimes
+     integer                                                                        :: subvolumeCount
+     integer                                                         , dimension(3) :: subvolumeIndex
+     double precision                                                               :: subvolumeBuffer
+     double precision                                                               :: badValue
+     type            (enumerationSussingBadValueTestType)                           :: badValueTest
+     double precision                                                               :: treeSampleRate
    contains
      !![
      <methods>
@@ -103,31 +129,6 @@
      module procedure sussingConstructorParameters
      module procedure sussingConstructorInternal
   end interface mergerTreeImporterSussing
-
-  ! Enumeration of bad value test options
-  !![
-  <enumeration>
-   <name>sussingBadValueTest</name>
-   <description>Bad value test options.</description>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="lessThan"   />
-   <entry label="greaterThan"/>
-  </enumeration>
-  !!]
-
-  ! Enumeration of halo mass definitions.
-  !![
-  <enumeration>
-   <name>sussingMassOption</name>
-   <description>Halo mass definitions.</description>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="default"/>
-   <entry label="FoF"    />
-   <entry label="200Mean"/>
-   <entry label="200Crit"/>
-   <entry label="topHat" />
-  </enumeration>
-  !!]
 
 contains
 
@@ -238,16 +239,17 @@ contains
     Internal constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer class.
     !!}
     implicit none
-    type            (mergerTreeImporterSussing )                              :: self
-    integer                                     , intent(in   ), dimension(3) :: subvolumeIndex
-    logical                                     , intent(in   )               :: fatalMismatches     , fatalNonTreeNode
-    integer                                     , intent(in   )               :: subvolumeCount      , badValueTest    , &
-         &                                                                       massOption
-    double precision                            , intent(in   )               :: subvolumeBuffer     , badValue        , &
-         &                                                                       treeSampleRate
-    class           (cosmologyParametersClass  ), intent(in   ), target       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass   ), intent(in   ), target       :: cosmologyFunctions_
-    class           (randomNumberGeneratorClass), intent(in   ), target       :: randomNumberGenerator_
+    type            (mergerTreeImporterSussing         )                              :: self
+    integer                                             , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                             , intent(in   )               :: fatalMismatches       , fatalNonTreeNode
+    integer                                             , intent(in   )               :: subvolumeCount
+    type            (enumerationSussingBadValueTestType), intent(in   )               :: badValueTest
+    type            (enumerationSussingMassOptionType  ), intent(in   )               :: massOption
+    double precision                                    , intent(in   )               :: subvolumeBuffer       , badValue        , &
+         &                                                                               treeSampleRate
+    class           (cosmologyParametersClass          ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass           ), intent(in   ), target       :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass        ), intent(in   ), target       :: randomNumberGenerator_
     !![
     <constructorAssign variables="fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,*cosmologyParameters_,*cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
@@ -1092,10 +1094,10 @@ contains
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
 
-    select case (self%badValueTest)
-    case (sussingBadValueTestLessThan   )
+    select case (self%badValueTest%ID)
+    case (sussingBadValueTestLessThan   %ID)
        sussingValueIsBad=(x < self%badValue)
-    case (sussingBadValueTestGreaterThan)
+    case (sussingBadValueTestGreaterThan%ID)
        sussingValueIsBad=(x > self%badValue)
     case default
        sussingValueIsBad=.false.

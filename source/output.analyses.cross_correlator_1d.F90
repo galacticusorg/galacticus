@@ -32,6 +32,7 @@ mass function) output analysis class.
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
   use               :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass
   use               :: Output_Times                            , only : outputTimesClass
+  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType
 
   !![
   <outputAnalysis name="outputAnalysisCrossCorrelator1D">
@@ -50,26 +51,27 @@ mass function) output analysis class.
      analysis class.
      !!}
      private
-     class           (nodePropertyExtractorClass               ), pointer                     :: nodePropertyExtractor_                => null()
-     class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                             , &
-          &                                                                                      outputAnalysisPropertyUnoperator_     => null()
-     class           (outputAnalysisWeightOperatorClass        ), pointer                     :: outputAnalysisWeightOperator1_        => null(), outputAnalysisWeightOperator2_                    => null()
-     class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_   => null()
-     class           (outputAnalysisDistributionNormalizerClass), pointer                     :: outputAnalysisDistributionNormalizer_ => null()
-     class           (galacticFilterClass                      ), pointer                     :: galacticFilter_                       => null()
-     class           (outputTimesClass                         ), pointer                     :: outputTimes_                          => null()
-     double precision                                           , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                                         , &
-          &                                                                                      weightMainBranch
-     double precision                                           , dimension(:  ), allocatable :: binCenter                                      , weightMainBranchCross
-     double precision                                           , dimension(:  ), allocatable :: binMinimum                                     , binMaximum
-     integer         (c_size_t                                 )                              :: binCount                                       , bufferCount                                                , &
-          &                                                                                      binCountTotal                                  , covarianceModelBinomialBinCount
-     integer                                                                                  :: covarianceModel                                , covarianceBinomialBinsPerDecade
-     double precision                                                                         :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                          , &
-          &                                                                                      covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse          , &
-          &                                                                                      binWidth
-     logical                                                                                  :: finalized
-     !$ integer      (omp_lock_kind                            )                              :: accumulateLock
+     class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null()
+     class           (outputAnalysisPropertyOperatorClass         ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                             , &
+          &                                                                                         outputAnalysisPropertyUnoperator_     => null()
+     class           (outputAnalysisWeightOperatorClass           ), pointer                     :: outputAnalysisWeightOperator1_        => null(), outputAnalysisWeightOperator2_                    => null()
+     class           (outputAnalysisDistributionOperatorClass     ), pointer                     :: outputAnalysisDistributionOperator_   => null()
+     class           (outputAnalysisDistributionNormalizerClass   ), pointer                     :: outputAnalysisDistributionNormalizer_ => null()
+     class           (galacticFilterClass                         ), pointer                     :: galacticFilter_                       => null()
+     class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
+     double precision                                              , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                                         , &
+          &                                                                                         weightMainBranch
+     double precision                                              , dimension(:  ), allocatable :: binCenter                                      , weightMainBranchCross
+     double precision                                              , dimension(:  ), allocatable :: binMinimum                                     , binMaximum
+     integer         (c_size_t                                    )                              :: binCount                                       , bufferCount                                                , &
+          &                                                                                         binCountTotal                                  , covarianceModelBinomialBinCount
+     integer                                                                                     :: covarianceBinomialBinsPerDecade
+     type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
+     double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                          , &
+          &                                                                                         covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse          , &
+          &                                                                                         binWidth
+     logical                                                                                     :: finalized
+     !$ integer      (omp_lock_kind                               )                              :: accumulateLock
    contains
      !![
      <methods>
@@ -241,22 +243,22 @@ contains
     use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
     !$ use :: OMP_Lib                 , only : OMP_Init_Lock
     implicit none
-    type            (outputAnalysisCrossCorrelator1D           )                                          :: self
-    double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
-    integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
-    double precision                                           , intent(in   )          , dimension(:,:) :: outputWeight
-    class           (nodePropertyExtractorClass               ), intent(in   ), target                   :: nodePropertyExtractor_
-    class           (outputAnalysisPropertyOperatorClass      ), intent(in   ), target                   :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
-    class           (outputAnalysisWeightOperatorClass        ), intent(in   ), target                   :: outputAnalysisWeightOperator1_       , outputAnalysisWeightOperator2_
-    class           (outputAnalysisDistributionOperatorClass  ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
-    class           (outputAnalysisDistributionNormalizerClass), intent(in   ), target                   :: outputAnalysisDistributionNormalizer_
-    class           (galacticFilterClass                      ), intent(in   ), target                   :: galacticFilter_
-    class           (outputTimesClass                         ), intent(in   ), target                   :: outputTimes_
-    integer                                                    , intent(in   )                           :: covarianceModel
-    integer                                                    , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
-    double precision                                           , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum, &
-         &                                                                                                  binWidth
-    integer         (c_size_t                                 )                                          :: i
+    type            (outputAnalysisCrossCorrelator1D             )                                          :: self
+    double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
+    integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
+    double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
+    class           (nodePropertyExtractorClass                  ), intent(in   ), target                   :: nodePropertyExtractor_
+    class           (outputAnalysisPropertyOperatorClass         ), intent(in   ), target                   :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
+    class           (outputAnalysisWeightOperatorClass           ), intent(in   ), target                   :: outputAnalysisWeightOperator1_       , outputAnalysisWeightOperator2_
+    class           (outputAnalysisDistributionOperatorClass     ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
+    class           (outputAnalysisDistributionNormalizerClass   ), intent(in   ), target                   :: outputAnalysisDistributionNormalizer_
+    class           (galacticFilterClass                         ), intent(in   ), target                   :: galacticFilter_
+    class           (outputTimesClass                            ), intent(in   ), target                   :: outputTimes_
+    type            (enumerationOutputAnalysisCovarianceModelType), intent(in   )                           :: covarianceModel
+    integer                                                       , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
+    double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum, &
+         &                                                                                                     binWidth
+    integer         (c_size_t                                    )                                          :: i
     !![
     <constructorAssign variables="binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator1_, *outputAnalysisWeightOperator2_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, binWidth"/>
     !!]
@@ -353,20 +355,21 @@ contains
     !!}
     use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
     use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
+    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
     !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
-    class           (outputAnalysisCrossCorrelator1D), intent(inout)                 :: self
-    type            (treeNode                       ), intent(inout)                 :: node
-    integer         (c_size_t                       ), intent(in   )                 :: iOutput
-    double precision                                 , allocatable  , dimension(:  ) :: distribution
-    double precision                                 , allocatable  , dimension(:,:) :: covariance
-    class           (nodeComponentBasic             ), pointer                       :: basic
-    double precision                                                                 :: propertyValue         , weightValue1    , &
-         &                                                                              propertyValueIntrinsic, weightValue2
-    integer                                                                          :: propertyType          , propertyQuantity
-    integer         (c_size_t                       )                                :: j                     , k               , &
-         &                                                                              indexHaloMass
+    class           (outputAnalysisCrossCorrelator1D              ), intent(inout)                 :: self
+    type            (treeNode                                     ), intent(inout)                 :: node
+    integer         (c_size_t                                     ), intent(in   )                 :: iOutput
+    double precision                                               , allocatable  , dimension(:  ) :: distribution
+    double precision                                               , allocatable  , dimension(:,:) :: covariance
+    class           (nodeComponentBasic                           ), pointer                       :: basic
+    double precision                                                                               :: propertyValue         , weightValue1, &
+         &                                                                                            propertyValueIntrinsic, weightValue2
+    type            (enumerationOutputAnalysisPropertyTypeType    )                                :: propertyType 
+    type            (enumerationOutputAnalysisPropertyQuantityType)                                :: propertyQuantity
+    integer         (c_size_t                                     )                                :: j                     , k           , &
+         &                                                                                            indexHaloMass
 
     ! If weights for this output are all zero, we can skip analysis.
     if (all(self%outputWeight(:,iOutput) == 0.0d0)) return

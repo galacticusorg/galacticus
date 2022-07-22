@@ -668,7 +668,7 @@ contains
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)         :: self
     double precision                                                  , intent(in   )         :: deltaCritical                                , haloMass                 , &
          &                                                                                       massResolution                               , time
-    integer                                                           , intent(in   )         :: bound
+    type            (enumerationMergerTreeBranchingBoundType         ), intent(in   )         :: bound
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                  , parameter             :: sqrtTwoOverPi                 =sqrt(2.0d0/Pi)
     double precision                                                                          :: probabilityIntegrandLower                    , probabilityIntegrandUpper, &
@@ -711,10 +711,10 @@ contains
              ! Compute the effective value of gamma.
              gammaEffective=self%gamma1
              if (usingCDMAssumptions) then
-                select case (bound)
-                case (mergerTreeBranchingBoundLower)
+                select case (bound%ID)
+                case (mergerTreeBranchingBoundLower%ID)
                    gammaEffective=gammaEffective-1.0d0/self%resolutionAlpha
-                case (mergerTreeBranchingBoundUpper)
+                case (mergerTreeBranchingBoundUpper%ID)
                    gammaEffective=gammaEffective-1.0d0/     halfParentAlpha
                 end select
              end if
@@ -813,8 +813,8 @@ contains
                 end if
              end if
              ! Compute the bound.
-             select case (bound)
-             case (mergerTreeBranchingBoundLower)
+             select case (bound%ID)
+             case (mergerTreeBranchingBoundLower%ID)
                 if (usingCDMAssumptions) then
                    parkinsonColeHellyProbabilityBound=+(                               &
                         &                               +probabilityIntegrandUpper     &
@@ -834,7 +834,7 @@ contains
                         &                             *       self%massHaloParent      &
                         &                             /(0.5d0*self%massHaloParent)
                 end if
-             case (mergerTreeBranchingBoundUpper)
+             case (mergerTreeBranchingBoundUpper%ID)
                 if (usingCDMAssumptions) then
                    parkinsonColeHellyProbabilityBound=+(                               &
                         &                               +probabilityIntegrandUpper     &

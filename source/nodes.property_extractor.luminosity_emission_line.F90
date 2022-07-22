@@ -76,7 +76,6 @@ Contains a module which implements a stellar mass output analysis property extra
    contains
      final     ::                lmnstyEmssnLineDestructor
      procedure :: extract     => lmnstyEmssnLineExtract
-     procedure :: type        => lmnstyEmssnLineType
      procedure :: quantity    => lmnstyEmssnLineQuantity
      procedure :: name        => lmnstyEmssnLineName
      procedure :: description => lmnstyEmssnLineDescription
@@ -247,22 +246,22 @@ contains
        if (present(outputMask).and..not.outputMask(i)) then
           self%ionizingContinuumIndex(i,:                        )=-1
        else
-          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumHelium  )=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  )=unitStellarLuminosities%index('OxygenContinuum','rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen%ID)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumHelium  %ID)=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  %ID)=unitStellarLuminosities%index('OxygenContinuum','rest',self%outputTimes_%redshift(i))
        end if
     end do
     ! Read wavelength intervals of ionizing continuum filters.
-    self%filterExtent(:,ionizingContinuumHydrogen)=Filter_Extent(Filter_Get_Index(var_str('Lyc'            )))
-    self%filterExtent(:,ionizingContinuumHelium  )=Filter_Extent(Filter_Get_Index(var_str('HeliumContinuum')))
-    self%filterExtent(:,ionizingContinuumOxygen  )=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
+    self%filterExtent(:,ionizingContinuumHydrogen%ID)=Filter_Extent(Filter_Get_Index(var_str('Lyc'            )))
+    self%filterExtent(:,ionizingContinuumHelium  %ID)=Filter_Extent(Filter_Get_Index(var_str('HeliumContinuum')))
+    self%filterExtent(:,ionizingContinuumOxygen  %ID)=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
     ! Initialize interpolators.
     allocate(self%interpolator_(5))
-    self%interpolator_(interpolantMetallicity)=interpolator(self%metallicity                 )
-    self%interpolator_(interpolantDensity    )=interpolator(self%densityHydrogen             )
-    self%interpolator_(interpolantHydrogen   )=interpolator(self%ionizingFluxHydrogen        )
-    self%interpolator_(interpolantHelium     )=interpolator(self%ionizingFluxHeliumToHydrogen)
-    self%interpolator_(interpolantOxygen     )=interpolator(self%ionizingFluxOxygenToHelium  )
+    self%interpolator_(interpolantMetallicity%ID)=interpolator(self%metallicity                 )
+    self%interpolator_(interpolantDensity    %ID)=interpolator(self%densityHydrogen             )
+    self%interpolator_(interpolantHydrogen   %ID)=interpolator(self%ionizingFluxHydrogen        )
+    self%interpolator_(interpolantHelium     %ID)=interpolator(self%ionizingFluxHeliumToHydrogen)
+    self%interpolator_(interpolantOxygen     %ID)=interpolator(self%ionizingFluxOxygenToHelium  )
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
@@ -368,16 +367,16 @@ contains
     ! Determine output index.
     output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
-    luminositiesStellar(componentDisk    )=disk    %luminositiesStellar             (    )
-    luminositiesStellar(componentSpheroid)=spheroid%luminositiesStellar             (    )
-    abundancesGas      (componentDisk    )=disk    %abundancesGas                   (    )
-    abundancesGas      (componentSpheroid)=spheroid%abundancesGas                   (    )
-    massGas            (componentDisk    )=disk    %massGas                         (    )
-    massGas            (componentSpheroid)=spheroid%massGas                         (    )
-    radius             (componentDisk    )=disk    %radius                          (    )
-    radius             (componentSpheroid)=spheroid%radius                          (    )
-    rateStarFormation  (componentDisk    )=self    %starFormationRateDisks_    %rate(node)
-    rateStarFormation  (componentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
+    luminositiesStellar(componentDisk    %ID)=disk    %luminositiesStellar             (    )
+    luminositiesStellar(componentSpheroid%ID)=spheroid%luminositiesStellar             (    )
+    abundancesGas      (componentDisk    %ID)=disk    %abundancesGas                   (    )
+    abundancesGas      (componentSpheroid%ID)=spheroid%abundancesGas                   (    )
+    massGas            (componentDisk    %ID)=disk    %massGas                         (    )
+    massGas            (componentSpheroid%ID)=spheroid%massGas                         (    )
+    radius             (componentDisk    %ID)=disk    %radius                          (    )
+    radius             (componentSpheroid%ID)=spheroid%radius                          (    )
+    rateStarFormation  (componentDisk    %ID)=self    %starFormationRateDisks_    %rate(node)
+    rateStarFormation  (componentSpheroid%ID)=self    %starFormationRateSpheroids_%rate(node)
     ! Extract ionizing continuum luminosities.
     do component=1,2
        do continuum=1,3
@@ -385,13 +384,13 @@ contains
        end do
     end do
     ! Determine if component is physically reasonable.
-    isPhysical= massGas                                         > massMinimum               &
-         &     .and.                                                                        &
-         &      radius                                          > radiusMinimum             &
-         &     .and.                                                                        &
-         &      rateStarFormation                               > rateStarFormationMinimum  &
-         &     .and.                                                                        &
-         &      luminosityIonizing(ionizingContinuumHydrogen,:) > luminosityIonizingMinimum
+    isPhysical= massGas                                            > massMinimum               &
+         &     .and.                                                                           &
+         &      radius                                             > radiusMinimum             &
+         &     .and.                                                                           &
+         &      rateStarFormation                                  > rateStarFormationMinimum  &
+         &     .and.                                                                           &
+         &      luminosityIonizing(ionizingContinuumHydrogen%ID,:) > luminosityIonizingMinimum
     ! Convert ionizing continuum luminosities from AB units to units of photons s⁻¹.
     forall(continuum=1:3)
        luminosityIonizing(continuum,:)=+luminosityIonizing(continuum,:)     &
@@ -442,11 +441,11 @@ contains
             &                                 /atomicMassHydrogen          &
             &                                )
        ! Compute logarithm of Lyman continuum luminosity.
-       luminosityLymanContinuum       =+log10(                                                                             luminosityIonizing(ionizingContinuumHydrogen,:))
+       luminosityLymanContinuum       =+log10(                                                                                luminosityIonizing(ionizingContinuumHydrogen%ID,:))
        ! Compute helium to Lyman continuum luminosity logarithmic ratio.
-       ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
+       ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium%ID,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen%ID,:))
        ! Compute oxygen to helium continuum luminosity logarithmic ratio.
-       ratioLuminosityOxygenToHelium  =+log10(max(luminosityIonizing(ionizingContinuumOxygen,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHelium  ,:))
+       ratioLuminosityOxygenToHelium  =+log10(max(luminosityIonizing(ionizingContinuumOxygen%ID,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHelium  %ID,:))
        ! Compute number of HII regions.
        countHIIRegion                 =+rateStarFormation   &
             &                          *lifetimeHIIRegion   &
@@ -528,11 +527,11 @@ contains
        if (.not.isPhysical(component)) cycle
        ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
        !$ call OMP_Set_Lock  (self%interpolateLock)
-       call self%interpolator_(interpolantMetallicity)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity),interpolateFactor(:,interpolantMetallicity))
-       call self%interpolator_(interpolantDensity    )%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    ),interpolateFactor(:,interpolantDensity    ))
-       call self%interpolator_(interpolantHydrogen   )%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   ),interpolateFactor(:,interpolantHydrogen   ))
-       call self%interpolator_(interpolantHelium     )%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     ),interpolateFactor(:,interpolantHelium     ))
-       call self%interpolator_(interpolantOxygen     )%linearFactors(ratioLuminosityOxygenToHelium  (component),interpolateIndex(0,interpolantOxygen     ),interpolateFactor(:,interpolantOxygen     ))
+       call self%interpolator_(interpolantMetallicity%ID)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity%ID),interpolateFactor(:,interpolantMetallicity%ID))
+       call self%interpolator_(interpolantDensity    %ID)%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    %ID),interpolateFactor(:,interpolantDensity    %ID))
+       call self%interpolator_(interpolantHydrogen   %ID)%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   %ID),interpolateFactor(:,interpolantHydrogen   %ID))
+       call self%interpolator_(interpolantHelium     %ID)%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     %ID),interpolateFactor(:,interpolantHelium     %ID))
+       call self%interpolator_(interpolantOxygen     %ID)%linearFactors(ratioLuminosityOxygenToHelium  (component),interpolateIndex(0,interpolantOxygen     %ID),interpolateFactor(:,interpolantOxygen     %ID))
        !$ call OMP_Unset_Lock(self%interpolateLock)
        interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
        interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
@@ -582,26 +581,15 @@ contains
     return
   end function lmnstyEmssnLineExtract
 
-  integer function lmnstyEmssnLineType(self)
-    !!{
-    Return the type of the emission line luminosity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    lmnstyEmssnLineType=outputAnalysisPropertyTypeLinear
-    return
-  end function lmnstyEmssnLineType
-
-  integer function lmnstyEmssnLineQuantity(self)
+  function lmnstyEmssnLineQuantity(self)
     !!{
     Return the class of the emission line luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
-    class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: lmnstyEmssnLineQuantity
+    class(nodePropertyExtractorLmnstyEmssnLine         ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     lmnstyEmssnLineQuantity=outputAnalysisPropertyQuantityLuminosity

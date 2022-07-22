@@ -245,14 +245,14 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
     implicit none
     class  (nodeOperatorStarFormationRateInterOutput), intent(inout) :: self
     type   (treeNode                                ), intent(inout) :: node
     type   (treeNode                                ), pointer       :: nodeHost
     class  (nodeComponentDisk                       ), pointer       :: disk                   , diskHost
     class  (nodeComponentSpheroid                   ), pointer       :: spheroid               , spheroidHost
-    integer                                                          :: destinationGasSatellite, destinationStarsSatellite, &
+    type   (enumerationDestinationMergerType        )                :: destinationGasSatellite, destinationStarsSatellite, &
          &                                                              destinationGasHost     , destinationStarsHost
     logical                                                          :: mergerIsMajor
 
@@ -265,19 +265,21 @@ contains
     ! Get mass movement descriptors.
     call self%mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     ! Move the star formation rates from secondary to primary.
-    select case (destinationStarsSatellite)
-    case (destinationMergerDisk    )
+    select case (destinationStarsSatellite%ID)
+    case (destinationMergerDisk    %ID)
        call     diskHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateDiskInterOutputID                                                           , &
             &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
             &                                      +    disk    %floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                      +    spheroid%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
             &                                     )
-       call spheroidHost%floatRank0MetaPropertySet(&
+    case (destinationMergerSpheroid%ID)
+       call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
             &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
-            &                                      +spheroid    %floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
+            &                                      +    disk    %floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                      +    spheroid%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
             &                                     )
-    case (destinationMergerSpheroid)
     case default
        call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
@@ -291,8 +293,8 @@ contains
          &                                         +0.0d0                                                                                                       &
          &                                        ) 
     ! Move star formation rates within the host if necessary.
-    select case (destinationStarsHost)
-    case (destinationMergerDisk)
+    select case (destinationStarsHost%ID)
+    case (destinationMergerDisk    %ID)
        call     diskHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateDiskInterOutputID                                                           , &
             &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
@@ -302,7 +304,7 @@ contains
             &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
             &                                      +0.0d0                                                                                                       &
             &                                     )
-    case (destinationMergerSpheroid)
+    case (destinationMergerSpheroid%ID)
        call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
             &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
@@ -312,7 +314,7 @@ contains
             &                                       self        %starFormationRateDiskInterOutputID                                                           , &
             &                                      +0.0d0                                                                                                       &
             &                                     )
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        ! Do nothing.
     case default
        call Error_Report('unrecognized movesTo descriptor'//{introspection:location})

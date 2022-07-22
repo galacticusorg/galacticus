@@ -145,11 +145,12 @@ contains
     Return the root variance for use in the ``normal'' output analysis weight operator class.
     !!}
     implicit none
-    class           (outputAnalysisWeightOperatorNormal), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    double precision                                    , intent(in   ) :: propertyValue, propertyValueIntrinsic
-    integer                                             , intent(in   ) :: propertyType , propertyQuantity
-    integer         (c_size_t                          ), intent(in   ) :: outputIndex
+    class           (outputAnalysisWeightOperatorNormal           ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: propertyValue, propertyValueIntrinsic
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
     !$GLC attributes unused :: node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     normalRootVariance=self%rootVariance_
@@ -164,15 +165,16 @@ contains
     use, intrinsic :: ISO_C_Binding           , only : c_size_t
     use            :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
-    class           (outputAnalysisWeightOperatorNormal), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    double precision                                    , intent(in   ) :: propertyValue      , propertyValueIntrinsic, &
-         &                                                                 weightValue
-    integer                                             , intent(in   ) :: propertyType       , propertyQuantity
-    integer         (c_size_t                          ), intent(in   ) :: outputIndex
-    double precision                                                    :: normalPropertyValue, rootVariance
-    integer                                                             :: normalPropertyType
-    !$GLC attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
+    class           (outputAnalysisWeightOperatorNormal           ), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: propertyValue      , propertyValueIntrinsic, &
+         &                                                                            weightValue
+    type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType
+    type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity
+    integer         (c_size_t                                     ), intent(in   ) :: outputIndex
+    double precision                                                               :: normalPropertyValue, rootVariance
+    type            (enumerationOutputAnalysisPropertyTypeType    )                :: normalPropertyType
+    !$GLC attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity
 
     ! Extract property and operate on it.
     normalPropertyType    =self%nodePropertyExtractor_          %type   (                                                       )

@@ -40,7 +40,6 @@ Contains a module which implements a cold mode infall rate property extractor cl
      procedure :: name        => rateInfallColdModeName
      procedure :: description => rateInfallColdModeDescription
      procedure :: unitsInSI   => rateInfallColdModeUnitsInSI
-     procedure :: type        => rateInfallColdModeType
   end type nodePropertyExtractorRateInfallColdMode
 
   interface nodePropertyExtractorRateInfallColdMode
@@ -155,16 +154,4 @@ contains
     return
   end function rateInfallColdModeUnitsInSI
 
-  integer function rateInfallColdModeType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily rateInfallColdMode} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    rateInfallColdModeType=outputAnalysisPropertyTypeLinear
-    return
-  end function rateInfallColdModeType
 

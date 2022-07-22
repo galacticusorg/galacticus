@@ -164,7 +164,7 @@ contains
     implicit none
     class           (haloModelPowerSpectrumModifierTriaxiality), intent(inout)                           :: self
     double precision                                           , intent(in   ), dimension(:  )           :: wavenumber
-    integer                                                    , intent(in   )                           :: term
+    type            (enumerationHaloModelTermType             ), intent(in   )                           :: term
     double precision                                           , intent(inout), dimension(:  )           :: powerSpectrum
     double precision                                           , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance
     double precision                                           , intent(in   )                , optional :: mass
@@ -175,20 +175,20 @@ contains
     ! Mass is required.
     if (.not.present(mass)) call Error_Report('mass is required'//{introspection:location})
     ! Determine table to use.
-    select case (term)
-    case (haloModelTermOneHalo)
+    select case (term%ID)
+    case (haloModelTermOneHalo%ID)
        tableIndex=1
        do while (mass*self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) < triaxialityMass(tableIndex))
           tableIndex=tableIndex+1
        end do
-    case (haloModelTermTwoHalo)
+    case (haloModelTermTwoHalo%ID)
        tableIndex=5
     end select
     ! Compute covariance if required.
     if (present(powerSpectrumCovariance)) then
        allocate(covariance(size(powerSpectrum)))
-       select case (term)
-       case (haloModelTermOneHalo)
+       select case (term%ID)
+       case (haloModelTermOneHalo%ID)
           do i=1,size(wavenumber)
              covariance(i)=+covarianceFraction                                                                                      &
                   &        *powerSpectrum(i)                                                                                        &
@@ -201,7 +201,7 @@ contains
                   &          -1.0d0                                                                                                 &
                   &         )
           end do
-       case (haloModelTermTwoHalo)
+       case (haloModelTermTwoHalo%ID)
           do i=1,size(wavenumber)
              covariance(i)=+covarianceFraction                                                                                      &
                   &        *powerSpectrum(i)                                                                                        &
@@ -221,15 +221,15 @@ contains
     end if
     ! Compute the modification.
     do i=1,size(wavenumber)
-       select case (term)
-       case (haloModelTermOneHalo)
+       select case (term%ID)
+       case (haloModelTermOneHalo%ID)
           powerSpectrum(i)=+powerSpectrum(i)                                                                                      &
                &           *     self%triaxialityTable%interpolate(                                                               &
                &                                                   +wavenumber(i)                                                 &
                &                                                   /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH), &
                &                                                   table=tableIndex                                               &
                &                                                  )
-       case (haloModelTermTwoHalo)
+       case (haloModelTermTwoHalo%ID)
           powerSpectrum(i)=+powerSpectrum(i)                                                                                      &
                &           *sqrt(                                                                                                 &
                &                 self%triaxialityTable%interpolate(                                                               &

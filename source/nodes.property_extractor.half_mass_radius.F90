@@ -43,7 +43,6 @@ Contains a module which implements a radiusHalfMass property extractor class.
      procedure :: name        => radiusHalfMassName
      procedure :: description => radiusHalfMassDescription
      procedure :: unitsInSI   => radiusHalfMassUnitsInSI
-     procedure :: type        => radiusHalfMassType
   end type nodePropertyExtractorRadiusHalfMass
 
   interface nodePropertyExtractorRadiusHalfMass
@@ -159,15 +158,3 @@ contains
     return
   end function radiusHalfMassUnitsInSI
 
-  integer function radiusHalfMassType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusHalfMassType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusHalfMassType

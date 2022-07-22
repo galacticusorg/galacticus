@@ -77,17 +77,18 @@ contains
     Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
     !!}
     implicit none
-    type            (mergerTreeImporterSussingHDF5)                              :: self
-    class           (cosmologyParametersClass     ), intent(in   ), target       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), intent(in   ), target       :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), intent(in   ), target       :: cosmologicalMassVariance_
-    class           (randomNumberGeneratorClass   ), intent(in   ), target       :: randomNumberGenerator_
-    integer                                        , intent(in   ), dimension(3) :: subvolumeIndex
-    logical                                        , intent(in   )               :: fatalMismatches          , fatalNonTreeNode
-    integer                                        , intent(in   )               :: subvolumeCount           , badValueTest    , &
-         &                                                                          massOption
-    double precision                               , intent(in   )               :: subvolumeBuffer          , badValue        , &
-         &                                                                          treeSampleRate
+    type            (mergerTreeImporterSussingHDF5     )                              :: self
+    class           (cosmologyParametersClass          ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass           ), intent(in   ), target       :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass     ), intent(in   ), target       :: cosmologicalMassVariance_
+    class           (randomNumberGeneratorClass        ), intent(in   ), target       :: randomNumberGenerator_
+    integer                                             , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                             , intent(in   )               :: fatalMismatches          , fatalNonTreeNode
+    integer                                             , intent(in   )               :: subvolumeCount
+    type            (enumerationSussingBadValueTestType), intent(in   )               :: badValueTest
+    type            (enumerationSussingMassOptionType  ), intent(in   )               :: massOption
+    double precision                                    , intent(in   )               :: subvolumeBuffer          , badValue        , &
+         &                                                                               treeSampleRate
     !![
     <constructorAssign variables="*cosmologicalMassVariance_"/>
     !!]

@@ -582,14 +582,15 @@ contains
     return
   end function Char_Logical
 
-  integer function String_Value_Type(input) result(valueType)
+ function String_Value_Type(input) result(valueType)
     !!{
     Attempt to detect whether a string corresponds to a floating point number, integer, or other.
     !!}
     implicit none
-    character       (len=*), intent(in   ) :: input
-    double precision                       :: valueFloating
-    integer                                :: valueInteger , status
+    type            (enumerationValueTypeType)                :: valueType
+    character       (len=*                   ), intent(in   ) :: input
+    double precision                                          :: valueFloating
+    integer                                                   :: valueInteger , status
 
     read (input,*,ioStat=status) valueInteger
     if (status == 0) then

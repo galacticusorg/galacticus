@@ -174,7 +174,7 @@ contains
     use :: Virial_Density_Contrast               , only : fixedDensityTypeCritical                           , virialDensityContrastClass   , virialDensityContrastFixed
     implicit none
     type            (outputAnalysisQuiescentFractionWagner2016          )                              :: self
-    integer                                                              , intent(in   )               :: redshiftRange
+    type            (enumerationWagner2016QuiescentRedshiftRangeType    ), intent(in   )               :: redshiftRange
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                    , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                      , systematicErrorPolynomialCoefficient, &
          &                                                                                                weightSystematicErrorPolynomialCoefficient
@@ -213,22 +213,22 @@ contains
     label      ='Wagner2016'
     description='Quiescent fraction from Wagner et al. (2016) for galaxies with '
     !! Determine redshift range properties. Host halo mass threshold is judged approximately from Figure 1 of Wagner et al. (2016).
-    select case (redshiftRange)
-    case (wagner2016QuiescentRedshiftRangeLow )
+    select case (redshiftRange%ID)
+    case (wagner2016QuiescentRedshiftRangeLow %ID)
        redshiftMinimum  =0.15d0
        redshiftMaximum  =0.41d0
        massHostThreshold=10.0d0**14.8d0
        fileName         =fileName   // '0.15_0.41'
        label            =label      //'Z0.15_0.41'
        description      =description//'$0.15 < z < 0.41$'
-    case (wagner2016QuiescentRedshiftRangeMid )
+    case (wagner2016QuiescentRedshiftRangeMid %ID)
        redshiftMinimum  =0.41d0
        redshiftMaximum  =0.80d0
        massHostThreshold=10.0d0**14.8d0
        fileName         =fileName   // '0.41_0.80'
        label            =label      //'Z0.41_0.80'
        description      =description//'$0.41 < z < 0.80$'
-    case (wagner2016QuiescentRedshiftRangeHigh)
+    case (wagner2016QuiescentRedshiftRangeHigh%ID)
        redshiftMinimum  =0.80d0
        redshiftMaximum  =1.50d0
        massHostThreshold=10.0d0**14.3d0

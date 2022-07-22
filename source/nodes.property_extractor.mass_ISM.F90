@@ -37,7 +37,6 @@ Contains a module which implements an ISM mass output analysis property extracto
    contains
      final     ::                massISMDestructor
      procedure :: extract     => massISMExtract
-     procedure :: type        => massISMType
      procedure :: quantity    => massISMQuantity
      procedure :: name        => massISMName
      procedure :: description => massISMDescription
@@ -119,26 +118,15 @@ contains
     return
   end function massISMExtract
 
-  integer function massISMType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassISM), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    massISMType=outputAnalysisPropertyTypeLinear
-    return
-  end function massISMType
-
-  integer function massISMQuantity(self)
+  function massISMQuantity(self)
     !!{
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
-    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: massISMQuantity
+    class(nodePropertyExtractorMassISM                 ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     massISMQuantity=outputAnalysisPropertyQuantityMass

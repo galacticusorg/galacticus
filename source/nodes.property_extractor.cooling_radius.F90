@@ -42,7 +42,6 @@ Contains a module which implements a radiusCooling property extractor class.
      procedure :: name        => radiusCoolingName
      procedure :: description => radiusCoolingDescription
      procedure :: unitsInSI   => radiusCoolingUnitsInSI
-     procedure :: type        => radiusCoolingType
   end type nodePropertyExtractorRadiusCooling
 
   interface nodePropertyExtractorRadiusCooling
@@ -156,16 +155,4 @@ contains
     return
   end function radiusCoolingUnitsInSI
 
-  integer function radiusCoolingType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusCoolingType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusCoolingType
 

@@ -190,10 +190,10 @@ contains
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use mpi_utilities
     implicit none
-    class  (*         ), intent(inout)          :: self
-    type   (mergerTree), intent(in   )          :: tree
-    type   (treeNode  ), intent(inout), pointer :: node
-    integer            , intent(inout)          :: deadlockStatus
+    class(*                            ), intent(inout)          :: self
+    type (mergerTree                   ), intent(in   )          :: tree
+    type (treeNode                     ), intent(inout), pointer :: node
+    type (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
     !$GLC attributes unused :: tree
 
     select type (self)

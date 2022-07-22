@@ -25,20 +25,10 @@ module Galactic_Structure_Radii_Definitions
   !!{
   Provides parsing of radii definitions used in output specifiers.
   !!}
-  use :: ISO_Varying_String, only : varying_string
+  use :: ISO_Varying_String        , only : varying_string
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
   private
   public :: radiusSpecifier, Galactic_Structure_Radii_Definition_Decode
-
-  type radiusSpecifier
-     !!{
-     Type used for specifying radii definitions used in output specifiers.
-     !!}
-     type            (varying_string) :: name
-     integer                          :: component            , direction    , integralWeightBy, &
-          &                              integralWeightByIndex, mass         , type            , &
-          &                              weightBy             , weightByIndex
-     double precision                 :: fraction             , value
-  end type radiusSpecifier
 
   !![
   <enumeration>
@@ -73,6 +63,20 @@ module Galactic_Structure_Radii_Definitions
    <entry label="lambdaR"                   />
   </enumeration>
   !!]
+
+  type radiusSpecifier
+     !!{
+     Type used for specifying radii definitions used in output specifiers.
+     !!}
+     type            (varying_string              ) :: name
+     type            (enumerationComponentTypeType) :: component
+     type            (enumerationMassTypeType     ) :: mass
+     type            (enumerationWeightByType     ) :: weightBy             , integralWeightBy
+     type            (enumerationDirectionType    ) :: direction
+     type            (enumerationRadiusTypeType   ) :: type
+     integer                                        :: integralWeightByIndex, weightByIndex
+     double precision                               :: fraction             , value
+  end type radiusSpecifier
 
 contains
 

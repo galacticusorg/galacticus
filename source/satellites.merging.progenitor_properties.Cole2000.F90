@@ -22,7 +22,7 @@
   !!}
 
   use :: Root_Finder                     , only : rootFinder
-  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass, enumerationDestinationMergerType
   use :: Galactic_Structure              , only : galacticStructureClass
 
   !![
@@ -86,7 +86,7 @@
   ! Module global variables used in root finding.
   class           (mergerProgenitorPropertiesCole2000), pointer :: cole2000Self
   type            (treeNode                          ), pointer :: cole2000Node
-  integer                                                       :: cole2000DestinationGas, cole2000DestinationStars
+  type            (enumerationDestinationMergerType  )          :: cole2000DestinationGas, cole2000DestinationStars
   double precision                                              :: cole2000HalfMass
   !$omp threadprivate(cole2000Self,cole2000Node,cole2000DestinationGas,cole2000DestinationStars,cole2000HalfMass)
 
@@ -224,8 +224,8 @@ contains
          &                                                                         radiusHalfMassSpheroidHost     , factorDarkMatterDiskSatellite    , &
          &                                                                         radiusHalfMassDiskSatellite    , factorDarkMatterSpheroidSatellite, &
          &                                                                         radiusHalfMassSpheroidSatellite
-    integer                                                                     :: destinationGasSatellite, destinationGasHost       , &
-         &                                                                         destinationStarsHost   , destinationStarsSatellite
+    type            (enumerationDestinationMergerType  )                        :: destinationGasSatellite        , destinationGasHost               , &
+         &                                                                         destinationStarsHost           , destinationStarsSatellite
     logical                                                                     :: mergerIsMajor
 
     ! Find how mass is moved by the merger.
@@ -282,18 +282,18 @@ contains
        factorDarkMatterDiskSatellite=0.0d0
     end if
     ! Find the masses of material that will end up in the spheroid component of the remnant.
-    select case (destinationGasHost)
-    case (destinationMergerSpheroid)
+    select case (destinationGasHost%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidHost      =spheroidHost%massGas()                             +diskHost%massGas()
        factorAngularMomentum =spheroidHost%massGas()*factorDarkMatterSpheroidHost+diskHost%massGas()*factorDarkMatterDiskHost
        massGasSpheroidRemnant=spheroidHost%massGas()                             +diskHost%massGas()
        massSpheroidRemnant   =spheroidHost%massGas()                             +diskHost%massGas()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidHost      =0.0d0
        factorAngularMomentum =0.0d0
        massGasSpheroidRemnant=0.0d0
        massSpheroidRemnant   =0.0d0
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidHost      =spheroidHost%massGas()
        factorAngularMomentum =spheroidHost%massGas()*factorDarkMatterSpheroidHost
        massGasSpheroidRemnant=spheroidHost%massGas()
@@ -301,31 +301,31 @@ contains
     case default
        call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (destinationStarsHost)
-    case (destinationMergerSpheroid)
+    select case (destinationStarsHost%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidHost     =massSpheroidHost     +spheroidHost%massStellar()                             +diskHost%massStellar()
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost+diskHost%massStellar()*factorDarkMatterDiskHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()                             +diskHost%massStellar()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidHost     =massSpheroidHost
        factorAngularMomentum=factorAngularMomentum
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidHost     =massSpheroidHost     +spheroidHost%massStellar()
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()
     case default
        call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (destinationGasSatellite)
-    case (destinationMergerSpheroid)
+    select case (destinationGasSatellite%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidSatellite =                       spheroidSatellite%massGas()                                  +diskSatelite%massGas()
        factorAngularMomentum =factorAngularMomentum +spheroidSatellite%massGas()*factorDarkMatterSpheroidSatellite+diskSatelite%massGas()*factorDarkMatterDiskSatellite
        massGasSpheroidRemnant=massGasSpheroidRemnant+spheroidSatellite%massGas()                                  +diskSatelite%massGas()
        massSpheroidRemnant   =massSpheroidRemnant   +spheroidSatellite%massGas()                                  +diskSatelite%massGas()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidSatellite =0.0d0
        factorAngularMomentum =factorAngularMomentum
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidSatellite=                        spheroidSatellite%massGas()
        factorAngularMomentum =factorAngularMomentum +spheroidSatellite%massGas()*factorDarkMatterSpheroidSatellite
        massGasSpheroidRemnant=massGasSpheroidRemnant+spheroidSatellite%massGas()
@@ -333,15 +333,15 @@ contains
     case default
        call Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (destinationStarsSatellite)
-    case (destinationMergerSpheroid)
+    select case (destinationStarsSatellite%ID)
+    case (destinationMergerSpheroid%ID)
        massSpheroidSatellite=massSpheroidSatellite+spheroidSatellite%massStellar()                                  +diskSatelite%massStellar()
        factorAngularMomentum=factorAngularMomentum+spheroidSatellite%massStellar()*factorDarkMatterSpheroidSatellite+diskSatelite%massStellar()*factorDarkMatterDiskSatellite
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidSatellite%massStellar()                                  +diskSatelite%massStellar()
-    case (destinationMergerDisk)
+    case (destinationMergerDisk   %ID)
        massSpheroidSatellite=massSpheroidSatellite
        factorAngularMomentum=factorAngularMomentum
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        massSpheroidSatellite=massSpheroidSatellite+spheroidSatellite%massStellar()
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidSatellite%massStellar()
        factorAngularMomentum=factorAngularMomentum+spheroidSatellite%massStellar()*factorDarkMatterSpheroidSatellite
@@ -372,12 +372,12 @@ contains
        radiusHost=0.0d0
     end if
     if (massSpheroidSatellite > 0.0d0) then
-       cole2000Self       => self
-       cole2000Node       => nodeSatellite
-       cole2000DestinationGas =  destinationGasSatellite
-       cole2000DestinationStars=  destinationStarsSatellite
-       cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
-       cole2000HalfMass   =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
+       cole2000Self             => self
+       cole2000Node             => nodeSatellite
+       cole2000DestinationGas   =  destinationGasSatellite
+       cole2000DestinationStars =  destinationStarsSatellite
+       cole2000HalfMass         =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
+       cole2000HalfMass         =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
           radiusSatellite=self%finder%find(rootGuess=self%galacticStructure_%radiusEnclosingMass(                                 &
                &                                                                                                cole2000Node    , &
@@ -415,22 +415,22 @@ contains
     ! Initialize enclosed mass to negative of the half mass.
     cole2000HalfMassRadiusRoot=-cole2000HalfMass
     ! Account for gas mass.
-    select case (cole2000DestinationGas)
-    case (destinationMergerSpheroid)
+    select case (cole2000DestinationGas%ID)
+    case (destinationMergerSpheroid%ID)
        cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
             &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous) &
             &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
-    case (destinationMergerUnmoved    )
+    case (destinationMergerUnmoved %ID)
        cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
             &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
     end select
     ! Account for stellar mass.
-    select case (cole2000DestinationStars)
-    case (destinationMergerSpheroid)
+    select case (cole2000DestinationStars%ID)
+    case (destinationMergerSpheroid%ID)
        cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
             &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar) &
             &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
-    case (destinationMergerUnmoved    )
+    case (destinationMergerUnmoved %ID)
        cole2000HalfMassRadiusRoot=+cole2000HalfMassRadiusRoot                                                                                                     &
             &                     +cole2000Self%galacticStructure_%massEnclosed(cole2000Node,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
     end select

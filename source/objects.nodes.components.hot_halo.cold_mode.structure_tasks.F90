@@ -51,16 +51,19 @@ contains
     !!{
     Computes the mass within a given radius for the cold mode hot halo component.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll , massTypeBaryonic, &
-          &                                   massTypeGaseous        , radiusLarge          , weightByMass
-    use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo  , massTypeAll , massTypeBaryonic            , &
+         &                                    massTypeGaseous        , radiusLarge            , weightByMass, enumerationComponentTypeType, &
+         &                                    enumerationMassTypeType, enumerationWeightByType
+    use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo   , treeNode
     implicit none
-    type            (treeNode            ), intent(inout)           :: node
-    integer                               , intent(in   )           :: componentType, massType   , &
-         &                                                             weightBy     , weightIndex
-    double precision                      , intent(in   )           :: radius
-    class           (nodeComponentHotHalo)               , pointer  :: hotHalo
-    double precision                                                :: radiusOuter  , radiusCore
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    type            (enumerationWeightByType     ), intent(in   )           :: weightBy
+    integer                                       , intent(in   )           :: weightIndex
+    double precision                              , intent(in   )           :: radius
+    class           (nodeComponentHotHalo        )               , pointer  :: hotHalo
+    double precision                                                        :: radiusOuter  , radiusCore
     !$GLC attributes unused :: weightIndex
 
     ! Return zero mass if the requested mass type or component is not matched.
@@ -98,17 +101,18 @@ contains
     !!{
     Computes the acceleration due to a cold-mode profile.
     !!}
-    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
-    implicit none
-    double precision                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   )               :: componentType                                      , massType
-    double precision          , intent(in   ), dimension(3) :: positionCartesian
-    double precision                                        :: radius
+    implicit none                    
+    double precision                                             , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
+    type            (treeNode                    ), intent(inout)               :: node
+    type            (enumerationComponentTypeType), intent(in   )               :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )               :: massType
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                                            :: radius
 
     radius                                             =+sqrt(sum(positionCartesian**2))
     Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task=-kilo                                                                                                                 &
@@ -130,19 +134,20 @@ contains
     !!{
     Computes the tidalTensor due to the cold mode halo.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull      , enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
-    use :: Vectors                     , only : Vector_Outer_Product
+    use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=)               , operator(*)
+    use :: Vectors                         , only : Vector_Outer_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task
     type            (treeNode                      ), intent(inout)               :: node
-    integer                                         , intent(in   )               :: componentType                        , massType
+    type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
+    type            (enumerationMassTypeType       ), intent(in   )               :: massType
     double precision                                , intent(in   ), dimension(3) :: positionCartesian
     double precision                                               , dimension(3) :: positionSpherical
-    double precision                                                              :: radius                               , massEnclosed, &
+    double precision                                                              :: radius                                             , massEnclosed, &
          &                                                                           density
     type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
     
@@ -169,14 +174,15 @@ contains
     !!{
     Computes the rotation curve at a given radius for the hot halo density profile.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   )           :: componentType, massType
-    double precision          , intent(in   )           :: radius
-    double precision                                    :: componentMass
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: componentMass
 
     ! Set to zero by default.
     Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task=0.0d0
@@ -197,15 +203,16 @@ contains
     !!{
     Computes the rotation curve gradient at a given radius for the hot halo density profile.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout) :: node
-    integer                   , intent(in   ) :: componentType   , massType
-    double precision          , intent(in   ) :: radius
-    double precision                          :: componentDensity, componentMass
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: componentDensity, componentMass
 
     ! Set to zero by default.
     Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task=0.0d0
@@ -231,17 +238,20 @@ contains
     Computes the density at a given position for a cold-mode profile.
     !!}
     use :: Coordinates               , only : assignment(=)          , coordinateSpherical
-    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
-          &                                   massTypeGaseous        , weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll                 , massTypeBaryonic       , &
+          &                                   massTypeGaseous        , weightByMass         , enumerationComponentTypeType, enumerationMassTypeType, &
+         &                                    enumerationWeightByType
     use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
     implicit none
-    type            (treeNode            ), intent(inout)           :: node
-    integer                               , intent(in   )           :: componentType       , massType   , &
-         &                                                             weightBy            , weightIndex
-    double precision                      , intent(in   )           :: positionSpherical(3)
-    class           (nodeComponentHotHalo)               , pointer  :: hotHalo
-    type            (coordinateSpherical )                          :: position
-    double precision                                                :: radiusOuter         , radiusCore
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    type            (enumerationWeightByType     ), intent(in   )           :: weightBy
+    integer                                       , intent(in   )           :: weightIndex
+    double precision                              , intent(in   )           :: positionSpherical(3)
+    class           (nodeComponentHotHalo        )               , pointer  :: hotHalo
+    type            (coordinateSpherical         )                          :: position
+    double precision                                                        :: radiusOuter         , radiusCore
     !$GLC attributes unused :: weightIndex
 
     Node_Component_Hot_Halo_Cold_Mode_Density_Task=0.0d0
@@ -275,17 +285,20 @@ contains
     Computes the spherically-averaged density at a given position for a cold-mode profile.
     !!}
     use :: Coordinates               , only : assignment(=)          , coordinateSpherical
-    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
-          &                                   massTypeGaseous        , weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll                 , massTypeBaryonic       , &
+         &                                    massTypeGaseous        , weightByMass         , enumerationComponentTypeType, enumerationMassTypeType, &
+         &                                    enumerationWeightByType
     use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
     implicit none
-    type            (treeNode            ), intent(inout)           :: node
-    integer                               , intent(in   )           :: componentType, massType   , &
-         &                                                             weightBy     , weightIndex
-    double precision                      , intent(in   )           :: radius
-    class           (nodeComponentHotHalo)               , pointer  :: hotHalo
-    type            (coordinateSpherical )                          :: position
-    double precision                                                :: radiusOuter  , radiusCore
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    type            (enumerationWeightByType     ), intent(in   )           :: weightBy
+    integer                                       , intent(in   )           :: weightIndex
+    double precision                              , intent(in   )           :: radius
+    class           (nodeComponentHotHalo        )               , pointer  :: hotHalo
+    type            (coordinateSpherical         )                          :: position
+    double precision                                                        :: radiusOuter  , radiusCore
     !$GLC attributes unused :: weightIndex
 
     Node_Component_Hot_Halo_Cold_Mode_Density_Sphrcl_Avrg_Task=0.0d0
@@ -319,18 +332,19 @@ contains
     Computes the Chandrasekhar integral due to a cold-mode profile.
     !!}
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale, darkMatterHaloScaleClass
-    use :: Galactic_Structure_Options, only : weightByMass       , weightIndexNull
+    use :: Galactic_Structure_Options, only : weightByMass       , weightIndexNull         , enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes          , only : treeNode
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    double precision                         , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   )               :: componentType                                                  , massType
-    double precision          , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
-    double precision                         , dimension(3) :: positionSpherical
-    double precision          , parameter                   :: XvMaximum                                               =10.0d0
-    double precision                                        :: radius                                                         , velocity         , &
-         &                                                     density                                                        , xV
+    double precision                                             , dimension(3) :: Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral
+    type            (treeNode                    ), intent(inout)               :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian                                              , velocityCartesian
+    double precision                                             , dimension(3) :: positionSpherical
+    double precision                              , parameter                   :: XvMaximum                                               =10.0d0
+    double precision                                                            :: radius                                                         , velocity         , &
+         &                                                                         density                                                        , xV
     
     radius                                                   =  sqrt(sum(positionCartesian**2))
     velocity                                                 =  sqrt(sum(velocityCartesian**2))

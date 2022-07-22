@@ -46,7 +46,6 @@ Contains a module which implements a halo mass output analysis property extracto
    contains
      final     ::                massHaloDestructor
      procedure :: extract     => massHaloExtract
-     procedure :: type        => massHaloType
      procedure :: name        => massHaloName
      procedure :: description => massHaloDescription
      procedure :: unitsInSI   => massHaloUnitsInSI
@@ -153,18 +152,6 @@ contains
     return
   end function massHaloExtract
 
-  integer function massHaloType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massHaloType=outputAnalysisPropertyTypeLinear
-    return
-  end function massHaloType
 
   function massHaloName(self)
     !!{

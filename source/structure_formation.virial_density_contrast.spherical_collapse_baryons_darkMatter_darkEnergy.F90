@@ -21,10 +21,10 @@
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   !!}
 
-  use :: Cosmology_Functions                  , only : cosmologyFunctions                                , cosmologyFunctionsClass
-  use :: Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
-  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
-  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Cosmology_Functions                  , only : cosmologyFunctions                          , cosmologyFunctionsClass
+  use :: Cosmology_Parameters                 , only : cosmologyParameters                         , cosmologyParametersClass
+  use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass            , intergalacticMediumFilteringMassClass
+  use :: Spherical_Collapse_Solvers           , only : enumerationCllsnlssMttrDarkEnergyFixedAtType, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
   use :: Tables                               , only : table1D
 
   !![
@@ -49,7 +49,7 @@
           &                                                                               turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
           &                                                                               turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
      logical                                                                           :: tableStore
-     integer                                                                           :: energyFixedAt
+     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
           &                                                                               turnaroundClustered                         , turnaroundUnclustered
      class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
@@ -134,7 +134,7 @@ contains
     class  (cosmologyParametersClass                                  ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass                                   ), intent(in   ), target :: cosmologyFunctions_
     class  (intergalacticMediumFilteringMassClass                     ), intent(in   ), target :: intergalacticMediumFilteringMass_
-    integer                                                            , intent(in   )         :: energyFixedAt
+    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType              ), intent(in   )         :: energyFixedAt
     logical                                                            , intent(in   )         :: tableStore
     !![
     <constructorAssign variables="tableStore, energyFixedAt, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumFilteringMass_"/>

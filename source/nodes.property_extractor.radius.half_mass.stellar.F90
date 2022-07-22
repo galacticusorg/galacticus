@@ -37,7 +37,6 @@ Contains a module which implements a half-stellar mass radius output analysis pr
    contains
      final     ::                radiusHalfMassStellarDestructor
      procedure :: extract     => radiusHalfMassStellarExtract
-     procedure :: type        => radiusHalfMassStellarType
      procedure :: name        => radiusHalfMassStellarName
      procedure :: description => radiusHalfMassStellarDescription
      procedure :: unitsInSI   => radiusHalfMassStellarUnitsInSI
@@ -116,18 +115,6 @@ contains
     return
   end function radiusHalfMassStellarExtract
 
-  integer function radiusHalfMassStellarType(self)
-    !!{
-    Return the type of the half-mass radius property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusHalfMassStellar), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusHalfMassStellarType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusHalfMassStellarType
 
   function radiusHalfMassStellarName(self)
     !!{

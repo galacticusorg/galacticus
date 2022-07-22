@@ -42,7 +42,6 @@ Contains a module which implements a cooling rate property extractor class.
      procedure :: name        => velocityMaximumName
      procedure :: description => velocityMaximumDescription
      procedure :: unitsInSI   => velocityMaximumUnitsInSI
-     procedure :: type        => velocityMaximumType
   end type nodePropertyExtractorVelocityMaximum
 
   interface nodePropertyExtractorVelocityMaximum
@@ -165,16 +164,4 @@ contains
     return
   end function velocityMaximumUnitsInSI
 
-  integer function velocityMaximumType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    velocityMaximumType=outputAnalysisPropertyTypeLinear
-    return
-  end function velocityMaximumType
 

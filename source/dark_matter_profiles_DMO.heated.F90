@@ -44,7 +44,7 @@
   </darkMatterProfileDMO>
   !!]
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
   use :: Kind_Numbers                , only : kind_int8
 
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
@@ -52,13 +52,13 @@
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_         => null()
-     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_     => null()
-     integer         (kind=kind_int8               )          :: lastUniqueID
-     double precision                                         :: radiusFinalPrevious                    , radiusInitialPrevious
-     integer                                                  :: nonAnalyticSolver
-     logical                                                  :: velocityDispersionApproximate
-     type            (rootFinder                   )          :: finder
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
+     class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_     => null()
+     integer         (kind=kind_int8                   )          :: lastUniqueID
+     double precision                                             :: radiusFinalPrevious                    , radiusInitialPrevious
+     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
+     logical                                                      :: velocityDispersionApproximate
+     type            (rootFinder                       )          :: finder
    contains
      !![
      <methods>
@@ -159,14 +159,14 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (darkMatterProfileDMOHeated   )                        :: self
-    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
-    integer                                        , intent(in   )         :: nonAnalyticSolver
-    logical                                        , intent(in   )         :: velocityDispersionApproximate
-    double precision                               , intent(in   )         :: toleranceRelativeVelocityDispersion
-    double precision                               , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative=1.0d-6
+    type            (darkMatterProfileDMOHeated       )                        :: self
+    class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass    ), intent(in   ), target :: darkMatterProfileHeating_
+    type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
+    logical                                            , intent(in   )         :: velocityDispersionApproximate
+    double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion
+    double precision                                   , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative=1.0d-6
     !![
     <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
     !!]
@@ -506,10 +506,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout)           :: self
-    type            (treeNode                  ), intent(inout), target   :: node
-    double precision                            , intent(in   )           :: radius
-    integer                                     , intent(  out), optional :: status
+    class           (darkMatterProfileDMOHeated       ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)

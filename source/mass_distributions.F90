@@ -37,8 +37,12 @@ module Mass_Distributions
    <description>Class providing mass distributions.</description>
    <method name="symmetry" >
     <description>Return the symmetry of the distribution.</description>
-    <type>integer</type>
+    <type>type(enumerationMassDistributionSymmetryType)</type>
     <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      massDistributionSymmetry=massDistributionSymmetryNone
+    </code>
    </method>
    <method name="isDimensionless" >
     <description>Return true if the distribution is dimensionless.</description>
