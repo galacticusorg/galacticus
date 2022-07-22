@@ -7,16 +7,20 @@
   <task value="NBodyAnalyze"/>
 
   <nbodyImporter value="rockstar">
-    <fileName    value="tree_0_0_0.dat"               />
-    <readColumns value="scale id desc_id pid mmp Mvir"/>
+    <fileName    value="tree_0_0_0.dat"                                   />
+    <readColumns value="scale id desc_id pid mmp Mvir Rvir X Y Z Snap_num"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">
-    <nbodyOperator value="flagAlwaysIsolated"/>
-    <nbodyOperator value="deleteProperties">
-      <propertyNames value="descendentID hostID isMostMassiveProgenitor"/>
+    <nbodyOperator value="flagAlwaysIsolated" >
+      <massFactor value="2.0"/>
     </nbodyOperator>
-    <nbodyOperator value="physicalToComoving"/>
+    <nbodyOperator value="identifyFlybysMansfieldKravtsov2020" >
+      <missingHostsAreFatal value="false"/>
+    </nbodyOperator>
+    <nbodyOperator value="deleteProperties">
+      <propertyNames value="descendentID hostID isMostMassiveProgenitor radiusVirial position snapshotID"/>
+    </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_subVolume0_0_0.hdf5"/>
       <snapshot value="1"                                 />

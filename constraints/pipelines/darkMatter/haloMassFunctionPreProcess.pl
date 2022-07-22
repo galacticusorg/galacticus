@@ -473,36 +473,113 @@ foreach my $simulation ( @simulations ) {
 			my $expansionFactorLow  = (1.0-5.0e-4)*$expansionFactor    ;
 			my $expansionFactorHigh = (1.0+5.0e-4)*$expansionFactor    ;
 			my $redshiftLabel       = sprintf("z%5.3f",$redshift)      ;
-			# Parse the base parameters.
-			my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionExtractSnapshot.xml");
-			# Modify file names.
-			$parameters->{'nbodyImporter'}                        ->{'fileName' }->{'value'} = $pathName."alwaysIsolated_subVolume"                   .$i."_".$j."_".$k.".hdf5";
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeLow' }->{'value'} = "1 ".$expansionFactorLow ;
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeHigh'}->{'value'} = "1 ".$expansionFactorHigh;
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'fileName' }->{'value'} = $pathName."alwaysIsolated_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5";
-			$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'redshift' }->{'value'} =                             $redshift                                           ;
-			# If a custom process function is defined, call it.
-			&{$simulation->{'processExtract'}}($simulation,$realization,$pathName,$parameters,$expansionFactor)
-			    if ( exists($simulation->{'processExtract'}) );
-			# Write parameter file.
-			my $parameterFileName = $pathName."identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k.".xml";
-			open(my $outputFile,">",$parameterFileName);
-			print $outputFile $xml->XMLout($parameters, RootName => "parameters");
-			close($outputFile);
-			# Skip if the file exists.
-			next
-			    if ( -e $pathName."alwaysIsolated_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5" );
-			# Generate a job.
-			my $job;
-			$job->{'command'   } =
-			    "Galacticus.exe ".$parameterFileName;
-			$job->{'launchFile'} = $pathName."identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k.".sh" ;
-			$job->{'logFile'   } = $pathName."identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k.".log";
-			$job->{'label'     } =           "identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k       ;
-			$job->{'ppn'       } = 1;
-			$job->{'nodes'     } = 1;
-			$job->{'mpi'       } = "yes";
-			push(@jobsExtract,$job);
+			# Always-Isolated halos.
+			{
+			    # Parse the base parameters.
+			    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionExtractSnapshot.xml");
+			    # Modify file names.
+			    $parameters->{'nbodyImporter'}                        ->{'fileName'     }->{'value'} = $pathName."alwaysIsolated_subVolume"                   .$i."_".$j."_".$k.".hdf5";
+			    $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} = "particleID alwaysIsolated expansionFactor massVirial";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = "1 ".$expansionFactorLow ;
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = "1 ".$expansionFactorHigh;
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} = "alwaysIsolated expansionFactor";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'fileName'     }->{'value'} = $pathName."alwaysIsolated_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'redshift'     }->{'value'} =                             $redshift                                           ;
+			    # If a custom process function is defined, call it.
+			    &{$simulation->{'processExtract'}}($simulation,$realization,$pathName,$parameters,$expansionFactor)
+				if ( exists($simulation->{'processExtract'}) );
+			    # Write parameter file.
+			    my $parameterFileName = $pathName."identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k.".xml";
+			    open(my $outputFile,">",$parameterFileName);
+			    print $outputFile $xml->XMLout($parameters, RootName => "parameters");
+			    close($outputFile);
+			    # Skip if the file exists.
+			    next
+				if ( -e $pathName."alwaysIsolated_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5" );
+			    # Generate a job.
+			    my $job;
+			    $job->{'command'   } =
+				"Galacticus.exe ".$parameterFileName;
+			    $job->{'launchFile'} = $pathName."identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k.".sh" ;
+			    $job->{'logFile'   } = $pathName."identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k.".log";
+			    $job->{'label'     } =           "identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k       ;
+			    $job->{'ppn'       } = 1;
+			    $job->{'nodes'     } = 1;
+			    $job->{'mpi'       } = "yes";
+			    push(@jobsExtract,$job);
+			}
+			# Non-flyby halos.
+			{
+			    # Parse the base parameters.
+			    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionExtractSnapshot.xml");
+			    # Modify file names.
+			    $parameters->{'nbodyImporter'}                        ->{'fileName'     }->{'value'} = $pathName."alwaysIsolated_subVolume"             .$i."_".$j."_".$k.".hdf5";
+			    $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} = "particleID isFlyby expansionFactor massVirial";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = "0 ".$expansionFactorLow ;
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = "0 ".$expansionFactorHigh;
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} = "isFlyby expansionFactor";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'fileName'     }->{'value'} = $pathName."nonFlyby_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'redshift'     }->{'value'} =                       $redshift                                           ;
+			    # If a custom process function is defined, call it.
+			    &{$simulation->{'processExtract'}}($simulation,$realization,$pathName,$parameters,$expansionFactor)
+				if ( exists($simulation->{'processExtract'}) );
+			    # Write parameter file.
+			    my $parameterFileName = $pathName."identifyNonFlyby_".$redshiftLabel."_".$i."_".$j."_".$k.".xml";
+			    open(my $outputFile,">",$parameterFileName);
+			    print $outputFile $xml->XMLout($parameters, RootName => "parameters");
+			    close($outputFile);
+			    # Skip if the file exists.
+			    next
+				if ( -e $pathName."nonFlyby_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5" );
+			    # Generate a job.
+			    my $job;
+			    $job->{'command'   } =
+				"Galacticus.exe ".$parameterFileName;
+			    $job->{'launchFile'} = $pathName."identifyNonFlyby_".$redshiftLabel."_".$i."_".$j."_".$k.".sh" ;
+			    $job->{'logFile'   } = $pathName."identifyNonFlyby_".$redshiftLabel."_".$i."_".$j."_".$k.".log";
+			    $job->{'label'     } =           "identifyNonFlyby_".$redshiftLabel."_".$i."_".$j."_".$k       ;
+			    $job->{'ppn'       } = 1;
+			    $job->{'nodes'     } = 1;
+			    $job->{'mpi'       } = "yes";
+			    push(@jobsExtract,$job);
+			}
+			# All halos.
+			{
+			    # Parse the base parameters.
+			    my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionExtractSnapshot.xml");
+			    # Modify file names.
+			    $parameters->{'nbodyImporter'}                        ->{'fileName'     }->{'value'} = $pathName."alwaysIsolated_subVolume"        .$i."_".$j."_".$k.".hdf5";
+			    $parameters->{'nbodyImporter'}                        ->{'properties'   }->{'value'} = "particleID expansionFactor massVirial";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'propertyNames'}->{'value'} = "expansionFactor";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeLow'     }->{'value'} = $expansionFactorLow ;
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'rangeHigh'    }->{'value'} = $expansionFactorHigh;
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'propertyNames'}->{'value'} = "expansionFactor";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'fileName'     }->{'value'} = $pathName."all_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5";
+			    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'redshift'     }->{'value'} =                  $redshift                                           ;
+			    # If a custom process function is defined, call it.
+			    &{$simulation->{'processExtract'}}($simulation,$realization,$pathName,$parameters,$expansionFactor)
+				if ( exists($simulation->{'processExtract'}) );
+			    # Write parameter file.
+			    my $parameterFileName = $pathName."identifyAll_".$redshiftLabel."_".$i."_".$j."_".$k.".xml";
+			    open(my $outputFile,">",$parameterFileName);
+			    print $outputFile $xml->XMLout($parameters, RootName => "parameters");
+			    close($outputFile);
+			    # Skip if the file exists.
+			    next
+				if ( -e $pathName."all_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5" );
+			    # Generate a job.
+			    my $job;
+			    $job->{'command'   } =
+				"Galacticus.exe ".$parameterFileName;
+			    $job->{'launchFile'} = $pathName."identifyAll_".$redshiftLabel."_".$i."_".$j."_".$k.".sh" ;
+			    $job->{'logFile'   } = $pathName."identifyAll_".$redshiftLabel."_".$i."_".$j."_".$k.".log";
+			    $job->{'label'     } =           "identifyAll_".$redshiftLabel."_".$i."_".$j."_".$k       ;
+			    $job->{'ppn'       } = 1;
+			    $job->{'nodes'     } = 1;
+			    $job->{'mpi'       } = "yes";
+			    push(@jobsExtract,$job);
+			}
 		    }
 		}
 	    }
@@ -546,53 +623,56 @@ foreach my $simulation ( @simulations ) {
 	# Iterate over realizations.
 	foreach my $realization ( @{$simulation->{'realizations'}} ) {
 	    my $pathName = $simulation->{'path'}.($realization eq "" ? "" : $realization."/");
-	    # Iterate over subvolumes.
-	    my @nbodyImporters;
-	    for(my $i=0;$i<$simulation->{'subvolumes'};++$i) {
-		for(my $j=0;$j<$simulation->{'subvolumes'};++$j) {
-		    for(my $k=0;$k<$simulation->{'subvolumes'};++$k) {
-			# Add an importer for this subvolume.
-			push(
-			    @nbodyImporters,
-			    {
-				value      => "IRATE"                                                                                    ,
-				fileName   => {value => $pathName."alwaysIsolated_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5"},
-				snapshot   => {value => "1"},
-				properties => {value => "massVirial"}
-			    }
-			    );
+	    # Iterate over halo types.
+	    foreach my $haloType ( "alwaysIsolated", "nonFlyby", "all" ) {
+		# Iterate over subvolumes.
+		my @nbodyImporters;
+		for(my $i=0;$i<$simulation->{'subvolumes'};++$i) {
+		    for(my $j=0;$j<$simulation->{'subvolumes'};++$j) {
+			for(my $k=0;$k<$simulation->{'subvolumes'};++$k) {
+			    # Add an importer for this subvolume.
+			    push(
+				@nbodyImporters,
+				{
+				    value      => "IRATE"                                                                                ,
+				    fileName   => {value => $pathName.$haloType."_".$redshiftLabel."_subVolume".$i."_".$j."_".$k.".hdf5"},
+				    snapshot   => {value => "1"},
+				    properties => {value => "massVirial"}
+				}
+				);
+			}
 		    }
 		}
-	    }
-	    ## Compute the mass function.
-	    unless ( -e $pathName."haloMassFunction_".$redshiftLabel.":MPI0000.hdf5" ) {
+		## Compute the mass function.
+		unless ( -e $pathName."haloMassFunction_".$haloType."_".$redshiftLabel.":MPI0000.hdf5" ) {
 		## Parse the base parameters.
-		my $massFunctionParameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionCompute.xml");
-		## Modify parameters.
-		@{$massFunctionParameters->{'nbodyImporter'           }->{'nbodyImporter'}}                                          = @nbodyImporters;
-		$massFunctionParameters  ->{'outputFileName'}                                                  ->{'value'} = $pathName."haloMassFunction_".$redshiftLabel.".hdf5";
-		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[0]->{'values'             }->{'value'} = $simulation->{'massParticle'       };
-		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'description'        }->{'value'} = $simulation->{'description'        };
-		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'simulationReference'}->{'value'} = $simulation->{'simulationReference'};
-		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'simulationURL'      }->{'value'} = $simulation->{'simulationURL'      };
-		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'massMinimum'        }->{'value'} = $simulation->{'massMinimum'        };
-		$massFunctionParameters  ->{'nbodyOperator'           }->{'nbodyOperator'} ->[1]->{'massMaximum'        }->{'value'} = $simulation->{'massMaximum'        };
-		## Write the parameter file.
-		my $parameterFileName = $pathName."haloMassFunction_".$redshiftLabel.".xml";
-		open(my $outputFile,">",$parameterFileName);
-		print $outputFile $xml->XMLout($massFunctionParameters, RootName => "parameters");
-		close($outputFile);
-		## Construct the job.
-		my $job;
-		$job->{'command'   } =
-		    "Galacticus.exe ".$parameterFileName;
-		$job->{'launchFile'} = $pathName."haloMassFunction_".$redshiftLabel.".sh" ;
-		$job->{'logFile'   } = $pathName."haloMassFunction_".$redshiftLabel.".log";
-		$job->{'label'     } =           "haloMassFunction_".$redshiftLabel       ;
-		$job->{'ppn'       } = $queueConfig->{'ppn'};
-		$job->{'nodes'     } = 1;
-		$job->{'mpi'       } = "no";
-		push(@massFunctionJobs,$job);
+		    my $massFunctionParameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionCompute.xml");
+		    ## Modify parameters.
+		    @{$massFunctionParameters->{'nbodyImporter' }->{'nbodyImporter'}}                                          = @nbodyImporters;
+		    $massFunctionParameters  ->{'outputFileName'}                                                  ->{'value'} = $pathName."haloMassFunction_".$haloType."_".$redshiftLabel.".hdf5";
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[0]->{'values'             }->{'value'} = $simulation->{'massParticle'       };
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'description'        }->{'value'} = $simulation->{'description'        };
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'simulationReference'}->{'value'} = $simulation->{'simulationReference'};
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'simulationURL'      }->{'value'} = $simulation->{'simulationURL'      };
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'massMinimum'        }->{'value'} = $simulation->{'massMinimum'        };
+		    $massFunctionParameters  ->{'nbodyOperator' }->{'nbodyOperator'} ->[1]->{'massMaximum'        }->{'value'} = $simulation->{'massMaximum'        };
+		    ## Write the parameter file.
+		    my $parameterFileName = $pathName."haloMassFunction_".$haloType."_".$redshiftLabel.".xml";
+		    open(my $outputFile,">",$parameterFileName);
+		    print $outputFile $xml->XMLout($massFunctionParameters, RootName => "parameters");
+		    close($outputFile);
+		    ## Construct the job.
+		    my $job;
+		    $job->{'command'   } =
+			"Galacticus.exe ".$parameterFileName;
+		    $job->{'launchFile'} = $pathName."haloMassFunction_".$haloType."_".$redshiftLabel.".sh" ;
+		    $job->{'logFile'   } = $pathName."haloMassFunction_".$haloType."_".$redshiftLabel.".log";
+		    $job->{'label'     } =           "haloMassFunction_".$haloType."_".$redshiftLabel       ;
+		    $job->{'ppn'       } = $queueConfig->{'ppn'};
+		    $job->{'nodes'     } = 1;
+		    $job->{'mpi'       } = "no";
+		    push(@massFunctionJobs,$job);
+		}
 	    }
 	}
     }
@@ -633,7 +713,7 @@ foreach my $simulation ( @simulations ) {
 	foreach my $expansionFactor ( @{$simulation->{'expansionFactors'}} ) {
 	    my $redshift            =  1.0/$expansionFactor-1.0;
 	    my $redshiftLabel       = sprintf("z%5.3f",$redshift);
-	    copy($pathName."haloMassFunction_".$redshiftLabel.":MPI0000.hdf5",$ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}.($realization eq "" ? "" : "_".$realization)."_".$redshiftLabel.".hdf5");
+	    copy($pathName."haloMassFunction_nonFlyby_".$redshiftLabel.":MPI0000.hdf5",$ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}.($realization eq "" ? "" : "_".$realization)."_".$redshiftLabel.".hdf5");
 	}
     }
 }
@@ -654,6 +734,14 @@ sub zoomInsProcessIdentify {
     $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.047;
     # Add read of additional columns.
     $parameters->{'nbodyImporter'      }->{'readColumns'    }->{'value'} .= " X Y Z Rvir rs";
+    # Add physical to comoving conversion.
+    splice(
+	@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},
+	2,0,
+	{
+	    value => "physicalToComoving"
+	}
+	);
 }
 
 sub zoomInsPreProcessExtractLocate {
