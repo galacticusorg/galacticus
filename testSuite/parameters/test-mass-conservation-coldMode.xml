@@ -144,7 +144,7 @@
       <accretionNegativeAllowed value="false"/>
     </accretionHalo>
     <intergalacticMediumState value="file">
-      <fileName value="constraints/data/igmState.xml"/>
+      <fileName value="%DATASTATICPATH%/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
     </intergalacticMediumState>
 
     <!-- Hot halo gas cooling model options -->
