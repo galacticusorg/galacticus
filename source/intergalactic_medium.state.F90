@@ -249,9 +249,9 @@ contains
                &                                                 self%electronScatteringTableTimeMaximum           &
                &                                                )
           if (iTime > 1) then
-             if (self%electronScattering            %y(iTime) < self%electronScattering            %y(iTime-1)) &
+             if (opticalDepth            (iTime) < opticalDepth            (iTime-1)) &
                   & iTimeMonotonic            =iTime
-             if (self%electronScatteringFullyIonized%y(iTime) < self%electronScatteringFullyIonized%y(iTime-1)) &
+             if (opticalDepthFullyIonized(iTime) < opticalDepthFullyIonized(iTime-1)) &
                   & iTimeMonotonicFullyIonized=iTime
           end if
        end do
