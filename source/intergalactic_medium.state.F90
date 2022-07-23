@@ -257,12 +257,12 @@ contains
        end do
        opticalDepth            (self%electronScatteringTableNumberPoints)=0.0d0
        opticalDepthFullyIonized(self%electronScatteringTableNumberPoints)=0.0d0
-       call self%electronScatteringInverse            %create  (opticalDepth            (self%electronScatteringTableNumberPoints:iTimeMonotonic            :-1))
-       call self%electronScatteringFullyIonizedInverse%create  (opticalDepthFullyIonized(self%electronScatteringTableNumberPoints:iTimeMonotonicFullyIonized:-1))
-       call self%electronScattering                   %populate(opticalDepth                                                                                    )
-       call self%electronScatteringFullyIonized       %populate(opticalDepthFullyIonized                                                                        )
-       call self%electronScatteringInverse            %populate(time_                   (self%electronScatteringTableNumberPoints:iTimeMonotonic            :-1))
-       call self%electronScatteringFullyIonizedInverse%populate(time_                   (self%electronScatteringTableNumberPoints:iTimeMonotonicFullyIonized:-1))
+       call self%electronScatteringInverse            %create  (opticalDepth            (iTimeMonotonic            :self%electronScatteringTableNumberPoints))
+       call self%electronScatteringFullyIonizedInverse%create  (opticalDepthFullyIonized(iTimeMonotonicFullyIonized:self%electronScatteringTableNumberPoints))
+       call self%electronScattering                   %populate(opticalDepth                                                                                 )
+       call self%electronScatteringFullyIonized       %populate(opticalDepthFullyIonized                                                                     )
+       call self%electronScatteringInverse            %populate(time_                   (iTimeMonotonic            :self%electronScatteringTableNumberPoints))
+       call self%electronScatteringFullyIonizedInverse%populate(time_                   (iTimeMonotonicFullyIonized:self%electronScatteringTableNumberPoints))
        ! Specify that tabulation has been made.
        self%electronScatteringTableInitialized=.true.
     end if
