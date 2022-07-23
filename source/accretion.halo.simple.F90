@@ -147,17 +147,8 @@ contains
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="chemicalState"            name="chemicalState_"            source="parameters"/>
     !!]
-    if (parameters%isPresent("opticalDepthReionization")) then
-       if (parameters%isPresent("redshiftReionization")) call Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
-       !![
-       <inputParameter>
-         <name>opticalDepthReionization</name>
-         <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
-         <source>parameters</source>
-       </inputParameter>
-       !!]
-       timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
-    else
+    if (parameters%isPresent("redshiftReionization").or..not.parameters%isPresent("opticalDepthReionization")) then
+       if (parameters%isPresent("opticalDepthReionization")) call Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
        !![
        <inputParameter>
          <name>redshiftReionization</name>
@@ -168,6 +159,15 @@ contains
        </inputParameter>
        !!]
        timeReionization=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftReionization))
+    else
+       !![
+       <inputParameter>
+         <name>opticalDepthReionization</name>
+         <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
+       timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
     end if
     !![
     <inputParameter>
@@ -232,8 +232,8 @@ contains
        !!]
     end if
     self%countChemicals          =Chemicals_Property_Count()
-    self%redshiftReionization    =                                                     self%intergalacticMediumState_%electronScatteringOpticalDepth(timeReionization,assumeFullyIonized=.true.)
-    self%opticalDepthReionization=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_      %expansionFactor               (timeReionization                          ))
+    self%redshiftReionization    =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeReionization))
+    self%opticalDepthReionization=-huge(0.0d0)
     return
   end function simpleConstructorInternal
 
