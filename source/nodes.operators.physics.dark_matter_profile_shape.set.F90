@@ -104,29 +104,14 @@ contains
     !!{
     Initialize dark matter profile shape parameters.
     !!}
-    use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class(nodeOperatorDarkMatterProfileShapeSet), intent(inout), target  :: self
     type (treeNode                             ), intent(inout), target  :: node
-    type (treeNode                             )               , pointer :: nodeWork
-    class(nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile, darkMatterProfileWork
-    type (mergerTreeWalkerAllNodes             )                         :: treeWalker
-
-    ! Initialize the shape parameter, if necessary. (Shape parameters may have been previously set by calls to this function for
-    ! other nodes.)
+    class(nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile
+  
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    if (darkMatterProfile%shape() < 0.0d0) then
-       ! Perform our own depth-first tree walk to set shapes in all nodes of the tree. This is necessary as we require access
-       ! to the parent shape to set shape growth rates, but must initialize shapes in a strictly depth-first manner as some
-       ! algorithms rely on knowing the progenitor structure of the tree to compute shape parameters.
-       treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-       do while (treeWalker%next(nodeWork))
-          ! Set the shape parameter.
-          darkMatterProfileWork => nodeWork%darkMatterProfile(autoCreate=.true.)
-          call darkMatterProfileWork%shapeSet(self%darkMatterProfileShape_%shape(node))
-       end do
-    end if
+    call darkMatterProfile%shapeSet(self%darkMatterProfileShape_%shape(node))
     return
   end subroutine darkMatterProfileShapeSetNodeTreeInitialize
     

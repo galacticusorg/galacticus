@@ -24,6 +24,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
@@ -46,7 +48,7 @@
   <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
-  <componentSatellite value="verySimple"/>
+  <componentSatellite value="mergeTime"/>
   <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.9"/>
   </cosmologicalMassVariance>

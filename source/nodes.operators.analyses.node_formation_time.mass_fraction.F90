@@ -126,47 +126,40 @@ contains
     !!}
     use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time
     use :: Galacticus_Nodes                , only : nodeComponentBasic
-    use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     implicit none
     class           (nodeOperatorNodeFormationTimeMassFraction), intent(inout), target  :: self
     type            (treeNode                                 ), intent(inout), target  :: node
-    type            (treeNode                                 )               , pointer :: nodeFormation, nodeWork, &
-         &                                                                                 nodeParent
+    type            (treeNode                                 )               , pointer :: nodeFormation, nodeParent
     class           (nodeComponentBasic                       )               , pointer :: basic
-    type            (mergerTreeWalkerAllNodes                 )                         :: treeWalker
     double precision                                                                    :: timeFormation
-
     
-    treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
-    do while (treeWalker%next(nodeWork))
-       if (.not.self%assumeMonotonicGrowth) then
-          basic         => nodeWork%basic()
+    if (.not.self%assumeMonotonicGrowth) then
+       basic         => node%basic()
+       timeFormation =  Dark_Matter_Halo_Formation_Time(                                                                              &
+            &                                           node                               =node                                    , &
+            &                                           formationMassFraction              =self%fractionMassFormation              , &
+            &                                           darkMatterHaloMassAccretionHistory_=self%darkMatterHaloMassAccretionHistory_  &
+            &                                          )
+       call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,timeFormation)
+    else if (.not.associated(node%firstChild)) then
+       nodeParent    => node
+       nodeFormation => node
+       do while (associated(nodeParent))
+          basic         => nodeParent%basic()
           timeFormation =  Dark_Matter_Halo_Formation_Time(                                                                              &
-               &                                           node                               =nodeWork                                , &
+               &                                           node                               =nodeParent                              , &
+               &                                           nodeFormation                      =nodeFormation                           , &
                &                                           formationMassFraction              =self%fractionMassFormation              , &
                &                                           darkMatterHaloMassAccretionHistory_=self%darkMatterHaloMassAccretionHistory_  &
                &                                          )
           call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,timeFormation)
-       else if (.not.associated(nodeWork%firstChild)) then
-          nodeParent    => nodeWork
-          nodeFormation => nodeWork
-          do while (associated(nodeParent))
-             basic         => nodeParent%basic()
-             timeFormation =  Dark_Matter_Halo_Formation_Time(                                                                              &
-                  &                                           node                               =nodeParent                              , &
-                  &                                           nodeFormation                      =nodeFormation                           , &
-                  &                                           formationMassFraction              =self%fractionMassFormation              , &
-                  &                                           darkMatterHaloMassAccretionHistory_=self%darkMatterHaloMassAccretionHistory_  &
-                  &                                          )
-             call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,timeFormation)
-             if (nodeParent%isPrimaryProgenitor()) then
-                nodeParent => nodeParent%parent
-             else
-                nodeParent => null()
-             end if
-          end do
-       end if
-    end do
+          if (nodeParent%isPrimaryProgenitor()) then
+             nodeParent => nodeParent%parent
+          else
+             nodeParent => null()
+          end if
+       end do
+    end if
     return
   end subroutine nodeFormationTimeMassFractionNodeTreeInitialize
  

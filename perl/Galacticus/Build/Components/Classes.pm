@@ -174,7 +174,7 @@ sub Build_Component_Classes {
 				    ||
 				                                    $property->{'attributes'}->{'createIfNeeded'}
 				);
-			    # Do not create a analytic function if it is to be deferred, or if it binds at the top level.
+			    # Create an analytic function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,
 				{
@@ -182,8 +182,21 @@ sub Build_Component_Classes {
 				    name        => $property->{'name'}."Analytic",
 				    function    => &createNullFunction($build,{selfType => $className, attribute => "analytic", property => $property, intent => "inout"}),
 				    returnType  => "\\void"     ,
-				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
+				    arguments   => "",
 				    description => "Mark the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component as analtyically-solvable."
+				}
+				)
+				unless ( $property->{'attributes'}->{'isVirtual'} );
+			    # Create an inactive function unless this is a virtual property.
+			    push(
+				@typeBoundFunctions,
+				{
+				    type        => "procedure"  ,
+				    name        => $property->{'name'}."Inactive",
+				    function    => &createNullFunction($build,{selfType => $className, attribute => "inactive", property => $property, intent => "inout"}),
+				    returnType  => "\\void"     ,
+				    arguments   => "",
+				    description => "Mark the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component as inactive."
 				}
 				)
 				unless ( $property->{'attributes'}->{'isVirtual'} );
@@ -197,7 +210,7 @@ sub Build_Component_Classes {
 				    returnType  => "\\void"                         ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
 				    description => "Set the scale of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
-}
+				}
 				)
 				unless ( $property->{'attributes'}->{'isVirtual'} );
 			    $propertiesCreated{$functionName} = 1;
