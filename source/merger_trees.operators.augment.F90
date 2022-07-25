@@ -570,7 +570,8 @@ contains
     pruneByTime                    =  mergerTreeOperatorPruneByTime(                                &
          &                                                          timeEarliest,                   &
          &                                                               0.0d0  ,                   &
-         &                                                          huge(0.0d0)                     &
+         &                                                          huge(0.0d0) ,                   &
+         &                                                          self%cosmologyFunctions_        &
          &                                                         )
     nodeBase                       => treeNode                     (node%index(),newTree          )
     basicBase                      => nodeBase%basic               (             autoCreate=.true.)

@@ -411,7 +411,7 @@ contains
          &                                                                              presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                              presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
          &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps
-    type            (varying_string                     )                            :: subhaloAngularMomentaMethodText
+    type            (varying_string                     )                            :: subhaloAngularMomentaMethod
     double precision                                                                 :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                              presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     !$GLC attributes initialized :: self
@@ -453,7 +453,6 @@ contains
       <defaultValue>var_str('summation')</defaultValue>
       <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
       <source>parameters</source>
-      <variable>subhaloAngularMomentaMethodText</variable>
     </inputParameter>
     <inputParameter>
       <name>presetSubhaloIndices</name>
@@ -625,7 +624,7 @@ contains
          &                                                                               beginAt                                                      , &
          &                                                                               missingHostsAreFatal                                         , &
          &                                                                               treeIndexToRootNodeIndex                                     , &
-         &                         enumerationReadSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethodText     ),includesPrefix=.false.), &
+         &                         enumerationReadSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethod         ),includesPrefix=.false.), &
          &                                                                               allowBranchJumps                                             , &
          &                                                                               allowSubhaloPromotions                                       , &
          &                                                                               presetMergerTimes                                            , &

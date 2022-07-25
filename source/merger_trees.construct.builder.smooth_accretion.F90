@@ -44,7 +44,8 @@
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      class           (mergerTreeMassResolutionClass          ), pointer :: mergerTreeMassResolution_           => null()
-     double precision                                                   :: massHaloDeclineFactor                        , timeEarliest
+     double precision                                                   :: massHaloDeclineFactor                        , timeEarliest, &
+          &                                                                redshiftEarliest
    contains
      final     ::          smoothAccretionDestructor
      procedure :: build => smoothAccretionBuild
@@ -121,6 +122,11 @@ contains
     <constructorAssign variables="massHaloDeclineFactor, timeEarliest, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *mergerTreeMassResolution_"/>
     !!]
 
+    if (timeEarliest > 0.0d0) then
+       self%redshiftEarliest=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeEarliest))
+    else
+       self%redshiftEarliest=huge(0.0d0)
+    end if
     return
   end function smoothAccretionConstructorInternal
 

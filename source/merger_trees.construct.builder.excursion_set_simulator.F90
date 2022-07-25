@@ -50,7 +50,7 @@
      double precision                                         :: timeEarliest                       , timeNow                 , &
           &                                                      varianceStepMinimum                , varianceStepSigmaMaximum, &
           &                                                      factorMassConsolidate              , factorTimeConsolidate   , &
-          &                                                      excursionStep
+          &                                                      excursionStep                      , redshiftMaximum
    contains
      final     ::          excursionSetSimulatorDestructor
      procedure :: build => excursionSetSimulatorBuild
@@ -164,7 +164,8 @@
         <constructorAssign variables="timeEarliest, varianceStepMinimum, varianceStepSigmaMaximum, excursionStep, factorMassConsolidate, factorTimeConsolidate, *cosmologyFunctions_, *mergerTreeMassResolution_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
         !!]
         
-        self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
+        self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeEarliest))
+        self%timeNow        =self%cosmologyFunctions_%cosmicTime                 (                                                1.0d0 )
         if (factorMassConsolidate <= 0.0d0 .or. factorMassConsolidate > 1.0d0) call Error_Report('[factorMassConsolidate] ∈ [0,1)'//{introspection:location})
         if (factorTimeConsolidate <= 0.0d0 .or. factorMassConsolidate > 1.0d0) call Error_Report('[factorTimeConsolidate] ∈ [0,1)'//{introspection:location})
         return

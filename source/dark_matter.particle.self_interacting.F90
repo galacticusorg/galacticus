@@ -36,8 +36,8 @@ Contains a module which implements a selfInteracting dark matter particle class.
    contains
      !![
      <methods>
-       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
-       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential" />
+       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                     method="crossSectionSelfInteraction"            />
+       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential"/>
      </methods>
      !!]
      final     ::                                            selfInteractingDMDestructor
@@ -71,7 +71,6 @@ contains
     <inputParameter>
       <name>crossSectionSelfInteraction</name>
       <source>parameters</source>
-      <variable>crossSectionSelfInteraction</variable>
       <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>

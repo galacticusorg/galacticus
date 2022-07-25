@@ -21,7 +21,8 @@
   Implements a cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
   !!}
 
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   ! Enumeration for whether cut off is before or after the given epoch.
   !![
@@ -45,9 +46,11 @@
      A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
      !!}
      private
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_  => null()
      class           (coolingFunctionClass     ), pointer :: coolingFunction_     => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
-     double precision                                     :: velocityCutOff                , timeCutOff
+     double precision                                     :: velocityCutOff                , timeCutOff, &
+          &                                                  redshiftCutOff
      type            (enumerationCutOffWhenType)          :: whenCutOff
      logical                                              :: useFormationNode
    contains
@@ -130,6 +133,7 @@ contains
          &                                                                               includesPrefix=.false.  &
          &                                                                             )                       , &
          &                                                                               useFormationNode      , &
+         &                                                                               cosmologyFunctions_   , &
          &                                                                               darkMatterHaloScale_  , &
          &                                                                               coolingFunction_        &
          &                            )
@@ -142,7 +146,7 @@ contains
     return
   end function velocityCutOffConstructorParameters
 
-  function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingFunction_) result(self)
+  function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
     !!}
@@ -151,12 +155,14 @@ contains
     double precision                               , intent(in   )         :: velocityCutOff      , timeCutOff
     type            (enumerationCutOffWhenType    ), intent(in   )         :: whenCutOff
     logical                                        , intent(in   )         :: useFormationNode
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (coolingFunctionClass         ), intent(in   ), target :: coolingFunction_
     !![
-    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingFunction_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *cosmologyFunctions_, *coolingFunction_, *darkMatterHaloScale_"/>
     !!]
 
+    self%redshiftCutOff=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeCutOff))
     return
   end function velocityCutOffConstructorInternal
 
@@ -168,6 +174,7 @@ contains
     type(coolingFunctionVelocityCutOff), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%coolingFunction_"    />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
