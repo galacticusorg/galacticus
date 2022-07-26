@@ -32,7 +32,7 @@ module Tables
        &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
        &    table1DLinearCSpline           , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
        &    table1DLinearMonotoneCSpline   , table1DLogarithmicMonotoneCSpline, table2DLinLinLin                  , &
-       &    tablesIntegrationWeightFunction
+       &    tablesIntegrationWeightFunction, table1DMonotoneCSpline
 
   !![
   <enumeration>
@@ -266,7 +266,6 @@ module Tables
      !!{
      Table type supporting one dimensional table with linear spacing in $x$ and monotonic cubic spline interpolation.
      !!}
-     double precision, allocatable, dimension(:,:) :: c1            , c2           , c3
    contains
      procedure :: create              => Table_Linear_Monotone_CSpline_1D_Create
      procedure :: destroy             => Table_Linear_Monotone_CSpline_1D_Destroy
@@ -292,6 +291,31 @@ module Tables
      procedure :: xs                  => Table_Logarithmic_Monotone_CSpline_1D_Xs
   end type table1DLogarithmicMonotoneCSpline
 
+  type, extends(table1D) :: table1DMonotoneCSpline
+     !!{
+     Table type supporting one dimensional table with arbitrary spacing in $x$ and monotonic cubic spline interpolation.
+     !!}
+     double precision, allocatable, dimension(:,:) :: av            , bv           , cv
+     integer                                       :: dTablePrevious, iPrevious    , tablePrevious
+     double precision                              :: aPrevious     , bPrevious    , cPrevious    , dPrevious, &
+          &                                           dxPrevious    , dyPrevious   , xPrevious    , yPrevious
+   contains
+     !![
+     <methods>
+       <method description="Create the object with {\normalfont \ttfamily xCount} points, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+     </methods>
+     !!]
+     procedure :: create              => Table_Monotone_CSpline_1D_Create
+     procedure :: destroy             => Table_Monotone_CSpline_1D_Destroy
+     procedure :: populateArray       => Table_Monotone_CSpline_1D_Populate
+     procedure :: populateScalar      => Table_Monotone_CSpline_1D_Populate_Single
+     procedure :: interpolate         => Table_Monotone_CSpline_1D_Interpolate
+     procedure :: interpolateGradient => Table_Monotone_CSpline_1D_Interpolate_Gradient
+     procedure :: integrationWeights  => Table_Monotone_CSpline_Integration_Weights
+     generic   :: populate            => populateArray, populateScalar
+  end type table1DMonotoneCSpline
+  
   abstract interface
      double precision function tablesIntegrationWeightFunction(x)
        double precision, intent(in   ) :: x
@@ -1491,6 +1515,268 @@ contains
     return
   end function Table_Linear_CSpline_Integration_Weights
 
+  subroutine Table_Monotone_CSpline_1D_Create(self,x,tableCount,extrapolationType)
+    !!{
+    Create a 1-D monotone cubic spline table.
+    !!}
+    use :: Error            , only : Error_Report
+    use :: Memory_Management, only : allocateArray
+    use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
+    implicit none
+    class           (table1DMonotoneCSpline          ), intent(inout)                         :: self
+    double precision                                  , intent(in   )          , dimension(:) :: x
+    integer                                           , intent(in   ), optional               :: tableCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                                   :: tableCountActual
+
+    ! Determine number of tables.
+    tableCountActual=1
+    if (present(tableCount)) tableCountActual=tableCount
+    ! Allocate arrays and construct the x-range.
+    self%xCount=size(x)
+    call allocateArray(self%xv,[self%xCount                   ])
+    call allocateArray(self%yv,[self%xCount  ,tableCountActual])
+    call allocateArray(self%av,[self%xCount  ,tableCountActual])
+    call allocateArray(self%bv,[self%xCount-1,tableCountActual])
+    call allocateArray(self%cv,[self%xCount-1,tableCountActual])
+    self%xv            =x
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%iPrevious     =-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
+    ! Set extrapolation type.
+    if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Error_Report('zero extrapolation is not supported'//{introspection:location})
+       self%extrapolationType=extrapolationType
+    else
+       self%extrapolationType=extrapolationTypeExtrapolate
+    end if
+    return
+  end subroutine Table_Monotone_CSpline_1D_Create
+
+  subroutine Table_Monotone_CSpline_1D_Destroy(self)
+    !!{
+    Destroy a monotone cubic-sline 1-D table.
+    !!}
+    use :: Memory_Management, only : deallocateArray
+    implicit none
+   class(table1DMonotoneCSpline), intent(inout) :: self
+
+    call Table_1D_Destroy(self)
+    if (allocated(self%av)) call deallocateArray(self%av)
+    if (allocated(self%bv)) call deallocateArray(self%bv)
+    if (allocated(self%cv)) call deallocateArray(self%cv)
+    return
+  end subroutine Table_Monotone_CSpline_1D_Destroy
+
+  subroutine Table_Monotone_CSpline_1D_Populate(self,y,table,computeSpline)
+    !!{
+    Populate a 1-D monotone cubic spline table.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table1DMonotoneCSpline)              , intent(inout)           :: self
+    double precision                        , dimension(:), intent(in   )           :: y
+    integer                                               , intent(in   ), optional :: table
+    logical                                               , intent(in   ), optional :: computeSpline
+    integer                                                                         :: tableActual
+    logical                                                                         :: computeSplineActual
+
+    ! Validate the input.
+    if (.not.(allocated(self%yv))) call Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%yv,dim=1) /= size(y) ) call Error_Report("provided y array is of wrong size"    //{introspection:location})
+
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+
+    ! Store the y values.
+    self%yv(:,tableActual)=y
+
+    ! Compute the spline interpolation for this table.
+    computeSplineActual=.true.
+    if (present(computeSpline)) computeSplineActual=computeSpline
+    if (computeSplineActual) call Table_Monotone_CSpline_1D_Compute_Spline(self,tableActual)
+    return
+  end subroutine Table_Monotone_CSpline_1D_Populate
+
+  subroutine Table_Monotone_CSpline_1D_Populate_Single(self,y,i,table,computeSpline)
+    !!{
+    Populate a single element of a 1-D monotone cubic spline table.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table1DMonotoneCSpline), intent(inout)           :: self
+    double precision                        , intent(in   )           :: y
+    integer                                 , intent(in   )           :: i
+    integer                                 , intent(in   ), optional :: table
+    logical                                 , intent(in   ), optional :: computeSpline
+    integer                                                           :: tableActual
+    logical                                                           :: computeSplineActual
+
+    ! Validate the input.
+    if (.not.(allocated(self%yv))) call Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%yv,dim=1)) call Error_Report("provided i value is out of bounds"    //{introspection:location})
+
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+
+    ! Store the y values.
+    self%yv(i,tableActual)=y
+
+    ! Compute the spline interpolation for this table.
+    computeSplineActual=.true.
+    if (present(computeSpline)) computeSplineActual=computeSpline
+    if (computeSplineActual) call Table_Monotone_CSpline_1D_Compute_Spline(self,tableActual)
+    return
+  end subroutine Table_Monotone_CSpline_1D_Populate_Single
+
+  subroutine Table_Monotone_CSpline_1D_Compute_Spline(self,table)
+    !!{
+    Compute the interpolating spline factors for a 1-D linear spline.
+    !!}
+    implicit none
+    type            (table1DMonotoneCSpline), intent(inout)               :: self
+    integer                                 , intent(in   )               :: table
+    double precision                        , allocatable  , dimension(:) :: dx   , dy    , m
+    integer                                                               :: i
+    double precision                                                      :: dxSum, factor
+
+    ! Reset all previously stored values.
+    self% tablePrevious=-1
+    self%dTablePrevious=-1
+    self%     iPrevious=-1
+    ! Allocate workspace.
+    allocate(dx(size(self%xv)-1))
+    allocate(dy(size(self%xv)-1))
+    allocate( m(size(self%xv)-1))
+    ! Get consecutive differences and slopes.
+    do i=1,size(self%xv)-1
+       dx(i)=self%xv(i+1      )-self%xv(i      )
+       dy(i)=self%yv(i+1,table)-self%yv(i,table)
+       m (i)=dy(i)/dx(i)
+    end do
+    ! Get degree-1 coefficients.
+    self%av(1,table)=m(1)
+    do i=1,size(dx)-1
+       if (m(i)*m(i+1) <= 0.0d0) then
+          self%av(i+1,table)=0.0d0
+       else
+          dxSum=dx(i)+dx(i+1)
+          self%av(i+1,table)=3.0d0*dxSum/((dxSum+dx(i+1))/m(i)+(dxSum+dx(i))/m(i+1))
+       end if
+    end do
+    self%av(size(dx)+1,table)=m(size(m))
+    ! Get degree-2 and degree-3 coefficients.
+    do i=1,size(self%av)-1
+       factor=self%av(i,table)+self%av(i+1,table)-2.0d0*m(i)
+       self%bv(i,table)=(m(i)-self%av(i,table)-factor)/dx(i)
+       self%cv(i,table)=factor/dx(i)**2
+    end do
+    ! Destroy workspace.
+    deallocate(dx)
+    deallocate(dy)
+    deallocate( m)
+    return
+  end subroutine Table_Monotone_CSpline_1D_Compute_Spline
+
+  double precision function Table_Monotone_CSpline_1D_Interpolate(self,x,table)
+    !!{
+    Perform monotonic cubic spline interpolation in a 1D table.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Arrays_Search, only : searchArray
+    implicit none
+    class           (table1DMonotoneCSpline), intent(inout)           :: self
+    double precision                        , intent(in   )           :: x
+    integer                                 , intent(in   ), optional :: table
+    integer                                                           :: tableActual
+    integer         (c_size_t              )                          :: i
+    double precision                                                  :: dx   , xEffective
+
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Check for recall with same value as previous call.
+    if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+       xEffective=self%xEffective(x)
+       ! Determine the location in the table.
+       if      (xEffective <  self%xv(          1)) then
+          i=1
+       else if (xEffective >= self%xv(self%xCount)) then
+          i=self%xCount-1
+       else
+          i=searchArray(self%xv,xEffective)
+       end if
+       ! Compute offset from tabulated point.
+       dx=xEffective-self%xv(i)
+       ! Interpolate in the table.
+       self%xPrevious    =x
+       self%tablePrevious=tableActual
+       self%    yPrevious=self%yv(i,tableActual)+self%av(i,tableActual)*dx+self%bv(i,tableActual)*dx**2+self%cv(i,tableActual)*dx**3
+    end if
+    Table_Monotone_CSpline_1D_Interpolate=self%yPrevious
+    return
+  end function Table_Monotone_CSpline_1D_Interpolate
+
+  double precision function Table_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table)
+    !!{
+    Perform monotonic cubic spline interpolation in a 1D table and return the gradient.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Arrays_Search, only : searchArray
+    implicit none
+    class           (table1DMonotoneCSpline), intent(inout)           :: self
+    double precision                        , intent(in   )           :: x
+    integer                                 , intent(in   ), optional :: table
+    integer                                                           :: tableActual
+    integer         (c_size_t              )                          :: i
+    double precision                                                  :: dx   , xEffective
+
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Check for recall with same value as previous call.
+    if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+       xEffective=self%xEffective(x)
+       ! Determine the location in the table.
+       if      (xEffective <  self%xv(          1)) then
+          i=1
+       else if (xEffective >= self%xv(self%xCount)) then
+          i=self%xCount-1
+       else
+          i=searchArray(self%xv,xEffective)
+       end if
+       ! Compute offset from tabulated point.
+       dx=xEffective-self%xv(i)
+       ! Interpolate in the table.
+       self%dxPrevious    =x
+       self%dTablePrevious=tableActual
+       self%    dyPrevious=self%av(i,tableActual)+2.0d0*self%bv(i,tableActual)*dx+3.0d0*self%cv(i,tableActual)*dx**2
+    end if
+    Table_Monotone_CSpline_1D_Interpolate_Gradient=self%dyPrevious
+    return
+  end function Table_Monotone_CSpline_1D_Interpolate_Gradient
+
+  function Table_Monotone_CSpline_Integration_Weights(self,x0,x1,integrand)
+    !!{
+    Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table1DMonotoneCSpline         ), intent(inout)                               :: self
+    double precision                                 , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
+    double precision                                 , dimension(size(self%xv))                    :: Table_Monotone_CSpline_Integration_Weights
+    !$GLC attributes unused :: self, x0, x1, integrand
+
+    Table_Monotone_CSpline_Integration_Weights=0.0d0
+    call Error_Report('integration weights not supported'//{introspection:location})
+    return
+  end function Table_Monotone_CSpline_Integration_Weights
+  
   double precision function Table1D_Find_Effective_X(self,x)
     !!{
     Return the effective value of $x$ to use in table interpolations.
