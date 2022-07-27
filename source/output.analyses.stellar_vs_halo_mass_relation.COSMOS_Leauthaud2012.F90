@@ -33,8 +33,9 @@
      A stellar vs halo mass relation output analysis class.
      !!}
      private
-     class  (outputAnalysisClass), pointer :: outputAnalysis_ => null()
+     class  (outputAnalysisClass), pointer :: outputAnalysis_  => null()
      integer(c_size_t           )          :: likelihoodBin
+     integer                               :: redshiftInterval
    contains
      final     ::                  stellarVsHaloMassRelationLeauthaud2012Destructor
      procedure :: analyze       => stellarVsHaloMassRelationLeauthaud2012Analyze

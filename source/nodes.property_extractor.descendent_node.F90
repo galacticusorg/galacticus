@@ -21,6 +21,8 @@
 Contains a module which implements an output analysis property extractor class that extracts a property from a descendent node of the given node.
 !!}
   
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDescendentNode">
    <description>An output analysis property extractor class that extracts a property from a descendent node of the given node.</description>
@@ -31,8 +33,9 @@ Contains a module which implements an output analysis property extractor class t
      A property extractor output analysis class that extracts a property from a descendent node of the given node.
      !!}
      private
+     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_    => null()
      class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
-     double precision                                       :: timeDescendent
+     double precision                                       :: timeDescendent                  , redshiftDescendent
    contains
      final     ::                descendentNodeDestructor
      procedure :: extract     => descendentNodeExtract
@@ -55,7 +58,6 @@ contains
     !!{
     Constructor for the ``descendentNode'' node property extractor class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
     implicit none
@@ -76,7 +78,7 @@ contains
     !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
-       self=nodePropertyExtractorDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),nodePropertyExtractor_)
+       self=nodePropertyExtractorDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),cosmologyFunctions_,nodePropertyExtractor_)
     class default
        call Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
@@ -88,18 +90,20 @@ contains
     return
   end function descendentNodeConstructorParameters
 
-  function descendentNodeConstructorInternal(timeDescendent,nodePropertyExtractor_) result(self)
+  function descendentNodeConstructorInternal(timeDescendent,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{
     Internal constructor for the ``descendentNode'' node property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorDescendentNode)                        :: self
     double precision                                     , intent(in   )         :: timeDescendent
+    class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (nodePropertyExtractorScalar        ), intent(in   ), target :: nodePropertyExtractor_
     !![
-    <constructorAssign variables="timeDescendent, *nodePropertyExtractor_"/>
+    <constructorAssign variables="timeDescendent, *cosmologyFunctions_, *nodePropertyExtractor_"/>
     !!]
 
+    self%redshiftDescendent=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeDescendent))
     return
   end function descendentNodeConstructorInternal
   
@@ -112,6 +116,7 @@ contains
 
     !![
     <objectDestructor name="self%nodePropertyExtractor_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
     !!]
     return
   end subroutine descendentNodeDestructor

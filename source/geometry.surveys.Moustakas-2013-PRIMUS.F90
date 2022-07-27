@@ -64,6 +64,7 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
   type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     integer                                            :: redshiftBin
      double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
           &                                                redshiftMinimum              , redshiftMaximum
    contains
@@ -133,7 +134,7 @@ contains
     integer                                   , intent(in   )         :: redshiftBin
     class  (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="*cosmologyFunctions_"/>
+    <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
     !!]
 
     ! Find distance limits for this redshift bin.

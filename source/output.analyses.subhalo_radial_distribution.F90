@@ -21,6 +21,8 @@
   Contains a module which implements an output analysis class that computes subhalo radial distributions.
   !!}
   
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !![
   <outputAnalysis name="outputAnalysisSubhaloRadialDistribution">
    <description>An output analysis class for subhalo mass functions.</description>
@@ -37,6 +39,7 @@
      An output analysis class for subhalo mass functions.
      !!}
      private
+     class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_               => null()
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionsSubHalos           => null(), volumeFunctionsHostHalos           => null()
      double precision                                , allocatable, dimension(:  ) :: radiiFractional                            , radialDistribution                          , &
           &                                                                           radialDistributionTarget
@@ -44,7 +47,7 @@
      type            (varying_string                )                              :: labelTarget
      double precision                                                              :: negativeBinomialScatterFractional          , countFailures                               , &
           &                                                                           radiusFractionMinimum                      , radiusFractionMaximum                       , &
-          &                                                                           time
+          &                                                                           time                                       , redshift
      integer         (c_size_t                      )                              :: countRadiiFractional 
      logical                                                                       :: finalized
    contains
@@ -78,7 +81,6 @@ contains
     !!}
     use :: Input_Parameters       , only : inputParameter            , inputParameters
     use :: Output_Times           , only : outputTimesClass
-    use :: Cosmology_Functions    , only : cosmologyFunctionsClass
     use :: Virial_Density_Contrast, only : virialDensityContrastClass
     implicit none
     type            (outputAnalysisSubhaloRadialDistribution)                :: self
@@ -190,7 +192,7 @@ contains
     class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
     class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_            , virialDensityContrastDefinition_
     class           (cosmologyParametersClass               ), intent(inout)                 :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass                ), intent(inout), target         :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass              ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                         , intent(in   ), optional       :: redshift
     double precision                                         , allocatable  , dimension(:  ) :: radiiFractionalTarget             , radialDistributionTarget         , &
@@ -202,7 +204,10 @@ contains
     integer         (c_size_t                                 )                              :: countRadiiFractional              , i
     type            (varying_string                           )                              :: labelTarget
     type            (hdf5Object                               )                              :: file                              , radialDistributionGroup
-
+    !![
+    <constructorAssign variables="redshift, *cosmologyFunctions_"/>
+    !!]
+    
     ! Read properties from the file.
     !$ call hdf5Access%set()
     call file                   %openFile     (char(File_Name_Expand(char(fileName))),readOnly=.true.                       )
@@ -258,7 +263,7 @@ contains
     class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
     class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_                          , virialDensityContrastDefinition_
     class           (cosmologyParametersClass                    ), intent(in   )                           :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                     ), intent(in   )                           :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass                     ), intent(in   ), target                   :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                   ), intent(in   )                           :: darkMatterProfileDMO_
     double precision                                              , intent(in   ), dimension(:)  , optional :: radialDistributionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: radialDistributionCovarianceTarget
@@ -285,11 +290,12 @@ contains
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget"/>
+    <constructorAssign variables="negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget, *cosmologyFunctions_"/>
     !!]
 
     ! Initialize.
     self%finalized=.false.
+    self%redshift =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     ! Compute failure count for the negative binomial distribution used in likelihood calculations.
     self%countFailures=1.0d0/negativeBinomialScatterFractional**2
     ! Construct mass bins.
@@ -465,6 +471,7 @@ contains
     !![
     <objectDestructor name="self%volumeFunctionsSubHalos" />
     <objectDestructor name="self%volumeFunctionsHostHalos"/>
+    <objectDestructor name="self%cosmologyFunctions_"     />
     !!]
     return
   end subroutine subhaloRadialDistributionDestructor

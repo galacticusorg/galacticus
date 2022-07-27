@@ -40,7 +40,7 @@ Contains a module which implements an N-body data operator which computes virial
      double precision                                      :: velocityMinimum                 , velocityMaximum     , &
           &                                                   separationMinimum               , separationMaximum   , &
           &                                                   bootstrapSampleRate             , time                , &
-          &                                                   velocityCut
+          &                                                   velocityCut                     , redshift
      integer         (c_size_t                  )          :: velocityCount                   , bootstrapSampleCount
      logical                                               :: includeUnbootstrapped           , crossCount          , &
           &                                                   addHubbleFlow
@@ -197,6 +197,7 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
+    self%redshift  =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function virialCrossingOrbitStatisticsConstructorInternal
 

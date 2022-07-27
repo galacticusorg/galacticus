@@ -31,7 +31,8 @@ Implements survey geometries over the full sky.
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
-     double precision                                   :: limitDistanceMinimum          , limitDistanceMaximum
+     double precision                                   :: limitDistanceMinimum          , limitDistanceMaximum, &
+          &                                                redshiftMinimum               , redshiftMaximum
    contains
      final     ::                            fullSkyDestructor
      procedure :: distanceMinimum         => fullSkyDistanceMinimum
