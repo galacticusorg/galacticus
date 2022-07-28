@@ -144,7 +144,7 @@ contains
     double precision                           , allocatable  , dimension(:,:,:) :: inertiaTensor         , eigenVectors
     double precision                           , pointer      , dimension(:,:  ) :: position
     integer         (c_size_t                 ), pointer      , dimension(:,:  ) :: selfBoundStatus
-    integer         (c_size_t                 ), pointer      , dimension(:    ) :: indexMostBound
+    integer         (c_size_t                 ), pointer      , dimension(:,:  ) :: indexMostBound
     double precision                           , allocatable  , dimension(:,:  ) :: positionOffset        , axisRatios   , &
          &                                                                          eigenValues
     double precision                           , allocatable  , dimension(:    ) :: radiusOffset
@@ -192,8 +192,8 @@ contains
        ! Get simulation attributes.
        massParticle=simulations(iSimulation)%attributesReal%value('massParticle')
        ! Get index of the most-bound particle.
-       if (simulations(iSimulation)%propertiesInteger%exists('indexMostBound')) then
-          indexMostBound => simulations(iSimulation)%propertiesInteger%value('indexMostBound')
+       if (simulations(iSimulation)%propertiesIntegerRank1%exists('indexMostBound')) then
+          indexMostBound => simulations(iSimulation)%propertiesIntegerRank1%value('indexMostBound')
        else
           call Error_Report('index of most bound particle not available - apply a self-bound operator first'//{introspection:location})
        end if
@@ -220,8 +220,8 @@ contains
           ! First find the position (and radius) relative to the most-bound particle.
           !$omp workshare
           forall(j=1:3)
-             positionOffset(j,:)=+position(j,               : ) &
-                  &              -position(j,indexMostBound(i))
+             positionOffset(j,:)=+position(j,               :   ) &
+                  &              -position(j,indexMostBound(1,i))
           end forall
           radiusOffset=sqrt(sum(positionOffset**2,dim=1))
           ! Construct a mask of particles to include in the calculation.
