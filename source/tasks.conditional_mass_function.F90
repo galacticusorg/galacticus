@@ -42,7 +42,8 @@
      double precision                                                             :: massHalo                             , massMinimum                  , &
           &                                                                          massMaximum                          , timeMinimum                  , &
           &                                                                          timeMaximum                          , massHaloMinimum              , &
-          &                                                                          massHaloMaximum
+          &                                                                          massHaloMaximum                      , redshiftMinimum              , &
+          &                                                                          redshiftMaximum
      logical                                                                      :: useSurveyLimits                      , integrateOverHaloMassFunction
      type            (varying_string                 )                            :: outputGroupName
      double precision                                 , allocatable, dimension(:) :: massBinCenters                       , massLogarithmDelta
@@ -275,6 +276,8 @@ contains
        self%massBinCenters    =Make_Range(massMinimum,massMaximum,countMass,rangeType=rangeTypeLogarithmic)
        self%massLogarithmDelta=log(self%massBinCenters(2)/self%massBinCenters(1))
     end if
+    self%redshiftMinimum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMaximum))
+    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMinimum))
     return
   end function conditionalMassFunctionConstructorInternal
 

@@ -37,8 +37,9 @@
      private
      type            (varying_string                )          :: outputGroup
      integer                                                   :: massesPerDecade                      , timesPerDecade
-     double precision                                          :: massMaximum                          , massMinimum   , &
-          &                                                       timeMinimum                          , timeMaximum
+     double precision                                          :: massMaximum                          , massMinimum    , &
+          &                                                       timeMinimum                          , timeMaximum    , &
+          &                                                       redshiftMinimum                      , redshiftMaximum
      logical                                                   :: nodeComponentsInitialized  =  .false.
      class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_       => null()
      class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
@@ -219,6 +220,8 @@ contains
     <constructorAssign variables="massMinimum, massMaximum, massesPerDecade, timeMinimum, timeMaximum, timesPerDecade, outputGroup, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *haloMassFunction_, *excursionSetBarrier_, *excursionSetFirstCrossing_, *powerSpectrum_"/>
     !!]
 
+    self%redshiftMinimum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMaximum))
+    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMinimum))    
     return
   end function excursionSetsConstructorInternal
 
