@@ -694,6 +694,7 @@ foreach my $simulation ( @simulations ) {
 		    $job->{'label'     } =           "identifyAlwaysIsolated_".$i."_".$j."_".$k       ;
 		    $job->{'ppn'       } = $queueConfig->{'ppn'};
 		    $job->{'nodes'     } = 1 ;
+		    $job->{'walltime'  } = "8:00:00";
 		    $job->{'mpi'       } = "no";
 		    push(@jobsIdentify,$job);
 		}
@@ -777,6 +778,7 @@ foreach my $simulation ( @simulations ) {
 			    $job->{'label'     } =           "identifyAlwaysIsolated_".$redshiftLabel."_".$i."_".$j."_".$k       ;
 			    $job->{'ppn'       } = 1;
 			    $job->{'nodes'     } = 1;
+			    $job->{'walltime'  } = "8:00:00";
 			    $job->{'mpi'       } = "yes";
 			    push(@jobsExtract,$job);
 			}
@@ -813,6 +815,7 @@ foreach my $simulation ( @simulations ) {
 			    $job->{'label'     } =           "identifyNonFlyby_".$redshiftLabel."_".$i."_".$j."_".$k       ;
 			    $job->{'ppn'       } = 1;
 			    $job->{'nodes'     } = 1;
+			    $job->{'walltime'  } = "8:00:00";
 			    $job->{'mpi'       } = "yes";
 			    push(@jobsExtract,$job);
 			}
@@ -849,6 +852,7 @@ foreach my $simulation ( @simulations ) {
 			    $job->{'label'     } =           "identifyAll_".$redshiftLabel."_".$i."_".$j."_".$k       ;
 			    $job->{'ppn'       } = 1;
 			    $job->{'nodes'     } = 1;
+			    $job->{'walltime'  } = "8:00:00";
 			    $job->{'mpi'       } = "yes";
 			    push(@jobsExtract,$job);
 			}
@@ -942,6 +946,7 @@ foreach my $simulation ( @simulations ) {
 		    $job->{'label'     } =           "haloMassFunction_".$haloType."_".$redshiftLabel       ;
 		    $job->{'ppn'       } = $queueConfig->{'ppn'};
 		    $job->{'nodes'     } = 1;
+		    $job->{'walltime'  } = "8:00:00";
 		    $job->{'mpi'       } = "no";
 		    push(@massFunctionJobs,$job);
 		}
@@ -1046,6 +1051,7 @@ sub zoomInsPreProcessExtractLocate {
 		$job->{'label'     } =           "zoomInExtract_".$simulation->{'label'}       ;
 		$job->{'ppn'       } = 1;
 		$job->{'nodes'     } = 1;
+		$job->{'walltime'  } = "8:00:00";
 		$job->{'mem'       } = "32G";
 		$job->{'mpi'       } = "no";
 	    }
@@ -1099,6 +1105,7 @@ sub zoomInsPreProcessExtractUncontaminated {
 	    $job->{'label'     } =           "uncontaminatedExtract_".$simulation->{'label'}."_".$redshiftLabel       ;
 	    $job->{'ppn'       } = $queueConfig->{'ppn'};
 	    $job->{'nodes'     } = 1;
+	    $job->{'walltime'  } = "8:00:00";
 	    $job->{'mpi'       } = "no";
 	    push(@{$jobs},$job)
 	}
@@ -1194,6 +1201,7 @@ sub zoomInsPostprocessSelectInSphere {
 	$job->{'label'     } =           "selectInSphere_".$redshiftLabel       ;
 	$job->{'ppn'       } = $queueConfig->{'ppn'};
 	$job->{'nodes'     } =  1;
+	$job->{'walltime'  } = "8:00:00";
 	$job->{'mpi'       } = "no";
 	push(@{$jobs},$job)
 	    unless ( -e $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'fileName' }->{'value'} );
@@ -1256,6 +1264,7 @@ sub zoomInsPostprocessSelectInICs {
 	$job->{'label'     } =           "selectInICs_".$redshiftLabel.""    ;
 	$job->{'ppn'       } = $queueConfig->{'ppn'};
 	$job->{'nodes'     } =  1;
+	$job->{'walltime'  } = "8:00:00";
 	$job->{'mpi'       } = "no";
 	push(@{$jobs},$job)
 	    unless ( -e $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName' }->{'value'} );
@@ -1293,6 +1302,7 @@ sub zoomInsPostprocessAnalyze {
 	$job->{'label'     } =           "analyze_".$redshiftLabel       ;
 	$job->{'ppn'       } = $queueConfig->{'ppn'};
 	$job->{'nodes'     } =  1;
+	$job->{'walltime'  } = "8:00:00";
 	$job->{'mpi'       } = "no";
 	push(@{$jobs},$job)
 	    unless ( -e $pathName."environment_".$redshiftLabel.":MPI0000.hdf5" );
