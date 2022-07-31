@@ -1010,7 +1010,25 @@ sub zoomInsProcessIdentify {
     $parameters->{'cosmologyParameters'}->{'OmegaDarkEnergy'}->{'value'} =  0.714;
     $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.047;
     # Add read of additional columns.
-    $parameters->{'nbodyImporter'      }->{'readColumns'    }->{'value'} .= " X Y Z Rvir rs";
+    my @propertiesImport = split(" ",$parameters->{'nbodyImporter'}->{'readColumns'}->{'value'});
+    foreach my $property ( "X", "Y", "Z", "Rvir", "rs" ) {
+	$parameters->{'nbodyImporter'}->{'readColumns'}->{'value'} .= " ".$property
+	    unless ( grep {$_ eq $property} @propertiesImport );
+    }
+    # Remove any delete of these properties.
+    my @propertiesDeleted = split("",$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'propertyNames'}->{'value'});
+    my @propertiesToDelete;
+    foreach my $property ( @propertiesDeleted ) {
+	push(@propertiesToDelete,$property)
+	    unless
+	    (
+	     $property eq "position"
+	     ||
+	     $property eq "radiusScale"
+	     ||
+	     $property eq "radiusVirial"
+	    );
+    }
     # Add physical to comoving conversion.
     splice(
 	@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},
