@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an output analyis class for the \cite{bernardi_massive_2013} stellar mass function.
+Contains a module which implements an output analysis class for the \cite{bernardi_massive_2013} stellar mass function.
 !!}
 
 
@@ -48,12 +48,14 @@ contains
     !!{
     Constructor for the ``massFunctionStellarBernardi2013SDSS'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     type            (outputAnalysisMassFunctionStellarBernardi2013SDSS)                              :: self
     type            (inputParameters                                  ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                 ), pointer                     :: outputTimes_
+    class           (galacticStructureClass                           ), pointer                     :: galacticStructure_
     class           (gravitationalLensingClass                        ), pointer                     :: gravitationalLensing_
     double precision                                                   , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                          :: covarianceBinomialBinsPerDecade
@@ -132,19 +134,21 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarBernardi2013SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarBernardi2013SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="gravitationalLensing_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function massFunctionStellarBernardi2013SDSSConstructorParameters
 
-  function massFunctionStellarBernardi2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarBernardi2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
     Constructor for the ``massFunctionStellarBernardi2013SDSS'' output analysis class for internal use.
     !!}
@@ -161,6 +165,7 @@ contains
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
+    class           (galacticStructureClass                             ), intent(in   ), target       :: galacticStructure_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
@@ -271,6 +276,7 @@ contains
          &                                   outputAnalysisPropertyOperator_                                                                                   , &
          &                                   outputAnalysisDistributionOperator_                                                                               , &
          &                                   outputTimes_                                                                                                      , &
+         &                                   galacticStructure_                                                                                                , &
          &                                   covarianceBinomialBinsPerDecade                                                                                   , &
          &                                   covarianceBinomialMassHaloMinimum                                                                                 , &
          &                                   covarianceBinomialMassHaloMaximum                                                                                   &
