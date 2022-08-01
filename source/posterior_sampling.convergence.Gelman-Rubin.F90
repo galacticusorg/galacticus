@@ -47,13 +47,13 @@
      Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
      !!}
      private
-     double precision                                            :: thresholdHatR             , outlierSignificance , &
+     double precision                                            :: thresholdHatR             , outlierSignificance         , &
           &                                                         outlierLogLikelihoodOffset
-     integer                                                     :: burnCount                 , testCount           , &
-          &                                                         stepCount                 , outlierCountMaximum , &
-          &                                                         reportCount               , estimateCount       , &
+     integer                                                     :: burnCount                 , testCount                   , &
+          &                                                         stepCount                 , outlierCountMaximum         , &
+          &                                                         reportCount               , estimateCount               , &
           &                                                         logFileUnit               , convergedAtStepCount
-     logical                                                     :: converged
+     logical                                                     :: converged                 , logFileIsOpen       =.false.
      type            (varying_string)                            :: logFileName
      double precision                , allocatable, dimension(:) :: correctedHatR
      logical                         , allocatable, dimension(:) :: chainMask
@@ -182,7 +182,12 @@ contains
     ! Validate.
     if (mpiSelf%count()-self%outlierCountMaximum < 3) call Error_Report('maximum number of outliers is too large'//{introspection:location})
     ! Open log file.
-    if (mpiSelf%isMaster()) open(newUnit=self%logFileUnit,file=char(logFileName),form='formatted',status='unknown')
+    if (mpiSelf%isMaster()) then
+       open(newUnit=self%logFileUnit,file=char(logFileName),form='formatted',status='unknown')
+       self%logFileIsOpen=.true.
+    else
+       self%logFileIsOpen=.false.
+    end if
     return
   end function gelmanRubinConstructorInternal
 
@@ -195,7 +200,7 @@ contains
     type(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
 
     ! Close the log file.
-    if (mpiSelf%isMaster()) close(self%logFileUnit)
+    if (mpiSelf%isMaster().and.self%logFileIsOpen) close(self%logFileUnit)
     return
   end subroutine gelmanRubinDestructor
 
