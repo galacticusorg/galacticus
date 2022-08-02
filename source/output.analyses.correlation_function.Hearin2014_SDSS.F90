@@ -47,8 +47,9 @@ contains
     !!{
     Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
     !!}
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Input_Parameters, only : inputParameter, inputParameters
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Input_Parameters  , only : inputParameter        , inputParameters
+    use            :: Galactic_Structure, only : galacticStructureClass
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
@@ -58,6 +59,7 @@ contains
     class           (darkMatterHaloBiasClass                        ), pointer                     :: darkMatterHaloBias_
     class           (haloModelPowerSpectrumModifierClass            ), pointer                     :: haloModelPowerSpectrumModifier_
     class           (powerSpectrumClass                             ), pointer                     :: powerSpectrum_
+    class           (galacticStructureClass                         ), pointer                     :: galacticStructure_
     double precision                                                 , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient
     double precision                                                                               :: massHaloMinimum                 , massHaloMaximum                     , &
          &                                                                                            randomErrorMinimum              , randomErrorMaximum
@@ -127,8 +129,9 @@ contains
     <objectBuilder class="darkMatterHaloBias"             name="darkMatterHaloBias_"             source="parameters"/>
     <objectBuilder class="powerSpectrum"                  name="powerSpectrum_"                  source="parameters"/>
     <objectBuilder class="haloModelPowerSpectrumModifier" name="haloModelPowerSpectrumModifier_" source="parameters"/>
+    <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="parameters"/>
     !!]
-    self=outputAnalysisCorrelationFunctionHearin2013SDSS(massHaloBinsPerDecade,massHaloMinimum, massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_)
+    self=outputAnalysisCorrelationFunctionHearin2013SDSS(massHaloBinsPerDecade,massHaloMinimum, massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"            />
@@ -137,11 +140,12 @@ contains
     <objectDestructor name="darkMatterHaloBias_"            />
     <objectDestructor name="haloModelPowerSpectrumModifier_"/>
     <objectDestructor name="powerSpectrum_"                 />
+    <objectDestructor name="galacticStructure_"             />
     !!]
     return
   end function correlationFunctionHearin2013SDSSConstructorParameters
 
-  function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
+  function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,galacticStructure_) result (self)
     !!{
     Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class for internal use.
     !!}
@@ -167,6 +171,7 @@ contains
     class           (darkMatterHaloBiasClass                            ), intent(in   ), target         :: darkMatterHaloBias_
     class           (haloModelPowerSpectrumModifierClass                ), intent(in   ), target         :: haloModelPowerSpectrumModifier_
     class           (powerSpectrumClass                                 ), intent(in   ), target         :: powerSpectrum_
+    class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     type            (cosmologyParametersSimple                          ), pointer                       :: cosmologyParametersData_
     type            (cosmologyFunctionsMatterLambda                     ), pointer                       :: cosmologyFunctionsData_
     type            (galacticFilterStellarMass                          ), pointer                       :: galacticFilter_
@@ -220,7 +225,7 @@ contains
     ! Stellar mass property extractor.
     allocate(massPropertyExtractor_                )
     !![
-    <referenceConstruct object="massPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                               (                                                                           )"/>
+    <referenceConstruct object="massPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                               (galacticStructure_                                                         )"/>
     !!]
     ! Sequence of property operators to correct for cosmological model, convert to logarithm, and apply systematic errors.
     allocate(massPropertyOperatorCsmlgyLmnstyDstnc_)

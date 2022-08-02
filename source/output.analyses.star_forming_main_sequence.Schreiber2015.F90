@@ -48,9 +48,10 @@ contains
     !!{
     Constructor for the ``starFormingMainSequenceSchreiber2015'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-    use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-    use :: Input_Parameters    , only : inputParameter     , inputParameters
+    use :: Cosmology_Parameters, only : cosmologyParameters   , cosmologyParametersClass
+    use :: Cosmology_Functions , only : cosmologyFunctions    , cosmologyFunctionsClass
+    use :: Galactic_Structure  , only : galacticStructureClass
+    use :: Input_Parameters    , only : inputParameter        , inputParameters
     implicit none
     type            (outputAnalysisStarFormingMainSequenceSchreiber2015)                              :: self
     type            (inputParameters                                   ), intent(inout)               :: parameters
@@ -59,6 +60,7 @@ contains
     class           (outputTimesClass                                  ), pointer                     :: outputTimes_
     class           (starFormationRateDisksClass                       ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                   ), pointer                     :: starFormationRateSpheroids_
+    class           (galacticStructureClass                            ), pointer                     :: galacticStructure_
     double precision                                                    , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
          &                                                                                               weightSystematicErrorPolynomialCoefficient
     double precision                                                                                  :: randomErrorMinimum                        , randomErrorMaximum
@@ -118,8 +120,9 @@ contains
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="galacticStructure"          name="galacticStructure_"          source="parameters"/>
     !!]
-    self=outputAnalysisStarFormingMainSequenceSchreiber2015(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisStarFormingMainSequenceSchreiber2015(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"       />
@@ -127,11 +130,12 @@ contains
     <objectDestructor name="outputTimes_"               />
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="galacticStructure_"         />
     !!]
     return
   end function starFormingMainSequenceSchreiber2015ConstructorParameters
 
-  function starFormingMainSequenceSchreiber2015ConstructorInternal(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function starFormingMainSequenceSchreiber2015ConstructorInternal(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_) result(self)
     !!{
     Internal constructor for the ``starFormingMainSequenceSchreiber2015'' output analysis class.
     !!}
@@ -157,6 +161,7 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
+    class           (galacticStructureClass                             ), intent(in   ), target       :: galacticStructure_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilterStellarMass_
     type            (galacticFilterStarFormationRate                    )               , pointer      :: galacticFilterStarFormationRate_
     type            (galacticFilterAll                                  )               , pointer      :: galacticFilter_
@@ -311,7 +316,8 @@ contains
          &                                       outputAnalysisDistributionOperator_  , &
          &                                       outputAnalysisWeightPropertyOperator_, &
          &                                       starFormationRateDisks_              , &
-         &                                       starFormationRateSpheroids_            &
+         &                                       starFormationRateSpheroids_          , &
+         &                                       galacticStructure_                     &
          &                                      )
     !![
     <objectDestructor name="galacticFilterStellarMass_"           />

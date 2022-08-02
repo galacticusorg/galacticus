@@ -13,19 +13,19 @@
   <outputFileName value="galacticus.hdf5"/>
 
   <posteriorSampleLikelihood value="galaxyPopulation">
-    <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"      />
-    <failedParametersFileName value="./failedParameters.xml"/>
-    <randomize                value="false"                                    />
-    <evolveForestsVerbosity   value="0"                                        />
+    <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"/>
+    <failedParametersFileName value="./failedParameters.xml"           />
+    <randomize                value="false"                            />
+    <evolveForestsVerbosity   value="silent"                           />
   </posteriorSampleLikelihood>
 
   <!-- MCMC -->
   <posteriorSampleSimulation value="differentialEvolution">
     <stepsMaximum           value="1000"/>
-    <acceptanceAverageCount value="    10"/>
-    <stateSwapCount         value="     100"/>
+    <acceptanceAverageCount value="  10"/>
+    <stateSwapCount         value=" 100"/>
     <logFileRoot            value="mcmcChains"/>
-    <reportCount            value="10"/>
+    <reportCount            value="  10"/>
     <sampleOutliers         value="false"/>
     <logFlushCount          value="      1"/>
 

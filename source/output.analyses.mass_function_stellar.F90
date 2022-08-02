@@ -55,8 +55,9 @@ contains
     !!{
     Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error             , only : Error_Report
+    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -66,6 +67,7 @@ contains
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
+    class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
     double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget              , &
          &                                                                                    functionCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
@@ -159,9 +161,10 @@ contains
     <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
     <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
-    <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"          />
+    <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
+    <objectBuilder class="galacticStructure"                  name="galacticStructure_"                  source="parameters"            />
     <conditionalCall>
-     <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+     <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,galacticStructure_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
      <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
      <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
@@ -173,12 +176,13 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperator_"    />
     <objectDestructor name="outputAnalysisDistributionOperator_"/>
     <objectDestructor name="surveyGeometry_"                    />
+    <objectDestructor name="galacticStructure_"                 />
     <objectDestructor name="outputTimes_"                       />
     !!]
     return
   end function massFunctionStellarConstructorParameters
 
-  function massFunctionStellarConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function massFunctionStellarConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,galacticStructure_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``massFunctionStellar'' output analysis class which reads bin information from a standard format file.
     !!}
@@ -194,6 +198,7 @@ contains
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
     class           (outputTimesClass                       ), intent(inout) , target      :: outputTimes_
+    class           (galacticStructureClass                 ), intent(in   ) , target      :: galacticStructure_
     double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
     integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
@@ -216,7 +221,7 @@ contains
     ! Construct the object.
     !![
     <conditionalCall>
-     <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+     <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,galacticStructure_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
      <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
      <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
      <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
@@ -225,7 +230,7 @@ contains
     return
   end function massFunctionStellarConstructorFile
 
-  function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,galacticStructure_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
     Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
     !!}
@@ -251,6 +256,7 @@ contains
     class           (outputAnalysisPropertyOperatorClass            ), intent(inout), target                   :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
     class           (outputTimesClass                               ), intent(inout), target                   :: outputTimes_
+    class           (galacticStructureClass                         ), intent(in   ), target                   :: galacticStructure_
     integer                                                          , intent(in   )                           :: covarianceBinomialBinsPerDecade
     double precision                                                 , intent(in   )                           :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
@@ -284,7 +290,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_)
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar               (                                                       )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                     )"/>
     !!]
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )

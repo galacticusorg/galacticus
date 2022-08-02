@@ -52,6 +52,7 @@ contains
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParameters                                     , cosmologyParametersClass
+    use :: Galactic_Structure              , only : galacticStructureClass
     use :: Functions_Global                , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use :: Input_Parameters                , only : inputParameter                                          , inputParameters
     use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatio                            , outputAnalysisMolecularRatioClass
@@ -64,6 +65,7 @@ contains
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
     class           (virialDensityContrastClass                       ), pointer                     :: virialDensityContrast_
     class           (darkMatterProfileDMOClass                        ), pointer                     :: darkMatterProfileDMO_
+    class           (galacticStructureClass                           ), pointer                     :: galacticStructure_
     class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
     class           (*                                                ), pointer                     :: percolationObjects_
     integer         (c_size_t                                         )                              :: likelihoodBin
@@ -94,9 +96,10 @@ contains
     <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="galacticStructure"            name="galacticStructure_"            source="parameters"/>
     !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,outputAnalysisMolecularRatio_,outputTimes_,galacticStructure_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"         />
@@ -105,11 +108,12 @@ contains
     <objectDestructor name="outputAnalysisMolecularRatio_"/>
     <objectDestructor name="darkMatterProfileDMO_"        />
     <objectDestructor name="virialDensityContrast_"       />
+    <objectDestructor name="galacticStructure_"           />
     !!]
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
-  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
+  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,outputAnalysisMolecularRatio_,outputTimes_,galacticStructure_,percolationObjects_) result (self)
     !!{
     Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
     !!}
@@ -142,6 +146,7 @@ contains
     class           (cosmologyFunctionsClass                           ), intent(inout), target         :: cosmologyFunctions_
     class           (virialDensityContrastClass                        ), intent(in   )                 :: virialDensityContrast_
     class           (darkMatterProfileDMOClass                         ), intent(in   )                 :: darkMatterProfileDMO_
+    class           (galacticStructureClass                            ), intent(in   ), target         :: galacticStructure_
     class           (outputTimesClass                                  ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target         :: outputAnalysisMolecularRatio_
     class           (*                                                 ), intent(in   ), target         :: percolationObjects_
@@ -311,7 +316,7 @@ contains
     ! Create an HI mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (galacticStructure_                                                                )"/>
     !!]
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in

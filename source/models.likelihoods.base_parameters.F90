@@ -84,7 +84,7 @@ contains
           parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"::")
-          parameters_=self%parametersModel
+          parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
              instance    =1
              indexElement=0
