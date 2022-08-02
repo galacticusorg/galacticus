@@ -41,11 +41,15 @@ module Star_Formation_Rate_Surface_Density_Disks
     <type>double precision, allocatable, dimension(:,:)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type            (treeNode), intent(inout), target :: node</argument>
-    <argument>double precision          , intent(in   )         :: radiusInner, radiusOuter</argument>
+    <argument>type            (treeNode), intent(inout), target                    :: node                           </argument>
+    <argument>double precision          , intent(in   )                            :: radiusInner       , radiusOuter</argument>
+    <argument>logical                   , intent(inout), allocatable, dimension(:) :: intervalIsAnalytic             </argument>
+    <argument>double precision          , intent(inout), allocatable, dimension(:) :: integralsAnalytic              </argument>
     <code>
      !$GLC attributes unused :: self, node
      allocate(starFormationRateSurfaceDensityDisksIntervals(2,1))
+     allocate(intervalIsAnalytic                           (  1))
+     intervalIsAnalytic                           =.false.
      starFormationRateSurfaceDensityDisksIntervals=reshape([radiusInner,radiusOuter],[2,1])
     </code>
    </method>

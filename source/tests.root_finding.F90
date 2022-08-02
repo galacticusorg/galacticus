@@ -26,7 +26,7 @@ program Test_Root_Finding
   Tests that routine finding routines work.
   !!}
   use :: Display                    , only : displayVerbositySet    , verbosityLevelStandard
-  use :: Error           , only : errorStatusDivideByZero
+  use :: Error                      , only : errorStatusDivideByZero
   use :: Root_Finder                , only : rangeExpandAdditive    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
        &                                     stoppingCriterionDelta
   use :: Test_Root_Finding_Functions, only : Root_Function_1        , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
