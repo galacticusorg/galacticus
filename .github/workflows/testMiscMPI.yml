@@ -178,6 +178,6 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe_MPI
           export OMP_NUM_THREADS=1
-          mpirun -np 4 ./Galacticus.exe_MPI parameters/tutorials/mcmcConfig.xml 2>&1 | tee test.log
+          mpirun --allow-run-as-root -np 4 ./Galacticus.exe_MPI parameters/tutorials/mcmcConfig.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
