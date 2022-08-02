@@ -1787,22 +1787,22 @@ contains
     class           (table1D), intent(inout) :: self
     double precision         , intent(in   ) :: x
 
-    if      (x < self%x(+1)) then
+    if      (x < self%xv(1         )) then
        select case (self%extrapolationType(1)%ID)
        case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
-          Table1D_Find_Effective_X=x
+          Table1D_Find_Effective_X=     x
        case (extrapolationTypeFix        %ID)
-          Table1D_Find_Effective_X=self%x(+1)
+          Table1D_Find_Effective_X=self%xv(1          )
        case default
           Table1D_Find_Effective_X=0.0d0
           call Error_Report('x is below range'//{introspection:location})
        end select
-    else if (x > self%x(-1)) then
+    else if (x > self%x(self%xCount)) then
        select case (self%extrapolationType(2)%ID)
        case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
-          Table1D_Find_Effective_X=x
+          Table1D_Find_Effective_X=     x
        case (extrapolationTypeFix        %ID)
-          Table1D_Find_Effective_X=self%x(-1)
+          Table1D_Find_Effective_X=self%xv(self%xCount)
        case default
           Table1D_Find_Effective_X=0.0d0
           call Error_Report('x is above range'//{introspection:location})
@@ -1820,7 +1820,7 @@ contains
     implicit none
     class           (table1DNonUniformLinearLogarithmic)              , intent(inout)           :: self
     double precision                                    , dimension(:), intent(in   )           :: y
-    integer                                                          , intent(in   ), optional :: table
+    integer                                                           , intent(in   ), optional :: table
 
     call self%table1DGeneric%populate(log(y),table)
     return
