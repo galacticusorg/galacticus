@@ -193,7 +193,7 @@ contains
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
-    use :: Numerical_Integration               , only : integrator
+    use :: Numerical_Integration               , only : integrator, GSL_Integ_Gauss15
     implicit none
     double precision                                       , dimension(:,:), allocatable :: projectedDensityExtract
     class           (nodePropertyExtractorProjectedDensity), intent(inout) , target      :: self
@@ -203,9 +203,11 @@ contains
     class           (nodeComponentDisk                    ), pointer                     :: disk
     class           (nodeComponentSpheroid                ), pointer                     :: spheroid
     class           (nodeComponentDarkMatterProfile       ), pointer                     :: darkMatterProfile
+    double precision                                       , parameter                   :: epsilonSingularity     =1.0d-3
     type            (integrator                           )                              :: integrator_
     integer                                                                              :: i
-    double precision                                                                     :: radiusVirial           , radiusOuter
+    double precision                                                                     :: radiusVirial                  , radiusOuter, &
+         &                                                                                  radiusSingularity
     !$GLC attributes unused :: time, instance
 
     allocate(projectedDensityExtract(self%radiiCount,self%elementCount_))
@@ -214,7 +216,7 @@ contains
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
-    integrator_=integrator(projectedDensityIntegrand,toleranceRelative=1.0d-3)
+    integrator_=integrator(projectedDensityIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
     do i=1,self%radiiCount
        projectedDensityRadius=self%radii(i)%value
        select case (self%radii(i)%type%ID)
@@ -256,27 +258,51 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       radiusOuter                        =self       %darkMatterHaloScale_%radiusVirial(node                              )       
-       projectedDensityExtract       (i,1)=integrator_                     %integrate   (projectedDensityRadius,radiusOuter)
-       if (self%includeRadii)                                                                                                &
-            & projectedDensityExtract(i,2)=                                              projectedDensityRadius
+       radiusOuter                        =self       %darkMatterHaloScale_%radiusVirial(node                              )
+       ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated analytically
+       ! assuming a constant density over this region. The region outside of this cut-out will be integrated numerically.
+       radiusSingularity=min(projectedDensityRadius*(1.0d0+epsilonSingularity),radiusOuter)
+       !! Analytic integral within the cut-out.
+       projectedDensityExtract       (i,1)=+2.0d0                                                                  &
+            &                              *sqrt(                                                                  &
+            &                                    +radiusSingularity     **2                                        &
+            &                                    -projectedDensityRadius**2                                        &
+            &                                   )                                                                  &
+            &                              *self%galacticStructure_%density(                                       &
+            &                                                               node                                 , &
+            &                                                               [                                      &
+            &                                                                projectedDensityRadius              , &
+            &                                                                0.0d0                               , &
+            &                                                                0.0d0                                 &
+            &                                                               ]                                    , &
+            &                                                               componentType=self%radii(i)%component, &
+            &                                                               massType     =self%radii(i)%mass       &
+            &                                                              )
+       !! Numerical integral outside of the cut-out.
+       if (radiusSingularity > radiusOuter)                                                                &       
+            & projectedDensityExtract(i,1)=+projectedDensityExtract(i,1)                                   &
+            &                              +integrator_%integrate(log(radiusSingularity),log(radiusOuter))
+       if (self%includeRadii)                                                                              &
+            & projectedDensityExtract(i,2)=projectedDensityRadius
     end do
     return
 
   contains
 
-    double precision function projectedDensityIntegrand(radius)
+    double precision function projectedDensityIntegrand(radiusLogarithmic)
       !!{
       Integrand function used for computing projected densities.
       !!}
       implicit none
-      double precision, intent(in   ) :: radius
+      double precision, intent(in   ) :: radiusLogarithmic
+      double precision                :: radius
 
+      radius=exp(radiusLogarithmic)
       if (radius <= projectedDensityRadius) then
          projectedDensityIntegrand=+0.0d0
       else
          projectedDensityIntegrand=+2.0d0                                                                  &
-              &                    *radius                                                                 &
+              &                    *radius                      **2                                        &
               &                    /sqrt(                                                                  &
               &                          +radius                **2                                        &
               &                          -projectedDensityRadius**2                                        &
@@ -309,7 +335,7 @@ contains
 
     allocate(names(self%elementCount_))
     names       (1)="projectedDensity"
-    if (self%includeRadii)                                   &
+    if (self%includeRadii)                   &
          & names(2)="projectedDensityRadius"
     return
   end subroutine projectedDensityNames
@@ -326,7 +352,7 @@ contains
 
     allocate(descriptions(self%elementCount_))
     descriptions       (1)="Projected density at a given radius [M☉/Mpc⁻²]."
-    if (self%includeRadii)                                                                      &
+    if (self%includeRadii)                                                      &
          & descriptions(2)="Radius at which projected density is output [Mpc]."
     return
   end subroutine projectedDensityDescriptions
