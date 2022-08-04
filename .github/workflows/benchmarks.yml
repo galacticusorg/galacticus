@@ -106,7 +106,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./benchmark-darkMatterOnlySubhalos.pl
-          ./benchmark-darkMatterOnlySubhalos.pl. 2>&1 | tee test.log
+          ./benchmark-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
