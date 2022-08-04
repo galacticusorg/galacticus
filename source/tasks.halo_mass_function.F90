@@ -28,6 +28,7 @@
   use :: Halo_Mass_Functions                      , only : haloMassFunctionClass
   use :: Linear_Growth                            , only : linearGrowthClass
   use :: Output_Times                             , only : outputTimesClass
+  use :: Numerical_Random_Numbers                 , only : randomNumberGeneratorClass
   use :: Transfer_Functions                       , only : transferFunctionClass
   use :: Unevolved_Subhalo_Mass_Functions         , only : unevolvedSubhaloMassFunctionClass
   use :: Virial_Density_Contrast                  , only : virialDensityContrastClass
@@ -66,6 +67,7 @@
      class           (outputTimesClass                       ), pointer                   :: outputTimes_                        => null()
      class           (darkMatterProfileScaleRadiusClass      ), pointer                   :: darkMatterProfileScaleRadius_       => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
+     class           (randomNumberGeneratorClass             ), pointer                   :: randomNumberGenerator_              => null()
      double precision                                                                     :: haloMassMinimum                              , haloMassMaximum                     , &
           &                                                                                  pointsPerDecade
      type            (varying_string                         )                            :: outputGroup
@@ -116,6 +118,7 @@ contains
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass      ), pointer                     :: darkMatterProfileScaleRadius_
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                     :: darkMatterHaloMassAccretionHistory_
+    class           (randomNumberGeneratorClass             ), pointer                     :: randomNumberGenerator_
     type            (inputParameters                        ), pointer                     :: parametersRoot
     type            (inputParameters                        ),                             :: parametersMassDefinitions
     type            (virialDensityContrastList              ), allocatable  , dimension(:) :: virialDensityContrasts
@@ -201,6 +204,7 @@ contains
     <objectBuilder    class="outputTimes"                        name="outputTimes_"                        source="parameters"                                          />
     <objectBuilder    class="darkMatterProfileScaleRadius"       name="darkMatterProfileScaleRadius_"       source="parameters"                                          />
     <objectBuilder    class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"                                          />
+    <objectBuilder    class="randomNumberGenerator"              name="randomNumberGenerator_"              source="parameters"                                          />
     !!]
     if (parameters%isPresent('transferFunctionReference')) then
        !![
@@ -267,6 +271,7 @@ contains
          &amp;                    darkMatterHaloBias_                , &amp;
          &amp;                    transferFunction_                  , &amp;
          &amp;                    outputTimes_                       , &amp;
+         &amp;                    randomNumberGenerator_             , &amp;
          &amp;                    virialDensityContrasts             , &amp;
          &amp;                    parametersRoot                       &amp;
          &amp;                    {conditions}                         &amp;
@@ -291,6 +296,7 @@ contains
     <objectDestructor name="outputTimes_"                       />
     <objectDestructor name="darkMatterProfileScaleRadius_"      />
     <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="randomNumberGenerator_"             />
     !!]
     if (parameters%isPresent('transferFunctionReference')) then
        !![
@@ -332,6 +338,7 @@ contains
        &                                       darkMatterHaloBias_                , &
        &                                       transferFunction_                  , &
        &                                       outputTimes_                       , &
+       &                                       randomNumberGenerator_             , &
        &                                       virialDensityContrasts             , &
        &                                       parameters                         , &
        &                                       transferFunctionReference            &
@@ -358,6 +365,7 @@ contains
     class           (transferFunctionClass                  ), intent(in   ), target                 :: transferFunction_
     class           (transferFunctionClass                  ), intent(in   ), target      , optional :: transferFunctionReference
     class           (outputTimesClass                       ), intent(in   ), target                 :: outputTimes_
+    class           (randomNumberGeneratorClass             ), intent(in   ), target                 :: randomNumberGenerator_
     type            (virialDensityContrastList              ), intent(in   ), dimension(:)           :: virialDensityContrasts
     type            (varying_string                         ), intent(in   )                         :: outputGroup
     double precision                                         , intent(in   )                         :: haloMassMinimum                    , haloMassMaximum           , &
@@ -368,7 +376,7 @@ contains
     type            (inputParameters                        ), intent(in   ), target                 :: parameters
     integer                                                                                          :: i
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *outputTimes_"/>
+    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -409,6 +417,7 @@ contains
     <objectDestructor name="self%darkMatterHaloBias_"                />
     <objectDestructor name="self%transferFunction_"                  />
     <objectDestructor name="self%outputTimes_"                       />
+    <objectDestructor name="self%randomNumberGenerator_"             />
     !!]
     if (associated(self%transferFunctionReference)) then
        !![
@@ -632,7 +641,7 @@ contains
     ! Build an integrator.
     allocate(integrator_)
     integrator_=integrator(subhaloMassFunctionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
-       ! Create a node object, assume zero environmental overdensity.
+    ! Create a node object, assume zero environmental overdensity.
     allocate(tree)
     tree                   =  mergerTree()
     tree%nodeBase          => treeNode  ()
@@ -640,6 +649,14 @@ contains
     call tree                   %properties%initialize(                               )
     if (haloEnvironment_%overdensityIsSettable())                                       &
          & call haloEnvironment_%overdensityLinearSet (tree%nodeBase,overdensity=0.0d0)
+    allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+    !$omp critical(taskHaloMassFunctionDeepCopy)
+    !![
+    <deepCopyReset variables="self%randomNumberGenerator_"/>
+    <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+    <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+    !!]
+    !$omp end critical(taskHaloMassFunctionDeepCopy)
     ! Get the basic and dark matter profile components.
     basic                 => tree%nodeBase%basic            (autoCreate=.true.)
     darkMatterProfileHalo => tree%nodeBase%darkMatterProfile(autoCreate=.true.)
