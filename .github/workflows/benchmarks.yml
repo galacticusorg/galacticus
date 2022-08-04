@@ -99,8 +99,8 @@ jobs:
           name: galacticus-exec
       - name: Install tools
         run: |
-          sudo apt -y update
-          sudo apt install -y time
+          apt -y update
+          apt install -y time
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
