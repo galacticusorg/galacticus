@@ -38,7 +38,8 @@
        <method description="Returns the $n^\mathrm{th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$." method="surfaceDensityRadialMoment" />
        <method description="Returns the circular velocity at the given {\normalfont \ttfamily radius}." method="rotationCurve" />
        <method description="Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}." method="rotationCurveGradient" />
-       <method description="Returns the surface density at the given {\normalfont \ttfamily coordinates}." method="surfaceDensity" />
+       <method description="Returns the surface density at the given {\normalfont \ttfamily coordinates}." method="surfaceDensity"          />
+       <method description="Returns the spherically-averagef density at the given {\normalfont \ttfamily radius}." method="densitySphericalAverage" />
      </methods>
      !!]
      procedure                                                  :: symmetry                   => cylindricalSymmetry
@@ -47,6 +48,7 @@
      procedure(cylindricalRotationCurve             ), deferred :: rotationCurve
      procedure(cylindricalRotationCurveGradient     ), deferred :: rotationCurveGradient
      procedure(cylindricalSurfaceDensityRadialMoment), deferred :: surfaceDensityRadialMoment
+     procedure(cylindricalDensitySphericalAverage   ), deferred :: densitySphericalAverage
   end type massDistributionCylindrical
 
   abstract interface
@@ -97,16 +99,26 @@
        logical                                      , intent(  out), optional :: isInfinite
      end function cylindricalSurfaceDensityRadialMoment
 
+     double precision function cylindricalDensitySphericalAverage(self,radius)
+       !!{
+       Interface for cylindrically symmetric mass distribution spherically-averaged density functions.
+       !!}
+       import massDistributionCylindrical
+       class           (massDistributionCylindrical), intent(inout)           :: self
+       double precision                             , intent(in   )           :: radius
+     end function cylindricalDensitySphericalAverage
+
   end interface
 
 contains
 
-  integer function cylindricalSymmetry(self)
+  function cylindricalSymmetry(self)
     !!{
     Returns symmetry label for mass dsitributions with cylindrical symmetry.
     !!}
     implicit none
-    class(massDistributionCylindrical), intent(inout) :: self
+    type (enumerationMassDistributionSymmetryType)                :: cylindricalSymmetry
+    class(massDistributionCylindrical            ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     cylindricalSymmetry=massDistributionSymmetryCylindrical

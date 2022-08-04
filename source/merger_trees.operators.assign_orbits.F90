@@ -34,7 +34,7 @@ Contains a module which implements a merger tree operator which assigns orbits t
      An orbit assigning merger tree operator class.
      !!}
      private
-     class(virialOrbitClass               ), pointer :: virialOrbit_ => null()
+     class(virialOrbitClass               ), pointer :: virialOrbit_                => null()
      class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
    contains
      final     ::                        assignOrbitsDestructor
@@ -217,9 +217,10 @@ contains
                 nodeProgenitor => nodeProgenitor%firstChild
              end do
              if (.not.satelliteProgenitorFound) then
-                   virialOrbitNode=self%virialOrbit_%orbit(node,node%parent,.false.)
-                   call satellite%  mergeTimeSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
-                   call satellite%virialOrbitSet(                                                       virialOrbitNode )
+                basic           => node             %basic(                        )
+                virialOrbitNode =  self%virialOrbit_%orbit(node,node%parent,.false.)
+                call satellite%timeOfMergingSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode)+basic%time())
+                call satellite%  virialOrbitSet(                                                       virialOrbitNode              )
              end if
           else
              ! The merge target must be reachable at the merge time. If it is not, find a

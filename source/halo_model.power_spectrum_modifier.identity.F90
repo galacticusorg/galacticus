@@ -67,7 +67,7 @@ contains
     implicit none
     class           (haloModelPowerSpectrumModifierIdentity), intent(inout)                           :: self
     double precision                                        , intent(in   ), dimension(:  )           :: wavenumber
-    integer                                                 , intent(in   )                           :: term
+    type            (enumerationHaloModelTermType          ), intent(in   )                           :: term
     double precision                                        , intent(inout), dimension(:  )           :: powerSpectrum
     double precision                                        , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance
     double precision                                        , intent(in   )                , optional :: mass

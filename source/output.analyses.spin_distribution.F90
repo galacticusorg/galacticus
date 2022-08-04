@@ -452,6 +452,7 @@ contains
         &amp;                           logNormalRange                    =logNormalRange                    , &amp;
         &amp;                           time                              =time                              , &amp;
         &amp;                           nbodyHaloMassError_               =nbodyHaloMassError_               , &amp;
+        &amp;                           cosmologyFunctions_               =cosmologyFunctions_               , &amp;
         &amp;                           haloMassFunction_                 =haloMassFunction_                 , &amp;
         &amp;                           darkMatterHaloScale_              =darkMatterHaloScale_              , &amp;
         &amp;                           darkMatterProfileDMO_             =darkMatterProfileDMO_             , &amp;

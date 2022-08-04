@@ -22,6 +22,7 @@
   effects of particle noise errors in spins measured in N-body simulations.
   !!}
 
+  use :: Cosmology_Functions              , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use :: Dark_Matter_Profiles_DMO         , only : darkMatterProfileDMOClass
@@ -43,6 +44,7 @@
      noise errors in spins measured in N-body simulations.
      !!}
      private
+     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_           => null()
      class           (haloSpinDistributionClass        ), pointer                     :: distributionIntrinsic         => null()
      class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
      class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
@@ -51,7 +53,7 @@
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
      type            (rootFinder                       )                              :: finder
      double precision                                                                 :: massParticle                           , time       , &
-          &                                                                              logNormalRange
+          &                                                                              logNormalRange                         , redshift
      logical                                                                          :: fixedPoint
      integer                                                                          :: particleCountMinimum
      integer                                                                          :: spinCount                              , massCount
@@ -102,8 +104,7 @@ contains
     Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
     distribution class which takes a parameter list as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloSpinDistributionNbodyErrors  )                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -162,9 +163,6 @@ contains
          &                                                   redshift &
          &                                                  )         &
          &                                                 )
-    !![
-    <objectDestructor name="cosmologyFunctions_"/>
-    !!]
     ! Construct the object.
     self=nbodyErrorsConstructorInternal(                                    &
          &                              distributionIntrinsic             , &
@@ -174,6 +172,7 @@ contains
          &                              logNormalRange                    , &
          &                              time                              , &
          &                              nbodyHaloMassError_               , &
+         &                              cosmologyFunctions_               , &
          &                              haloMassFunction_                 , &
          &                              darkMatterHaloScale_              , &
          &                              darkMatterProfileDMO_             , &
@@ -183,6 +182,7 @@ contains
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="distributionIntrinsic"        />
     <objectDestructor name="nbodyHaloMassError_"          />
+    <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="haloMassFunction_"            />
     <objectDestructor name="darkMatterHaloScale_"         />
     <objectDestructor name="darkMatterProfileDMO_"        />
@@ -191,7 +191,7 @@ contains
     return
   end function nbodyErrorsConstructorParameters
 
-  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
+  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,cosmologyFunctions_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
     !!}
@@ -200,6 +200,7 @@ contains
     type            (haloSpinDistributionNbodyErrors  )                        :: self
     class           (haloSpinDistributionClass        ), intent(in   ), target :: distributionIntrinsic
     class           (nbodyHaloMassErrorClass          ), intent(in   ), target :: nbodyHaloMassError_
+    class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class           (haloMassFunctionClass            ), intent(in   ), target :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
@@ -208,9 +209,11 @@ contains
          &                                                                        energyEstimateParticleCountMaximum, logNormalRange
     integer                                            , intent(in   )         :: particleCountMinimum
     !![
-    <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
+    <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *cosmologyFunctions_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
     !!]
 
+    ! Store the redshift.
+    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     ! Set default ranges of spin and mass for tabulation.
     self%fixedPoint =.false.
     self%spinFixed  =-huge(0.0d0)
@@ -789,6 +792,7 @@ contains
 
     !![
     <objectDestructor name="self%distributionIntrinsic"        />
+    <objectDestructor name="self%cosmologyFunctions_"          />
     <objectDestructor name="self%nbodyHaloMassError_"          />
     <objectDestructor name="self%haloMassFunction_"            />
     <objectDestructor name="self%darkMatterHaloScale_"         />

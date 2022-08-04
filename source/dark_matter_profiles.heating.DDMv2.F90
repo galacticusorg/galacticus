@@ -111,6 +111,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
@@ -123,13 +124,17 @@ contains
     basic             => node%basic()
     heatingEnergy = 0.0d0
     massLossEnergy = 0.0d0
-    if (self%heating_) heatingEnergy = +0.5d0*(                                    &
-                        &              +1.0d0 - exp(-basic%time() / self%lifetime_)&
-                        &                     )                                    &
-                        &              *self%massSplitting_**2                     &
-                        &              *(speedLight/kilo)**2
-    if (self%massLoss_) massLossEnergy = -self%gamma_*self%massSplitting_                   &
-                            &             *darkMatterProfileDMO_%potential(node, radius)    &
+    if (self%heating_) heatingEnergy = +0.5d0*(                                                     &
+                        &              +1.0d0 - exp(-basic%time() / self%lifetime_)                 &
+                        &                     )                                                     &
+                        &              *self%massSplitting_**2                                      &
+                        &              *(speedLight/kilo)**2                                        &
+                        &              +0.0d0*self%massSplitting_                                   &
+                        &              *(speedLight/kilo)                                           &
+                        &              *darkMatterProfileDMO_%radialVelocityDispersion(node, radius)
+    if (self%massLoss_) massLossEnergy =  self%gamma_*self%massSplitting_                          &
+                            &             *darkMatterProfileDMO_%enclosedMass(node, radius)        &
+                            &             *gravitationalConstantGalacticus/radius                  &
                             &             *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     DDMv2SpecificEnergy = heatingEnergy + massLossEnergy
     return
@@ -141,6 +146,8 @@ contains
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
@@ -148,16 +155,27 @@ contains
     double precision                               , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     class           (nodeComponentBasic           ), pointer       :: basic
-    
+    double precision                                               :: heatGradient, massLossGradient
+
     basic             => node%basic()
     if (self%massLoss_) then
-      DDMv2SpecificEnergyGradient=self%gamma_*self%massSplitting_                                                                &
-             &                    *(darkMatterProfileDMO_%potential(node, radius)/radius                                       &
-             &                    +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius) &
-             &                    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
+      massLossGradient=self%gamma_*self%massSplitting_                                                              &
+             &        *(darkMatterProfileDMO_%enclosedMass(node, radius)*gravitationalConstantGalacticus/(radius**2)&
+             &        +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius) &
+             &        *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     else
-      DDMv2SpecificEnergyGradient=+0.0d0
+      massLossGradient=+0.0d0
     end if
+    if (self%heating_) then
+      heatGradient=+0.0d0*self%massSplitting_*(speedLight/kilo)*                                          &
+            &      (-0.5d0*darkMatterProfileDMO_%densityLogSlope(node,radius)                             &
+            &      *darkMatterProfileDMO_%radialVelocityDispersion(node, radius)/radius                   &
+            &      -0.5d0*gravitationalConstantGalacticus*darkMatterProfileDMO_%enclosedMass(node, radius)&
+            &      /(darkMatterProfileDMO_%radialVelocityDispersion(node, radius)*radius**2))
+    else
+      heatGradient=+0.0d0
+    end if
+    DDMv2SpecificEnergyGradient = massLossGradient + heatGradient
     return
   end function DDMv2SpecificEnergyGradient
 

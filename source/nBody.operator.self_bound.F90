@@ -35,8 +35,9 @@ Contains a module which implements an N-body data operator which determines the 
      !!}
      private
      class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
-     integer         (c_size_t                  )          :: bootstrapSampleCount
-     double precision                                      :: tolerance                       , bootstrapSampleRate
+     integer         (c_size_t                  )          :: bootstrapSampleCount            , representativeMinimumCount
+     double precision                                      :: tolerance                       , bootstrapSampleRate       , &
+          &                                                   representativeFraction
      logical                                               :: analyzeAllParticles             , useVelocityMostBound
    contains
      final     ::            selfBoundDestructor
@@ -62,9 +63,10 @@ contains
     type            (nbodyOperatorSelfBound    )                :: self
     type            (inputParameters           ), intent(inout) :: parameters
     class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
-    integer         (c_size_t                  )                :: bootstrapSampleCount
-    double precision                                            :: tolerance           , bootstrapSampleRate
-    logical                                                     :: analyzeAllParticles , useVelocityMostBound
+    integer         (c_size_t                  )                :: bootstrapSampleCount  , representativeMinimumCount
+    double precision                                            :: tolerance             , bootstrapSampleRate       , &
+         &                                                         representativeFraction
+    logical                                                     :: analyzeAllParticles   , useVelocityMostBound
 
     !![
     <inputParameter>
@@ -72,6 +74,12 @@ contains
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
       <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>representativeMinimumCount</name>
+      <source>parameters</source>
+      <defaultValue>10_c_size_t</defaultValue>
+      <description>Minimum number of representative particles used to compute the center of a halo.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerance</name>
@@ -84,6 +92,12 @@ contains
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
       <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>representativeFraction</name>
+      <source>parameters</source>
+      <defaultValue>0.05d0</defaultValue>
+      <description>Fraction of bound particles used to compute the center of a halo.</description>
     </inputParameter>
     <inputParameter>
       <name>analyzeAllParticles</name>
@@ -99,7 +113,7 @@ contains
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
-    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_)
+    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
@@ -107,19 +121,23 @@ contains
     return
   end function selfBoundConstructorParameters
 
-  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
+  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
     !!{
     Internal constructor for the ``selfBound'' N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
-    double precision                            , intent(in   )         :: tolerance             , bootstrapSampleRate
-    integer         (c_size_t                  ), intent(in   )         :: bootstrapSampleCount
+    double precision                            , intent(in   )         :: tolerance             , bootstrapSampleRate       , &
+         &                                                                 representativeFraction
+    integer         (c_size_t                  ), intent(in   )         :: bootstrapSampleCount  , representativeMinimumCount
     logical                                     , intent(in   )         :: analyzeAllParticles   , useVelocityMostBound
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
     !![
-    <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
+    <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, representativeMinimumCount, representativeFraction, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
     !!]
+    if (representativeMinimumCount < 1) then
+       call Error_Report('"representativeMinimumCount" must be larger than or equal to 1.'//{introspection:location})
+    end if
 
     return
   end function selfBoundConstructorInternal
@@ -141,41 +159,43 @@ contains
     !!{
     Determine the subset of N-body particles which are self-bound.
     !!}
-    use :: Display                         , only : displayIndent                  , displayUnindent, displayMessage
+    use :: Display                         , only : displayIndent                  , displayUnindent  , displayMessage
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
-    use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Sorting                         , only : sortIndex                      , sortSmallestIndex
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout), dimension(:  )          :: simulations
-    integer                                 , parameter                              :: countIterationMaximum  =30
-    logical                                 , allocatable  , dimension(:,:)          :: isBound                   , isBoundNew             , &
-         &                                                                              isBoundCompute            , isBoundComputeActual
-    logical                                 , allocatable  , dimension(:  )          :: compute                   , computeActual
-    integer         (c_size_t              ), pointer      , dimension(:,:)          :: boundStatus               , boundStatusPrevious
-    double precision                        , pointer      , dimension(:,:)          :: position                  , velocity               , &
-         &                                                                              sampleWeightPrevious
-    integer         (c_size_t              ), pointer      , dimension(:  )          :: particleIDs               , particleIDsPrevious
-    double precision                        , allocatable  , dimension(:,:)          :: positionRelative          , positionOffset
-    double precision                        , allocatable  , dimension(:  )          :: separation                , potential              , &
-         &                                                                              separationSquared         , potentialActual
-    double precision                        , allocatable  , dimension(:,:)          :: energyPotential           , velocityPotential      , &
-         &                                                                              energyKinetic             , energyPotentialChange  , &
-         &                                                                              velocityPotentialChange   , sampleWeight
+    integer                                 , parameter                              :: countIterationMaximum      =30
+    logical                                 , allocatable  , dimension(:,:)          :: isBound                       , isBoundNew            , &
+         &                                                                              isBoundCompute                , isBoundComputeActual
+    logical                                 , allocatable  , dimension(:  )          :: compute                       , computeActual
+    integer         (c_size_t              ), pointer      , dimension(:,:)          :: boundStatus                   , boundStatusPrevious
+    double precision                        , pointer      , dimension(:,:)          :: position                      , velocity              , &
+         &                                                                              sampleWeight                  , sampleWeightPrevious
+    integer         (c_size_t              ), pointer      , dimension(:  )          :: particleIDs                   , particleIDsPrevious
+    double precision                        , allocatable  , dimension(:,:)          :: positionRelative              , positionOffset
+    double precision                        , allocatable  , dimension(:  )          :: separation                    , potential             , &
+         &                                                                              separationSquared             , potentialActual
+    double precision                        , allocatable  , dimension(:,:)          :: energyPotential               , velocityPotential     , &
+         &                                                                              energyKinetic                 , energyPotentialChange , &
+         &                                                                              velocityPotentialChange
     double precision                        , allocatable  , dimension(:,:)          :: velocityCenterOfMass
     double precision                                       , dimension(3  )          :: velocityRepresentative
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound            , indexVelocityMostBound
-    integer         (c_size_t              )                                         :: particleCount             , i                      , &
-         &                                                                              k                         , iSample                , &
-         &                                                                              current                   , previous
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: countBound                , countBoundPrevious
-    double precision                        , allocatable  , dimension(:  )          :: weightBound               , weightBoundPrevious
+    integer         (c_size_t              ), pointer      , dimension(:,:)          :: indexMostBound                , indexVelocityMostBound
+    integer         (c_size_t              ), pointer      , dimension(:  )          :: indexSorted                   , indexSortedPrevious
+    integer         (c_size_t              )                                         :: particleCount                 , i                     , &
+         &                                                                              k                             , iSample               , &
+         &                                                                              current                       , previous
+    integer         (c_size_t              ), allocatable  , dimension(:  )          :: countBound                    , countBoundPrevious
+    double precision                        , allocatable  , dimension(:  )          :: weightBound                   , weightBoundPrevious
     logical                                 , allocatable  , dimension(:  )          :: isConverged
-    integer                                                                          :: addSubtract               , countIteration
-    double precision                                                                 :: lengthSoftening           , massParticle           , &
-         &                                                                              convergenceFactor
+    integer         (c_size_t              )                                         :: representativeParticleCount
+    integer                                                                          :: addSubtract                   , countIteration
+    double precision                                                                 :: lengthSoftening               , massParticle          , &
+         &                                                                              convergenceFactor             , weightRepresentative
     type            (varying_string        )                                         :: message
     character       (len=12                )                                         :: label
 
@@ -223,8 +243,7 @@ contains
     allocate(velocityCenterOfMass   (3_c_size_t              ,self%bootstrapSampleCount))
     allocate(positionOffset         (3_c_size_t,particleCount                          ))
     allocate(boundStatus            (           particleCount,self%bootstrapSampleCount))
-    allocate(indexMostBound         (                         self%bootstrapSampleCount))
-    allocate(indexVelocityMostBound (                         self%bootstrapSampleCount))
+    allocate(indexSorted            (           particleCount                          ))
     allocate(countBound             (                         self%bootstrapSampleCount))
     allocate(countBoundPrevious     (                         self%bootstrapSampleCount))
     allocate(weightBound            (                         self%bootstrapSampleCount))
@@ -240,18 +259,28 @@ contains
        sampleWeightPrevious => simulations(previous)%propertiesRealRank1   %value('sampleWeight')
        if (self%bootstrapSampleCount /= size(boundStatusPrevious,dim=2)) &
             & call Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
-       !$omp parallel do private(i,k)
+       ! Sort particles according to their particle IDs.
+       if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
+          indexSortedPrevious => simulations(previous)%propertiesInteger%value('particleOrder')
+       else
+          allocate(indexSortedPrevious(particleCount))
+          indexSortedPrevious=sortIndex(particleIDsPrevious)
+       end if
+       indexSorted           =sortIndex(particleIDs        )
+       !$omp parallel do private(i)
        do i=1,particleCount
-          do k=1,particleCount
-             if (particleIDs(i)==particleIDsPrevious(k)) then
-                sampleWeight(i,:) = dble(sampleWeightPrevious(k,:))
-                isBound     (i,:) =       boundStatusPrevious(k,:) > 0
-             end if
-          end do
+          sampleWeight(indexSorted(i),:)=dble(sampleWeightPrevious(indexSortedPrevious(i),:))
+          isBound     (indexSorted(i),:)=      boundStatusPrevious(indexSortedPrevious(i),:) > 0
        end do
        !$omp end parallel do
+       nullify(particleIDsPrevious )
        nullify(boundStatusPrevious )
        nullify(sampleWeightPrevious)
+       if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
+          nullify   (indexSortedPrevious)
+       else
+          deallocate(indexSortedPrevious)
+       end if
     else
        ! Generate new sampling weights.
        do iSample=1,self%bootstrapSampleCount
@@ -283,6 +312,11 @@ contains
        isBoundCompute   (:,iSample)      =             isBound(:,iSample)
        compute                           =compute .or. isBound(:,iSample)
     end do
+    ! Determine the number of representative particles.
+    representativeParticleCount=int(self%representativeFraction*minval(countBoundPrevious))
+    representativeParticleCount=max(representativeParticleCount,self%representativeMinimumCount)
+    allocate(indexMostBound        (representativeParticleCount,self%bootstrapSampleCount))
+    allocate(indexVelocityMostBound(representativeParticleCount,self%bootstrapSampleCount))
     addSubtract =+1
     isConverged = .false.
     ! Begin iterations.
@@ -292,7 +326,7 @@ contains
        velocityPotentialChange=0.0d0
        energyPotentialChange  =0.0d0
        call displayIndent(var_str('iteration ')//countIteration)
-       !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,potentialActual,computeActual,isBoundComputeActual,velocityRepresentative)
+       !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,potentialActual,computeActual,isBoundComputeActual,velocityRepresentative,weightRepresentative)
        allocate(positionRelative    (3_c_size_t,particleCount                          ))
        allocate(separation          (           particleCount                          ))
        allocate(separationSquared   (           particleCount                          ))
@@ -434,16 +468,28 @@ contains
        do iSample=1,self%bootstrapSampleCount
           ! Skip bootstrap samples for which we have already got converged results.
           if (isConverged(iSample)) cycle
-          !$omp workshare
-          ! Find the index of the most bound particle.
-          indexMostBound        (iSample) =minloc(energyPotential  (:,iSample),dim=1,mask=isBound(:,iSample))
-          ! Find the index of the most bound particle in velocity space.
-          indexVelocityMostBound(iSample) =minloc(velocityPotential(:,iSample),dim=1,mask=isBound(:,iSample))
-          !$omp end workshare
+          !$omp single
+          ! Find the indices of the k most bound particles.
+          if (countBoundPrevious(iSample) >= representativeParticleCount) then
+             indexMostBound        (:,iSample)=sortSmallestIndex(energyPotential  (:,iSample),representativeParticleCount,mask=isBound(:,iSample))
+             indexVelocityMostBound(:,iSample)=sortSmallestIndex(velocityPotential(:,iSample),representativeParticleCount,mask=isBound(:,iSample))
+          else
+             call Error_Report('There are not enough bound particles to estimate the center of the halo.'//{introspection:location})
+          end if
+          !$omp end single
           ! Check whether we should use the velocity of the most bound particle in velocity space as the
           ! representative velocity of the satellite. If not, use the center-of-mass velocity instead.
           if (self%useVelocityMostBound) then
-             velocityRepresentative=velocity (:,indexVelocityMostBound(iSample))
+             velocityRepresentative=0.0d0
+             weightRepresentative  =0.0d0
+             do k=1,representativeParticleCount
+                velocityRepresentative=+velocityRepresentative                                              &
+                     &                 +velocity              (:,indexVelocityMostBound(k,iSample)        ) &
+                     &                 *sampleWeight          (  indexVelocityMostBound(k,iSample),iSample)
+                weightRepresentative  =+weightRepresentative                                                &
+                     &                 +sampleWeight          (  indexVelocityMostBound(k,iSample),iSample)
+             end do
+             velocityRepresentative=velocityRepresentative/weightRepresentative
           else
              velocityRepresentative=velocityCenterOfMass(:,iSample)
           end if
@@ -545,16 +591,23 @@ contains
     end where
     !$omp end parallel workshare
     call displayUnindent('done')
-    ! Store the self bound status.
-    call simulations(current)%propertiesIntegerRank1%set         ('isBound'             ,boundStatus             )
+    ! Store the self bound status, the particle order and the index of the most bound particle.
+    call simulations(current)%propertiesIntegerRank1%set         ('isBound'                 , boundStatus            )
+    call simulations(current)%propertiesRealRank1   %set         ('sampleWeight'            , sampleWeight           )
+    call simulations(current)%propertiesInteger     %set         ('particleOrder'           , indexSorted            )
+    call simulations(current)%propertiesIntegerRank1%set         ('indexMostBound'          , indexMostBound         )
+    call simulations(current)%propertiesIntegerRank1%set         ('indexVelocityMostBound'  , indexVelocityMostBound )
     ! Write indices of most bound particles to file.
-    call simulations(current)%analysis              %writeDataset(indexMostBound        ,'indexMostBound'        )
-    call simulations(current)%analysis              %writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
+    call simulations(current)%analysis              %writeDataset( indexMostBound           ,'indexMostBound'        )
+    call simulations(current)%analysis              %writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
     ! Write bound status to file.
-    call simulations(current)%analysis              %writeDataset(boundStatus           ,'selfBoundStatus'       )
-    call simulations(current)%analysis              %writeDataset(nint(sampleWeight)    ,'weight'                )
+    call simulations(current)%analysis              %writeDataset( boundStatus              ,'selfBoundStatus'       )
+    call simulations(current)%analysis              %writeDataset( nint(sampleWeight)       ,'weight'                )
+    call simulations(current)%analysis              %writeDataset([self%bootstrapSampleRate],'bootstrapSampleRate'   )
     ! Free workspaces.
     nullify   (boundStatus            )
+    nullify   (sampleWeight           )
+    nullify   (indexSorted            )
     deallocate(compute                )
     deallocate(isBound                )
     deallocate(isBoundNew             )
@@ -564,10 +617,9 @@ contains
     deallocate(velocityPotential      )
     deallocate(energyPotentialChange  )
     deallocate(velocityPotentialChange)
-    deallocate(sampleWeight           )
     deallocate(velocityCenterOfMass   )
-    deallocate(indexMostBound         )
-    deallocate(indexVelocityMostBound )
+    nullify   (indexMostBound         )
+    nullify   (indexVelocityMostBound )
     deallocate(positionOffset         )
     deallocate(countBound             )
     deallocate(countBoundPrevious     )

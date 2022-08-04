@@ -524,11 +524,11 @@ contains
     !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
-    class           (outputAnalysisCorrelationFunction), intent(inout) :: self
-    type            (treeNode                         ), intent(inout) :: node
-    integer         (c_size_t                         ), intent(in   ) :: iOutput
-    double precision                                                   :: mass
-    integer                                                            :: massType
+    class           (outputAnalysisCorrelationFunction        ), intent(inout) :: self
+    type            (treeNode                                 ), intent(inout) :: node
+    integer         (c_size_t                                 ), intent(in   ) :: iOutput
+    double precision                                                           :: mass
+    type            (enumerationOutputAnalysisPropertyTypeType)                :: massType
 
     ! If weights for this output are all zero, we can skip analysis.
     if (all(self%outputWeight(:,iOutput) == 0.0d0)) return
@@ -559,15 +559,15 @@ contains
     model.
     !!}
     implicit none
-    class           (outputAnalysisCorrelationFunction), intent(inout)                 :: self
-    double precision                                   , intent(in   )                 :: mass
-    integer                                            , intent(in   )                 :: massType
-    integer         (c_size_t                         ), intent(in   )                 :: indexOutput
-    type            (treeNode                         ), intent(inout)                 :: node
-    double precision                                   , allocatable  , dimension(:,:) :: probabilitySatelliteTmp
-    double precision                                                  , dimension(1  ) :: massDistribution
-    logical                                                                            :: satelliteIncluded
-    integer                                                                            :: j
+    class           (outputAnalysisCorrelationFunction        ), intent(inout)                 :: self
+    double precision                                           , intent(in   )                 :: mass
+    type            (enumerationOutputAnalysisPropertyTypeType), intent(in   )                 :: massType
+    integer         (c_size_t                                 ), intent(in   )                 :: indexOutput
+    type            (treeNode                                 ), intent(inout)                 :: node
+    double precision                                           , allocatable  , dimension(:,:) :: probabilitySatelliteTmp
+    double precision                                                          , dimension(1  ) :: massDistribution
+    logical                                                                                    :: satelliteIncluded
+    integer                                                                                    :: j
 
     ! Evaluate, for each mass bin, the probability of inclusion of the galaxy in that bin. Store any such non-zero probabilities
     ! for central and satellite galaxies separately.
@@ -608,31 +608,32 @@ contains
     !!}
     use :: Galacticus_Nodes                   , only : nodeComponentBasic                , treeNode
     use :: Halo_Model_Power_Spectrum_Modifiers, only : haloModelTermOneHalo              , haloModelTermTwoHalo
-    use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
-    use :: Output_Analyses_Options            , only : outputAnalysisPropertyTypeLinear
+    use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs , Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
+    use :: Output_Analyses_Options            , only : outputAnalysisPropertyTypeLinear  , enumerationOutputAnalysisPropertyTypeType
     use :: Vectors                            , only : Vector_Outer_Product
     use :: Linear_Algebra                     , only : assignment(=)                     , matrix                                  , operator(*)
     implicit none
-    class           (outputAnalysisCorrelationFunction), intent(inout)                                                 :: self
-    integer         (c_size_t                         ), intent(in   )                                                 :: indexOutput
-    type            (treeNode                         ), intent(inout)                                                 :: node
-    class           (nodeComponentBasic               ), pointer                                                       :: basic                   , basicRoot
-    double precision                                                  , dimension(self%wavenumberCount,self%massCount) :: oneHaloTerm             , twoHaloTerm
-    double precision                                                  , dimension(                     self%massCount) :: galaxyDensity
-    logical                                                           , dimension(                     self%massCount) :: oneHaloTermActive       , twoHaloTermActive
-    double precision                                   , allocatable  , dimension(:                   ,:             ) :: termJacobian            , termCovariance            , &
-         &                                                                                                                mainBranchTermCovariance, modifierCovariance
-    double precision                                   , allocatable  , dimension(:                                  ) :: satelliteJacobian       , modifierCovarianceDiagonal, &
-         &                                                                                                                fourierProfile          , wavenumber
-    double precision                                                                                                   :: countSatellitePairsMean , countSatellitesMean       , &
-         &                                                                                                                haloWeightOutput        , expansionFactor           , &
-         &                                                                                                                biasHalo                , massHalo
-    integer         (c_size_t                         )                                                                :: i                       , j                         , &
-         &                                                                                                                indexOneHalo            , indexTwoHalo              , &
-         &                                                                                                                indexDensity
-    integer                                                                                                            :: haloMassBin             , scaleType
-    logical                                                                                                            :: mainBranchCounted
-    type            (matrix                           )                                                                :: jacobianMatrix
+    class           (outputAnalysisCorrelationFunction        ), intent(inout)                                                 :: self
+    integer         (c_size_t                                 ), intent(in   )                                                 :: indexOutput
+    type            (treeNode                                 ), intent(inout)                                                 :: node
+    class           (nodeComponentBasic                       ), pointer                                                       :: basic                   , basicRoot
+    double precision                                                          , dimension(self%wavenumberCount,self%massCount) :: oneHaloTerm             , twoHaloTerm
+    double precision                                                          , dimension(                     self%massCount) :: galaxyDensity
+    logical                                                                   , dimension(                     self%massCount) :: oneHaloTermActive       , twoHaloTermActive
+    double precision                                           , allocatable  , dimension(:                   ,:             ) :: termJacobian            , termCovariance            , &
+         &                                                                                                                        mainBranchTermCovariance, modifierCovariance
+    double precision                                           , allocatable  , dimension(:                                  ) :: satelliteJacobian       , modifierCovarianceDiagonal, &
+         &                                                                                                                        fourierProfile          , wavenumber
+    double precision                                                                                                           :: countSatellitePairsMean , countSatellitesMean       , &
+         &                                                                                                                        haloWeightOutput        , expansionFactor           , &
+         &                                                                                                                        biasHalo                , massHalo
+    integer         (c_size_t                                 )                                                                :: i                       , j                         , &
+         &                                                                                                                        indexOneHalo            , indexTwoHalo              , &
+         &                                                                                                                        indexDensity
+    integer                                                                                                                    :: haloMassBin
+    type            (enumerationOutputAnalysisPropertyTypeType)                                                                :: scaleType
+    logical                                                                                                                    :: mainBranchCounted
+    type            (matrix                                   )                                                                :: jacobianMatrix
 
     ! Return immediately if no nodes have been accumulated.
     if (all(self%probabilityCentral == 0.0d0) .and. self%countSatellites == 0) return
@@ -1207,7 +1208,7 @@ contains
     end do
     call deallocateArray(covarianceTmp)
     ! Construct correlation table.
-    call correlationTable%create(separation(1),separation(self%wavenumberCount),size(separation),extrapolationTypeExtrapolate)
+    call correlationTable%create(separation(1),separation(self%wavenumberCount),size(separation),extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
     ! Project the correlation function.
     call allocateArray(jacobian                      ,[self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount])
     call allocateArray(projectedCorrelationCovariance,[self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount])

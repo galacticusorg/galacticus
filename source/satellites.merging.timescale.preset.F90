@@ -68,17 +68,20 @@ contains
     !!{
     Return the timescale for merging satellites using the preset value.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
     class(satelliteMergingTimescalesPreset), intent(inout) :: self
     type (treeNode                        ), intent(inout) :: node
     type (keplerOrbit                     ), intent(inout) :: orbit
+    class(nodeComponentBasic              ), pointer       :: basic
     class(nodeComponentSatellite          ), pointer       :: satellite
     !$GLC attributes unused :: self, orbit
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
-    satellite              => node     %satellite()
-    presetTimeUntilMerging =  satellite%mergeTime()
+    basic                  =>  node     %basic        ()
+    satellite              =>  node     %satellite    ()
+    presetTimeUntilMerging =  +satellite%timeOfMerging() &
+         &                    -basic    %time         ()
     return
   end function presetTimeUntilMerging

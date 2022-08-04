@@ -379,13 +379,13 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk         , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk         , destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
     implicit none
     class  (nodeOperatorImpulsiveOutflowEnergy), intent(inout) :: self
     type   (treeNode                          ), intent(inout) :: node
     type   (treeNode                          ), pointer       :: nodeHost
     class  (nodeComponentDarkMatterProfile    ), pointer       :: darkMatterProfile      , darkMatterProfileHost
-    integer                                                    :: destinationGasSatellite, destinationStarsSatellite, &
+    type   (enumerationDestinationMergerType  )                :: destinationGasSatellite, destinationStarsSatellite, &
          &                                                        destinationGasHost     , destinationStarsHost
     logical                                                    :: mergerIsMajor
 
@@ -396,8 +396,8 @@ contains
     ! Get mass movement descriptors.
     call self%mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     ! Move impulsive energy within the host if necessary.
-    select case (destinationGasHost     )
-    case (destinationMergerDisk    )
+    select case (destinationGasHost     %ID)
+    case (destinationMergerDisk    %ID)
        call darkMatterProfileHost%floatRank0MetaPropertySet(                                                 self%energyImpulsiveOutflowDiskID     , &
             &                                               +darkMatterProfileHost%floatRank0MetaPropertyGet(self%energyImpulsiveOutflowDiskID    )  &
             &                                               +darkMatterProfileHost%floatRank0MetaPropertyGet(self%energyImpulsiveOutflowSpheroidID)  &
@@ -405,7 +405,7 @@ contains
        call darkMatterProfileHost%floatRank0MetaPropertySet(                                                 self%energyImpulsiveOutflowSpheroidID , &
             &                                               +0.0d0                                                                                   &
             &                                              )
-     case (destinationMergerSpheroid)
+     case (destinationMergerSpheroid%ID)
        call darkMatterProfileHost%floatRank0MetaPropertySet(                                                 self%energyImpulsiveOutflowSpheroidID , &
             &                                               +darkMatterProfileHost%floatRank0MetaPropertyGet(self%energyImpulsiveOutflowDiskID    )  &
             &                                               +darkMatterProfileHost%floatRank0MetaPropertyGet(self%energyImpulsiveOutflowSpheroidID)  &
@@ -413,20 +413,20 @@ contains
        call darkMatterProfileHost%floatRank0MetaPropertySet(                                                 self%energyImpulsiveOutflowDiskID     , &
             &                                               +0.0d0                                                                                   &
             &                                              )
-   case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        ! Do nothing.
     case default
        call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Move impulsive energy from secondary to primary.
-    select case (destinationGasSatellite)
-    case (destinationMergerDisk    )
+    select case (destinationGasSatellite%ID)
+    case (destinationMergerDisk    %ID)
        call darkMatterProfileHost%floatRank0MetaPropertySet(                                                 self%energyImpulsiveOutflowDiskID     , &
             &                                               +darkMatterProfileHost%floatRank0MetaPropertyGet(self%energyImpulsiveOutflowDiskID    )  &
             &                                               +darkMatterProfile    %floatRank0MetaPropertyGet(self%energyImpulsiveOutflowDiskID    )  &
             &                                               +darkMatterProfile    %floatRank0MetaPropertyGet(self%energyImpulsiveOutflowSpheroidID)  &
             &                                              )
-    case (destinationMergerSpheroid)
+    case (destinationMergerSpheroid%ID)
        call darkMatterProfileHost%floatRank0MetaPropertySet(                                                 self%energyImpulsiveOutflowSpheroidID , &
             &                                               +darkMatterProfileHost%floatRank0MetaPropertyGet(self%energyImpulsiveOutflowSpheroidID)  &
             &                                               +darkMatterProfile    %floatRank0MetaPropertyGet(self%energyImpulsiveOutflowDiskID    )  &

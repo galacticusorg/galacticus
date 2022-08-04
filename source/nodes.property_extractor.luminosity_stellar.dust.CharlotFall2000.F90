@@ -44,7 +44,6 @@ Contains a module which implements a stellar luminosity output analysis property
    contains
      final     ::                lmnstyStllrChrltFll2000Destructor
      procedure :: extract     => lmnstyStllrChrltFll2000Extract
-     procedure :: type        => lmnstyStllrChrltFll2000Type
      procedure :: quantity    => lmnstyStllrChrltFll2000Quantity
      procedure :: name        => lmnstyStllrCF2000Name
      procedure :: description => lmnstyStllrCF2000Description
@@ -333,26 +332,15 @@ contains
     return
   end function lmnstyStllrChrltFll2000Extract
 
-  integer function lmnstyStllrChrltFll2000Type(self)
-    !!{
-    Return the type of the stellar luminosity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    lmnstyStllrChrltFll2000Type=outputAnalysisPropertyTypeLinear
-    return
-  end function lmnstyStllrChrltFll2000Type
-
-  integer function lmnstyStllrChrltFll2000Quantity(self)
+  function lmnstyStllrChrltFll2000Quantity(self)
     !!{
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
-    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: lmnstyStllrChrltFll2000Quantity
+    class(nodePropertyExtractorLmnstyStllrCF2000       ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     lmnstyStllrChrltFll2000Quantity=outputAnalysisPropertyQuantityLuminosity

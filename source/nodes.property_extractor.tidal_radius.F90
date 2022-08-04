@@ -42,7 +42,6 @@ Contains a module which implements a tidal radius property extractor class.
      procedure :: name        => radiusTidalName
      procedure :: description => radiusTidalDescription
      procedure :: unitsInSI   => radiusTidalUnitsInSI
-     procedure :: type        => radiusTidalType
   end type nodePropertyExtractorRadiusTidal
 
   interface nodePropertyExtractorRadiusTidal
@@ -156,16 +155,4 @@ contains
     return
   end function radiusTidalUnitsInSI
 
-  integer function radiusTidalType(self)
-    !!{
-    Return the type of the tidal radius property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusTidal), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusTidalType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusTidalType
 

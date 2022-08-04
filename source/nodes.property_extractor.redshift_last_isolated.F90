@@ -40,7 +40,6 @@ Contains a module which implements a redshiftLastIsolated property extractor cla
      procedure :: name        => redshiftLastIsolatedName
      procedure :: description => redshiftLastIsolatedDescription
      procedure :: unitsInSI   => redshiftLastIsolatedUnitsInSI
-     procedure :: type        => redshiftLastIsolatedType
   end type nodePropertyExtractorRedshiftLastIsolated
 
   interface nodePropertyExtractorRedshiftLastIsolated
@@ -160,15 +159,3 @@ contains
     return
   end function redshiftLastIsolatedUnitsInSI
 
-  integer function redshiftLastIsolatedType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    redshiftLastIsolatedType=outputAnalysisPropertyTypeLinear
-    return
-  end function redshiftLastIsolatedType

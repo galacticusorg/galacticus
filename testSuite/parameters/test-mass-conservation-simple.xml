@@ -198,7 +198,7 @@
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="verySimpleSize"/>
     <componentHotHalo value="verySimpleDelayed"/>
-    <componentSatellite value="verySimple"/>
+    <componentSatellite value="mergeTime"/>
     <componentSpheroid value="null"/>
     <componentSpin value="scalar"/>
     <virialDensityContrast value="percolation">
@@ -230,6 +230,8 @@
 	<factorReset value="2.0"/>
       </nodeOperator>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="stellarFeedbackDisks" iterable="no">

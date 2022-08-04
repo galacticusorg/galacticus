@@ -28,6 +28,17 @@ module Conditional_Mass_Functions
   private
 
   !![
+  <enumeration>
+   <name>haloModelGalaxyType</name>
+   <description>Used to specify galaxy types in the halo model.</description>
+   <visibility>public</visibility>
+   <entry label="all"      />
+   <entry label="central"  />
+   <entry label="satellite"/>
+  </enumeration>
+  !!]
+
+  !![
   <functionClass>
    <name>conditionalMassFunction</name>
    <descriptiveName>Conditional Mass Function</descriptiveName>
@@ -39,8 +50,8 @@ module Conditional_Mass_Functions
     <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   )           :: massHalo  , mass</argument>
-    <argument>integer         , intent(in   ), optional :: galaxyType</argument>
+    <argument>double precision                                    , intent(in   )           :: massHalo  , mass</argument>
+    <argument>type            (enumerationHaloModelGalaxyTypeType), intent(in   ), optional :: galaxyType</argument>
    </method>
    <method name="massFunctionVariance" >
     <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
@@ -49,17 +60,6 @@ module Conditional_Mass_Functions
     <argument>double precision, intent(in   ) :: massHalo,massLow,massHigh</argument>
    </method>
   </functionClass>
-  !!]
-
-  !![
-  <enumeration>
-   <name>haloModelGalaxyType</name>
-   <description>Used to specify galaxy types in the halo model.</description>
-   <visibility>public</visibility>
-   <entry label="all"      />
-   <entry label="central"  />
-   <entry label="satellite"/>
-  </enumeration>
   !!]
 
 end module Conditional_Mass_Functions

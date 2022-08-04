@@ -50,7 +50,6 @@ Contains a module which implements an ISM mass output analysis property extracto
    contains
      final     ::                descendentsDestructor
      procedure :: extract     => descendentsExtract
-     procedure :: type        => descendentsType
      procedure :: name        => descendentsName
      procedure :: description => descendentsDescription
   end type nodePropertyExtractorDescendents
@@ -193,18 +192,6 @@ contains
     return
   end function descendentsExtract
 
-  integer function descendentsType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    descendentsType=outputAnalysisPropertyTypeLinear
-    return
-  end function descendentsType
 
   function descendentsName(self)
     !!{

@@ -25,8 +25,9 @@ module Output_Analysis_Distribution_Operators
   !!{
   Provides a class that operators on distributions used in on-the-fly output analyses.
   !!}
-  use            :: Galacticus_Nodes, only : treeNode
-  use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  use            :: Galacticus_Nodes       , only : treeNode
+  use            :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyTypeType
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
   private
 
   !![
@@ -39,21 +40,21 @@ module Output_Analysis_Distribution_Operators
     <description>Operate on a scalar to produce a distribution.</description>
     <type>double precision, dimension(size(propertyValueMinimum))</type>
     <pass>yes</pass>
-    <argument>double precision          , intent(in   )               :: propertyValue</argument>
-    <argument>integer                   , intent(in   )               :: propertyType</argument>
-    <argument>double precision          , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
-    <argument>integer         (c_size_t), intent(in   )               :: outputIndex</argument>
-    <argument>type            (treeNode), intent(inout)               :: node</argument>
+    <argument>double precision                                           , intent(in   )               :: propertyValue</argument>
+    <argument>type            (enumerationOutputAnalysisPropertyTypeType), intent(in   )               :: propertyType</argument>
+    <argument>double precision                                           , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+    <argument>integer         (c_size_t                                 ), intent(in   )               :: outputIndex</argument>
+    <argument>type            (treeNode                                 ), intent(inout)               :: node</argument>
    </method>
    <method name="operateDistribution" >
     <description>Operate on a distribution to produce a distribution.</description>
     <type>double precision, dimension(size(propertyValueMinimum))</type>
     <pass>yes</pass>
-    <argument>double precision          , intent(in   ), dimension(:) :: distribution</argument>
-    <argument>integer                   , intent(in   )               :: propertyType</argument>
-    <argument>double precision          , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
-    <argument>integer         (c_size_t), intent(in   )               :: outputIndex</argument>
-    <argument>type            (treeNode), intent(inout)               :: node</argument>
+    <argument>double precision                                           , intent(in   ), dimension(:) :: distribution</argument>
+    <argument>type            (enumerationOutputAnalysisPropertyTypeType), intent(in   )               :: propertyType</argument>
+    <argument>double precision                                           , intent(in   ), dimension(:) :: propertyValueMinimum, propertyValueMaximum</argument>
+    <argument>integer         (c_size_t                                 ), intent(in   )               :: outputIndex</argument>
+    <argument>type            (treeNode                                 ), intent(inout)               :: node</argument>
    </method>
   </functionClass>
   !!]

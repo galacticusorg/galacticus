@@ -20,15 +20,17 @@
 !!{
 Contains a module which implements an N-body data operator which filters out particles based on a property range.
 !!}
-  
+
+  use :: NBody_Simulation_Data, only : enumerationPropertyTypeType
+
   type :: propertyRange
      !!{
      Type used to store filter ranges.
      !!}
-     type            (varying_string) :: name
-     double precision                 :: rangeLowReal   , rangeHighReal
-     integer         (c_size_t      ) :: rangeLowInteger, rangeHighInteger
-     integer                          :: type
+     type            (varying_string             ) :: name
+     double precision                              :: rangeLowReal   , rangeHighReal
+     integer         (c_size_t                   ) :: rangeLowInteger, rangeHighInteger
+     type            (enumerationPropertyTypeType) :: type
   end type propertyRange
   
   !![
@@ -100,8 +102,8 @@ contains
     do i=1,size(propertyNames)
        propertyRanges(i)%name=                           propertyNames(i)
        propertyRanges(i)%type=nBodyDataPropertyType(char(propertyNames(i)))
-       select case (propertyRanges(i)%type)
-       case (propertyTypeInteger)
+       select case (propertyRanges(i)%type%ID)
+       case (propertyTypeInteger%ID)
           if (rangeLow( i) == "-infinity") then
              propertyRanges(i)%rangeLowInteger =-huge(0_c_size_t)
           else
@@ -114,7 +116,7 @@ contains
              range=rangeHigh(i)
              read (range,*) propertyRanges(i)%rangeHighInteger
           end if
-       case (propertyTypeReal   )
+       case (propertyTypeReal   %ID)
           if (rangeLow( i) == "-infinity") then
              propertyRanges(i)%rangeLowReal    =-huge(0.0d0   )
           else
@@ -127,7 +129,7 @@ contains
              range=rangeHigh(i)
              read (range,*) propertyRanges(i)%rangeHighReal
           end if
-       case (propertyTypeUnknown)
+       case (propertyTypeUnknown%ID)
           call Error_Report('unknown property "'//char(propertyNames(i))//'"'//{introspection:location})
        end select
     end do
@@ -154,11 +156,11 @@ contains
 
     ! Validate ranges.
     do i=1,size(propertyRanges)
-       select case (propertyRanges(i)%type)
-       case (propertyTypeInteger)
+       select case (propertyRanges(i)%type%ID)
+       case (propertyTypeInteger%ID)
           if (propertyRanges(i)%rangeLowInteger > propertyRanges(i)%rangeHighInteger) &
                & call Error_Report('range for property "'//char(propertyRanges(i)%name)//'" will exclude all'//{introspection:location})
-       case (propertyTypeReal   )
+       case (propertyTypeReal   %ID)
           if (propertyRanges(i)%rangeLowReal    > propertyRanges(i)%rangeHighReal   ) &
                & call Error_Report('range for property "'//char(propertyRanges(i)%name)//'" will exclude all'//{introspection:location})
        end select
@@ -188,8 +190,8 @@ contains
     call displayIndent('filter on property ranges',verbosityLevelStandard)
     do i=1,size(simulations)
        do j=1,size(self%propertyRanges)
-          select case (self%propertyRanges(j)%type)
-          case (propertyTypeInteger)
+          select case (self%propertyRanges(j)%type%ID)
+          case (propertyTypeInteger%ID)
              if (simulations(i)%propertiesInteger%exists(self%propertyRanges(j)%name)) then
                 propertyInteger => simulations(i)%propertiesInteger%value(self%propertyRanges(j)%name)
                 if (.not.allocated(mask)) then
@@ -205,7 +207,7 @@ contains
              else
                 call Error_Report('property "'//self%propertyRanges(j)%name//'"does not exist'//{introspection:location})
              end if
-          case (propertyTypeReal   )
+          case (propertyTypeReal   %ID)
              if (simulations(i)%propertiesReal   %exists(self%propertyRanges(j)%name)) then
                 propertyReal   => simulations(i)%propertiesReal   %value(self%propertyRanges(j)%name)
                 if (.not.allocated(mask)) then

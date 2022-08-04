@@ -140,59 +140,53 @@ contains
     !!{
     Initialize hierarchy level data.
     !!}
-    use :: Galacticus_Nodes   , only : nodeComponentBasic
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class   (nodeOperatorHierarchy   ), intent(inout), target  :: self
     type    (treeNode                ), intent(inout), target  :: node
-    type    (treeNode                )               , pointer :: nodeHost               , nodeParent        , &
-         &                                                        nodeWork
+    type    (treeNode                )               , pointer :: nodeHost               , nodeParent
     class   (nodeComponentBasic      )               , pointer :: basicParent            , basic
     integer                                                    :: nodeHierarchyLevelDepth, nodeHierarchyLevel
-    type    (mergerTreeWalkerAllNodes)                         :: treeWalker
     
-    treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-    do while (treeWalker%next(nodeWork))
-       ! Find the maximum possible hierarchy level.
-       if (.not.associated(nodeWork%firstChild)) then
-          ! No primary progenitor, so we must compute node hierarchy level depth.
-          nodeHierarchyLevelDepth =  0
-          nodeHost                => nodeWork
-          do while (associated(nodeHost))
-             if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) then
-                nodeHierarchyLevelDepth =  nodeHierarchyLevelDepth                 +1
-                basicParent             => nodeHost%parent%basic(autoCreate=.true.)
-                if (basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID) > -1) then
-                   nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID)
-                   exit
-                end if
+    ! Find the maximum possible hierarchy level.
+    if (.not.associated(node%firstChild)) then
+       ! No primary progenitor, so we must compute node hierarchy level depth.
+       nodeHierarchyLevelDepth =  0
+       nodeHost                => node
+       do while (associated(nodeHost))
+          if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) then
+             nodeHierarchyLevelDepth =  nodeHierarchyLevelDepth                 +1
+             basicParent             => nodeHost%parent%basic(autoCreate=.true.)
+             if (basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID) > -1) then
+                nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID)
+                exit
              end if
-             nodeHost => nodeHost%parent
-          end do
-          ! Set this depth in all nodes along the branch.
-          nodeParent => nodeWork
-          do while (associated(nodeParent))
-             basicParent => nodeParent%basic(autoCreate=.true.)
-             call basicParent%integerRank0MetaPropertySet(self%nodeHierarchyLevelDepthID,nodeHierarchyLevelDepth)
-             if (nodeParent%isPrimaryProgenitor()) then
-                nodeParent => nodeParent%parent
-             else
-                nodeParent => null()
-             end if
-          end do
-       end if
-       ! Find the current hierarchy level.
-       nodeHierarchyLevel =  0
-       nodeHost           => nodeWork
-       do while (nodeHost%isSatellite())
-          nodeHierarchyLevel =  nodeHierarchyLevel       +1
-          nodeHost           => nodeHost          %parent
+          end if
+          nodeHost => nodeHost%parent
        end do
-       basic => nodeWork%basic()
-       call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelID       ,      nodeHierarchyLevel  )
-       call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,      nodeHierarchyLevel  )
-       call basic%  floatRank0MetaPropertySet(self%massWhenFirstIsolatedID    ,basic%mass              ())
+       ! Set this depth in all nodes along the branch.
+       nodeParent => node
+       do while (associated(nodeParent))
+          basicParent => nodeParent%basic(autoCreate=.true.)
+          call basicParent%integerRank0MetaPropertySet(self%nodeHierarchyLevelDepthID,nodeHierarchyLevelDepth)
+          if (nodeParent%isPrimaryProgenitor()) then
+             nodeParent => nodeParent%parent
+          else
+             nodeParent => null()
+          end if
+       end do
+    end if
+    ! Find the current hierarchy level.
+    nodeHierarchyLevel =  0
+    nodeHost           => node
+    do while (nodeHost%isSatellite())
+       nodeHierarchyLevel =  nodeHierarchyLevel       +1
+       nodeHost           => nodeHost          %parent
     end do
+    basic => node%basic()
+    call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelID       ,      nodeHierarchyLevel  )
+    call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,      nodeHierarchyLevel  )
+    call basic%  floatRank0MetaPropertySet(self%massWhenFirstIsolatedID    ,basic%mass              ())
     return
   end subroutine hierarchyNodeTreeInitialize
 

@@ -51,7 +51,6 @@
      procedure :: names              => massProfileNames
      procedure :: descriptions       => massProfileDescriptions
      procedure :: unitsInSI          => massProfileUnitsInSI
-     procedure :: type               => massProfileType
   end type nodePropertyExtractorMassProfile
 
   interface nodePropertyExtractorMassProfile
@@ -205,23 +204,23 @@ contains
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
     do i=1,self%radiiCount
        radius=self%radii(i)%value
-       select case (self%radii(i)%type)
-       case   (radiusTypeRadius                )
+       select case (self%radii(i)%type%ID)
+       case   (radiusTypeRadius                %ID)
           ! Nothing to do.
-       case   (radiusTypeVirialRadius          )
+       case   (radiusTypeVirialRadius          %ID)
           radius=+radius*radiusVirial
-       case   (radiusTypeDarkMatterScaleRadius )
+       case   (radiusTypeDarkMatterScaleRadius %ID)
           radius=+radius*darkMatterProfile%         scale()
-       case   (radiusTypeDiskRadius            )
+       case   (radiusTypeDiskRadius            %ID)
           radius=+radius*disk             %        radius()
-       case   (radiusTypeSpheroidRadius        )
+       case   (radiusTypeSpheroidRadius        %ID)
           radius=+radius*spheroid         %        radius()
-       case   (radiusTypeDiskHalfMassRadius    )
+       case   (radiusTypeDiskHalfMassRadius    %ID)
           radius=+radius*disk             %halfMassRadius()
-       case   (radiusTypeSpheroidHalfMassRadius)
+       case   (radiusTypeSpheroidHalfMassRadius%ID)
           radius=+radius*spheroid         %halfMassRadius()
-       case   (radiusTypeGalacticMassFraction ,  &
-            &  radiusTypeGalacticLightFraction )
+       case   (radiusTypeGalacticMassFraction  %ID,  &
+            &  radiusTypeGalacticLightFraction %ID)
           radius=+radius                                           &
                & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
@@ -232,7 +231,7 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
-        case   (radiusTypeStellarMassFraction  )
+        case   (radiusTypeStellarMassFraction  %ID)
           radius=+radius                                           &
                & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
@@ -322,15 +321,3 @@ contains
     return
   end function massProfileUnitsInSI
 
-  integer function massProfileType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily massProfile} properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassProfile), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massProfileType=outputAnalysisPropertyTypeLinear
-    return
-  end function massProfileType

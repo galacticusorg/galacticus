@@ -140,16 +140,17 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes" function="Node_Component_Disk_Standard_Attach_Pipes" description="Attach pipes to the standard disk component." returnType="\void" arguments="" bindsTo="component" />
-    <binding method="enclosedMass"          function="Node_Component_Disk_Standard_Enclosed_Mass"           bindsTo="component" />
-    <binding method="acceleration"          function="Node_Component_Disk_Standard_Acceleration"            bindsTo="component" />
-    <binding method="tidalTensor"           function="Node_Component_Disk_Standard_Tidal_Tensor"            bindsTo="component" />
-    <binding method="chandrasekharIntegral" function="Node_Component_Disk_Standard_Chandrasekhar_Integral"  bindsTo="component" />
-    <binding method="density"               function="Node_Component_Disk_Standard_Density"                 bindsTo="component" />
-    <binding method="potential"             function="Node_Component_Disk_Standard_Potential"               bindsTo="component" />
-    <binding method="rotationCurve"         function="Node_Component_Disk_Standard_Rotation_Curve"          bindsTo="component" />
-    <binding method="rotationCurveGradient" function="Node_Component_Disk_Standard_Rotation_Curve_Gradient" bindsTo="component" />
-    <binding method="surfaceDensity"        function="Node_Component_Disk_Standard_Surface_Density"         bindsTo="component" />
+    <binding method="attachPipes"             function="Node_Component_Disk_Standard_Attach_Pipes"              bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
+    <binding method="enclosedMass"            function="Node_Component_Disk_Standard_Enclosed_Mass"             bindsTo="component"                                                                                           />
+    <binding method="acceleration"            function="Node_Component_Disk_Standard_Acceleration"              bindsTo="component"                                                                                           />
+    <binding method="tidalTensor"             function="Node_Component_Disk_Standard_Tidal_Tensor"              bindsTo="component"                                                                                           />
+    <binding method="chandrasekharIntegral"   function="Node_Component_Disk_Standard_Chandrasekhar_Integral"    bindsTo="component"                                                                                           />
+    <binding method="density"                 function="Node_Component_Disk_Standard_Density"                   bindsTo="component"                                                                                           />
+    <binding method="densitySphericalAverage" function="Node_Component_Disk_Standard_Density_Spherical_Average" bindsTo="component"                                                                                           />
+    <binding method="potential"               function="Node_Component_Disk_Standard_Potential"                 bindsTo="component"                                                                                           />
+    <binding method="rotationCurve"           function="Node_Component_Disk_Standard_Rotation_Curve"            bindsTo="component"                                                                                           />
+    <binding method="rotationCurveGradient"   function="Node_Component_Disk_Standard_Rotation_Curve_Gradient"   bindsTo="component"                                                                                           />
+    <binding method="surfaceDensity"          function="Node_Component_Disk_Standard_Surface_Density"           bindsTo="component"                                                                                           />
    </bindings>
    <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   </component>
@@ -820,21 +821,21 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid           , treeNode
     use :: Histories                       , only : history
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class           (*                    ), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    class           (nodeComponentDisk    ), pointer       :: diskHost               , disk
-    class           (nodeComponentSpheroid), pointer       :: spheroidHost           , spheroid
-    type            (treeNode             ), pointer       :: nodeHost
-    type            (history              )                :: historyHost            , historyNode
-    double precision                                       :: specificAngularMomentum
-    integer                                                :: destinationGasSatellite, destinationGasHost       , &
-         &                                                    destinationStarsHost   , destinationStarsSatellite
-    logical                                                :: mergerIsMajor
+    class           (*                               ), intent(inout) :: self
+    type            (treeNode                        ), intent(inout) :: node
+    class           (nodeComponentDisk               ), pointer       :: diskHost               , disk
+    class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           , spheroid
+    type            (treeNode                        ), pointer       :: nodeHost
+    type            (history                         )                :: historyHost            , historyNode
+    double precision                                                  :: specificAngularMomentum
+    type            (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                               destinationStarsHost   , destinationStarsSatellite
+    logical                                                           :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Check that the disk is of the standard class.
@@ -855,8 +856,8 @@ contains
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the gas component of the standard disk to the host.
-       select case (destinationGasSatellite)
-       case (destinationMergerDisk)
+       select case (destinationGasSatellite%ID)
+       case (destinationMergerDisk%ID)
           call diskHost    %massGasSet            (                                                                     &
                &                                             diskHost    %massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -869,7 +870,7 @@ contains
                &                                             diskHost    %angularMomentum    ()                         &
                &                                            +disk        %massGas            ()*specificAngularMomentum &
                &                                           )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massGasSet            (                                                                     &
                &                                             spheroidHost%massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -884,8 +885,8 @@ contains
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
        ! Move the stellar component of the standard disk to the host.
-       select case (destinationStarsSatellite)
-       case (destinationMergerDisk)
+       select case (destinationStarsSatellite%ID)
+       case (destinationMergerDisk%ID)
           call diskHost    %massStellarSet        (                                                                     &
                &                                             diskHost    %massStellar        ()                         &
                &                                            +disk        %massStellar        ()                         &
@@ -918,7 +919,7 @@ contains
           call disk       %starFormationHistorySet(historyNode                     )
           call historyNode%destroy                (            recordMemory=.false.)
           call historyHost%destroy                (            recordMemory=.false.)
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
                &                                            +disk        %massStellar        ()                         &

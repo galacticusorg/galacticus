@@ -49,7 +49,7 @@
   </darkMatterProfileDMO>
   !!]
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
   use :: Kind_Numbers                , only : kind_int8
   use :: Numerical_Interpolation     , only : interpolator
 
@@ -58,17 +58,14 @@
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass    ), pointer     :: darkMatterProfileDMO_     => null()
-     class           (darkMatterProfileHeatingClass), pointer     :: darkMatterProfileHeating_ => null()
-     integer         (kind=kind_int8               )              :: lastUniqueID
-     integer                                                      :: nonAnalyticSolver
-     double precision                                             :: radiusInitialMinimum               , radiusInitialMaximum, &
-          &                                                          radiusFinalMinimum                 , radiusFinalMaximum
-     type            (interpolator                 ), allocatable :: massProfile
-     logical                                                      :: isBound
-     double precision                                             :: radiusFractionMinimum, radiusFractionMaximum
-     integer                                                      :: countPerDecadeRadius
-
+     class           (darkMatterProfileDMOClass        ), pointer     :: darkMatterProfileDMO_     => null()
+     class           (darkMatterProfileHeatingClass    ), pointer     :: darkMatterProfileHeating_ => null()
+     integer         (kind=kind_int8                   )              :: lastUniqueID
+     type            (enumerationNonAnalyticSolversType)              :: nonAnalyticSolver
+     double precision                                                 :: radiusInitialMinimum               , radiusInitialMaximum, &
+          &                                                              radiusFinalMinimum                 , radiusFinalMaximum
+     type            (interpolator                     ), allocatable :: massProfile
+     logical                                                          :: isBound
    contains
      !![
      <methods>
@@ -115,14 +112,14 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (darkMatterProfileDMOHeatedMonotonic)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
-    class(darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class(darkMatterProfileHeatingClass      ), pointer       :: darkMatterProfileHeating_
-    type (varying_string                     )                :: nonAnalyticSolver
-    double precision                                          :: radiusFractionMinimum, radiusFractionMaximum
-    integer                                                      :: countPerDecadeRadius
+    type            (darkMatterProfileDMOHeatedMonotonic)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass      ), pointer       :: darkMatterProfileHeating_
+    type            (varying_string                     )                :: nonAnalyticSolver
+    double precision                                                     :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                                  toleranceRelativePotential
 
     !![
     <inputParameter>
@@ -132,28 +129,28 @@ contains
       <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
-      <name>radiusFractionMinimum</name>
+      <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>Minimum radius tabulated in units of the virial radius.</description>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
     </inputParameter>
     <inputParameter>
-      <name>radiusFractionMaximum</name>
-      <defaultValue>10.0d0</defaultValue>
+      <name>toleranceRelativeVelocityDispersionMaximum</name>
+      <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>Maximum radius tabulated in units of the virial radius.</description>
+      <description>The maximum allowed relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles before aborting.</description>
     </inputParameter>
     <inputParameter>
-      <name>countPerDecadeRadius</name>
-      <defaultValue>100</defaultValue>
+      <name>toleranceRelativePotential</name>
+      <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>Count per decade radius.</description>
+      <description>The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeatedMonotonic(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_, radiusFractionMinimum, radiusFractionMaximum, countPerDecadeRadius)
+    self=darkMatterProfileDMOHeatedMonotonic(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -163,21 +160,21 @@ contains
     return
   end function heatedMonotonicConstructorParameters
 
-  function heatedMonotonicConstructorInternal(nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_, radiusFractionMinimum, radiusFractionMaximum, countPerDecadeRadius) result(self)
+  function heatedMonotonicConstructorInternal(nonAnalyticSolver,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily heatedMonotonic} dark matter profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (darkMatterProfileDMOHeatedMonotonic)                        :: self
-    class  (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
-    class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class  (darkMatterProfileHeatingClass      ), intent(in   ), target :: darkMatterProfileHeating_
-    integer                                     , intent(in   )         :: nonAnalyticSolver
-    double precision                            , intent(in   )         :: radiusFractionMinimum, radiusFractionMaximum
-    integer                                     , intent(in   )         :: countPerDecadeRadius
+    type            (darkMatterProfileDMOHeatedMonotonic)                        :: self
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass      ), intent(in   ), target :: darkMatterProfileHeating_
+    type            (enumerationNonAnalyticSolversType  ), intent(in   )         :: nonAnalyticSolver
+    double precision                                     , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                                          toleranceRelativePotential
     !![
-    <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_, radiusFractionMinimum, radiusFractionMaximum, countPerDecadeRadius"/>
+    <constructorAssign variables="nonAnalyticSolver, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
@@ -260,6 +257,8 @@ contains
     double precision                                     , allocatable, dimension(:) :: massEnclosed                , massShell                   , &
          &                                                                              radiusInitial               , radiusFinal                 , &
          &                                                                              energyFinal                 , perturbation
+    double precision                                     , parameter                 :: radiusFractionMinimum=1.0d-6, radiusFractionMaximum=10.0d0
+    integer                                              , parameter                 :: countPerDecadeRadius =100
     logical                                              , allocatable, dimension(:) :: isBound
     integer                                                                          :: i                           , countRadii
 
@@ -268,10 +267,10 @@ contains
     ! Nothing to do if profile is already tabulated.
     if (allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.
-    self%radiusInitialMinimum=self%radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node)
-    self%radiusInitialMaximum=self%radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node)
+    self%radiusInitialMinimum=radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node)
+    self%radiusInitialMaximum=radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node)
     ! Build grid of radii.
-    countRadii=int(log10(self%radiusInitialMaximum/self%radiusInitialMinimum)*dble(self%countPerDecadeRadius)+1.0d0)
+    countRadii=int(log10(self%radiusInitialMaximum/self%radiusInitialMinimum)*dble(countPerDecadeRadius)+1.0d0)
     if (allocated(radiusInitial)) then
        deallocate(radiusInitial)
        deallocate(radiusFinal  )
@@ -505,7 +504,7 @@ contains
     class           (darkMatterProfileDMOHeatedMonotonic), intent(inout)           :: self
     type            (treeNode                           ), intent(inout), target   :: node
     double precision                                     , intent(in   )           :: radius
-    integer                                              , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType  ), intent(  out), optional :: status
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedMonotonicPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)

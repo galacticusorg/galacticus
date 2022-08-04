@@ -42,7 +42,6 @@ Contains a module which implements a property extractor class that extracts the 
      procedure :: name        => radiusBoundMassName
      procedure :: description => radiusBoundMassDescription
      procedure :: unitsInSI   => radiusBoundMassUnitsInSI
-     procedure :: type        => radiusBoundMassType
   end type nodePropertyExtractorRadiusBoundMass
 
   interface nodePropertyExtractorRadiusBoundMass
@@ -160,16 +159,4 @@ contains
     return
   end function radiusBoundMassUnitsInSI
 
-  integer function radiusBoundMassType(self)
-    !!{
-    Return the type of the bound mass radius property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiusBoundMassType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiusBoundMassType
 

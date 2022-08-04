@@ -69,7 +69,8 @@ contains
     !!{
     Constructor for the ``massFunctionStellarBaldry2012GAMA'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     type            (outputAnalysisMassFunctionStellarBaldry2012GAMA)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
@@ -77,6 +78,7 @@ contains
     class           (outputTimesClass                               ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                      ), pointer                     :: gravitationalLensing_
     class           (massFunctionIncompletenessClass                ), pointer                     :: massFunctionIncompleteness_
+    class           (galacticStructureClass                         ), pointer                     :: galacticStructure_
     double precision                                                 , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                        :: covarianceBinomialBinsPerDecade
     double precision                                                                               :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -155,20 +157,22 @@ contains
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="gravitationalLensing"       name="gravitationalLensing_"       source="parameters"/>
     <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
+    <objectBuilder class="galacticStructure"          name="galacticStructure_"          source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarBaldry2012GAMA(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarBaldry2012GAMA(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,galacticStructure_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"        />
     <objectDestructor name="outputTimes_"               />
     <objectDestructor name="gravitationalLensing_"      />
     <objectDestructor name="massFunctionIncompleteness_"/>
+    <objectDestructor name="galacticStructure_"         />
     !!]
     return
   end function massFunctionStellarBaldry2012GAMAConstructorParameters
 
-  function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,galacticStructure_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
     Constructor for the ``massFunctionStellarBaldry2012GAMA'' output analysis class for internal use.
     !!}
@@ -188,6 +192,7 @@ contains
     class           (outputTimesClass                                    ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
     class           (massFunctionIncompletenessClass                     ), intent(in   ), target       :: massFunctionIncompleteness_
+    class           (galacticStructureClass                              ), intent(in   ), target       :: galacticStructure_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                          , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
     double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                            , systematicErrorPolynomialCoefficient
@@ -312,6 +317,7 @@ contains
          &                                   outputAnalysisPropertyOperator_                                                                               , &
          &                                   outputAnalysisDistributionOperator_                                                                           , &
          &                                   outputTimes_                                                                                                  , &
+         &                                   galacticStructure_                                                                                            , &
          &                                   covarianceBinomialBinsPerDecade                                                                               , &
          &                                   covarianceBinomialMassHaloMinimum                                                                             , &
          &                                   covarianceBinomialMassHaloMaximum                                                                               &

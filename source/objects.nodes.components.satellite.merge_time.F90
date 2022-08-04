@@ -18,21 +18,31 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which stores data for the preset interpolated position node component.
+Contains a module which implements a satellite orbit component that simply tracks the time of merging.
 !!}
 
-module Node_Component_Position_Preset_Interpolated_Data
+module Node_Component_Satellite_Merge_Time
   !!{
-  Stores data for the preset interpolated position node component.
+  Implements a satellite orbit component that simply tracks the time of merging.
   !!}
-  use :: Cosmology_Functions, only : cosmologyFunctionsClass
   implicit none
-  public
+  private
 
-  class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-  !$omp threadprivate(cosmologyFunctions_)
+  !![
+  <component>
+   <class>satellite</class>
+   <name>mergeTime</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>timeOfMerging</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>huge(0.0d0)</classDefault>
+    </property>
+   </properties>
+  </component>
+  !!]
 
-  double precision                                   :: positionPresetBoxLength
-  logical                                            :: isPeriodic
-
-end module Node_Component_Position_Preset_Interpolated_Data
+end module Node_Component_Satellite_Merge_Time

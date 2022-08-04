@@ -25,8 +25,9 @@ module Output_Analysis_Weight_Operators
   !!{
   Provides a class that implements operators on weights for on-the-fly analyses.
   !!}
-  use            :: Galacticus_Nodes, only : treeNode
-  use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  use            :: Galacticus_Nodes       , only : treeNode
+  use            :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
   private
 
   !![
@@ -39,11 +40,12 @@ module Output_Analysis_Weight_Operators
     <description>Operate on the given weight.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision          , intent(in   ) :: weightValue</argument>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: propertyValue, propertyValueIntrinsic</argument>
-    <argument>integer                   , intent(in   ) :: propertyType , propertyQuantity</argument>
-    <argument>integer         (c_size_t), intent(in   ) :: outputIndex</argument>
+    <argument>double precision                                               , intent(in   ) :: weightValue                             </argument>
+    <argument>type            (treeNode                                     ), intent(inout) :: node                                    </argument>
+    <argument>double precision                                               , intent(in   ) :: propertyValue   , propertyValueIntrinsic</argument>
+    <argument>type            (enumerationOutputAnalysisPropertyTypeType    ), intent(in   ) :: propertyType                            </argument>
+    <argument>type            (enumerationOutputAnalysisPropertyQuantityType), intent(in   ) :: propertyQuantity                        </argument>
+    <argument>integer         (c_size_t                                     ), intent(in   ) :: outputIndex                             </argument>
    </method>
   </functionClass>
   !!]

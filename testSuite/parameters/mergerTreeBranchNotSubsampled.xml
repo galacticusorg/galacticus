@@ -88,9 +88,6 @@
   <accretionHalo value="zero"/>
   <hotHaloMassDistribution value="null"/>
 
-  <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
-
   <!-- Galaxy merger options -->
   <virialOrbit value="benson2005"/>
   <satelliteMergingTimescales value="jiang2008">
@@ -113,6 +110,9 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
  </nodeOperator>
 
   <!-- Numerical tolerances -->

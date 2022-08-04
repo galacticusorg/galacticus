@@ -137,9 +137,10 @@ contains
     double precision                                                  , intent(in   ) :: propertyValue
     type            (treeNode                                        ), intent(inout) :: node
     double precision                                                                  :: nbodyMassPropertyValue
-    integer                                                                           :: nbodyMassPropertyType , i
+    type            (enumerationOutputAnalysisPropertyTypeType       )                :: nbodyMassPropertyType
+    integer                                                                           :: i
 
-    nbodyMassPropertyType         =+self%nodePropertyExtractor_%type   (    )
+    nbodyMassPropertyType         = self%nodePropertyExtractor_%type   (    )
     select type (extractor_ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
        nbodyMassPropertyValue     =                  extractor_%extract(node)

@@ -26,6 +26,17 @@
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
   use :: Kind_Numbers               , only : kind_int8
 
+  ! Enumeration for angular momentum source.
+  !![
+  <enumeration>
+   <name>angularMomentumSource</name>
+   <description>Enumeration specifying the origin of angular momentum of cooling gas in the constant rotation class.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="darkMatter"/>
+   <entry label="hotGas"    />
+  </enumeration>
+  !!]
+
   !![
   <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation">
    <description>
@@ -59,13 +70,13 @@
      Implementation of the specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
      !!}
      private
-     class           (darkMatterProfileDMOClass   ), pointer :: darkMatterProfileDMO_             => null()
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_          => null()
-     integer         (kind=kind_int8              )          :: lastUniqueID
-     logical                                                 :: angularMomentumSpecificComputed
-     double precision                                        :: angularMomentumSpecificPrevious
-     integer                                                 :: sourceAngularMomentumSpecificMean          , sourceNormalizationRotation
-     logical                                                 :: useInteriorMean
+     class           (darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_             => null()
+     class           (hotHaloMassDistributionClass        ), pointer :: hotHaloMassDistribution_          => null()
+     integer         (kind=kind_int8                      )          :: lastUniqueID
+     logical                                                         :: angularMomentumSpecificComputed
+     double precision                                                :: angularMomentumSpecificPrevious
+     type            (enumerationAngularMomentumSourceType)          :: sourceAngularMomentumSpecificMean          , sourceNormalizationRotation
+     logical                                                         :: useInteriorMean
    contains
      !![
      <methods>
@@ -85,17 +96,6 @@
      module procedure constantRotationConstructorParameters
      module procedure constantRotationConstructorInternal
   end interface coolingSpecificAngularMomentumConstantRotation
-
-  ! Enumeration for angular momentum source.
-  !![
-  <enumeration>
-   <name>angularMomentumSource</name>
-   <description>Enumeration specifying the origin of angular momentum of cooling gas in the constant rotation class.</description>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="darkMatter"/>
-   <entry label="hotGas"    />
-  </enumeration>
-  !!]
 
 contains
 
@@ -163,7 +163,7 @@ contains
     type   (coolingSpecificAngularMomentumConstantRotation)                        :: self
     class  (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
     class  (hotHaloMassDistributionClass                  ), intent(in   ), target :: hotHaloMassDistribution_
-    integer                                                , intent(in   )         :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
+    type   (enumerationAngularMomentumSourceType          ), intent(in   )         :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
     logical                                                , intent(in   )         :: useInteriorMean
     !![
     <constructorAssign variables="*darkMatterProfileDMO_, *hotHaloMassDistribution_, sourceAngularMomentumSpecificMean, sourceNormalizationRotation, useInteriorMean"/>
@@ -225,14 +225,14 @@ contains
        ! Flag that cooling radius is now computed.
        self%angularMomentumSpecificComputed=.true.
        ! Compute the mean specific angular momentum.
-       select case (self%sourceAngularMomentumSpecificMean)
-       case (angularMomentumSourceDarkMatter)
+       select case (self%sourceAngularMomentumSpecificMean%ID)
+       case (angularMomentumSourceDarkMatter%ID)
           ! Compute mean specific angular momentum of the dark matter halo.
           basic                       =>  node               %basic()
           spin                        =>  node               %spin ()
           angularMomentumSpecificMean =  +spin%angularMomentum     () &
                &                         /basic              %mass ()
-       case (angularMomentumSourceHotGas    )
+       case (angularMomentumSourceHotGas    %ID)
           ! Compute mean specific angular momentum from the hot halo component.
           hotHalo => node%hotHalo()
           angularMomentumSpecificMean=+hotHalo%angularMomentum() &
@@ -242,10 +242,10 @@ contains
           call Error_Report('unknown profile type'//{introspection:location})
        end select
        ! Compute the rotation normalization.
-       select case (self%sourceNormalizationRotation      )
-       case (angularMomentumSourceDarkMatter)
+       select case (self%sourceNormalizationRotation      %ID)
+       case (angularMomentumSourceDarkMatter%ID)
           normalizationRotation=self%darkMatterProfileDMO_   %rotationNormalization(node)
-       case (angularMomentumSourceHotGas    )
+       case (angularMomentumSourceHotGas    %ID)
           normalizationRotation=self%hotHaloMassDistribution_%rotationNormalization(node)
        case default
           normalizationRotation=0.0d0

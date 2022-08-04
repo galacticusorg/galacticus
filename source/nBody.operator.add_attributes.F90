@@ -97,13 +97,14 @@ contains
     !!}
     use :: Display        , only : displayIndent    , displayUnindent           , verbosityLevelStandard
     use :: String_Handling, only : String_Value_Type, String_Value_Extract_Float, String_Value_Extract_Integer_Size_T, valueTypeFloating, &
-         &                         valueTypeInteger , valueTypeOther
+         &                         valueTypeInteger , valueTypeOther            , enumerationValueTypeType
 #ifdef USEMPI
     use :: MPI_Utilities  , only : mpiSelf
 #endif
     implicit none
     class  (nbodyOperatorAddAttributes), intent(inout)               :: self
     type   (nBodyData                 ), intent(inout), dimension(:) :: simulations
+    type   (enumerationValueTypeType  )                              :: valueType
     integer                                                          :: iSimulation , i
 
 #ifdef USEMPI
@@ -115,12 +116,13 @@ contains
 #endif
     do iSimulation=1_c_size_t,size(simulations)
        do i=1,size(self%names)
-          select case (String_Value_Type(char(self%values(i))))
-          case (valueTypeFloating)
+          valueType=String_Value_Type(char(self%values(i)))
+          select case (valueType%ID)
+          case (valueTypeFloating%ID)
              call simulations(iSimulation)%attributesReal   %set(self%names(i),String_Value_Extract_Float         (char(self%values(i))))
-          case (valueTypeInteger )
+          case (valueTypeInteger %ID)
              call simulations(iSimulation)%attributesInteger%set(self%names(i),String_Value_Extract_Integer_Size_T(char(self%values(i))))
-          case (valueTypeOther   )
+          case (valueTypeOther   %ID)
              call simulations(iSimulation)%attributesText   %set(self%names(i),                                         self%values(i)  )
           end select
        end do

@@ -149,14 +149,15 @@ module Node_Component_Spheroid_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           bindsTo="component" />
-    <binding method="acceleration"          function="Node_Component_Spheroid_Standard_Acceleration"            bindsTo="component" />
-    <binding method="tidalTensor"           function="Node_Component_Spheroid_Standard_Tidal_Tensor"            bindsTo="component" />
-    <binding method="chandrasekharIntegral" function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"  bindsTo="component" />
-    <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
-    <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          bindsTo="component" />
-    <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" bindsTo="component" />
-    <binding method="potential"             function="Node_Component_Spheroid_Standard_Potential"               bindsTo="component" />
+    <binding method="enclosedMass"            function="Node_Component_Spheroid_Standard_Enclosed_Mass"             bindsTo="component" />
+    <binding method="acceleration"            function="Node_Component_Spheroid_Standard_Acceleration"              bindsTo="component" />
+    <binding method="tidalTensor"             function="Node_Component_Spheroid_Standard_Tidal_Tensor"              bindsTo="component" />
+    <binding method="chandrasekharIntegral"   function="Node_Component_Spheroid_Standard_Chandrasekhar_Integral"    bindsTo="component" />
+    <binding method="density"                 function="Node_Component_Spheroid_Standard_Density"                   bindsTo="component" />
+    <binding method="densitySphericalAverage" function="Node_Component_Spheroid_Standard_Density_Spherical_Average" bindsTo="component" />
+    <binding method="rotationCurve"           function="Node_Component_Spheroid_Standard_Rotation_Curve"            bindsTo="component" />
+    <binding method="rotationCurveGradient"   function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient"   bindsTo="component" />
+    <binding method="potential"               function="Node_Component_Spheroid_Standard_Potential"                 bindsTo="component" />
    </bindings>
    <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   </component>
@@ -508,7 +509,7 @@ contains
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
-      end if
+       end if
        ! Trap negative stellar masses.
        if (spheroid%massStellar() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -554,6 +555,18 @@ contains
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
+          ! Indicate that ODE evolution should continue after this state change.
+          if (status == GSL_Success) status=GSL_Continue
+       end if
+       ! Trap negative angular momentum.
+       if (spheroid%angularMomentum() < 0.0d0) then
+          ! Estimate a reasonable specific angular momentum.
+          specificAngularMomentum=spheroid%radius()*spheroid%velocity()
+          ! Get the mass of the spheroid.
+          massSpheroid= spheroid%massGas    () &
+               &       +spheroid%massStellar()
+          ! Reset the angular momentum of the spheroid.
+          call spheroid%angularMomentumSet(specificAngularMomentum*massSpheroid)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
@@ -609,8 +622,8 @@ contains
     logical                                        , intent(inout), optional          :: interrupt
     procedure       (interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
     double precision                               , intent(in   )                    :: rate
-    class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent
-    type            (treeNode                     )                         , pointer :: selfNode
+    class           (nodeComponentHotHalo         )                         , pointer :: hotHalo
+    type            (treeNode                     )                         , pointer :: node
     type            (abundances                   )                                   :: abundancesOutflowRate
     double precision                                                                  :: angularMomentumOutflowRate, gasMass         , &
          &                                                                               massOutflowRate           , spheroidVelocity, &
@@ -641,11 +654,11 @@ contains
           call self%angularMomentumRate(-angularMomentumOutflowRate)
           call self%  abundancesGasRate(-     abundancesOutflowRate)
           ! Add outflowing rates to the hot halo component.
-          selfNode             => self    %host   ()
-          selfHotHaloComponent => selfNode%hotHalo()
-          call selfHotHaloComponent%           outflowingMassRate(           massOutflowRate)
-          call selfHotHaloComponent%outflowingAngularMomentumRate(angularMomentumOutflowRate)
-          call selfHotHaloComponent%     outflowingAbundancesRate(     abundancesOutflowRate)
+          node    => self%host   ()
+          hotHalo => node%hotHalo()
+          call hotHalo%           outflowingMassRate(           massOutflowRate)
+          call hotHalo%outflowingAngularMomentumRate(angularMomentumOutflowRate)
+          call hotHalo%     outflowingAbundancesRate(     abundancesOutflowRate)
        end if
     end if
     return
@@ -869,24 +882,24 @@ contains
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidStandard, treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved     , enumerationDestinationMergerType
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class           (*                    ), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    type            (treeNode             ), pointer       :: nodeHost
-    class           (nodeComponentDisk    ), pointer       :: diskHost                      , disk
-    class           (nodeComponentSpheroid), pointer       :: spheroidHost                  , spheroid
-    type            (history              )                :: historyDisk                   , historySpheroid                , &
-         &                                                    history_
-    double precision                                       :: angularMomentum               , diskSpecificAngularMomentum    , &
-         &                                                    massSpheroid                  , spheroidSpecificAngularMomentum, &
-         &                                                    radiusRemnant                 ,velocityCircularRemnant         , &
-         &                                                    angularMomentumSpecificRemnant
-    integer                                                :: destinationGasSatellite       , destinationGasHost             , &
-         &                                                    destinationStarsHost          , destinationStarsSatellite
-    logical                                                :: mergerIsMajor
+    class           (*                               ), intent(inout) :: self
+    type            (treeNode                        ), intent(inout) :: node
+    type            (treeNode                        ), pointer       :: nodeHost
+    class           (nodeComponentDisk               ), pointer       :: diskHost                      , disk
+    class           (nodeComponentSpheroid           ), pointer       :: spheroidHost                  , spheroid
+    type            (history                         )                :: historyDisk                   , historySpheroid                , &
+         &                                                               history_
+    double precision                                                  :: angularMomentum               , diskSpecificAngularMomentum    , &
+         &                                                               massSpheroid                  , spheroidSpecificAngularMomentum, &
+         &                                                               radiusRemnant                 ,velocityCircularRemnant         , &
+         &                                                               angularMomentumSpecificRemnant
+    type            (enumerationDestinationMergerType)                :: destinationGasSatellite       , destinationGasHost             , &
+         &                                                               destinationStarsHost          , destinationStarsSatellite
+    logical                                                           :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Get the spheroid component, creating it if need be.
@@ -920,8 +933,8 @@ contains
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move gas material within the host if necessary.
-       select case (destinationGasHost)
-       case (destinationMergerDisk)
+       select case (destinationGasHost%ID)
+       case (destinationMergerDisk   %ID)
           call diskHost    %        massGasSet(                                 &
                &                                diskHost    %massGas        ()  &
                &                               +spheroidHost%massGas        ()  &
@@ -946,7 +959,7 @@ contains
           call spheroidHost%  abundancesGasSet(                                 &
                &                                zeroAbundances                  &
                &                              )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%        massGasSet(                                 &
                &                                spheroidHost%massGas        ()  &
                &                               +diskHost    %massGas        ()  &
@@ -966,15 +979,15 @@ contains
           call diskHost    %  abundancesGasSet(                                 &
                &                                zeroAbundances                  &
                &                              )
-       case (destinationMergerUnmoved)
+       case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
 
        ! Move stellar material within the host if necessary.
-       select case (destinationStarsHost)
-       case (destinationMergerDisk)
+       select case (destinationStarsHost%ID)
+       case (destinationMergerDisk   %ID)
           call     diskHost%        massStellarSet(                                    &
                &                                    diskHost    %        massStellar() &
                &                                   +spheroidHost%        massStellar() &
@@ -1022,7 +1035,7 @@ contains
           call spheroidHost   %starFormationHistorySet(historySpheroid)
           call historyDisk    %destroy(recordMemory=.false.)
           call historySpheroid%destroy(recordMemory=.false.)
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%        massStellarSet(                                    &
                &                                    spheroidHost%        massStellar() &
                &                                   +diskHost    %        massStellar() &
@@ -1065,7 +1078,7 @@ contains
           call historySpheroid%destroy(recordMemory=.false.)
           historyDisk    =diskHost    %starFormationHistory()
           historySpheroid=spheroidHost%starFormationHistory()
-       case (destinationMergerUnmoved)
+       case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
@@ -1083,8 +1096,8 @@ contains
           spheroidSpecificAngularMomentum=spheroid%angularMomentum()/massSpheroid
 
           ! Move the gas component of the standard spheroid to the host.
-          select case (destinationGasSatellite)
-          case (destinationMergerDisk)
+          select case (destinationGasSatellite%ID)
+          case (destinationMergerDisk   %ID)
              call     diskHost%        massGasSet(                                 &
                   &                                diskHost    %        massGas()  &
                   &                               +spheroid%            massGas()  &
@@ -1097,7 +1110,7 @@ contains
                   &                               +spheroid    %        massGas()  &
                   &                               *spheroidSpecificAngularMomentum &
                   &                              )
-          case (destinationMergerSpheroid)
+          case (destinationMergerSpheroid%ID)
              call spheroidHost%        massGasSet(                                 &
                   &                                spheroidHost%        massGas()  &
                   &                               +spheroid    %        massGas()  &
@@ -1112,8 +1125,8 @@ contains
           call spheroid%      massGasSet(0.0d0         )
           call spheroid%abundancesGasSet(zeroAbundances)
           ! Move the stellar component of the standard spheroid to the host.
-          select case (destinationStarsSatellite)
-          case (destinationMergerDisk)
+          select case (destinationStarsSatellite%ID)
+          case (destinationMergerDisk   %ID)
              call diskHost    %        massStellarSet(                                 &
                   &                                    diskHost%        massStellar()  &
                   &                                   +spheroid%        massStellar()  &
@@ -1144,7 +1157,7 @@ contains
              call spheroid       %starFormationHistorySet(historySpheroid                     )
              call history_       %destroy                (                recordMemory=.false.)
              call historySpheroid%destroy                (                recordMemory=.false.)
-          case (destinationMergerSpheroid)
+          case (destinationMergerSpheroid%ID)
              call spheroidHost%        massStellarSet( spheroidHost%        massStellar() &
                   &                                   +spheroid    %        massStellar() &
                   &                                  )
@@ -1379,7 +1392,7 @@ contains
     use :: Histories       , only : history
     implicit none
     type            (nodeComponentSpheroidStandard)          :: self
-    type            (treeNode                     ), pointer :: selfNode
+    type            (treeNode                     ), pointer :: node
     class           (nodeComponentDisk            ), pointer :: disk
     class           (nodeComponentBasic           ), pointer :: basic
     type            (history                      )          :: historyStarFormation        , stellarPropertiesHistory      , &
@@ -1390,7 +1403,7 @@ contains
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the associated node.
-    selfNode => self%host()
+    node => self%host()
     ! Determine which histories must be created.
     historyStarFormation          =self%starFormationHistory            ()
     createStarFormationHistory    =.not.historyStarFormation    %exists ()
@@ -1400,21 +1413,21 @@ contains
     call                                stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
-       call stellarPopulationProperties_%historyCreate(selfNode,stellarPropertiesHistory)
-       call self%stellarPropertiesHistorySet(                     stellarPropertiesHistory)
+       call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
+       call self%stellarPropertiesHistorySet(               stellarPropertiesHistory)
     end if
     ! Create the star formation history.
-    if (createStarFormationHistory    ) then
-       disk => selfNode%disk()
-       diskStarFormationHistory=disk%starFormationHistory()
+    if (createStarFormationHistory) then
+       disk                     => node%disk                ()
+       diskStarFormationHistory =  disk%starFormationHistory()
        if (diskStarFormationHistory%exists()) then
-          timeBegin=  diskStarFormationHistory%time(1)
+          timeBegin = diskStarFormationHistory%time(1)
        else
-          basic    => selfNode%basic()
-          timeBegin=  basic   %time ()
+          basic    => node %basic()
+          timeBegin = basic%time ()
        end if
-       call starFormationHistory_%create (selfNode,historyStarFormation,timeBegin)
-       call self% starFormationHistorySet(         historyStarFormation          )
+       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
+       call self                 %starFormationHistorySet(     historyStarFormation          )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)

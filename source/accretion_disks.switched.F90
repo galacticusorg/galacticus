@@ -104,23 +104,21 @@ contains
     implicit none
     type            (accretionDisksSwitched)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
-    class           (accretionDisksClass   ), pointer       :: accretionDisksADAF_             , accretionDisksShakuraSunyaev_
-    character       (len=128               )                :: accretionRateThinDiskMinimumText, accretionRateThinDiskMaximumText
-    double precision                                        :: accretionRateTransitionWidth    , accretionRateThinDiskMinimum    , &
-         &                                                     accretionRateThinDiskMaximum
+    class           (accretionDisksClass   ), pointer       :: accretionDisksADAF_          , accretionDisksShakuraSunyaev_
+    character       (len=128               )                :: accretionRateThinDiskMinimum , accretionRateThinDiskMaximum
+    double precision                                        :: accretionRateTransitionWidth , accretionRateThinDiskMinimum_, &
+         &                                                     accretionRateThinDiskMaximum_
     logical                                                 :: scaleADAFRadiativeEfficiency
 
     !![
     <inputParameter>
       <name>accretionRateThinDiskMinimum</name>
-      <variable>accretionRateThinDiskMinimumText</variable>
       <source>parameters</source>
       <defaultValue>'0.01d0'</defaultValue>
       <description>The accretion rate (in Eddington units) below which a switched accretion disk becomes an ADAF.</description>
     </inputParameter>
     <inputParameter>
       <name>accretionRateThinDiskMaximum</name>
-      <variable>accretionRateThinDiskMaximumText</variable>
       <source>parameters</source>
       <defaultValue>'0.3d0'</defaultValue>
       <description>
@@ -143,8 +141,8 @@ contains
     <objectBuilder class="accretionDisks" parameterName="accretionDisksShakuraSunyaev" name="accretionDisksShakuraSunyaev_" source="parameters"/>
     !!]
     ! If minimum or maximum accretion rate for thin disk does not exist set suitable values.
-    if (accretionRateThinDiskMinimumText == "none") then
-       accretionRateThinDiskMinimum=-huge(0.0d0)
+    if (accretionRateThinDiskMinimum == "none") then
+       accretionRateThinDiskMinimum_=-huge(0.0d0)
     else
        !![
        <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
@@ -154,13 +152,13 @@ contains
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
-       read (accretionRateThinDiskMinimumText,*) accretionRateThinDiskMinimum
+       read (accretionRateThinDiskMinimum,*) accretionRateThinDiskMinimum_
 #ifdef THREADSAFEIO
        !$omp end critical(gfortranInternalIO)
 #endif
     end if
-    if (accretionRateThinDiskMaximumText == "none") then
-       accretionRateThinDiskMaximum=+huge(0.0d0)
+    if (accretionRateThinDiskMaximum == "none") then
+       accretionRateThinDiskMaximum_=+huge(0.0d0)
     else
        !![
        <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
@@ -170,13 +168,13 @@ contains
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
-       read (accretionRateThinDiskMaximumText,*) accretionRateThinDiskMaximum
+       read (accretionRateThinDiskMaximum,*) accretionRateThinDiskMaximum_
 #ifdef THREADSAFEIO
        !$omp end critical(gfortranInternalIO)
 #endif       
     end if
     ! Build the object.
-    self=accretionDisksSwitched(accretionDisksADAF_,accretionDisksShakuraSunyaev_,accretionRateThinDiskMinimum,accretionRateThinDiskMaximum,accretionRateTransitionWidth,scaleADAFRadiativeEfficiency)
+    self=accretionDisksSwitched(accretionDisksADAF_,accretionDisksShakuraSunyaev_,accretionRateThinDiskMinimum_,accretionRateThinDiskMaximum_,accretionRateTransitionWidth,scaleADAFRadiativeEfficiency)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="accretionDisksADAF_"          />

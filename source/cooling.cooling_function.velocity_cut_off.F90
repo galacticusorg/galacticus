@@ -21,7 +21,20 @@
   Implements a cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
   !!}
 
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
+  ! Enumeration for whether cut off is before or after the given epoch.
+  !![
+  <enumeration>
+   <name>cutOffWhen</name>
+   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="before"/>
+   <entry label="after" />
+  </enumeration>
+  !!]
 
   !![
   <coolingFunction name="coolingFunctionVelocityCutOff">
@@ -33,11 +46,13 @@
      A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
      !!}
      private
-     class           (coolingFunctionClass    ), pointer :: coolingFunction_     => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: velocityCutOff                , timeCutOff
-     integer                                             :: whenCutOff
-     logical                                             :: useFormationNode
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_  => null()
+     class           (coolingFunctionClass     ), pointer :: coolingFunction_     => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
+     double precision                                     :: velocityCutOff                , timeCutOff, &
+          &                                                  redshiftCutOff
+     type            (enumerationCutOffWhenType)          :: whenCutOff
+     logical                                              :: useFormationNode
    contains
      !![
      <methods>
@@ -59,18 +74,6 @@
      module procedure velocityCutOffConstructorParameters
      module procedure velocityCutOffConstructorInternal
   end interface coolingFunctionVelocityCutOff
-
-  ! Enumeration for whether cut off is before or after the given epoch.
-  !![
-  <enumeration>
-   <name>cutOffWhen</name>
-   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
-   <encodeFunction>yes</encodeFunction>
-   <validator>yes</validator>
-   <entry label="before"/>
-   <entry label="after" />
-  </enumeration>
-  !!]
 
 contains
 
@@ -130,6 +133,7 @@ contains
          &                                                                               includesPrefix=.false.  &
          &                                                                             )                       , &
          &                                                                               useFormationNode      , &
+         &                                                                               cosmologyFunctions_   , &
          &                                                                               darkMatterHaloScale_  , &
          &                                                                               coolingFunction_        &
          &                            )
@@ -142,21 +146,23 @@ contains
     return
   end function velocityCutOffConstructorParameters
 
-  function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingFunction_) result(self)
+  function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
     !!}
     implicit none
     type            (coolingFunctionVelocityCutOff)                        :: self
     double precision                               , intent(in   )         :: velocityCutOff      , timeCutOff
-    integer                                        , intent(in   )         :: whenCutOff
+    type            (enumerationCutOffWhenType    ), intent(in   )         :: whenCutOff
     logical                                        , intent(in   )         :: useFormationNode
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (coolingFunctionClass         ), intent(in   ), target :: coolingFunction_
     !![
-    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingFunction_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *cosmologyFunctions_, *coolingFunction_, *darkMatterHaloScale_"/>
     !!]
 
+    self%redshiftCutOff=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeCutOff))
     return
   end function velocityCutOffConstructorInternal
 
@@ -168,6 +174,7 @@ contains
     type(coolingFunctionVelocityCutOff), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%coolingFunction_"    />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]

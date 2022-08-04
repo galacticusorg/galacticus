@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Kepler_Orbits, only : keplerOrbit
+  use :: Kepler_Orbits, only : keplerOrbit, enumerationKeplerOrbitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes">
@@ -29,12 +29,12 @@
      A property extractor for {\normalfont \ttfamily keplerOrbit} objects.
      !!}
      private
-     type            (varying_string), allocatable, dimension(:) :: properties   , names_, &
-          &                                                         descriptions_
-     double precision                , allocatable, dimension(:) :: unitsInSI_
-     integer                         , allocatable, dimension(:) :: propertyIDs
-     integer                                                     :: count_
-     type            (varying_string)                            :: prefix
+     type            (varying_string            ), allocatable, dimension(:) :: properties   , names_, &
+          &                                                                     descriptions_
+     double precision                            , allocatable, dimension(:) :: unitsInSI_
+     type            (enumerationKeplerOrbitType), allocatable, dimension(:) :: propertyIDs
+     integer                                                                 :: count_
+     type            (varying_string            )                            :: prefix
    contains
      !![
      <methods>
@@ -48,7 +48,6 @@
      procedure :: names            => keplerOrbitNames
      procedure :: descriptions     => keplerOrbitDescriptions
      procedure :: unitsInSI        => keplerOrbitUnitsInSI
-     procedure :: type             => keplerOrbitType
   end type nodePropertyExtractorKeplerOrbit
 
 contains
@@ -81,62 +80,62 @@ contains
     self%prefix    =prefix
     do i=1,self%count_
        self%propertyIDs(i)=enumerationKeplerOrbitEncode(char(properties(i)),includesPrefix=.false.)
-       select case (self%propertyIDs(i))
-       case (keplerOrbitMasses             )
+       select case (self%propertyIDs(i)%ID)
+       case (keplerOrbitMasses             %ID)
           call Error_Report('"masses" property is unsupported'//{introspection:location})
-       case (keplerOrbitMassHost           )
+       case (keplerOrbitMassHost           %ID)
           self%names_       (i)=prefix//'HostMass'
           self%descriptions_(i)='The mass of the host system [M☉].'
           self%unitsInSI_   (i)=massSolar
-       case (keplerOrbitSpecificReducedMass)
+       case (keplerOrbitSpecificReducedMass%ID)
           self%names_       (i)=prefix//'SpecificReducedMass'
           self%descriptions_(i)='The reduced mass divided by the mass of the orbiting object.'
           self%unitsInSI_   (i)=1.0d0
-       case (keplerOrbitRadius             )
+       case (keplerOrbitRadius             %ID)
           self%names_       (i)=prefix//'Radius'
           self%descriptions_(i)='The current orbital radius [Mpc].'
           self%unitsInSI_   (i)=megaParsec
-       case (keplerOrbitTheta              )
+       case (keplerOrbitTheta              %ID)
           self%names_       (i)=prefix//'Theta'
           self%descriptions_(i)='Orbital angular position, θ, in spherical coordinates.'
           self%unitsInSI_   (i)=1.0d0
-       case (keplerOrbitPhi                )
+       case (keplerOrbitPhi                %ID)
           self%names_       (i)=prefix//'Phi'
           self%descriptions_(i)='Orbital angular position, ɸ, in spherical coordinates.'
           self%unitsInSI_   (i)=1.0d0
-       case (keplerOrbitEpsilon            )
+       case (keplerOrbitEpsilon            %ID)
           self%names_       (i)=prefix//'Epsilon'
           self%descriptions_(i)='Direction of the tangential component of velocity.'
           self%unitsInSI_   (i)=1.0d0
-       case (keplerOrbitRadiusPericenter   )
+       case (keplerOrbitRadiusPericenter   %ID)
           self%names_       (i)=prefix//'RadiusPericenter'
           self%descriptions_(i)='Radius of the orbital pericenter [Mpc].'
           self%unitsInSI_   (i)=megaParsec
-       case (keplerOrbitRadiusApocenter    )
+       case (keplerOrbitRadiusApocenter    %ID)
           self%names_       (i)=prefix//'RadiusApocenter'
           self%descriptions_(i)='Radius of the orbital apocenter [Mpc].'
           self%unitsInSI_   (i)=megaParsec
-       case (keplerOrbitVelocityRadial     )
+       case (keplerOrbitVelocityRadial     %ID)
           self%names_       (i)=prefix//'VelocityRadial'
           self%descriptions_(i)='Radial velocity of the orbit [km/s].'
           self%unitsInSI_   (i)=kilo
-       case (keplerOrbitVelocityTangential )
+       case (keplerOrbitVelocityTangential %ID)
           self%names_       (i)=prefix//'VelocityTangential'
           self%descriptions_(i)='Tangential velocity of the orbit [km/s].'
           self%unitsInSI_   (i)=kilo
-       case (keplerOrbitEnergy             )
+       case (keplerOrbitEnergy             %ID)
           self%names_       (i)=prefix//'Energy'
           self%descriptions_(i)='Energy of the orbit [M☉ (km/s)²].'
           self%unitsInSI_   (i)=massSolar*kilo**2
-       case (keplerOrbitAngularMomentum    )
+       case (keplerOrbitAngularMomentum    %ID)
           self%names_       (i)=prefix//'AngularMomentum'
           self%descriptions_(i)='Angular momentum of the orbit [M☉ Mpc km/s].'
           self%unitsInSI_   (i)=massSolar*kilo*megaParsec
-       case (keplerOrbitEccentricity       )
+       case (keplerOrbitEccentricity       %ID)
           self%names_       (i)=prefix//'Eccentricity'
           self%descriptions_(i)='Eccentricity of the orbit.'
           self%unitsInSI_   (i)=1.0d0
-       case (keplerOrbitSemiMajorAxis      )
+       case (keplerOrbitSemiMajorAxis      %ID)
           self%names_       (i)=prefix//'SemiMajorAxis'
           self%descriptions_(i)='Semi-major axis of the orbit [Mpc].'
           self%unitsInSI_   (i)=megaParsec
@@ -178,34 +177,34 @@ contains
     if (orbit%isDefined()) then
        ! Orbit is defined - extract required properties.
        do i=1,self%count_
-          select case (self%propertyIDs(i))
-          case (keplerOrbitMassHost           )
+          select case (self%propertyIDs(i)%ID)
+          case (keplerOrbitMassHost           %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%massHost           ()
-          case (keplerOrbitSpecificReducedMass)
+          case (keplerOrbitSpecificReducedMass%ID)
              keplerOrbitExtractFromOrbit(i)=orbit%specificReducedMass()
-          case (keplerOrbitRadius             )
+          case (keplerOrbitRadius             %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%radius             ()
-          case (keplerOrbitTheta              )
+          case (keplerOrbitTheta              %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%theta              ()
-          case (keplerOrbitPhi                )
+          case (keplerOrbitPhi                %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%phi                ()
-          case (keplerOrbitEpsilon            )
+          case (keplerOrbitEpsilon            %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%epsilon            ()
-          case (keplerOrbitRadiusPericenter   )
+          case (keplerOrbitRadiusPericenter   %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%radiusPericenter   ()
-          case (keplerOrbitRadiusApocenter    )
+          case (keplerOrbitRadiusApocenter    %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%radiusApocenter    ()
-          case (keplerOrbitVelocityRadial     )
+          case (keplerOrbitVelocityRadial     %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%velocityRadial     ()
-          case (keplerOrbitVelocityTangential )
+          case (keplerOrbitVelocityTangential %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%velocityTangential ()
-          case (keplerOrbitEnergy             )
+          case (keplerOrbitEnergy             %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%energy             ()
-          case (keplerOrbitAngularMomentum    )
+          case (keplerOrbitAngularMomentum    %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%angularMomentum    ()
-          case (keplerOrbitEccentricity       )
+          case (keplerOrbitEccentricity       %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%eccentricity       ()
-          case (keplerOrbitSemiMajorAxis      )
+          case (keplerOrbitSemiMajorAxis      %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%semiMajorAxis      ()
           end select
        end do
@@ -261,15 +260,3 @@ contains
     return
   end function keplerOrbitUnitsInSI
 
-  integer function keplerOrbitType(self)
-    !!{
-    Return the type of the keplerOrbit property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorKeplerOrbit), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    keplerOrbitType=outputAnalysisPropertyTypeLinear
-    return
-  end function keplerOrbitType

@@ -82,8 +82,7 @@
   </mergerTreeEvolver>
 
   <!-- Use merger tree node positions -->
-  <componentPosition value="presetInterpolated"/>
-  <positionPresetBoxLength value="684.9315068493151"/>
+  <componentPosition value="cartesian"/>
   <!-- Use merger tree velocities to compute orbits at the virial radius -->
   <!-- Use merger tree spins -->
   <!-- Use scale radius, set minimum mass to rockstar halo resolution -->
@@ -273,6 +272,10 @@
 	<stabilityThresholdGaseous value="0.9"/>
 	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
+    </nodeOperator>
+    <!-- Position interpolation -->
+    <nodeOperator value="positionInterpolated">
+      <lengthBox value="684.9315068493151"/>
     </nodeOperator>
   </nodeOperator>
 

@@ -63,13 +63,15 @@ contains
     !!{
     Constructor for the ``galaxySizesSDSS'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     type            (outputAnalysisGalaxySizesSDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass             ), pointer       :: outputTimes_
     class           (gravitationalLensingClass    ), pointer       :: gravitationalLensing_
+    class           (galacticStructureClass       ), pointer       :: galacticStructure_
     double precision                                               :: massStellarRatio     , sizeSourceLensing
     integer                                                        :: distributionNumber
 
@@ -95,18 +97,20 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_)
+    self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="gravitationalLensing_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function galaxySizesSDSSConstructorParameters
 
-  function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_) result(self)
+  function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_,galacticStructure_) result(self)
     !!{
     Internal constructor for the ``galaxySizesSDSS'' output analysis class.
     !!}
@@ -141,6 +145,7 @@ contains
     class           (cosmologyFunctionsClass                        ), target     , intent(in   )  :: cosmologyFunctions_
     class           (outputTimesClass                               ), target     , intent(inout)  :: outputTimes_
     class           (gravitationalLensingClass                      ), target     , intent(in   )  :: gravitationalLensing_
+    class           (galacticStructureClass                         ), target     , intent(in   )  :: galacticStructure_
     type            (cosmologyParametersSimple                      ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
     type            (nodePropertyExtractorRadiusHalfMassStellar     ), pointer                     :: nodePropertyExtractor_
@@ -251,12 +256,12 @@ contains
     ! Create a half-mass radius property extractor.
     allocate(nodePropertyExtractor_        )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorRadiusHalfMassStellar       (                                                                                                                                                             )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorRadiusHalfMassStellar       (galacticStructure_                                                                                                                                           )"/>
     !!]
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_        )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar                 (                                                                                                                                                             )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar                 (galacticStructure_                                                                                                                                           )"/>
     !!]
     ! Create multiply, log10, cosmological angular distance, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMultiply_         )

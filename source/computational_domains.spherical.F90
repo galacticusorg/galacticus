@@ -566,10 +566,10 @@ contains
     !!}
     use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
-    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
+    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity         , &
           &                                        verbosityLevelInfo, verbosityLevelStandard
     use :: MPI_Utilities                  , only : mpiBarrier        , mpiSelf
-    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther
+    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther, enumerationStatusCellType
     use :: Timers                         , only : timer
     implicit none
     class           (computationalDomainSpherical), intent(inout)                         :: self
@@ -579,7 +579,7 @@ contains
     double precision                                                                      :: convergenceMeasure , convergenceMeasureRatio
     character       (len=128                     )                                        :: message
     logical                                                                               :: convergedCriteria
-    integer                                                                               :: statusCell
+    type            (enumerationStatusCellType   )                                        :: statusCell
     type            (timer                       )                                        :: timer_
 
     ! Establish a timer.

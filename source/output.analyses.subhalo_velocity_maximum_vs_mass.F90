@@ -20,7 +20,9 @@
   !!{
   Contains a module which implements an output analysis class that computes subhalo mean maximum velocity as a function of mass.
   !!}
-  
+
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !![
   <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
    <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
@@ -31,7 +33,10 @@
      An output analysis class that computes subhalo mean maximum velocity as a function of mass.
      !!}
      private
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     double precision                                      redshift     
    contains
+     final :: subhaloVMaxVsMassDestructor
   end type outputAnalysisSubhaloVMaxVsMass
 
   interface outputAnalysisSubhaloVMaxVsMass
@@ -150,7 +155,7 @@ contains
     class           (outputTimesClass               ), intent(inout)                 :: outputTimes_
     class           (virialDensityContrastClass     ), intent(in   )                 :: virialDensityContrast_  , virialDensityContrastDefinition_
     class           (cosmologyParametersClass       ), intent(inout)                 :: cosmologyParameters_
-    class           (cosmologyFunctionsClass        ), intent(inout)                 :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass        ), intent(inout), target         :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass      ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                 , intent(in   ), optional       :: redshift
     double precision                                 , allocatable  , dimension(:  ) :: massesTarget            , functionTarget                  , &
@@ -161,6 +166,9 @@ contains
     integer         (c_size_t                         )                              :: countMasses             , i
     type            (varying_string                   )                              :: labelTarget
     type            (hdf5Object                       )                              :: file                    , velocityMaximumVsMassGroup
+    !![
+    <constructorAssign variables="redshift, *cosmologyFunctions_"/>
+    !!]
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
@@ -217,7 +225,7 @@ contains
     class           (outputTimesClass                          ), intent(inout)                           :: outputTimes_
     class           (virialDensityContrastClass                ), intent(in   )                           :: virialDensityContrast_               , virialDensityContrastDefinition_
     class           (cosmologyParametersClass                  ), intent(in   )                           :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                   ), intent(in   )                           :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass                   ), intent(in   ), target                   :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                 ), intent(in   )                           :: darkMatterProfileDMO_
     double precision                                            , intent(in   ), dimension(:)  , optional :: functionTarget
     double precision                                            , intent(in   ), dimension(:,:), optional :: functionCovarianceTarget
@@ -240,7 +248,12 @@ contains
     double precision                                            , allocatable  , dimension(:  )           :: masses
     double precision                                            , allocatable  , dimension(:,:)           :: outputWeight
     integer         (c_size_t                                  )                                          :: i
+    !![
+    <constructorAssign variables="*cosmologyFunctions_"/>
+    !!]
 
+    ! Initialize.
+    self%redshift =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     ! Construct mass bins.
     allocate(masses(countMasses))
     masses=Make_Range(log10(massMinimum),log10(massMaximum),int(countMasses),rangeTypeLinear)
@@ -361,3 +374,16 @@ contains
     nullify(filters_)
     return
   end function subhaloVMaxVsMassConstructorInternal
+
+  subroutine subhaloVMaxVsMassDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily subhaloVMaxVsMass''} output analysis class.
+    !!}
+    implicit none
+    type(outputAnalysisSubhaloVMaxVsMass), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine subhaloVMaxVsMassDestructor

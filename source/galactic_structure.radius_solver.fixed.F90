@@ -27,6 +27,18 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
   
   !![
+  <enumeration>
+   <name>radiusFixed</name>
+   <description>Enumerates the possible definitions of radius used by the ``fixed'' galactic structure solver.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="virial"    />
+   <entry label="turnaround"/>
+  </enumeration>
+  !!]
+
+  !![
   <galacticStructureSolver name="galacticStructureSolverFixed">
    <description>
     A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
@@ -46,7 +58,7 @@
      !!}
      private
      double precision                                      :: factor
-     integer                                               :: radiusFixed
+     type            (enumerationRadiusFixedType)          :: radiusFixed
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
      class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -64,18 +76,6 @@
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface galacticStructureSolverFixed
-
-  !![
-  <enumeration>
-   <name>radiusFixed</name>
-   <description>Enumerates the possible definitions of radius used by the ``fixed'' galactic structure solver.</description>
-   <encodeFunction>yes</encodeFunction>
-   <validator>yes</validator>
-   <visibility>public</visibility>
-   <entry label="virial"    />
-   <entry label="turnaround"/>
-  </enumeration>
-  !!]
 
 contains
 
@@ -130,7 +130,7 @@ contains
     implicit none
     type            (galacticStructureSolverFixed)                        :: self
     double precision                              , intent(in   )         :: factor
-    integer                                       , intent(in   )         :: radiusFixed
+    type            (enumerationRadiusFixedType  ), intent(in   )         :: radiusFixed
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (virialDensityContrastClass  ), intent(in   ), target :: virialDensityContrast_
@@ -264,14 +264,14 @@ contains
 
       ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
       spin => node%spin()
-      select case (self%radiusFixed)
-      case (radiusFixedVirial    )
+      select case (self%radiusFixed%ID)
+      case (radiusFixedVirial    %ID)
          velocity             =  +self %darkMatterHaloScale_ %velocityVirial                (node                                           )
          radius               =  +self %darkMatterHaloScale_ %radiusVirial             (     node                                           ) &
               &                  *self                       %factor                                                                          &
               &                  *spin                       %angularMomentum          (                                                    ) &
               &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node         ,     self %darkMatterProfileDMO_ )
-      case (radiusFixedTurnaround)
+      case (radiusFixedTurnaround%ID)
          basic                =>  node                       %basic                    (                                                    )
          velocity             =  +self%darkMatterProfileDMO_ %circularVelocityMaximum  (     node                                           )
          radius               =  +self%darkMatterHaloScale_  %radiusVirial             (     node                                           ) &

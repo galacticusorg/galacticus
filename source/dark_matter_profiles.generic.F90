@@ -316,18 +316,18 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     \ttfamily radius} (given in units of Mpc) using a numerical calculation.
     !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
+    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
     use :: Numerical_Integration     , only : integrator
     implicit none
-    class           (darkMatterProfileGeneric), intent(inout), target   :: self
-    type            (treeNode                ), intent(inout), target   :: node
-    double precision                          , intent(in   )           :: radius
-    integer                                   , intent(  out), optional :: status
-    double precision                          , parameter               :: radiusMaximumFactor=1.0d2
-    type            (integrator              ), save                    :: integrator_
-    logical                                   , save                    :: initialized        =.false.
+    class           (darkMatterProfileGeneric         ), intent(inout), target   :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    double precision                                   , parameter               :: radiusMaximumFactor=1.0d2
+    type            (integrator                       ), save                    :: integrator_
+    logical                                            , save                    :: initialized        =.false.
     !$omp threadprivate(integrator_,initialized)
-    double precision                                                    :: radiusMaximum
+    double precision                                                             :: radiusMaximum
 
     if (present(status)) status=structureErrorCodeSuccess
     if (.not.initialized) then

@@ -22,6 +22,7 @@
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
+  use :: Table_Labels           , only : enumerationExtrapolationTypeType
 
   !![
   <coolingFunction name="coolingFunctionCIEFile">
@@ -147,23 +148,23 @@
      A cooling function class which interpolates in a tabulated cooling function read from file.
      !!}
      private
-     type            (varying_string)                                :: fileName
-     double precision                                                :: metallicityMaximum              , metallicityMinimum          , &
-          &                                                             temperatureMaximum              , temperatureMinimum
-     integer                                                         :: extrapolateMetallicityHigh      , extrapolateMetallicityLow   , &
-          &                                                             extrapolateTemperatureHigh      , extrapolateTemperatureLow
-     logical                                                         :: firstMetallicityIsZero          , logarithmicTable
-     integer                                                         :: metallicityCount                , temperatureCount
-     double precision                                                :: firstNonZeroMetallicity
-     double precision                , allocatable, dimension(:    ) :: metallicities                   , temperatures                , &
-          &                                                             energyContinuum
-     double precision                , allocatable, dimension(:,:  ) :: coolingFunctionTable
-     double precision                , allocatable, dimension(:,:,:) :: powerEmittedFractionalCumulative
-     type            (interpolator  )                                :: interpolatorMetallicity         , interpolatorTemperature     , &
-          &                                                             interpolatorEnergy
-     double precision                                                :: temperaturePrevious             , metallicityPrevious         , &
-          &                                                             temperatureSlopePrevious        , metallicitySlopePrevious    , &
-          &                                                             coolingFunctionPrevious         , coolingFunctionSlopePrevious
+     type            (varying_string                  )                                :: fileName
+     double precision                                                                  :: metallicityMaximum              , metallicityMinimum          , &
+          &                                                                               temperatureMaximum              , temperatureMinimum
+     type            (enumerationExtrapolationTypeType)                                :: extrapolateMetallicityHigh      , extrapolateMetallicityLow   , &
+          &                                                                               extrapolateTemperatureHigh      , extrapolateTemperatureLow
+     logical                                                                           :: firstMetallicityIsZero          , logarithmicTable
+     integer                                                                           :: metallicityCount                , temperatureCount
+     double precision                                                                  :: firstNonZeroMetallicity
+     double precision                                  , allocatable, dimension(:    ) :: metallicities                   , temperatures                , &
+          &                                                                               energyContinuum
+     double precision                                  , allocatable, dimension(:,:  ) :: coolingFunctionTable
+     double precision                                  , allocatable, dimension(:,:,:) :: powerEmittedFractionalCumulative
+     type            (interpolator                    )                                :: interpolatorMetallicity         , interpolatorTemperature     , &
+          &                                                                               interpolatorEnergy
+     double precision                                                                  :: temperaturePrevious             , metallicityPrevious         , &
+          &                                                                               temperatureSlopePrevious        , metallicitySlopePrevious    , &
+          &                                                                               coolingFunctionPrevious         , coolingFunctionSlopePrevious
    contains
      !![
      <methods>
@@ -261,40 +262,40 @@ contains
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
-       select case (self%extrapolateTemperatureLow)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateTemperatureLow%ID)
+       case (extrapolationTypeZero%ID)
           cieFileCoolingFunction=0.0d0
           return
-       case (extrapolationTypeFix,extrapolationTypePowerLaw)
+       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
     if (temperatureUse > self%temperatureMaximum) then
-       select case (self%extrapolateTemperatureHigh)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateTemperatureHigh%ID)
+       case (extrapolationTypeZero%ID)
           cieFileCoolingFunction=0.0d0
           return
-       case (extrapolationTypeFix,extrapolationTypePowerLaw)
+       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
     ! Handle out of range metallicities.
     metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=metallicityTypeLinearByMassSolar)
     if (metallicityUse < self%metallicityMinimum) then
-       select case (self%extrapolateMetallicityLow)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateMetallicityLow%ID)
+       case (extrapolationTypeZero%ID)
           cieFileCoolingFunction=0.0d0
           return
-       case (extrapolationTypeFix)
+       case (extrapolationTypeFix%ID)
           metallicityUse=self%metallicityMinimum
        end select
     end if
     if (metallicityUse > self%metallicityMaximum) then
-       select case (self%extrapolateMetallicityHigh)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateMetallicityHigh%ID)
+       case (extrapolationTypeZero%ID)
           cieFileCoolingFunction=0.0d0
           return
-       case (extrapolationTypeFix)
+       case (extrapolationTypeFix%ID)
           metallicityUse=self%metallicityMaximum
        end select
     end if
@@ -351,36 +352,36 @@ contains
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
-       select case (self%extrapolateTemperatureLow)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateTemperatureLow%ID)
+       case (extrapolationTypeZero%ID)
           return
-       case (extrapolationTypeFix,extrapolationTypePowerLaw)
+       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
     if (temperatureUse > self%temperatureMaximum) then
-       select case (self%extrapolateTemperatureHigh)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateTemperatureHigh%ID)
+       case (extrapolationTypeZero%ID)
           return
-       case (extrapolationTypeFix,extrapolationTypePowerLaw)
+       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
     ! Handle out of range metallicities.
     metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=metallicityTypeLinearByMassSolar)
     if (metallicityUse < self%metallicityMinimum) then
-       select case (self%extrapolateMetallicityLow)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateMetallicityLow%ID)
+       case (extrapolationTypeZero%ID)
           return
-       case (extrapolationTypeFix)
+       case (extrapolationTypeFix%ID)
           metallicityUse=self%metallicityMinimum
        end select
     end if
     if (metallicityUse > self%metallicityMaximum) then
-       select case (self%extrapolateMetallicityHigh)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateMetallicityHigh%ID)
+       case (extrapolationTypeZero%ID)
           return
-       case (extrapolationTypeFix)
+       case (extrapolationTypeFix%ID)
           metallicityUse=self%metallicityMaximum
        end select
     end if
@@ -437,40 +438,40 @@ contains
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < self%temperatureMinimum) then
-       select case (self%extrapolateTemperatureLow)
-       case (extrapolationTypeZero,extrapolationTypeFix)
+       select case (self%extrapolateTemperatureLow%ID)
+       case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileCoolingFunctionTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw)
+       case (extrapolationTypePowerLaw%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
     if (temperatureUse > self%temperatureMaximum) then
-       select case (self%extrapolateTemperatureHigh)
-       case (extrapolationTypeZero,extrapolationTypeFix)
+       select case (self%extrapolateTemperatureHigh%ID)
+       case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileCoolingFunctionTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw)
+       case (extrapolationTypePowerLaw%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
     ! Handle out of range metallicities.
     metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=metallicityTypeLinearByMassSolar)
     if (metallicityUse < self%metallicityMinimum) then
-       select case (self%extrapolateMetallicityLow)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateMetallicityLow%ID)
+       case (extrapolationTypeZero%ID)
           cieFileCoolingFunctionTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypeFix)
+       case (extrapolationTypeFix%ID)
           metallicityUse=self%metallicityMinimum
        end select
     end if
     if (metallicityUse > self%metallicityMaximum) then
-       select case (self%extrapolateMetallicityHigh)
-       case (extrapolationTypeZero)
+       select case (self%extrapolateMetallicityHigh%ID)
+       case (extrapolationTypeZero%ID)
           cieFileCoolingFunctionTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypeFix)
+       case (extrapolationTypeFix%ID)
           metallicityUse=self%metallicityMaximum
        end select
     end if

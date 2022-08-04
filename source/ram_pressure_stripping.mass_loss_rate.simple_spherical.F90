@@ -26,7 +26,23 @@
 
   !![
   <ramPressureStripping name="ramPressureStrippingSimpleSpherical">
-   <description>A simple model of ram pressure stripping in spherically-symmetric systems.</description>
+    <description>
+      A simple model of ram pressure stripping in spherically-symmetric systems (e.g. spheroids). The mass loss rate is given by:
+      \begin{equation}
+      \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
+      \end{equation}
+      where $R_\mathrm{maximum}=${\normalfont \ttfamily [ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
+      \begin{equation}
+      \alpha = \beta \mathcal{F}_\mathrm{hot,host}/F_\mathrm{gravity},
+      \end{equation}
+      and,
+      \begin{equation}
+      F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
+      \end{equation}
+      is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984},
+      $\beta=${\normalfont \ttfamily [beta]} scales the rate of mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily
+      [rateFractionalMaximum]} controls the maximum allowed rate of mass loss.
+    </description>
   </ramPressureStripping>
   !!]
   type, extends(ramPressureStrippingClass) :: ramPressureStrippingSimpleSpherical
@@ -137,15 +153,17 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeSpheroid, coordinateSystemSpherical      , massTypeAll, massTypeGaseous
-    use :: Galacticus_Nodes                , only : nodeComponentSpheroid, treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstantGalacticus, megaParsec
+    use :: Display                         , only : displayGreen                , displayBlue                    , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeSpheroid       , coordinateSystemSpherical      , massTypeAll   , massTypeGaseous, &
+         &                                          enumerationComponentTypeType
+    use :: Galacticus_Nodes                , only : nodeComponentSpheroid       , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                    , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleSpherical), intent(inout) :: self
     class           (nodeComponent                      ), intent(inout) :: component
     type            (treeNode                           ), pointer       :: node
-    integer                                                              :: componentType
+    type            (enumerationComponentTypeType       )                :: componentType
     double precision                                                     :: forceGravitational    , forceRamPressure, &
          &                                                                  rateMassLossFractional, radiusHalfMass  , &
          &                                                                  densityGas            , massHalf        , &
@@ -169,12 +187,15 @@ contains
        velocity      =component%velocity      ()
        massGas       =component%massGas       ()
     class default
-       componentType =0
+       componentType =componentTypeSpheroid
        radius        =0.0d0
        radiusHalfMass=0.0d0
        velocity      =0.0d0
        massGas       =0.0d0
-       call Error_Report('unsupported component'//{introspection:location})
+       call Error_Report(                                                                                                                                                                                                                                        &
+            &            'only "'//displayBlue()//'spheroid'//displayReset()//'" components are supported by the "'//displayGreen()//'simpleSpherical'//displayReset()//'" '//displayBlue()//'ramPressureStripping'//displayReset()//' class'//char(10)//        &
+            &            displayGreen()//'HELP:'//displayReset()//' see '//displayMagenta()//'https://github.com/galacticusorg/galacticus/wiki/Troubleshooting:-Component-not-supported-by-ramPressureStripping-class'//displayReset()//{introspection:location} &
+            &           )
     end select
     ! Compute the densities at the half mass radius.
     densityGas=self%galacticStructure_%density     (                                            &

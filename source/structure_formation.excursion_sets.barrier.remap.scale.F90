@@ -34,10 +34,10 @@ Contains a module which implements an excursion set barrier class which remaps a
      An excursion set barrier class which remaps another class by multiplying by a constant.
      !!}
      private
-     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
-     double precision                                    :: factor
-     integer                                             :: applyTo
-     type            (varying_string          )          :: applyToText
+     class           (excursionSetBarrierClass        ), pointer :: excursionSetBarrier_ => null()
+     double precision                                            :: factor
+     type            (enumerationExcursionSetRemapType)          :: applyTo
+     type            (varying_string                  )          :: applyToText
    contains
      final     ::                    remapScaleDestructor
      procedure :: barrier         => remapScaleBarrier
@@ -60,11 +60,11 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (excursionSetBarrierRemapScale)                :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    class           (excursionSetBarrierClass     ), pointer       :: excursionSetBarrier_
-    double precision                                               :: factor
-    integer                                                        :: applyTo
+    type            (excursionSetBarrierRemapScale   )                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (excursionSetBarrierClass        ), pointer       :: excursionSetBarrier_
+    double precision                                                  :: factor
+    type            (enumerationExcursionSetRemapType)                :: applyTo
 
     ! Check and read parameters.
     !![
@@ -99,10 +99,10 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (excursionSetBarrierRemapScale)                        :: self
-    class           (excursionSetBarrierClass     ), intent(in   ), target :: excursionSetBarrier_
-    double precision                               , intent(in   )         :: factor
-    integer                                        , intent(in   )         :: applyTo
+    type            (excursionSetBarrierRemapScale   )                        :: self
+    class           (excursionSetBarrierClass        ), intent(in   ), target :: excursionSetBarrier_
+    double precision                                  , intent(in   )         :: factor
+    type            (enumerationExcursionSetRemapType), intent(in   )         :: applyTo
     !![
     <constructorAssign variables="factor, applyTo, *excursionSetBarrier_"/>
     !!]

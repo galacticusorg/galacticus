@@ -24,19 +24,29 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
+  <enumeration>
+   <name>klypin2015Sample</name>
+   <description>Enumeration of sample types for the {\normalfont \ttfamily klypin2015} dark matter profile shape parameter class.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="all"    />
+   <entry label="relaxed"/>
+  </enumeration>
+  !!]
+
+  !![
   <darkMatterProfileShape name="darkMatterProfileShapeKlypin2015">
    <description>Dark matter halo shape parameters are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
   </darkMatterProfileShape>
   !!]
-
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeKlypin2015
      !!{
      A dark matter halo profile shape parameter class implementing the algorithm of \cite{klypin_multidark_2014}.
      !!}
      private
-     class  (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     integer                                         :: sample
+     class(criticalOverdensityClass       ), pointer :: criticalOverdensity_      => null()
+     class(cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_ => null()
+     type (enumerationKlypin2015SampleType)          :: sample
    contains
      final     ::          klypin2015Destructor
      procedure :: shape => klypin2015Shape
@@ -49,17 +59,6 @@
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
   end interface darkMatterProfileShapeKlypin2015
-
-  !![
-  <enumeration>
-   <name>klypin2015Sample</name>
-   <description>Enumeration of sample types for the {\normalfont \ttfamily klypin2015} dark matter profile shape parameter class.</description>
-   <encodeFunction>yes</encodeFunction>
-   <validator>yes</validator>
-   <entry label="all"    />
-   <entry label="relaxed"/>
-  </enumeration>
-  !!]
 
 contains
 
@@ -103,10 +102,10 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (darkMatterProfileShapeKlypin2015)                        :: self
-    integer                                  , intent(in   )         :: sample
-    class  (criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
-    class  (cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
+    type (darkMatterProfileShapeKlypin2015)                        :: self
+    type (enumerationKlypin2015SampleType ), intent(in   )         :: sample
+    class(criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
     !![
     <constructorAssign variables="sample, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
@@ -147,10 +146,10 @@ contains
     ! Compute the shape parameter.
     nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
          &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
-    select case (self%sample)
-    case (klypin2015SampleAll    )
+    select case (self%sample%ID)
+    case (klypin2015SampleAll    %ID)
        klypin2015Shape=0.115d0+0.0165d0*nu**2
-    case (klypin2015SampleRelaxed)
+    case (klypin2015SampleRelaxed%ID)
        klypin2015Shape=0.115d0+0.0140d0*nu**2
     case default
        klypin2015Shape=0.0d0

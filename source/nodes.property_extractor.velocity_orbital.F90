@@ -43,7 +43,6 @@ Contains a module which implements an orbital velocity output analysis property 
    contains
      procedure :: elementCount => velocityOrbitalElementCount
      procedure :: extract      => velocityOrbitalExtract
-     procedure :: type         => velocityOrbitalType
      procedure :: names        => velocityOrbitalNames
      procedure :: descriptions => velocityOrbitalDescriptions
      procedure :: unitsInSI    => velocityOrbitalUnitsInSI
@@ -119,18 +118,6 @@ contains
     return
   end function velocityOrbitalExtract
 
-  integer function velocityOrbitalType(self)
-    !!{
-    Return the type of the orbital velocity property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorVelocityOrbital), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    velocityOrbitalType=outputAnalysisPropertyTypeLinear
-    return
-  end function velocityOrbitalType
   
   subroutine velocityOrbitalNames(self,time,names)
     !!{

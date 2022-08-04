@@ -95,7 +95,7 @@ contains
     class           (outputAnalysisPropertyOperatorFilterHighPass), intent(inout)           :: self
     double precision                                              , intent(in   )           :: propertyValue
     type            (treeNode                                    ), intent(inout), optional :: node
-    integer                                                       , intent(inout), optional :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType   ), intent(inout), optional :: propertyType
     integer         (c_size_t                                    ), intent(in   ), optional :: outputIndex
     !$GLC attributes unused :: propertyType, outputIndex, node
 

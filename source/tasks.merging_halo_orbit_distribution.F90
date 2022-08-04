@@ -47,7 +47,7 @@
      class           (cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_             => null()
      double precision                                               :: velocityMinimum                           , velocityMaximum       , &
           &                                                            massMinimum                               , massMaximum           , &
-          &                                                            time
+          &                                                            time                                      , redshift
      integer                                                        :: countMassesPerDecade                      , countVelocitiesPerUnit
      logical                                                        :: nodeComponentsInitialized       =  .false.
    contains
@@ -206,6 +206,7 @@ contains
     <constructorAssign variables="time, velocityMinimum, velocityMaximum, countVelocitiesPerUnit, massMinimum, massMaximum, countMassesPerDecade, *virialOrbit_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionFlows_, *mergerTreeBranchingProbability_, *criticalOverdensity_, *cosmologicalMassVariance_, *haloMassFunction_, *randomNumberGenerator_"/>
     !!]
 
+    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function mergingHaloOrbitDistributionConstructorInternal
 

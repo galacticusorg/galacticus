@@ -28,15 +28,53 @@ module Events_Hooks
   use :: Locks              , only : ompReadWriteLock
   use :: Regular_Expressions, only : regEx
   private
-  public :: hook                 , hookUnspecified, dependencyExact, dependencyRegEx
+  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx
+
+  !![
+  <enumeration>
+   <name>dependencyDirection</name>
+   <description>Used to specify direction of event hook dependencies.</description>
+   <visibility>public</visibility>
+   <entry label="before"/>
+   <entry label="after" />
+  </enumeration>
+  !!]
+  
+  ! The following is an enumeration of ways in which hooked functions can be bound to OpenMP threads. The behavior is as follows:
+  !
+  !      none: The hooked function is not bound to any OpenMP thread - it will always be called whenever the event is triggered,
+  !            irrespective of which OpenMP thread triggered the event.
+  !   atLevel: The hooked function is only called if: a) the current OpenMP level matches the level at which the function was
+  !            hooked, and; b) the OpenMP thread number of the event triggering thread matches that of the thread which hooked the
+  !            function at all OpenMP levels.
+  ! allLevels: The hooked function is only called if: a) the current OpenMP level is equal to or greater than the level at which
+  !            the function was hooked, and; b) the OpenMP thread number of the event triggering thread matches that of the thread
+  !            which hooked the function at all OpenMP levels, where the thread number of the hooked function at OpenMP levels
+  !            above that at which was hooked is taken to be equal to the thread number of the highest OpenMP level when the
+  !            function was hooked.
+  !
+  ! Ideally there would be no need for the "allLevels" option, but currently some default functionClass objects are used - for
+  ! thread-0 the default at levels greater than 0 is the exact same object as that at level-0 - in many cases
+  ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
+  ! lower level. When default functionClass objects are removed this option should be deprecated.
+  !![
+  <enumeration>
+   <name>openMPThreadBinding</name>
+   <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
+   <visibility>public</visibility>
+   <entry label="none"     />
+   <entry label="atLevel"  />
+   <entry label="allLevels"/>
+  </enumeration>
+  !!]
 
   type :: dependency
      !!{
      Base class for event hook dependencies.
      !!}
      private
-     integer            :: direction
-     character(len=128) :: label
+     type     (enumerationDependencyDirectionType) :: direction
+     character(len=128                           ) :: label
   end type dependency
 
   type, extends(dependency) :: dependencyExact
@@ -67,26 +105,17 @@ module Events_Hooks
      module procedure dependencyRegExConstructor
   end interface dependencyRegEx
 
-  !![
-  <enumeration>
-   <name>dependencyDirection</name>
-   <description>Used to specify direction of event hook dependencies.</description>
-   <visibility>public</visibility>
-   <entry label="before"/>
-   <entry label="after" />
-  </enumeration>
-  !!]
-  
   type :: hook
      !!{
      Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
      !!}
-     class    (*             ), pointer                   :: object_             => null()
-     class    (hook          ), pointer                   :: next                => null()
-     integer                                              :: openMPThreadBinding          , openMPLevel
-     integer                  , dimension(:), allocatable :: openMPThread
-     character(len=128       )                            :: label
-     class    (dependency    ), dimension(:), allocatable :: dependencies
+     class    (*                                 ), pointer                   :: object_             => null()
+     class    (hook                              ), pointer                   :: next                => null()
+     type     (enumerationOpenMPThreadBindingType)                            :: openMPThreadBinding
+     integer                                                                  :: openMPLevel
+     integer                                      , dimension(:), allocatable :: openMPThread
+     character(len=128                           )                            :: label
+     class    (dependency                        ), dimension(:), allocatable :: dependencies
   end type hook
 
   type, extends(hook) :: hookUnspecified
@@ -151,34 +180,6 @@ module Events_Hooks
      procedure :: isAttached => eventHookUnspecifiedIsAttached
      procedure :: detach     => eventHookUnspecifiedDetach
   end type eventHookUnspecified
-
-  ! The following is an enumeration of ways in which hooked functions can be bound to OpenMP threads. The behavior is as follows:
-  !
-  !      none: The hooked function is not bound to any OpenMP thread - it will always be called whenever the event is triggered,
-  !            irrespective of which OpenMP thread triggered the event.
-  !   atLevel: The hooked function is only called if: a) the current OpenMP level matches the level at which the function was
-  !            hooked, and; b) the OpenMP thread number of the event triggering thread matches that of the thread which hooked the
-  !            function at all OpenMP levels.
-  ! allLevels: The hooked function is only called if: a) the current OpenMP level is equal to or greater than the level at which
-  !            the function was hooked, and; b) the OpenMP thread number of the event triggering thread matches that of the thread
-  !            which hooked the function at all OpenMP levels, where the thread number of the hooked function at OpenMP levels
-  !            above that at which was hooked is taken to be equal to the thread number of the highest OpenMP level when the
-  !            function was hooked.
-  !
-  ! Ideally there would be no need for the "allLevels" option, but currently some default functionClass objects are used - for
-  ! thread-0 the default at levels greater than 0 is the exact same object as that at level-0 - in many cases
-  ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
-  ! lower level. When default functionClass objects are removed this option should be deprecated.
-  !![
-  <enumeration>
-   <name>openMPThreadBinding</name>
-   <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
-   <visibility>public</visibility>
-   <entry label="none"     />
-   <entry label="atLevel"  />
-   <entry label="allLevels"/>
-  </enumeration>
-  !!]
 
   !![
   <eventHookManager/>
@@ -268,14 +269,14 @@ contains
     use    :: Error  , only : Error_Report
     !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
-    class     (eventHookUnspecified), intent(inout)                         :: self
-    class     (*                   ), intent(in   ), target                 :: object_
-    integer                         , intent(in   ), optional               :: openMPThreadBinding
-    character (len=*               ), intent(in   ), optional               :: label
-    class     (dependency          ), intent(in   ), optional, dimension(:) :: dependencies
-    procedure (                    )                                        :: function_
-    class     (hook                )                         , pointer      :: hook_
-    !$ integer                                                              :: i
+    class     (eventHookUnspecified              ), intent(inout)                         :: self
+    class     (*                                 ), intent(in   ), target                 :: object_
+    type      (enumerationOpenMPThreadBindingType), intent(in   ), optional               :: openMPThreadBinding
+    character (len=*                             ), intent(in   ), optional               :: label
+    class     (dependency                        ), intent(in   ), optional, dimension(:) :: dependencies
+    procedure (                                  )                                        :: function_
+    class     (hook                              )                         , pointer      :: hook_
+    !$ integer                                                                            :: i
     !![
     <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
     !!]
@@ -386,10 +387,10 @@ contains
                       end do
                       deallocate(dependentIndicesTmp)
                    end if
-                   select case (hook_%dependencies(k)%direction)
-                   case (dependencyDirectionBefore)
+                   select case (hook_%dependencies(k)%direction%ID)
+                   case (dependencyDirectionBefore%ID)
                       dependentIndices(dependencyCount,:)=[j,i]
-                   case (dependencyDirectionAfter)
+                   case (dependencyDirectionAfter %ID)
                       dependentIndices(dependencyCount,:)=[i,j]
                    case default
                       call Error_Report('unknown dependency direction'//{introspection:location})
@@ -541,9 +542,9 @@ contains
     Constructor for an exact dependency.
     !!}
     implicit none
-    type     (dependencyExact) :: self
-    integer                    :: direction
-    character(len=*          ) :: label
+    type     (dependencyExact                   ) :: self
+    type     (enumerationDependencyDirectionType) :: direction
+    character(len=*                             ) :: label
     !![
     <constructorAssign variables="direction, label"/>
     !!]
@@ -556,9 +557,9 @@ contains
     Constructor for a regular expression dependency.
     !!}
     implicit none
-    type     (dependencyRegEx) :: self
-    integer                    :: direction
-    character(len=*          ) :: label
+    type     (dependencyRegEx                   ) :: self
+    type     (enumerationDependencyDirectionType) :: direction
+    character(len=*                             ) :: label
     !![
     <constructorAssign variables="direction, label"/>
     !!]

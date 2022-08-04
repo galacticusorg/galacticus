@@ -43,6 +43,8 @@
      procedure :: value                 => acceleratorValue
      procedure :: logarithmicDerivative => acceleratorLogarithmicDerivative
      procedure :: halfModeMass          => acceleratorHalfModeMass
+     procedure :: quarterModeMass       => acceleratorQuarterModeMass
+     procedure :: fractionModeMass      => acceleratorFractionModeMass
      procedure :: epochTime             => acceleratorEpochTime
   end type transferFunctionAccelerator
 
@@ -168,6 +170,33 @@ contains
     acceleratorHalfModeMass=self%transferFunction_%halfModeMass(status)
     return
   end function acceleratorHalfModeMass
+
+  double precision function acceleratorQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of four relative to a \gls{cdm} transfer function
+    !!}
+    implicit none
+    class  (transferFunctionAccelerator), intent(inout), target   :: self
+    integer                             , intent(  out), optional :: status
+
+    acceleratorQuarterModeMass=self%transferFunction_%quarterModeMass(status)
+    return
+  end function acceleratorQuarterModeMass
+
+  double precision function acceleratorFractionModeMass(self,fraction,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of four relative to a \gls{cdm} transfer function
+    !!}
+    implicit none
+    class           (transferFunctionAccelerator), intent(inout), target   :: self
+    double precision                             , intent(in   )           :: fraction
+    integer                                      , intent(  out), optional :: status
+
+    acceleratorFractionModeMass=self%transferFunction_%fractionModeMass(fraction,status)
+    return
+  end function acceleratorFractionModeMass
 
   subroutine acceleratorTabulate(self,wavenumberLogarithmic)
     !!{

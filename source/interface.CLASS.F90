@@ -229,13 +229,13 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        call    classOutput%openFile(char(fileName_))
-       call    classOutput%readDataset           ('wavenumber',wavenumbers                                 )
+       call    classOutput%readDataset           ('wavenumber',wavenumbers                                    )
        allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
        speciesGroup=classOutput%openGroup('darkMatter')
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesDarkMatter,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesDarkMatter%ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -245,7 +245,7 @@ contains
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
           if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesBaryons   ,i))
+             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesBaryons   %ID,i))
           else
              allEpochsFound=.false.
           end if
@@ -365,7 +365,7 @@ contains
              if (status == 0) then
                 if (classTransferLine(1:1) /= "#") then
                    i=i+1
-                   read (classTransferLine,*) wavenumbers(i),transferFunctions(i,classSpeciesPhotons,j),transferFunctions(i,classSpeciesBaryons,j),transferFunctions(i,classSpeciesDarkMatter,j)
+                   read (classTransferLine,*) wavenumbers(i),transferFunctions(i,classSpeciesPhotons%ID,j),transferFunctions(i,classSpeciesBaryons%ID,j),transferFunctions(i,classSpeciesDarkMatter%ID,j)
                 end if
              else
                 call Error_Report('unable to read CLASS transfer function file'//{introspection:location})
@@ -402,13 +402,13 @@ contains
        speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        speciesGroup=classOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   ,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+          call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
        call speciesGroup%close()
        parametersGroup=classOutput%openGroup('parameters')

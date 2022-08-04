@@ -31,6 +31,8 @@ module Input_Parameters
   use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
+  use :: Hashes            , only : integerHash
+  use :: Locks             , only : ompLock
   private
   public :: inputParameters, inputParameter, inputParameterList
   
@@ -105,6 +107,14 @@ module Input_Parameters
      procedure :: get           => inputParameterGet
   end type inputParameter
 
+  !![
+  <deepCopyActions class="inputParameters">
+   <inputParameters>
+    <methodCall method="lockReinitialize"/>
+   </inputParameters>
+  </deepCopyActions>
+  !!]
+    
   type :: inputParameters
      private
      type   (node           ), pointer, public :: document               => null()
@@ -114,7 +124,9 @@ module Input_Parameters
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
           &                                       isNull                 =  .false.
-        contains
+     type   (integerHash    ), allocatable     :: warnedDefaults
+     type   (ompLock        ), pointer         :: lock                   => null()
+   contains
      !![
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
@@ -134,6 +146,8 @@ module Input_Parameters
        <method description="Add a parameter." method="addParameter" />
        <method description="Reset all objects in this parameter set." method="reset" />
        <method description="Destroy the parameters document." method="destroy" />
+       <method description="Return the path to this parameters object." method="path" />
+       <method description="Reinitialize lock." method="lockReinitialize" />
      </methods>
      !!]
      final     ::                        inputParametersFinalize
@@ -157,6 +171,8 @@ module Input_Parameters
      procedure :: serializeToXML      => inputParametersSerializeToXML
      procedure :: addParameter        => inputParametersAddParameter
      procedure :: reset               => inputParametersReset
+     procedure :: path                => inputParametersPath
+     procedure :: lockReinitialize    => inputParametersLockReinitialize
   end type inputParameters
 
   interface inputParameters
@@ -229,14 +245,18 @@ contains
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
 
-    inputParametersConstructorNull%document   => createDocument    (                                  &
-         &                                                          getImplementation()             , &
-         &                                                          qualifiedName      ="parameters", &
-         &                                                          docType            =null()        &
-         &                                                         )
-    inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
-    inputParametersConstructorNull%parameters => null()
-    inputParametersConstructorNull%isNull     = .true.
+    allocate(inputParametersConstructorNull%warnedDefaults)
+    allocate(inputParametersConstructorNull%lock          )
+    inputParametersConstructorNull%document       => createDocument    (                                  &
+         &                                                              getImplementation()             , &
+         &                                                              qualifiedName      ="parameters", &
+         &                                                              docType            =null()        &
+         &                                                             )
+    inputParametersConstructorNull%rootNode       => getDocumentElement(inputParametersConstructorNull%document)
+    inputParametersConstructorNull%parameters     => null              (                                       )
+    inputParametersConstructorNull%warnedDefaults =  integerHash       (                                       )
+    inputParametersConstructorNull%lock           =  ompLock           (                                       )
+    inputParametersConstructorNull%isNull         = .true.
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
     !$omp end critical (FoX_DOM_Access)
@@ -363,6 +383,16 @@ contains
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
     inputParametersConstructorCopy%parent     =>                 parameters%parent
+    if (allocated(parameters%warnedDefaults)) then
+       if (allocated(inputParametersConstructorCopy%warnedDefaults)) deallocate(inputParametersConstructorCopy%warnedDefaults)
+       allocate(inputParametersConstructorCopy%warnedDefaults)
+       inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
+    end if
+    if (associated(parameters%lock)) then
+       nullify(inputParametersConstructorCopy%lock)
+       allocate(inputParametersConstructorCopy%lock)
+       inputParametersConstructorCopy%lock=ompLock()
+    end if
     return
   end function inputParametersConstructorCopy
 
@@ -370,11 +400,11 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use :: Display           , only : displayGreen       , displayMessage, displayReset
+    use :: Display           , only : displayGreen                     , displayMessage , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument   , node          , setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)      , char          , operator(//)    , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)                      , operator(/=)
     use :: String_Handling   , only : String_Strip
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
     use :: Display           , only : displayMessage
@@ -396,11 +426,15 @@ contains
     <optionalArgument name="noBuild"  defaultsTo=".false." />
     !!]
 #include "os.inc"
-    
-    inputParametersConstructorNode%isNull   =  .false.
-    inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
-    inputParametersConstructorNode%rootNode =>                  parametersNode
-    inputParametersConstructorNode%parent   => null            (              )
+
+    allocate(inputParametersConstructorNode%warnedDefaults)
+    allocate(inputParametersConstructorNode%lock          )
+    inputParametersConstructorNode%isNull         =  .false.
+    inputParametersConstructorNode%document       => getOwnerDocument(parametersNode)
+    inputParametersConstructorNode%rootNode       =>                  parametersNode
+    inputParametersConstructorNode%parent         => null            (              )
+    inputParametersConstructorNode%warnedDefaults =  integerHash     (              )
+    inputParametersConstructorNode%lock           =  ompLock         (              )
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     if (.not.noBuild_) then
@@ -663,6 +697,8 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
+    if (allocated (self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (associated(self%lock          )) deallocate(self%lock          )
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
        if (self%outputParametersTemporary) then
@@ -929,28 +965,28 @@ contains
           &                            getNodeName                , hasAttribute    , inException                    , node
     use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
-    use :: Hashes             , only : integerHash
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
-    class    (inputParameters)              , intent(inout)           :: self
-    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node           ), pointer                               :: node_                     , ignoreWarningsNode
-    type     (inputParameter ), pointer                               :: currentParameter
-    type     (regEx          ), save                                  :: regEx_
+    class    (inputParameters                         )              , intent(inout)           :: self
+    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
+    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode
+    type     (inputParameter                          ), pointer                               :: currentParameter
+    type     (regEx                                   ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                           :: warningsFound             , parameterMatched    , &
-         &                                                               verbose                   , ignoreWarnings      , &
-         &                                                               isException
-    integer                                                           :: allowedParametersCount    , errorStatus         , &
-         &                                                               distance                  , distanceMinimum     , &
-         &                                                               j
-    character(len=1024       )                                        :: parameterValue
-    character(len=1024       )                                        :: unknownName               , allowedParameterName, &
-         &                                                               parameterNameGuess
-    type     (varying_string )                                        :: message                   , verbosityLevel
-    type     (integerHash    )                                        :: parameterNamesSeen
-    type     (DOMException   )                                        :: exception
+    logical                                                                                    :: warningsFound             , parameterMatched    , &
+         &                                                                                        verbose                   , ignoreWarnings      , &
+         &                                                                                        isException
+    type     (enumerationInputParameterErrorStatusType)                                        :: errorStatus
+    integer                                                                                    :: allowedParametersCount    , status              , &
+         &                                                                                        distance                  , distanceMinimum     , &
+         &                                                                                        j
+    character(len=1024                                )                                        :: parameterValue
+    character(len=1024                                )                                        :: unknownName               , allowedParameterName, &
+         &                                                                                        parameterNameGuess
+    type     (varying_string                          )                                        :: message                   , verbosityLevel
+    type     (integerHash                             )                                        :: parameterNamesSeen
+    type     (DOMException                            )                                        :: exception
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -972,9 +1008,9 @@ contains
              ignoreWarnings=.false.
              if (hasAttribute(node_,'ignoreWarnings')) then
                 ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
-                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
+                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=status,ex=exception)
                 isException=inException(exception)
-                if (isException .or. errorStatus /= 0) &
+                if (isException .or. status /= 0) &
                      & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
              end if
              ! Check for a match with allowed parameter names.
@@ -1014,10 +1050,10 @@ contains
              end if
              if (errorStatus /= inputParameterErrorStatusSuccess .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
-                select case (errorStatus)
-                case (inputParameterErrorStatusEmptyValue    )
+                select case (errorStatus%ID)
+                case (inputParameterErrorStatusEmptyValue    %ID)
                    message='empty value for parameter ['    //getNodeName(node_)//']'
-                case (inputParameterErrorStatusAmbiguousValue)
+                case (inputParameterErrorStatusAmbiguousValue%ID)
                    message='ambiguous value for parameter ['//getNodeName(node_)//']'
                 end select
                 !$omp end critical (FoX_DOM_Access)
@@ -1333,7 +1369,8 @@ contains
     use :: FoX_dom           , only : node
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: ISO_Varying_String, only : assignment(=), char, operator(//)
+    use :: IO_HDF5           , only : ioHDF5AccessInitialize
+    use :: ISO_Varying_String, only : assignment(=)         , char, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                          :: inputParametersSubParameters
@@ -1344,11 +1381,12 @@ contains
     type     (inputParameter ), pointer                 :: parameterNode
     integer                                             :: copyCount
     type     (varying_string )                          :: groupName
-
     !![
     <optionalArgument name="requirePresent" defaultsTo=".true." />
     !!]
 
+    ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
+    call ioHDF5AccessInitialize()
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
           call Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
@@ -1373,22 +1411,45 @@ contains
     return
   end function inputParametersSubParameters
 
+  function inputParametersPath(self)
+    !!{
+    Return the path to the given parameters.
+    !!}
+    use :: FoX_dom           , only : getNodeName
+    use :: ISO_Varying_String, only : assignment(=), operator(//)
+    implicit none
+    type (varying_string )                        :: inputParametersPath
+    class(inputParameters), intent(inout), target :: self
+    type (inputParameter ), pointer               :: parameterNode
+    
+    parameterNode       => self%parameters
+    inputParametersPath =  ""
+    do while (associated(parameterNode))
+       if (associated(parameterNode%content)) inputParametersPath=inputParametersPath//getNodeName(parameterNode%content)//"/"
+       parameterNode => parameterNode%parent
+    end do
+    return
+  end function inputParametersPath
+
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
     !!{
     Return the value of the parameter specified by name.
     !!}
-    use :: FoX_dom    , only : hasAttribute, node
-    use :: Error      , only : Error_Report
-    use :: HDF5_Access, only : hdf5Access
+    use :: FoX_dom           , only : hasAttribute, getNodeName
+    use :: Error             , only : Error_Report, Warn
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : char
     implicit none
-    class           (inputParameters), intent(inout)           :: self
-    character       (len=*          ), intent(in   )           :: parameterName
-    {Type¦intrinsic}                 , intent(  out)           :: parameterValue
-    {Type¦intrinsic}                 , intent(in   ), optional :: defaultValue
-    integer                          , intent(  out), optional :: errorStatus
-    integer                          , intent(in   ), optional :: copyInstance
-    logical                          , intent(in   ), optional :: writeOutput
-    type            (inputParameter ), pointer                 :: parameterNode
+    class           (inputParameters                         ), intent(inout), target   :: self
+    character       (len=*                                   ), intent(in   )           :: parameterName
+    {Type¦intrinsic}                                          , intent(  out)           :: parameterValue
+    {Type¦intrinsic}                                          , intent(in   ), optional :: defaultValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
+    integer                                                   , intent(in   ), optional :: copyInstance
+    logical                                                   , intent(in   ), optional :: writeOutput
+    type            (inputParameters                         ), pointer                 :: parametersRoot
+    type            (inputParameter                          ), pointer                 :: parameterNode
+    type            (varying_string                          )                          :: parameterPath
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
     !!]
@@ -1397,6 +1458,17 @@ contains
        parameterNode => self%node(parameterName,copyInstance=copyInstance)
        call self%value(parameterNode,parameterValue,errorStatus,writeOutput)
     else if (present(defaultValue)) then
+       parametersRoot => self
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       parameterPath=self%path()
+       call parametersRoot%lock%set()
+       if (.not.parametersRoot%warnedDefaults%exists(parameterPath)) then
+          call Warn("Using default value for parameter '["//char(parameterPath)//parameterName//"]'")
+          call parametersRoot%warnedDefaults%set(parameterPath,1)
+       end if
+       call parametersRoot%lock%unset()
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (self%outputParameters%isOpen().and.writeOutput_) then
@@ -1425,33 +1497,33 @@ contains
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
     use :: HDF5_Access       , only : hdf5Access
     implicit none
-    class           (inputParameters           ), intent(inout), target      :: self
-    type            (inputParameter            ), intent(inout), target      :: parameterNode
-    {Type¦intrinsic}                            , intent(  out)              :: parameterValue
-    integer                                     , intent(  out), optional    :: errorStatus
-    logical                                     , intent(in   ), optional    :: writeOutput
+    class           (inputParameters                         ), intent(inout), target      :: self
+    type            (inputParameter                          ), intent(inout), target      :: parameterNode
+    {Type¦intrinsic}                                          , intent(  out)              :: parameterValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional    :: errorStatus
+    logical                                                   , intent(in   ), optional    :: writeOutput
 #ifdef MATHEVALAVAIL
-    integer         (kind_int8                 )                             :: evaluator
+    integer         (kind_int8                               )                             :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                 ), external                   :: Evaluator_Create_
-    double precision                            , external                   :: Evaluator_Evaluate_
-    external                                                                 :: Evaluator_Destroy_
+    integer         (kind_int8                               ), external                   :: Evaluator_Create_
+    double precision                                          , external                   :: Evaluator_Evaluate_
+    external                                                                               :: Evaluator_Destroy_
 #endif
-    type            (inputParameter            )               , pointer     :: sibling
-    type            (node                      )               , pointer     :: valueElement
-    type            (inputParameters           )               , pointer     :: rootParameters     , subParameters  , &
-         &                                                                      subParametersNext
-    character       (len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
-    type            (DOMException              )                             :: exception
-    integer                                                                  :: status             , i              , &
-         &                                                                      countNames         , copyCount      , &
-         &                                                                      copyInstance
-    logical                                                                  :: hasValueAttribute  , hasValueElement, &
-         &                                                                      isException
-    character       (len=parameterLengthMaximum)                             :: expression         , parameterName  , &
-         &                                                                      workText           , content
-    type            (varying_string            )                             :: attributeName
-    double precision                                                         :: workValue
+    type            (inputParameter                          )               , pointer     :: sibling
+    type            (node                                    )               , pointer     :: valueElement
+    type            (inputParameters                         )               , pointer     :: rootParameters     , subParameters  , &
+         &                                                                                    subParametersNext
+    character       (len=parameterLengthMaximum              ), dimension(:) , allocatable :: parameterNames
+    type            (DOMException                            )                             :: exception
+    integer                                                                                :: status             , i              , &
+         &                                                                                    countNames         , copyCount      , &
+         &                                                                                    copyInstance
+    logical                                                                                :: hasValueAttribute  , hasValueElement, &
+         &                                                                                    isException
+    character       (len=parameterLengthMaximum              )                             :: expression         , parameterName  , &
+         &                                                                                    workText           , content
+    type            (varying_string                          )                             :: attributeName
+    double precision                                                                       :: workValue
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !![
@@ -1682,15 +1754,15 @@ contains
     use :: Hashes_Cryptographic, only : Hash_MD5
     use :: ISO_Varying_String  , only : assignment(=), char, operator(//)
     implicit none
-    type   (varying_string )                          :: inputParametersSerializeToString
-    class  (inputParameters), intent(inout)           :: self
-    logical                 , intent(in   ), optional :: hashed
-    type   (node           ), pointer                 :: node_
-    type   (inputParameter ), pointer                 :: currentParameter
-    integer                                           :: errorStatus
-    type   (varying_string )                          :: parameterValue
-    logical                                           :: firstParameter
-    type   (inputParameters)                          :: subParameters
+    type   (varying_string                          )                          :: inputParametersSerializeToString
+    class  (inputParameters                         ), intent(inout)           :: self
+    logical                                          , intent(in   ), optional :: hashed
+    type   (node                                    ), pointer                 :: node_
+    type   (inputParameter                          ), pointer                 :: currentParameter
+    type   (enumerationInputParameterErrorStatusType)                          :: errorStatus
+    type   (varying_string                          )                          :: parameterValue
+    logical                                                                    :: firstParameter
+    type   (inputParameters                         )                          :: subParameters
     !![
     <optionalArgument name="hashed" defaultsTo=".false." />
     !!]
@@ -1814,5 +1886,20 @@ contains
     call self%parameters%reset(evaluations=.true.)
     return
   end subroutine inputParametersReset
+
+  subroutine inputParametersLockReinitialize(self)
+    !!{
+    Reinitialize the OpenMP lock.
+    !!}
+    implicit none
+    class(inputParameters), intent(inout) :: self
+
+   if (associated(self%lock)) then
+       nullify(self%lock)
+       allocate(self%lock)
+       self%lock=ompLock()
+    end if
+    return
+  end subroutine inputParametersLockReinitialize
 
 end module Input_Parameters

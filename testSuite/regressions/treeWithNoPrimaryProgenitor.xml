@@ -84,7 +84,6 @@
 
   <hotHaloRamPressureStripping value="virialRadius"/>
   <hotHaloTrackStrippedGas value="false"/>
-  <satelliteOrbitStoreOrbitalParameters value="false"/>
 
   <!-- Halo scale radii and concentrations -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">

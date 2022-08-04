@@ -33,7 +33,7 @@ module Hot_Halo_Mass_Distributions
        &    hotHaloMassDistributionAcceleration         , hotHaloMassDistributionAccelerationTidalTensor, &
        &    hotHaloMassDistributionChandrasekharIntegral, hotHaloMassDistributionThreadInitialize       , &
        &    hotHaloMassDistributionThreadUninitialize   , hotHaloMassDistributionDefaultStateStore      , &
-       &    hotHaloMassDistributionDefaultStateRestore
+       &    hotHaloMassDistributionDefaultStateRestore  , hotHaloMassDistributionDensitySphericalAverage
 
   !![
   <functionClass>
@@ -93,7 +93,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   subroutine hotHaloMassDistributionThreadInitialize(parameters_)
     !!{
-    Initializes the dark matter profile structure tasks module.
+    Initializes the hot halo profile structure tasks module.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -113,7 +113,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   subroutine hotHaloMassDistributionThreadUninitialize()
     !!{
-    Uninitializes the dark matter profile structure tasks module.
+    Uninitializes the hot halo profile structure tasks module.
     !!}
     implicit none
 
@@ -131,17 +131,20 @@ module Hot_Halo_Mass_Distributions
   !!]
   double precision function hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightBy,weightIndex)
     !!{
-    Computes the mass within a given radius for a dark matter profile.
+    Computes the mass within a given radius for a hot halo profile.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll    , componentTypeHotHalo, massTypeAll , massTypeBaryonic, &
-          &                                   massTypeGaseous     , radiusLarge         , weightByMass
-    use :: Galacticus_Nodes          , only : nodeComponentHotHalo, treeNode
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeHotHalo   , massTypeAll , massTypeBaryonic            , &
+         &                                    massTypeGaseous        , radiusLarge            , weightByMass, enumerationComponentTypeType, &
+         &                                    enumerationMassTypeType, enumerationWeightByType
+    use :: Galacticus_Nodes          , only : nodeComponentHotHalo   , treeNode
     implicit none
-    type            (treeNode            ), intent(inout) :: node
-    integer                               , intent(in   ) :: componentType, massType   , &
-         &                                                   weightBy     , weightIndex
-    double precision                      , intent(in   ) :: radius
-    class           (nodeComponentHotHalo), pointer       :: hotHalo
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: radius
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     !$GLC attributes unused :: weightIndex
 
     ! Return zero mass if the requested mass type or component is not matched.
@@ -166,19 +169,20 @@ module Hot_Halo_Mass_Distributions
   !!]
   function hotHaloMassDistributionAcceleration(node,positionCartesian,componentType,massType)
     !!{
-    Computes the acceleration due to a dark matter profile.
+    Computes the acceleration due to a hot halo profile.
     !!}
-    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                         , dimension(3) :: hotHaloMassDistributionAcceleration
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   )               :: componentType                      , massType
-    double precision          , intent(in   ), dimension(3) :: positionCartesian
-    double precision                                        :: radius
+    double precision                                             , dimension(3) :: hotHaloMassDistributionAcceleration
+    type            (treeNode                    ), intent(inout)               :: node
+    type            (enumerationComponentTypeType), intent(in   )               :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )               :: massType
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                                            :: radius
 
     radius                             =+sqrt(sum(positionCartesian**2))
     hotHaloMassDistributionAcceleration=-kilo                                                                                                 &
@@ -200,19 +204,20 @@ module Hot_Halo_Mass_Distributions
     !!{
     Computes the tidalTensor due to the cold mode halo.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull      , enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
-    use :: Vectors                     , only : Vector_Outer_Product
+    use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=)               , operator(*)
+    use :: Vectors                         , only : Vector_Outer_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                              :: hotHaloMassDistributionAccelerationTidalTensor
     type            (treeNode                      ), intent(inout)               :: node
-    integer                                         , intent(in   )               :: componentType                        , massType
+    type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
+    type            (enumerationMassTypeType       ), intent(in   )               :: massType
     double precision                                , intent(in   ), dimension(3) :: positionCartesian
     double precision                                               , dimension(3) :: positionSpherical
-    double precision                                                              :: radius                               , massEnclosed, &
+    double precision                                                              :: radius                                        , massEnclosed, &
          &                                                                           density
     type            (tensorRank2Dimension3Symmetric)                              :: positionTensor
     
@@ -239,19 +244,20 @@ module Hot_Halo_Mass_Distributions
     !!{
     Computes the Chandrasekhar integral due to the hot halo.
     !!}
-    use :: Galactic_Structure_Options, only : weightByMass         , weightIndexNull
+    use :: Galactic_Structure_Options, only : weightByMass         , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes          , only : treeNode
     use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    double precision                         , dimension(3) :: hotHaloMassDistributionChandrasekharIntegral
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   )               :: componentType                                       , massType
-    double precision          , intent(in   ), dimension(3) :: positionCartesian                                   , velocityCartesian
-    double precision                         , dimension(3) :: positionSpherical
-    double precision          , parameter                   :: XvMaximum                                    =10.0d0
-    double precision                                        :: radius                                              , velocity         , &
-         &                                                     density                                             , xV
+    double precision                                             , dimension(3) :: hotHaloMassDistributionChandrasekharIntegral
+    type            (treeNode                    ), intent(inout)               :: node
+    type            (enumerationComponentTypeType), intent(in   )               :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )               :: massType
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian                                   , velocityCartesian
+    double precision                                             , dimension(3) :: positionSpherical
+    double precision                              , parameter                   :: XvMaximum                                    =10.0d0
+    double precision                                                            :: radius                                              , velocity         , &
+         &                                                                         density                                             , xV
 
     radius                                      = sqrt(sum(positionCartesian**2))
     velocity                                    = sqrt(sum(velocityCartesian**2))
@@ -284,13 +290,14 @@ module Hot_Halo_Mass_Distributions
     !!{
     Computes the rotation curve at a given radius for the hot halo density profile.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout) :: node
-    integer                   , intent(in   ) :: componentType, massType
-    double precision          , intent(in   ) :: radius
-    double precision                          :: componentMass
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: componentMass
 
     ! Compute rotation curve if radius is non-zero.
     hotHaloMassDistributionRotationCurve=0.0d0
@@ -315,14 +322,15 @@ module Hot_Halo_Mass_Distributions
     !!{
     Computes the rotation curve gradient at a given radius for the hot halo density profile.
     !!}
-    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout) :: node
-    integer                   , intent(in   ) :: componentType   , massType
-    double precision          , intent(in   ) :: radius
-    double precision                          :: componentDensity, componentMass
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: componentDensity, componentMass
 
     ! Set to zero by default.
     hotHaloMassDistributionRotationCurveGradient=0.0d0
@@ -352,15 +360,18 @@ module Hot_Halo_Mass_Distributions
   !!]
   double precision function hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
-    Computes the density at a given position for a dark matter profile.
+    Computes the density at a given position for a hot halo profile.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeHotHalo, massTypeAll, massTypeBaryonic, &
-          &                                   massTypeGaseous , weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeHotHalo, massTypeAll                 , massTypeBaryonic       , &
+         &                                    massTypeGaseous        , weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, &
+         &                                    enumerationWeightByType
     implicit none
-    type            (treeNode), intent(inout) :: node
-    integer                   , intent(in   ) :: componentType       , massType, weightBy, &
-         &                                       weightIndex
-    double precision          , intent(in   ) :: positionSpherical(3)
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: positionSpherical(3)
     !$GLC attributes unused :: weightIndex
 
     hotHaloMassDistributionDensity=0.0d0
@@ -371,6 +382,36 @@ module Hot_Halo_Mass_Distributions
     hotHaloMassDistributionDensity=max(hotHaloMassDistribution_%density(node,positionSpherical(1)),0.0d0)
     return
   end function hotHaloMassDistributionDensity
+
+  !![
+  <densitySphericalAverageTask>
+   <unitName>hotHaloMassDistributionDensitySphericalAverage</unitName>
+  </densitySphericalAverageTask>
+  !!]
+  double precision function hotHaloMassDistributionDensitySphericalAverage(node,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    Computes the sphreically-averaged density at a given radius for a hot halo profile.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeHotHalo, massTypeAll                 , massTypeBaryonic       , &
+         &                                    massTypeGaseous        , weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, &
+         &                                    enumerationWeightByType
+    implicit none
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: radius
+    !$GLC attributes unused :: weightIndex
+
+    hotHaloMassDistributionDensitySphericalAverage=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+    if (.not.(weightBy      == weightByMass                                                                                )) return
+
+    hotHaloMassDistributionDensitySphericalAverage=max(hotHaloMassDistribution_%density(node,radius),0.0d0)
+    return
+  end function hotHaloMassDistributionDensitySphericalAverage
 
   !![
   <stateStoreTask>
@@ -388,7 +429,7 @@ module Hot_Halo_Mass_Distributions
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    call displayMessage('Storing state for: hot halo mass distribution',verbosity=verbosityLevelInfo)
     !![
     <stateStore variables="hotHaloMassDistribution_ hotHaloTemperatureProfile_"/>
     !!]
@@ -411,7 +452,7 @@ module Hot_Halo_Mass_Distributions
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    call displayMessage('Retrieving state for: hot halo mass distribution',verbosity=verbosityLevelInfo)
     !![
     <stateRestore variables="hotHaloMassDistribution_ hotHaloTemperatureProfile_"/>
     !!]

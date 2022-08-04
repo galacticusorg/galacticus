@@ -145,13 +145,14 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
-    type(coolingFunctionMolecularHydrogenGalliPalla) :: self
-
+    type   (coolingFunctionMolecularHydrogenGalliPalla) :: self
+    integer                                             :: status
+    
     ! Get the indices of chemicals that will be used.
-    self%electronIndex               =Chemicals_Index("Electron"               )
-    self%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         )
-    self%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation")
-    self%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      )
+    self%electronIndex               =Chemicals_Index("Electron"               ,status)
+    self%atomicHydrogenIndex         =Chemicals_Index("AtomicHydrogen"         ,status)
+    self%molecularHydrogenCationIndex=Chemicals_Index("MolecularHydrogenCation",status)
+    self%molecularHydrogenIndex      =Chemicals_Index("MolecularHydrogen"      ,status)
     ! Initialized stored calculations to unphysical values.
     self%temperaturePrevious1             =-1.0d0
     self%temperaturePrevious2             =-1.0d0
@@ -585,6 +586,15 @@ contains
     double precision                                                            :: electronDensity               , logarithmic10Temperature, &
          &                                                                         molecularHydrogenCationDensity
 
+    ! Set to zero if species are not present.
+    if     (                                       &
+         &   self%molecularHydrogenCationIndex < 0 &
+         &  .or.                                   &
+         &   self%electronIndex                < 0 &
+         & ) then
+       molecularHydrogenGalliPallaCoolingFunctionH2Plus_Electron=0.0d0
+       return
+    end if
     ! Get the relevant densities.
     electronDensity               =chemicalDensities%abundance(self%electronIndex               )
     molecularHydrogenCationDensity=chemicalDensities%abundance(self%molecularHydrogenCationIndex)
@@ -624,6 +634,15 @@ contains
     double precision                                                            :: atomicHydrogenDensity         , logarithmic10Temperature, &
          &                                                                         molecularHydrogenCationDensity
 
+    ! Set to zero if species are not present.
+    if     (                                       &
+         &   self%molecularHydrogenCationIndex < 0 &
+         &  .or.                                   &
+         &   self%atomicHydrogenIndex          < 0 &
+         & ) then
+       molecularHydrogenGalliPallaCoolingFunctionH_H2Plus=0.0d0
+       return
+    end if
     ! Get the relevant densities.
     atomicHydrogenDensity         =chemicalDensities%abundance(self%atomicHydrogenIndex         )
     molecularHydrogenCationDensity=chemicalDensities%abundance(self%molecularHydrogenCationIndex)
@@ -663,6 +682,15 @@ contains
          &                                                                         coolingFunctionLowDensityLimit                , molecularHydrogenDensity                    , &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen
 
+    ! Set to zero if species are not present.
+    if     (                                 &
+         &   self%molecularHydrogenIndex < 0 &
+         &  .or.                             &
+         &   self%atomicHydrogenIndex    < 0 &
+         & ) then
+       molecularHydrogenGalliPallaCoolingFunctionH_H2=0.0d0
+       return
+    end if
     ! Get the relevant densities.
     atomicHydrogenDensity   =chemicalDensities%abundance(self%atomicHydrogenIndex   )
     molecularHydrogenDensity=chemicalDensities%abundance(self%molecularHydrogenIndex)

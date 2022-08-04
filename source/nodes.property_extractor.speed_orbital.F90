@@ -33,7 +33,6 @@ Contains a module which implements an orbital speed output analysis property ext
      private
    contains
      procedure :: extract     => speedOrbitalExtract
-     procedure :: type        => speedOrbitalType
      procedure :: name        => speedOrbitalName
      procedure :: description => speedOrbitalDescription
      procedure :: unitsInSI   => speedOrbitalUnitsInSI
@@ -96,18 +95,6 @@ contains
     return
   end function speedOrbitalExtract
 
-  integer function speedOrbitalType(self)
-    !!{
-    Return the type of the speedOrbital property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorSpeedOrbital), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    speedOrbitalType=outputAnalysisPropertyTypeLinear
-    return
-  end function speedOrbitalType
 
   function speedOrbitalName(self)
     !!{

@@ -21,7 +21,7 @@
   An implementation of decaying dark matter halo profiles.
   !!}
 
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
   use :: Dark_Matter_Particles       , only : darkMatterParticleClass
 
   !![
@@ -36,7 +36,7 @@
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_                => null()
-     integer                                              :: nonAnalyticSolver
+     type            (enumerationNonAnalyticSolversType)  :: nonAnalyticSolver
      double precision                                     :: lifetime_, massSplitting_
      logical                                              :: massLoss_
    contains
@@ -116,7 +116,7 @@ contains
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterParticleClass     ), intent(in   ), target :: darkMatterParticle_
-    integer                                       , intent(in   )         :: nonAnalyticSolver
+    type            (enumerationNonAnalyticSolversType), intent(in   )    :: nonAnalyticSolver
     !![
     <constructorAssign variables="*darkMatterParticle_, nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
@@ -292,7 +292,7 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout)           :: self
     type            (treeNode                    ), intent(inout), target   :: node
     double precision                              , intent(in   )           :: radius
-    integer                                       , intent(  out), optional :: status
+    type        (enumerationStructureErrorCodeType), intent(  out), optional:: status
     double precision                                                        :: factor
     
     call self%decayingFactor(node, factor)

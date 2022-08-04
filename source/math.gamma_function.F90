@@ -61,7 +61,14 @@ module Gamma_Functions
        real(c_double)        :: gsl_sf_gamma_inc_P
        real(c_double), value :: a                 , x
      end function gsl_sf_gamma_inc_P
-     
+
+     function gsl_sf_gamma(x) bind(c,name='gsl_sf_gamma')
+       !% Template for the GSL Gamma function.
+       import
+       real(c_double)        :: gsl_sf_gamma
+       real(c_double), value :: x
+     end function gsl_sf_gamma
+
      function gsl_sf_lngamma(x) bind(c,name='gsl_sf_lngamma')
        !!{
        Template for the GSL log-of-the-Gamma function.
@@ -114,7 +121,7 @@ contains
     implicit none
     double precision, intent(in   ) :: argument
 
-    Gamma_Function=exp(Gamma_Function_Logarithmic(argument))
+    Gamma_Function=GSL_SF_Gamma(argument)
     return
   end function Gamma_Function
 

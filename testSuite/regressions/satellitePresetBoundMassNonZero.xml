@@ -96,7 +96,6 @@
   <mergerMassMovements value="verySimple"/>
   <haloMassFunction value="tinker2008"/>
   <componentSatellite value="preset"/>
-  <mergerTreeBuildMassDistribution value="uniform"/>
   <mergerRemnantSize value="null"/>
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
@@ -131,9 +130,9 @@
   </randomNumberGenerator>
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="haloScaling">
-      <fraction value="1.0"/>
-      <exponentVelocity value="-3.0"/>
-      <exponentRedshift value="0.0"/>
+      <timescale              value="+1.0"/>
+      <exponentVelocityVirial value="-3.0"/>
+      <exponentRedshift       value="+0.0"/>
     </starFormationTimescale>
   </starFormationRateDisks>
 
@@ -143,7 +142,7 @@
     <timescale value="1.0"/>
   </coolingRate>
   <componentSpin value="null"/>
-  <componentPosition value="preset"/>
+  <componentPosition value="cartesian"/>
   <outputTimes value="list">
     <redshifts value="0.0700"/>
   </outputTimes>

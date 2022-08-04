@@ -89,6 +89,9 @@
     <nodeOperator value="DMOInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
   </nodeOperator>

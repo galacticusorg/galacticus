@@ -195,7 +195,7 @@ contains
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
-    Store object state,
+    Store object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
@@ -204,7 +204,7 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Storing state for: componentSpin -> vectore',verbosity=verbosityLevelInfo)
+    call displayMessage('Storing state for: componentSpin -> vector',verbosity=verbosityLevelInfo)
     !![
     <stateStore variables="darkMatterHaloScale_"/>
     !!]

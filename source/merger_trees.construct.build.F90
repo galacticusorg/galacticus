@@ -50,7 +50,8 @@
      class           (outputTimesClass          ), pointer                   :: outputTimes_           => null()
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
      ! Variables giving the mass range and sampling frequency for mass function sampling.
-     double precision                                                        :: timeBase                        , timeSnapTolerance
+     double precision                                                        :: timeBase                        , timeSnapTolerance, &
+          &                                                                     redshiftBase
      integer                                                                 :: treeBeginAt
      ! Direction in which to process trees.
      logical                                                                 :: processDescending
@@ -182,6 +183,8 @@ contains
     <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
+    ! Store base redshift.
+    self%redshiftBase=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeBase))
     ! Set offset for tree numbers.
     if (self%treeBeginAt == 0) then
        self%treeNumberOffset=0_c_size_t

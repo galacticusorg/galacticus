@@ -70,7 +70,6 @@ Contains a module which implements a property extractor for basic node indices.
      procedure :: names        => nodeIndicesNames
      procedure :: descriptions => nodeIndicesDescriptions
      procedure :: unitsInSI    => nodeIndicesUnitsInSI
-     procedure :: type         => nodeIndicesType
   end type nodePropertyExtractorNodeIndices
 
   interface nodePropertyExtractorNodeIndices
@@ -192,15 +191,3 @@ contains
     return
   end function nodeIndicesUnitsInSI
 
-  integer function nodeIndicesType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorNodeIndices), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    nodeIndicesType=outputAnalysisPropertyTypeLinear
-    return
-  end function nodeIndicesType

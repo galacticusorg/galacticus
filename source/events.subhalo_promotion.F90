@@ -35,18 +35,18 @@ contains
     !!{
     Promotes a subhalo to be an isolated node.
     !!}
-    use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
-    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent       , treeNode
-    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)    , varying_string
-    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: Display                            , only : displayMessage               , displayVerbosity             , verbosityLevelInfo
+    use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
+    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)                 , varying_string
+    use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked, enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
     implicit none
-    class    (nodeEvent     ), intent(in   )          :: event
-    type     (treeNode      ), intent(inout), pointer :: node
-    integer                  , intent(inout)          :: deadlockStatus
-    type     (treeNode      )               , pointer :: nodePromotion
-    type     (varying_string)                         :: message
-    character(len=12        )                         :: label
+    class    (nodeEvent                    ), intent(in   )          :: event
+    type     (treeNode                     ), intent(inout), pointer :: node
+    type     (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    type     (treeNode                     )               , pointer :: nodePromotion
+    type     (varying_string               )                         :: message
+    character(len=12                       )                         :: label
 
     ! Find the node to promote to.
     nodePromotion => event%node

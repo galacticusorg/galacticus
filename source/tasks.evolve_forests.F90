@@ -511,10 +511,17 @@ contains
           treeIsFinished=.false.
           ! For single forest evolution, only the master thread should determine evolution time.
           singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
-             ! If this is a new tree, perform any pre-evolution tasks on it.
+             ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
              if (treeIsNew) then
-                call evolveForestsNodeOperator_      %nodeTreeInitialize (tree%nodeBase)
-                call evolveForestsMergerTreeOperator_%operatePreEvolution(tree         )
+                ! Walk over all nodes and perform "node tree" initialization. This typically includes initializations related to
+                ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
+                ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
+                ! by the mergerTreeInitializor class which is called later.
+                treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+                do while (treeWalkerAll%next(node))
+                   call evolveForestsNodeOperator_      %nodeTreeInitialize (node)
+                end do
+                call    evolveForestsMergerTreeOperator_%operatePreEvolution(tree)
                 message="Evolving tree number "
              else
                 message="Resuming tree number "

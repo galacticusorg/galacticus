@@ -23,7 +23,7 @@
   !!}
 
   use :: Cosmology_Functions         , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversType, enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution">
@@ -46,14 +46,14 @@
      A dark matter halo profile class implementing finiteResolution dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
-     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_        => null()
-     integer                                              :: nonAnalyticSolver
-     integer         (kind=kind_int8           )          :: lastUniqueID
-     logical                                              :: resolutionIsComoving
-     double precision                                     :: lengthResolution                    , massResolution      , &
-          &                                                  lengthResolutionPrevious            , enclosedMassPrevious, &
-          &                                                  enclosedMassRadiusPrevious
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_      => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_        => null()
+     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
+     integer         (kind=kind_int8                   )          :: lastUniqueID
+     logical                                                      :: resolutionIsComoving
+     double precision                                             :: lengthResolution                    , massResolution      , &
+          &                                                          lengthResolutionPrevious            , enclosedMassPrevious, &
+          &                                                          enclosedMassRadiusPrevious
    contains
      !![
      <methods>
@@ -158,7 +158,7 @@ contains
     class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass             ), intent(in   ), target :: cosmologyFunctions_
     double precision                                      , intent(in   )         :: lengthResolution       , massResolution
-    integer                                               , intent(in   )         :: nonAnalyticSolver
+    type            (enumerationNonAnalyticSolversType   ), intent(in   )         :: nonAnalyticSolver
     logical                                               , intent(in   )         :: resolutionIsComoving
     !![
     <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
@@ -361,7 +361,7 @@ contains
     class           (darkMatterProfileDMOFiniteResolution), intent(inout)           :: self
     type            (treeNode                            ), intent(inout), target   :: node
     double precision                                      , intent(in   )           :: radius
-    integer                                               , intent(  out), optional :: status
+    type            (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > radiusLengthResolutionRatioMaximum*self%lengthResolutionPhysical(node)) then
        finiteResolutionPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)

@@ -27,7 +27,7 @@ module Node_Property_Extractors
   !!}
   use :: Galacticus_Nodes       , only : treeNode
   use :: Multi_Counters         , only : multiCounter
-  use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityUnknown
+  use :: Output_Analyses_Options, only : enumerationOutputAnalysisPropertyQuantityType, enumerationOutputAnalysisPropertyTypeType, outputAnalysisPropertyQuantityUnknown, outputAnalysisPropertyTypeLinear
   private
 
   !![
@@ -38,12 +38,16 @@ module Node_Property_Extractors
    <default>nodeIndices</default>
    <method name="type" >
     <description>Return the type of the extracted property.</description>
-    <type>integer</type>
+    <type>type(enumerationOutputAnalysisPropertyTypeType)</type>
     <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     nodePropertyExtractorType=outputAnalysisPropertyTypeLinear
+    </code>
    </method>
    <method name="quantity" >
     <description>Return the class of the extracted property.</description>
-    <type>integer</type>
+    <type>type(enumerationOutputAnalysisPropertyQuantityType)</type>
     <pass>yes</pass>
     <code>
      !$GLC attributes unused :: self
@@ -69,7 +73,7 @@ module Node_Property_Extractors
   <enumeration>
    <name>galacticComponent</name>
    <description>Specifies the galactic component for various node property extractors.</description>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <entry label="disk"    />
    <entry label="spheroid"/>

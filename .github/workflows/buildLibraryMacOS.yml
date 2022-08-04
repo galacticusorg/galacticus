@@ -54,6 +54,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Extract branch name
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -146,6 +150,13 @@ jobs:
           make -j3
           sudo make install
           cd ..
+          cd ..
+          curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
+          tar xvfz Sys-CPU-0.52.tar.gz
+          cd Sys-CPU-0.52
+          perl Makefile.PL
+          make -j3
+          sudo make install
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
@@ -193,6 +204,7 @@ jobs:
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python
@@ -202,6 +214,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Update release
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -211,6 +224,7 @@ jobs:
           message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: richardsimko/update-tag@v1
         with:
           tag_name: bleeding-edge

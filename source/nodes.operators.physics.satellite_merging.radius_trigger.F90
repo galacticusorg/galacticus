@@ -157,13 +157,15 @@ contains
     !!{
     Trigger a merger of the satellite by setting the time until merging to zero.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
     implicit none
     type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentBasic    )               , pointer :: basic
     class(nodeComponentSatellite)               , pointer :: satellite
 
+    basic     => node%basic    ()
     satellite => node%satellite()
-    call satellite%mergeTimeSet(0.0d0)
+    call satellite%timeOfMergingSet(basic%time())
     return
   end subroutine mergerTrigger
 

@@ -29,7 +29,8 @@ module Dark_Matter_Profile_Structure_Tasks
   private
   public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task        , Dark_Matter_Profile_Potential_Task               , &
        &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task          , Dark_Matter_Profile_Chandrasekhar_Integral_Task  , &
-       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore
+       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore, &
+       &    Dark_Matter_Profile_Density_Spherical_Average_Task
 
   class(darkMatterProfileClass), pointer  :: darkMatterProfile_
   !$omp threadprivate(darkMatterProfile_)
@@ -81,15 +82,18 @@ contains
     !!{
     Computes the mass within a given radius for a dark matter profile.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll  , componentTypeDarkHalo , massTypeAll, massTypeDark, &
-          &                                   radiusLarge       , weightByMass
-    use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNode
+    use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeDarkHalo, massTypeAll                 , massTypeDark           , &
+         &                                    radiusLarge            , weightByMass         , enumerationComponentTypeType, enumerationMassTypeType, &
+         &                                    enumerationWeightByType
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , treeNode
     implicit none
-    type            (treeNode          ), intent(inout)           :: node
-    integer                             , intent(in   )           :: componentType, massType   , &
-         &                                                           weightBy     , weightIndex
-    double precision                    , intent(in   )           :: radius
-    class           (nodeComponentBasic)               , pointer  :: basic
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   )           :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )           :: massType
+    type            (enumerationWeightByType     ), intent(in   )           :: weightBy
+    integer                                       , intent(in   )           :: weightIndex
+    double precision                              , intent(in   )           :: radius
+    class           (nodeComponentBasic          )               , pointer  :: basic
     !$GLC attributes unused :: weightIndex
 
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
@@ -121,17 +125,18 @@ contains
     !!{
     Computes the acceleration due to a dark matter profile.
     !!}
-    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                         , dimension(3) :: Dark_Matter_Profile_Acceleration_Task
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   )               :: componentType                        , massType
-    double precision          , intent(in   ), dimension(3) :: positionCartesian
-    double precision                                        :: radius
+    double precision                                             , dimension(3) :: Dark_Matter_Profile_Acceleration_Task
+    type            (treeNode                    ), intent(inout)               :: node
+    type            (enumerationComponentTypeType), intent(in   )               :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )               :: massType
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian
+    double precision                                                            :: radius
 
     radius=sqrt(sum(positionCartesian**2))
     Dark_Matter_Profile_Acceleration_Task=-kilo                                                                                                    &
@@ -153,18 +158,19 @@ contains
     !!{
     Computes the Chandrasekhar integral due to a dark matter profile.
     !!}
-    use :: Galactic_Structure_Options, only : weightByMass, weightIndexNull
+    use :: Galactic_Structure_Options, only : weightByMass, weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
     use :: Galacticus_Nodes          , only : treeNode
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    double precision                         , dimension(3) :: Dark_Matter_Profile_Chandrasekhar_Integral_Task
-    type            (treeNode), intent(inout)               :: node
-    integer                   , intent(in   )               :: componentType                                         , massType
-    double precision          , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
-    double precision                         , dimension(3) :: positionSpherical
-    double precision          , parameter                   :: XvMaximum                                      =10.0d0
-    double precision                                        :: radius                                                , velocity         , &
-         &                                                     density                                               , xV
+    double precision                                             , dimension(3) :: Dark_Matter_Profile_Chandrasekhar_Integral_Task
+    type            (treeNode                    ), intent(inout)               :: node
+    type            (enumerationComponentTypeType), intent(in   )               :: componentType
+    type            (enumerationMassTypeType     ), intent(in   )               :: massType
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian                                     , velocityCartesian
+    double precision                                             , dimension(3) :: positionSpherical
+    double precision                              , parameter                   :: XvMaximum                                      =10.0d0
+    double precision                                                            :: radius                                                , velocity         , &
+         &                                                                         density                                               , xV
 
     radius                                          =  sqrt(sum(positionCartesian**2))
     velocity                                        =  sqrt(sum(velocityCartesian**2))
@@ -197,16 +203,17 @@ contains
     !!{
     Computes the tidalTensor due to a dark matter profile.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull      , enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=), operator(*)
-    use :: Vectors                     , only : Vector_Outer_Product
+    use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorIdentityR2D3Sym, assignment(=)               , operator(*)
+    use :: Vectors                         , only : Vector_Outer_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                              :: Dark_Matter_Profile_Tidal_Tensor_Task
     type            (treeNode                      ), intent(inout)               :: node
-    integer                                         , intent(in   )               :: componentType                        , massType
+    type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
+    type            (enumerationMassTypeType       ), intent(in   )               :: massType
     double precision                                , intent(in   ), dimension(3) :: positionCartesian
     double precision                                               , dimension(3) :: positionSpherical
     double precision                                                              :: radius                               , massEnclosed, &
@@ -236,14 +243,15 @@ contains
     !!{
     Computes the rotation curve at a given radius for a dark matter profile.
     !!}
-    use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
+    use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull, enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   )           :: componentType, massType
-    double precision          , intent(in   )           :: radius
-    double precision                                    :: componentMass
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: componentMass
 
     ! Set to zero by default.
     Dark_Matter_Profile_Rotation_Curve_Task=0.0d0
@@ -266,14 +274,16 @@ contains
     !!{
     Computes the density at a given position for a dark matter profile.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDarkHalo , massTypeAll, massTypeDark, &
-          &                                   weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDarkHalo       , massTypeAll            , massTypeDark           , &
+          &                                   weightByMass    , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode), intent(inout) :: node
-    integer                   , intent(in   ) :: componentType       , massType   , &
-         &                                       weightBy            , weightIndex
-    double precision          , intent(in   ) :: positionSpherical(3)
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: positionSpherical(3)
     !$GLC attributes unused :: weightIndex
 
     ! Return zero if the component and mass type is not matched.
@@ -287,6 +297,37 @@ contains
   end function Dark_Matter_Profile_Density_Task
 
   !![
+  <densitySphericalAverageTask>
+   <unitName>Dark_Matter_Profile_Density_Spherical_Average_Task</unitName>
+  </densitySphericalAverageTask>
+  !!]
+  double precision function Dark_Matter_Profile_Density_Spherical_Average_Task(node,radius,componentType,massType,weightBy,weightIndex)
+    !!{
+    Computes the density at a given position for a dark matter profile.
+    !!}
+    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDarkHalo       , massTypeAll            , massTypeDark           , &
+          &                                   weightByMass    , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+    use :: Galacticus_Nodes          , only : treeNode
+    implicit none
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: radius
+    !$GLC attributes unused :: weightIndex
+
+    ! Return zero if the component and mass type is not matched.
+    Dark_Matter_Profile_Density_Spherical_Average_Task=0.0d0
+    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
+    if (.not.(weightBy      == weightByMass                                                )) return
+    ! Compute the density
+    Dark_Matter_Profile_Density_Spherical_Average_Task=darkMatterProfile_%density(node,radius)
+    return
+  end function Dark_Matter_Profile_Density_Spherical_Average_Task
+
+  !![
   <rotationCurveGradientTask>
    <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
   </rotationCurveGradientTask>
@@ -295,16 +336,17 @@ contains
     !!{
     Computes the rotation curve gradient for the dark matter.
     !!}
-    use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeDarkHalo, massTypeAll, massTypeDark, &
-          &                                     weightByMass                   , weightIndexNull
-    use :: Galacticus_Nodes            , only : treeNode
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeDarkHalo, massTypeAll                 , massTypeDark           , &
+          &                                         weightByMass                   , weightIndexNull      , enumerationComponentTypeType, enumerationMassTypeType
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode), intent(inout) :: node
-    integer                   , intent(in   ) :: componentType   , massType
-    double precision          , intent(in   ) :: radius
-    double precision                          :: componentDensity, componentMass, positionSpherical(3)
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
+    double precision                                              :: componentDensity, componentMass, positionSpherical(3)
 
     ! Set to zero by default.
     Dark_Matter_Profile_Rotation_Curve_Gradient_Task=0.0d0
@@ -333,15 +375,16 @@ contains
     !!{
     Return the potential due to dark matter.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo , massTypeAll, massTypeDark, &
-          &                                   structureErrorCodeSuccess
+    use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo       , massTypeAll            , massTypeDark                     , &
+          &                                   structureErrorCodeSuccess, enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   )           :: componentType, massType
-    double precision          , intent(in   )           :: radius
-    integer                   , intent(inout), optional :: status
-    integer                                             :: statusLocal
+    type            (treeNode                         ), intent(inout)           :: node
+    type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
+    type            (enumerationMassTypeType          ), intent(in   )           :: massType
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
+    type            (enumerationStructureErrorCodeType)                          :: statusLocal
 
     Dark_Matter_Profile_Potential_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -367,7 +410,7 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    call displayMessage('Storing state for: dark matter profile structure tasks',verbosity=verbosityLevelInfo)
     !![
     <stateStore variables="darkMatterProfile_"/>
     !!]
@@ -390,7 +433,7 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    call displayMessage('Retrieving state for: dark matter profile structure tasks',verbosity=verbosityLevelInfo)
     !![
     <stateRestore variables="darkMatterProfile_"/>
     !!]

@@ -83,7 +83,7 @@
      class           (intergalacticMediumStateClass          ), pointer :: intergalacticMediumState_ => null()
      class           (chemicalStateClass                     ), pointer :: chemicalState_            => null()
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
-          &                                                                opticalDepthReionization
+          &                                                                opticalDepthReionization           , redshiftReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals                     , massProgenitorMaximumID
@@ -92,6 +92,7 @@
      <methods>
        <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction"/>
        <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}."                     method="velocityScale" />
+       <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMasses"/>
      </methods>
      !!]
      final     ::                           simpleDestructor
@@ -106,6 +107,7 @@
      procedure :: accretedMassChemicals  => simpleAccretedMassChemicals
      procedure :: velocityScale          => simpleVelocityScale
      procedure :: failedFraction         => simpleFailedFraction
+     procedure :: chemicalMasses         => simpleChemicalMasses
   end type accretionHaloSimple
 
   interface accretionHaloSimple
@@ -145,17 +147,8 @@ contains
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="chemicalState"            name="chemicalState_"            source="parameters"/>
     !!]
-    if (parameters%isPresent("opticalDepthReionization")) then
-       if (parameters%isPresent("redshiftReionization")) call Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
-       !![
-       <inputParameter>
-         <name>opticalDepthReionization</name>
-         <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
-         <source>parameters</source>
-       </inputParameter>
-       !!]
-       timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
-    else
+    if (parameters%isPresent("redshiftReionization").or..not.parameters%isPresent("opticalDepthReionization")) then
+       if (parameters%isPresent("opticalDepthReionization")) call Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
        !![
        <inputParameter>
          <name>redshiftReionization</name>
@@ -166,6 +159,15 @@ contains
        </inputParameter>
        !!]
        timeReionization=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftReionization))
+    else
+       !![
+       <inputParameter>
+         <name>opticalDepthReionization</name>
+         <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
+       timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
     end if
     !![
     <inputParameter>
@@ -229,7 +231,9 @@ contains
        <addMetaProperty component="basic" name="massProgenitorMaximum" id="self%massProgenitorMaximumID" isEvolvable="no"/>
        !!]
     end if
-    self%countChemicals=Chemicals_Property_Count()
+    self%countChemicals          =Chemicals_Property_Count()
+    self%redshiftReionization    =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeReionization))
+    self%opticalDepthReionization=-huge(0.0d0)
     return
   end function simpleConstructorInternal
 
@@ -280,13 +284,13 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
-    class           (accretionHaloSimple     ), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: basic
-    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
-    double precision                                          :: growthRate    , unaccretedMass, &
-         &                                                       failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    double precision                                              :: growthRate    , unaccretedMass, &
+         &                                                           failedFraction
 
     simpleAccretionRate=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -320,11 +324,11 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic ), pointer       :: basic
-    double precision                                     :: failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: failedFraction
 
     simpleAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -342,13 +346,13 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
-    class           (accretionHaloSimple ), intent(inout) :: self
-    type            (treeNode            ), intent(inout) :: node
-    integer                               , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic  ), pointer       :: basic
-    class           (nodeComponentHotHalo), pointer       :: hotHalo
-    double precision                                      :: growthRate    , unaccretedMass, &
-         &                                                   failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    double precision                                              :: growthRate    , unaccretedMass, &
+         &                                                           failedFraction
 
     simpleFailedAccretionRate=0.0d0
     if (accretionMode               == accretionModeCold) return
@@ -379,11 +383,11 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic ), pointer       :: basic
-    double precision                                     :: failedFraction
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: failedFraction
 
     simpleFailedAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -401,10 +405,10 @@ contains
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
-    type  (abundances         )                :: simpleAccretionRateMetals
-    class (accretionHaloSimple), intent(inout) :: self
-    type  (treeNode           ), intent(inout) :: node
-    integer                    , intent(in   ) :: accretionMode
+    type  (abundances                  )                :: simpleAccretionRateMetals
+    class (accretionHaloSimple         ), intent(inout) :: self
+    type  (treeNode                    ), intent(inout) :: node
+    type  (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
@@ -421,7 +425,7 @@ contains
     type   (abundances         )                :: simpleAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
-    integer                     , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
@@ -437,20 +441,20 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
-    type            (chemicalAbundances )                :: simpleAccretionRateChemicals
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    double precision                                     :: massAccretionRate
+    type            (chemicalAbundances          )                :: simpleAccretionRateChemicals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                                              :: massAccretionRate
 
     ! Ensure that chemicals are reset to zero.
     call simpleAccretionRateChemicals%reset()
     ! Return immediately if no chemicals are being tracked.
     if (self%countChemicals == 0) return
     ! Get the total mass accretion rate onto the halo.
-    massAccretionRate=simpleAccretionRate(self,node,accretionMode)
+    massAccretionRate=self%accretionRate(node,accretionMode)
     ! Get the mass accretion rates.
-    simpleAccretionRateChemicals=simpleChemicalMasses(self,node,massAccretionRate)
+    simpleAccretionRateChemicals=self%chemicalMasses(node,massAccretionRate,accretionMode)
     return
   end function simpleAccretionRateChemicals
 
@@ -460,25 +464,24 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
-    type            (chemicalAbundances )                :: simpleAccretedMassChemicals
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (treeNode           ), intent(inout) :: node
-    integer                              , intent(in   ) :: accretionMode
-    double precision                                     :: massAccreted
-
+    type            (chemicalAbundances          )                :: simpleAccretedMassChemicals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                                              :: massAccreted
 
     ! Ensure that chemicals are reset to zero.
     call simpleAccretedMassChemicals%reset()
     ! Return if no chemicals are being tracked.
     if (self%countChemicals == 0) return
     ! Total mass of material accreted.
-    massAccreted=simpleAccretedMass(self,node,accretionMode)
+    massAccreted=self%accretedMass(node,accretionMode)
     ! Get the masses of chemicals accreted.
-    simpleAccretedMassChemicals=simpleChemicalMasses(self,node,massAccreted)
+    simpleAccretedMassChemicals=self%chemicalMasses(node,massAccreted,accretionMode)
     return
   end function simpleAccretedMassChemicals
 
-  function simpleChemicalMasses(self,node,massAccreted)
+  function simpleChemicalMasses(self,node,massAccreted,accretionMode)
     !!{
     Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
@@ -489,15 +492,16 @@ contains
     use :: Numerical_Constants_Astronomical , only : hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
     implicit none
-    class           (accretionHaloSimple), intent(inout) :: self
-    type            (chemicalAbundances )                :: simpleChemicalMasses
-    type            (treeNode           ), intent(inout) :: node
-    double precision                     , intent(in   ) :: massAccreted
-    class           (nodeComponentBasic ), pointer       :: basic
-    type            (chemicalAbundances ), save          :: chemicalDensities
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (chemicalAbundances          )                :: simpleChemicalMasses
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: massAccreted
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    type            (chemicalAbundances          ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                     :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                  temperature
+    double precision                                              :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                           temperature
 
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0
@@ -511,7 +515,7 @@ contains
     ! Get the chemical densities.
     call self%chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
     ! Convert from densities to masses.
-    call chemicalDensities%numberToMass(simpleChemicalMasses)
+    call chemicalDensities%numberToMass(simpleChemicalMasses)  
     simpleChemicalMasses=simpleChemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
     return
   end function simpleChemicalMasses

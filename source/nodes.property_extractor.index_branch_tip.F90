@@ -34,7 +34,6 @@ Contains a module which implements a node branch tip index property extractor.
      integer :: indexBranchTipID
    contains
      procedure :: extract     => indexBranchTipExtract
-     procedure :: type        => indexBranchTipType
      procedure :: name        => indexBranchTipName
      procedure :: description => indexBranchTipDescription
   end type nodePropertyExtractorIndexBranchTip
@@ -97,18 +96,6 @@ contains
     return
   end function indexBranchTipExtract
 
-  integer function indexBranchTipType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorIndexBranchTip), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    indexBranchTipType=outputAnalysisPropertyTypeLinear
-    return
-  end function indexBranchTipType
 
   function indexBranchTipName(self)
     !!{

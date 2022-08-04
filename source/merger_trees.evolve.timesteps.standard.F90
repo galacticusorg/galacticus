@@ -145,7 +145,7 @@ contains
     type            (treeNode                        )               , pointer           :: lockNodeSimple    , lockNodeSatellite    , lockNodeSatelliteDestruction
     class           (*                               )               , pointer           :: taskSelfSimple    , taskSelfSatellite    , taskSelfSatelliteDestruction
     type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite    , lockTypeSatelliteDestruction
-    integer                                                                              :: timeStepSmallest
+    type            (enumerationTimeStepSmallestType )                                   :: timeStepSmallest
     !$omp threadprivate(lockTypeSimple,lockTypeSatellite)
     !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
@@ -177,20 +177,20 @@ contains
        end if
     end if
     ! Set the appropriate timestep.
-    select case (timeStepSmallest)
-    case (timeStepSmallestSatelliteDestruction)
+    select case (timeStepSmallest%ID)
+    case (timeStepSmallestSatelliteDestruction%ID)
        standardTimeEvolveTo            =  timeEvolveToSatelliteDestruction
        task                            => taskSatelliteDestruction
        taskSelf                        => taskSelfSatelliteDestruction
        if (present(lockNode)) lockNode => lockNodeSatelliteDestruction
        if (present(lockType)) lockType =  lockTypeSatelliteDestruction
-    case (timeStepSmallestSatellite           )
+    case (timeStepSmallestSatellite           %ID)
        standardTimeEvolveTo            =  timeEvolveToSatellite
        task                            => taskSatellite
        taskSelf                        => taskSelfSatellite
        if (present(lockNode)) lockNode => lockNodeSatellite
        if (present(lockType)) lockType =  lockTypeSatellite
-    case (timeStepSmallestSimple              )
+    case (timeStepSmallestSimple              %ID)
        standardTimeEvolveTo            =  timeEvolveToSimple
        task                            => taskSimple
        taskSelf                        => taskSelfSimple

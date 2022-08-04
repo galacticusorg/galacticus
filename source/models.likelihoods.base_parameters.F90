@@ -84,7 +84,7 @@ contains
           parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"::")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"::")
-          parameters_=self%parametersModel
+          parameters_=inputParameters(self%parametersModel)
           do j=1,parameterCount
              instance    =1
              indexElement=0
@@ -101,12 +101,12 @@ contains
              end if
              if (j == parameterCount) then
                 ! This is the final parameter - so get and store a pointer to its node.
-                self%modelParametersActive_(i)%parameter_   => parameters_     %node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
+                self%modelParametersActive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
                 self%modelParametersActive_(i)%indexElement =  indexElement
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
-                subParameters_                                =  parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
-                parameters_                                   =  subParameters_
+                subParameters_                              =  parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                parameters_                                 =  inputParameters(subParameters_)
              end if
           end do
           deallocate(parameterNames)

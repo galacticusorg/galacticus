@@ -123,20 +123,20 @@ contains
     !!{
     Root function used in finding equivalent circular orbits.
     !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeInfinite, structureErrorCodeSuccess
+    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeInfinite, structureErrorCodeSuccess
     use :: Error                     , only : Error_Report
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision, parameter     :: potentialInfinite=huge(1.0d0)
-    double precision                :: potential
-    integer                         :: status
+    double precision                                   , intent(in   ) :: radius
+    double precision                                   , parameter     :: potentialInfinite=huge(1.0d0)
+    double precision                                                   :: potential
+    type            (enumerationStructureErrorCodeType)                :: status
 
     ! Get potential.
     potential=galacticStructure__%potential(activeNode,radius,status=status)
-    select case (status)
-    case (structureErrorCodeSuccess )
+    select case (status%ID)
+    case (structureErrorCodeSuccess %ID)
        Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfileDMO__%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
-    case (structureErrorCodeInfinite)
+    case (structureErrorCodeInfinite%ID)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.
        Equivalent_Circular_Orbit_Solver=-potentialInfinite
@@ -151,27 +151,27 @@ contains
     !!{
     Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
     !!}
-    use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess
+    use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType
     use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , treeNode
     use :: Kepler_Orbits               , only : keplerOrbit
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
-    use :: Root_Finder                 , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder                 , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive    , rootFinder
     implicit none
-    type            (treeNode              ), intent(inout), target :: nodeHost
-    type            (keplerOrbit           ), intent(inout)         :: orbit
-    integer                                 , intent(in   )         :: extremumType
-    double precision                        , intent(  out)         :: radius                   , velocity
-    class           (galacticStructureClass), intent(inout), target :: galacticStructure_
-    class           (nodeComponentBasic    ), pointer               :: basicHost
-    double precision                        , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
-    type            (rootFinder            ), save                  :: finder
-    logical                                 , save                  :: finderConstructed=.false.
+    type            (treeNode                         ), intent(inout), target :: nodeHost
+    type            (keplerOrbit                      ), intent(inout)         :: orbit
+    integer                                            , intent(in   )         :: extremumType
+    double precision                                   , intent(  out)         :: radius                   , velocity
+    class           (galacticStructureClass           ), intent(inout), target :: galacticStructure_
+    class           (nodeComponentBasic               ), pointer               :: basicHost
+    double precision                                   , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+    type            (rootFinder                       ), save                  :: finder
+    logical                                            , save                  :: finderConstructed=.false.
     !$omp threadprivate(finder,finderConstructed)
-    type            (keplerOrbit           )                        :: orbitCurrent
-    integer                                                         :: status
-    double precision                                                :: potential
+    type            (keplerOrbit                      )                        :: orbitCurrent
+    type            (enumerationStructureErrorCodeType)                        :: status
+    double precision                                                           :: potential
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,galacticStructure_)
@@ -261,10 +261,10 @@ contains
        else
           ! Orbit is radial - use energy to find velocity.
           potential=galacticStructure_%potential(activeNode,radius,status=status)
-          select case (status)
-          case (structureErrorCodeSuccess )
+          select case (status%ID)
+          case (structureErrorCodeSuccess %ID)
              velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
-          case (structureErrorCodeInfinite)
+          case (structureErrorCodeInfinite%ID)
              ! The gravitational potential is negative infinity at this radius (most likely zero
              ! radius). Velocity is formally infinite. Return speed of light as a suitably fast
              ! value.
