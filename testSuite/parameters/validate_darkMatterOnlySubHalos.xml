@@ -82,7 +82,7 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
   <mergerTreeBuildMasses value="replicate">
-    <replicationCount value="4"/>
+    <replicationCount value="8"/>
     <mergerTreeBuildMasses value="readHDF5">
       <fileName value="%DATASTATICPATH%/darkMatter/haloMasses_Caterpillar_LX14.hdf5"/>
     </mergerTreeBuildMasses>
