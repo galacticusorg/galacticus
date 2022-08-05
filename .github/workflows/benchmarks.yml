@@ -130,7 +130,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Push benchmark result
         run: |
-          git branch
+          git branch -a
+          git checkout gh-pages
           git status
           git log
           git push
