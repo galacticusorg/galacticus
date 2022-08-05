@@ -3,7 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
 
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="standard"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
@@ -57,7 +57,7 @@
   <powerSpectrumPrimordialTransferred value="simple"  />
 
   <!-- Structure formation options -->
-  <linearGrowth          value="baryonsDarkMatter"                        />
+  <linearGrowth          value="collisionlessMatter"                      />
   <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <haloMassFunction      value="shethTormen"                               >
@@ -88,7 +88,7 @@
 
   <!-- Halo mass resolution -->
   <mergerTreeMassResolution value="fixed">
-    <massResolution value="1.0e10"/>
+    <massResolution value="1.0e8"/>
   </mergerTreeMassResolution>
 
   <!-- Substructure hierarchy options -->

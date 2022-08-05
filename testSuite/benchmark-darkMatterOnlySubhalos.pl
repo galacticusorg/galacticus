@@ -14,7 +14,7 @@ system("mkdir -p outputs/");
 
 # Run the benchmark model multiple times.
 my $runTimes = pdl [];
-for(my $i=0;$i<4;++$i) {
+for(my $i=0;$i<11;++$i) {
     # Run the model.
     system("cd ..; /usr/bin/time --format=\"\%e\" --output=testSuite/outputs/benchmark_darkMatterOnlySubhalos.log ./Galacticus.exe testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml");
     unless ( $? == 0 ) {
@@ -26,7 +26,8 @@ for(my $i=0;$i<4;++$i) {
     my $runTime = <$logFile>;
     close($logFile);
     chomp($runTime);
-    $runTimes = $runTimes->append($runTime);
+    $runTimes = $runTimes->append($runTime)
+	unless ( $i == 0 );
 }
 
 # Find average and standard deviation of run times.
