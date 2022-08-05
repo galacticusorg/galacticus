@@ -117,7 +117,6 @@ jobs:
         with:
           tool: 'customSmallerIsBetter'
           output-file-path: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
-          external-data-json-path: ./cache/benchmark_darkMatterOnlySubhalos.json
           fail-on-alert: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
@@ -127,13 +126,9 @@ jobs:
           alert-threshold: 150%
           fail-threshold: 200%
           max-items-in-chart: 256
-      - uses: actions/checkout@v2
       - name: Push benchmark result
         run: |
-          git branch -a
           git checkout gh-pages
-          git status
-          git log
-          git push
+          git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
       - run: echo "This job's status is ${{ job.status }}."
