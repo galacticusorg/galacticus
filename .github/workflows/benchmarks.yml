@@ -129,6 +129,10 @@ jobs:
           max-items-in-chart: 256
       - name: Push benchmark result
         uses: actions/checkout@v2
-        run: git push
+        run: |
+          git branch
+          git status
+          git log
+          git push
         if: github.event_name != 'pull_request'
       - run: echo "This job's status is ${{ job.status }}."
