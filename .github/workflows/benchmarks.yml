@@ -127,8 +127,8 @@ jobs:
           alert-threshold: 150%
           fail-threshold: 200%
           max-items-in-chart: 256
+      - uses: actions/checkout@v2
       - name: Push benchmark result
-        uses: actions/checkout@v2
         run: |
           git branch
           git status
