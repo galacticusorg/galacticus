@@ -63,7 +63,7 @@ window.BENCHMARK_DATA = {
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 1.79769313486232e+292,
+            "value": 15985.3915051884,
             "unit": "|logℒ|"
           }
         ]
