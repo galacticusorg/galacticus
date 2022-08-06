@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659740461968,
+  "lastUpdate": 1659748139583,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -64,6 +64,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 1.79769313486232e+292,
+            "unit": "|logℒ|"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "05ad86fa4b6e450871162d0aaaeb48ed84e652a1",
+          "message": "fix: Increase number of trees in validation model",
+          "timestamp": "2022-08-05T23:17:21Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/05ad86fa4b6e450871162d0aaaeb48ed84e652a1"
+        },
+        "date": 1659748139171,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.4700834304176,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9713422051653,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 15985.3915051884,
             "unit": "|logℒ|"
           }
         ]
