@@ -167,10 +167,9 @@ contains
     !!{
     Constructor for ``spinDistribution'' posterior sampling likelihood class.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: HDF5_Access        , only : hdf5Access
-    use :: IO_HDF5            , only : hdf5Object
-    use :: Memory_Management  , only : allocateArray
+    use :: HDF5_Access      , only : hdf5Access
+    use :: IO_HDF5          , only : hdf5Object
+    use :: Memory_Management, only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -310,6 +309,7 @@ contains
                &                                                self%logNormalRange                    , &
                &                                                self%time                              , &
                &                                                self%nbodyHaloMassError_               , &
+               &                                                self%cosmologyFunctions_               , &
                &                                                self%haloMassFunction_                 , &
                &                                                self%darkMatterHaloScale_              , &
                &                                                self%darkMatterProfileDMO_             , &
@@ -338,6 +338,7 @@ contains
                &                                                self%logNormalRange                    , &
                &                                                self%time                              , &
                &                                                self%nbodyHaloMassError_               , &
+               &                                                self%cosmologyFunctions_               , &
                &                                                self%haloMassFunction_                 , &
                &                                                self%darkMatterHaloScale_              , &
                &                                                self%darkMatterProfileDMO_             , &

@@ -231,6 +231,9 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
     <!-- Halo angular momentum -->
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
       <exponentMass value="0.274460218346487"/>

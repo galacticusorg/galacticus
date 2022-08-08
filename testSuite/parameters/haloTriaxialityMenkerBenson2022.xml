@@ -119,6 +119,9 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
     <!-- Halo triaxiality -->
     <nodeOperator value="haloAxisRatiosMenkerBenson2022"    >
       <timescaleSphericalizationFractional value="0.58"/>

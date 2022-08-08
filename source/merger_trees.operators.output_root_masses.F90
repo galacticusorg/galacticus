@@ -21,6 +21,8 @@
   Contains a module which implements a merger tree operator which outputs a file of tree root masses (and weights).
   !!}
 
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
   ! Buffer size for tree data.
   !![
   <scoping>
@@ -39,12 +41,14 @@
      A merger tree operator class which outputs a file of tree root masses (and weights).
      !!}
      private
-     integer                                                                 :: nodeHierarchyLevelMaximumID, treeCount
-     double precision                                                        :: time
-     double precision                , dimension(outputRootMassesBufferSize) :: mass                       , weight
-     type            (varying_string)                                        :: fileName
-     logical                                                                 :: alwaysIsolatedHalosOnly
+     class           (cosmologyFunctionsClass), pointer                               :: cosmologyFunctions_
+     integer                                                                          :: nodeHierarchyLevelMaximumID, treeCount
+     double precision                                                                 :: time                       , redshift
+     double precision                         , dimension(outputRootMassesBufferSize) :: mass                       , weight
+     type            (varying_string         )                                        :: fileName
+     logical                                                                          :: alwaysIsolatedHalosOnly
    contains
+     final     ::                        outputRootMassesDestructor
      procedure :: operatePreEvolution => outputRootMassesOperatePreEvolution
      procedure :: finalize            => outputRootMassesFinalize
   end type mergerTreeOperatorOutputRootMasses
@@ -63,12 +67,11 @@ contains
     !!{
     Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
-    double precision                                                    :: time                                 , redshift
+    double precision                                                    :: time                   , redshift
     logical                                                             :: alwaysIsolatedHalosOnly
     type            (varying_string                    )                :: fileName
 
@@ -99,7 +102,7 @@ contains
          &                                                   )         &
          &                                                  )
     ! Construct the instance.
-    self=mergerTreeOperatorOutputRootMasses(time,alwaysIsolatedHalosOnly,fileName)
+    self=mergerTreeOperatorOutputRootMasses(time,alwaysIsolatedHalosOnly,fileName,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -107,23 +110,25 @@ contains
     return
   end function outputRootMassesConstructorParameters
 
-  function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName) result(self)
+  function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
     use :: File_Utilities  , only : File_Exists, File_Remove
     use :: HDF5_Access     , only : hdf5Access
     implicit none
-    type            (mergerTreeOperatorOutputRootMasses)                :: self
-    double precision                                    , intent(in   ) :: time
-    logical                                             , intent(in   ) :: alwaysIsolatedHalosOnly
-    type            (varying_string                    ), intent(in   ) :: fileName
+    type            (mergerTreeOperatorOutputRootMasses)                        :: self
+    double precision                                    , intent(in   )         :: time
+    logical                                             , intent(in   )         :: alwaysIsolatedHalosOnly
+    type            (varying_string                    ), intent(in   )         :: fileName
+    class           (cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="time, alwaysIsolatedHalosOnly, fileName"/>
+    <constructorAssign variables="time, alwaysIsolatedHalosOnly, fileName, *cosmologyFunctions_"/>
     !!]
 
     ! Initialize.
     self%treeCount=0
+    self%redshift =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     !![
     <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum" id="self%nodeHierarchyLevelMaximumID" type="integer"/>
     !!]
@@ -134,6 +139,19 @@ contains
     return
   end function outputRootMassesConstructorInternal
 
+  subroutine outputRootMassesDestructor(self)
+    !!{
+    Destructor for  the ``outputRootMasses'' merger tree operator class.
+    !!}
+    implicit none
+    type(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine outputRootMassesDestructor
+  
   subroutine outputRootMassesOperatePreEvolution(self,tree)
     !!{
     Compute conditional mass function on {\normalfont \ttfamily tree}.

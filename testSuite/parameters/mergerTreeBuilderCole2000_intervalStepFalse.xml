@@ -142,6 +142,9 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
     <!-- Subhalo hierarchy -->
     <nodeOperator value="hierarchy"                         iterable="no"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"              iterable="no"/>
+    <nodeOperator value="satelliteMassLoss"                 iterable="no"/>
   </nodeOperator>
   
 </parameters>

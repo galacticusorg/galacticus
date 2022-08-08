@@ -50,10 +50,12 @@
      Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
      !!}
      private
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_  => null()
      class           (coolingRateClass         ), pointer :: coolingRate_         => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
      ! Parameters controlling the cut off.
-     double precision                                     :: velocityCutOff                , timeCutOff
+     double precision                                     :: velocityCutOff                , timeCutOff, &
+          &                                                  redshiftCutOff
      type            (enumerationCutOffWhenType)          :: whenCutOff
      logical                                              :: useFormationNode
    contains
@@ -127,6 +129,7 @@ contains
          &                                                                   includesPrefix=.false.  &
          &                                                                 )                       , &
          &                                                                   useFormationNode      , &
+         &                                                                   cosmologyFunctions_   , &
          &                                                                   darkMatterHaloScale_  , &
          &                                                                   coolingRate_            &
          &                )
@@ -139,7 +142,7 @@ contains
     return
   end function cutOffConstructorParameters
 
-  function cutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingRate_) result(self)
+  function cutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingRate_) result(self)
     !!{
     Internal constructor for the cut off cooling rate class.
     !!}
@@ -149,12 +152,14 @@ contains
     double precision                           , intent(in   )         :: velocityCutOff      , timeCutOff
     type            (enumerationCutOffWhenType), intent(in   )         :: whenCutOff
     logical                                    , intent(in   )         :: useFormationNode
+    class           (cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
     class           (coolingRateClass         ), intent(in   ), target :: coolingRate_
-
     !![
-    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
     !!]
+
+    self%redshiftCutOff=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeCutOff))
     ! Validate "whenCutOff" argument.
     if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Error_Report('[whenCutOff] is invalid'//{introspection:location})
     return
@@ -168,6 +173,7 @@ contains
     type(coolingRateCutOff), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%coolingRate_"        />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]

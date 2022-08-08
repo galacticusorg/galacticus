@@ -62,17 +62,17 @@ sub Implementation_Creation {
 	next
 	    if ( $property->{'attributes'}->{'isVirtual'} || ! exists($property->{'classDefault'}->{'code'}) );
 	my $classDefault = $property->{'classDefault'}->{'code'};
-	while ( $classDefault =~ s/self([a-zA-Z]+)Component\s*%// ) {
+	while ( $classDefault =~ s/self([a-zA-Z]+)\s*%// ) {
 	    my $componentName = $1;
 	    unless ( exists($requiredComponents{lc($componentName)}) ) {
-		$componentInitialization .= "self".$componentName."Component => self%hostNode%".lc($componentName)."()\n";
+		$componentInitialization .= "self".$componentName." => self%hostNode%".lc($componentName)."()\n";
 		push(
 		    @{$function->{'variables'}},
 		    {
 			intrinsic  => "class",
 			type       => "nodeComponent".ucfirst($componentName),
 			attributes => [ "pointer" ],
-			variables  => [ "self".ucfirst($componentName)."Component" ]
+			variables  => [ "self".ucfirst($componentName) ]
 		    }
 		    );
 	    }

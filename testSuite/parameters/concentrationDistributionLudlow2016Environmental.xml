@@ -99,6 +99,9 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
   </nodeOperator>
   
   <!-- Halo accretion options -->

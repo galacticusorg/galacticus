@@ -378,6 +378,8 @@ contains
     else if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
        call Error_Report('missing "rootFunction"'//{introspection:location})
     end if
+    ! If a stopping criterion is provided, set it.
+    if (present(stoppingCriterion)) self%stoppingCriterion=stoppingCriterion
     ! Validate stopping criterion.
     if (self%useDerivative .and. self%stoppingCriterion == stoppingCriterionInterval) &
          & call Error_Report('"interval" stopping criteria is not valid when using a derivative-based method'//{introspection:location})
@@ -387,8 +389,6 @@ contains
     call self%tolerance(toleranceAbsolute,toleranceRelative)
     ! If range expansion is defined, set it.
     call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
-    ! If a stopping criterion is provided, set it.
-    if (present(stoppingCriterion)) self%stoppingCriterion=stoppingCriterion
     return
   end function rootFinderConstructorInternal
   
@@ -480,7 +480,7 @@ contains
           if (.not.self%solverTypeIsValid()) then
              self%solverTypeID    =gsl_root_fdfsolver_steffenson
              self%solverType      =gsl_fdfsolver_type_get  (self%solverTypeID)
-            end if
+          end if
           self%gslFunction        =gslFunctionFdF          (                               &
                &                                            rootFunctionWrapper          , &
                &                                            rootFunctionDerivativeWrapper, &

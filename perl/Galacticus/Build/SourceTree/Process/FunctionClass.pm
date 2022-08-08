@@ -224,8 +224,12 @@ sub Process_FunctionClass {
 				    if
 				    (
 				     $declaration->{'intrinsic'} eq "class"
-				     &&
-				     $declaration->{'type'     } =~ m/Class\s*$/
+				      &&
+				      (
+				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
+				       ||
+				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
+				      )
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 				    );
@@ -241,7 +245,7 @@ sub Process_FunctionClass {
 				push(@{$potentialNames->{'parameters'}},$declaration)
 				    if
 				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision" ))
+				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
 				     ||
 				     (
 				             $declaration->{'intrinsic'}  eq "type"
@@ -298,7 +302,7 @@ sub Process_FunctionClass {
 		    push(@{$potentialNames->{'parameters'}},$declaration)
 			if
 			(
-			 (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision" ))
+			 (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
 			 ||
 			 (
 			         $declaration->{'intrinsic'}  eq "type"
@@ -319,8 +323,12 @@ sub Process_FunctionClass {
 				    if
 				    (
 				     $declaration->{'intrinsic'} eq "class"
-				     &&
-				     $declaration->{'type'     } =~ m/Class\s*$/
+				      &&
+				      (
+				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} keys                       (%{$stateStorables->{'functionClasses'       }}))
+				       ||
+				       (grep {&lctrim($declaration->{'type'}) eq lc($_)} &List::ExtraUtils::as_array(  $stateStorables->{'functionClassInstances'} ))
+				      )
 				     &&
 				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
 				    );
@@ -336,7 +344,7 @@ sub Process_FunctionClass {
 				push(@{$potentialNames->{'parameters'}},$declaration)
 				    if
 				    (
-				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision" ))
+				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision", "character" ))
 				     ||
 				     (
 				             $declaration->{'intrinsic'}  eq "type"
@@ -423,13 +431,13 @@ sub Process_FunctionClass {
 					} else {
 					    $name = $constructorNode->{'directive'}->{'name'};
 					}
-					if ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'parameters'}}) ) {
+					if ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
 					    push(@{$descriptorParameters->{'parameters'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
 					    # Find the matched variable.
 					    my $descriptor;
 					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
 						$descriptor = $potentialDescriptor
-						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+						    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
 					    }
 					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'enumerations'}}) ) {
 					    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
@@ -523,6 +531,8 @@ sub Process_FunctionClass {
 					    } elsif ( $declaration->{'intrinsic'} eq "integer"          ) {
 						$addLabel  = 1;
 						$format    = "i17";
+					    } elsif ( $declaration->{'intrinsic'} eq "character"        ) {
+						$function  = "trim";
 					    }
 					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
 						# Non-scalar parameter - values must be concatenated.
@@ -3874,6 +3884,13 @@ sub stateStoreExplicitFunction {
     return ($inputCode,$outputCode,%modules);
 }
 
+sub lctrim {
+    # Trim trailing whitespace and return lowercased.
+    my $string = shift();
+    $string =~ s/\s*$//;
+    return lc($string);
+}
+    
 1;
 
 #  LocalWords:  nonAbstractClass

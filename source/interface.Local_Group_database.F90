@@ -85,7 +85,7 @@ module Interface_Local_Group_DB
      Local Group database class.
      !!}
      private
-     type   (node       ), pointer                   :: database
+     type   (node       ), pointer                   :: database => null()
      type   (xmlNodeList), allocatable, dimension(:) :: galaxies
      logical             , allocatable, dimension(:) :: selected
    contains
@@ -140,7 +140,7 @@ contains
     implicit none
     type(localGroupDB), intent(inout) :: self
 
-    call destroy(self%database)
+    if (associated(self%database)) call destroy(self%database)
     return
   end subroutine localGroupDBDestructor
 

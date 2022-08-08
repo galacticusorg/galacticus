@@ -536,10 +536,10 @@ contains
     <referenceConstruct                             object="galacticFilterProgenitorMass_"    constructor="galacticFilterHaloMass      (massParentMinimum*massRatioMinimum*massRatioBuffer,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     <referenceConstruct                             object="galacticFilterParentMassMinimum_" constructor="galacticFilterHaloMass      (massParentMinimum                                 ,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterHaloMass      (massParentMaximum                                 ,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
-    <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                                           )"/>
-    <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                                             )"/>
-    <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                                        ,allowSelf,self%galacticFilterParentMass_)"/>
-    <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                                                   )"/>
+    <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                                                               )"/>
+    <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                                                                 )"/>
+    <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                                        ,allowSelf,cosmologyFunctions_,self%galacticFilterParentMass_)"/>
+    <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                                                                       )"/>
     !!]
     ! Build a node property extractor which gives the ratio of the progenitor and parent halo masses.
     allocate(     nodePropertyExtractorMassProgenitor_)
@@ -549,7 +549,7 @@ contains
     !![
     <referenceConstruct                             object="nodePropertyExtractorMassProgenitor_" constructor="nodePropertyExtractorMassHalo      (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_         )"/>
     <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractorMassParent_"     constructor="nodePropertyExtractorMassHalo      (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_         )"/>
-    <referenceConstruct                             object="nodePropertyExtractorParentNode_"     constructor="nodePropertyExtractorDescendentNode(                                                     timeParent                          ,self%nodePropertyExtractorMassParent_)"/>
+    <referenceConstruct                             object="nodePropertyExtractorParentNode_"     constructor="nodePropertyExtractorDescendentNode(                                                    timeParent,cosmologyFunctions_   ,self%nodePropertyExtractorMassParent_    )"/>
     <referenceConstruct                             object="nodePropertyExtractorMassRatio_"      constructor="nodePropertyExtractorRatio         ('massRatio','Ratio of progenitor and parent masses.',nodePropertyExtractorMassProgenitor_,     nodePropertyExtractorParentNode_)"/>
     !!]
     ! Create a distribution normalizer which normalizes to bin width.

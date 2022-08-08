@@ -66,6 +66,7 @@ Implements the survey geometry used by \cite{caputi_stellar_2011}.
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     integer                                            :: redshiftBin
      double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
           &                                                redshiftMinimum              , redshiftMaximum
    contains
@@ -129,7 +130,7 @@ contains
     class           (cosmologyFunctionsClass          ), intent(in   ), target           :: cosmologyFunctions_
     class           (randomNumberGeneratorClass       ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *randomNumberGenerator_"/>
+    <constructorAssign variables="redshiftBin, *cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
 
     ! Find distance limits for this redshift bin.

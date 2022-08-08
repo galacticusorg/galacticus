@@ -21,6 +21,8 @@
   Contains a module which implements an output analysis class that computes subhalo mass functions.
   !!}
   
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+
   !![
   <outputAnalysis name="outputAnalysisSubhaloMassFunction">
    <description>An output analysis class for subhalo mass functions.</description>
@@ -37,6 +39,7 @@
      An output analysis class for subhalo mass functions.
      !!}
      private
+     class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_               => null()
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionsSubHalos           => null(), volumeFunctionsHostHalos => null()
      double precision                                , allocatable, dimension(:  ) :: massRatios                                 , massFunction                      , &
           &                                                                           massFunctionTarget
@@ -44,7 +47,7 @@
      type            (varying_string                )                              :: labelTarget
      double precision                                                              :: negativeBinomialScatterFractional          , countFailures                     , &
           &                                                                           massRatioMinimum                           , massRatioMaximum                  , &
-          &                                                                           time
+          &                                                                           time                                       , redshift
      integer         (c_size_t                      )                              :: countMassRatios 
      logical                                                                       :: finalized
    contains
@@ -183,7 +186,7 @@ contains
     class           (outputTimesClass                 ), intent(inout)                 :: outputTimes_
     class           (virialDensityContrastClass       ), intent(in   )                 :: virialDensityContrast_           , virialDensityContrastDefinition_
     class           (cosmologyParametersClass         ), intent(inout)                 :: cosmologyParameters_
-    class           (cosmologyFunctionsClass          ), intent(inout)                 :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass          ), intent(inout), target         :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass        ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                   , intent(in   ), optional       :: redshift
     double precision                                   , allocatable  , dimension(:  ) :: massRatiosTarget                 , massFunctionTarget               , &
@@ -194,6 +197,9 @@ contains
     integer         (c_size_t                         )                                :: countMassRatios                  , i
     type            (varying_string                   )                                :: labelTarget
     type            (hdf5Object                       )                                :: file                             , massFunctionGroup
+    !![
+    <constructorAssign variables="redshift, *cosmologyFunctions_"/>
+    !!]
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
@@ -248,7 +254,7 @@ contains
     class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
     class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_                          , virialDensityContrastDefinition_
     class           (cosmologyParametersClass                    ), intent(in   )                           :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                     ), intent(in   )                           :: cosmologyFunctions_
+    class           (cosmologyFunctionsClass                     ), intent(in   ), target                   :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                   ), intent(in   )                           :: darkMatterProfileDMO_
     double precision                                              , intent(in   ), dimension(:)  , optional :: massFunctionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: massFunctionCovarianceTarget
@@ -275,11 +281,12 @@ contains
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional, countMassRatios, massRatioMinimum, massRatioMaximum, massFunctionTarget, massFunctionCovarianceTarget, labelTarget"/>
+    <constructorAssign variables="negativeBinomialScatterFractional, countMassRatios, massRatioMinimum, massRatioMaximum, massFunctionTarget, massFunctionCovarianceTarget, labelTarget, *cosmologyFunctions_"/>
     !!]
 
     ! Initialize.
     self%finalized=.false.
+    self%redshift =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     ! Compute failure count for the negative binomial distribution used in likelihood calculations.
     self%countFailures=1.0d0/negativeBinomialScatterFractional**2
     ! Construct mass bins.
@@ -455,6 +462,7 @@ contains
     !![
     <objectDestructor name="self%volumeFunctionsSubHalos" />
     <objectDestructor name="self%volumeFunctionsHostHalos"/>
+    <objectDestructor name="self%cosmologyFunctions_"     />
     !!]
     return
   end subroutine subhaloMassFunctionDestructor

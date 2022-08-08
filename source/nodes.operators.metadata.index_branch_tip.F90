@@ -79,28 +79,23 @@ contains
     !!{
     Initialize node branch tip indices.
     !!}
-    use :: Galacticus_Nodes   , only : nodeComponentBasic
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nodeOperatorIndexBranchTip), intent(inout), target  :: self
     type (treeNode                  ), intent(inout), target  :: node
-    type (treeNode                  )               , pointer :: nodeTip   , nodeWork
+    type (treeNode                  )               , pointer :: nodeWork
     class(nodeComponentBasic        )               , pointer :: basic
-    type (mergerTreeWalkerAllNodes  )                         :: treeWalker
 
-    treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-    do while (treeWalker%next(nodeTip))
-       if (associated(nodeTip%firstChild)) cycle
-       nodeWork => nodeTip
-       do while (associated(nodeWork))
-          basic => nodeWork%basic()
-          call basic%longIntegerRank0MetaPropertySet(self%indexBranchTipID,nodeTip%index())
-          if (nodeWork%isPrimaryProgenitor()) then
-             nodeWork => nodeWork%parent
-          else
-             nodeWork => null()
-          end if
-       end do
+    if (associated(node%firstChild)) return
+    nodeWork => node
+    do while (associated(nodeWork))
+       basic => nodeWork%basic()
+       call basic%longIntegerRank0MetaPropertySet(self%indexBranchTipID,node%index())
+       if (nodeWork%isPrimaryProgenitor()) then
+          nodeWork => nodeWork%parent
+       else
+          nodeWork => null()
+       end if
     end do
     return
   end subroutine indexBranchTipNodeTreeInitialize

@@ -143,7 +143,6 @@
       <propagateOrbits value="true" />
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
   <satelliteMergingTimescales     value="zero"/>
 
   <!-- Merger tree evolution -->

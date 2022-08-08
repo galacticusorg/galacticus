@@ -27,7 +27,7 @@ module Intergalactic_Medium_State
   !!}
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use :: Tables              , only : table              , table1D                 , table1DLogarithmicLinear
+  use :: Tables              , only : table              , table1DGeneric          , table1DLogarithmicLinear
   private
 
   !![
@@ -175,15 +175,15 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <!-- Objects. -->
-   <data scope="self"  >class           (cosmologyParametersClass), pointer     :: cosmologyParameters_                   => null()                                  </data>
-   <data scope="self"  >class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_                    => null()                                  </data>
+   <data scope="self"  >class           (cosmologyParametersClass), pointer   :: cosmologyParameters_                   => null()                                  </data>
+   <data scope="self"  >class           (cosmologyFunctionsClass ), pointer   :: cosmologyFunctions_                    => null()                                  </data>
    <!-- Electron scattering optical depth tables. -->
-   <data scope="module">integer                                   , parameter   :: electronScatteringTablePointsPerDecade =  100                                     </data>
-   <data scope="self"  >logical                                                 :: electronScatteringTableInitialized     =  .false.                                 </data>
-   <data scope="self"  >integer                                                 :: electronScatteringTableNumberPoints                                               </data>
-   <data scope="self"  >double precision                                        :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum</data>
-   <data scope="self"  >type            (table1DLogarithmicLinear)              :: electronScattering                            , electronScatteringFullyIonized    </data>
-   <data scope="self"  >class           (table1D                 ), allocatable :: electronScatteringFullyIonizedInverse         , electronScatteringInverse         </data>
+   <data scope="module">integer                                   , parameter :: electronScatteringTablePointsPerDecade =  100                                     </data>
+   <data scope="self"  >logical                                               :: electronScatteringTableInitialized     =  .false.                                 </data>
+   <data scope="self"  >integer                                               :: electronScatteringTableNumberPoints                                               </data>
+   <data scope="self"  >double precision                                      :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum</data>
+   <data scope="self"  >type            (table1DLogarithmicLinear)            :: electronScattering                            , electronScatteringFullyIonized    </data>
+   <data scope="self"  >type            (table1DGeneric          )            :: electronScatteringFullyIonizedInverse         , electronScatteringInverse         </data>
   </functionClass>
   !!]
 
@@ -196,11 +196,14 @@ contains
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (intergalacticMediumStateClass), intent(inout), target :: self
-    double precision                               , intent(in   )         :: time
-    type            (integrator                   )                        :: integrator_
-    integer                                                                :: iTime
-    logical                                                                :: fullyIonized
+    class           (intergalacticMediumStateClass), intent(inout), target      :: self
+    double precision                               , intent(in   )              :: time
+    double precision                               , dimension(:) , allocatable :: time_                     , opticalDepth  , &
+         &                                                                         opticalDepthFullyIonized
+    type            (integrator                   )                             :: integrator_
+    integer                                                                     :: iTime                     , iTimeMonotonic, &
+         &                                                                         iTimeMonotonicFullyIonized
+    logical                                                                     :: fullyIonized
 
     if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
        ! Validate cosmological parameters.
@@ -211,43 +214,55 @@ contains
        ! Decide how many points to tabulate and allocate table arrays.
        self%electronScatteringTableNumberPoints=int(log10(self%electronScatteringTableTimeMaximum/self%electronScatteringTableTimeMinimum)&
             &*dble(electronScatteringTablePointsPerDecade))+1
+       allocate(time_                   (self%electronScatteringTableNumberPoints))
+       allocate(opticalDepth            (self%electronScatteringTableNumberPoints))
+       allocate(opticalDepthFullyIonized(self%electronScatteringTableNumberPoints))
        ! Create the tables.
-       call self%electronScattering            %destroy()
-       call self%electronScatteringFullyIonized%destroy()
-       call self%electronScattering            %create (                                          &
-            &                                           self%electronScatteringTableTimeMinimum , &
-            &                                           self%electronScatteringTableTimeMaximum , &
-            &                                           self%electronScatteringTableNumberPoints  &
-            &                                          )
-       call self%electronScatteringFullyIonized%create (                                          &
-            &                                           self%electronScatteringTableTimeMinimum , &
-            &                                           self%electronScatteringTableTimeMaximum , &
-            &                                           self%electronScatteringTableNumberPoints  &
-            &                                          )
+       call self%electronScattering                   %destroy()
+       call self%electronScatteringFullyIonized       %destroy()
+       call self%electronScatteringInverse            %destroy()
+       call self%electronScatteringFullyIonizedInverse%destroy()
+       call self%electronScattering                   %create (                                          &
+            &                                                  self%electronScatteringTableTimeMinimum , &
+            &                                                  self%electronScatteringTableTimeMaximum , &
+            &                                                  self%electronScatteringTableNumberPoints  &
+            &                                                 )
+       call self%electronScatteringFullyIonized       %create (                                          &
+            &                                                  self%electronScatteringTableTimeMinimum , &
+            &                                                  self%electronScatteringTableTimeMaximum , &
+            &                                                  self%electronScatteringTableNumberPoints  &
+            &                                                 )
+       time_=self%electronScattering%xs()
        ! Loop over times and populate tables.
-       integrator_=integrator(intergalacticMediumStateElectronScatteringIntegrand,toleranceRelative=1.0d-6)
+       integrator_               =integrator(intergalacticMediumStateElectronScatteringIntegrand,toleranceRelative=1.0d-6)
+       iTimeMonotonic            =1
+       iTimeMonotonicFullyIonized=1
        do iTime=1,self%electronScatteringTableNumberPoints-1
           fullyIonized=.false.
-          call self%electronScattering            %populate(                                                                         &
-               &                                            -integrator_%integrate(                                                  &
-               &                                                                   self%electronScattering                %x(iTime), &
-               &                                                                   self%electronScatteringTableTimeMaximum           &
-               &                                                                  )                                                , &
-               &                                                                                                             iTime   &
-               &                                           )
+          opticalDepth            (iTime)=-integrator_%integrate(                                                  &
+               &                                                 time_                                    (iTime), &
+               &                                                 self%electronScatteringTableTimeMaximum           &
+               &                                                )
           fullyIonized=.true.
-          call self%electronScatteringFullyIonized%populate(                                                                         &
-               &                                            -integrator_%integrate(                                                  &
-               &                                                                   self%electronScatteringFullyIonized    %x(iTime), &
-               &                                                                   self%electronScatteringTableTimeMaximum           &
-               &                                                                  )                                                , &
-               &                                                                                                             iTime   &
-               &                                           )
+          opticalDepthFullyIonized(iTime)=-integrator_%integrate(                                                  &
+               &                                                 time_                                    (iTime), &
+               &                                                 self%electronScatteringTableTimeMaximum           &
+               &                                                )
+          if (iTime > 1) then
+             if (opticalDepth            (iTime) < opticalDepth            (iTime-1)) &
+                  & iTimeMonotonic            =iTime
+             if (opticalDepthFullyIonized(iTime) < opticalDepthFullyIonized(iTime-1)) &
+                  & iTimeMonotonicFullyIonized=iTime
+          end if
        end do
-       call self%electronScattering            %populate(0.0d0,self%electronScatteringTableNumberPoints)
-       call self%electronScatteringFullyIonized%populate(0.0d0,self%electronScatteringTableNumberPoints)
-       call self%electronScattering            %reverse (self%electronScatteringInverse                )
-       call self%electronScatteringFullyIonized%reverse (self%electronScatteringFullyIonizedInverse    )
+       opticalDepth            (self%electronScatteringTableNumberPoints)=0.0d0
+       opticalDepthFullyIonized(self%electronScatteringTableNumberPoints)=0.0d0
+       call self%electronScatteringInverse            %create  (opticalDepth            (iTimeMonotonic            :self%electronScatteringTableNumberPoints))
+       call self%electronScatteringFullyIonizedInverse%create  (opticalDepthFullyIonized(iTimeMonotonicFullyIonized:self%electronScatteringTableNumberPoints))
+       call self%electronScattering                   %populate(opticalDepth                                                                                 )
+       call self%electronScatteringFullyIonized       %populate(opticalDepthFullyIonized                                                                     )
+       call self%electronScatteringInverse            %populate(time_                   (iTimeMonotonic            :self%electronScatteringTableNumberPoints))
+       call self%electronScatteringFullyIonizedInverse%populate(time_                   (iTimeMonotonicFullyIonized:self%electronScatteringTableNumberPoints))
        ! Specify that tabulation has been made.
        self%electronScatteringTableInitialized=.true.
     end if

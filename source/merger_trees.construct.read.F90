@@ -227,7 +227,7 @@
      integer                                                                                     :: fileCurrent
      type            (varying_string                                ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
           &                                                                                         presetNamedIntegers
-     integer                                                        , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
+     integer                                                         , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
      logical                                                                                     :: importerOpen                          =  .false.
      integer         (kind_int8                                     )                            :: beginAt
      double precision                                                                            :: treeWeightCurrent
@@ -411,7 +411,7 @@ contains
          &                                                                              presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                              presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
          &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps
-    type            (varying_string                     )                            :: subhaloAngularMomentaMethodText
+    type            (varying_string                     )                            :: subhaloAngularMomentaMethod
     double precision                                                                 :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                              presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     !$GLC attributes initialized :: self
@@ -453,7 +453,6 @@ contains
       <defaultValue>var_str('summation')</defaultValue>
       <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
       <source>parameters</source>
-      <variable>subhaloAngularMomentaMethodText</variable>
     </inputParameter>
     <inputParameter>
       <name>presetSubhaloIndices</name>
@@ -625,7 +624,7 @@ contains
          &                                                                               beginAt                                                      , &
          &                                                                               missingHostsAreFatal                                         , &
          &                                                                               treeIndexToRootNodeIndex                                     , &
-         &                         enumerationReadSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethodText     ),includesPrefix=.false.), &
+         &                         enumerationReadSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethod         ),includesPrefix=.false.), &
          &                                                                               allowBranchJumps                                             , &
          &                                                                               allowSubhaloPromotions                                       , &
          &                                                                               presetMergerTimes                                            , &
@@ -2447,9 +2446,11 @@ contains
                    ! If on the isolated node index assigning pass, skip to the next halo.
                    cycle
                 else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
-                   ! Descendent is not a subhalo but this node is not the primary progenitor. Assume instantaneous merging.
-                   basic => nodeList(iIsolatedNode)%node%basic()
-                   timeSubhaloMerges=basic%time()
+                   ! Descendent is not a subhalo but this node is not the primary progenitor. Assume the halo merges
+                   ! instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of the
+                   ! parent halo.)
+                   basic             => nodeList(iIsolatedNode)%node%parent%basic()
+                   timeSubhaloMerges =  basic                              %time ()
                    ! Flag that this node will merge.
                    nodeWillMerge=.true.
                    ! Record the node with which the merger occurs.
@@ -4133,7 +4134,7 @@ contains
           relativeVelocity   =  positionSatellite%velocity()-positionHost%velocity()
           orbit              =  readOrbitConstruct(basicSatellite%mass(),basicHost%mass(),relativePosition,relativeVelocity)
           timeUntilMerging   =  self%satelliteMergingTimescales_%timeUntilMerging(nodeSatellite,orbit)
-          call satelliteSatellite%timeUntilMergingSet(timeUntilMerging)
+          call satelliteSatellite%timeOfMergingSet(timeUntilMerging+basicSatellite%time())
           ! Set target node.
           nodeTarget => nodeHost
           do while (.true.)

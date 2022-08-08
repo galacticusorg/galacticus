@@ -33,8 +33,9 @@
      A stellar vs halo mass relation output analysis class.
      !!}
      private
-     class  (outputAnalysisClass), pointer :: outputAnalysis_ => null()
+     class  (outputAnalysisClass), pointer :: outputAnalysis_  => null()
      integer(c_size_t           )          :: likelihoodBin
+     integer                               :: redshiftInterval
    contains
      final     ::                  stellarVsHaloMassRelationLeauthaud2012Destructor
      procedure :: analyze       => stellarVsHaloMassRelationLeauthaud2012Analyze
@@ -60,6 +61,7 @@ contains
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+    use :: Galactic_Structure      , only : galacticStructureClass
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
     use :: Input_Parameters        , only : inputParameters
     implicit none
@@ -69,6 +71,7 @@ contains
     class           (cosmologyParametersClass                            ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                           ), pointer                     :: darkMatterProfileDMO_
+    class           (galacticStructureClass                              ), pointer                     :: galacticStructure_
     class           (virialDensityContrastClass                          ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
@@ -112,22 +115,24 @@ contains
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,galacticStructure_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
     <objectDestructor name="cosmologyFunctions_"   />
     <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="galacticStructure_"    />
     <objectDestructor name="outputTimes_"          />
     !!]
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,galacticStructure_,outputTimes_) result (self)
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     !!}
@@ -164,6 +169,7 @@ contains
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
     class           (virialDensityContrastClass                          ), intent(in   ), target         :: virialDensityContrast_
     class           (darkMatterProfileDMOClass                           ), intent(in   ), target         :: darkMatterProfileDMO_
+    class           (galacticStructureClass                              ), intent(in   ), target         :: galacticStructure_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
     integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                       =10
@@ -385,7 +391,7 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                                                                                                      )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                   galacticStructure_                                                                 )"/>
     !!]
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrastDefinition_                                )

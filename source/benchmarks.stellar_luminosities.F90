@@ -46,7 +46,7 @@ program Benchmark_Stellar_Populations_Luminosities
   use :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
   use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
   implicit none
-  type            (inputParameters                              ), target                                 :: parameters
+  type            (inputParameters                               ), target                                 :: parameters
   integer                                                         , parameter                              :: filterCount                               =  137  , populationCount      =20, &
        &                                                                                                      trialCount                                =10000
   double precision                                                , parameter                              :: redshiftStep                              =0.1d0
