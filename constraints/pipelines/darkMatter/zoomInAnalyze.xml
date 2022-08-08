@@ -4,6 +4,8 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
+  <errorWaitTime value="0"/>
+
   <task value="NBodyAnalyze"/>
 
   <outputFileName value=""/>
