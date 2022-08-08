@@ -172,7 +172,8 @@ contains
     velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius                              )
     velocityMagnitude            =   Vector_Magnitude                                        (         velocity                            )
     densityHost                  =   self     %galacticStructure_   %density                 (nodeHost,position,coordinateSystemCartesian  )
-    if (velocityDispersion > 0.0d0) then
+    if (velocityMagnitude  <= 0.0d0) return
+    if (velocityDispersion >  0.0d0) then
        Xv                        =  +velocityMagnitude                     &
             &                       /velocityDispersion                    &
             &                       /sqrt(2.0d0)

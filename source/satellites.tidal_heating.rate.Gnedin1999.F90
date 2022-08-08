@@ -224,26 +224,32 @@ contains
             &                       *kilo                                           &
             &                       /megaParsec
     end if
-    ! Find the shock timescale (i.e. crossing time in the radial direction).
-    timescaleShock=+megaParsec &
-         &         /kilo       &
-         &         /gigaYear   &
-         &         *radius     &
-         &         /speed
-    ! Compute the heating rate.
-    heatingRateNormalized=+self%epsilon                                          &
-         &                /(                                                     &
-         &                  +1.0d0                                               &
-         &                  +(                                                   &
-         &                    +timescaleShock                                    &
-         &                    *orbitalFrequencySatellite                         &
-         &                   )**2                                                &
-         &                 )**self%gamma                                         &
-         &                /3.0d0                                                 &
-         &                *tidalTensor%doubleContract(tidalTensorPathIntegrated) &
-         &                *(kilo*gigaYear/megaParsec)**2
-    ! Limit the heating rate to be non-negative.
-    gnedin1999HeatingRate=max(heatingRateNormalized,0.0d0)
+    ! Catch non-positive speeds.
+    if (speed > 0.0d0) then
+       ! Find the shock timescale (i.e. crossing time in the radial direction).
+       timescaleShock=+megaParsec &
+            &         /kilo       &
+            &         /gigaYear   &
+            &         *radius     &
+            &         /speed
+       ! Compute the heating rate.
+       heatingRateNormalized=+self%epsilon                                          &
+            &                /(                                                     &
+            &                  +1.0d0                                               &
+            &                  +(                                                   &
+            &                    +timescaleShock                                    &
+            &                    *orbitalFrequencySatellite                         &
+            &                   )**2                                                &
+            &                 )**self%gamma                                         &
+            &                /3.0d0                                                 &
+            &                *tidalTensor%doubleContract(tidalTensorPathIntegrated) &
+            &                *(kilo*gigaYear/megaParsec)**2
+       ! Limit the heating rate to be non-negative.
+       gnedin1999HeatingRate=max(heatingRateNormalized,0.0d0)
+    else
+       ! Speed is non-positive - assume zero heating rate.
+       gnedin1999HeatingRate=0.0d0
+    end if
     return
   end function gnedin1999HeatingRate
 

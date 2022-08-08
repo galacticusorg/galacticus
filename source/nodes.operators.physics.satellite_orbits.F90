@@ -102,6 +102,7 @@ contains
     !!{
     Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
     !!}
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentSatellite
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -140,14 +141,19 @@ contains
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
     ! satellite and host orbitting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).
-    call satellite%velocityRate(                         &
-         &                      +acceleration            &
-         &                      *(                       &
-         &                        +1.0d0                 &
-         &                        +massEnclosedSatellite &
-         &                        /massEnclosedHost      &
-         &                      )                        &
-         &                     )
+    if (massEnclosedHost > 0.0d0) then
+       call satellite%velocityRate(                         &
+            &                      +acceleration            &
+            &                      *(                       &
+            &                        +1.0d0                 &
+            &                        +massEnclosedSatellite &
+            &                        /massEnclosedHost      &
+            &                      )                        &
+            &                     )
+    else
+       ! Enclosed mass is zero - this is acceptable only if the acceleration is zero.
+       if (any(acceleration /= 0.0d0)) call Error_Report('zero host mass but non-zero acceleration'//{introspection:location})          
+    end if
     return
   end subroutine satelliteOrbitDifferentialEvolution
   

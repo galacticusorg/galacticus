@@ -201,6 +201,10 @@ contains
          &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                            virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                           )
+    ! Handle zero masses gracefully - simply set to the basic mass as no physically-meaningful result should depend on what we do here.
+    if (massHost       <= 0.0d0) massHost      =basicHost                     %mass        (    )
+    if (massSatellite  <= 0.0d0) massSatellite =basic                         %mass        (    )
+    if (radiusHostSelf <= 0.0d0) radiusHostSelf=self     %darkMatterHaloScale_%radiusVirial(host)
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)

@@ -25,6 +25,7 @@
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
   use :: Galactic_Structure             , only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
 
   !![
   <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
@@ -55,6 +56,7 @@
      private
      class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
      class           (galacticStructureClass            ), pointer :: galacticStructure_             => null()
+     class           (darkMatterHaloScaleClass          ), pointer :: darkMatterHaloScale_           => null()
      double precision                                              :: efficiency
    contains
      final     ::                 zentner2005Destructor
@@ -86,6 +88,7 @@ contains
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
     class           (galacticStructureClass            ), pointer       :: galacticStructure_
+    class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
     double precision                                                    :: efficiency
 
     !![
@@ -97,17 +100,19 @@ contains
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
     <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="parameters"/>
     !!]
-    self=satelliteTidalStrippingZentner2005(efficiency,satelliteTidalStrippingRadius_,galacticStructure_)
+    self=satelliteTidalStrippingZentner2005(efficiency,satelliteTidalStrippingRadius_,galacticStructure_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
     <objectDestructor name="galacticStructure_"            />
+    <objectDestructor name="darkMatterHaloScale_"          />
     !!]
     return
   end function zentner2005ConstructorParameters
 
-  function zentner2005ConstructorInternal(efficiency,satelliteTidalStrippingRadius_,galacticStructure_) result(self)
+  function zentner2005ConstructorInternal(efficiency,satelliteTidalStrippingRadius_,galacticStructure_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
     !!}
@@ -115,9 +120,10 @@ contains
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
     class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
+    class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                    , intent(in)            :: efficiency
     !![
-    <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_, *galacticStructure_"/>
+    <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_, *galacticStructure_, *darkMatterHaloScale_"/>
     !!]
 
     return
@@ -133,6 +139,7 @@ contains
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
     <objectDestructor name="self%galacticStructure_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"          />
     !!]
     return
   end subroutine zentner2005Destructor
@@ -150,10 +157,13 @@ contains
     class           (satelliteTidalStrippingZentner2005), intent(inout)  :: self
     type            (treeNode                          ), intent(inout)  :: node
     class           (nodeComponentSatellite            ), pointer        :: satellite
-    double precision                                    , dimension(3  ) :: position          , velocity
-    double precision                                                     :: massSatellite     , frequencyAngular, &
-         &                                                                  periodOrbital     , radius          , &
-         &                                                                  massOuterSatellite, frequencyRadial
+    type            (treeNode                          ), pointer        :: nodeHost
+    double precision                                    , dimension(3  ) :: position                      , velocity
+    double precision                                    , parameter      :: frequencyFractionalTiny=1.0d-6
+    double precision                                                     :: massSatellite                 , frequencyAngular  , &
+         &                                                                  periodOrbital                 , radius            , &
+         &                                                                  massOuterSatellite            , frequencyRadial   , &
+         &                                                                  frequencyOrbital              , timescaleDynamical
 
     ! Get required quantities from the satellite node.
     satellite          =>  node     %satellite (        )
@@ -172,14 +182,22 @@ contains
          &                *kilo                                                &
          &                *gigaYear                                            &
          &                /megaParsec
-    ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
+    ! Find the orbital frequency. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
     ! radial or purely circular orbits.
-    periodOrbital      =  +2.0d0                 &
-         &                *Pi                    &
-         &                /max(                  &
-         &                     frequencyAngular, &
-         &                     frequencyRadial   &
-         &                    )
+    frequencyOrbital   =max(                  &
+         &                  frequencyAngular, &
+         &                  frequencyRadial   &
+         &                 )
+    ! Find the orbital period.
+    nodeHost           =>  node%parent
+    timescaleDynamical =   self%darkMatterHaloScale_%timescaleDynamical(nodeHost)
+    if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamical) then
+       periodOrbital =  +2.0d0            &
+            &           *Pi               &
+            &           /frequencyOrbital
+    else
+       periodOrbital =   timescaleDynamical
+    end if
     ! Compute the mass of the satellite outside of the tidal radius.
     massOuterSatellite =  max(                                                                                              &
          &                    +massSatellite                                                                                &

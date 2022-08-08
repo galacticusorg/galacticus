@@ -83,6 +83,8 @@ contains
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
     class           (darkMatterParticleClass      ), pointer       :: darkMatterParticle_
     type            (varying_string               )                :: nonAnalyticSolver
+    double precision                                               :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                            toleranceRelativePotential
 
     !![
     <inputParameter>
@@ -91,11 +93,29 @@ contains
       <source>parameters</source>
       <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersion</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersionMaximum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativePotential</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMODecaying(darkMatterParticle_, enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=darkMatterProfileDMODecaying(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_, enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"  />
@@ -105,7 +125,7 @@ contains
     return
   end function decayingConstructorParameters
 
-  function decayingConstructorInternal(darkMatterParticle_, nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function decayingConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_, nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
     !!}
@@ -117,8 +137,10 @@ contains
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterParticleClass     ), intent(in   ), target :: darkMatterParticle_
     type            (enumerationNonAnalyticSolversType), intent(in   )    :: nonAnalyticSolver
-    !![
-    <constructorAssign variables="*darkMatterParticle_, nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    double precision                                   , intent(in   )    :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                                   toleranceRelativePotential
+   !![
+    <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterParticle_, nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)

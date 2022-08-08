@@ -149,6 +149,9 @@
   <!-- Dark matter halo structure options -->
   <darkMatterProfile value="darkMatterOnly"/>
   <darkMatterProfileDMO value="decaying">
+    <toleranceRelativeVelocityDispersion value="1.0e-6"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+    <toleranceRelativePotential value="1.0e-3"/>
     <darkMatterProfileDMO value="heatedMonotonic">
       <darkMatterProfileDMO value="NFW" />
       <nonAnalyticSolver value="numerical" />
@@ -364,7 +367,7 @@
 
   <!-- Galaxy merger options -->
   <virialOrbit value="isotropic">
-    <virialOrbit value="jiang2014"/>
+    <virialOrbit value="benson2005"/>
   </virialOrbit>
   <!--
   <satelliteMergingTimescales value="jiang2008">

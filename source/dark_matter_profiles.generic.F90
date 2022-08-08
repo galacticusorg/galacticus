@@ -947,8 +947,10 @@ contains
     class           (darkMatterProfileGeneric), intent(inout), target :: self
     type            (treeNode                ), intent(inout), target :: node
     double precision                          , intent(in   )         :: density
-    double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                          , parameter             :: toleranceAbsolute   =0.0d+00, toleranceRelative=1.0d-3, &
+         &                                                               radiusFractionalTiny=1.0d-12
     type            (rootFinder              )                        :: finder
+    double precision                                                  :: radiusVirial
 
     call self%solverSet  (node)
     genericDensity=density
@@ -962,7 +964,14 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                   )
-    genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
+    if (rootDensity(radiusFractionalTiny*radiusVirial) < 0.0d0) then
+       ! Condition is not met even at a tiny radius - assume it can not be met and return zero radius.
+       genericRadiusEnclosingDensityNumerical=0.0d0
+    else
+       ! Seek the radius.
+       genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=radiusVirial)
+    end if
     call self%solverUnset(   )
     return
   end function genericRadiusEnclosingDensityNumerical
