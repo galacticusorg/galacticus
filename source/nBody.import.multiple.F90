@@ -69,6 +69,7 @@ contains
     type   (nbodyImporterList    ), pointer       :: importer_
     integer                                       :: i
 
+    self     %allHDF5   =  .true.
     self     %importers => null()
     importer_           => null()
     do i=1,parameters%copiesCount('nbodyImporter',zeroIfNotPresent=.true.)
@@ -82,6 +83,9 @@ contains
        !![
        <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
        !!]
+       self%allHDF5= self               %allHDF5   &
+            &       .and.                          &
+            &        importer_%importer_% isHDF5()
     end do
     !![
     <inputParametersValidate source="parameters" multiParameters="nbodyImporter"/>
@@ -98,13 +102,17 @@ contains
     type(nbodyImporterList    ), target, intent(in   ) :: importers
     type(nbodyImporterList    ), pointer               :: importer_
 
+    self     %allHDF5   =  .true.
     self     %importers => importers
     importer_           => importers
     do while (associated(importer_))
        !![
        <referenceCountIncrement owner="importer_" object="importer_"/>
        !!]
-       importer_ => importer_%next
+       self     %allHDF5 =   self               %allHDF5   &
+            &               .and.                          &
+            &                importer_%importer_% isHDF5()
+       importer_         =>  importer_%next
     end do
     return
   end function multipleConstructorInternal
@@ -151,7 +159,6 @@ contains
     do while (associated(importer_))
        call importer_%importer_%import(importer_%simulations)
        countSimulations=countSimulations+size(importer_%simulations)
-       self%allHDF5=( self%allHDF5 .and. importer_%importer_%isHDF5() )
        importer_ => importer_%next
     end do
     allocate(simulations(countSimulations))
