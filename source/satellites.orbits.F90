@@ -151,7 +151,7 @@ contains
     !!{
     Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
     !!}
-    use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType
+    use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType, radiusLarge
     use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , treeNode
     use :: Kepler_Orbits               , only : keplerOrbit
@@ -171,7 +171,7 @@ contains
     !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit                      )                        :: orbitCurrent
     type            (enumerationStructureErrorCodeType)                        :: status
-    double precision                                                           :: potential
+    double precision                                                           :: potential                , energyKinetic
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,galacticStructure_)
@@ -181,9 +181,9 @@ contains
     ! Check if node or orbit differs from previous one for which we performed calculations.
     basicHost => nodeHost%basic()
     if     (                                                                  &
-         &   nodeHost %uniqueID()            /= lastUniqueID                  &
+         &   nodeHost %uniqueID()           /= lastUniqueID                   &
          &  .or.                                                              &
-         &   basicHost%time    ()            /= timePrevious                  &
+         &   basicHost%time    ()           /= timePrevious                   &
          &  .or.                                                              &
          &   orbitalEnergyInternal          /= orbitalEnergyPrevious          &
          &  .or.                                                              &
@@ -204,23 +204,8 @@ contains
        orbitalEnergyPrevious         =orbitalEnergyInternal
        orbitalAngularMomentumPrevious=orbitalAngularMomentumInternal
        ! Catch orbits which are close to being circular.
-       if      (   Extremum_Solver(orbitCurrent%radius()) == 0.0d0             ) then
+       if      (   Extremum_Solver(orbitCurrent%radius()) >= 0.0d0             ) then
           ! Orbit is at extremum.
-          radius=orbitCurrent%radius()
-       else if (                                                                      &
-            &    (                                                                    &
-            &      extremumType                           == extremumPericenter       &
-            &     .and.                                                               &
-            &      Extremum_Solver(orbitCurrent%radius()) >  0.0d0                    &
-            &    )                                                                    &
-            &   .or.                                                                  &
-            &    (                                                                    &
-            &      extremumType                           == extremumApocenter        &
-            &     .and.                                                               &
-            &      Extremum_Solver(orbitCurrent%radius()) <  0.0d0                    &
-            &    )                                                                    &
-            &  ) then
-          ! No solution exists, assume a circular orbit.
           radius=orbitCurrent%radius()
        else if (                                                                      &
             &      extremumType                           == extremumPericenter       &
@@ -229,6 +214,13 @@ contains
             &  ) then
           ! Orbit is radial, so pericenter is zero.
           radius=0.0d0
+       else if (                                                                      &
+            &      extremumType                           == extremumApocenter        &
+            &   .and.                                                                 &
+            &      Extremum_Solver(radiusLarge)           <  0.0d0                    &
+            &  ) then
+          ! Orbit is unbound, so apocenter is infinite.
+          radius=huge(0.0d0)
        else
           if (.not.finderConstructed) then
              finder           =rootFinder(                                     &
@@ -248,7 +240,7 @@ contains
           case (extremumApocenter )
              call finder%rangeExpand (                                                             &
                   &                   rangeExpandUpward            =2.0d0                        , &
-                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
                   &                   rangeExpandType              =rangeExpandMultiplicative      &
                   &                  )
           end select
@@ -263,7 +255,8 @@ contains
           potential=galacticStructure_%potential(activeNode,radius,status=status)
           select case (status%ID)
           case (structureErrorCodeSuccess %ID)
-             velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
+             energyKinetic=max(orbitalEnergyInternal-potential,0.0d0)
+             velocity     =sqrt(2.0d0*energyKinetic)
           case (structureErrorCodeInfinite%ID)
              ! The gravitational potential is negative infinity at this radius (most likely zero
              ! radius). Velocity is formally infinite. Return speed of light as a suitably fast
