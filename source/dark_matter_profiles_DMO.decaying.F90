@@ -40,7 +40,14 @@
      double precision                                     :: lifetime_, massSplitting_
      logical                                              :: massLoss_
    contains
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset"/>
+     </methods>
+     !!]
      final     ::                                      decayingDestructor
+     procedure :: autoHook                          => decayingAutoHook
+     procedure :: calculationReset                  => decayingCalculationReset
      procedure :: density                           => decayingDensity
      procedure :: densityLogSlope                   => decayingDensityLogSlope
      procedure :: radiusEnclosingDensity            => decayingRadiusEnclosingDensity
@@ -155,8 +162,22 @@ contains
     end select
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
-    return
+    ! Initialize.
+    self%genericLastUniqueID=-1_kind_int8
+   return
   end function decayingConstructorInternal
+
+  subroutine decayingAutoHook(self)
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileDMODecaying), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,decayingCalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine decayingAutoHook
 
   subroutine decayingDestructor(self)
     !!{
@@ -172,6 +193,27 @@ contains
     !!]
     return
   end subroutine decayingDestructor
+
+  subroutine decayingCalculationReset(self,node)
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
+    implicit none
+    class(darkMatterProfileDMODecaying), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+
+    ! Reset calculations for this profile.
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    return
+  end subroutine decayingCalculationReset
 
   subroutine decayingDecayingFactor(self, node, factor)
     !!{
