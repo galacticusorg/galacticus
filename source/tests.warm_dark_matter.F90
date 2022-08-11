@@ -35,7 +35,7 @@ program Tests_Warm_Dark_Matter
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999                       , transferFunctionBode2001
+  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999                       , transferFunctionBode2001                                                                , scaleCutOffModelBode2001
   use :: Unit_Tests                          , only : Assert                                                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                 , Unit_Tests_Finish
   implicit none
   double precision                                                           , dimension(7) :: redshift                           =[0.0d0,1.0d00,3.0d00,7.0d00,15.0d00,31.0d0,63.0d0]
@@ -137,6 +137,7 @@ program Tests_Warm_Dark_Matter
    <constructor>
     transferFunctionBode2001                                 (                                                                             &amp;
      &amp;                                                    transferFunctionCDM                =transferFunctionCDM_                   , &amp;
+     &amp;                                                    scaleCutOffModel                   = scaleCutOffModelBode2001              , &amp;
      &amp;                                                    epsilon                            = 0.361d0                               , &amp;
      &amp;                                                    eta                                = 5.000d0                               , &amp;
      &amp;                                                    nu                                 = 1.200d0                               , &amp;
