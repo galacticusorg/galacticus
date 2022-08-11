@@ -179,6 +179,10 @@ module Root_Finder
   integer                                            :: currentFinderIndex=0
   type   (rootFinderList), allocatable, dimension(:) :: currentFinders
   !$omp threadprivate(currentFinders,currentFinderIndex)
+
+  ! Global error status.
+  integer                                            :: statusActual
+  !$omp threadprivate(statusActual)
   
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
@@ -453,7 +457,7 @@ contains
     integer                               , parameter                             :: findersIncrement       =   3
     type            (c_funptr            )                                        :: standardGslErrorHandler
     logical                                                                       :: rangeChanged                , rangeLowerAsExpected   , rangeUpperAsExpected
-    integer                                                                       :: iteration                   , statusActual
+    integer                                                                       :: iteration
     double precision                                                              :: xHigh                       , xLow                   , xRoot               , &
          &                                                                           xRootPrevious               , fLow                   , fHigh
     type            (varying_string      ), save                                  :: message
@@ -684,7 +688,9 @@ contains
     end if
     ! Set error handler if necessary.
     if (present(status)) then
+       !$omp critical(gslErrorHandler)
        standardGslErrorHandler=gslSetErrorHandler(rootFinderGSLErrorHandler)
+       !$omp end critical(gslErrorHandler)
        statusActual           =errorStatusSuccess
     end if
     ! Find the root.
@@ -736,27 +742,28 @@ contains
        end if
     end if
     ! Reset error handler.
-    if (present(status)) standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
+    if (present(status)) then
+       !$omp critical(gslErrorHandler)
+       standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
+       !$omp end critical(gslErrorHandler)
+    end if
     ! Restore state.
     currentFinderIndex=currentFinderIndex-1
     return
-
-  contains
-
-    subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
-      !!{
-      Handle errors from the GSL library during root finding.
-      !!}
-      use, intrinsic :: ISO_C_Binding, only : c_char, c_int
-      character(c_char), dimension(*) :: file       , reason
-      integer  (c_int ), value        :: errorNumber, line
-      !$GLC attributes unused :: reason, file, line
-
-      statusActual=errorNumber
-      return
-    end subroutine rootFinderGSLErrorHandler
-
   end function rootFinderFind
+  
+  subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
+    !!{
+    Handle errors from the GSL library during root finding.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_char, c_int
+    character(c_char), dimension(*) :: file       , reason
+    integer  (c_int ), value        :: errorNumber, line
+    !$GLC attributes unused :: reason, file, line
+    
+    statusActual=errorNumber
+    return
+  end subroutine rootFinderGSLErrorHandler
 
   subroutine rootFinderRootFunction(self,rootFunction)
     !!{
