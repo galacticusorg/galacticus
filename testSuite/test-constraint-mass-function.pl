@@ -40,7 +40,7 @@ unless ( all($massDifferenceFractional < 1.0e-6) ) {
 }
 
 # Specify ranges.
-my $massRangeMinimum = pdl  1.0e12;
+my $massRangeMinimum = pdl  2.5e12;
 my $haloCountMinimum =     30     ;
 
 # Select bins within range.
