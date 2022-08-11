@@ -29,7 +29,7 @@
   <enumeration>
    <name>duttonMaccio2014FitType</name>
    <description>Enumeration of fit types in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <entry label="nfwVirial"         />
    <entry label="nfwCritical200"    />
