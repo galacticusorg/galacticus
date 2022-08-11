@@ -52,7 +52,7 @@
      !!}
      private
      double precision :: stabilityThresholdStellar, stabilityThresholdGaseous       , &
-          &              timescaleMinimum         , fractionAngularMomentumRetained_
+          &              timescaleMinimum         , fractionAngularMomentumRetained
    contains
      !![
      <methods>
@@ -120,16 +120,16 @@ contains
     return
   end function efstathiou1982ConstructorParameters
 
-  function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained_) result(self)
+  function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self
     double precision                                              , intent(in   ) :: stabilityThresholdStellar, stabilityThresholdGaseous       , &
-         &                                                                           timescaleMinimum         , fractionAngularMomentumRetained_
+         &                                                                           timescaleMinimum         , fractionAngularMomentumRetained
     !![
-    <constructorAssign variables="stabilityThresholdStellar, stabilityThresholdGaseous, timescaleMinimum, fractionAngularMomentumRetained_"/>
+    <constructorAssign variables="stabilityThresholdStellar, stabilityThresholdGaseous, timescaleMinimum, fractionAngularMomentumRetained"/>
     !!]
 
     return
@@ -161,7 +161,7 @@ contains
     timescale                    =-1.0d0
     externalDrivingSpecificTorque= 0.0d0
     ! Set the fraction of angular momentum retained in the disk.
-    fractionAngularMomentumRetained=self%fractionAngularMomentumRetained_
+    fractionAngularMomentumRetained=self%fractionAngularMomentumRetained
     ! Get the disk.
     disk => node%disk()
     ! Compute the disk mass.

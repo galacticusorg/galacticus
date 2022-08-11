@@ -74,13 +74,12 @@ contains
     use :: Input_Parameters          , only : inputParameter                   , inputParameters
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatEncode
     implicit none
-    type (mergerTreeOperatorExport       )                :: self
-    type (inputParameters                ), intent(inout) :: parameters
-    class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
-    class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
-    class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
-    type (varying_string                 )                :: outputFileName            , exportFormatText
-    type (enumerationMergerTreeFormatType)                :: exportFormat
+    type (mergerTreeOperatorExport     )                :: self
+    type (inputParameters              ), intent(inout) :: parameters
+    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type (varying_string               )                :: outputFileName            , exportFormat
 
     !![
     <inputParameter>
@@ -92,7 +91,6 @@ contains
     <inputParameter>
       <name>exportFormat</name>
       <source>parameters</source>
-      <variable>exportFormatText</variable>
       <defaultValue>var_str('galacticus')</defaultValue>
       <description>The output format to use when exporting merger trees.</description>
     </inputParameter>
@@ -100,8 +98,7 @@ contains
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
-    self=exportConstructorInternal(char(outputFileName),exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
+    self=exportConstructorInternal(char(outputFileName),enumerationMergerTreeFormatEncode(char(exportFormat),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />

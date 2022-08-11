@@ -24,6 +24,20 @@
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
+  ! Fit types.
+  !![
+  <enumeration>
+   <name>duttonMaccio2014FitType</name>
+   <description>Enumeration of fit types in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="nfwVirial"         />
+   <entry label="nfwCritical200"    />
+   <entry label="einastoCritical200"/>
+   <entry label="userDefined"       />
+  </enumeration>
+  !!]
+
   ! Density contrast methods.
   !![
   <enumeration>
@@ -98,6 +112,7 @@
           &                                                                             b1                                        , b2
      type            (enumerationDuttonMaccio2014DensityContrastMethodType)          :: densityContrastMethod
      type            (enumerationDuttonMaccio2014DensityProfileMethodType )          :: densityProfileMethod
+     type            (enumerationDuttonMaccio2014FitTypeType              )          :: fitType
    contains
      !![
      <methods>
@@ -147,7 +162,7 @@ contains
       <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwCritical200}, {\normalfont \ttfamily einastoCritical200}, and {\normalfont \ttfamily userDefined}.</description>
     </inputParameter>
     !!]
-    if (fitType == "userDefined") then
+    if (enumerationDuttonMaccio2014FitTypeEncode(char(fitType),includesPrefix=.false.) == duttonMaccio2014FitTypeUserDefined) then
        !![
        <inputParameter>
          <name>a1</name>
@@ -182,7 +197,7 @@ contains
        !!]
        self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_)
     else
-       self=darkMatterProfileConcentrationDuttonMaccio2014(char(fitType),cosmologyParameters_,cosmologyFunctions_)
+       self=darkMatterProfileConcentrationDuttonMaccio2014(enumerationDuttonMaccio2014FitTypeEncode(char(fitType),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -198,16 +213,16 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
-    character(len=*                                         ), intent(in   )         :: fitType
-    class    (cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
-    class    (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    type (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
+    type (enumerationDuttonMaccio2014FitTypeType        ), intent(in   )         :: fitType
+    class(cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, fitType"/>
     !!]
 
-    select case (fitType)
-    case ('nfwVirial'         )
+    select case (fitType%ID)
+    case (duttonMaccio2014FitTypeNFWVirial         %ID)
        self%a1                   =+0.537d0
        self%a2                   =+1.025d0
        self%a3                   =-0.718d0
@@ -216,7 +231,7 @@ contains
        self%b2                   =+0.024d0
        self%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
-    case ('nfwCritical200'    )
+    case (duttonMaccio2014FitTypeNFWCritical200    %ID)
        self%a1                   =+0.520d0
        self%a2                   =+0.905d0
        self%a3                   =-0.617d0
@@ -225,7 +240,7 @@ contains
        self%b2                   =+0.026d0
        self%densityContrastMethod=duttonMaccio2014DensityContrastMethodCritical200
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
-    case ('einastoCritical200')
+    case (duttonMaccio2014FitTypeEinastoCritical200%ID)
        self%a1                   =+0.459d0
        self%a2                   =+0.977d0
        self%a3                   =-0.490d0
@@ -257,6 +272,7 @@ contains
     <constructorAssign variables="a1,a2,a3,a4,b1,b2,*cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
+    self%fitType=duttonMaccio2014FitTypeUserDefined
     call self%definitions()
     return
   end function duttonMaccio2014ConstructorInternalDefined
