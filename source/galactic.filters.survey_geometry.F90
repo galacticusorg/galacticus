@@ -21,7 +21,19 @@
 Contains a module which implements a filter which passes only nodes that lie within a survey geometry.
 !!}
 
-  use :: Geometry_Surveys, only : surveyGeometryClass
+  use :: Geometry_Surveys        , only : surveyGeometryClass
+  use :: Node_Property_Extractors, only : nodePropertyExtractorPositionOrbital
+  
+  !![
+  <enumeration>
+   <name>positionType</name>
+   <description>Enumeration of position types.</description>
+   <visibility>public</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="position"/>
+   <entry label="orbital" />
+  </enumeration>
+  !!]
 
   !![
   <galacticFilter name="galacticFilterSurveyGeometry">
@@ -33,7 +45,9 @@ Contains a module which implements a filter which passes only nodes that lie wit
      A galactic filter class which passes only nodes that lie within a survey geometry.
      !!}
      private
-     class(surveyGeometryClass), pointer :: surveyGeometry_ => null()
+     class(surveyGeometryClass                 ), pointer :: surveyGeometry_  => null()
+     type (enumerationPositionTypeType         )          :: positionType
+     type (nodePropertyExtractorPositionOrbital)          :: positionOrbital_
    contains
      final     ::           surveyGeometryDestructor
      procedure :: passes => surveyGeometryPasses
@@ -59,11 +73,18 @@ contains
     type (galacticFilterSurveyGeometry)                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(surveyGeometryClass         ), pointer       :: surveyGeometry_
-
+    type (varying_string              )                :: positionType
+    
     !![
+    <inputParameter>
+      <name>positionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('position')</defaultValue>
+      <description>The type of position to use in survey geometry filters.</description>
+    </inputParameter>
     <objectBuilder class="surveyGeometry" name="surveyGeometry_" source="parameters"/>
     !!]
-    self=galacticFilterSurveyGeometry(surveyGeometry_)
+    self=galacticFilterSurveyGeometry(enumerationPositionTypeEncode(positionType,includesPrefix=.false.),surveyGeometry_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="surveyGeometry_"/>
@@ -71,17 +92,19 @@ contains
     return
   end function surveyGeometryConstructorParameters
 
-  function surveyGeometryConstructorInternal(surveyGeometry_) result(self)
+  function surveyGeometryConstructorInternal(positionType,surveyGeometry_) result(self)
     !!{
     Internal constructor for the ``surveyGeometry'' galactic filter class.
     !!}
     implicit none
-    type(galacticFilterSurveyGeometry)                        :: self
-    class(surveyGeometryClass        ), intent(in   ), target :: surveyGeometry_
+    type (galacticFilterSurveyGeometry)                        :: self
+    class(surveyGeometryClass         ), intent(in   ), target :: surveyGeometry_
+    type (enumerationPositionTypeType ), intent(in   )         :: positionType
     !![
-    <constructorAssign variables="*surveyGeometry_"/>
+    <constructorAssign variables="positionType, *surveyGeometry_"/>
     !!]
 
+    self%positionOrbital_=nodePropertyExtractorPositionOrbital()
     return
   end function surveyGeometryConstructorInternal
 
@@ -102,20 +125,29 @@ contains
     !!{
     Implement a galactic filter which passes only nodes with a survey geometry.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentPosition, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentPosition, nodeComponentSpheroid
     implicit none
     class           (galacticFilterSurveyGeometry), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
+    class           (nodeComponentBasic          ), pointer               :: basic
     class           (nodeComponentDisk           ), pointer               :: disk
     class           (nodeComponentSpheroid       ), pointer               :: spheroid
     class           (nodeComponentPosition       ), pointer               :: position
+    double precision                              , dimension(3)          :: position_
     double precision                                                      :: massStellar
 
-    position    => node    %position   ()
     disk        => node    %disk       ()
     spheroid    => node    %spheroid   ()
     massStellar = +disk    %massStellar() &
          &        +spheroid%massStellar()
-    surveyGeometryPasses=self%surveyGeometry_%pointIncluded(position%position(),massStellar)
+    select case (self%positionType%ID)
+    case (positionTypePosition%ID)
+       position  => node                     %position(                 )
+       position_ =  position                 %position(                 )
+    case (positionTypeOrbital %ID)
+       basic     => node                     %basic   (                 )
+       position_ =  self    %positionOrbital_%extract (node,basic%time())
+    end select
+    surveyGeometryPasses=self%surveyGeometry_%pointIncluded(position_,massStellar)
     return
   end function surveyGeometryPasses
