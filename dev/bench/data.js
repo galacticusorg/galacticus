@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660344432246,
+  "lastUpdate": 1660348340387,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -477,6 +477,45 @@ window.BENCHMARK_DATA = {
             "value": 43.648,
             "unit": "seconds",
             "range": 0.288055550198077
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "60a715165a571ed394c15b559220040a1d1877e8",
+          "message": "Merge pull request #272 from galacticusorg/gslErrorHandler\n\nfix: Use the thread-safe GSL error handler throughout",
+          "timestamp": "2022-08-12T14:28:50-07:00",
+          "tree_id": "781395b893e853767cfebbc9431792a5901b75e4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60a715165a571ed394c15b559220040a1d1877e8"
+        },
+        "date": 1660348339617,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.4483790787279,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.0576572807858,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 16028.715159035,
+            "unit": "|logℒ|"
           }
         ]
       }
