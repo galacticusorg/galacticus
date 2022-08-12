@@ -40,6 +40,7 @@
      Implementation of a computational domain using a cylindrical grid.
      !!}
      private
+     double precision                                                , dimension(  2) :: rBoundaries                            , zBoundaries
      double precision                                                , dimension(2,2) :: boundaries
      integer         (c_size_t                         )             , dimension(2  ) :: countCells
      double precision                                                                 :: convergencePercentile                  , convergenceMeasurePrevious, &
@@ -174,7 +175,10 @@ contains
     !![
     <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
     !!]
-    
+
+    ! Store boundaries for each axis.
+    self%rBoundaries=boundaries(1,:)
+    self%zBoundaries=boundaries(2,:)
     ! Construct cell boundaries.
     do i=1,2
        allocate(self%boundariesCells(i)%boundary(countCells(i)+1))

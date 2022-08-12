@@ -144,15 +144,15 @@ contains
          &                                                               haloIdToParticleType           , sampleParticleNumber             , &
          &                                                               subtractRandomOffset
     integer                                                           :: chunkSize
-    type            (enumerationParticulateKernelType)                :: kernelSoftening
-    type            (enumerationSelectionType        )                :: selection
+    type            (enumerationParticulateKernelType)                :: kernelSoftening_
+    type            (enumerationSelectionType        )                :: selection_
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass       ), pointer       :: darkMatterProfileDMO_
     class           (galacticStructureClass          ), pointer       :: galacticStructure_
     type            (inputParameters                 ), pointer       :: parametersRoot        => null()
-    type            (varying_string                  )                :: selectionText                  , kernelSofteningText
+    type            (varying_string                  )                :: selection                      , kernelSoftening
 
     !![
     <inputParameter>
@@ -221,21 +221,19 @@ contains
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
-      <variable>selectionText</variable>
       <description>Selects the type of halo to ouput. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
     </inputParameter>
     !!]
-    selection=enumerationSelectionEncode(char(selectionText),includesPrefix=.false.)
+    selection_=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
     !![
     <inputParameter>
       <name>kernelSoftening</name>
       <source>parameters</source>
       <defaultValue>var_str('plummer')</defaultValue>
-      <variable>kernelSofteningText</variable>
       <description>Selects the softening kernel to use. Allowed options are ``{\normalfont \ttfamily plummer}'', and ``{\normalfont \ttfamily gadget}''.</description>
     </inputParameter>
     !!]
-    kernelSoftening=enumerationParticulateKernelEncode(char(kernelSofteningText),includesPrefix=.false.)
+    kernelSoftening_=enumerationParticulateKernelEncode(char(kernelSoftening),includesPrefix=.false.)
     !![
     <inputParameter>
       <name>nonCosmological</name>
@@ -283,9 +281,9 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection_,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening_,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection_,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening_,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>

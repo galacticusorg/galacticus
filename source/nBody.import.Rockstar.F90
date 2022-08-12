@@ -144,8 +144,8 @@ contains
     type   (nbodyImporterRockstar        )                              :: self
     type   (inputParameters              ), intent(inout)               :: parameters
     class  (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
-    type   (varying_string               ), allocatable  , dimension(:) :: readColumnsText
-    type   (enumerationRockstarColumnType), allocatable  , dimension(:) :: readColumns
+    type   (varying_string               ), allocatable  , dimension(:) :: readColumns
+    type   (enumerationRockstarColumnType), allocatable  , dimension(:) :: readColumns_
     type   (varying_string               )                              :: fileName            , label
     integer                                                             :: i
     
@@ -163,18 +163,17 @@ contains
     </inputParameter>
     !!]
     if (parameters%isPresent('readColumns')) then
-       allocate(readColumnsText(parameters%count('readColumns')))
-       allocate(readColumns    (parameters%count('readColumns')))
+       allocate(readColumns (parameters%count('readColumns')))
+       allocate(readColumns_(parameters%count('readColumns')))
        !![
        <inputParameter>
          <name>readColumns</name>
          <source>parameters</source>
-         <variable>readColumnsText</variable>
          <description>The names of additional columns to read.</description>
        </inputParameter>
        !!]
        do i=1,size(readColumns)
-          readColumns(i)=enumerationRockstarColumnEncode(char(readColumnsText(i)),includesPrefix=.false.)
+          readColumns_(i)=enumerationRockstarColumnEncode(char(readColumns(i)),includesPrefix=.false.)
        end do
     end if
     !![
@@ -183,7 +182,7 @@ contains
     <call>
      self=nbodyImporterRockstar(fileName,label,cosmologyParameters_{conditions})
     </call>
-    <argument name="readColumns" value="readColumns" parameterPresent="parameters" />
+    <argument name="readColumns" value="readColumns_" parameterPresent="parameters" />
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
