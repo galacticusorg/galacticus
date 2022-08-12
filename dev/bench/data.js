@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660199880424,
+  "lastUpdate": 1660327218677,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -378,6 +378,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15860.3750582092,
             "unit": "|logℒ|"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "faee27d89b32f77f6a671ae2797baa2ec2a7648c",
+          "message": "Merge pull request #271 from galacticusorg/dev\n\nfix: Make additional classes compatible with auto-descriptor generation",
+          "timestamp": "2022-08-12T07:29:42-07:00",
+          "tree_id": "816e766967ae12eb1c1513dfb778ffb0a41a287c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/faee27d89b32f77f6a671ae2797baa2ec2a7648c"
+        },
+        "date": 1660327217908,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 43.003,
+            "unit": "seconds",
+            "range": 0.302425197363639
           }
         ]
       }
