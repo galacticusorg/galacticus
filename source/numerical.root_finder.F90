@@ -438,24 +438,24 @@ contains
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
-    use            :: Display           , only : displayMessage, verbosityLevelWarn
-    use            :: Error             , only : Error_Report  , errorStatusOutOfRange, errorStatusSuccess
+    use            :: Display           , only : displayMessage            , verbosityLevelWarn
+    use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
+         &                                       GSL_Error_Handler_Abort_On
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
-    use            :: ISO_Varying_String, only : assignment(=) , operator(//)         , varying_string
-    use            :: Interface_GSL     , only : GSL_Success   , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
+    use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
+    use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
     real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
-    integer                               , parameter                             :: iterationMaximum       =1000
-    integer                               , parameter                             :: findersIncrement       =   3
-    type            (c_funptr            )                                        :: standardGslErrorHandler
-    logical                                                                       :: rangeChanged                , rangeLowerAsExpected   , rangeUpperAsExpected
-    integer                                                                       :: iteration                   , statusActual
-    double precision                                                              :: xHigh                       , xLow                   , xRoot               , &
-         &                                                                           xRootPrevious               , fLow                   , fHigh
+    integer                               , parameter                             :: iterationMaximum =1000
+    integer                               , parameter                             :: findersIncrement =   3
+    logical                                                                       :: rangeChanged          , rangeLowerAsExpected   , rangeUpperAsExpected
+    integer                                                                       :: iteration             , statusActual
+    double precision                                                              :: xHigh                 , xLow                   , xRoot               , &
+         &                                                                           xRootPrevious         , fLow                   , fHigh
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -684,8 +684,8 @@ contains
     end if
     ! Set error handler if necessary.
     if (present(status)) then
-       standardGslErrorHandler=gslSetErrorHandler(rootFinderGSLErrorHandler)
-       statusActual           =errorStatusSuccess
+       call GSL_Error_Handler_Abort_Off()
+       statusActual=errorStatusSuccess
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
@@ -736,26 +736,10 @@ contains
        end if
     end if
     ! Reset error handler.
-    if (present(status)) standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
+    if (present(status)) call GSL_Error_Handler_Abort_On()
     ! Restore state.
     currentFinderIndex=currentFinderIndex-1
     return
-
-  contains
-
-    subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
-      !!{
-      Handle errors from the GSL library during root finding.
-      !!}
-      use, intrinsic :: ISO_C_Binding, only : c_char, c_int
-      character(c_char), dimension(*) :: file       , reason
-      integer  (c_int ), value        :: errorNumber, line
-      !$GLC attributes unused :: reason, file, line
-
-      statusActual=errorNumber
-      return
-    end subroutine rootFinderGSLErrorHandler
-
   end function rootFinderFind
 
   subroutine rootFinderRootFunction(self,rootFunction)
