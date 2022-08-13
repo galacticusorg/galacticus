@@ -30,7 +30,7 @@ program Test_Concentrations
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationClass     , darkMatterProfileConcentrationDiemerKravtsov2014            , darkMatterProfileConcentrationDuttonMaccio2014, darkMatterProfileConcentrationLudlow2016Fit, &
-          &                                           darkMatterProfileConcentrationPrada2011
+          &                                           darkMatterProfileConcentrationPrada2011 , duttonMaccio2014FitTypeNFWVirial                            , duttonMaccio2014FitTypeNFWCritical200
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
@@ -319,7 +319,7 @@ program Test_Concentrations
            <referenceConstruct object="darkMatterProfileConcentration_">
             <constructor>
              darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-              &amp;                                           fitType                  ='nfwVirial'                                                   , &amp;
+              &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWVirial                              , &amp;
               &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
               &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
               &amp;                                          )
@@ -331,7 +331,7 @@ program Test_Concentrations
            <referenceConstruct object="darkMatterProfileConcentration_">
             <constructor>
              darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-              &amp;                                           fitType                  ='nfwCritical200'                                              , &amp;
+              &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWCritical200                         , &amp;
               &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
               &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
               &amp;                                          )

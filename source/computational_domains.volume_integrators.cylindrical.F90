@@ -27,6 +27,7 @@
      Implementation of a computational domain for cylindrical cells.
      !!}
      private
+     double precision, dimension(  2) :: rBoundaries, zBoundaries
      double precision, dimension(2,2) :: boundaries
      double precision                 :: volume_
    contains
@@ -91,10 +92,12 @@ contains
     <constructorAssign variables="boundaries"/>
     !!]
 
-    self%volume_=+2.0d0                                   &
-         &       *Pi                                      &
-         &       *(boundaries(1,2)**2-boundaries(1,1)**2) &
-         &       *(boundaries(2,2)   -boundaries(2,1)   )
+    self%rBoundaries=boundaries(1,:)
+    self%zBoundaries=boundaries(2,:)
+    self%volume_    =+2.0d0                                   &
+         &           *Pi                                      &
+         &           *(boundaries(1,2)**2-boundaries(1,1)**2) &
+         &           *(boundaries(2,2)   -boundaries(2,1)   )
     return
   end function cylindricalConstructorInternal
 

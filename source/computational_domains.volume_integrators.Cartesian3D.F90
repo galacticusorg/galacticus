@@ -27,8 +27,10 @@
      Implementation of a computational domain for 3D Cartesian cells.
      !!}
      private
-     double precision, dimension(3,2  ) :: boundaries
-     double precision                   :: volume_
+     double precision, dimension(  2) :: xBoundaries, yBoundaries, &
+          &                              zBoundaries
+     double precision, dimension(3,2) :: boundaries
+     double precision                 :: volume_
    contains
      procedure :: volume    => cartesian3DVolume
      procedure :: integrate => cartesian3DIntegrate
@@ -98,9 +100,12 @@ contains
     <constructorAssign variables="boundaries"/>
     !!]
 
-    self%volume_=+(boundaries(1,2)-boundaries(1,1)) &
-         &       *(boundaries(2,2)-boundaries(2,1)) &
-         &       *(boundaries(3,2)-boundaries(3,1)) 
+    self%xBoundaries=boundaries(1,:)
+    self%yBoundaries=boundaries(2,:)
+    self%zBoundaries=boundaries(3,:)
+    self%volume_    =+(boundaries(1,2)-boundaries(1,1)) &
+         &           *(boundaries(2,2)-boundaries(2,1)) &
+         &           *(boundaries(3,2)-boundaries(3,1)) 
     return
   end function cartesian3DConstructorInternal
 

@@ -73,7 +73,8 @@
      class           (outputTimesClass       ), pointer                   :: outputTimes_              => null()
      double precision                         , dimension(3,3)            :: unitVector
      double precision                         , dimension(3  )            :: origin                             , nodePositionCrossing   , &
-          &                                                                  nodeVelocityCrossing
+          &                                                                  nodeVelocityCrossing               , unitVector1            , &
+          &                                                                  unitVector2                        , unitVector3
      double precision                         , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
           &                                                                  distanceMaximum
      double precision                                                     :: lengthReplication                  , angularSize            , &
@@ -286,6 +287,10 @@ contains
     <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyFunctions_, *outputTimes_"/>
     !!]
 
+    ! Store unit vectors.
+    self%unitVector1=unitVector(:,1)
+    self%unitVector2=unitVector(:,2)
+    self%unitVector3=unitVector(:,3)
     ! Extract times from the outputTimes object.
     allocate(self%outputTimes(self%outputTimes_%count()))
     do iOutput=1_c_size_t,self%outputTimes_%count()

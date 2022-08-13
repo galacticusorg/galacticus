@@ -58,8 +58,8 @@ module Numerical_Integration
    contains
      !![
      <methods>
-       <method description="Evaluate the integral." method="integrate" />
-       <method description="Set tolerances to use in this integrator." method="toleranceSet" />
+       <method description="Evaluate the integral."                    method="integrate"   />
+       <method description="Set tolerances to use in this integrator." method="toleranceSet"/>
      </methods>
      !!]
      final     ::                 integratorDestructor
@@ -229,25 +229,21 @@ contains
     Perform a numerical integration.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funptr
-    use            :: Error        , only : errorStatusSuccess
-    use            :: Interface_GSL, only : gslSetErrorHandler
+    use            :: Error        , only : errorStatusSuccess, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
     implicit none
     class           (integrator       ), intent(inout)           :: self
-    double precision                   , intent(in   )           :: limitLower             , limitUpper
+    double precision                   , intent(in   )           :: limitLower       , limitUpper
     integer                            , intent(  out), optional :: status
     procedure       (integrandTemplate), pointer                 :: previousIntegrand
     integer                                                      :: status_
     double precision                                             :: errorAbsolute
-    type            (c_funptr         )                          :: standardGslErrorHandler
 
     ! Store a pointer to the current integrand (so that we can restore it later), and set the current integrand to our integrand.
     previousIntegrand => currentIntegrand
     currentIntegrand  => self            %integrand
     ! Set error handler if necessary.
     if (present(status)) then
-       !$omp critical(gslErrorHandler)
-       standardGslErrorHandler=gslSetErrorHandler(integratorGSLErrorHandler)
-       !$omp end critical(gslErrorHandler)
+       call GSL_Error_Handler_Abort_Off()
        statusGlobal=errorStatusSuccess
     end if
     ! Do the integration
@@ -279,10 +275,8 @@ contains
     end if
     ! Reset error handler.
     if (present(status)) then
-       status                 =statusGlobal
-       !$omp critical(gslErrorHandler)
-       standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
-       !$omp end critical(gslErrorHandler)
+       status=statusGlobal
+       call GSL_Error_Handler_Abort_On()
     end if
     ! Restore the previous integrand.
     currentIntegrand => previousIntegrand
@@ -300,19 +294,5 @@ contains
     integrandWrapper=currentIntegrand(x)
     return
   end function integrandWrapper
-
-  subroutine integratorGSLErrorHandler(reason,file,line,errorNumber) bind(c)
-    !!{
-    Handle errors from the GSL library during integration.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_char
-    implicit none
-    character(c_char), dimension(*) :: file       , reason
-    integer  (c_int ), value        :: errorNumber, line
-    !$GLC attributes unused :: reason, file, line
-    
-    statusGlobal=errorNumber
-    return
-  end subroutine integratorGSLErrorHandler
 
 end module Numerical_Integration

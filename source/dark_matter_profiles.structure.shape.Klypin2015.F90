@@ -73,7 +73,7 @@ contains
     type (inputParameters                 ), intent(inout) :: parameters
     class(criticalOverdensityClass        ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
-    type (varying_string                  )                :: sampleText
+    type (varying_string                  )                :: sample
 
     !![
     <inputParameter>
@@ -81,12 +81,11 @@ contains
       <defaultValue>var_str('all')</defaultValue>
       <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
       <source>parameters</source>
-      <variable>sampleText</variable>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=darkMatterProfileShapeKlypin2015(enumerationKlypin2015SampleEncode(char(sampleText),includesPrefix=.false.),criticalOverdensity_,cosmologicalMassVariance_)
+    self=darkMatterProfileShapeKlypin2015(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.),criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="criticalOverdensity_"     />
