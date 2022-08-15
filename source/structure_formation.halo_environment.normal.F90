@@ -33,10 +33,10 @@ Contains a module which implements a normally-distributed halo environment.
   <haloEnvironment name="haloEnvironmentNormal">
    <description>Implements a normally-distributed halo environment.</description>
    <deepCopy>
-    <functionClass variables="sphericalCollapseSolver_ ,distributionOverdensity, distributionOverdensityMassive"/>
+    <functionClass variables="sphericalCollapseSolver_, distributionOverdensity, distributionOverdensityMassive"/>
    </deepCopy>
    <stateStorable>
-    <functionClass variables="sphericalCollapseSolver_,distributionOverdensity, distributionOverdensityMassive"/>
+    <functionClass variables="sphericalCollapseSolver_, distributionOverdensity, distributionOverdensityMassive"/>
    </stateStorable>
   </haloEnvironment>
   !!]
@@ -338,7 +338,7 @@ contains
     else
        normalOverdensityLinear =  +normalOverdensityLinear                                                                      &
             &                     *self                   %linearGrowth_%value(time=self%cosmologyFunctions_%cosmicTime(1.0d0)) &
-            &                     /self                   %linearGrowth_%value(time=self %time                                )
+            &                     /self                   %linearGrowth_%value(time=self%time                                 )
     end if
     return
   end function normalOverdensityLinear
@@ -449,7 +449,6 @@ contains
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: overdensity
-    !$GLC attributes unused :: self
 
     if (overdensity > self%environmentalOverdensityMaximum) call Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
     call node%hostTree%properties%set(self%propertyName,overdensity)

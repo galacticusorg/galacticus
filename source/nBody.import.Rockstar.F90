@@ -284,9 +284,11 @@ contains
              call Error_Report('unknown column'//{introspection:location})
           end select
        end do
-       self%havePosition         =any(self%readColumns == rockstarColumnX ) .and. any(self%readColumns == rockstarColumnY ) .and. any(self%readColumns == rockstarColumnZ )
-       self%haveVelocity         =any(self%readColumns == rockstarColumnVX) .and. any(self%readColumns == rockstarColumnVY) .and. any(self%readColumns == rockstarColumnVZ)
-       self%expansionFactorNeeded=any(self%readColumns == rockstarColumnX ) .or.  any(self%readColumns == rockstarColumnY ) .or.  any(self%readColumns == rockstarColumnZ )
+       self%havePosition         =     any(self%readColumns == rockstarColumnX   ) .and. any(self%readColumns == rockstarColumnY ) .and. any(self%readColumns == rockstarColumnZ   )
+       self%haveVelocity         =     any(self%readColumns == rockstarColumnVX  ) .and. any(self%readColumns == rockstarColumnVY) .and. any(self%readColumns == rockstarColumnVZ  )
+       self%expansionFactorNeeded=     any(self%readColumns == rockstarColumnX   ) .or.  any(self%readColumns == rockstarColumnY ) .or.  any(self%readColumns == rockstarColumnZ   ) &
+            &                     .or. any(self%readColumns == rockstarColumnRvir) .or.  any(self%readColumns == rockstarColumnRs) .or.  any(self%readColumns == rockstarColumnXoff) &
+            &                     .or. any(self%readColumns == rockstarColumnAx  ) .or.  any(self%readColumns == rockstarColumnAy) .or.  any(self%readColumns == rockstarColumnAz  )
     else
        self%havePosition         =.false.
        self%haveVelocity         =.false.
@@ -494,7 +496,6 @@ contains
             &                            /self                 %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
        end select
     end do
-    if (allocated(expansionFactor)) deallocate(expansionFactor)
     ! Convert box size to internal units (comoving Mpc).
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
@@ -555,6 +556,7 @@ contains
              case (rockstarColumnRvir      %ID)
                 columnName='radiusVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         *                                           expansionFactor                    &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
                      &                         /kilo
              case (rockstarColumnSpin      %ID)
@@ -562,6 +564,7 @@ contains
              case (rockstarColumnrs        %ID)
                 columnName='radiusScale'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         *                                           expansionFactor                    &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
                      &                         /kilo
              case (rockstarColumnTU        %ID)
@@ -589,6 +592,7 @@ contains
        if (self%havePosition) call simulations(1)%propertiesRealRank1%set('position',position)
        if (self%haveVelocity) call simulations(1)%propertiesRealRank1%set('velocity',velocity)
     end if
+    if (allocated(expansionFactor)) deallocate(expansionFactor)
     call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine rockstarImport

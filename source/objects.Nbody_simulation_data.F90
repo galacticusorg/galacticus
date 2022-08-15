@@ -155,6 +155,8 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('alwaysIsolated'           )
        nBodyDataPropertyType=propertyTypeInteger
+    case('isFlyby'                  )
+       nBodyDataPropertyType=propertyTypeInteger
     case('expansionFactor'          )
        nBodyDataPropertyType=propertyTypeReal
     case('descendentExpansionFactor')
