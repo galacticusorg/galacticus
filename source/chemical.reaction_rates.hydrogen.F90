@@ -1874,7 +1874,7 @@ contains
     use :: Table_Labels                , only : extrapolationTypeZero
     implicit none
     double precision                     , intent(in   ) :: wavelength
-    double precision                     , parameter     :: ratioOrthoToPara      =0.0d0     ! Assume all H₂ is in the para- configuration.
+    double precision                     , parameter     :: ratioOrthoToPara      = 0.000d0  ! Assume all H₂ is in the para- configuration.
     double precision                     , parameter     :: energyMinimum         =14.159d0, energyMaximum          =17.700d0
     integer                              , parameter     :: energyCount           =100
     type            (table1DLinearLinear), save          :: interpolator_
@@ -1887,8 +1887,8 @@ contains
     if (.not.initialized) then
        !$omp critical (hydrogenNetworkCrossSection_H2_Gamma_to_2HInit)
        if (.not.initialized) then
-          do i=1,energyCount
           call interpolator_%create(energyMinimum,energyMaximum,energyCount,extrapolationType=[extrapolationTypeZero,extrapolationTypeZero])
+          do i=1,energyCount
              energy=interpolator_%x(i)
              ! Evaluate the Lyman and Werner band cross sections for para- and ortho- configurations.
              if         (energy > 14.675d0 .and. energy <= 16.820d0) then
@@ -1921,8 +1921,8 @@ contains
                 crossSectionWernerOrtho=0.0d0
              end if
              ! Construct the combined cross-section weighted by the appropriate ortho- to para- ratio.
-            crossSection=+(      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
-                  &      +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
+             crossSection=+(      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
+                  &       +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
              call interpolator_%populate(crossSection,i)
           end do
           initialized=.true.
@@ -2013,7 +2013,7 @@ contains
     double precision                          , parameter     :: wavelengthFactor=1.0d-3
     integer                                   , parameter     :: wavelengthCount =100
     type            (table1DLogarithmicLinear), save          :: interpolator_
-    logical                                   , save          :: initialized    =.false.
+    logical                                   , save          :: initialized     =.false.
     double precision                                          :: crossSection
     integer                                                   :: i
 
