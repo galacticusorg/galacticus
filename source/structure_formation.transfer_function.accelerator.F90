@@ -62,10 +62,12 @@ contains
     !!{
     Constructor for the accelerator transfer function class which takes a parameter set as input.
     !!}
+    use :: Cosmology_Parameters, only : cosmologyParametersClass
     implicit none
     type  (transferFunctionAccelerator)                :: self
     type  (inputParameters            ), intent(inout) :: parameters
     class (transferFunctionClass      ), pointer       :: transferFunction_
+    class (cosmologyParametersClass   ), pointer       :: cosmologyParameters_
     integer                                            :: tablePointsPerDecade
 
     !![
@@ -75,9 +77,10 @@ contains
       <defaultValue>10</defaultValue>
       <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
     </inputParameter>
-    <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="transferFunction"    name="transferFunction_"    source="parameters"/>
     !!]
-    self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)
+    self=transferFunctionAccelerator(transferFunction_,cosmologyParameters_,tablePointsPerDecade)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="transferFunction_"/>
@@ -85,16 +88,17 @@ contains
     return
   end function acceleratorConstructorParameters
 
-  function acceleratorConstructorInternal(transferFunction_,tablePointsPerDecade) result(self)
+  function acceleratorConstructorInternal(transferFunction_,cosmologyParameters_,tablePointsPerDecade) result(self)
     !!{
     Internal constructor for the accelerator transfer function class.
     !!}
     implicit none
     type   (transferFunctionAccelerator)                        :: self
+    class  (cosmologyParametersClass   ), intent(in   ), target :: cosmologyParameters_
     class  (transferFunctionClass      ), intent(in   ), target :: transferFunction_
     integer                             , intent(in   )         :: tablePointsPerDecade
     !![
-    <constructorAssign variables="*transferFunction_, tablePointsPerDecade"/>
+    <constructorAssign variables="*cosmologyParameters_, *transferFunction_, tablePointsPerDecade"/>
     !!]
 
     self%tableInitialized            =.false.
@@ -111,7 +115,8 @@ contains
     type(transferFunctionAccelerator), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%transferFunction_"/>
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%transferFunction_"   />
     !!]
     if (self%tableInitialized) call self%transferTable%destroy()
     return
