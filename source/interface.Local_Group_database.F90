@@ -60,6 +60,16 @@ module Interface_Local_Group_DB
   </enumeration>
   !!]
 
+  !![
+  <enumeration>
+   <name>attribute</name>
+   <description>Attribute types.</description>
+   <visibility>public</visibility>
+   <entry label="value"      />
+   <entry label="uncertainty"/>
+  </enumeration>
+  !!]
+
   type :: vector3D
      !!{
      Vector type.
@@ -144,24 +154,32 @@ contains
     return
   end subroutine localGroupDBDestructor
 
-  subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent)
+  subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent,attribute)
     !!{
     Get a named text property from the Local Group database.
     !!}
-    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute
+    use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute, setAttribute
     use                      :: Error             , only : Error_Report
     use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
     {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : varying_string              , assignment(=)¦}
     implicit none
-    class           (localGroupDB  ), intent(inout)                                      :: self
-    character       (len=*         ), intent(in   )                                      :: name
-    {Type¦intrinsic}                , intent(inout), allocatable, dimension(:)           :: property
-    logical                         , intent(inout), allocatable, dimension(:), optional :: isPresent
-    type            (node          )               , pointer                             :: galaxy    , propertyElement, &
-         &                                                                                  attribute
-    type            (xmlNodeList   )               , allocatable, dimension(:)           :: properties
-    integer                                                                              :: i         , countGalaxies
-
+    class           (localGroupDB            ), intent(inout)                                      :: self
+    character       (len=*                   ), intent(in   )                                      :: name
+    {Type¦intrinsic}                          , intent(inout), allocatable, dimension(:)           :: property
+    logical                                   , intent(inout), allocatable, dimension(:), optional :: isPresent
+    type            (enumerationAttributeType), intent(in   )                           , optional :: attribute
+    type            (node                    )               , pointer                             :: galaxy          , propertyElement, &
+         &                                                                                            attributeNode
+    type            (xmlNodeList             )               , allocatable, dimension(:)           :: properties
+    integer                                                                                        :: i               , countGalaxies
+    logical                                                                                        :: propertyFound
+    double precision                                                                               :: uncertaintyLower, uncertaintyUpper, &
+         &                                                                                            uncertainty
+    character       (len=64                  )                                                     :: textContent
+    !![
+    <optionalArgument name="attribute" defaultsTo="attributeValue" />
+    !!]
+    
     ! Iterate over galaxies to count how many have this property.
     countGalaxies=0
     do i=0,size(self%galaxies)-1
@@ -169,14 +187,34 @@ contains
        galaxy => self%galaxies(i)%element
        if (present(isPresent)) then
           countGalaxies=countGalaxies+1
-       else if (hasAttribute(galaxy,name)) then
+       else if (attribute_ == attributeValue .and. hasAttribute(galaxy,name)) then
           countGalaxies=countGalaxies+1
        else
           call XML_Get_Elements_By_Tag_Name(galaxy,name,properties)
           if      (size(properties) > 1) then
              call Error_Report('galaxy has multiple entries for named property'//{introspection:location})
           else if (size(properties) == 1) then
-             countGalaxies=countGalaxies+1
+             propertyElement => properties(0)%element
+             if     (                                                                                                                                                 &
+                  &   (attribute_ == attributeValue       .and. hasAttribute(propertyElement,'value'         )                                                      ) &
+                  &  .or.                                                                                                                                             &
+                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertainty'   )                                                      ) &
+                  &  .or.                                                                                                                                             &
+                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertaintyLow') .and. hasAttribute(propertyElement,'uncertaintyHigh')) &
+                  & ) then
+                countGalaxies=countGalaxies+1
+                if (attribute_ == attributeUncertainty .and. .not.hasAttribute(propertyElement,'uncertainty')) then
+                   ! Compute an uncertainty from the lower and upper bounds.
+                   propertyElement => properties(0)%element
+                   attributeNode   => getAttributeNode(propertyElement,'uncertaintyLower')
+                   call extractDataContent(attributeNode,uncertaintyLower)
+                   attributeNode   => getAttributeNode(propertyElement,'uncertaintyUpper')
+                   call extractDataContent(attributeNode,uncertaintyUpper)
+                   uncertainty=0.5d0*(uncertaintyLower+uncertaintyUpper)
+                   write (textContent,'(f16.12)') uncertainty
+                   call setAttribute(propertyElement,"uncertainty",trim(adjustl(textContent)))
+                end if
+             end if
           end if
        end if
     end do
@@ -189,32 +227,45 @@ contains
     countGalaxies=0
     do i=0,size(self%galaxies)-1
        if (.not.self%selected(i)) cycle
-       galaxy => self%galaxies(i)%element
-       if (hasAttribute(galaxy,name)) then
-          countGalaxies   =  countGalaxies+1
-          attribute => getAttributeNode(galaxy,name)
+       countGalaxies =  countGalaxies+1
+       propertyFound =  .false.
+       galaxy        => self%galaxies(i)%element
+       if (attribute_ == attributeValue .and. hasAttribute(galaxy,name)) then
+          propertyFound =  .true.
+          attributeNode => getAttributeNode(galaxy,name)
        else
           call XML_Get_Elements_By_Tag_Name(galaxy,name,properties)
           if (size(properties) == 1) then
-             countGalaxies=countGalaxies+1
              propertyElement => properties(0)%element
-             attribute       => getAttributeNode(propertyElement,'value')
-          else
-             if (present(isPresent)) then
-                countGalaxies=countGalaxies+1
-                isPresent(countGalaxies)=.false.
-                {Type¦match¦^Double$¦property(countGalaxies)=0.0d0¦}
-                {Type¦match¦^Vector¦property(countGalaxies)%x=0.0d0¦}
-                {Type¦match¦^VarStr$¦property(countGalaxies)='not present'¦}
-             else
-                attribute       => getAttributeNode(galaxy,'name')
-                call Error_Report('property "'//name//'" is not present in galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
+             if     (                                                                                           &
+                  &   (attribute_ == attributeValue       .and. hasAttribute(propertyElement,'value'         )) &
+                  &  .or.                                                                                       &
+                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertainty'   )) &
+                  & ) then
+                propertyFound=.true.
+                if       (attribute_ == attributeValue     ) then
+                   attributeNode => getAttributeNode(propertyElement,'value'      )
+                else  if (attribute_ == attributeUncertainty) then
+                   attributeNode => getAttributeNode(propertyElement,'uncertainty')
+                end if
              end if
           end if
        end if
-       {Type¦match¦^Double$¦call extractDataContent(attribute,property(countGalaxies))¦}
-       {Type¦match¦^Vector¦call extractDataContent(attribute,property(countGalaxies)%x)¦}
-       {Type¦match¦^VarStr$¦property(countGalaxies)=getTextContent(attribute)¦}
+       if (propertyFound) then
+          {Type¦match¦^Double$¦call extractDataContent(attributeNode,property(countGalaxies))¦}
+          {Type¦match¦^Vector¦call extractDataContent(attributeNode,property(countGalaxies)%x)¦}
+          {Type¦match¦^VarStr$¦property(countGalaxies)=getTextContent(attributeNode)¦}
+       else
+          if (present(isPresent)) then
+             isPresent(countGalaxies)=.false.
+             {Type¦match¦^Double$¦property(countGalaxies)=0.0d0¦}
+             {Type¦match¦^Vector¦property(countGalaxies)%x=0.0d0¦}
+             {Type¦match¦^VarStr$¦property(countGalaxies)='not present'¦}
+          else
+             attributeNode => getAttributeNode(galaxy,'name')
+             call Error_Report('property "'//name//'" is not present in galaxy "'//getTextContent(attributeNode)//'"'//{introspection:location})
+          end if
+       end if       
     end do
     return
   end subroutine localGroupDBGetProperty{Type¦label}
@@ -257,8 +308,8 @@ contains
     do i=0,size(self%galaxies)-1
        if (.not.selectedCurrent(i) .and. (setOperator == setOperatorIntersection .or.  setOperator == setOperatorRelativeComplement)) cycle
        if (.not.isPresent(i+1)) then
-          galaxy => self%galaxies(i)%element
-          attribute       => getAttributeNode(galaxy,'name')
+          galaxy    => self%galaxies(i)%element
+          attribute => getAttributeNode(galaxy,'name')
          call Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
        end if
        select case (comparison%ID)
