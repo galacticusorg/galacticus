@@ -149,14 +149,13 @@
   <!-- Dark matter halo structure options -->
   <darkMatterProfile value="darkMatterOnly"/>
   <darkMatterProfileDMO value="decaying">
-    <toleranceRelativeVelocityDispersion value="1.0e-6"/>
-    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
-    <toleranceRelativePotential value="1.0e-3"/>
     <darkMatterProfileDMO value="heatedMonotonic">
       <darkMatterProfileDMO value="NFW" />
       <nonAnalyticSolver value="numerical" />
+      <toleranceRelativeVelocityDispersion value="1.0e-6"/>
+      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+      <toleranceRelativePotential value="1.0e-3"/>
     </darkMatterProfileDMO>
-  <nonAnalyticSolver value="numerical" />
   </darkMatterProfileDMO>
   <darkMatterProfileHeating value="summation">
     <darkMatterProfileHeating value="tidal"/>
