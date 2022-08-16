@@ -128,7 +128,7 @@
   </mergerTreeBuildMasses>
 
   <mergerTreeMassResolution value="fixed">
-    <massResolution value="3.0e7"/>
+    <massResolution value="3.0e8"/>
   </mergerTreeMassResolution>
 
   <!-- Substructure hierarchy options -->
@@ -562,7 +562,7 @@
 
   <mergingStatistics value="standard"/>
 
-  <outputFileName value="Data/DDM_halosv2.hdf5"/>
+  <outputFileName value="Data/MW_halos2v2.hdf5"/>
 
   <!-- Merger trees -->
   <!--
