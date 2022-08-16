@@ -83,7 +83,11 @@ contains
     </inputParameter>
     !!]
     ! Build the object.
-    self=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
+    self=surveyGeometryFullSky(                                         &
+         &                     redshiftMinimum    =redshiftMinimum    , &
+         &                     redshiftMaximum    =redshiftMaximum    , &
+         &                     cosmologyFunctions_=cosmologyFunctions_  &
+         &                    )
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -91,30 +95,48 @@ contains
     return
   end function fullSkyConstructorParameters
 
-  function fullSkyConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
+  function fullSkyConstructorInternal(redshiftMinimum,redshiftMaximum,distanceMinimum,distanceMaximum,cosmologyFunctions_) result(self)
     !!{
     Constructor for the full sky survey class which allows specification of minimum and maximum redshifts.
     !!}
+    use :: Error                      , only : Error_Report
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
-    type            (surveyGeometryFullSky  )                        :: self
-    double precision                         , intent(in   )         :: redshiftMinimum    , redshiftMaximum
-    class           (cosmologyFunctionsClass), intent(in   ), target :: cosmologyFunctions_
+    type            (surveyGeometryFullSky  )                                  :: self
+    double precision                         , intent(in   ), optional         :: redshiftMinimum    , redshiftMaximum, &
+         &                                                                        distanceMinimum    , distanceMaximum
+    class           (cosmologyFunctionsClass), intent(in   ), optional, target :: cosmologyFunctions_
     !![
     <constructorAssign variables="*cosmologyFunctions_"/>
     !!]
 
-    self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                        output  =distanceTypeComoving, &
-         &                                                                        redshift=redshiftMinimum       &
-         &                                                                       )
-    if (redshiftMaximum < huge(1.0d0)) then
-       self%limitDistanceMaximum=self%cosmologyFunctions_%distanceComovingConvert(                               &
-            &                                                                     output  =distanceTypeComoving, &
-            &                                                                     redshift=redshiftMaximum       &
-            &                                                                    )
+    if (present(redshiftMinimum)) then
+       if (     present(distanceMinimum    )) call Error_Report('ambiguous minimum distance'         //{introspection:location})
+       if (.not.present(cosmologyFunctions_)) call Error_Report('cosmology function must be supplied'//{introspection:location})
+       self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
+            &                                                                        output  =distanceTypeComoving, &
+            &                                                                        redshift=redshiftMinimum       &
+            &                                                                       )
+    else if (present(distanceMinimum)) then
+       self   %limitDistanceMinimum=distanceMinimum
     else
-       self%limitDistanceMaximum=huge(1.0d0)
+       call Error_Report('no minimum distance was specified'//{introspection:location})
+    end if
+    if (present(redshiftMinimum)) then
+       if (present(distanceMaximum)) call Error_Report('ambiguous maximum distance'//{introspection:location})
+       if (redshiftMaximum < huge(1.0d0)) then
+       if (.not.present(cosmologyFunctions_)) call Error_Report('cosmology function must be supplied'//{introspection:location})
+          self%limitDistanceMaximum=self%cosmologyFunctions_%distanceComovingConvert(                               &
+               &                                                                     output  =distanceTypeComoving, &
+               &                                                                     redshift=redshiftMaximum       &
+               &                                                                    )
+       else
+          self%limitDistanceMaximum=huge(1.0d0)
+       end if
+    else if (present(distanceMaximum)) then
+       self   %limitDistanceMaximum=distanceMaximum
+    else
+       call Error_Report('no maximum distance was specified'//{introspection:location})
     end if
     return
   end function fullSkyConstructorInternal
