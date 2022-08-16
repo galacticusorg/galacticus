@@ -124,10 +124,6 @@ module Numerical_Integration
        type(c_ptr), intent(in   ), value :: w
      end subroutine gsl_integration_workspace_free
   end interface
-  
-  ! Module-scope error status.
-  integer :: statusGlobal
-  !$omp threadprivate(statusGlobal)
 
   ! Integrand interface.
   abstract interface
@@ -244,7 +240,7 @@ contains
     ! Set error handler if necessary.
     if (present(status)) then
        call GSL_Error_Handler_Abort_Off()
-       statusGlobal=errorStatusSuccess
+       status_=errorStatusSuccess
     end if
     ! Do the integration
     if (self%hasSingularities) then
@@ -275,7 +271,7 @@ contains
     end if
     ! Reset error handler.
     if (present(status)) then
-       status=statusGlobal
+       status=status_
        call GSL_Error_Handler_Abort_On()
     end if
     ! Restore the previous integrand.
