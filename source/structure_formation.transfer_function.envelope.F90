@@ -50,7 +50,6 @@
      !!}
      private
      type            (table1DMonotoneCSpline  )          :: transferTable
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_         => null()
      class           (transferFunctionClass   ), pointer :: transferFunction_            => null() , transferFunctionReference    => null()
      double precision                                    :: wavenumberMinimum                      , wavenumberMaximum
      logical                                             :: envelopeModeMassesOnly

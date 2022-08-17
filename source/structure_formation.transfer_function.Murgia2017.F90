@@ -39,7 +39,6 @@
           &                                                 gamma                         , time, &
           &                                                 redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
    contains
      final     ::                          murgia2017Destructor

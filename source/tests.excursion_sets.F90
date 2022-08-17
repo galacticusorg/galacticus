@@ -97,6 +97,7 @@ program Tests_Excursion_Sets
        &                                                                                                                       runningSmallScalesOnly                 =.false.                                                         &
        &                                                                                                                      )
   transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
+       &                                                                                                                       cosmologyParameters_                   =cosmologyParametersSimple_                                    , &
        &                                                                                                                       time                                   =13.8d0                                                          &
        &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &

@@ -97,6 +97,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       runningSmallScalesOnly                 =.false.                                                         &
        &                                                                                                                      )
   transferFunctionIdentity_                                     =transferFunctionIdentity                                     (                                                                                                        &
+       &                                                                                                                       cosmologyParameters_                   =cosmologyParametersSimple_                                    , &
        &                                                                                                                       time                                   =13.8d0                                                          &
        &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &

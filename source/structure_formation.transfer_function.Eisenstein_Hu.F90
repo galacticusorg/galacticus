@@ -42,7 +42,6 @@
      The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
      !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
      double precision                                    :: temperatureCMB27              , distanceSoundWave      , &

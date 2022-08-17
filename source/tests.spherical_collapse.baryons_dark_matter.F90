@@ -136,6 +136,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      runningSmallScalesOnly             =.false.                                      &
           &                                                                                                                     )
      transferFunctionIdentity_                                  =transferFunctionIdentity                                       (                                                                                 &
+          &                                                                                                                      cosmologyParameters_               =cosmologyParametersBaryons_                , &
           &                                                                                                                      time                               =13.8d0                                       &
           &                                                                                                                     )
      powerSpectrumPrimordialTransferredSimple_                  =powerSpectrumPrimordialTransferredSimple                       (                                                                                 &

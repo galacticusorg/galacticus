@@ -39,7 +39,6 @@
      A bbks transfer function class.
      !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      double precision                                    :: Gamma                         , time
