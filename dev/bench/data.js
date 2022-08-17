@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660348340387,
+  "lastUpdate": 1660747815498,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -516,6 +516,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
             "unit": "|logℒ|"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "588d68ba2ff12293cdcb13c1b5079d439909362b",
+          "message": "Merge pull request #273 from galacticusorg/dev\n\nIn the `taskHaloMassFunction` class output logarithmic slopes of the transfer function",
+          "timestamp": "2022-08-17T06:35:42-07:00",
+          "tree_id": "9c64feeab00b489a6da4d25854c677050042f69c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/588d68ba2ff12293cdcb13c1b5079d439909362b"
+        },
+        "date": 1660747814676,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 43.076,
+            "unit": "seconds",
+            "range": 0.320630628603957
           }
         ]
       }
