@@ -140,7 +140,7 @@ c_lib.darkMatterProfileDMOAcceleratorL.argtypes = [ c_double, c_double, c_void_p
 c_lib.darkMatterProfileDMOAccretionFlowL.restype  = c_void_p
 c_lib.darkMatterProfileDMOAccretionFlowL.argtypes = [ c_double, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMODecayingL.restype  = c_void_p
-c_lib.darkMatterProfileDMODecayingL.argtypes = [ c_double, c_double, c_double, c_void_p, c_int, c_int, c_void_p, c_int, c_void_p, c_int ]
+c_lib.darkMatterProfileDMODecayingL.argtypes = [ c_double, c_double, c_double, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOFiniteResolutionL.restype  = c_void_p
 c_lib.darkMatterProfileDMOFiniteResolutionL.argtypes = [ c_double, c_double, c_bool, c_int, c_void_p, c_int, c_void_p, c_int, c_void_p, c_int ]
 c_lib.darkMatterProfileDMOFiniteResolutionNFWL.restype  = c_void_p
@@ -3082,11 +3082,11 @@ class darkMatterProfileDMOEinasto(darkMatterProfileDMO):
 class darkMatterProfileDMODecaying(darkMatterProfileDMO):
 
     # Constructor
-    def __init__(self,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_):
+    def __init__(self,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_):
         # Assign class ID so relevant pointers can be constructed on the Fortran side.
         self._classID = 11
     
-        self._glcObj = c_lib.darkMatterProfileDMODecayingL(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_._glcObj,darkMatterParticle_._classID,nonAnalyticSolver,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
+        self._glcObj = c_lib.darkMatterProfileDMODecayingL(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_._glcObj,darkMatterParticle_._classID,darkMatterProfileDMO_._glcObj,darkMatterProfileDMO_._classID,darkMatterHaloScale_._glcObj,darkMatterHaloScale_._classID)
 
 class darkMatterProfileDMOBurkert(darkMatterProfileDMO):
 
