@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Xiaolong Du
+
   !!{
   Contains a module which implements a hyperbolic tangent power spectrum window function class.
   !!}
@@ -154,7 +156,7 @@ contains
 
   double precision function hyperbolicTangentWavenumberMaximum(self,smoothingMass)
     !!{
-    Sets maximum wavenumber to effectively infinity (really large number)
+    Sets maximum wavenumber to effectively infinity (really large number).
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self
