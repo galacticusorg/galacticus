@@ -157,7 +157,7 @@ contains
     Sets maximum wavenumber to effectively infinity (really large number)
     !!}
     implicit none
-    class           (powerSpectrumWindowFunctionhyperbolicTangent), intent(inout) :: self
+    class           (powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self
     double precision                                              , intent(in   ) :: smoothingMass
     double precision                                              , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
     !$GLC attributes unused :: self, smoothingMass
@@ -165,4 +165,3 @@ contains
     hyperbolicTangentWavenumberMaximum=wavenumberLarge
     return
   end function hyperbolicTangentWavenumberMaximum
-
