@@ -36,7 +36,7 @@ An implementation of the hot halo mass distribution class which uses the model o
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
-     double precision                                     :: gamma                          , shockRadius
+     double precision                                     :: gamma                          , radiusShock
    contains
      final     ::                          patejLoeb2015Destructor
      procedure :: density               => patejLoeb2015Density
@@ -93,7 +93,7 @@ contains
     return
   end function patejLoeb2015ConstructorParameters
 
-  function patejLoeb2015ConstructorInternal(gamma,shockRadius,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function patejLoeb2015ConstructorInternal(gamma,radiusShock,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
     !!}
@@ -102,12 +102,12 @@ contains
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultHotHaloComponent
     implicit none
     type            (hotHaloMassDistributionPatejLoeb2015)                        :: self
-    double precision                                      , intent(in   )         :: gamma                         , shockRadius
+    double precision                                      , intent(in   )         :: gamma                         , radiusShock
     class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
     logical                                               , save                  :: initialized           =.false.
     !![
-    <constructorAssign variables="gamma, shockRadius, *darkMatterProfileDMO_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="gamma, radiusShock, *darkMatterProfileDMO_, *darkMatterHaloScale_"/>
     !!]
 
     ! Check that required properties are gettable.
@@ -183,7 +183,7 @@ contains
     hotHalo               => node%hotHalo          ()
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock and outer radii.
-    radiusShock         =+self                        %shockRadius                         &
+    radiusShock         =+self                        %radiusShock                         &
          &               *self   %darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter         =+hotHalo                     %outerRadius (                     )
     ! Find the density normalization.
@@ -224,7 +224,7 @@ contains
     ! Get the dark matter profile component.
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock radius.
-    radiusShock         =+self                     %shockRadius                    &
+    radiusShock         =+self                     %radiusShock                    &
          &               *self%darkMatterHaloScale_%radiusVirial(node            )
     ! Compute the log slope of density.
     patejLoeb2015DensityLogSlope=+3.0d0                                                       &
@@ -260,7 +260,7 @@ contains
     hotHalo               => node%hotHalo          ()
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock, outer, and scale radii.
-    radiusShock              =+self                     %shockRadius                         &
+    radiusShock              =+self                     %radiusShock                         &
          &                    *self%darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter              =     hotHalo              %outerRadius (                     )
     radiusScale              =     darkMatterHaloProfile%scale       (                     )
@@ -313,7 +313,7 @@ contains
     hotHalo               => node%hotHalo          ()
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock, outer, and scale radii.
-    radiusShock         =+self                     %shockRadius                         &
+    radiusShock         =+self                     %radiusShock                         &
          &               *self%darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter         =     hotHalo              %outerRadius (                     )
     radiusScale         =     darkMatterHaloProfile%scale       (                     )

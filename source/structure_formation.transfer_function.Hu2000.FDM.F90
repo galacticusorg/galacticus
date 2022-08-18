@@ -39,7 +39,6 @@
      double precision                                    :: jeansWavenumberEq             , m22     , &
           &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains

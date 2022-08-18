@@ -60,7 +60,6 @@ Contains a module which implements a transfer function class based on the therma
           &                                                        nu                            , scaleCutOff, &
           &                                                        time                          , redshift
      class           (transferFunctionClass          ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass        ), pointer :: darkMatterParticle_  => null()
    contains
