@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660928331248,
+  "lastUpdate": 1660930581976,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -684,6 +684,45 @@ window.BENCHMARK_DATA = {
             "value": 42.892,
             "unit": "seconds",
             "range": 0.237815054190322
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7823e04a3fac05bf5d9d4b96b9e9fcbe019547df",
+          "message": "feat: Add a nodeOperator which implements an empirical central disk model",
+          "timestamp": "2022-08-19T15:10:15Z",
+          "tree_id": "da71321ef12d43517a6160aba0ab1a2c28324f35",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7823e04a3fac05bf5d9d4b96b9e9fcbe019547df"
+        },
+        "date": 1660930581196,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.3737325462995,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.0243349969073,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 16293.0933038189,
+            "unit": "|logℒ|"
           }
         ]
       }
