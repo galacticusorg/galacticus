@@ -228,18 +228,14 @@ contains
     type (treeNode                           ), intent(inout) :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID                    =node%uniqueID()
-    self%genericLastUniqueID             =node%uniqueID() 
-    self%isBound                         =.true.
-    self%radiusInitialMinimum            =+huge(0.0d0)
-    self%radiusInitialMaximum            =-huge(0.0d0)
-    self%radiusFinalMinimum              =+huge(0.0d0)
-    self%radiusFinalMaximum              =-huge(0.0d0)
-    self%genericEnclosedMassRadiusMinimum=+huge(0.0d0)
-    self%genericEnclosedMassRadiusMaximum=-huge(0.0d0)
-    if (allocated(self%massProfile              )) deallocate(self%massProfile              )
-    if (allocated(self%genericEnclosedMassMass  )) deallocate(self%genericEnclosedMassMass  )
-    if (allocated(self%genericEnclosedMassRadius)) deallocate(self%genericEnclosedMassRadius)
+    self%lastUniqueID        =node%uniqueID()
+    self%isBound             =.true.
+    self%radiusInitialMinimum=+huge(0.0d0)
+    self%radiusInitialMaximum=-huge(0.0d0)
+    self%radiusFinalMinimum  =+huge(0.0d0)
+    self%radiusFinalMaximum  =-huge(0.0d0)
+    if (allocated(self%massProfile)) deallocate(self%massProfile)
+    call self%calculationResetGeneric(node)
     return
   end subroutine heatedMonotonicCalculationReset
 
@@ -265,7 +261,7 @@ contains
     ! Determine if we need to retabulate.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Nothing to do if profile is already tabulated.
-    if (allocated(self%massProfile)) return
+    if (.not.self%isBound .or. allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.
     self%radiusInitialMinimum=radiusFractionMinimum*self%darkMatterHaloScale_%radiusVirial(node)
     self%radiusInitialMaximum=radiusFractionMaximum*self%darkMatterHaloScale_%radiusVirial(node)
