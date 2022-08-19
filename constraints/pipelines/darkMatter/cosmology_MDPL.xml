@@ -26,8 +26,8 @@
       <running             value="0.000"/>
     </powerSpectrumPrimordial>
   </powerSpectrumPrimordial>
-  <powerSpectrumWindowFunction value="ETHOS">
-    <cW   value="=[haloMassFunctionParameters::cW]"  />
+  <powerSpectrumWindowFunction value="hyperbolicTangent">
+    <c    value="=[haloMassFunctionParameters::cW]"  />
     <beta value="=[haloMassFunctionParameters::beta]"/>
   </powerSpectrumWindowFunction>
   <cosmologicalMassVariance value="filteredPower">
@@ -45,8 +45,8 @@
 	<running             value="0.000"/>
       </powerSpectrumPrimordial>
       <powerSpectrumPrimordialTransferred value="simple" />
-      <powerSpectrumWindowFunction value="ETHOS">
-	<cW   value="=[haloMassFunctionParameters::cW]"  />
+      <powerSpectrumWindowFunction value="hyperbolicTangent">
+	<c    value="=[haloMassFunctionParameters::cW]"  />
 	<beta value="=[haloMassFunctionParameters::beta]"/>
       </powerSpectrumWindowFunction>
       <cosmologicalMassVariance value="filteredPower">
