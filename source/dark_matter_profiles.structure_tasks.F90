@@ -30,7 +30,7 @@ module Dark_Matter_Profile_Structure_Tasks
   public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task        , Dark_Matter_Profile_Potential_Task               , &
        &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task          , Dark_Matter_Profile_Chandrasekhar_Integral_Task  , &
        &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore, &
-       &    Dark_Matter_Profile_Density_Spherical_Average_Task
+       &    Dark_Matter_Profile_Density_Spherical_Average_Task   , Dark_Matter_Profile_Radius_Enclosing_Mass
 
   class(darkMatterProfileClass), pointer  :: darkMatterProfile_
   !$omp threadprivate(darkMatterProfile_)
@@ -393,6 +393,19 @@ contains
     if (present(status).and.statusLocal /= structureErrorCodeSuccess) status=structureErrorCodeSuccess
     return
   end function Dark_Matter_Profile_Potential_Task
+
+  double precision function Dark_Matter_Profile_Radius_Enclosing_Mass(node,mass)
+    !!{
+    Return the radius enclosing the given mass of dark matter.
+    !!}
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: mass
+
+    Dark_Matter_Profile_Radius_Enclosing_Mass=darkMatterProfile_%radiusEnclosingMass(node,mass)
+    return
+  end function Dark_Matter_Profile_Radius_Enclosing_Mass
 
   !![
   <stateStoreTask>
