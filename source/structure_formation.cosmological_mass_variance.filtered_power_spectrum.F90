@@ -241,7 +241,7 @@ contains
       <name>truncateAtParticleHorizon</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true then integration over the power spectrum is truncated at a wavenumber $k=1/H_\mathrm{p}(t_0)$, where $/H_\mathrm{p}(t_0)$ is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to $k=0$.</description>
+      <description>If true then integration over the power spectrum is truncated at a wavenumber $k=1/H_\mathrm{p}(t_0)$, where $H_\mathrm{p}(t_0)$ is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to $k=0$.</description>
     </inputParameter>
     <conditionalCall>
      <call>
