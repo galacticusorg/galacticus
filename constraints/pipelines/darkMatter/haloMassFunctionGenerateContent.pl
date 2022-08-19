@@ -192,7 +192,7 @@ foreach my $type ( @types ) {
 			 haloMassFunctionParameters::p             haloMassFunctionParameters::q 
 			 haloMassFunctionParameters::normalization haloMassFunctionParameters::c
 			 haloMassFunctionParameters::d
-			 haloMassFunctionParameters::cW            haloMassFunctionParameters::beta"/>
+			 haloMassFunctionParameters::c             haloMassFunctionParameters::beta"/>
     <parameterInactiveMap value="" ignoreWarnings="true"/>
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
