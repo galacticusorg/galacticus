@@ -52,10 +52,11 @@
      type            (table1DMonotoneCSpline  )          :: transferTable
      class           (transferFunctionClass   ), pointer :: transferFunction_            => null() , transferFunctionReference    => null()
      double precision                                    :: wavenumberMinimum                      , wavenumberMaximum
-     logical                                             :: envelopeModeMassesOnly
-     double precision                                    :: wavenumberMinimumLogarithmic           , wavenumberMaximumLogarithmic
+     logical                                             :: envelopeModeMassesOnly                 , envelopeRatio
+     double precision                                    :: wavenumberMinimumLogarithmic           , wavenumberMaximumLogarithmic           , &
+          &                                                 normalization                          , normalizationReference
      integer                                             :: tablePointsPerDecade
-     logical                                             :: tableInitialized             =  .false.
+     logical                                             :: tableInitialized             =  .false., modeMassSolving              =  .false.
    contains
      final     ::                          envelopeDestructor
      procedure :: value                 => envelopeValue
@@ -87,9 +88,15 @@ contains
     class           (transferFunctionClass   ), pointer       :: transferFunction_     , transferFunctionReference
     integer                                                   :: tablePointsPerDecade
     double precision                                          :: wavenumberMinimum     , wavenumberMaximum
-    logical                                                   :: envelopeModeMassesOnly
+    logical                                                   :: envelopeModeMassesOnly, envelopeRatio
 
     !![
+    <inputParameter>
+      <name>envelopeRatio</name>
+      <source>parameters</source>
+      <defaultValue>parameters%isPresent('transferFunctionReference')</defaultValue>
+      <description>If true, the envelope is computed on the ratio of the transfer function to the reference transfer function, otherwise it is computed directly on the transfer function.</description>
+    </inputParameter>
     <inputParameter>
       <name>envelopeModeMassesOnly</name>
       <source>parameters</source>
@@ -126,7 +133,7 @@ contains
     end if
     !![
     <conditionalCall>
-      <call>self=transferFunctionEnvelope(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_{conditions})</call>
+      <call>self=transferFunctionEnvelope(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeRatio,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_{conditions})</call>
       <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -141,7 +148,7 @@ contains
     return
   end function envelopeConstructorParameters
 
-  function envelopeConstructorInternal(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_,transferFunctionReference) result(self)
+  function envelopeConstructorInternal(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeRatio,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_,transferFunctionReference) result(self)
     !!{
     Internal constructor for the envelope transfer function class.
     !!}
@@ -151,17 +158,25 @@ contains
     class           (transferFunctionClass   ), intent(in   ), target           :: transferFunction_
     class           (transferFunctionClass   ), intent(in   ), target, optional :: transferFunctionReference
     integer                                   , intent(in   )                   :: tablePointsPerDecade
-    double precision                          , intent(in   )                   :: wavenumberMinimum        , wavenumberMaximum
-    logical                                   , intent(in   )                   :: envelopeModeMassesOnly
+    double precision                          , intent(in   )                   :: wavenumberMinimum               , wavenumberMaximum
+    logical                                   , intent(in   )                   :: envelopeModeMassesOnly          , envelopeRatio
+    double precision                          , parameter                       :: wavenumberTiny           =1.0d-4
     
     !![
-    <constructorAssign variables="*cosmologyParameters_, *transferFunction_, *transferFunctionReference, tablePointsPerDecade, wavenumberMinimum, wavenumberMaximum, envelopeModeMassesOnly"/>
+    <constructorAssign variables="*cosmologyParameters_, *transferFunction_, *transferFunctionReference, tablePointsPerDecade, wavenumberMinimum, wavenumberMaximum, envelopeRatio, envelopeModeMassesOnly"/>
     !!]
-
+    
+    self%modeMassSolving             =.false.
     self%tableInitialized            =.false.
     self%wavenumberMinimumLogarithmic=log(wavenumberMinimum)
     self%wavenumberMaximumLogarithmic=log(wavenumberMaximum)
-    if (.not.present(transferFunctionReference)) self%transferFunctionReference => null()
+    self%normalization               =self%transferFunction_        %value(wavenumber=wavenumberTiny)
+    if (present(transferFunctionReference)) then
+       self%normalizationReference   =self%transferFunctionReference%value(wavenumber=wavenumberTiny)
+    else
+       self%transferFunctionReference => null()
+       if (envelopeRatio) call Error_Report('can not compute envelope on ratio with a reference transfer function'//{introspection:location})
+    end if
     return
   end function envelopeConstructorInternal
 
@@ -194,12 +209,17 @@ contains
     double precision                          , intent(in   ) :: wavenumber
     double precision                                          :: wavenumberLogarithmic
 
-    if (self%envelopeModeMassesOnly) then
-       envelopeValue=self%transferFunction_%value(wavenumber)
+    if (self%envelopeModeMassesOnly .and. .not.self%modeMassSolving) then
+       envelopeValue=+self%transferFunction_%value(wavenumber) &
+            &        /self%normalization
     else
        wavenumberLogarithmic=log(wavenumber)
        call envelopeTabulate(self,wavenumberLogarithmic)
        envelopeValue=exp(self%transferTable%interpolate(wavenumberLogarithmic))
+       if (self%envelopeRatio)                                                        &
+            & envelopeValue=+                               envelopeValue             &
+            &               *self%transferFunctionReference%        value(wavenumber) &
+            &               /self%normalizationReference
     end if
     return
   end function envelopeValue
@@ -219,6 +239,9 @@ contains
        wavenumberLogarithmic=log(wavenumber)
        call envelopeTabulate(self,wavenumberLogarithmic)
        envelopeLogarithmicDerivative=+self%transferTable%interpolateGradient(wavenumberLogarithmic)
+       if (self%envelopeRatio)                                                                                        &
+            & envelopeLogarithmicDerivative=+                               envelopeLogarithmicDerivative             &
+            &                               +self%transferFunctionReference%        logarithmicDerivative(wavenumber)
     end if
     return
   end function envelopeLogarithmicDerivative
@@ -286,6 +309,8 @@ contains
             &                               rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
             &                               rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
             &                              )
+       call envelopeTabulate(self,wavenumberLogarithmic=0.0d0)
+       self%modeMassSolving    =.true.
        wavenumberFractionMode  = finder%find(rootGuess=1.0d0)
        matterDensity           =+self%cosmologyParameters_%OmegaMatter    () &
             &                   *self%cosmologyParameters_%densityCritical()
@@ -297,6 +322,7 @@ contains
             &                     +Pi                     &
             &                     /wavenumberFractionMode &
             &                    )**3
+       self%modeMassSolving    =.false.
        if (present(status)) status=errorStatusSuccess
     else
        envelopeFractionModeMass=0.0d0
@@ -316,9 +342,10 @@ contains
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
-      
+
       modeSolver=+self                          %value   (wavenumber) &
            &     /self%transferFunctionReference%value   (wavenumber) &
+           &     *self%normalizationReference                         &
            &     -                               fraction
       return
     end function modeSolver
@@ -329,7 +356,7 @@ contains
     !!{
     Tabulate the envelope to the transfer function.
     !!}
-    use :: Numerical_Ranges , only : Make_Range, rangeTypeLinear
+    use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     class           (transferFunctionEnvelope), intent(inout)               :: self
     double precision                          , intent(in   )               :: wavenumberLogarithmic
@@ -369,7 +396,10 @@ contains
        ! oscillatory transfer functions can be negative [since all that is actually used in calculations is T²(k)].
        iLastNonZero=0
        do i=1,pointCountDense
-          transferFunctionDense(i)=abs(self%transferFunction_%value(exp(wavenumberLogarithmicDense(i))))
+          transferFunctionDense       (i)=+abs(self%transferFunction_        %value(exp(wavenumberLogarithmicDense(i)))/self%normalization         )
+          if (self%envelopeRatio) &
+               & transferFunctionDense(i)=+transferFunctionDense(i)                                                                                  &
+               &                          /abs(self%transferFunctionReference%value(exp(wavenumberLogarithmicDense(i)))/self%normalizationReference)
           if (transferFunctionDense(i) > 0.0d0) iLastNonZero=i
        end do
        ! Compute estimates of the gradient of the transfer function, ∂T (defined as dT(k)/dlogk)), using a symmetric finite-difference approach.
@@ -527,7 +557,7 @@ contains
              transferFunctionSparse     =     transferFunctionDense(iPivot(1:pointCountSparse))
              call self%transferTable%destroy (                                )
              call self%transferTable%create  (    wavenumberLogarithmicSparse )
-             call self%transferTable%populate(log(     transferFunctionSparse))          
+             call self%transferTable%populate(log(     transferFunctionSparse))
           end if
        end do
        ! Clean up.
