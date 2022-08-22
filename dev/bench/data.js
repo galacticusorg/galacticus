@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661202516277,
+  "lastUpdate": 1661207408220,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -822,6 +822,45 @@ window.BENCHMARK_DATA = {
             "value": 42.89,
             "unit": "seconds",
             "range": 0.143317828617919
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "0364cd38ab12ed8a3e0fce33a7dab199b3eedf59",
+          "message": "fix: Correctly handle unnormalized transfer functions\n\nIn the transferFunctionEnvelope class, when computing mode masses we must account for the fact that the transfer functions used may not share the same normalization as k->0. This fix causes the transfer functions to be used to be normalized to T(k)=1 at small k.\n\nAdditionally, this patch allows the enveloping to be applied to the ratio of the transfer function and the reference transfer function (instead of to the transfer function directly).",
+          "timestamp": "2022-08-22T20:06:15Z",
+          "tree_id": "1a98b1065b9a79628b36a2c92062659f67091e40",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0364cd38ab12ed8a3e0fce33a7dab199b3eedf59"
+        },
+        "date": 1661207406484,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.4483790787279,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.0576572807858,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 16028.715159035,
+            "unit": "|logℒ|"
           }
         ]
       }
