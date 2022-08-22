@@ -147,7 +147,7 @@ contains
     return
   end function naozBarkana2007ConstructorParameters
 
-  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     !!}
@@ -156,8 +156,7 @@ contains
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
     double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
-         &                                                                            rateAdjust                      , massMinimum                    , &
-         &                                                                            metallicityIGM
+         &                                                                            rateAdjust                      , massMinimum                   
     logical                                                , intent(in   )         :: accretionNegativeAllowed        , accretionNewGrowthOnly
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
@@ -172,7 +171,7 @@ contains
     <constructorAssign variables="rateAdjust, massMinimum, *intergalacticMediumFilteringMass_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
-    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     self%filteredFractionComputed    =.false.
     self%filteredFractionRateComputed=.false.
     self%lastUniqueID                =-huge(0_c_size_t)
@@ -557,13 +556,21 @@ contains
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
     !$omp threadprivate(fractionMetals)
-    double precision                                              :: rateCorrection
+    double precision                                              :: rateCorrection, redshift, metallicityIGM
 
     ! Return immediately for cold-mode accretion or satellites.
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
+
+    ! find redshift
+    basic => node%basic()
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
+
+    ! calculate IGM metalicity from redshift
+    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
+
     ! Get the rate of mass accretion and multiply by the IGM metallicity.
-    call naozBarkana2007AccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     naozBarkana2007AccretionRateMetals=+     naozBarkana2007AccretionRateMetals                     &
          &                             *self%accretionRate                     (node,accretionMode)
     ! Get required objects.
@@ -620,13 +627,22 @@ contains
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
     !$omp threadprivate(fractionMetals)
-    double precision                                              :: rateCorrection
+    double precision                                              :: rateCorrection, redshift, metallicityIGM
 
     ! Return immediately for cold-mode accretion or satellites.
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
+
+    ! find redshift
+    basic => node%basic()
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
+
+    ! calculate IGM metalicity from redshift
+    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
+
+
     ! Get the rate of failed mass accretion, and multiply by the IGM metallicity.
-    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     naozBarkana2007FailedAccretionRateMetals=+     naozBarkana2007FailedAccretionRateMetals                     &
          &                                   *self%failedAccretionRate                     (node,accretionMode)
     ! Get required objects.

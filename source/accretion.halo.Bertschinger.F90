@@ -68,13 +68,13 @@ contains
     return
   end function bertschingerConstructorParameters
 
-  function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
+  function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
     !!}
     implicit none
     type            (accretionHaloBertschinger    )                        :: self
-    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, metallicityIGM
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
     logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
@@ -87,7 +87,7 @@ contains
     <constructorAssign variables="*darkMatterProfileDMO_"/>
     !!]
 
-    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     return
   end function bertschingerConstructorInternal
 

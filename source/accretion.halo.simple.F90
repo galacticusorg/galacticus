@@ -83,7 +83,7 @@
      class           (intergalacticMediumStateClass          ), pointer :: intergalacticMediumState_ => null()
      class           (chemicalStateClass                     ), pointer :: chemicalState_            => null()
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
-          &                                                                opticalDepthReionization           , metallicityIGM
+          &                                                                opticalDepthReionization           
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals                     , massProgenitorMaximumID
@@ -138,8 +138,7 @@ contains
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
     class           (chemicalStateClass           ), pointer       :: chemicalState_
     double precision                                               :: timeReionization         , velocitySuppressionReionization, &
-         &                                                            opticalDepthReionization , redshiftReionization           , &
-         &                                                            metallicityIGM
+         &                                                            opticalDepthReionization , redshiftReionization            
     logical                                                        :: accretionNegativeAllowed , accretionNewGrowthOnly
 
     !![
@@ -180,12 +179,6 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>metallicityIGM</name>
-      <defaultValue>0.01d0</defaultValue>
-      <description>Specifies the metallicity (in units of $Z_\odot$) of gas accreted from the IGM.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
       <name>accretionNegativeAllowed</name>
       <defaultValue>.true.</defaultValue>
       <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
@@ -198,7 +191,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -211,15 +204,14 @@ contains
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,metallicityIGM,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
+  function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
     implicit none
     type            (accretionHaloSimple          ), target                :: self
-    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, &
-         &                                                                    metallicityIGM
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
     logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
@@ -228,7 +220,7 @@ contains
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
     !![
-    <constructorAssign variables="timeReionization, velocitySuppressionReionization, metallicityIGM, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
+    <constructorAssign variables="timeReionization, velocitySuppressionReionization, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
     !!]
 
     allocate(self%radiation)
@@ -412,14 +404,22 @@ contains
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     type  (abundances         )                :: simpleAccretionRateMetals
     class (accretionHaloSimple), intent(inout) :: self
     type  (treeNode           ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
+    class (nodeComponentBasic ), pointer       :: basic 
+    double precision                           :: redshift, metallicityIGM
     !$GLC attributes unused :: self, node, accretionMode
 
-    call simpleAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic => node%basic()
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
+
+    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
+
+    call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleAccretionRateMetals=+     simpleAccretionRateMetals                     &
          &                    *self%accretionRate            (node,accretionMode)
     return
@@ -431,14 +431,22 @@ contains
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     type   (abundances         )                :: simpleAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
     integer                     , intent(in   ) :: accretionMode
+    class (nodeComponentBasic ), pointer       :: basic
+    double precision                           :: redshift, metallicityIGM
     !$GLC attributes unused :: self, node, accretionMode
 
-    call simpleAccretedMassMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic => node%basic()
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
+
+    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
+
+    call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleAccretedMassMetals=+     simpleAccretedMassMetals                     &
          &                   *self%accretionRate           (node,accretionMode)
     return
@@ -450,14 +458,22 @@ contains
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     type  (abundances         )                :: simpleFailedAccretionRateMetals
     class (accretionHaloSimple), intent(inout) :: self
     type  (treeNode           ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
+    class (nodeComponentBasic ), pointer       :: basic
+    double precision                           :: redshift, metallicityIGM
     !$GLC attributes unused :: self, node, accretionMode
 
-    call simpleFailedAccretionRateMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic => node%basic()
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
+
+    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
+
+    call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleFailedAccretionRateMetals=+     simpleFailedAccretionRateMetals                     &
          &                          *self%failedAccretionRate            (node,accretionMode)
     return
@@ -469,14 +485,22 @@ contains
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     type   (abundances         )                :: simpleFailedAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
     integer                     , intent(in   ) :: accretionMode
+    class (nodeComponentBasic ), pointer       :: basic
+    double precision                           :: redshift, metallicityIGM
     !$GLC attributes unused :: self, node, accretionMode
 
-    call simpleFailedAccretedMassMetals%metallicitySet(self%metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic => node%basic()
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
+
+    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
+
+    call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleFailedAccretedMassMetals=+     simpleFailedAccretedMassMetals                     &
          &                         *self%accretionRate                 (node,accretionMode)
     return
@@ -537,7 +561,7 @@ contains
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , treeNode
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Astronomical , only : hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
     implicit none
@@ -551,13 +575,14 @@ contains
     !$omp threadprivate(chemicalDensities)
     double precision                                     :: massToDensityConversion, numberDensityHydrogen, &
          &                                                  temperature
-
+    
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0
-    ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
+    ! Compute the temperature and density of accreting material, assuming
+    ! accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperature          =  self%darkMatterHaloScale_%temperatureVirial(node)
-    numberDensityHydrogen=  hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
+    temperature          = self%darkMatterHaloScale_%temperatureVirial(node)
+    numberDensityHydrogen= hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     basic => node%basic()
     call self%radiation%timeSet(basic%time())
