@@ -146,6 +146,13 @@ module Node_Component_Hot_Halo_Standard
       <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
     </property>
     <property>
+      <name>unaccretedAbundances</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <output unitsInSI="massSolar" comment="Mass of metals that failed to accrete into the hot halo."/>
+    </property>
+    <property>
       <name>outerRadius</name>
       <type>double</type>
       <rank>0</rank>
@@ -1266,7 +1273,8 @@ contains
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(node,rateCooling,interrupt,interruptProcedure)
        ! Get the rate at which abundances are accreted onto this halo.
-       call hotHalo%abundancesRate(accretionHalo_%accretionRateMetals(node,accretionModeHot),interrupt,interruptProcedure)
+       call hotHalo%          abundancesRate(accretionHalo_%      accretionRateMetals(node,accretionModeHot),interrupt,interruptProcedure)
+       call hotHalo%unaccretedAbundancesRate(accretionHalo_%failedAccretionRateMetals(node,accretionModeHot),interrupt,interruptProcedure)
        ! Next block of tasks occur only if the accretion rate is non-zero.
        if (basic%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
@@ -1557,6 +1565,7 @@ contains
        call    hotHalo%           outflowedMassScale(                       massVirial                               *scaleMassRelative  )
        call    hotHalo%          unaccretedMassScale(                       massVirial                               *scaleMassRelative  )
        call    hotHalo%              abundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
+       call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
        call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
@@ -1630,9 +1639,10 @@ contains
           angularMomentum=massHotHalo*spin%angularMomentum()/basic%mass()
           call hotHalo%angularMomentumSet(angularMomentum   )
           ! Add the appropriate abundances.
-          call hotHalo%abundancesSet(accretionHalo_%accretedMassMetals   (node,accretionModeHot))
+          call hotHalo%          abundancesSet(accretionHalo_%      accretedMassMetals(node,accretionModeHot))
+          call hotHalo%unaccretedAbundancesSet(accretionHalo_%failedAccretedMassMetals(node,accretionModeHot))
           ! Also add the appropriate chemical masses.
-          call hotHalo%chemicalsSet (accretionHalo_%accretedMassChemicals(node,accretionModeHot))
+          call hotHalo%           chemicalsSet(accretionHalo_%accretedMassChemicals   (node,accretionModeHot))
        end if
     end select
     return
@@ -1667,9 +1677,8 @@ contains
          &                                                   fractionAccreted       , angularMomentumAccreted  , &
          &                                                   massAccretedHot
     logical                                               :: massTotalNonZero
-    type            (abundances          ), save          :: massMetalsAccreted     , fractionMetalsAccreted   , &
-         &                                                   massMetalsReaccreted
-    !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
+    type            (abundances          ), save          :: massMetalsReaccreted
+    !$omp threadprivate(massMetalsReaccreted)
     type            (chemicalAbundances  ), save          :: massChemicalsAccreted  , fractionChemicalsAccreted, &
          &                                                   massChemicalsReaccreted
     !$omp threadprivate(massChemicalsAccreted,fractionChemicalsAccreted,massChemicalsReaccreted)
@@ -1689,13 +1698,20 @@ contains
        parentBasic   => nodeParent%basic  (                 )
        basic         => node      %basic  (                 )
        ! Any gas that failed to be accreted by this halo is always transferred to the parent.
-       call hotHaloParent%unaccretedMassSet(                                &
-            &                                hotHaloParent%unaccretedMass() &
-            &                               +hotHalo      %unaccretedMass() &
-            &                              )
-       call hotHalo      %unaccretedMassSet(                                &
-            &                                0.0d0                          &
-            &                              )
+       call hotHaloParent%      unaccretedMassSet(                                      &
+            &                                      hotHaloParent%unaccretedMass      () &
+            &                                     +hotHalo      %unaccretedMass      () &
+            &                                    )
+       call hotHalo      %      unaccretedMassSet(                                      &
+            &                                      0.0d0                                &
+            &                                    )
+       call hotHaloParent%unaccretedAbundancesSet(                                      &
+            &                                      hotHaloParent%unaccretedAbundances() &
+            &                                     +hotHalo      %unaccretedAbundances() &
+            &                                    )
+       call hotHalo      %unaccretedAbundancesSet(                                      &
+            &                                     zeroAbundances                        &
+            &                                    )
        ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
        ! the hot phase.
        !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
@@ -1719,30 +1735,18 @@ contains
           !! Reaccrete the gas.
           call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
           call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
+          ! Compute the reaccreted abundances.
+          massMetalsReaccreted=+hotHaloParent   %unaccretedAbundances() &
+               &               *fractionAccreted                        &
+               &               *basic           %                mass() &
+               &               /parentBasic     %                mass()
+          call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
+          call hotHaloParent%          abundancesSet(hotHaloParent%          abundances()+massMetalsReaccreted)
           ! Compute the reaccreted angular momentum.
           angularMomentumAccreted=+            massReaccreted    &
                &                  *spinParent %angularMomentum() &
                &                  /parentBasic%mass           ()
           call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
-       end if
-       ! Compute the reaccreted metals.
-       !! First, find the metal mass the node would have if it formed instantaneously.
-       massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeHot)
-       !! Find the mass fraction of metals that would be successfully accreted.
-       if (massMetalsAccreted > zeroAbundances) then
-          if (.not.massTotalNonZero) call Error_Report('mass of hot-mode metals accreted is non-zero, but total mass is zero'//{introspection:location})
-          fractionMetalsAccreted=+  massMetalsAccreted &
-               &                 /(                    &
-               &                   +massAccreted       &
-               &                   +massUnaccreted     &
-               &                  )
-          !! Find the change in the unaccreted mass.
-          massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
-               &               *fractionMetalsAccreted            &
-               &               *basic           %          mass() &
-               &               /parentBasic     %          mass()
-          !! Reaccrete the metals.
-          call hotHaloParent%abundancesSet(hotHaloParent%abundances()+massMetalsReaccreted)
        end if
        ! Compute the reaccreted chemicals.
        !! First, find the chemicals mass that would be successfully accreted.
@@ -1843,14 +1847,18 @@ contains
              baryonicMassCurrent=galacticStructure_%massEnclosed(nodeParent,radiusLarge,massType=massTypeBaryonic,componentType =componentTypeAll)
              if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass() > 0.0d0) then
                 fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
-                call hotHaloParent% unaccretedMassSet(                                                       &
-                     &                                 hotHaloParent%unaccretedMass ()                       &
-                     &                                +hotHaloParent%mass           ()*       fractionRemove &
-                     &                               )
-                call hotHaloParent%           massSet( hotHaloParent%mass           ()*(1.0d0-fractionRemove))
-                call hotHaloParent%angularMomentumSet( hotHaloParent%angularMomentum()*(1.0d0-fractionRemove))
-                call hotHaloParent%     abundancesSet( hotHaloParent%abundances     ()*(1.0d0-fractionRemove))
-                call hotHaloParent%     chemicalsSet ( hotHaloParent%chemicals      ()*(1.0d0-fractionRemove))
+                call hotHaloParent%      unaccretedMassSet(                                                             &
+                     &                                      hotHaloParent%unaccretedMass      ()                        &
+                     &                                     +hotHaloParent%mass                ()*       fractionRemove  &
+                     &                                    )
+                call hotHaloParent%unaccretedAbundancesSet(                                                             &
+                     &                                      hotHaloParent%unaccretedAbundances()                        &
+                     &                                     +hotHaloParent%abundances          ()*       fractionRemove  &
+                     &                                    )
+                call hotHaloParent%                massSet( hotHaloParent%mass                ()*(1.0d0-fractionRemove))
+                call hotHaloParent%     angularMomentumSet( hotHaloParent%angularMomentum     ()*(1.0d0-fractionRemove))
+                call hotHaloParent%          abundancesSet( hotHaloParent%abundances          ()*(1.0d0-fractionRemove))
+                call hotHaloParent%          chemicalsSet ( hotHaloParent%chemicals           ()*(1.0d0-fractionRemove))
              end if
           end if
        end if
@@ -1932,6 +1940,15 @@ contains
        call hotHalo    %              abundancesSet(                                                      &
             &                                        zeroAbundances                                       &
             &                                      )
+       call hotHaloHost%    unaccretedAbundancesSet(                                                      &
+            &                                        hotHaloHost           %unaccretedAbundances       () &
+            &                                       +hotHalo               %unaccretedAbundances       () &
+            &                                      )
+       call hotHalo    %    unaccretedAbundancesSet(                                                      &
+            &                                        zeroAbundances                                       &
+            &                                      )
+ 
+
        call hotHaloHost%     outflowedAbundancesSet(                                                      &
             &                                        hotHaloHost           %outflowedAbundances        () &
             &                                       +hotHalo               %outflowedAbundances        () &
@@ -2027,6 +2044,10 @@ contains
           call    hotHalo%          unaccretedMassSet(                                          &
                &                                       hotHalo      %unaccretedMass          () &
                &                                      +hotHaloParent%unaccretedMass          () &
+               &                                     )
+          call    hotHalo%    unaccretedAbundancesSet(                                          &
+               &                                       hotHalo      %unaccretedAbundances    () &
+               &                                      +hotHaloParent%unaccretedAbundances    () &
                &                                     )
        end select
     end select

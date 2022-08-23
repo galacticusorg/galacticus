@@ -80,7 +80,7 @@ module Accretion_Halos
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretedMass" >
-    <description>Returns the mass (in units of $M_\odot$) of that failed to accrete from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <description>Returns the mass (in units of $M_\odot$) that failed to accrete from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
@@ -99,6 +99,20 @@ module Accretion_Halos
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
+   </method>
+   <method name="failedAccretionRateMetals" >
+    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of failed accretion of metals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
+    <type>type(abundances)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>integer       , intent(in   ) :: accretionMode</argument>
+   </method>
+   <method name="failedAccretedMassMetals" >
+    <description>Returns the mass of metals (in units of $M_\odot$) that failed to accrete from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <type>type(abundances)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>integer       , intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretionRateChemicals" >
     <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of chemicals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
