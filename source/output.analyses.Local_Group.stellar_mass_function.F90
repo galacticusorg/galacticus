@@ -204,10 +204,10 @@ contains
     implicit none
     type            (outputAnalysisLocalGroupStellarMassFunction        )                                :: self
     integer                                                              , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                                     , intent(in   )                 :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum              , &
-         &                                                                                                  negativeBinomialScatterFractional                          , logLikelihoodZero
-    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                         , randomErrorMaximum
-    double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
+    double precision                                                     , intent(in   )                 :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum              , &
+         &                                                                                                  negativeBinomialScatterFractional                         , logLikelihoodZero
+    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                        , randomErrorMaximum
+    double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
     class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
     class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
@@ -217,7 +217,7 @@ contains
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10            )               , pointer        :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisWeightOperatorSubsampling            )               , pointer        :: outputAnalysisWeightOperator_
-    type            (outputAnalysisDistributionNormalizerIdentity       )               , pointer        :: outputAnalysisDistributionNormalizerCentrals_              , outputAnalysisDistributionNormalizerSatellites_
+    type            (outputAnalysisDistributionNormalizerIdentity       )               , pointer        :: outputAnalysisDistributionNormalizerCentrals_             , outputAnalysisDistributionNormalizerSatellites_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer        :: outputAnalysisDistributionOperator_
     type            (surveyGeometryLocalGroupClassical                  )               , pointer        :: surveyGeometryClassical_
     type            (surveyGeometryLocalGroupSDSS                       )               , pointer        :: surveyGeometrySDSS_
@@ -228,19 +228,19 @@ contains
     type            (galacticFilterHaloNotIsolated                      )               , pointer        :: galacticFilterHaloNotIsolated_
     type            (galacticFilterHostMassRange                        )               , pointer        :: galacticFilterHostMassRange_
     type            (galacticFilterSurveyGeometry                       )               , pointer        :: galacticFilterSurveyGeometry_
-    type            (galacticFilterAll                                  )               , pointer        :: galacticFilterSatellites_                                  , galacticFilterCentrals_
-    type            (filterList                                         )               , pointer        :: filtersSatellites_                                         , filtersCentrals_
+    type            (galacticFilterAll                                  )               , pointer        :: galacticFilterSatellites_                                 , galacticFilterCentrals_
+    type            (filterList                                         )               , pointer        :: filtersSatellites_                                        , filtersCentrals_
     type            (propertyOperatorList                               )               , pointer        :: operators_
-    double precision                                                     , allocatable  , dimension(:  ) :: massesSatellites                                           , massesCentrals                                             , &
+    double precision                                                     , allocatable  , dimension(:  ) :: massesSatellites                                          , massesCentrals                                             , &
          &                                                                                                  massesTarget
-    double precision                                                     , allocatable  , dimension(:,:) :: outputWeightSatellites                                     , outputWeightCentrals
-    double precision                                                     , parameter                     :: bufferWidthLogarithmic                         = 3.0d0     , errorZeroPoint                                  =10.0d0
-    integer         (c_size_t                                           ), parameter                     :: binCountSatellites                             =11_c_size_t, binCountCentrals                                =2_c_size_t, &
-         &                                                                                                  bufferCountMinimum                             = 5_c_size_t, bufferCountCentrals                             =0_c_size_t
-    double precision                                                     , parameter                     :: massSatelliteMinimum                           =1.0d02     , massSatelliteMaximum                            =1.0d12    , &
-         &                                                                                                  massCentralMinimum                             =1.0d00     , massCentralMaximum                              =1.0d20    , &
-         &                                                                                                  radiusOuter                                    =3.0d-1     , massThresholdClassical                          =1.0d05
-    integer         (c_size_t                                           )                                :: i                                                          , j                                                          , &
+    double precision                                                     , allocatable  , dimension(:,:) :: outputWeightSatellites                                    , outputWeightCentrals
+    double precision                                                     , parameter                     :: bufferWidthLogarithmic                         =3.0d+0    , errorZeroPoint                                  =10.0d0
+    integer         (c_size_t                                           ), parameter                     :: binCountSatellites                             =9_c_size_t, binCountCentrals                                =2_c_size_t, &
+         &                                                                                                  bufferCountMinimum                             =5_c_size_t, bufferCountCentrals                             =0_c_size_t
+    double precision                                                     , parameter                     :: massSatelliteMinimum                           =1.0d+2    , massSatelliteMaximum                            =1.0d10    , &
+         &                                                                                                  massCentralMinimum                             =1.0d+0    , massCentralMaximum                              =1.0d20    , &
+         &                                                                                                  radiusOuter                                    =3.0d-1    , massThresholdClassical                          =1.0d05
+    integer         (c_size_t                                           )                                :: i                                                         , j                                                          , &
          &                                                                                                  bufferCountSatellites
     type            (localGroupDB                                       )                                :: localGroupDB_
     !![
