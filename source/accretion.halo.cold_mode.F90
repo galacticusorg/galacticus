@@ -290,10 +290,10 @@ contains
     Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     implicit none
-    type  (abundances           )                :: coldModeFailedAccretionRateMetals
-    class (accretionHaloColdMode), intent(inout) :: self
-    type  (treeNode             ), intent(inout) :: node
-    integer                      , intent(in   ) :: accretionMode
+    type (abundances                  )                :: coldModeFailedAccretionRateMetals
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeFailedAccretionRateMetals=+self%accretionHaloSimple%failedAccretionRateMetals(node,accretionMode) &
          &                            *self                    %coldModeFraction         (node,accretionMode)
@@ -305,10 +305,10 @@ contains
     Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     implicit none
-    type   (abundances           )                :: coldModeFailedAccretedMassMetals
-    class  (accretionHaloColdMode), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    integer                       , intent(in   ) :: accretionMode
+    type (abundances                  )                :: coldModeFailedAccretedMassMetals
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionMode) &
          &                           *self                    %coldModeFraction        (node,accretionMode)
@@ -396,8 +396,12 @@ contains
     ! overdensity is one third of the mean overdensity of the halo.
     temperatureHot            =  self%darkMatterHaloScale_     %temperatureVirial(node        )
     temperature               =  self%intergalacticMediumState_%temperature      (basic%time())
-    numberDensityHydrogen     =  hydrogenByMassPrimordial*(self%cosmologyParameters_%omegaBaryon()/self%cosmologyParameters_%omegaMatter())*basic%mass()*massToDensityConversion&
-         &/atomicMassHydrogen
+    numberDensityHydrogen     =  hydrogenByMassPrimordial                  &
+         &                       /atomicMassHydrogen                       &
+         &                       *self %cosmologyParameters_%omegaBaryon() &
+         &                       /self %cosmologyParameters_%omegaMatter() &
+         &                       *basic                     %mass       () &
+         &                       *massToDensityConversion
     ! Set the radiation field.
     call self%radiation%timeSet(basic%time())
     ! Get hot and cold mode fractions.

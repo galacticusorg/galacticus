@@ -545,7 +545,7 @@ contains
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentHotHalo
     implicit none
     type            (abundances                  )                :: naozBarkana2007AccretionRateMetals
@@ -556,21 +556,16 @@ contains
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
     !$omp threadprivate(fractionMetals)
-    double precision                                              :: rateCorrection, redshift, metallicityIGM
+    double precision                                              :: rateCorrection                    , metallicityIGM
 
     ! Return immediately for cold-mode accretion or satellites.
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
-
-    ! find redshift
-    basic => node%basic()
-    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-
-    ! calculate IGM metalicity from redshift
-    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
-
-    ! Get the rate of mass accretion and multiply by the IGM metallicity.
-    call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    ! Calculate IGM metalicity from redshift
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    ! Get the rate of metal mass accretion.
+    call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     naozBarkana2007AccretionRateMetals=+     naozBarkana2007AccretionRateMetals                     &
          &                             *self%accretionRate                     (node,accretionMode)
     ! Get required objects.
@@ -616,33 +611,27 @@ contains
     Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentHotHalo
     implicit none
     type            (abundances                  )                :: naozBarkana2007FailedAccretionRateMetals
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(in   ) :: accretionMode
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
     !$omp threadprivate(fractionMetals)
-    double precision                                              :: rateCorrection, redshift, metallicityIGM
+    double precision                                              :: rateCorrection                          , metallicityIGM
 
     ! Return immediately for cold-mode accretion or satellites.
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
-
-    ! find redshift
-    basic => node%basic()
-    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-
-    ! calculate IGM metalicity from redshift
-    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
-
-
-    ! Get the rate of failed mass accretion, and multiply by the IGM metallicity.
-    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    ! Calculate IGM metalicity from redshift
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    ! Get the rate of failed metal mass accretion.
+    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     naozBarkana2007FailedAccretionRateMetals=+     naozBarkana2007FailedAccretionRateMetals                     &
          &                                   *self%failedAccretionRate                     (node,accretionMode)
     ! Get required objects.

@@ -405,23 +405,20 @@ contains
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
     type            (abundances                  )                :: simpleAccretionRateMetals
     class           (accretionHaloSimple         ), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic           ), pointer      :: basic 
-    double precision                                              :: redshift                 , metallicityIGM
-    !$GLC attributes unused :: self, node, accretionMode
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
 
-    basic => node%basic()
-    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-
-    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
-
-    call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleAccretionRateMetals=+     simpleAccretionRateMetals                     &
          &                    *self%accretionRate            (node,accretionMode)
     return
@@ -432,23 +429,20 @@ contains
     Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
     type            (abundances                  )                :: simpleAccretedMassMetals
     class           (accretionHaloSimple         ), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
     class           (nodeComponentBasic          ), pointer       :: basic
-    double precision                                              :: redshift                , metallicityIGM
-    !$GLC attributes unused :: self, node, accretionMode
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
 
-    basic => node%basic()
-    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-
-    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
-
-    call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleAccretedMassMetals=+     simpleAccretedMassMetals                     &
          &                   *self%accretionRate           (node,accretionMode)
     return
@@ -459,23 +453,20 @@ contains
     Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
-    type  (abundances         )                :: simpleFailedAccretionRateMetals
-    class (accretionHaloSimple), intent(inout) :: self
-    type  (treeNode           ), intent(inout) :: node
-    integer                    , intent(in   ) :: accretionMode
-    class (nodeComponentBasic ), pointer       :: basic
-    double precision                           :: redshift, metallicityIGM
-    !$GLC attributes unused :: self, node, accretionMode
+    type            (abundances                  )                :: simpleFailedAccretionRateMetals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
 
-    basic => node%basic()
-    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-
-    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
-
-    call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleFailedAccretionRateMetals=+     simpleFailedAccretionRateMetals                     &
          &                          *self%failedAccretionRate            (node,accretionMode)
     return
@@ -486,23 +477,20 @@ contains
     Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : metallicityTypeLinearByMassSolar, adjustElementsReset
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
-    type   (abundances         )                :: simpleFailedAccretedMassMetals
-    class  (accretionHaloSimple), intent(inout) :: self
-    type   (treeNode           ), intent(inout) :: node
-    integer                     , intent(in   ) :: accretionMode
-    class (nodeComponentBasic ), pointer       :: basic
-    double precision                           :: redshift, metallicityIGM
-    !$GLC attributes unused :: self, node, accretionMode
+    type            (abundances                  )                :: simpleFailedAccretedMassMetals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
 
-    basic => node%basic()
-    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-
-    metallicityIGM = 10.0d0 ** (-4.3d-4 * redshift**3 + 4.47d-3 * redshift**2 - 2.54d-1 * redshift**1 - 1.94d0)
-
-    call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMassSolar,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
     simpleFailedAccretedMassMetals=+     simpleFailedAccretedMassMetals                     &
          &                         *self%accretionRate                 (node,accretionMode)
     return

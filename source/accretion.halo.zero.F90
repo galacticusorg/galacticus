@@ -180,7 +180,7 @@ contains
     type   (abundances       )                :: zeroFailedAccretionRateMetals
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    type (enumerationAccretionModeType)                   , intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroFailedAccretionRateMetals=zeroAbundances
@@ -196,7 +196,7 @@ contains
     type   (abundances       )                :: zeroFailedAccretedMassMetals
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    type (enumerationAccretionModeType)                   , intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroFailedAccretedMassMetals=zeroAbundances
