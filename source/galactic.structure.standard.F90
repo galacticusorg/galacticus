@@ -21,12 +21,12 @@
 Contains a module which implements the standard galactic structure functions.
 !!}
 
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles   , only : darkMatterProfileClass
-  use :: Root_Finder            , only : rootFinder
-  use :: Kind_Numbers           , only : kind_int8
-
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles      , only : darkMatterProfileClass
+  use :: Root_Finder               , only : rootFinder
+  use :: Kind_Numbers              , only : kind_int8
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType, enumerationStructureErrorCodeType
   !![
   <galacticStructure name="galacticStructureStandard">
    <description>
@@ -85,26 +85,28 @@ Contains a module which implements the standard galactic structure functions.
 
   ! Type used to store state to allow recursive calling of these functions.
   type :: galacticStructureState
-     integer          :: componentType_, massType_   , &
-          &              weightBy_     , weightIndex_
-     double precision :: radius_
+     type            (enumerationComponentTypeType) :: componentType_
+     type            (enumerationMassTypeType     ) :: massType_
+     type            (enumerationWeightByType     ) :: weightBy_
+     integer                                        :: weightIndex_
+     double precision                               :: radius_
   end type galacticStructureState
 
   ! State stack used to allow recursive calling of these functions.
-  type            (galacticStructureState    ), dimension(:), allocatable :: galacticStructureState_
-  integer                                                                 :: galacticStructureStateCount=0
+  type            (galacticStructureState            ), dimension(:), allocatable :: galacticStructureState_
+  integer                                                                         :: galacticStructureStateCount=0
   !$omp threadprivate(galacticStructureState_,galacticStructureStateCount)
   
   ! Submodule-scope variables used in callback functions and root-finding.
-  integer                                                                 :: status_
-  double precision                           , dimension(3)               :: positionSpherical_           , positionCartesian_ , &
-       &                                                                     positionCylindrical_         , velocityCartesian_
+  type            (enumerationStructureErrorCodeType),                            :: status_
+  double precision                                   , dimension(3)               :: positionSpherical_           , positionCartesian_ , &
+       &                                                                             positionCylindrical_         , velocityCartesian_
   !$omp threadprivate(status_,positionSpherical_,positionCartesian_,positionCylindrical_,velocityCartesian_)
 
   ! Submodule-scope variables used in root finding.
-  double precision                                                        :: massTarget                   , surfaceDensityTarget
-  type            (treeNode                 ), pointer                    :: node_
-  class           (galacticStructureStandard), pointer                    :: self_
+  double precision                                                                :: massTarget                   , surfaceDensityTarget
+  type            (treeNode                         ), pointer                    :: node_
+  class           (galacticStructureStandard        ), pointer                    :: self_
   !$omp threadprivate(self_,node_,massTarget,surfaceDensityTarget)
 
 contains
@@ -228,8 +230,8 @@ contains
     been computed.
     !!}
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
-    use :: Galactic_Structure_Options, only : componentTypeAll                  , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
-          &                                   massTypeAll                       , weightByLuminosity                  , weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeAll                  , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical      , &
+          &                                   massTypeAll                       , weightByLuminosity                  , weightByMass               , enumerationCoordinateSystemType
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : optimizeForDensitySummation       , reductionSummation                  , treeNode
     !![
@@ -240,15 +242,17 @@ contains
     </include>
     !!]
     implicit none
-    class           (galacticStructureStandard), intent(inout)               :: self
-    type            (treeNode                 ), intent(inout)               :: node
-    integer                                    , intent(in   ), optional     :: componentType         , coordinateSystem, &
-         &                                                                      massType              , weightBy        , &
-         &                                                                      weightIndex
-    double precision                           , intent(in   ), dimension(3) :: position
-    procedure       (densityComponent         ), pointer                     :: densityComponent_
-    integer                                                                  :: coordinateSystemActual
-    double precision                                                         :: densityComponent__
+    class           (galacticStructureStandard      ), intent(inout)               :: self
+    type            (treeNode                       ), intent(inout)               :: node
+    type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType
+    type            (enumerationWeightByType        ), intent(in   ), optional     :: weightBy
+    integer                                          , intent(in   ), optional     :: weightIndex
+    type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem
+    double precision                                 , intent(in   ), dimension(3) :: position
+    procedure       (densityComponent               ), pointer                     :: densityComponent_
+    type            (enumerationCoordinateSystemType)                              :: coordinateSystemActual
+    double precision                                                               :: densityComponent__
 
     ! Determine position in spherical coordinate system to use.
     if (present(coordinateSystem)) then
@@ -256,12 +260,12 @@ contains
     else
        coordinateSystemActual=coordinateSystemSpherical
     end if
-    select case (coordinateSystemActual)
-    case (coordinateSystemSpherical)
+    select case (coordinateSystemActual%ID)
+    case (coordinateSystemSpherical  %ID)
        positionSpherical_=position
-    case (coordinateSystemCylindrical)
+    case (coordinateSystemCylindrical%ID)
        positionSpherical_=Coordinates_Cylindrical_To_Spherical(position)
-    case (coordinateSystemCartesian)
+    case (coordinateSystemCartesian  %ID)
        positionSpherical_=Coordinates_Cartesian_To_Spherical  (position)
     case default
        call Error_Report('unknown coordinate system type'//{introspection:location})
@@ -313,9 +317,11 @@ contains
     implicit none
     class           (galacticStructureStandard       ), intent(inout)           :: self
     type            (treeNode                        ), intent(inout)           :: node
-    integer                                           , intent(in   ), optional :: componentType                     , massType   , &
-         &                                                                         weightBy                          , weightIndex
     double precision                                  , intent(in   )           :: radius
+    type            (enumerationComponentTypeType    ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType         ), intent(in   ), optional :: massType
+    type            (enumerationWeightByType         ), intent(in   ), optional :: weightBy
+    integer                                           , intent(in   ), optional :: weightIndex
     procedure       (densitySphericalAverageComponent), pointer                 :: densitySphericalAverageComponent_
     double precision                                                            :: densitySphericalAverageComponent__
 
@@ -361,13 +367,15 @@ contains
     </include>
     !!]
     implicit none
-    class           (galacticStructureStandard), intent(inout)           :: self
-    type            (treeNode                 ), intent(inout)           :: node
-    integer                                    , intent(in   ), optional :: componentType        , massType   , &
-         &                                                                  weightBy             , weightIndex
-    double precision                           , intent(in   ), optional :: radius
-    procedure       (massComponentEnclosed    ), pointer                 :: massComponentEnclosed_
-    double precision                                                     :: massComponent
+    class           (galacticStructureStandard   ), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                                       , intent(in   ), optional :: weightIndex
+    double precision                              , intent(in   ), optional :: radius
+    procedure       (massComponentEnclosed       ), pointer                 :: massComponentEnclosed_
+    double precision                                                        :: massComponent
 
     call self%defaults(radius,componentType,massType,weightBy,weightIndex)
     ! Compute the contribution from components directly, by mapping a function over all components.
@@ -403,20 +411,23 @@ contains
     !!{
     Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     !!}
-    use :: Display                   , only : displayMessage       , verbosityLevelWarn
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark
-    use :: Error                     , only : Error_Report
-    use :: ISO_Varying_String        , only : assignment(=)        , operator(//)      , varying_string
-    use :: String_Handling           , only : operator(//)
+    use :: Dark_Matter_Profile_Structure_Tasks, only : Dark_Matter_Profile_Radius_Enclosing_Mass
+    use :: Display                            , only : displayMessage                           , verbosityLevelWarn
+    use :: Galactic_Structure_Options         , only : componentTypeDarkHalo                    , massTypeDark
+    use :: Error                              , only : Error_Report
+    use :: ISO_Varying_String                 , only : assignment(=)                            , operator(//)      , varying_string
+    use :: String_Handling                    , only : operator(//)
     implicit none
-    class           (galacticStructureStandard), intent(inout), target   :: self
-    type            (treeNode                 ), intent(inout), target   :: node
-    integer                                    , intent(in   ), optional :: componentType , massType   , &
-         &                                                                  weightBy      , weightIndex
-    double precision                           , intent(in   ), optional :: massFractional, mass
-    double precision                                                     :: radiusGuess
-    type            (varying_string           )                          :: message
-    character       (len=11                   )                          :: massLabel
+    class           (galacticStructureStandard   ), intent(inout), target   :: self
+    type            (treeNode                    ), intent(inout), target   :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                                       , intent(in   ), optional :: weightIndex
+    double precision                              , intent(in   ), optional :: massFractional, mass
+    double precision                                                        :: radiusGuess
+    type            (varying_string              )                          :: message
+    character       (len=11                      )                          :: massLabel
 
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Determine what mass to use.
@@ -443,7 +454,9 @@ contains
          &   galacticStructureState_(galacticStructureStateCount)%massType_      == massTypeDark          &
          & ) then
        if (.not.associated(self%darkMatterProfile_)) call Error_Report('object is not expecting dark matter requests'//{introspection:location})       
-       standardRadiusEnclosingMass=self%darkMatterProfile_%radiusEnclosingMass(node_,massTarget)
+       ! Use the function provided by the dark matter profile structure tasks module here. This ensures precise consistency
+       ! between calculations here and in the enclosed mass function.
+       standardRadiusEnclosingMass=Dark_Matter_Profile_Radius_Enclosing_Mass(node_,massTarget)
     else
        ! Solve for the radius.
        if (massEnclosedRoot(0.0d0) >= 0.0d0) then
@@ -496,12 +509,13 @@ contains
     </include>
     !!]
     implicit none
-    class           (galacticStructureStandard), intent(inout)           :: self
-    type            (treeNode                 ), intent(inout)           :: node
-    integer                                    , intent(in   ), optional :: componentType              , massType
-    double precision                           , intent(in   )           :: radius
-    procedure       (velocityRotationComponent)               , pointer  :: velocityRotationComponent_
-    double precision                                                     :: velocityRotationComponent__, rotationCurveSquared
+    class           (galacticStructureStandard   ), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , intent(in   )           :: radius
+    procedure       (velocityRotationComponent   )               , pointer  :: velocityRotationComponent_
+    double precision                                                        :: velocityRotationComponent__, rotationCurveSquared
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
     velocityRotationComponent_ => velocityRotationComponent
@@ -550,7 +564,8 @@ contains
     implicit none
     class           (galacticStructureStandard        ), intent(inout)           :: self
     type            (treeNode                         ), intent(inout)           :: node
-    integer                                            , intent(in   ), optional :: componentType                      , massType
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     double precision                                   , intent(in   )           :: radius
     procedure       (velocityRotationGradientComponent)               , pointer  :: velocityRotationGradientComponent_
     double precision                                                             :: velocityRotationGradientComponent__, velocityRotation
@@ -608,13 +623,14 @@ contains
     </include>
     !!]
     implicit none
-    class           (galacticStructureStandard), intent(inout)           :: self
-    type            (treeNode                 ), intent(inout)           :: node
-    integer                                    , intent(in   ), optional :: componentType       , massType
-    double precision                           , intent(in   )           :: radius
-    integer                                    , intent(  out), optional :: status
-    procedure       (potentialComponent       ), pointer                 :: potentialComponent_
-    double precision                                                     :: potentialComponent__
+    class           (galacticStructureStandard        ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout)           :: node
+    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    procedure       (potentialComponent               ), pointer                 :: potentialComponent_
+    double precision                                                             :: potentialComponent__
 
     ! Initialize status.
     if (present(status)) status=structureErrorCodeSuccess
@@ -676,31 +692,33 @@ contains
     Compute the surface density of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}.
     !!}
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
-    use :: Galactic_Structure_Options, only : componentTypeAll                    , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
-          &                                   massTypeAll                         , weightByMass                        , weightIndexNull
+    use :: Galactic_Structure_Options, only : componentTypeAll                    , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical      , &
+          &                                   massTypeAll                         , weightByMass                        , weightIndexNull            , enumerationCoordinateSystemType
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation         , reductionsummation       , &
+    use :: Galacticus_Nodes          , only : optimizeForSurfaceDensitySummation  , optimizeforsurfacedensitysummation  , reductionSummation         , reductionsummation             , &
           &                                   treeNode
     implicit none
-    class           (galacticStructureStandard), intent(inout)               :: self
-    type            (treeNode                 ), intent(inout)               :: node
-    integer                                    , intent(in   ), optional     :: componentType           , coordinateSystem, &
-         &                                                                      massType                , weightBy        , &
-         &                                                                      weightIndex
-    double precision                           , intent(in   ), dimension(3) :: position
-    procedure       (surfaceDensityComponent  ), pointer                     :: surfaceDensityComponent_
+    class           (galacticStructureStandard      ), intent(inout)               :: self
+    type            (treeNode                       ), intent(inout)               :: node
+    type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType
+    type            (enumerationWeightByType        ), intent(in   ), optional     :: weightBy
+    integer                                          , intent(in   ), optional     :: weightIndex
+    type            (enumerationCoordinateSystemType), intent(in   ), optional     :: coordinateSystem
+    double precision                                 , intent(in   ), dimension(3) :: position
+    procedure       (surfaceDensityComponent        ), pointer                     :: surfaceDensityComponent_
     !![
     <optionalArgument name="coordinateSystem" defaultsTo="coordinateSystemCylindrical" />
     !!]
        
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Determine position in cylindrical coordinate system to use.
-    select case (coordinateSystem_)
-    case (coordinateSystemSpherical)
+    select case (coordinateSystem_%ID)
+    case (coordinateSystemSpherical  %ID)
        positionCylindrical_=Coordinates_Spherical_To_Cylindrical (position)
-    case (coordinateSystemCylindrical)
+    case (coordinateSystemCylindrical%ID)
        positionCylindrical_=position
-    case (coordinateSystemCartesian)
+    case (coordinateSystemCartesian  %ID)
        positionCylindrical_=Coordinates_Cartesian_To_Cylindrical(position)
     case default
        call Error_Report('unknown coordinate system type'//{introspection:location})
@@ -731,12 +749,14 @@ contains
     use :: Kind_Numbers, only : kind_int8
     use :: Root_Finder , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (galacticStructureStandard), intent(inout), target   :: self
-    type            (treeNode                 ), intent(inout), target   :: node
-    integer                                    , intent(in   ), optional :: componentType , massType   , &
-         &                                                                  weightBy      , weightIndex
-    double precision                           , intent(in   )           :: surfaceDensity
-    double precision                                                     :: radiusGuess
+    class           (galacticStructureStandard   ), intent(inout), target   :: self
+    type            (treeNode                    ), intent(inout), target   :: node
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                                       , intent(in   ), optional :: weightIndex
+    double precision                              , intent(in   )           :: surfaceDensity
+    double precision                                                        :: radiusGuess
 
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     self_                => self
@@ -781,14 +801,15 @@ contains
     </include>
     !!]
     implicit none
-    class           (galacticStructureStandard), intent(inout)               :: self
-    double precision                                          , dimension(3) :: acceleration
-    type            (treeNode                 ), intent(inout)               :: node
-    double precision                           , intent(in   ), dimension(3) :: positionCartesian
-    integer                                    , intent(in   ), optional     :: componentType            , massType
-    integer                                    , parameter                   :: accelerationSize       =3
-    procedure       (accelerationComponent    ), pointer                     :: accelerationComponent_
-    double precision                                          , dimension(3) :: accelerationComponent__
+    class           (galacticStructureStandard   ), intent(inout)               :: self
+    double precision                                             , dimension(3) :: acceleration
+    type            (treeNode                    ), intent(inout)               :: node
+    double precision                              , intent(in   ), dimension(3) :: positionCartesian
+    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
+    integer                                       , parameter                   :: accelerationSize       =3
+    procedure       (accelerationComponent       ), pointer                     :: accelerationComponent_
+    double precision                                             , dimension(3) :: accelerationComponent__
 
     call self%defaults(componentType=componentType,massType=massType)
     positionCartesian_     =  positionCartesian
@@ -840,7 +861,8 @@ contains
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor
     type            (treeNode                      ), intent(inout)               :: node
     double precision                                , intent(in   ), dimension(3) :: positionCartesian
-    integer                                         , intent(in   ), optional     :: componentType         , massType
+    type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
     procedure       (tidalTensorComponent          ), pointer                     :: tidalTensorComponent_
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensorComponent__
 
@@ -899,7 +921,8 @@ contains
     class           (galacticStructureStandard     ), intent(inout)               :: self
     type            (treeNode                      ), intent(inout)               :: node
     double precision                                , intent(in   ), dimension(3) :: positionCartesian                 , velocityCartesian
-    integer                                         , intent(in   ), optional     :: componentType                     , massType
+    type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
+    type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
     integer                                         , parameter                   :: chandrasekharIntegralSize       =3
     procedure       (chandrasekharIntegralComponent), pointer                     :: chandrasekharIntegralComponent_
     double precision                                               , dimension(3) :: chandrasekharIntegralComponent__
@@ -943,13 +966,14 @@ contains
     use :: Galactic_Structure_Options, only : radiusLarge
     use :: Numerical_Integration     , only : integrator
     use :: Numerical_Constants_Math  , only : Pi
-    class           (galacticStructureStandard), intent(inout), target :: self
-    type            (treeNode                 ), intent(inout), target :: node
-    double precision                           , intent(in   )         :: radius                 , radiusOuter
-    integer                                    , intent(in   )         :: componentType          , massType
-    double precision                                                   :: densitySphericalAverage, densityVelocityVariance, &
-         &                                                                massTotal
-    type            (integrator               )                        :: integrator_
+    class           (galacticStructureStandard   ), intent(inout), target   :: self
+    type            (treeNode                    ), intent(inout), target   :: node
+    double precision                              , intent(in   )           :: radius                 , radiusOuter
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                                                        :: densitySphericalAverage, densityVelocityVariance, &
+         &                                                                     massTotal
+    type            (integrator                  )                          :: integrator_
 
     self_         => self
     node_         => node
@@ -1015,11 +1039,13 @@ contains
          &                                    radiusLarge
     use :: Error                     , only : Error_Report
     implicit none
-    class           (galacticStructureStandard), intent(inout)              :: self
-    double precision                           , intent(in   ), optional    :: radius
-    integer                                    , intent(in   ), optional    :: componentType            , massType   , &
-         &                                                                     weightBy                 , weightIndex
-    type            (galacticStructureState   ), dimension(:) , allocatable :: galacticStructureStateTmp
+    class           (galacticStructureStandard   ), intent(inout)              :: self
+    double precision                              , intent(in   ), optional    :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional    :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional    :: massType
+    type            (enumerationWeightByType     ), intent(in   ), optional    :: weightBy
+    integer                                       , intent(in   ), optional    :: weightIndex
+    type            (galacticStructureState      ), dimension(:) , allocatable :: galacticStructureStateTmp
     !![
     <optionalArgument name="componentType" defaultsTo="componentTypeAll" />  
     <optionalArgument name="massType"      defaultsTo="massTypeAll"      />
@@ -1057,8 +1083,8 @@ contains
     galacticStructureState_(galacticStructureStateCount)%massType_      =massType_
     galacticStructureState_(galacticStructureStateCount)%componentType_ =componentType_
     galacticStructureState_(galacticStructureStateCount)%weightBy_      =weightBy_
-    select case (weightBy_)
-    case (weightByLuminosity)
+    select case (weightBy_%ID)
+    case (weightByLuminosity%ID)
        if (.not.present(weightIndex)) call Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
        galacticStructureState_(galacticStructureStateCount)%weightIndex_=weightIndex_
     end select

@@ -26,7 +26,7 @@ program Test_Root_Finding
   Tests that routine finding routines work.
   !!}
   use :: Display                    , only : displayVerbositySet    , verbosityLevelStandard
-  use :: Error           , only : errorStatusDivideByZero
+  use :: Error                      , only : errorStatusDivideByZero, Error_Handler_Register
   use :: Root_Finder                , only : rangeExpandAdditive    , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
        &                                     stoppingCriterionDelta
   use :: Test_Root_Finding_Functions, only : Root_Function_1        , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
@@ -38,6 +38,9 @@ program Test_Root_Finding
   double precision                           :: xGuess , xRoot
   double precision            , dimension(2) :: xRange
   integer                                    :: status
+
+  ! Register error handlers.
+  call Error_Handler_Register()
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)

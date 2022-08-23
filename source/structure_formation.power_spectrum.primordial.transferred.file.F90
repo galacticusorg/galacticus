@@ -227,7 +227,7 @@ contains
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use :: Table_Labels           , only : enumerationExtrapolationTypeEncode
+    use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)               :: self
     type            (varying_string                        ), intent(in   )               :: fileName
@@ -237,10 +237,10 @@ contains
     double precision                                                                      :: HubbleConstant         , OmegaBaryon        , &
          &                                                                                   OmegaMatter            , OmegaDarkEnergy    , &
          &                                                                                   temperatureCMB
-    integer                                                                               :: extrapolateWavenumber  , extrapolateRedshift, &
-         &                                                                                   versionNumber          , i
-    type            (hdf5Object                              )                            :: fileObject             , parametersObject
-    type            (varying_string                          )                            :: limitTypeVar
+    type            (enumerationExtrapolationTypeType      )                              :: extrapolateWavenumber  , extrapolateRedshift
+    integer                                                                               :: versionNumber          , i
+    type            (hdf5Object                            )                              :: fileObject             , parametersObject
+    type            (varying_string                        )                              :: limitTypeVar
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()

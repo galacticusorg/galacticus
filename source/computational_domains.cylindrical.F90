@@ -40,6 +40,7 @@
      Implementation of a computational domain using a cylindrical grid.
      !!}
      private
+     double precision                                                , dimension(  2) :: rBoundaries                            , zBoundaries
      double precision                                                , dimension(2,2) :: boundaries
      integer         (c_size_t                         )             , dimension(2  ) :: countCells
      double precision                                                                 :: convergencePercentile                  , convergenceMeasurePrevious, &
@@ -174,7 +175,10 @@ contains
     !![
     <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
     !!]
-    
+
+    ! Store boundaries for each axis.
+    self%rBoundaries=boundaries(1,:)
+    self%zBoundaries=boundaries(2,:)
     ! Construct cell boundaries.
     do i=1,2
        allocate(self%boundariesCells(i)%boundary(countCells(i)+1))
@@ -633,10 +637,10 @@ contains
     !!}
     use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
-    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
+    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity         , &
           &                                        verbosityLevelInfo, verbosityLevelStandard
     use :: MPI_Utilities                  , only : mpiBarrier        , mpiSelf
-    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther
+    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther, enumerationStatusCellType
     use :: Timers                         , only : timer
     implicit none
     class           (computationalDomainCylindrical), intent(inout)                         :: self
@@ -646,7 +650,7 @@ contains
     double precision                                                                        :: convergenceMeasure , convergenceMeasureRatio
     character       (len=128                       )                                        :: message
     logical                                                                                 :: convergedCriteria
-    integer                                                                                 :: statusCell
+    type            (enumerationStatusCellType     )                                        :: statusCell
     type            (timer                         )                                        :: timer_
 
     ! Establish a timer.

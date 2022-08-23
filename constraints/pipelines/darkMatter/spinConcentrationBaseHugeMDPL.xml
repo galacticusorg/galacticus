@@ -39,6 +39,7 @@
     <running             value="0.00"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"       />
+  <powerSpectrumWindowFunction        value="ETHOS"        />
   <cosmologicalMassVariance           value="filteredPower" >
     <sigma_8 value="0.8228"/>
   </cosmologicalMassVariance>
@@ -93,8 +94,8 @@
     <darkMatterProfileScaleRadius value="johnson2021">
       <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
       <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
-      <energyBoost      value="0.6773"/>
-      <massExponent     value="1.5552"/>
+      <energyBoost      value="0.7970"/>
+      <massExponent     value="2.1684"/>
       <unresolvedEnergy value="0.5500"/> 
       <darkMatterProfileScaleRadius value="concentration" >
 	<correctForConcentrationDefinition    value="true"        />
@@ -112,11 +113,6 @@
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
 
-  <!-- Concentration model -->
-  <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="+0.5500"/>
-  <darkMatterProfileScaleVirialTheoremMassExponent     value="+0.0000"/>
-  <darkMatterProfileScaleVirialTheoremEnergyBoost      value="+0.2000"/>
-
   <!-- Dark matter halo spin -->
   <haloSpinDistribution value="bett2007"> <!-- Values from Benson (2017) -->
     <alpha   value="1.7044657787810300"/>
@@ -132,7 +128,7 @@
 
   <!-- Satellite orbits -->
   <virialOrbit value="spinCorrelated">
-    <alpha value="0.472632655993356" />
+    <alpha value="0.1556" />
     <virialOrbit value="li2020" >
     <mu1             value="+1.20"/>
     <mu2             value="+1.04"/>
@@ -147,7 +143,6 @@
     <propagateOrbits value="true" />
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
   <satelliteMergingTimescales     value="zero"/>
 
   <!-- Merger tree evolution -->
@@ -160,10 +155,14 @@
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
-      <exponentMass value="0.10475"/>
+      <exponentMass value="0.9253"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"   />
     <nodeOperator value="nodeMajorMergerTime"              />
+    <nodeOperator value="nodeFormationTimeMassFraction"     >
+      <fractionMassFormation value="0.5"/>
+      <assumeMonotonicGrowth value="true"/>
+    </nodeOperator>
     <!-- Cosmological epoch -->
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->

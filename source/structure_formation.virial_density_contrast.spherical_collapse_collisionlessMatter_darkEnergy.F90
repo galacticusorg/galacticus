@@ -21,6 +21,8 @@
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
   !!}
 
+  use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtType
+
   !![
   <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy">
    <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark energy universe.</description>
@@ -31,7 +33,7 @@
      A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      !!}
      private
-     integer :: energyFixedAt
+     type(enumerationCllsnlssMttrDarkEnergyFixedAtType) :: energyFixedAt
    contains
   end type virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
 
@@ -90,7 +92,7 @@ contains
     use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy)                        :: self
-    integer                                                           , intent(in   )         :: energyFixedAt
+    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType             ), intent(in   )         :: energyFixedAt
     logical                                                           , intent(in   )         :: tableStore
     class  (cosmologyFunctionsClass                                  ), intent(in   ), target :: cosmologyFunctions_
     !![

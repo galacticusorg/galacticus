@@ -160,7 +160,7 @@ contains
     ! Open analysis groups if necessary.
     !$ call hdf5Access%set()
     do i=1,size(simulations)
-       if (.not.self%storeBackToImported.or..not.simulations(i)%analysis%isOpen()) then
+       if (.not.self%storeBackToImported) then
           if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
           write (label,'(a,i4.4)') 'simulation',i
           simulations(i)%analysis=outputFile%openGroup(label)

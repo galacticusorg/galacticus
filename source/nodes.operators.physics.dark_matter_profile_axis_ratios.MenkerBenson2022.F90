@@ -166,7 +166,6 @@ contains
     Initialize the spin of {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentBasic
-    use :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use :: Linear_Algebra            , only : matrix                        , vector            , matrixRotationRandom, assignment(=), &
          &                                    operator(*)
     use :: Multidimensional_Minimizer, only : multiDMinimizer
@@ -175,14 +174,12 @@ contains
     implicit none
     class           (nodeOperatorHaloAxisRatiosMenkerBenson2022), intent(inout), target      :: self
     type            (treeNode                                  ), intent(inout), target      :: node
-    type            (treeNode                                  )               , pointer     :: nodeWork           , nodeChild              , &
-         &                                                                                      nodeSibling
+    type            (treeNode                                  )               , pointer     :: nodeSibling        , nodeChild
     type            (multiDMinimizer                           )               , allocatable :: minimizer_
     class           (nodeComponentDarkMatterProfile            )               , pointer     :: darkMatterProfile  , darkMatterProfileChild
     class           (nodeComponentBasic                        )               , pointer     :: basic              , basicChild             , &
          &                                                                                      basicSibling
     double precision                                            , dimension(3)               :: axisRatios         , eigenvalues_
-    type            (mergerTreeWalkerAllNodes                  )                             :: treeWalker
     type            (matrix                                    )                             :: energyTensorPrimary, energyTensorSecondary  , &
          &                                                                                      energyTensorOrbital, matrixRotationSecondary, &
          &                                                                                      eigenvectors       , matrixIntermediate0    , &
@@ -193,117 +190,108 @@ contains
     double precision                                                                         :: frequencyPrecession
     integer                                                                                  :: iteration
     logical                                                                                  :: converged
-
-    ! Create the dark matter profile and check if we need to assign axis ratios (indicated by negative ratios that are set by
-    ! default).
+    
+    ! Create a dark matter profile in the node.
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    if (any(darkMatterProfile%axisRatios() <= 0.0d0)) then
-       ! Build a minimizer object that we will use to find axis ratios given the eigenvalues of the energy tensor.
-       allocate(minimizer_)
-       minimizer_=multiDMinimizer(2_c_size_t,axisRatioCost)
-       ! Perform our own depth-first tree walk to set scales in all nodes of the tree.
-       treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-       do while (treeWalker%next(nodeWork))
-          ! Create a dark matter profile in the current node of our walk.
-          darkMatterProfile => nodeWork%darkMatterProfile(autoCreate=.true.)
-          ! If this node has no children, assume it to be spherical.
-          if (.not.associated(nodeWork%firstChild)) then
-             axisRatios  =[1.0d0,1.0d0,1.0d0]
-             call darkMatterProfile%axisRatiosSet            (                            axisRatios  )
-             eigenvalues_=self%energyTensorEigenvalues(nodeWork)
-             call darkMatterProfile%floatRank1MetaPropertySet(self%ellipsoidEigenvaluesID,eigenvalues_)
-          else
-             ! Node has children, so accumulate their energy tensors, and apply sphericalization.
-             !! Find energy tensor of the primary progenitor halo.
-             !! NOTE: No correction for unresolved accretion is made here. A more detailed model of this process should be added.
-             nodeChild           => nodeWork %firstChild
-             basicChild          => nodeChild%basic       (         )
-             energyTensorPrimary =  self     %energyTensor(nodeChild)
-             ! Iterate over any secondary progenitor halos.
-             nodeSibling         => nodeChild
-             do while(associated(nodeSibling%sibling))
-                ! Move to the next sibling (secondary progenitor).
-                nodeSibling  => nodeSibling%sibling
-                basicSibling => nodeSibling%basic  () 
-                ! Compute the energy tensor of the secondary progenitor.
-                energyTensorSecondary=self%energyTensor(nodeSibling)
-                ! Generate a random rotation matrix for the secondary.
-                matrixRotationSecondary=matrixRotationRandom(nodeSibling%hostTree%randomNumberGenerator_)
-                ! Compute the orbital energy tensor of the secondary progenitor.
-                energyTensorOrbital=self%energyTensorOrbital(nodeSibling)
-                ! Sum energy tensors (Menker & Benson 2022, equation 19).                
-                matrixIntermediate0= matrixRotationSecondary%transpose()
-                matrixIntermediate1= energyTensorSecondary  *matrixIntermediate0
-                matrixIntermediate2= matrixRotationSecondary*matrixIntermediate1
-                matrixIntermediate3= matrixIntermediate2    +energyTensorOrbital
-                matrixIntermediate4= matrixIntermediate3                                                &
-                     &              *(                                                                  &
-                     &                +(1.0d0+self%energyBoost                     )                    &
-                     &                /(1.0d0+basicSibling%mass()/basicChild%mass())**self%exponentMass &
-                     &               )
-                matrixIntermediate5= energyTensorPrimary    +matrixIntermediate4
-                energyTensorPrimary= matrix(matrixIntermediate5)
-             end do
-             ! Perform an eigen-decomposition of the energy tensor.
-             call energyTensorPrimary%eigensystem(eigenvectors,eigenvalues)
-             eigenvalues_=eigenvalues
-             ! Apply sphericalization.
-             basic                  =>  nodeWork              %basic            ()
-             darkMatterProfileChild =>  nodeChild             %darkMatterProfile()
-             axisRatios             =   darkMatterProfileChild%axisRatios       ()
-             !! Menker & Benson (2022; equation 20).
-             frequencyPrecession    =  +(                                                       &
-                  &                      +1.0d0                                                 &
-                  &                      -(                                                     &
-                  &                        +axisRatios(2)                                       &
-                  &                        *axisRatios(3)                                       &
-                  &                       )**0.25d0                                             &
-                  &                     )                                                       &
-                  &                    /self%darkMatterHaloScale_%timescaleDynamical(nodeChild)
-             !! Menker & Benson (2022; equation 23).
-             eigenvalues_=+              sum(eigenvalues_)/3.0d0                                &
-                  &       +(eigenvalues_-sum(eigenvalues_)/3.0d0)                               &
-                  &       *exp(                                                                 &
-                  &            -self%timescaleSphericalizationFractional*frequencyPrecession    &
-                  &            *(                                                               &
-                  &              +basic     %time()                                             &
-                  &              -basicChild%time()                                             &
-                  &             )                                                               &
-                  &           )
-             call sort(eigenvalues_)
-             ! Test boundedness of the halo.
-             if (all(eigenvalues_ < 0.0d0)) then
-                ! Energy tensor eigenvalues are all negative (i.e. halo is "bound" along all three principle axes). Compute the
-                ! axis ratios. To do this we use a multi-dimensional minimizer to find the axis ratios that correspond to the
-                ! current eigenvalue ratios.
-                call minimizer_%set(x=[0.5d0,0.5d0],stepSize=[0.01d0,0.01d0])
-                iteration=0
-                converged=.false.
-                do while (.not.converged .and. iteration < 100)
-                   call minimizer_%iterate()
-                   iteration=iteration+1
-                   converged=minimizer_%testSize(toleranceAbsolute=1.0d-12)
-                end do
-                axisRatios(2:3)=minimizer_%x()
-                axisRatios(1  )=    1.0d0
-                axisRatios(2  )=min(1.0d0,axisRatios(2))
-                axisRatios(3  )=min(1.0d0,axisRatios(3))
-                call sort(axisRatios)
-                axisRatios=Array_Reverse(axisRatios)
-                ! If any axis ratios are negative, simply do not update the axis ratios.
-                if (any(axisRatios <= 0.0d0)) axisRatios=darkMatterProfileChild%axisRatios()
-             else
-                ! Some eigenvalues are non-negative - indicating the halo is "unbound" along one or more axes. Do not update the
-                ! axis ratios.
-                axisRatios=darkMatterProfileChild%axisRatios()
-             end if
-             call darkMatterProfile%axisRatiosSet            (                            axisRatios  )
-             call darkMatterProfile%floatRank1MetaPropertySet(self%ellipsoidEigenvaluesID,eigenvalues_)
-          end if
+    ! If this node has no children, assume it to be spherical.
+    if (.not.associated(node%firstChild)) then
+       axisRatios  =[1.0d0,1.0d0,1.0d0]
+       call darkMatterProfile%axisRatiosSet            (                            axisRatios  )
+       eigenvalues_=self%energyTensorEigenvalues(node)
+       call darkMatterProfile%floatRank1MetaPropertySet(self%ellipsoidEigenvaluesID,eigenvalues_)
+    else
+       ! Node has children, so accumulate their energy tensors, and apply sphericalization.
+       !! Find energy tensor of the primary progenitor halo.
+       !! NOTE: No correction for unresolved accretion is made here. A more detailed model of this process should be added.
+       nodeChild           => node %firstChild
+       basicChild          => nodeChild%basic       (         )
+       energyTensorPrimary =  self     %energyTensor(nodeChild)
+       ! Iterate over any secondary progenitor halos.
+       nodeSibling         => nodeChild
+       do while(associated(nodeSibling%sibling))
+          ! Move to the next sibling (secondary progenitor).
+          nodeSibling  => nodeSibling%sibling
+          basicSibling => nodeSibling%basic  () 
+          ! Compute the energy tensor of the secondary progenitor.
+          energyTensorSecondary=self%energyTensor(nodeSibling)
+          ! Generate a random rotation matrix for the secondary.
+          matrixRotationSecondary=matrixRotationRandom(nodeSibling%hostTree%randomNumberGenerator_)
+          ! Compute the orbital energy tensor of the secondary progenitor.
+          energyTensorOrbital=self%energyTensorOrbital(nodeSibling)
+          ! Sum energy tensors (Menker & Benson 2022, equation 19).                
+          matrixIntermediate0= matrixRotationSecondary%transpose()
+          matrixIntermediate1= energyTensorSecondary  *matrixIntermediate0
+          matrixIntermediate2= matrixRotationSecondary*matrixIntermediate1
+          matrixIntermediate3= matrixIntermediate2    +energyTensorOrbital
+          matrixIntermediate4= matrixIntermediate3                                                &
+               &              *(                                                                  &
+               &                +(1.0d0+self%energyBoost                     )                    &
+               &                /(1.0d0+basicSibling%mass()/basicChild%mass())**self%exponentMass &
+               &               )
+          matrixIntermediate5= energyTensorPrimary    +matrixIntermediate4
+          energyTensorPrimary= matrix(matrixIntermediate5)
        end do
+       ! Perform an eigen-decomposition of the energy tensor.
+       call energyTensorPrimary%eigensystem(eigenvectors,eigenvalues)
+       eigenvalues_=eigenvalues
+       ! Apply sphericalization.
+       basic                  =>  node                  %basic            ()
+       darkMatterProfileChild =>  nodeChild             %darkMatterProfile()
+       axisRatios             =   darkMatterProfileChild%axisRatios       ()
+       !! Menker & Benson (2022; equation 20).
+       frequencyPrecession    =  +(                                                       &
+            &                      +1.0d0                                                 &
+            &                      -(                                                     &
+            &                        +axisRatios(2)                                       &
+            &                        *axisRatios(3)                                       &
+            &                       )**0.25d0                                             &
+            &                     )                                                       &
+            &                    /self%darkMatterHaloScale_%timescaleDynamical(nodeChild)
+       !! Menker & Benson (2022; equation 23).
+       eigenvalues_=+              sum(eigenvalues_)/3.0d0                                &
+            &       +(eigenvalues_-sum(eigenvalues_)/3.0d0)                               &
+            &       *exp(                                                                 &
+            &            -self%timescaleSphericalizationFractional*frequencyPrecession    &
+            &            *(                                                               &
+            &              +basic     %time()                                             &
+            &              -basicChild%time()                                             &
+            &             )                                                               &
+            &           )
+       call sort(eigenvalues_)
+       ! Test boundedness of the halo.
+       if (all(eigenvalues_ < 0.0d0)) then
+          ! Energy tensor eigenvalues are all negative (i.e. halo is "bound" along all three principle axes). Compute the
+          ! axis ratios. To do this we use a multi-dimensional minimizer to find the axis ratios that correspond to the
+          ! current eigenvalue ratios.
+          !! Build a minimizer object that we will use to find axis ratios given the eigenvalues of the energy tensor.
+          allocate(minimizer_)
+          minimizer_=multiDMinimizer(2_c_size_t,axisRatioCost)
+          call minimizer_%set(x=[0.5d0,0.5d0],stepSize=[0.01d0,0.01d0])
+          iteration=0
+          converged=.false.
+          do while (.not.converged .and. iteration < 100)
+             call minimizer_%iterate()
+             iteration=iteration+1
+             converged=minimizer_%testSize(toleranceAbsolute=1.0d-12)
+          end do
+          axisRatios(2:3)=minimizer_%x()
+          axisRatios(1  )=    1.0d0
+          axisRatios(2  )=min(1.0d0,axisRatios(2))
+          axisRatios(3  )=min(1.0d0,axisRatios(3))
+          call sort(axisRatios)
+          axisRatios=Array_Reverse(axisRatios)
+          ! If any axis ratios are negative, simply do not update the axis ratios.
+          if (any(axisRatios <= 0.0d0)) axisRatios=darkMatterProfileChild%axisRatios()
+       else
+          ! Some eigenvalues are non-negative - indicating the halo is "unbound" along one or more axes. Do not update the
+          ! axis ratios.
+          axisRatios=darkMatterProfileChild%axisRatios()
+       end if
+       call darkMatterProfile%axisRatiosSet            (                            axisRatios  )
+       call darkMatterProfile%floatRank1MetaPropertySet(self%ellipsoidEigenvaluesID,eigenvalues_)
     end if
     return
-
+    
   contains
     
     double precision function axisRatioCost(axisRatios_)

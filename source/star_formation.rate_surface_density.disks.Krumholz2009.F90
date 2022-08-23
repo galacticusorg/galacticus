@@ -72,7 +72,8 @@
      class           (galacticStructureClass)        , pointer :: galacticStructure_                 => null()
      integer         (kind_int8             )                  :: lastUniqueID
      logical                                                   :: factorsComputed
-     double precision                                          :: massGasPrevious                             , radiusPrevious
+     double precision                                          :: massGasPrevious                             , radiusPrevious                , &
+          &                                                       radiusCriticalPrevious                      , radiusMaximumPrevious
      type            (abundances            )                  :: abundancesFuelPrevious
      double precision                                          :: chi                                         , radiusDisk                    , &
           &                                                       massGas                                     , hydrogenMassFraction          , &
@@ -80,16 +81,17 @@
           &                                                       sigmaMolecularComplexNormalization          , clumpingFactorMolecularComplex, &
           &                                                       frequencyStarFormation
      logical                                                   :: assumeMonotonicSurfaceDensity               , molecularFractionFast
-     type            (rootFinder            )                  :: finder
+     type            (rootFinder            )                  :: finderCritical                              , finderMolecules
      type            (fastExponentiator     )                  :: surfaceDensityExponentiator
-     type            (table1DLinearLinear   )                  :: molecularFraction
-     procedure       (double precision      ), nopass, pointer :: molecularFraction_
+     type            (table1DLinearLinear   )                  :: molecularFractionTable
+     procedure       (double precision      ), nopass, pointer :: molecularFractionFunction
    contains
      !![
      <methods>
-       <method description="Reset memoized calculations." method="calculationReset" />
-       <method description="Compute constant factors required." method="computeFactors" />
+       <method description="Reset memoized calculations."              method="calculationReset"      />
+       <method description="Compute constant factors required."        method="computeFactors"        />
        <method description="Compute surface density factors required." method="surfaceDensityFactors" />
+       <method description="Compute the molecular fraction."           method="molecularFraction"     />
      </methods>
      !!]
      final     ::                          krumholz2009Destructor
@@ -100,6 +102,7 @@
      procedure :: rate                  => krumholz2009Rate
      procedure :: unchanged             => krumholz2009Unchanged
      procedure :: intervals             => krumholz2009Intervals
+     procedure :: molecularFraction     => krumholz2009MolecularFraction 
   end type starFormationRateSurfaceDensityDisksKrumholz2009
 
   interface starFormationRateSurfaceDensityDisksKrumholz2009
@@ -189,33 +192,45 @@ contains
     self%lastUniqueID          =-1_kind_int8
     self%massGasPrevious       =-1.0d0
     self%radiusPrevious        =-1.0d0
+    self%radiusCriticalPrevious=-1.0d0
+    self%radiusMaximumPrevious =-1.0d0
     self%abundancesFuelPrevious=-unitAbundances
     self%factorsComputed   =.false.
     ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
     select case (molecularFractionFast)
     case (.true.)
-       self%molecularFraction_ => krumholz2009MolecularFractionFast
+       self%molecularFractionFunction => krumholz2009MolecularFractionFast
     case(.false.)
-       self%molecularFraction_ => krumholz2009MolecularFractionSlow
+       self%molecularFractionFunction => krumholz2009MolecularFractionSlow
     end select
     ! Build a table of molecular fraction for fast look-up.
-    call self%molecularFraction%create(sMinimum,sMaximum,sCount,extrapolationType=[extrapolationTypeFix,extrapolationTypeFix])
+    call self%molecularFractionTable%create(sMinimum,sMaximum,sCount,extrapolationType=[extrapolationTypeFix,extrapolationTypeFix])
     do i=1,sCount
-       call self%molecularFraction%populate(self%molecularFraction_(self%molecularFraction%x(i)),i)
+       call self%molecularFractionTable%populate(self%molecularFractionFunction(self%molecularFractionTable%x(i)),i)
     end do
     ! Initialize exponentiator.
     self%surfaceDensityExponentiator=fastExponentiator(1.0d0,1000.0d0,0.33d0,100.0d0,.false.)
-    ! Build root finder.
-    self%finder=rootFinder(                                                               &
-         &                 rootFunction                 =krumholz2009CriticalDensityRoot, &
-         &                 toleranceAbsolute            =0.0d+0                         , &
-         &                 toleranceRelative            =1.0d-4                         , &
-         &                 rangeExpandUpward            =2.0d0                          , &
-         &                 rangeExpandDownward          =0.5d0                          , &
-         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  , &
-         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  , &
-         &                 rangeExpandType              =rangeExpandMultiplicative        &
-         &                )
+    ! Build root finders.
+    self%finderCritical =rootFinder(                                                                 &
+         &                          rootFunction                 =krumholz2009CriticalDensityRoot  , &
+         &                          toleranceAbsolute            =0.0d+0                           , &
+         &                          toleranceRelative            =1.0d-4                           , &
+         &                          rangeExpandUpward            =2.0d0                            , &
+         &                          rangeExpandDownward          =0.5d0                            , &
+         &                          rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative    , &
+         &                          rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive    , &
+         &                          rangeExpandType              =rangeExpandMultiplicative          &
+         &                         )
+    self%finderMolecules=rootFinder(                                                                 &
+         &                          rootFunction                 =krumholz2009MolecularFractionRoot, &
+         &                          toleranceAbsolute            =0.0d+0                           , &
+         &                          toleranceRelative            =1.0d-4                           , &
+         &                          rangeExpandUpward            =2.0d0                            , &
+         &                          rangeExpandDownward          =0.5d0                            , &
+         &                          rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative    , &
+         &                          rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive    , &
+         &                          rangeExpandType              =rangeExpandMultiplicative          &
+         &                         )
     return
   end function krumholz2009ConstructorInternal
 
@@ -239,9 +254,9 @@ contains
     implicit none
     type(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
-    if (calculationResetEvent%isAttached(self,krumholz2009CalculationReset))                       &
-         & call calculationResetEvent%detach                   (self,krumholz2009CalculationReset)
-    call        self                 %molecularFraction%destroy(                                 )
+    if (calculationResetEvent%isAttached(self,krumholz2009CalculationReset))                            &
+         & call calculationResetEvent%detach                        (self,krumholz2009CalculationReset)
+    call        self                 %molecularFractionTable%destroy(                                 )
     !![
     <objectDestructor name="self%galacticStructure_"/>
     !!]
@@ -256,8 +271,10 @@ contains
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type (treeNode                                        ), intent(inout) :: node
 
-    self%factorsComputed=.false.
-    self%lastUniqueID   =node%uniqueID()
+    self%factorsComputed       =.false.
+    self%radiusCriticalPrevious=-1.0d0
+    self%radiusMaximumPrevious =-1.0d0
+    self%lastUniqueID          =node%uniqueID()
     return
   end subroutine krumholz2009CalculationReset
 
@@ -338,11 +355,7 @@ contains
           ! Compute the molecular fraction.
           sigmaMolecularComplex=self%sigmaMolecularComplexNormalization*surfaceDensityGas
           s                    =self%sNormalization/sigmaMolecularComplex
-          if (s > sMaximum) then
-             molecularFraction=self%molecularFraction_           (s)
-          else
-             molecularFraction=self%molecularFraction%interpolate(s)
-          end if
+          molecularFraction    =self%molecularFraction(s)
           ! Compute the cloud density factor.
           if      (surfaceDensityGasDimensionless <= 0.0d0) then
              surfaceDensityFactor=0.0d0
@@ -361,6 +374,22 @@ contains
     return
   end function krumholz2009Rate
 
+  double precision function krumholz2009MolecularFraction(self,s)
+    !!{
+    Compute the molecular fraction as a function of the $s$ parameter.
+    !!}
+    implicit none
+    class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: s
+    
+    if (s > sMaximum) then
+       krumholz2009MolecularFraction=self%molecularFractionFunction            (s)
+    else
+       krumholz2009MolecularFraction=self%molecularFractionTable   %interpolate(s)
+    end if
+    return
+  end function krumholz2009MolecularFraction
+  
   subroutine krumholz2009SurfaceDensityFactors(self,node,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
     !!{
     Compute surface density and related quantities needed for the \cite{krumholz_star_2009} star formation rate model.
@@ -434,53 +463,110 @@ contains
     return
   end function krumholz2009MolecularFractionFast
 
-  function krumholz2009Intervals(self,node,radiusInner,radiusOuter)
+  function krumholz2009Intervals(self,node,radiusInner,radiusOuter,intervalIsAnalytic,integralsAnalytic)
     !!{
     Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
     !!}
     implicit none
-    class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout), target         :: self
-    double precision                                                  , allocatable  , dimension(:,:) :: krumholz2009Intervals
-    type            (treeNode                                        ), intent(inout), target         :: node
-    double precision                                                  , intent(in   )                 :: radiusInner          , radiusOuter
-    double precision                                                                                  :: surfaceDensityGas    , surfaceDensityGasDimensionless, &
-         &                                                                                               radiusCritical
+    class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout), target                      :: self
+    double precision                                                                 , allocatable, dimension(:,:) :: krumholz2009Intervals
+    type            (treeNode                                        ), intent(inout), target                      :: node
+    double precision                                                  , intent(in   )                              :: radiusInner          , radiusOuter
+    logical                                                           , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
+    double precision                                                  , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
+    double precision                                                                                               :: surfaceDensityGas    , surfaceDensityGasDimensionless, &
+         &                                                                                                            radiusCritical       , radiusMaximum
 
     ! Check if we can assume a monotonic surface density.
     if (self%assumeMonotonicSurfaceDensity) then
-       ! Compute factors.
-       call self%       computeFactors(node                                                             )
-       call self%surfaceDensityFactors(node,radiusInner,surfaceDensityGas,surfaceDensityGasDimensionless)
+       ! Ensure required factors are computed.
+       call self%computeFactors(node)       
+       ! First, if using the fast molecular fraction calculation, check if this truncates to zero somewhere in range.
+       radiusMaximum=radiusOuter
+       if (self%molecularFractionFast) then
+          krumholz2009Self => self
+          krumholz2009Node => node
+          if (krumholz2009MolecularFractionRoot(radiusInner) <= 0.0d0) then
+             ! The entire disk has no molecules, so the star formation rate is zero everywhere. Set zero intervals.
+             allocate(krumholz2009Intervals(2,0))
+             return
+          else if (krumholz2009MolecularFractionRoot(radiusOuter) <= 0.0d0) then
+             ! The outer regions of the disk have no molecules. Find the radius at which the molecular fraction drops to zero and
+             ! set that as the maximum radius.
+             if (self%radiusMaximumPrevious > 0.0d0) then
+                radiusMaximum    =  self%finderMolecules%find(rootGuess=self%radiusMaximumPrevious)
+             else
+                radiusMaximum    =  self%finderMolecules%find(rootRange=[radiusInner,radiusOuter])
+             end if
+             self%radiusMaximumPrevious=radiusMaximum
+          end if
+       end if
        ! Test if the inner radius is below the surface density threshold.
+       call self%surfaceDensityFactors(node,radiusInner,surfaceDensityGas,surfaceDensityGasDimensionless)
        if (surfaceDensityGasDimensionless <= 1.0d0) then
           ! The entire disk is below the critical surface density so use a single interval.
           allocate(krumholz2009Intervals(2,1))
-          krumholz2009Intervals=reshape([radiusInner,radiusOuter],[2,1])
+          allocate(intervalIsAnalytic   (  1))
+          intervalIsAnalytic   =.false.
+          krumholz2009Intervals=reshape([radiusInner,radiusMaximum],[2,1])
        else
           ! Test the surface density at the outer radius.
-          call self%surfaceDensityFactors(node,radiusOuter,surfaceDensityGas,surfaceDensityGasDimensionless)
+          call self%surfaceDensityFactors(node,radiusMaximum,surfaceDensityGas,surfaceDensityGasDimensionless)
           if (surfaceDensityGasDimensionless >= 1.0d0) then
              ! Entire disk is above the critical surface density threshold so use a single interval.
              allocate(krumholz2009Intervals(2,1))
-             krumholz2009Intervals=reshape([radiusInner,radiusOuter],[2,1])
+             allocate(intervalIsAnalytic   (  1))
+             intervalIsAnalytic   =.false.
+             krumholz2009Intervals=reshape([radiusInner,radiusMaximum],[2,1])
           else
              ! The disk transitions the critical surface density - attempt to locate the radius at which this happens and use two
              ! intervals split at this point.
              krumholz2009Self => self
              krumholz2009Node => node
-             radiusCritical   =  self%finder%find(rootRange=[radiusInner,radiusOuter])
+             if (self%radiusCriticalPrevious > 0.0d0) then
+                radiusCritical=self%finderCritical%find(rootGuess=self%radiusCriticalPrevious)
+             else
+                radiusCritical=self%finderCritical%find(rootRange=[radiusInner,radiusMaximum])
+             end if
+             self%radiusCriticalPrevious=radiusCritical
              allocate(krumholz2009Intervals(2,2))
-             krumholz2009Intervals=reshape([radiusInner,radiusCritical,radiusCritical,radiusOuter],[2,2])
+             allocate(intervalIsAnalytic   (  2))
+             intervalIsAnalytic   =.false.
+             krumholz2009Intervals=reshape([radiusInner,radiusCritical,radiusCritical,radiusMaximum],[2,2])
           end if
        end if
     else
        ! Disk surface density can not be assumed to be monotonic - use a single interval.
        allocate(krumholz2009Intervals(2,1))
+       allocate(intervalIsAnalytic   (  1))
+       intervalIsAnalytic   =.false.
        krumholz2009Intervals=reshape([radiusInner,radiusOuter],[2,1])
     end if
     return
   end function krumholz2009Intervals
-
+    
+  double precision function krumholz2009MolecularFractionRoot(radius)
+    !!{
+    Function used in finding where the molecular fraction drops below a tiny threshold.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+    double precision, parameter     :: molecularFractionTiny=1.0d-10
+    double precision                :: surfaceDensityGas            , surfaceDensityGasDimensionless, &
+         &                             sigmaMolecularComplex        , s                             , &
+         &                             molecularFraction
+    
+    call krumholz2009Self%surfaceDensityFactors(krumholz2009Node,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
+    sigmaMolecularComplex            =+krumholz2009Self%sigmaMolecularComplexNormalization &
+         &                            *                 surfaceDensityGas
+    s                                =+krumholz2009Self%sNormalization                     &
+         &                            /                 sigmaMolecularComplex
+    molecularFraction                =+krumholz2009Self%molecularFraction    (s)
+    krumholz2009MolecularFractionRoot=+molecularFraction                                   &
+         &                            -molecularFractionTiny
+    return
+  end function krumholz2009MolecularFractionRoot
+    
   double precision function krumholz2009CriticalDensityRoot(radius)
     !!{
     Root function used in finding the radius in a disk where the surface density equals the critical surface density in the

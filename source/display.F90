@@ -40,6 +40,7 @@ module Display
    <indexing>0</indexing>
    <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
    <errorValue>-1</errorValue>
    <validator>yes</validator>
    <entry label="silent"  />
@@ -51,25 +52,25 @@ module Display
   </enumeration>
   !!]
 
-  integer                                      :: maxThreads
-  integer          , allocatable, dimension(:) :: indentationLevel
-  character(len=10), allocatable, dimension(:) :: indentationFormat
-  character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
+  integer                                                             :: maxThreads
+  integer                                 , allocatable, dimension(:) :: indentationLevel
+  character(len=10                       ), allocatable, dimension(:) :: indentationFormat
+  character(len=10                       ), allocatable, dimension(:) :: indentationFormatNoNewLine
 
-  character(len=20)                            :: threadFormat                                   , masterFormat
+  character(len=20                       )                            :: threadFormat                                   , masterFormat
 
-  logical                                      :: displayInitialized        =.false.             , verbositySet=.false.
-  integer                                      :: verbosityLevel            =verbosityLevelSilent
+  logical                                                             :: displayInitialized        =.false.             , verbositySet=.false.
+  type     (enumerationVerbosityLevelType)                            :: verbosityLevel            =verbosityLevelSilent
 
   ! Progress bar state.
-  logical                                      :: barVisible                =.false.
-  integer                                      :: barPercentage             =0
+  logical                                                             :: barVisible                =.false.
+  integer                                                             :: barPercentage             =0
 
   ! Output type.
-  logical                                      :: stdOutIsFile
+  logical                                                             :: stdOutIsFile
   
   ! ANSI codes.
-  character(len=* ), parameter                 :: ESC                       =achar(27)
+  character(len=*                        ), parameter                 :: ESC                       =achar(27)
    
   interface displayMessage
      module procedure displayMessageChar
@@ -88,11 +89,12 @@ module Display
 
 contains
 
-  integer function displayVerbosity()
+  function displayVerbosity()
     !!{
     Returns the verbosity level in \glc.
     !!}
     implicit none
+    type(enumerationVerbosityLevelType) :: displayVerbosity
 
     displayVerbosity=verbosityLevel
     return
@@ -103,7 +105,7 @@ contains
     Set the verbosity level.
     !!}
     implicit none
-    integer, intent(in   ) :: verbosityLevelNew
+    type(enumerationVerbosityLevelType), intent(in   ) :: verbosityLevelNew
 
     if (enumerationVerbosityLevelIsValid(verbosityLevelNew)) then
        ! Requested value is valid, set it.
@@ -200,8 +202,8 @@ contains
     !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
-    type   (varying_string), intent(in   )           :: message
-    integer                , intent(in   ), optional :: verbosity
+    type(varying_string               ), intent(in   )           :: message
+    type(enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
     call displayIndentChar(char(message),verbosity)
     return
@@ -213,9 +215,9 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
-    character(len=*), intent(in   )           :: message
-    integer         , intent(in   ), optional :: verbosity
-    integer                                   :: threadNumber
+    character(len=*                        ), intent(in   )           :: message
+    type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
+    integer                                                           :: threadNumber
 
     !$omp critical(Display_Lock)
     call initialize()
@@ -257,8 +259,8 @@ contains
     !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
-    type   (varying_string), intent(in   )           :: message
-    integer                , intent(in   ), optional :: verbosity
+    type(varying_string               ), intent(in   )           :: message
+    type(enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
     call displayUnindentChar(char(message),verbosity)
     return
@@ -270,9 +272,9 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
-    character(len=*), intent(in   )           :: message
-    integer         , intent(in   ), optional :: verbosity
-    integer                                   :: threadNumber
+    character(len=*                        ), intent(in   )           :: message
+    type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
+    integer                                                           :: threadNumber
 
     !$omp critical(Display_Lock)
     call initialize()
@@ -314,9 +316,9 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
-    character(len=*), intent(in   )           :: message
-    integer         , intent(in   ), optional :: verbosity
-    integer                                   :: threadNumber
+    character(len=*                        ), intent(in   )           :: message
+    type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
+    integer                                                           :: threadNumber
 
     !$omp critical(Display_Lock)
     call initialize()
@@ -354,9 +356,9 @@ contains
     !$ use :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
     use    :: ISO_Varying_String, only : varying_string , char
     implicit none
-    type   (varying_string), intent(in   )           :: message
-    integer                , intent(in   ), optional :: verbosity
-    integer                                          :: threadNumber
+    type   (varying_string               ), intent(in   )           :: message
+    type   (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
+    integer                                                         :: threadNumber
 
     !$omp critical(Display_Lock)
     call initialize()
@@ -433,9 +435,9 @@ contains
     Displays a percentage counter and bar to show progress.
     !!}
     implicit none
-    integer, intent(in   )           :: percentageComplete
-    logical, intent(in   )           :: isNew
-    integer, intent(in   ), optional :: verbosity
+    integer                               , intent(in   )           :: percentageComplete
+    logical                               , intent(in   )           :: isNew
+    type   (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
     !$omp critical(Display_Lock)
     call displayCounterLockless(percentageComplete,isNew,verbosity)
@@ -448,11 +450,11 @@ contains
     Displays a percentage counter and bar to show progress.
     !!}
     implicit none
-    integer          , intent(in   )           :: percentageComplete
-    logical          , intent(in   )           :: isNew
-    integer          , intent(in   ), optional :: verbosity
-    character(len=50)                          :: bar
-    integer                                    :: majorCount        , minorCount, percentage
+    integer                                 , intent(in   )           :: percentageComplete
+    logical                                 , intent(in   )           :: isNew
+    type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
+    character(len=50                       )                          :: bar
+    integer                                                           :: majorCount        , minorCount, percentage
 
     call initialize()
     if (showMessage(verbosity)) then
@@ -487,7 +489,7 @@ contains
     Clears a percentage counter.
     !!}
     implicit none
-    integer, intent(in   ), optional :: verbosity
+    type(enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
     !$omp critical(Display_Lock)
     call counterClearLockless(verbosity)
@@ -502,7 +504,7 @@ contains
     Clears a percentage counter.
     !!}
     implicit none
-    integer, intent(in   ), optional :: verbosity
+    type(enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
     call initialize()
     ! If output is to a file we do not attempt to clear the bar (which is useful only on a TTY).
@@ -531,7 +533,7 @@ contains
     Return true if the message should be displayed at the current verbosity level.
     !!}
     implicit none
-    integer, intent(in   ), optional :: verbosity
+    type(enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
     if (present(verbosity)) then
        showMessage=(verbosity            <= verbosityLevel)

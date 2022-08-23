@@ -247,14 +247,14 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk, destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk, destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
     implicit none
     class  (nodeOperatorAgesStellarMassWeighted), intent(inout) :: self
     type   (treeNode                           ), intent(inout) :: node
     type   (treeNode                           ), pointer       :: nodeHost
     class  (nodeComponentDisk                  ), pointer       :: disk                   , diskHost
     class  (nodeComponentSpheroid              ), pointer       :: spheroid               , spheroidHost
-    integer                                                     :: destinationGasSatellite, destinationStarsSatellite, &
+    type   (enumerationDestinationMergerType   )                :: destinationGasSatellite, destinationStarsSatellite, &
          &                                                         destinationGasHost     , destinationStarsHost
     logical                                                     :: mergerIsMajor
 
@@ -267,8 +267,8 @@ contains
     ! Get mass movement descriptors.
     call self%mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     ! Move star formation rates within the host if necessary.
-    select case (destinationStarsHost)
-    case (destinationMergerDisk    )
+    select case (destinationStarsHost%ID)
+    case (destinationMergerDisk    %ID)
        call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
@@ -283,7 +283,7 @@ contains
        call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +0.0d0                                                                         &
             &                                     )
-    case (destinationMergerSpheroid)
+    case (destinationMergerSpheroid%ID)
        call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
@@ -298,14 +298,14 @@ contains
        call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +0.0d0                                                                         &
             &                                     )
-    case (destinationMergerUnmoved)
+    case (destinationMergerUnmoved%ID)
        ! Do nothing.
     case default
        call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Move the star formation rates from secondary to primary.
-    select case (destinationStarsSatellite)
-    case (destinationMergerDisk    )
+    select case (destinationStarsSatellite%ID)
+    case (destinationMergerDisk    %ID)
        call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +disk        %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
@@ -316,7 +316,7 @@ contains
             &                                      +disk        %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroid    %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
             &                                     )
-    case (destinationMergerSpheroid)
+    case (destinationMergerSpheroid%ID)
       call spheroidHost%floatRank0MetaPropertySet(                                         self%timeStellarMassFormedSpheroidID , &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
             &                                      +disk        %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &

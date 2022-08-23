@@ -152,17 +152,18 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
     !!}
-    use :: Display                         , only : displayGreen     , displayBlue                    , displayMagenta, displayReset
-    use :: Galactic_Structure_Options      , only : componentTypeDisk, coordinateSystemCylindrical    , massTypeAll   , massTypeGaseous
-    use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear         , gravitationalConstantGalacticus, megaParsec
+    use :: Display                         , only : displayGreen                , displayBlue                    , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeDisk           , coordinateSystemCylindrical    , massTypeAll   , massTypeGaseous, &
+         &                                          enumerationComponentTypeType
+    use :: Galacticus_Nodes                , only : nodeComponentDisk           , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                    , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleCylindrical), intent(inout) :: self
     class           (nodeComponent                        ), intent(inout) :: component
     type            (treeNode                             ), pointer       :: node
-    integer                                                                :: componentType
+    type            (enumerationComponentTypeType         )                :: componentType
     double precision                                                       :: forceGravitational    , forceRamPressure   , &
          &                                                                    rateMassLossFractional, radiusHalfMass     , &
          &                                                                    surfaceDensityGas     , surfaceDensityTotal, &
@@ -186,7 +187,7 @@ contains
        velocity      =component%velocity      ()
        massGas       =component%massGas       ()
     class default
-       componentType =0
+       componentType =componentTypeDisk
        radius        =0.0d0
        radiusHalfMass=0.0d0
        velocity      =0.

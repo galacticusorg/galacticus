@@ -178,6 +178,7 @@ program Tests_Sigma
        &                                                                             runningSmallScalesOnly             =.false.                                    &
        &                                                                            )
   transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
+       &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
        &                                                                             time                               =13.8d0                                     &
        &                                                                            )
   powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                                               &

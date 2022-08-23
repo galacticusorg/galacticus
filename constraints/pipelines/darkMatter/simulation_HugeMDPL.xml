@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Simulation defintion -->
+  <simulation value="" ignoreWarnings="true">
+    <!-- HugeMDPL simulation properties; https://www.cosmosim.org/cms/simulations/hugemdpl -->
+    <lengthCube   value="=4.00e03/([cosmologyParameters::HubbleConstant]/100.0)"/>
+    <massParticle value="=7.90e10/([cosmologyParameters::HubbleConstant]/100.0)"/>
+  </simulation>
+
+</parameters>

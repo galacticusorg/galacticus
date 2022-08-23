@@ -643,29 +643,24 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
-    class  (abundances), intent(in   )           :: self
-    integer            , intent(in   ), optional :: metallicityType
-    integer                                      :: metallicityTypeActual
-
+    class  (abundances                    ), intent(in   )           :: self
+    type   (enumerationMetallicityTypeType), intent(in   ), optional :: metallicityType
+    !![
+    <optionalArgument name="metallicityType" defaultsTo="metallicityTypeLinearByMass" />
+    !!]
+    
     Abundances_Get_Metallicity=self%metallicityValue
-
-    if (present(metallicityType)) then
-       metallicityTypeActual=metallicityType
-    else
-       metallicityTypeActual=metallicityTypeLinearByMass
-    end if
-
-    select case (metallicityTypeActual)
-    case (metallicityTypeLinearByMass)
+    select case (metallicityType_%ID)
+    case (metallicityTypeLinearByMass%ID)
        ! Do nothing, this is what we compute by default.
-    case (metallicityTypeLogarithmicByMassSolar)
+    case (metallicityTypeLogarithmicByMassSolar%ID)
        ! Convert to a logarithmic metallicity by mass relative to Solar.
        if (Abundances_Get_Metallicity > 0.0d0) then
           Abundances_Get_Metallicity=log10(Abundances_Get_Metallicity/metallicitySolar)
        else
           Abundances_Get_Metallicity=logMetallicityZero
        end if
-    case (metallicityTypeLinearByMassSolar)
+    case (metallicityTypeLinearByMassSolar%ID)
        ! Convert to metallicity by mass relative to Solar.
        Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
     case default
@@ -682,34 +677,32 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
-    class           (abundances), intent(inout)           :: self
-    double precision            , intent(in   )           :: metallicity
-    integer                     , intent(in   ), optional :: abundanceIndex      , adjustElements, metallicityType
-    integer                                               :: adjustElementsActual, iElement
-    double precision                                      :: metallicityPrevious
+    class           (abundances                    ), intent(inout)           :: self
+    double precision                                , intent(in   )           :: metallicity
+    integer                                         , intent(in   ), optional :: abundanceIndex
+    type            (enumerationAdjustElementsType ), intent(in   ), optional :: adjustElements
+    type            (enumerationMetallicityTypeType), intent(in   ), optional :: metallicityType
+    integer                                                                   :: iElement
+    double precision                                                          :: metallicityPrevious
+    !![
+    <optionalArgument name="adjustElements" defaultsTo="adjustElementsNone" />
+    !!]
 
     ! Store the current metallicity.
     metallicityPrevious        =self%metallicityValue
 
-    ! Determine how elements will be adjusted.
-    if (present(adjustElements)) then
-       adjustElementsActual=adjustElements
-    else
-       adjustElementsActual=adjustElementsNone
-    end if
-
     ! Store the current metallicity if necessary.
-    if (elementsCount > 0 .and. adjustElementsActual == adjustElementsUpdate) metallicityPrevious=self%metallicityValue
+    if (elementsCount > 0 .and. adjustElements_ == adjustElementsUpdate) metallicityPrevious=self%metallicityValue
 
     ! Update the metallicity.
     self%metallicityValue=metallicity
     if (present(metallicityType)) then
-       select case (metallicityType)
-       case (metallicityTypeLinearByMass          )
+       select case (metallicityType%ID)
+       case (metallicityTypeLinearByMass          %ID)
           ! Do nothing, this is how we store metallicity.
-       case (metallicityTypeLinearByMassSolar     )
+       case (metallicityTypeLinearByMassSolar     %ID)
           self%metallicityValue=         self%metallicityValue *metallicitySolar
-       case (metallicityTypeLogarithmicByMassSolar)
+       case (metallicityTypeLogarithmicByMassSolar%ID)
           self%metallicityValue=(10.0d0**self%metallicityValue)*metallicitySolar
        case default
           call Error_Report('type not supported'//{introspection:location})
@@ -718,10 +711,10 @@ contains
 
     ! Determine what we're requested to do with any other elements.
     if (elementsCount > 0) then
-       select case (adjustElementsActual)
-       case (adjustElementsNone)
+       select case (adjustElements_%ID)
+       case (adjustElementsNone%ID)
           ! Do nothing to the elemental abundances in this case.
-       case (adjustElementsReset)
+       case (adjustElementsReset%ID)
           ! Ensure that we have an abundanceIndex specified.
           if (self%metallicityValue /= 0.0d0 .and. .not.present(abundanceIndex)) &
                & call Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
@@ -735,7 +728,7 @@ contains
                      &,atomIndex=elementsIndices(iElement),normalization=normalizationMetals)
              end do
           end if
-       case (adjustElementsUpdate)
+       case (adjustElementsUpdate%ID)
           ! Ensure that we have an abundanceIndex specified.
           if (.not.present(abundanceIndex)) call Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
           ! Ensure elemental values array exists.

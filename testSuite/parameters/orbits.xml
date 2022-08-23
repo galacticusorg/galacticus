@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing orbit calculations. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="null"    />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
+  <mergerRemnantSize          value="null"    />
+
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="69.3"/>
+    <OmegaMatter value=" 0.2815"/>
+    <OmegaDarkEnergy value=" 0.7185"/>
+    <OmegaBaryon value=" 0.00000"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+
+
+  <darkMatterProfileDMO       value="isothermal"       />
+  <darkMatterProfile          value="darkMatterOnly"/>
+
+  <galacticStructure value="standard"/>
+
+</parameters>

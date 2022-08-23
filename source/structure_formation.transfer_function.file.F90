@@ -134,7 +134,6 @@
      A transfer function class which interpolates a transfer function given in a file.
      !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_               => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                => null()
      class           (transferFunctionClass   ), pointer :: transferFunctionReference          => null()
      type            (varying_string          )          :: fileName
@@ -269,24 +268,24 @@ contains
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use :: Table_Labels           , only : enumerationExtrapolationTypeEncode
+    use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
     implicit none
-    class           (transferFunctionFile    ), intent(inout)             :: self
-    character       (len=*                   ), intent(in   )             :: fileName
-    double precision                          , allocatable, dimension(:) :: transfer                       , wavenumber               , &
-         &                                                                   transferLogarithmic            , wavenumberLogarithmic
-    class           (cosmologyParametersClass), pointer                   :: cosmologyParametersFile
-    double precision                          , parameter                 :: toleranceUniformity     =1.0d-6
-    double precision                                                      :: HubbleConstant                 , OmegaBaryon              , &
-         &                                                                   OmegaMatter                    , OmegaDarkEnergy          , &
-         &                                                                   temperatureCMB
-    integer                                                               :: extrapolateWavenumberLow       , extrapolateWavenumberHigh, &
-         &                                                                   versionNumber
-    character       (len=32                  )                            :: datasetName
-    type            (varying_string          )                            :: limitTypeVar
-    type            (hdf5Object              )                            :: fileObject                     , parametersObject         , &
-         &                                                                   extrapolationObject            , wavenumberObject         , &
-         &                                                                   darkMatterGroup
+    class           (transferFunctionFile            ), intent(inout)             :: self
+    character       (len=*                           ), intent(in   )             :: fileName
+    double precision                                  , allocatable, dimension(:) :: transfer                       , wavenumber               , &
+         &                                                                           transferLogarithmic            , wavenumberLogarithmic
+    class           (cosmologyParametersClass        ), pointer                   :: cosmologyParametersFile
+    double precision                                  , parameter                 :: toleranceUniformity     =1.0d-6
+    double precision                                                              :: HubbleConstant                 , OmegaBaryon              , &
+         &                                                                           OmegaMatter                    , OmegaDarkEnergy          , &
+         &                                                                           temperatureCMB
+    type            (enumerationExtrapolationTypeType)                            :: extrapolateWavenumberLow       , extrapolateWavenumberHigh
+    integer                                                                       :: versionNumber
+    character       (len=32                          )                            :: datasetName
+    type            (varying_string                  )                            :: limitTypeVar
+    type            (hdf5Object                      )                            :: fileObject                     , parametersObject         , &
+         &                                                                           extrapolationObject            , wavenumberObject         , &
+         &                                                                           darkMatterGroup
 
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()

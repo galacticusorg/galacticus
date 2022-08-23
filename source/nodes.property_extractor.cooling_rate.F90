@@ -43,7 +43,6 @@ Contains a module which implements a cooling rate property extractor class.
      procedure :: name        => rateCoolingName
      procedure :: description => rateCoolingDescription
      procedure :: unitsInSI   => rateCoolingUnitsInSI
-     procedure :: type        => rateCoolingType
   end type nodePropertyExtractorRateCooling
 
   interface nodePropertyExtractorRateCooling
@@ -158,16 +157,4 @@ contains
     return
   end function rateCoolingUnitsInSI
 
-  integer function rateCoolingType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRateCooling), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    rateCoolingType=outputAnalysisPropertyTypeLinear
-    return
-  end function rateCoolingType
 

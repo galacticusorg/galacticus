@@ -71,12 +71,14 @@ contains
     !!{
     Constructor for the ``localGroupMassFunction'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
-    use :: Output_Times    , only : outputTimes   , outputTimesClass
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Output_Times      , only : outputTimes           , outputTimesClass
     implicit none
     type            (outputAnalysisLocalGroupMassFunction)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
+    class           (galacticStructureClass              ), pointer                     :: galacticStructure_
     double precision                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                             :: covarianceBinomialBinsPerDecade
     double precision                                                                    :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -151,9 +153,10 @@ contains
       <defaultValue>1.0d16</defaultValue>
       <description>The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupMassFunction(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupMassFunction(outputTimes_,galacticStructure_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -161,7 +164,7 @@ contains
     return
   end function localGroupMassFunctionConstructorParameters
 
-  function localGroupMassFunctionConstructorInternal(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupMassFunctionConstructorInternal(outputTimes_,galacticStructure_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``localGroupMassFunction'' output analysis class for internal use.
     !!}
@@ -190,6 +193,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                         , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
     class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
+    class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassStellar                   )               , pointer        :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
@@ -256,7 +260,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar               (                                                   )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                 )"/>
     !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )

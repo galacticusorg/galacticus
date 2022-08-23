@@ -36,7 +36,9 @@ sub Process_Enumerations {
 	    my $indexing          = exists($node->{'directive'}->{'indexing'}) ? $node->{'directive'}->{'indexing'} : 0;
 	    my $i                 = $indexing-1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
-	    $enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=".++$i."\n"
+	    $enumerationSource .= "  type, extends(enumerationType) :: enumeration".$node->{'directive'}->{'name'}."Type\n";
+	    $enumerationSource .= "  end type enumeration".$node->{'directive'}->{'name'}."Type\n";
+	    $enumerationSource .= "  type(enumeration".$node->{'directive'}->{'name'}."Type), parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=enumeration".$node->{'directive'}->{'name'}."Type(".++$i.")\n"
 		foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
 	    my $enumerationCount   = $i+1-$indexing;
 	    if ( $validator eq "yes" ) {
@@ -45,6 +47,20 @@ sub Process_Enumerations {
 		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Count=".$enumerationCount."\n";
 	    }
 	    $enumerationSource .= "  ! End auto-generated enumeration\n\n";
+	    my $usesNode =
+	    {
+		type      => "moduleUse",
+		moduleUse =>
+		{
+		    "Enumerations" =>
+		    {
+			intrinsic => 0,
+			only      => {enumerationType => 1}
+		    }
+		}
+	    };
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'}                                                    ,$usesNode  );
+	    &Galacticus::Build::SourceTree::SetVisibility             ($node->{'parent'},"enumeration".$node->{'directive'}->{'name'}."Type",$visibility);
 	    # Create and insert new nodes.
 	    my $enumerationTree = &Galacticus::Build::SourceTree::ParseCode($enumerationSource,"Galacticus::Build::SourceTree::Process::Enumeration()");
 	    my @enumerationNodes = &Galacticus::Build::SourceTree::Children($enumerationTree);
@@ -61,8 +77,8 @@ sub Process_Enumerations {
 		$validatorFunction .= "    Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
 		$validatorFunction .= "    !!}\n";
 		$validatorFunction .= "    implicit none\n\n";
-		$validatorFunction .= "    integer, intent(in   ) :: enumerationValue\n";
-		$validatorFunction .= "    ".$functionName."=(enumerationValue >= ".$node->{'directive'}->{'name'}."Min .and. enumerationValue <= ".$node->{'directive'}->{'name'}."Max)\n";
+		$validatorFunction .= "    type(enumeration".$node->{'directive'}->{'name'}."Type), intent(in   ) :: enumerationValue\n";
+		$validatorFunction .= "    ".$functionName."=(enumerationValue%ID >= ".$node->{'directive'}->{'name'}."Min .and. enumerationValue%ID <= ".$node->{'directive'}->{'name'}."Max)\n";
 		$validatorFunction .= "    return\n";
 		$validatorFunction .= "  end function ".$functionName."\n";
 		$validatorFunction .= "  ! End auto-generated enumeration function\n";
@@ -79,33 +95,63 @@ sub Process_Enumerations {
 		my $encodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Encode";
 		my $onError;
 		$onError = $node->{'directive'}->{'errorValue'}
-		if ( exists($node->{'directive'}->{'errorValue'}) );
+		    if ( exists($node->{'directive'}->{'errorValue'}) );
 		my $interface;
 		$interface .= " interface ".$encodeFunctionName."\n";
 		$interface .= "  module procedure ".$encodeFunctionName."Char\n";
 		$interface .= "  module procedure ".$encodeFunctionName."VarStr\n";
 		$interface .= " end interface ".$encodeFunctionName."\n\n";
+		$interface .= " interface ".$encodeFunctionName."ID\n";
+		$interface .= "  module procedure ".$encodeFunctionName."IDChar\n";
+		$interface .= "  module procedure ".$encodeFunctionName."IDVarStr\n";
+		$interface .= " end interface ".$encodeFunctionName."ID\n\n";
 		my $function;
 		$function .= "\n";
 		$function .= "  ! Auto-generated enumeration functions\n";
-		$function .= "  integer function ".$encodeFunctionName."VarStr(name,includesPrefix)\n";
+		$function .= "  integer function ".$encodeFunctionName."IDVarStr(name,includesPrefix)\n";
 		$function .= "    !!{\n";
-		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier ID.\n";
 		$function .= "    !!}\n";
 		$function .= "    use :: ISO_Varying_String\n";
 		$function .= "    implicit none\n\n";
 		$function .= "    type   (varying_string), intent(in   )           :: name\n";
 		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
+		$function .= "    ".$encodeFunctionName."IDVarStr=".$encodeFunctionName."ID(char(name),includesPrefix)\n";
+		$function .= "    return\n";
+		$function .= "  end function ".$encodeFunctionName."IDVarStr\n\n";
+		$function .= "  integer function ".$encodeFunctionName."IDChar(name,includesPrefix)\n";
+		$function .= "    !!{\n";
+		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier ID.\n";
+		$function .= "    !!}\n";
+		$function .= "    use :: ISO_Varying_String\n";
+		$function .= "    implicit none\n\n";
+		$function .= "    character(len=*), intent(in   )           :: name\n";
+		$function .= "    logical         , intent(in   ), optional :: includesPrefix\n";
+		$function .= "    type(enumeration".$node->{'directive'}->{'name'}."Type) :: member\n";
+		$function .= "    member=".$encodeFunctionName."(name,includesPrefix)\n";
+		$function .= "    ".$encodeFunctionName."IDChar=member%ID\n";
+		$function .= "    return\n";
+		$function .= "  end function ".$encodeFunctionName."IDChar\n\n";
+		$function .= "  function ".$encodeFunctionName."VarStr(name,includesPrefix)\n";
+		$function .= "    !!{\n";
+		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    !!}\n";
+		$function .= "    use :: ISO_Varying_String\n";
+		$function .= "    implicit none\n\n";
+		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."VarStr\n";
+		$function .= "    type   (varying_string), intent(in   )           :: name\n";
+		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
 		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix)\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."VarStr\n\n";
-		$function .= "  integer function ".$encodeFunctionName."Char(name,includesPrefix)\n";
+		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix)\n";
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
 		$function .= "    use :: Error, only : Error_Report\n"
 		    unless ( $onError );
 		$function .= "    implicit none\n\n";
+		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."Char\n";
 		$function .= "    character(len=*), intent(in   )           :: name\n";
 		$function .= "    logical         , intent(in   ), optional :: includesPrefix\n";
 		$function .= "    logical                                   :: includesPrefix_\n\n";
@@ -127,13 +173,13 @@ sub Process_Enumerations {
 			    $function .=                                        $_->{'label'} ;
 			}
 			$function .= "')\n";
-			$function .= "        ".$encodeFunctionName."Char=".++$i."\n";
+			$function .= "        ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(".++$i.")\n";
 		    }
 		    $function .= "      case default\n";
 		    if ( $onError ) {
-			$function .= "      ".$encodeFunctionName."Char=".$onError."\n";
+			$function .= "      ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(".$onError.")\n";
 		    } else {
-			$function .= "      ".$encodeFunctionName."Char=-1\n";
+			$function .= "      ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(-1)\n";
 			$function .= "      call Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    }
 		    $function .= "      end select\n";
@@ -156,32 +202,50 @@ sub Process_Enumerations {
 	    if ( exists($node->{'directive'}->{'decodeFunction'}) && $node->{'directive'}->{'decodeFunction'} eq "yes" ) {
 		# Generate function code.
 		my $decodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Decode";
+		my $interface;
+		$interface .= " interface ".$decodeFunctionName."\n";
+		$interface .= "  module procedure ".$decodeFunctionName."Enumerator\n";
+		$interface .= "  module procedure ".$decodeFunctionName."ID\n";
+		$interface .= " end interface ".$decodeFunctionName."\n\n";
 		my $function;
 		$function .= "\n";
 		$function .= "  ! Auto-generated enumeration function\n";
-		$function .= "  function ".$decodeFunctionName."(enumerationValue,includePrefix)\n";
+		$function .= "  function ".$decodeFunctionName."Enumerator(enumerationValue,includePrefix)\n";
 		$function .= "    !!{\n";
 		$function .= "    Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
 		$function .= "    !!}\n";
 		$function .= "    use ISO_Varying_String\n";
-		$function .= "    use Error\n";
 		$function .= "    implicit none\n\n";
-		$function .= "    type   (varying_string)                          :: ".$decodeFunctionName."\n";
+		$function .= "    type   (varying_string)                                                             :: ".$decodeFunctionName."Enumerator\n";
+		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type), intent(in   )           :: enumerationValue\n";
+		$function .= "    logical                                                   , intent(in   ), optional :: includePrefix\n\n";
+		$function .= "    ".$decodeFunctionName."Enumerator=".$decodeFunctionName."(enumerationValue%ID,includePrefix)\n";
+		$function .= "    return\n";
+		$function .= "  end function ".$decodeFunctionName."Enumerator\n";
+		$function .= "  function ".$decodeFunctionName."ID(enumerationValue,includePrefix)\n";
+		$function .= "    !!{\n";
+		$function .= "    Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    !!}\n";
+		$function .= "    use ISO_Varying_String\n";
+		$function .= "    use Error\n"
+		    unless ( exists($node->{'directive'}->{'errorValue'}) );
+		$function .= "    implicit none\n\n";
+		$function .= "    type   (varying_string)                          :: ".$decodeFunctionName."ID\n";
 		$function .= "    integer                , intent(in   )           :: enumerationValue\n";
 		$function .= "    logical                , intent(in   ), optional :: includePrefix\n";
 		for(my $j=0;$j<2;++$j) {
 		    if ( $j == 0 ) {
 			$function .= "    if (present(includePrefix).and.includePrefix) then\n";
-			$function .= "      ".$decodeFunctionName."='".$node->{'directive'}->{'name'}."'\n";
+			$function .= "      ".$decodeFunctionName."ID='".$node->{'directive'}->{'name'}."'\n";
 		    } else {
 			$function .= "    else\n";
-			$function .= "      ".$decodeFunctionName."=''\n";
+			$function .= "      ".$decodeFunctionName."ID=''\n";
 		    }
 		    my $i = $indexing-1;
 		    $function .= "    select case(enumerationValue)\n";
 		    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 			$function .= "    case (".++$i.")\n";
-			$function .= "       ".$decodeFunctionName."=".$decodeFunctionName."//'";
+			$function .= "       ".$decodeFunctionName."ID=".$decodeFunctionName."ID//'";
 			if ( $j == 0 ) {
 			    $function .= ucfirst($_->{'label'});
 			} else {
@@ -190,17 +254,24 @@ sub Process_Enumerations {
 			$function .= "'\n";
 		    }
 		    $function .= "    case default\n";
-		    $function .= "      call Error_Report('invalid enumeration value'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    if ( exists($node->{'directive'}->{'errorValue'}) ) {
+			$function .= "      ".$decodeFunctionName."ID=".$decodeFunctionName."ID//'Error'\n";
+		    } else {
+			$function .= "      call Error_Report('invalid enumeration value'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    }
 		    $function .= "    end select\n";
 		}
 		$function .= "    end if\n";
 		$function .= "    return\n";
-		$function .= "  end function ".$decodeFunctionName."\n";
+		$function .= "  end function ".$decodeFunctionName."ID\n";
 		$function .= "  ! End auto-generated enumeration function\n";
 		# Insert into the module.
 		my $decodeTree = &Galacticus::Build::SourceTree::ParseCode($function,"Galacticus::Build::SourceTree::Process::Enumeration()");
 		my @decodeNodes = &Galacticus::Build::SourceTree::Children($decodeTree);
 		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@decodeNodes);
+		my $interfaceTree = &Galacticus::Build::SourceTree::ParseCode($interface,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @interfaceNodes = &Galacticus::Build::SourceTree::Children($interfaceTree);
+		&Galacticus::Build::SourceTree::InsertPreContains($node->{'parent'},\@interfaceNodes);
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
 	    }

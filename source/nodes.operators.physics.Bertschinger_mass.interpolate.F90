@@ -137,17 +137,11 @@ contains
     !!{
     Initialize the Bertschinger mass of all nodes in the tree.    
     !!}
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     class(nodeOperatorBertschingerMass), intent(inout), target  :: self
     type (treeNode                    ), intent(inout), target  :: node
-    type (treeNode                    )               , pointer :: nodeWork
-    type (mergerTreeWalkerAllNodes    )                         :: treeWalker
     
-    treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-    do while (treeWalker%next(nodeWork))
-       call self%nodeInitialize(nodeWork)
-    end do
+    call self%nodeInitialize(node)
     return
   end subroutine bertschingerMassNodeTreeInitialize
   

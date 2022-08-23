@@ -48,7 +48,6 @@ Contains a module which implements a property extractor class for the orbital ad
      procedure :: name        => adiabaticRatioOrbitalDiskName
      procedure :: description => adiabaticRatioOrbitalDiskDescription
      procedure :: unitsInSI   => adiabaticRatioOrbitalDiskUnitsInSI
-     procedure :: type        => adiabaticRatioOrbitalDiskType
   end type nodePropertyExtractorAdiabaticRatioOrbitalDisk
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
@@ -187,16 +186,4 @@ contains
     return
   end function adiabaticRatioOrbitalDiskUnitsInSI
 
-  integer function adiabaticRatioOrbitalDiskType(self)
-    !!{
-    Return the type of the orbital adiabatic ratio for disks property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    adiabaticRatioOrbitalDiskType=outputAnalysisPropertyTypeLinear
-    return
-  end function adiabaticRatioOrbitalDiskType
 

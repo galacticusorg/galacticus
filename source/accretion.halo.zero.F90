@@ -88,9 +88,9 @@ contains
     Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloZero), intent(inout) :: self
-    type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretionRate=0.0d0
@@ -102,9 +102,9 @@ contains
     Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloZero), intent(inout) :: self
-    type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretedMass=0.0d0
@@ -116,9 +116,9 @@ contains
     Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloZero), intent(inout) :: self
-    type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroFailedAccretionRate=0.0d0
@@ -130,9 +130,9 @@ contains
     Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloZero), intent(inout) :: self
-    type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroFailedAccretedMass=0.0d0
@@ -145,10 +145,10 @@ contains
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
-    type   (abundances       )                :: zeroAccretionRateMetals
-    class  (accretionHaloZero), intent(inout) :: self
-    type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    type (abundances                  )                :: zeroAccretionRateMetals
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretionRateMetals=zeroAbundances
@@ -161,10 +161,10 @@ contains
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
-    type   (abundances       )                :: zeroAccretedMassMetals
-    class  (accretionHaloZero), intent(inout) :: self
-    type   (treeNode         ), intent(inout) :: node
-    integer                   , intent(in   ) :: accretionMode
+    type (abundances                  )                :: zeroAccretedMassMetals
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretedMassMetals=zeroAbundances
@@ -209,10 +209,10 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
-    type   (chemicalAbundances)                :: zeroAccretionRateChemicals
-    class  (accretionHaloZero ), intent(inout) :: self
-    type   (treeNode          ), intent(inout) :: node
-    integer                    , intent(in   ) :: accretionMode
+    type (chemicalAbundances          )                :: zeroAccretionRateChemicals
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretionRateChemicals=zeroChemicalAbundances
@@ -225,10 +225,10 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
-    type   (chemicalAbundances)                :: zeroAccretedMassChemicals
-    class  (accretionHaloZero ), intent(inout) :: self
-    type   (treeNode          ), intent(inout) :: node
-    integer                    , intent(in   ) :: accretionMode
+    type (chemicalAbundances          )                :: zeroAccretedMassChemicals
+    class(accretionHaloZero           ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
     !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretedMassChemicals=zeroChemicalAbundances

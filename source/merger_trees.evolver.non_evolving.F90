@@ -21,6 +21,7 @@
   Implements a non-evolving class for evolving merger trees.
   !!}
 
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   
   !![
@@ -33,6 +34,7 @@
      Implementation of a non-evolving  merger tree evolver.
      !!}
      private
+     class  (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
      class  (mergerTreeInitializorClass), pointer :: mergerTreeInitializor_ => null()
      logical                                      :: pruneTree
    contains
@@ -59,6 +61,7 @@ contains
     type   (mergerTreeEvolverNonEvolving)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
     logical                                              :: pruneTree
+    class  (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     class  (mergerTreeInitializorClass  ), pointer       :: mergerTreeInitializor_
 
     !![
@@ -68,26 +71,29 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
     </inputParameter>
-    <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_" source="parameters"/>
     !!]
-    self=mergerTreeEvolverNonEvolving(pruneTree,mergerTreeInitializor_)
+    self=mergerTreeEvolverNonEvolving(pruneTree,cosmologyFunctions_,mergerTreeInitializor_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="mergerTreeInitializor_" />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="mergerTreeInitializor_"/>
     !!]
     return
   end function nonEvolvingConstructorParameters
 
-  function nonEvolvingConstructorInternal(pruneTree,mergerTreeInitializor_) result(self)
+  function nonEvolvingConstructorInternal(pruneTree,cosmologyFunctions_,mergerTreeInitializor_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverNonEvolving)                        :: self
+    class  (cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
     class  (mergerTreeInitializorClass  ), intent(in   ), target :: mergerTreeInitializor_
     logical                              , intent(in   )         :: pruneTree
     !![
-    <constructorAssign variables="pruneTree, *mergerTreeInitializor_"/>
+    <constructorAssign variables="pruneTree, *cosmologyFunctions_, *mergerTreeInitializor_"/>
     !!]
 
     return
@@ -102,6 +108,7 @@ contains
 
     !![
     <objectDestructor name="self%mergerTreeInitializor_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
     !!]
     return
   end subroutine nonEvolvingDestructor
@@ -110,7 +117,7 @@ contains
     !!{
     Evolves all properties of a merger tree to the specified time.
     !!}
-    use    :: Error     , only : errorStatusSuccess
+    use    :: Error                , only : errorStatusSuccess
     use    :: Merger_Tree_Operators, only : mergerTreeOperatorPruneByTime
     !$ use :: OMP_Lib              , only : OMP_Set_Lock                 , OMP_Unset_Lock, omp_lock_kind
     implicit none
@@ -128,7 +135,7 @@ contains
     !$GLC attributes unused :: self, deadlockReporting, systemClockMaximum
 
     if (present(status)) status=errorStatusSuccess
-    if (self%pruneTree) pruner=mergerTreeOperatorPruneByTime(timeEnd,0.0d0,huge(0.0d0))
+    if (self%pruneTree) pruner=mergerTreeOperatorPruneByTime(timeEnd,0.0d0,huge(0.0d0),self%cosmologyFunctions_)
     suspendTree   =  .false.
     treeDidEvolve =  .true.
     currentTree   => tree

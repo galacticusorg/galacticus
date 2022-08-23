@@ -40,6 +40,8 @@
      Implementation of a computational domain using a 3D Cartesian grid.
      !!}
      private
+     double precision                                                , dimension(  2  ) :: xBoundaries                            , yBoundaries               , &
+          &                                                                                zBoundaries
      double precision                                                , dimension(3,2  ) :: boundaries
      integer         (c_size_t                         )             , dimension(3    ) :: countCells
      double precision                                                                   :: convergencePercentile                  , convergenceMeasurePrevious, &
@@ -183,6 +185,10 @@ contains
     <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
     !!]
     
+    ! Store boundaries for each axis.
+    self%xBoundaries=boundaries(1,:)
+    self%yBoundaries=boundaries(2,:)
+    self%zBoundaries=boundaries(3,:)
     ! Construct cell boundaries.
     do i=1,3
        allocate(self%boundariesCells(i)%boundary(countCells(i)+1))
@@ -596,10 +602,10 @@ contains
     !!}
     use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
-    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
+    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity         , &
           &                                        verbosityLevelInfo, verbosityLevelStandard
     use :: MPI_Utilities                  , only : mpiBarrier        , mpiSelf
-    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther
+    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther, enumerationStatusCellType
     use :: Timers                         , only : timer
     implicit none
     class           (computationalDomainCartesian3D), intent(inout)                         :: self
@@ -610,7 +616,7 @@ contains
     double precision                                                                        :: convergenceMeasure , convergenceMeasureRatio
     character       (len=128                       )                                        :: message
     logical                                                                                 :: convergedCriteria
-    integer                                                                                 :: statusCell
+    type            (enumerationStatusCellType     )                                        :: statusCell
     type            (timer                         )                                        :: timer_
 
     ! Establish a timer.

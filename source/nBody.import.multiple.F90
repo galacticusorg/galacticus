@@ -40,7 +40,8 @@ Contains a module which implements an N-body data importer which imports using m
      An importer which imports using multiple other importers.
      !!}
      private
-     type(nbodyImporterList), pointer :: importers => null()
+     type   (nbodyImporterList), pointer :: importers => null()
+     logical                             :: allHDF5   =  .true.
    contains
      final     ::           multipleDestructor
      procedure :: import => multipleImport
@@ -68,6 +69,7 @@ contains
     type   (nbodyImporterList    ), pointer       :: importer_
     integer                                       :: i
 
+    self     %allHDF5   =  .true.
     self     %importers => null()
     importer_           => null()
     do i=1,parameters%copiesCount('nbodyImporter',zeroIfNotPresent=.true.)
@@ -81,6 +83,9 @@ contains
        !![
        <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
        !!]
+       self%allHDF5= self               %allHDF5   &
+            &       .and.                          &
+            &        importer_%importer_% isHDF5()
     end do
     !![
     <inputParametersValidate source="parameters" multiParameters="nbodyImporter"/>
@@ -97,13 +102,17 @@ contains
     type(nbodyImporterList    ), target, intent(in   ) :: importers
     type(nbodyImporterList    ), pointer               :: importer_
 
+    self     %allHDF5   =  .true.
     self     %importers => importers
     importer_           => importers
     do while (associated(importer_))
        !![
        <referenceCountIncrement owner="importer_" object="importer_"/>
        !!]
-       importer_ => importer_%next
+       self     %allHDF5 =   self               %allHDF5   &
+            &               .and.                          &
+            &                importer_%importer_% isHDF5()
+       importer_         =>  importer_%next
     end do
     return
   end function multipleConstructorInternal
@@ -189,6 +198,6 @@ contains
     implicit none
     class(nbodyImporterMultiple), intent(inout) :: self
 
-    multipleIsHDF5=.false.
+    multipleIsHDF5=self%allHDF5
     return
   end function multipleIsHDF5

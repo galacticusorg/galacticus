@@ -157,6 +157,7 @@ program Tests_Power_Spectrum
   <referenceConstruct object="transferFunctionScaleFree_"                  >
    <constructor>
       transferFunctionIdentity              (                                                                                           &amp;
+      &amp;                                  cosmologyParameters_               =cosmologyParameters_                                 , &amp;
       &amp;                                  time                               =cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)  &amp;
       &amp;                                 )
    </constructor>

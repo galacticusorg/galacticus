@@ -127,10 +127,12 @@ contains
     !!{
     Determine the inertia tensor of the particle distribution, along with its eigenvectors, eigenvaues, and axis ratios.
     !!}
-    use    :: Display       , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
-         &                           displayUnindent   , verbosityLevelStandard
-    use    :: Error         , only : Error_Report
-    use    :: Linear_Algebra, only : matrix            , vector                , operator(*)  , assignment(=)
+    use    :: Display        , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
+         &                            displayUnindent   , verbosityLevelStandard
+    use    :: Error          , only : Error_Report
+    use    :: Linear_Algebra , only : matrix            , vector                , operator(*)  , assignment(=)
+    use    :: Sorting        , only : sort
+    use    :: Array_Utilities, only : Array_Reverse
 #ifdef USEMPI
     use    :: MPI_Utilities , only : mpiSelf
 #endif
@@ -142,7 +144,7 @@ contains
     double precision                           , allocatable  , dimension(:,:,:) :: inertiaTensor         , eigenVectors
     double precision                           , pointer      , dimension(:,:  ) :: position
     integer         (c_size_t                 ), pointer      , dimension(:,:  ) :: selfBoundStatus
-    integer         (c_size_t                 ), pointer      , dimension(:    ) :: indexMostBound
+    integer         (c_size_t                 ), pointer      , dimension(:,:  ) :: indexMostBound
     double precision                           , allocatable  , dimension(:,:  ) :: positionOffset        , axisRatios   , &
          &                                                                          eigenValues
     double precision                           , allocatable  , dimension(:    ) :: radiusOffset
@@ -153,7 +155,7 @@ contains
     type            (matrix                   )                                  :: inertiaTensor_        , eigenVectors_
     type            (vector                   )                                  :: eigenValues_
     double precision                                          , dimension(3    ) :: axisLengths
-    
+
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
@@ -190,8 +192,8 @@ contains
        ! Get simulation attributes.
        massParticle=simulations(iSimulation)%attributesReal%value('massParticle')
        ! Get index of the most-bound particle.
-       if (simulations(iSimulation)%propertiesInteger%exists('indexMostBound')) then
-          indexMostBound => simulations(iSimulation)%propertiesInteger%value('indexMostBound')
+       if (simulations(iSimulation)%propertiesIntegerRank1%exists('indexMostBound')) then
+          indexMostBound => simulations(iSimulation)%propertiesIntegerRank1%value('indexMostBound')
        else
           call Error_Report('index of most bound particle not available - apply a self-bound operator first'//{introspection:location})
        end if
@@ -218,10 +220,9 @@ contains
           ! First find the position (and radius) relative to the most-bound particle.
           !$omp workshare
           forall(j=1:3)
-             positionOffset(j,:)=+position(j,               : ) &
-                  &              -position(j,indexMostBound(i))
+             positionOffset(j,:)=+position(j,               :   ) &
+                  &              -position(j,indexMostBound(1,i))
           end forall
-          !$omp end workshare
           radiusOffset=sqrt(sum(positionOffset**2,dim=1))
           ! Construct a mask of particles to include in the calculation.
           mask=radiusOffset < self%radiusMaximum
@@ -232,7 +233,6 @@ contains
           !     ⌡                   ⎣ -xz    -yz    +x²+y² ⎦          
           !
           ! which we estimate as a discrete sum over particles.
-          !$omp workshare
           inertiaTensor(1,1,i)=+sum(                                   &
                &                         +dble(selfBoundStatus(:,i))   &
                &                         *(                            &
@@ -293,7 +293,8 @@ contains
           call inertiaTensor_%eigenSystem(eigenVectors_,eigenValues_)
           eigenVectors(:,:,i)=eigenVectors_
           eigenValues (  :,i)=eigenValues_
-          ! For an inhomogeneous ellipsoid with axis lengths (a,b,c), the eigenvalues of the inertia tensor, (A,B,C), are (https://scienceworld.wolfram.com/physics/MomentofInertiaEllipsoid.html):
+          ! For an inhomogeneous ellipsoid with axis lengths (a,b,c), the eigenvalues of the inertia tensor, (A,B,C), are
+          ! (https://scienceworld.wolfram.com/physics/MomentofInertiaEllipsoid.html):          
           !
           !  A ∝ (b²+c²),
           !  B ∝ (a²+c²),
@@ -309,6 +310,8 @@ contains
           axisLengths(1  )=sqrt(0.5d0*(-eigenValues(1,i)+eigenValues(2,i)+eigenValues(3,i)))
           axisLengths(2  )=sqrt(0.5d0*(+eigenValues(1,i)-eigenValues(2,i)+eigenValues(3,i)))
           axisLengths(3  )=sqrt(0.5d0*(+eigenValues(1,i)+eigenValues(2,i)-eigenValues(3,i)))
+          call sort(axisLengths)
+          axisLengths     =Array_Reverse(axisLengths)
           axisRatios (:,i)=axisLengths/axisLengths(1)
        end do
        ! Store results to file.

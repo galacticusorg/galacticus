@@ -618,11 +618,11 @@ contains
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+       !$ if (.not.hdf5Access%ownedByThread()) &
+       !$      & call hdf5Access%set  (     )
+       call           H5Close_F       (error)
+       call           H5Close_C       (     )
+       !$ call        hdf5Access%unset(     )
 #endif
        call Warn_Review( )
        call BackTrace  ( )

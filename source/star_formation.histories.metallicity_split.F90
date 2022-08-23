@@ -376,7 +376,7 @@ contains
     type            (history                             ), intent(inout)         :: historyStarFormation
     integer         (c_size_t                            ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8                      ), intent(in   )         :: indexTree
-    integer                                               , intent(in   )         :: componentType
+    type            (enumerationComponentTypeType        ), intent(in   )         :: componentType
     type            (ompLock                             ), intent(inout)         :: treeLock
     class           (nodeComponentBasic                  ), pointer               :: basicParent
     type            (treeNode                            ), pointer               :: nodeParent

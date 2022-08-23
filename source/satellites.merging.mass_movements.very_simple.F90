@@ -157,11 +157,11 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (*       ), intent(inout)         :: self
-    type   (treeNode), intent(inout), target :: node
-    integer                                  :: destinationGasSatellite, destinationGasHost       , &
-         &                                      destinationStarsHost   , destinationStarsSatellite
-    logical                                  :: mergerIsMajor
+    class  (*                               ), intent(inout)         :: self
+    type   (treeNode                        ), intent(inout), target :: node
+    type   (enumerationDestinationMergerType)                        :: destinationGasSatellite, destinationGasHost       , &
+         &                                                              destinationStarsHost   , destinationStarsSatellite
+    logical                                                          :: mergerIsMajor
 
     select type (self)
     type is (mergerMassMovementsVerySimple)
@@ -178,13 +178,13 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : massTypeGalactic
     implicit none
-    class           (mergerMassMovementsVerySimple), intent(inout)         :: self
-    type            (treeNode                     ), intent(inout), target :: node
-    integer                                        , intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
-         &                                                                    destinationStarsHost   , destinationStarsSatellite
-    logical                                        , intent(  out)         :: mergerIsMajor
-    type            (treeNode                     ), pointer               :: nodeHost
-    double precision                                                       :: massHost               , massSatellite
+    class           (mergerMassMovementsVerySimple   ), intent(inout)         :: self
+    type            (treeNode                        ), intent(inout), target :: node
+    type            (enumerationDestinationMergerType), intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
+         &                                                                       destinationStarsHost   , destinationStarsSatellite
+    logical                                           , intent(  out)         :: mergerIsMajor
+    type            (treeNode                        ), pointer               :: nodeHost
+    double precision                                                          :: massHost               , massSatellite
     
     ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
     ! the results are determined by the properties of the merge target prior to any modification that will occur as node

@@ -40,7 +40,6 @@ Contains a module which implements a ratio output analysis property extractor cl
      procedure :: name        => ratioName
      procedure :: description => ratioDescription
      procedure :: unitsInSI   => ratioUnitsInSI
-     procedure :: type        => ratioType
   end type nodePropertyExtractorRatio
 
   interface nodePropertyExtractorRatio
@@ -201,15 +200,3 @@ contains
     return
   end function ratioUnitsInSI
 
-  integer function ratioType(self)
-    !!{
-    Return the type of the ratio property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRatio), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    ratioType=outputAnalysisPropertyTypeLinear
-    return
-  end function ratioType

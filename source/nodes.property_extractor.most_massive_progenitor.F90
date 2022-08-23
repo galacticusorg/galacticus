@@ -38,7 +38,6 @@ Contains a module which implements a node property extractor for the most massiv
      integer         (kind_int8) :: uniqueIdMatched, uniqueIdPrevious
    contains
      procedure :: extract     => mostMassiveProgenitorExtract
-     procedure :: type        => mostMassiveProgenitorType
      procedure :: name        => mostMassiveProgenitorName
      procedure :: description => mostMassiveProgenitorDescription
   end type nodePropertyExtractorMostMassiveProgenitor
@@ -129,18 +128,6 @@ contains
     return
   end function mostMassiveProgenitorExtract
 
-  integer function mostMassiveProgenitorType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    mostMassiveProgenitorType=outputAnalysisPropertyTypeLinear
-    return
-  end function mostMassiveProgenitorType
 
   function mostMassiveProgenitorName(self)
     !!{

@@ -46,7 +46,6 @@ Contains a module which implements a half-light radii property extractor class.
      procedure :: names        => radiiHalfLightPropertiesNames
      procedure :: descriptions => radiiHalfLightPropertiesDescriptions
      procedure :: unitsInSI    => radiiHalfLightPropertiesUnitsInSI
-     procedure :: type         => radiiHalfLightPropertiesType
   end type nodePropertyExtractorRadiiHalfLightProperties
 
   interface nodePropertyExtractorRadiiHalfLightProperties
@@ -215,15 +214,3 @@ contains
     return
   end function radiiHalfLightPropertiesUnitsInSI
 
-  integer function radiiHalfLightPropertiesType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    radiiHalfLightPropertiesType=outputAnalysisPropertyTypeLinear
-    return
-  end function radiiHalfLightPropertiesType

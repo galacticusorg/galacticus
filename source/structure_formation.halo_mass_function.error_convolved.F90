@@ -38,7 +38,7 @@ with a mass-dependent error.
      A halo mass function class convolves another halo mass function with a mass dependent error.
      !!}
      private
-     double precision                                   :: errorFractionalMaximum
+     double precision                                   :: errorFractionalMaximum          , toleranceRelative
      class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic  => null()
      class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_    => null()
    contains
@@ -73,7 +73,7 @@ contains
     class           (haloMassFunctionClass         ), pointer       :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     class           (nbodyHaloMassErrorClass       ), pointer       :: nbodyHaloMassError_
-    double precision                                                :: errorFractionalMaximum
+    double precision                                                :: errorFractionalMaximum, toleranceRelative
 
     ! Check and read parameters.
     !![
@@ -82,11 +82,17 @@ contains
       <source>parameters</source>
       <description>Maximum allowed fractional error in halo mass.</description>
     </inputParameter>
+    <inputParameter>
+      <name>toleranceRelative</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-6</defaultValue>
+      <description>Maximum allowed fractional error in halo mass.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"   source="parameters"/>
     <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
     !!]
-    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum)
+    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -96,7 +102,7 @@ contains
     return
   end function errorConvolvedConstructorParameters
 
-  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum) result(self)
+  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
     !!}
@@ -105,9 +111,9 @@ contains
     class           (haloMassFunctionClass         ), target, intent(in   ) :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class           (nbodyHaloMassErrorClass       ), target, intent(in   ) :: nbodyHaloMassError_
-    double precision                                        , intent(in   ) :: errorFractionalMaximum
+    double precision                                        , intent(in   ) :: errorFractionalMaximum, toleranceRelative
     !![
-    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nbodyHaloMassError_, errorFractionalMaximum"/>
+    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nbodyHaloMassError_, errorFractionalMaximum, toleranceRelative"/>
     !!]
 
     return
@@ -142,7 +148,7 @@ contains
     type            (treeNode                      ), pointer                 :: nodeWork
     class           (nodeComponentBasic            ), pointer                 :: basic
     double precision                                                          :: massLow                 , massHigh
-    type            (integrator                    )                          :: integrator_
+    type            (integrator                    )                          :: integrator_             , integratorNormalization_
 
      ! Create a work node.
     nodeWork => treeNode      (                 )
@@ -158,19 +164,28 @@ contains
          &                      )
     ! Perform the convolution integral.
     massLow                             =  max(1.0d-3*mass,mass-rangeIntegralSigma*errorConvolvedErrorMass)
-    massHigh                            =                  mass+rangeIntegralSigma*errorConvolvedErrorMass
+    massHigh                            =                  mass+rangeIntegralSigma*errorConvolvedErrorMass    
     errorConvolvedIntrinsicMassFunction => self%massFunctionIntrinsic
     errorConvolvedTime                  =  time
     errorConvolvedMass                  =  mass
-    integrator_                         =  integrator           (                                             &
-         &                                                                         errorConvolvedConvolution, &
-         &                                                       toleranceAbsolute=1.0d-100                 , &
-         &                                                       toleranceRelative=1.0d-006                   &
-         &                                                      )
-    errorConvolvedDifferential          =  integrator_%integrate(                                             &
-         &                                                       massLow                                    , &
-         &                                                       massHigh                                     &
-         &                                                      )
+    integrator_                         =  integrator                         (                                               &
+         &                                                                                       errorConvolvedConvolution  , &
+         &                                                                     toleranceAbsolute=1.0d-100                   , &
+         &                                                                     toleranceRelative=self%toleranceRelative       &
+         &                                                                    )
+    integratorNormalization_            =  integrator                         (                                               &
+         &                                                                                       errorConvolvedNormalization, &
+         &                                                                     toleranceAbsolute=1.0d-100                   , &
+         &                                                                     toleranceRelative=self%toleranceRelative       &
+         &                                                                    )
+    errorConvolvedDifferential          =  +integrator_             %integrate(                                               &
+         &                                                                     massLow                                      , &
+         &                                                                     massHigh                                       &
+         &                                                                    )                                               &
+         &                                 /integratorNormalization_%integrate(                                               &
+         &                                                                     massLow                                      , &
+         &                                                                     massHigh                                       &
+         &                                                                    )
     ! Clean up our work node.
     call nodeWork%destroy()
     deallocate(nodeWork)
@@ -212,5 +227,39 @@ contains
            &                    /errorConvolvedErrorMass
       return
     end function errorConvolvedConvolution
+
+    double precision function errorConvolvedNormalization(massPrime)
+      !!{
+      Integrand function used in normalizing the convolution integral.
+      !!}
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: massPrime
+
+      ! Get the error at this mass scale.
+      call basic%massSet(massPrime)
+      errorConvolvedErrorMass=+massPrime                                                  &
+           &                  *min(                                                       &
+           &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
+           &                       self%errorFractionalMaximum                            &
+           &                      )
+      ! Return the convolution integrand.
+      errorConvolvedNormalization=+exp(                                                   &
+           &                           -0.5d0                                             &
+           &                           *(                                                 &
+           &                             +(                                               &
+           &                               +massPrime                                     &
+           &                               -errorConvolvedMass                            &
+           &                              )                                               &
+           &                             /errorConvolvedErrorMass                         &
+           &                            )**2                                              &
+           &                          )                                                   &
+           &                      /sqrt(                                                  &
+           &                            +2.0d0                                            &
+           &                            *Pi                                               &
+           &                           )                                                  &
+           &                      /errorConvolvedErrorMass
+      return
+    end function errorConvolvedNormalization
 
   end function errorConvolvedDifferential

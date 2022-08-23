@@ -56,11 +56,13 @@ contains
     !!{
     Constructor for the identity transfer function class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter    , inputParameters
+    use :: Cosmology_Parameters, only : cosmologyParametersClass
+    use :: Cosmology_Functions , only : cosmologyFunctionsClass
+    use :: Input_Parameters    , only : inputParameter          , inputParameters
     implicit none
     type            (transferFunctionIdentity)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     double precision                                          :: redshift
 
@@ -71,39 +73,43 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The redshift at which the transfer function is defined.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
-    self=transferFunctionIdentity(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
+    self=transferFunctionIdentity(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
     !!]
   return
   end function identityConstructorParameters
 
-  function identityConstructorInternal(time) result(self)
+  function identityConstructorInternal(time,cosmologyParameters_) result(self)
     !!{
     Internal constructor for the identity transfer function class.
     !!}
     implicit none
-    type            (transferFunctionIdentity)                :: self
-    double precision                          , intent(in   ) :: time
+    type            (transferFunctionIdentity)                        :: self
+    double precision                          , intent(in   )         :: time
+    class           (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="time"/>
+    <constructorAssign variables="time, *cosmologyParameters_"/>
     !!]
 
     return
   end function identityConstructorInternal
 
-  elemental subroutine identityDestructor(self)
+  subroutine identityDestructor(self)
     !!{
     Destructor for the identity transfer function class.
     !!}
     implicit none
     type(transferFunctionIdentity), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    ! Nothing to do.
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine identityDestructor
 

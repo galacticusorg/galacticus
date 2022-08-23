@@ -29,17 +29,26 @@
     tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
     node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
     is not.
+
+    If {\normalfont \ttfamily [includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
+    1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMainBranchStatus
      !!{
-     A stelalr mass output analysis class.
-     !!}
+     A node property extractor class which extracts the status of each node with respect to the main branch of its merger
+     tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
+     node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
+     is not.
+
+     If {\normalfont \ttfamily [includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
+     1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
+      !!}
      private
+     logical :: includeSubhalos
    contains
      procedure :: extract     => mainBranchStatusExtract
-     procedure :: type        => mainBranchStatusType
      procedure :: name        => mainBranchStatusName
      procedure :: description => mainBranchStatusDescription
   end type nodePropertyExtractorMainBranchStatus
@@ -49,25 +58,52 @@
      Constructors for the ``mainBranchStatus'' output analysis class.
      !!}
      module procedure mainBranchStatusConstructorParameters
+     module procedure mainBranchStatusConstructorInternal
   end interface nodePropertyExtractorMainBranchStatus
 
 contains
 
-  function mainBranchStatusConstructorParameters(parameters)
+  function mainBranchStatusConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily mainBranchStatus} node property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorMainBranchStatus)                :: mainBranchStatusConstructorParameters
-    type(inputParameters                      ), intent(inout) :: parameters
+    type   (nodePropertyExtractorMainBranchStatus)                :: self
+    type   (inputParameters                      ), intent(inout) :: parameters
+    logical                                                       :: includeSubhalos
 
-    mainBranchStatusConstructorParameters=nodePropertyExtractorMainBranchStatus()
+    !![
+    <inputParameter>
+      <name>includeSubhalos</name>
+      <description>
+	If set to true then subhalos of the main branch halo are also assigned a value of 1 (with subhalos of non-main branch
+	halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
+      </description>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+    </inputParameter>
+    !!]
+    self=nodePropertyExtractorMainBranchStatus(includeSubhalos)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function mainBranchStatusConstructorParameters
+
+  function mainBranchStatusConstructorInternal(includeSubhalos) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily mainBranchStatus} node property extractor class.
+    !!}
+    implicit none
+    type   (nodePropertyExtractorMainBranchStatus)                :: self
+    logical                                       , intent(in   ) :: includeSubhalos
+    !![
+    <constructorAssign variables="includeSubhalos"/>
+    !!]
+   
+    return
+  end function mainBranchStatusConstructorInternal
 
   function mainBranchStatusExtract(self,node,time,instance)
     !!{
@@ -79,28 +115,29 @@ contains
     type            (treeNode                             ), intent(inout), target   :: node
     double precision                                       , intent(in   )           :: time
     type            (multiCounter                         ), intent(inout), optional :: instance
+    type            (treeNode                             )               , pointer  :: nodeHost
     !$GLC attributes unused :: self, instance, time
 
-    if (node%isOnMainBranch()) then
+    if (node%isSatellite()) then
+       if (self%includeSubhalos) then
+          nodeHost => node
+          do while (nodeHost%isSatellite())
+             nodeHost => nodeHost%parent
+          end do
+       else
+          mainBranchStatusExtract=0
+          return  
+       end if
+    else
+       nodeHost => node
+    end if
+    if (nodeHost%isOnMainBranch()) then
        mainBranchStatusExtract=1
     else
        mainBranchStatusExtract=0
     end if
     return
   end function mainBranchStatusExtract
-
-  integer function mainBranchStatusType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    mainBranchStatusType=outputAnalysisPropertyTypeLinear
-    return
-  end function mainBranchStatusType
 
   function mainBranchStatusName(self)
     !!{

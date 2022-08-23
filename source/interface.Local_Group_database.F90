@@ -85,7 +85,7 @@ module Interface_Local_Group_DB
      Local Group database class.
      !!}
      private
-     type   (node       ), pointer                   :: database
+     type   (node       ), pointer                   :: database => null()
      type   (xmlNodeList), allocatable, dimension(:) :: galaxies
      logical             , allocatable, dimension(:) :: selected
    contains
@@ -140,7 +140,7 @@ contains
     implicit none
     type(localGroupDB), intent(inout) :: self
 
-    call destroy(self%database)
+    if (associated(self%database)) call destroy(self%database)
     return
   end subroutine localGroupDBDestructor
 
@@ -239,15 +239,16 @@ contains
     use                      :: ISO_Varying_String, only : varying_string
     {Type¦match¦^VarStr$¦use :: ISO_Varying_String, only : operator(<)     , operator(>), operator(==)¦}
     implicit none
-    class           (localGroupDB  ), intent(inout)               :: self
-    character       (len=*         ), intent(in   )               :: name
-    {Type¦intrinsic}                , intent(in)                  :: value
-    integer                         , intent(in   )               :: comparison      , setOperator
-    {Type¦intrinsic}                , allocatable  , dimension(:) :: values
-    logical                         , allocatable  , dimension(:) :: selectedCurrent , isPresent
-    type            (node          )               , pointer      :: galaxy          , attribute
-    integer                                                       :: i
-    logical                                                       :: comparisonResult
+    class           (localGroupDB              ), intent(inout)               :: self
+    character       (len=*                     ), intent(in   )               :: name
+    {Type¦intrinsic}                            , intent(in)                  :: value
+    type            (enumerationComparisonType ), intent(in   )               :: comparison
+    type            (enumerationSetOperatorType), intent(in   )               :: setOperator
+    {Type¦intrinsic}                            , allocatable  , dimension(:) :: values
+    logical                                     , allocatable  , dimension(:) :: selectedCurrent , isPresent
+    type            (node                      )               , pointer      :: galaxy          , attribute
+    integer                                                                   :: i
+    logical                                                                   :: comparisonResult
 
     allocate(selectedCurrent(0:size(self%galaxies)-1))
     selectedCurrent=self%selected
@@ -260,23 +261,23 @@ contains
           attribute       => getAttributeNode(galaxy,'name')
          call Error_Report('property "'//name//'" is not present in selected galaxy "'//getTextContent(attribute)//'"'//{introspection:location})
        end if
-       select case (comparison)
-       case (comparisonEquals     )
+       select case (comparison%ID)
+       case (comparisonEquals     %ID)
           comparisonResult=values(i+1) == value
-       case (comparisonLessThan   )
+       case (comparisonLessThan   %ID)
           comparisonResult=values(i+1) <  value
-       case (comparisonGreaterThan)
+       case (comparisonGreaterThan%ID)
           comparisonResult=values(i+1) >  value
        case default
           comparisonResult=.false.
           call Error_Report('unknown comparison operator'//{introspection:location})
        end select
-       select case (setOperator)
-       case (setOperatorIntersection)
-          selectedCurrent(i)=selectedCurrent(i) .and. comparisonResult
-       case (setOperatorUnion)
-          selectedCurrent(i)=selectedCurrent(i) .or. comparisonResult
-       case (setOperatorRelativeComplement)
+       select case (setOperator%ID)
+       case (setOperatorIntersection      %ID)
+          selectedCurrent(i)=selectedCurrent(i) .and.      comparisonResult
+       case (setOperatorUnion             %ID)
+          selectedCurrent(i)=selectedCurrent(i) .or.       comparisonResult
+       case (setOperatorRelativeComplement%ID)
           selectedCurrent(i)=selectedCurrent(i) .and. .not.comparisonResult
        case default
           call Error_Report('unknown set operator'       //{introspection:location})

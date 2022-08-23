@@ -22,37 +22,6 @@ Contains a module which implements an N-body data importer for Rockstar files.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
-  
-  !![
-  <nbodyImporter name="nbodyImporterRockstar">
-   <description>An importer for Rockstar files.</description>
-  </nbodyImporter>
-  !!]
-  type, extends(nbodyImporterClass) :: nbodyImporterRockstar
-     !!{
-     An importer for Rockstar files.
-     !!}
-     private
-     class  (cosmologyParametersClass)              , pointer     :: cosmologyParameters_    => null()
-     integer                          , dimension(:), allocatable :: readColumns                      , readColumnsType     , &
-          &                                                          readColumnsMapped
-     integer                                                      :: readColumnsIntegerCount          , readColumnsRealCount
-     type   (varying_string          )                            :: fileName                         , label
-     logical                                                      :: havePosition                     , haveVelocity        , &
-          &                                                          expansionFactorNeeded
-   contains
-     final     ::           rockstarDestructor
-     procedure :: import => rockstarImport
-     procedure :: isHDF5 => rockstarIsHDF5
-  end type nbodyImporterRockstar
-
-  interface nbodyImporterRockstar
-     !!{
-     Constructors for the {\normalfont \ttfamily rockstar} N-body importer class.
-     !!}
-     module procedure rockstarConstructorParameters
-     module procedure rockstarConstructorInternal
-  end interface nbodyImporterRockstar
 
   ! Enumeration of Rockstar columns.
   !![
@@ -133,6 +102,37 @@ Contains a module which implements an N-body data importer for Rockstar files.
   </enumeration>
   !!]
   
+  !![
+  <nbodyImporter name="nbodyImporterRockstar">
+   <description>An importer for Rockstar files.</description>
+  </nbodyImporter>
+  !!]
+  type, extends(nbodyImporterClass) :: nbodyImporterRockstar
+     !!{
+     An importer for Rockstar files.
+     !!}
+     private
+     class  (cosmologyParametersClass     )              , pointer     :: cosmologyParameters_    => null()
+     type   (enumerationRockstarColumnType), dimension(:), allocatable :: readColumns                      , readColumnsMapped
+     type   (enumerationColumnTypeType    ), dimension(:), allocatable :: readColumnsType
+     integer                                                           :: readColumnsIntegerCount          , readColumnsRealCount
+     type   (varying_string               )                            :: fileName                         , label
+     logical                                                           :: havePosition                     , haveVelocity        , &
+          &                                                               expansionFactorNeeded
+   contains
+     final     ::           rockstarDestructor
+     procedure :: import => rockstarImport
+     procedure :: isHDF5 => rockstarIsHDF5
+  end type nbodyImporterRockstar
+
+  interface nbodyImporterRockstar
+     !!{
+     Constructors for the {\normalfont \ttfamily rockstar} N-body importer class.
+     !!}
+     module procedure rockstarConstructorParameters
+     module procedure rockstarConstructorInternal
+  end interface nbodyImporterRockstar
+
 contains
 
   function rockstarConstructorParameters(parameters) result (self)
@@ -141,13 +141,13 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (nbodyImporterRockstar   )                              :: self
-    type   (inputParameters         ), intent(inout)               :: parameters
-    class  (cosmologyParametersClass), pointer                     :: cosmologyParameters_
-    type   (varying_string          ), allocatable  , dimension(:) :: readColumnsText
-    integer                          , allocatable  , dimension(:) :: readColumns
-    type   (varying_string          )                              :: fileName            , label
-    integer                                                        :: i
+    type   (nbodyImporterRockstar        )                              :: self
+    type   (inputParameters              ), intent(inout)               :: parameters
+    class  (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
+    type   (varying_string               ), allocatable  , dimension(:) :: readColumns
+    type   (enumerationRockstarColumnType), allocatable  , dimension(:) :: readColumns_
+    type   (varying_string               )                              :: fileName            , label
+    integer                                                             :: i
     
     !![
     <inputParameter>
@@ -163,18 +163,17 @@ contains
     </inputParameter>
     !!]
     if (parameters%isPresent('readColumns')) then
-       allocate(readColumnsText(parameters%count('readColumns')))
-       allocate(readColumns    (parameters%count('readColumns')))
+       allocate(readColumns (parameters%count('readColumns')))
+       allocate(readColumns_(parameters%count('readColumns')))
        !![
        <inputParameter>
          <name>readColumns</name>
          <source>parameters</source>
-         <variable>readColumnsText</variable>
          <description>The names of additional columns to read.</description>
        </inputParameter>
        !!]
        do i=1,size(readColumns)
-          readColumns(i)=enumerationRockstarColumnEncode(char(readColumnsText(i)),includesPrefix=.false.)
+          readColumns_(i)=enumerationRockstarColumnEncode(char(readColumns(i)),includesPrefix=.false.)
        end do
     end if
     !![
@@ -183,7 +182,7 @@ contains
     <call>
      self=nbodyImporterRockstar(fileName,label,cosmologyParameters_{conditions})
     </call>
-    <argument name="readColumns" value="readColumns" parameterPresent="parameters" />
+    <argument name="readColumns" value="readColumns_" parameterPresent="parameters" />
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -197,10 +196,10 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (nbodyImporterRockstar   )                                        :: self
-    class  (cosmologyParametersClass), intent(in   ), target                 :: cosmologyParameters_
-    integer                          , intent(in   ), dimension(:), optional :: readColumns
-    type   (varying_string          ), intent(in   )                         :: fileName            , label
+    type   (nbodyImporterRockstar        )                                        :: self
+    class  (cosmologyParametersClass     ), intent(in   ), target                 :: cosmologyParameters_
+    type   (enumerationRockstarColumnType), intent(in   ), dimension(:), optional :: readColumns
+    type   (varying_string               ), intent(in   )                         :: fileName            , label
     integer                                                                  :: i
     !![
     <constructorAssign variables="fileName, label, *cosmologyParameters_, readColumns"/>
@@ -214,69 +213,69 @@ contains
        allocate(self%readColumnsMapped(size(self%readColumns)))
        self%readColumnsMapped=self%readColumns
        do i=1,size(self%readColumns)
-          select case (self%readColumns(i))
-          case   (                                               &
-               &  rockstarColumnScale                          , &
-               &  rockstarColumnDesc_scale                     , &
-               &  rockstarColumnSam_Mvir                       , &
-               &  rockstarColumnMvir                           , &
-               &  rockstarColumnRvir                           , &
-               &  rockstarColumnRs                             , &
-               &  rockstarColumnVrms                           , &
-               &  rockstarColumnscale_of_last_MM               , &
-               &  rockstarColumnVmax                           , &
-               &  rockstarColumnX                              , &
-               &  rockstarColumnY                              , &
-               &  rockstarColumnZ                              , &
-               &  rockstarColumnVX                             , &
-               &  rockstarColumnVY                             , &
-               &  rockstarColumnVZ                             , &
-               &  rockstarColumnJX                             , &
-               &  rockstarColumnJY                             , &
-               &  rockstarColumnJZ                             , &
-               &  rockstarColumnSpin                           , &
-               &  rockstarColumnTidal_Force                    , &
-               &  rockstarColumnRs_Klypin                      , &
-               &  rockstarColumnMmvir_all                      , &
-               &  rockstarColumnM200b                          , &
-               &  rockstarColumnM200c                          , &
-               &  rockstarColumnM500c                          , &
-               &  rockstarColumnM2500c                         , &
-               &  rockstarColumnXoff                           , &
-               &  rockstarColumnVoff                           , &
-               &  rockstarColumnSpin_Bullock                   , &
-               &  rockstarColumnb_to_a                         , &
-               &  rockstarColumnc_to_a                         , &
-               &  rockstarColumnAx                             , &
-               &  rockstarColumnAy                             , &
-               &  rockstarColumnAz                             , &
-               &  rockstarColumnb_to_a500c                     , &
-               &  rockstarColumnc_to_a500c                     , &
-               &  rockstarColumnAx500c                         , &
-               &  rockstarColumnAy500c                         , &
-               &  rockstarColumnAz500c                         , &
-               &  rockstarColumnTU                               &
+          select case (self%readColumns(i)%ID)
+          case   (                                                  &
+               &  rockstarColumnScale                          %ID, &
+               &  rockstarColumnDesc_scale                     %ID, &
+               &  rockstarColumnSam_Mvir                       %ID, &
+               &  rockstarColumnMvir                           %ID, &
+               &  rockstarColumnRvir                           %ID, &
+               &  rockstarColumnRs                             %ID, &
+               &  rockstarColumnVrms                           %ID, &
+               &  rockstarColumnscale_of_last_MM               %ID, &
+               &  rockstarColumnVmax                           %ID, &
+               &  rockstarColumnX                              %ID, &
+               &  rockstarColumnY                              %ID, &
+               &  rockstarColumnZ                              %ID, &
+               &  rockstarColumnVX                             %ID, &
+               &  rockstarColumnVY                             %ID, &
+               &  rockstarColumnVZ                             %ID, &
+               &  rockstarColumnJX                             %ID, &
+               &  rockstarColumnJY                             %ID, &
+               &  rockstarColumnJZ                             %ID, &
+               &  rockstarColumnSpin                           %ID, &
+               &  rockstarColumnTidal_Force                    %ID, &
+               &  rockstarColumnRs_Klypin                      %ID, &
+               &  rockstarColumnMmvir_all                      %ID, &
+               &  rockstarColumnM200b                          %ID, &
+               &  rockstarColumnM200c                          %ID, &
+               &  rockstarColumnM500c                          %ID, &
+               &  rockstarColumnM2500c                         %ID, &
+               &  rockstarColumnXoff                           %ID, &
+               &  rockstarColumnVoff                           %ID, &
+               &  rockstarColumnSpin_Bullock                   %ID, &
+               &  rockstarColumnb_to_a                         %ID, &
+               &  rockstarColumnc_to_a                         %ID, &
+               &  rockstarColumnAx                             %ID, &
+               &  rockstarColumnAy                             %ID, &
+               &  rockstarColumnAz                             %ID, &
+               &  rockstarColumnb_to_a500c                     %ID, &
+               &  rockstarColumnc_to_a500c                     %ID, &
+               &  rockstarColumnAx500c                         %ID, &
+               &  rockstarColumnAy500c                         %ID, &
+               &  rockstarColumnAz500c                         %ID, &
+               &  rockstarColumnTU                             %ID  &
                & )
              self%readColumnsRealCount      =self%readColumnsRealCount   +1
              self%readColumnsType        (i)=columnTypeReal
-          case   (                                               &
-               &  rockstarColumnId                             , &
-               &  rockstarColumnDesc_id                        , &
-               &  rockstarColumnNum_prog                       , &
-               &  rockstarColumnPid                            , &
-               &  rockstarColumnUpid                           , &
-               &  rockstarColumnDesc_pid                       , &
-               &  rockstarColumnPhantom                        , &
-               &  rockstarColumnMmp                            , &
-               &  rockstarColumnBreadth_first_ID               , &
-               &  rockstarColumnDepth_first_ID                 , &
-               &  rockstarColumnTree_root_ID                   , &
-               &  rockstarColumnOrig_halo_ID                   , &
-               &  rockstarColumnSnap_num                       , &
-               &  rockstarColumnNext_coprogenitor_depthfirst_ID, &
-               &  rockstarColumnLast_progenitor_depthfirst_ID  , &
-               &  rockstarColumnLast_mainleaf_depthfirst_ID    , &
-               &  rockstarColumnTidal_ID                         &
+          case   (                                                  &
+               &  rockstarColumnId                             %ID, &
+               &  rockstarColumnDesc_id                        %ID, &
+               &  rockstarColumnNum_prog                       %ID, &
+               &  rockstarColumnPid                            %ID, &
+               &  rockstarColumnUpid                           %ID, &
+               &  rockstarColumnDesc_pid                       %ID, &
+               &  rockstarColumnPhantom                        %ID, &
+               &  rockstarColumnMmp                            %ID, &
+               &  rockstarColumnBreadth_first_ID               %ID, &
+               &  rockstarColumnDepth_first_ID                 %ID, &
+               &  rockstarColumnTree_root_ID                   %ID, &
+               &  rockstarColumnOrig_halo_ID                   %ID, &
+               &  rockstarColumnSnap_num                       %ID, &
+               &  rockstarColumnNext_coprogenitor_depthfirst_ID%ID, &
+               &  rockstarColumnLast_progenitor_depthfirst_ID  %ID, &
+               &  rockstarColumnLast_mainleaf_depthfirst_ID    %ID, &
+               &  rockstarColumnTidal_ID                       %ID  &
                & )
              self%readColumnsIntegerCount   =self%readColumnsIntegerCount+1
              self%readColumnsType        (i)=columnTypeInteger
@@ -284,9 +283,11 @@ contains
              call Error_Report('unknown column'//{introspection:location})
           end select
        end do
-       self%havePosition         =any(self%readColumns == rockstarColumnX ) .and. any(self%readColumns == rockstarColumnY ) .and. any(self%readColumns == rockstarColumnZ )
-       self%haveVelocity         =any(self%readColumns == rockstarColumnVX) .and. any(self%readColumns == rockstarColumnVY) .and. any(self%readColumns == rockstarColumnVZ)
-       self%expansionFactorNeeded=any(self%readColumns == rockstarColumnX ) .or.  any(self%readColumns == rockstarColumnY ) .or.  any(self%readColumns == rockstarColumnZ )
+       self%havePosition         =     any(self%readColumns == rockstarColumnX   ) .and. any(self%readColumns == rockstarColumnY ) .and. any(self%readColumns == rockstarColumnZ   )
+       self%haveVelocity         =     any(self%readColumns == rockstarColumnVX  ) .and. any(self%readColumns == rockstarColumnVY) .and. any(self%readColumns == rockstarColumnVZ  )
+       self%expansionFactorNeeded=     any(self%readColumns == rockstarColumnX   ) .or.  any(self%readColumns == rockstarColumnY ) .or.  any(self%readColumns == rockstarColumnZ   ) &
+            &                     .or. any(self%readColumns == rockstarColumnRvir) .or.  any(self%readColumns == rockstarColumnRs) .or.  any(self%readColumns == rockstarColumnXoff) &
+            &                     .or. any(self%readColumns == rockstarColumnAx  ) .or.  any(self%readColumns == rockstarColumnAy) .or.  any(self%readColumns == rockstarColumnAz  )
     else
        self%havePosition         =.false.
        self%haveVelocity         =.false.
@@ -393,9 +394,8 @@ contains
                      &  .or.                                              &
                      &   self%readColumns(j) == rockstarColumnTidal_ID    &
                      & ) call Error_Report('tidal properties not available'//{introspection:location})
-                if (self%readColumns(j) > 34)                               &
-                     & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
-                     &                           -2
+                if (self%readColumns(j)%ID > 34)                            &
+                     & call self%readColumnsMapped(j)%subtract(2)
              end do
           case (3)
              do j=1,size(self%readColumns)
@@ -404,9 +404,8 @@ contains
                      &  .or.                                              &
                      &   self%readColumns(j) == rockstarColumnTidal_ID    &
                      & ) call Error_Report('tidal properties not available'//{introspection:location})
-                if (self%readColumns(j) > 33)                               &
-                     & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
-                     &                           -3
+                if (self%readColumns(j)%ID > 33)                            &
+                     & call self%readColumnsMapped(j)%subtract(3)
              end do
           end select
        end if
@@ -460,13 +459,13 @@ contains
                 jInteger=0
                 jReal   =0
                 do j=1,size(self%readColumns)
-                   select case (self%readColumnsType(j))
-                   case (columnTypeInteger)
-                      jInteger                               =jInteger                                 +1
-                      propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumnsMapped(j))
-                   case (columnTypeReal   )
-                      jReal                                  =jReal                                    +1
-                      propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumnsMapped(j))
+                   select case (self%readColumnsType(j)%ID)
+                   case (columnTypeInteger%ID)
+                      jInteger                               =jInteger                                    +1
+                      propertiesInteger(jInteger)%property(i)=columnsInteger(self%readColumnsMapped(j)%ID)
+                   case (columnTypeReal   %ID)
+                      jReal                                  =jReal                                       +1
+                      propertiesReal   (jReal   )%property(i)=columnsReal   (self%readColumnsMapped(j)%ID)
                    end select
                 end do
              end if
@@ -489,14 +488,13 @@ contains
     do j=1,size(self%readColumns)
        if (self%readColumnsType(j) /= columnTypeReal) cycle
        jReal=jReal+1
-       select case (self%readColumns(j))
-       case (rockstarColumnX,rockstarColumnY,rockstarColumnZ)
+       select case (self%readColumns(j)%ID)
+       case (rockstarColumnX%ID,rockstarColumnY%ID,rockstarColumnZ%ID)
           propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
             &                            *                                           expansionFactor                    &
             &                            /self                 %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
        end select
     end do
-    if (allocated(expansionFactor)) deallocate(expansionFactor)
     ! Convert box size to internal units (comoving Mpc).
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
@@ -517,56 +515,58 @@ contains
        jInteger                        =0
        jReal                           =0
        do j=1,size(self%readColumns)
-          select case (self%readColumnsType(j))
-          case (columnTypeInteger)
+          select case (self%readColumnsType(j)%ID)
+          case (columnTypeInteger%ID)
              jInteger=jInteger+1
-             select case (self%readColumns(j))
-             case (rockstarColumnId          )
+             select case (self%readColumns(j)%ID)
+             case (rockstarColumnId          %ID)
                 columnName='particleID'
-             case (rockstarColumnDesc_id     )
+             case (rockstarColumnDesc_id     %ID)
                 columnName='descendentID'
-             case (rockstarColumnNum_prog    )
+             case (rockstarColumnNum_prog    %ID)
                 columnName='progenitorCount'
-             case (rockstarColumnPid         )
+             case (rockstarColumnPid         %ID)
                 columnName='hostID'
-             case (rockstarColumnUpid        )
+             case (rockstarColumnUpid        %ID)
                 columnName='isolatedHostID'
-             case (rockstarColumnDesc_pid    )
+             case (rockstarColumnDesc_pid    %ID)
                 columnName='descendentHostID'
-             case (rockstarColumnMmp         )
+             case (rockstarColumnMmp         %ID)
                 columnName='isMostMassiveProgenitor'
-             case (rockstarColumnPhantom     )
+             case (rockstarColumnPhantom     %ID)
                 columnName='isPhantom'
-             case (rockstarColumnSnap_num    )
+             case (rockstarColumnSnap_num    %ID)
                 columnName='snapshotID'
-             case (rockstarColumnTree_root_ID)
+             case (rockstarColumnTree_root_ID%ID)
                 columnName='treeID'
              end select
              call simulations(1)%propertiesInteger%set(columnName,propertiesInteger(jInteger)%property)
-          case (columnTypeReal   )
+          case (columnTypeReal   %ID)
              jReal   =jReal   +1
-             select case (self%readColumns(j))
-             case (rockstarColumnScale     )
+             select case (self%readColumns(j)%ID)
+             case (rockstarColumnScale     %ID)
                 columnName='expansionFactor'
-             case (rockstarColumnDesc_scale)
+             case (rockstarColumnDesc_scale%ID)
                 columnName='descendentExpansionFactor'
-             case (rockstarColumnMvir      )
+             case (rockstarColumnMvir      %ID)
                 columnName='massVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-             case (rockstarColumnRvir      )
+             case (rockstarColumnRvir      %ID)
                 columnName='radiusVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         *                                           expansionFactor                    &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
                      &                         /kilo
-             case (rockstarColumnSpin      )
+             case (rockstarColumnSpin      %ID)
                 columnName='spin'
-             case (rockstarColumnrs        )
+             case (rockstarColumnrs        %ID)
                 columnName='radiusScale'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         *                                           expansionFactor                    &
                      &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
                      &                         /kilo
-             case (rockstarColumnTU        )
+             case (rockstarColumnTU        %ID)
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
                      &                         *2.0d0
@@ -591,6 +591,7 @@ contains
        if (self%havePosition) call simulations(1)%propertiesRealRank1%set('position',position)
        if (self%haveVelocity) call simulations(1)%propertiesRealRank1%set('velocity',velocity)
     end if
+    if (allocated(expansionFactor)) deallocate(expansionFactor)
     call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine rockstarImport

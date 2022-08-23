@@ -137,7 +137,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorMassRatioNBody), intent(inout)                                        :: self
     double precision                                                  , intent(in   )                                        :: propertyValue
-    integer                                                           , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType       ), intent(in   )                                        :: propertyType
     double precision                                                  , intent(in   ), dimension(:)                          :: propertyValueMinimum              , propertyValueMaximum
     integer         (c_size_t                                        ), intent(in   )                                        :: outputIndex
     type            (treeNode                                        ), intent(inout)                                        :: node
@@ -166,10 +166,10 @@ contains
     if (.not.associated(nodeParent)) call Error_Report('unable to find parent halo'//{introspection:location})
     massParent=basic%mass()
     ! Determine progenitor mass.
-    select case (propertyType)
-    case (outputAnalysisPropertyTypeLinear)
+    select case (propertyType%ID)
+    case (outputAnalysisPropertyTypeLinear%ID)
        massRatio=        propertyValue
-    case (outputAnalysisPropertyTypeLog10)
+    case (outputAnalysisPropertyTypeLog10 %ID)
        massRatio=10.0d0**propertyValue
     case default
        massRatio= 0.0d0
@@ -210,11 +210,11 @@ contains
        if (massParentLimitUpper > massParentLimitLower) then
           integrator_=integrator(massRatioBivariateNormalIntegrand,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-03)
           do binIndex=1,size(propertyValueMinimum)
-             select case (propertyType)
-             case (outputAnalysisPropertyTypeLinear)
+             select case (propertyType%ID)
+             case (outputAnalysisPropertyTypeLinear%ID)
                 massRatioMinimum=        propertyValueMinimum(binIndex)
                 massRatioMaximum=        propertyValueMaximum(binIndex)
-             case (outputAnalysisPropertyTypeLog10)
+             case (outputAnalysisPropertyTypeLog10 %ID)
                 massRatioMinimum=10.0d0**propertyValueMinimum(binIndex)
                 massRatioMaximum=10.0d0**propertyValueMaximum(binIndex)
              case default
@@ -324,7 +324,7 @@ contains
     implicit none
     class           (outputAnalysisDistributionOperatorMassRatioNBody), intent(inout)                                        :: self
     double precision                                                  , intent(in   ), dimension(:)                          :: distribution
-    integer                                                           , intent(in   )                                        :: propertyType
+    type            (enumerationOutputAnalysisPropertyTypeType       ), intent(in   )                                        :: propertyType
     double precision                                                  , intent(in   ), dimension(:)                          :: propertyValueMinimum          , propertyValueMaximum
     integer         (c_size_t                                        ), intent(in   )                                        :: outputIndex
     type            (treeNode                                        ), intent(inout)                                        :: node

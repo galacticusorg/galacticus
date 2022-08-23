@@ -39,7 +39,6 @@ Contains a module which implements a stellar mass property extractor class.
      procedure :: name        => massStellarName
      procedure :: description => massStellarDescription
      procedure :: unitsInSI   => massStellarUnitsInSI
-     procedure :: type        => massStellarType
      procedure :: quantity    => massStellarQuantity
   end type nodePropertyExtractorMassStellar
 
@@ -155,26 +154,15 @@ contains
     return
   end function massStellarUnitsInSI
 
-  integer function massStellarType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    massStellarType=outputAnalysisPropertyTypeLinear
-    return
-  end function massStellarType
-
-  integer function massStellarQuantity(self)
+  function massStellarQuantity(self)
     !!{
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
-    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: massStellarQuantity
+    class(nodePropertyExtractorMassStellar             ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     massStellarQuantity=outputAnalysisPropertyQuantityMass

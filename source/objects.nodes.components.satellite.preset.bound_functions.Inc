@@ -21,41 +21,6 @@
 Contains custom functions for the prest satellite component.
 !!}
 
-double precision function Node_Component_Satellite_Preset_Time_Until_Merging(self)
-  !!{
-  Return the {\normalfont \ttfamily timeUntilMerging} property of the {\normalfont \ttfamily satellitePreset} component class.
-  !!}
-  implicit none
-  class(nodeComponentSatellitePreset), intent(inout) :: self
-  type (treeNode                    ), pointer       :: selfNode
-  class(nodeComponentBasic          ), pointer       :: selfBasicComponent
-
-  selfNode => self%host()
-  if (selfNode%isSatellite()) then
-     selfBasicComponent => selfNode%basic()
-     Node_Component_Satellite_Preset_Time_Until_Merging=max(self%timeOfMergingData-selfBasicComponent%time(),0.0d0)
-  else
-     Node_Component_Satellite_Preset_Time_Until_Merging=-1.0d0
-  end if
-  return
-end function Node_Component_Satellite_Preset_Time_Until_Merging
-
-subroutine Node_Component_Satellite_Preset_Time_Until_Merging_Set(self,setValue)
-  !!{
-  Sets the {\normalfont \ttfamily timeUntilMerging} property of the {\normalfont \ttfamily satellitePreset} component class.
-  !!}
-  implicit none
-  class           (nodeComponentSatellitePreset)         , intent(inout) :: self
-  double precision                                       , intent(in   ) :: setValue
-  type            (treeNode                    ), pointer                :: selfNode
-  class           (nodeComponentBasic          ), pointer                :: selfBasicComponent
-
-  selfNode           => self    %host ()
-  selfBasicComponent => selfNode%basic()
-  self%timeOfMergingData=setValue+selfBasicComponent%time()
-  return
-end subroutine Node_Component_Satellite_Preset_Time_Until_Merging_Set
-
 double precision function SatellitePresetMergeBoundMass(self)
   !!{
   Return the satellite bound mass at the current time.

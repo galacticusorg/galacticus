@@ -126,6 +126,7 @@
      procedure :: potential                         => burkertPotential
      procedure :: circularVelocity                  => burkertCircularVelocity
      procedure :: circularVelocityMaximum           => burkertCircularVelocityMaximum
+     procedure :: radiusCircularVelocityMaximum     => burkertRadiusCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => burkertRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => burkertRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => burkertRotationNormalization
@@ -465,17 +466,17 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     units of Mpc).
     !!}
-    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
-    use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, treeNode
+    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
+    use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
-    class           (darkMatterProfileDMOBurkert   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout), target   :: node
-    double precision                                , intent(in   )           :: radius
-    integer                                         , intent(  out), optional :: status
-    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
-    double precision                                , parameter               :: radiusSmall          =1.0d-10
-    double precision                                                          :: radiusOverScaleRadius        , virialRadiusOverScaleRadius
+    class           (darkMatterProfileDMOBurkert      ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    class           (nodeComponentDarkMatterProfile   )               , pointer  :: darkMatterProfile
+    double precision                                   , parameter               :: radiusSmall          =1.0d-10
+    double precision                                                             :: radiusOverScaleRadius        , virialRadiusOverScaleRadius
 
     if (present(status)) status=structureErrorCodeSuccess
     darkMatterProfile   => node%darkMatterProfile(autoCreate=.true.)
@@ -563,6 +564,24 @@ contains
     burkertCircularVelocityMaximum=self%maximumVelocityPrevious
     return
   end function burkertCircularVelocityMaximum
+
+  double precision function burkertRadiusCircularVelocityMaximum(self,node)
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
+    implicit none
+    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    ! The radius (in units of the scale radius) at which the rotation speed peaks in a Burkert halo.
+    double precision                                , parameter     :: radiusMaximum    =3.2446257246042642d0
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    
+    darkMatterProfile                    =>  node             %darkMatterProfile(autoCreate=.true.)
+    burkertRadiusCircularVelocityMaximum =  +                  radiusMaximum                        &
+         &                                  *darkMatterProfile%scale            (                 )
+    return
+  end function burkertRadiusCircularVelocityMaximum
 
   double precision function burkertRadialVelocityDispersion(self,node,radius)
     !!{

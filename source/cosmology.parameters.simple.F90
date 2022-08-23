@@ -216,22 +216,22 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (cosmologyParametersSimple), intent(inout)           :: self
-    integer                                    , intent(in   ), optional :: units
-    double precision                           , parameter               :: HubbleConstantNormalization=100.0d0
-
+    class           (cosmologyParametersSimple ), intent(inout)           :: self
+    type            (enumerationHubbleUnitsType), intent(in   ), optional :: units
+    double precision                            , parameter               :: HubbleConstantNormalization=100.0d0
     !![
     <optionalArgument name="units" defaultsTo="hubbleUnitsStandard" />
     !!]
-    select case (units_)
-    case (hubbleUnitsStandard)
+    
+    select case (units_%ID)
+    case (hubbleUnitsStandard%ID)
        simpleHubbleConstant=+self%HubbleConstantValue
-    case (hubbleUnitsTime    )
+    case (hubbleUnitsTime    %ID)
        simpleHubbleConstant=+self%HubbleConstantValue         &
             &                    *gigaYear                    &
             &                    *kilo                        &
             &                    /megaParsec
-    case (hubbleUnitsLittleH )
+    case (hubbleUnitsLittleH %ID)
        simpleHubbleConstant=+self%HubbleConstantValue         &
             &                    /HubbleConstantNormalization
     case default
@@ -245,7 +245,7 @@ contains
     !!{
     Return the present day critical density of the Universe in units of $M_\odot$/Mpc$^3$.
     !!}
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self

@@ -37,7 +37,6 @@ Contains a module which implements a spheroid stellar mass output analysis prope
    contains
      final     ::                massStellarSpheroidDestructor
      procedure :: extract     => massStellarSpheroidExtract
-     procedure :: type        => massStellarSpheroidType
      procedure :: quantity    => massStellarSpheroidQuantity
      procedure :: name        => massStellarSpheroidName
      procedure :: description => massStellarSpheroidDescription
@@ -117,26 +116,15 @@ contains
     return
   end function massStellarSpheroidExtract
 
-  integer function massStellarSpheroidType(self)
-    !!{
-    Return the type of the stellar mass-weighted morphology property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    massStellarSpheroidType=outputAnalysisPropertyTypeLinear
-    return
-  end function massStellarSpheroidType
-
-  integer function massStellarSpheroidQuantity(self)
+  function massStellarSpheroidQuantity(self)
     !!{
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
-    class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: massStellarSpheroidQuantity
+    class(nodePropertyExtractorMassStellarSpheroid     ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     massStellarSpheroidQuantity=outputAnalysisPropertyQuantityMass

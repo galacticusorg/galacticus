@@ -36,7 +36,6 @@ Contains a module which implements a merger tree weight property extractor class
      procedure :: name        => treeWeightName
      procedure :: description => treeWeightDescription
      procedure :: unitsInSI   => treeWeightUnitsInSI
-     procedure :: type        => treeWeightType
   end type nodePropertyExtractorTreeWeight
 
   interface nodePropertyExtractorTreeWeight
@@ -117,15 +116,3 @@ contains
     return
   end function treeWeightUnitsInSI
 
-  integer function treeWeightType(self)
-    !!{
-    Return the type of the last isolated redshift property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorTreeWeight), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    treeWeightType=outputAnalysisPropertyTypeLinear
-    return
-  end function treeWeightType

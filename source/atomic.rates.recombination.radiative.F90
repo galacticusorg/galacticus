@@ -28,6 +28,19 @@ module Atomic_Rates_Recombination_Radiative
   private
 
   !![
+  <enumeration>
+   <name>recombinationCase</name>
+   <description>Enumeration of radiative recombination cases (A or B).</description>
+   <visibility>public</visibility>
+   <indexing>-2</indexing>
+   <entry label="a"/>
+   <entry label="b"/>
+   <entry label="0"/>
+   <entry label="1"/>
+  </enumeration>
+  !!]
+
+  !![
   <functionClass>
    <name>atomicRecombinationRateRadiative</name>
    <descriptiveName>Atomic Radiative Recombination</descriptiveName>
@@ -37,22 +50,11 @@ module Atomic_Rates_Recombination_Radiative
     <description>Returns the radiative recombination rate.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
-    <argument>double precision, intent(in   )           :: temperature</argument>
-    <argument>integer         , intent(in   ), optional :: level</argument>
+    <argument>integer                                           , intent(in   )           :: atomicNumber, ionizationState</argument>
+    <argument>double precision                                  , intent(in   )           :: temperature</argument>
+    <argument>type            (enumerationRecombinationCaseType), intent(in   ), optional :: level</argument>
    </method>
   </functionClass>
-  !!]
-
-  !![
-  <enumeration>
-   <name>recombinationCase</name>
-   <description>Enumeration of radiative recombination cases (A or B).</description>
-   <visibility>public</visibility>
-   <indexing>-2</indexing>
-   <entry label="a"/>
-   <entry label="b"/>
-  </enumeration>
   !!]
 
 end module Atomic_Rates_Recombination_Radiative

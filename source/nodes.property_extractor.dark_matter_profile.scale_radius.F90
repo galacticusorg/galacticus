@@ -33,7 +33,6 @@ Contains a module which implements a dark matter profile scale radius output ana
      private
    contains
      procedure :: extract     => darkMatterProfileScaleRadiusExtract
-     procedure :: type        => darkMatterProfileScaleRadiusType
      procedure :: name        => darkMatterProfileScaleRadiusName
      procedure :: description => darkMatterProfileScaleRadiusDescription
      procedure :: unitsInSI   => darkMatterProfileScaleRadiusUnitsInSI
@@ -81,18 +80,6 @@ contains
     return
   end function darkMatterProfileScaleRadiusExtract
 
-  integer function darkMatterProfileScaleRadiusType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    darkMatterProfileScaleRadiusType=outputAnalysisPropertyTypeLinear
-    return
-  end function darkMatterProfileScaleRadiusType
 
   function darkMatterProfileScaleRadiusName(self)
     !!{

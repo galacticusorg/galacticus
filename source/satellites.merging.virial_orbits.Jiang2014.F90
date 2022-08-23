@@ -56,11 +56,15 @@
      class           (darkMatterProfileDMOClass ), pointer        :: darkMatterProfileDMO_             => null()
      class           (virialDensityContrastClass), pointer        :: virialDensityContrast_            => null()
      type            (virialDensityContrastFixed), pointer        :: virialDensityContrastDefinition_  => null()
-     double precision                            , dimension(3,3) :: B                                          , gamma                                     , &
-          &                                                          sigma                                      , mu                                        , &
+     double precision                            , dimension(3,3) :: B                                          , gamma                                         , &
+          &                                                          sigma                                      , mu                                            , &
           &                                                          velocityTangentialMean_                    , velocityTotalRootMeanSquared_
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
      type            (rootFinder                )                 :: totalFinder                                , radialFinder
+     double precision                            , dimension(3  ) :: bRatioLow                                  , bRatioIntermediate            , bRatioHigh    , &
+          &                                                          gammaRatioLow                              , gammaRatioIntermediate        , gammaRatioHigh, &
+          &                                                          sigmaRatioLow                              , sigmaRatioIntermediate        , sigmaRatioHigh, &
+          &                                                          muRatioLow                                 , muRatioIntermediate           , muRatioHigh
    contains
      !![
      <methods>
@@ -218,7 +222,7 @@ contains
     double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate                   , bRatioHigh                          , &
          &                                                                           gammaRatioLow                      , gammaRatioIntermediate               , gammaRatioHigh                      , &
          &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate               , sigmaRatioHigh                      , &
-         &                                                                           muRatioLow                         , muRatioIntermediate           , muRatioHigh
+         &                                                                           muRatioLow                         , muRatioIntermediate                  , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ), target         :: darkMatterHaloScale_
     class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ), target         :: cosmologyFunctions_
@@ -237,7 +241,7 @@ contains
     logical                                                                       :: reUse                              , limitFound
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh"/>
     !!]
 
     ! Assign parameters of the distribution.

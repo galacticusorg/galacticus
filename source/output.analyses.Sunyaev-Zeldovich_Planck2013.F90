@@ -49,7 +49,8 @@ contains
     !!{
     Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     type            (outputAnalysisSunyaevZeldovichPlanck2013)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters
@@ -295,12 +296,12 @@ contains
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_" constructor="outputAnalysisPropertyOperatorAntiLog10()"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_" constructor="outputAnalysisPropertyOperatorAntiLog10(                  )"/>
     !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"            constructor="nodePropertyExtractorMassStellar       ()"/>
+    <referenceConstruct object="nodePropertyExtractor_"            constructor="nodePropertyExtractorMassStellar       (galacticStructure_)"/>
     !!]
     ! Create a thermal Sunyaev-Zelodvich property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_)

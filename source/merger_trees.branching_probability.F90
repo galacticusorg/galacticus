@@ -31,6 +31,15 @@ module Merger_Tree_Branching
   private
 
   !![
+  <enumeration>
+   <name>mergerTreeBranchingBound</name>
+   <description>Upper/lower bound labels used in merger tree branching calculations.</description>
+   <entry label="lower"/>
+   <entry label="upper"/>
+  </enumeration>
+  !!]
+
+  !![
   <functionClass>
    <name>mergerTreeBranchingProbability</name>
    <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
@@ -58,9 +67,9 @@ module Merger_Tree_Branching
     <description>Computes a bound (upper or lower) to the probability per unit ``time'' that a branching event occurs.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, time, massResolution</argument>
-    <argument>integer                   , intent(in   )         :: bound</argument>
-    <argument>type            (treeNode), intent(inout), target :: node</argument>
+    <argument>double precision                                         , intent(in   )         :: haloMass, deltaCritical, time, massResolution</argument>
+    <argument>type            (enumerationMergerTreeBranchingBoundType), intent(in   )         :: bound</argument>
+    <argument>type            (treeNode                               ), intent(inout), target :: node</argument>
    </method>
    <method name="fractionSubresolution" >
     <description>Computes the fraction of subresolution mass accreted per unit ``time''</description>
@@ -86,15 +95,6 @@ module Merger_Tree_Branching
     <argument>double precision, intent(in   ) :: haloMass, deltaCritical, time, massResolution</argument>
    </method>
   </functionClass>
-  !!]
-
-  !![
-  <enumeration>
-   <name>mergerTreeBranchingBound</name>
-   <description>Upper/lower bound labels used in merger tree branching calculations.</description>
-   <entry label="lower"/>
-   <entry label="upper"/>
-  </enumeration>
   !!]
 
 end module Merger_Tree_Branching

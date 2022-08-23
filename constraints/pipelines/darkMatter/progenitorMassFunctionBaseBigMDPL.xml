@@ -37,6 +37,7 @@
     <running             value="0.00"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"       />
+  <powerSpectrumWindowFunction        value="ETHOS"        />
   <cosmologicalMassVariance           value="filteredPower" >
     <sigma_8 value="0.8228"/>
   </cosmologicalMassVariance>
@@ -122,11 +123,10 @@
   </outputTimes>
   <mergerTreeOperator value="regridTimes">
     <!-- Regrid the trees to massively speed up searching for parents etc. -->
-    <regridCount       value="7"                        />
-    <snapshotSpacing   value="list"                     />
-    <!-- Include one higher redshift here since otherwise the regridded halos at the earliest time may not exist precisely at the output time -->
-    <!-- Matched to BigMDPL snapshots -->
-    <snapshotRedshifts value="0.0 0.505343971097396 1.0 2.14465408805031 4.10204081632653 7.69565217391304 9.0"/>
+    <outputTimes value="list">
+      <!-- Matched to SMDPL snapshots -->
+      <redshifts value="0.0 0.505343971097396 1.0 2.02114803625378 3.95049504950495 7.84955752212389 9.0"/>
+    </outputTimes>
   </mergerTreeOperator>
   <outputAnalysis value="multi">
     <!-- Minimum mass ratio for likelihood is the ratio of the BigMDPL 300 particle mass limit (3.48e10) to the minimum parent

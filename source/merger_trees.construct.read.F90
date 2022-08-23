@@ -38,6 +38,37 @@
   use    :: Satellite_Merging_Timescales      , only : satelliteMergingTimescalesClass
   use    :: Virial_Orbits                     , only : virialOrbitClass
 
+  ! Enumeration of cross-tree event types.
+  !![
+  <enumeration>
+   <name>pushType</name>
+   <description>Cross-tree event type enumeration.</description>
+   <entry label="branchJump"      />
+   <entry label="subhaloPromotion"/>
+  </enumeration>
+  !!]
+
+  ! Enumeration of node reachability status.
+  !![
+  <enumeration>
+   <name>readNodeReachability</name>
+   <description>Node reachability status.</description>
+   <entry label="unreachable"/>
+   <entry label="reachable"  />
+  </enumeration>
+  !!]
+
+  ! Enumeration of subhalo angular momentum methods.
+  !![
+  <enumeration>
+   <name>readSubhaloAngularMomentaMethod</name>
+   <description>Subhalo angular momentum methods.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="scale"    />
+   <entry label="summation"/>
+  </enumeration>
+  !!]
+
   !![
   <mergerTreeConstructor name="mergerTreeConstructorRead">
    <description>
@@ -173,9 +204,6 @@
     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the angular momenta
     of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the angular momentum (see
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
-  !!]
-
-  !![
    </description>
   </mergerTreeConstructor>
   !!]
@@ -184,62 +212,62 @@
      A class implementing merger tree construction by reading trees from file.
      !!}
      private
-     class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_                   => null()
-     class           (mergerTreeImporterClass            ), pointer                   :: mergerTreeImporter_                   => null()
-     class           (darkMatterProfileConcentrationClass), pointer                   :: darkMatterProfileConcentration_       => null()
-     class           (satelliteMergingTimescalesClass    ), pointer                   :: satelliteMergingTimescales_           => null()
-     class           (darkMatterHaloScaleClass           ), pointer                   :: darkMatterHaloScale_                  => null()
-     class           (darkMatterProfileDMOClass          ), pointer                   :: darkMatterProfileDMO_                 => null()
-     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_                 => null()
-     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_                          => null()
-     class           (outputTimesClass                   ), pointer                   :: outputTimes_                          => null()
-     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_         => null()
-     class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_                => null()
-     class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_                         => null()
-     integer                                                                          :: fileCurrent
-     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
-          &                                                                              presetNamedIntegers
-     integer                                              , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
-     logical                                                                          :: importerOpen                          =  .false.
-     integer         (kind_int8                          )                            :: beginAt
-     double precision                                                                 :: treeWeightCurrent
-     logical                                                                          :: allowBranchJumps
-     logical                                                                          :: allowSubhaloPromotions
-     integer         (c_size_t                           )                            :: forestSizeMaximum                               , treeNumberOffset
-     logical                                                                          :: presetMergerTimes
-     logical                                                                          :: presetMergerNodes
-     logical                                                                          :: presetSubhaloMasses
-     logical                                                                          :: presetSubhaloIndices
-     logical                                                                          :: presetPositions
-     logical                                                                          :: presetScaleRadii                                , scaleRadiiFailureIsFatal
-     double precision                                                                 :: presetScaleRadiiMinimumMass                     , presetScaleRadiiConcentrationMinimum, &
-          &                                                                              presetScaleRadiiConcentrationMaximum
-     logical                                                                          :: presetAngularMomenta                            , presetAngularMomenta3D              , &
-          &                                                                              presetUnphysicalAngularMomenta
-     logical                                                                          :: presetOrbits                                    , presetOrbitsAssertAllSet            , &
-          &                                                                              presetOrbitsBoundOnly                           , presetOrbitsSetAll
-     integer                                                                          :: subhaloAngularMomentaMethod
-     logical                                                                          :: missingHostsAreFatal
-     logical                                                                          :: treeIndexToRootNodeIndex
-     integer         (c_size_t                           )                            :: outputTimesCount
-     double precision                                                                 :: outputTimeSnapTolerance
-     double precision                                     , allocatable, dimension(:) :: outputTimes
-     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                              , nodeLocations
-     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                          , nodeIndicesSorted
-     !$ integer      (omp_lock_kind                      )                            :: splitForestLock
-     integer                                                                          :: splitForestActiveForest
-     integer         (c_size_t                           )                            :: splitForestNextTree                              , splitForestUniqueID
-     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                              , splitForestTreeStart               , &
-          &                                                                              splitForestMapIndex
-     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                                , splitForestPullFrom
-     integer                                              , allocatable, dimension(:) :: splitForestPushType
-     double precision                                     , allocatable, dimension(:) :: splitForestPushTime
-     logical                                              , allocatable, dimension(:) :: splitForestIsPrimary                            , splitForestPushDone                , &
-          &                                                                              splitForestPullDone
-     logical                                                                          :: warningNestedHierarchyIssued
-     logical                                                                          :: warningSplitForestNestedHierarchyIssued
-     real                                                 , allocatable, dimension(:) :: timingTimes
-     type            (varying_string                     ), allocatable, dimension(:) :: timingLabels
+     class           (cosmologyFunctionsClass                       ), pointer                   :: cosmologyFunctions_                   => null()
+     class           (mergerTreeImporterClass                       ), pointer                   :: mergerTreeImporter_                   => null()
+     class           (darkMatterProfileConcentrationClass           ), pointer                   :: darkMatterProfileConcentration_       => null()
+     class           (satelliteMergingTimescalesClass               ), pointer                   :: satelliteMergingTimescales_           => null()
+     class           (darkMatterHaloScaleClass                      ), pointer                   :: darkMatterHaloScale_                  => null()
+     class           (darkMatterProfileDMOClass                     ), pointer                   :: darkMatterProfileDMO_                 => null()
+     class           (haloSpinDistributionClass                     ), pointer                   :: haloSpinDistribution_                 => null()
+     class           (virialOrbitClass                              ), pointer                   :: virialOrbit_                          => null()
+     class           (outputTimesClass                              ), pointer                   :: outputTimes_                          => null()
+     class           (darkMatterProfileScaleRadiusClass             ), pointer                   :: darkMatterProfileScaleRadius_         => null()
+     class           (randomNumberGeneratorClass                    ), pointer                   :: randomNumberGenerator_                => null()
+     class           (nodeOperatorClass                             ), pointer                   :: nodeOperator_                         => null()
+     integer                                                                                     :: fileCurrent
+     type            (varying_string                                ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
+          &                                                                                         presetNamedIntegers
+     integer                                                         , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
+     logical                                                                                     :: importerOpen                          =  .false.
+     integer         (kind_int8                                     )                            :: beginAt
+     double precision                                                                            :: treeWeightCurrent
+     logical                                                                                     :: allowBranchJumps
+     logical                                                                                     :: allowSubhaloPromotions
+     integer         (c_size_t                                      )                            :: forestSizeMaximum                               , treeNumberOffset
+     logical                                                                                     :: presetMergerTimes
+     logical                                                                                     :: presetMergerNodes
+     logical                                                                                     :: presetSubhaloMasses
+     logical                                                                                     :: presetSubhaloIndices
+     logical                                                                                     :: presetPositions
+     logical                                                                                     :: presetScaleRadii                                , scaleRadiiFailureIsFatal
+     double precision                                                                            :: presetScaleRadiiMinimumMass                     , presetScaleRadiiConcentrationMinimum, &
+          &                                                                                         presetScaleRadiiConcentrationMaximum
+     logical                                                                                     :: presetAngularMomenta                            , presetAngularMomenta3D              , &
+          &                                                                                         presetUnphysicalAngularMomenta
+     logical                                                                                     :: presetOrbits                                    , presetOrbitsAssertAllSet            , &
+          &                                                                                         presetOrbitsBoundOnly                           , presetOrbitsSetAll
+     type            (enumerationReadSubhaloAngularMomentaMethodType)                            :: subhaloAngularMomentaMethod
+     logical                                                                                     :: missingHostsAreFatal
+     logical                                                                                     :: treeIndexToRootNodeIndex
+     integer         (c_size_t                                      )                            :: outputTimesCount
+     double precision                                                                            :: outputTimeSnapTolerance
+     double precision                                                , allocatable, dimension(:) :: outputTimes
+     integer         (c_size_t                                      ), allocatable, dimension(:) :: descendentLocations                              , nodeLocations
+     integer         (kind_int8                                     ), allocatable, dimension(:) :: descendentIndicesSorted                          , nodeIndicesSorted
+     !$ integer      (omp_lock_kind                                 )                            :: splitForestLock
+     integer                                                                                     :: splitForestActiveForest
+     integer         (c_size_t                                      )                            :: splitForestNextTree                              , splitForestUniqueID
+     integer         (c_size_t                                      ), allocatable, dimension(:) :: splitForestTreeSize                              , splitForestTreeStart               , &
+          &                                                                                         splitForestMapIndex
+     integer         (kind_int8                                     ), allocatable, dimension(:) :: splitForestPushTo                                , splitForestPullFrom
+     type            (enumerationPushTypeType                       ), allocatable, dimension(:) :: splitForestPushType
+     double precision                                                , allocatable, dimension(:) :: splitForestPushTime
+     logical                                                         , allocatable, dimension(:) :: splitForestIsPrimary                            , splitForestPushDone                , &
+          &                                                                                         splitForestPullDone
+     logical                                                                                     :: warningNestedHierarchyIssued
+     logical                                                                                     :: warningSplitForestNestedHierarchyIssued
+     real                                                            , allocatable, dimension(:) :: timingTimes
+     type            (varying_string                                ), allocatable, dimension(:) :: timingLabels
    contains
      !![
      <methods>
@@ -336,37 +364,6 @@
      procedure :: exist         => progenitorIteratorExist
   end type progenitorIterator
 
-  ! Enumeration of cross-tree event types.
-  !![
-  <enumeration>
-   <name>pushType</name>
-   <description>Cross-tree event type enumeration.</description>
-   <entry label="branchJump"      />
-   <entry label="subhaloPromotion"/>
-  </enumeration>
-  !!]
-
-  ! Enumeration of node reachability status.
-  !![
-  <enumeration>
-   <name>readNodeReachability</name>
-   <description>Node reachability status.</description>
-   <entry label="unreachable"/>
-   <entry label="reachable"  />
-  </enumeration>
-  !!]
-
-  ! Enumeration of subhalo angular momentum methods.
-  !![
-  <enumeration>
-   <name>readSubhaloAngularMomentaMethod</name>
-   <description>Subhalo angular momentum methods.</description>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="scale"    />
-   <entry label="summation"/>
-  </enumeration>
-  !!]
-
   ! Variables used in root-finding.
   class           (nodeComponentDarkMatterProfile     ), pointer :: readDarkMatterProfile
   class           (nodeComponentBasic                 ), pointer :: readBasic
@@ -414,7 +411,7 @@ contains
          &                                                                              presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                              presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
          &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps
-    type            (varying_string                     )                            :: subhaloAngularMomentaMethodText
+    type            (varying_string                     )                            :: subhaloAngularMomentaMethod
     double precision                                                                 :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                              presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     !$GLC attributes initialized :: self
@@ -456,7 +453,6 @@ contains
       <defaultValue>var_str('summation')</defaultValue>
       <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
       <source>parameters</source>
-      <variable>subhaloAngularMomentaMethodText</variable>
     </inputParameter>
     <inputParameter>
       <name>presetSubhaloIndices</name>
@@ -628,7 +624,7 @@ contains
          &                                                                               beginAt                                                      , &
          &                                                                               missingHostsAreFatal                                         , &
          &                                                                               treeIndexToRootNodeIndex                                     , &
-         &                         enumerationReadSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethodText     ),includesPrefix=.false.), &
+         &                         enumerationReadSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethod         ),includesPrefix=.false.), &
          &                                                                               allowBranchJumps                                             , &
          &                                                                               allowSubhaloPromotions                                       , &
          &                                                                               presetMergerTimes                                            , &
@@ -692,37 +688,37 @@ contains
     use    :: Numerical_Constants_Boolean, only : booleanFalse    , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
     implicit none
-    type            (mergerTreeConstructorRead          )                              :: self
-    class           (cosmologyFunctionsClass            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (mergerTreeImporterClass            ), intent(in   ), target       :: mergerTreeImporter_
-    class           (darkMatterHaloScaleClass           ), intent(in   ), target       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass          ), intent(in   ), target       :: darkMatterProfileDMO_
-    class           (darkMatterProfileConcentrationClass), intent(in   ), target       :: darkMatterProfileConcentration_
-    class           (haloSpinDistributionClass          ), intent(in   ), target       :: haloSpinDistribution_
-    class           (satelliteMergingTimescalesClass    ), intent(in   ), target       :: satelliteMergingTimescales_
-    class           (virialOrbitClass                   ), intent(in   ), target       :: virialOrbit_
-    class           (outputTimesClass                   ), intent(in   ), target       :: outputTimes_
-    class           (darkMatterProfileScaleRadiusClass  ), intent(in   ), target       :: darkMatterProfileScaleRadius_
-    class           (randomNumberGeneratorClass         ), intent(in   ), target       :: randomNumberGenerator_
-    class           (nodeOperatorClass                  ), intent(in   ), target       :: nodeOperator_
-    type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
-         &                                                                                presetNamedIntegers
-    integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
-    integer         (kind_int8                          ), intent(in   )               :: beginAt
-    logical                                              , intent(in   )               :: missingHostsAreFatal                , presetMergerTimes                   , &
-         &                                                                                presetMergerNodes                   , presetSubhaloMasses                 , &
-         &                                                                                presetSubhaloIndices                , presetPositions                     , &
-         &                                                                                presetScaleRadii                    , scaleRadiiFailureIsFatal            , &
-         &                                                                                presetUnphysicalAngularMomenta      , presetAngularMomenta                , &
-         &                                                                                presetAngularMomenta3D              , presetOrbits                        , &
-         &                                                                                presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
-         &                                                                                presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
-         &                                                                                treeIndexToRootNodeIndex            , allowBranchJumps
-    integer                                              , intent(in   )               :: subhaloAngularMomentaMethod
-    double precision                                     , intent(in   )               :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
-         &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
-    integer         (c_size_t                           )                              :: iOutput                             , i
-    type            (varying_string                     )                              :: message
+    type            (mergerTreeConstructorRead                     )                              :: self
+    class           (cosmologyFunctionsClass                       ), intent(in   ), target       :: cosmologyFunctions_
+    class           (mergerTreeImporterClass                       ), intent(in   ), target       :: mergerTreeImporter_
+    class           (darkMatterHaloScaleClass                      ), intent(in   ), target       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass                     ), intent(in   ), target       :: darkMatterProfileDMO_
+    class           (darkMatterProfileConcentrationClass           ), intent(in   ), target       :: darkMatterProfileConcentration_
+    class           (haloSpinDistributionClass                     ), intent(in   ), target       :: haloSpinDistribution_
+    class           (satelliteMergingTimescalesClass               ), intent(in   ), target       :: satelliteMergingTimescales_
+    class           (virialOrbitClass                              ), intent(in   ), target       :: virialOrbit_
+    class           (outputTimesClass                              ), intent(in   ), target       :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass             ), intent(in   ), target       :: darkMatterProfileScaleRadius_
+    class           (randomNumberGeneratorClass                    ), intent(in   ), target       :: randomNumberGenerator_
+    class           (nodeOperatorClass                             ), intent(in   ), target       :: nodeOperator_
+    type            (varying_string                                ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
+         &                                                                                           presetNamedIntegers
+    integer         (c_size_t                                      ), intent(in   )               :: forestSizeMaximum
+    integer         (kind_int8                                     ), intent(in   )               :: beginAt
+    logical                                                         , intent(in   )               :: missingHostsAreFatal                , presetMergerTimes                   , &
+         &                                                                                           presetMergerNodes                   , presetSubhaloMasses                 , &
+         &                                                                                           presetSubhaloIndices                , presetPositions                     , &
+         &                                                                                           presetScaleRadii                    , scaleRadiiFailureIsFatal            , &
+         &                                                                                           presetUnphysicalAngularMomenta      , presetAngularMomenta                , &
+         &                                                                                           presetAngularMomenta3D              , presetOrbits                        , &
+         &                                                                                           presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
+         &                                                                                           presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
+         &                                                                                           treeIndexToRootNodeIndex            , allowBranchJumps
+    type            (enumerationReadSubhaloAngularMomentaMethodType), intent(in   )               :: subhaloAngularMomentaMethod
+    double precision                                                , intent(in   )               :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
+         &                                                                                           presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
+    integer         (c_size_t                                      )                              :: iOutput                             , i
+    type            (varying_string                                )                              :: message
     !![
     <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalAngularMomenta, presetAngularMomenta, presetAngularMomenta3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
     !!]
@@ -1311,12 +1307,12 @@ contains
           ! If a split forest was used, but all trees from it have now been processed, remove the split forest data as we no
           ! longer need it at this point.
           if (returnSplitForest .and. self%splitForestNextTree == size(self%splitForestTreeStart)) then
-             call deallocateArray(self%splitForestTreeSize )
-             call deallocateArray(self%splitForestTreeStart)
-             call deallocateArray(self%splitForestPushTo   )
-             call deallocateArray(self%splitForestPullFrom )
-             call deallocateArray(self%splitForestPushType )
-             call deallocateArray(self%splitForestMapIndex )
+             deallocate(self%splitForestTreeSize )
+             deallocate(self%splitForestTreeStart)
+             deallocate(self%splitForestPushTo   )
+             deallocate(self%splitForestPullFrom )
+             deallocate(self%splitForestPushType )
+             deallocate(self%splitForestMapIndex )
           end if
           ! Release the lock on split forest data if necessary as we're finished using it. This allows other threads to begin
           ! using the split forest data.
@@ -1744,7 +1740,7 @@ contains
 
     ! Create the nodes.
     iIsolatedNode          =0
-    nodes%isolatedNodeIndex=readNodeReachabilityUnreachable
+    nodes%isolatedNodeIndex=readNodeReachabilityUnreachable%ID
     do iNode=1,size(nodes)
        createNode=.false.
        if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
@@ -1789,7 +1785,7 @@ contains
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Check for an isolated node.
           if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
@@ -1888,7 +1884,7 @@ contains
     childIsSubhalo=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Check for an isolated node.
           if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
@@ -1970,7 +1966,7 @@ contains
     Assign scale radii to nodes.
     !!}
     use :: Display                   , only : displayIndent            , displayMessage                , displayUnindent              , displayVerbosity, &
-          &                                   verbosityLevelWarn
+          &                                   verbosityLevelWarn       , enumerationVerbosityLevelType
     use :: Error                     , only : Error_Report             , errorStatusSuccess
     use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeComponentDarkMatterProfile, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -1984,8 +1980,8 @@ contains
     logical                                                       , save                              :: excessiveScaleRadiiReported=.false.
     class           (nodeComponentBasic               ), pointer                                      :: basic
     class           (nodeComponentDarkMatterProfile   ), pointer                                      :: darkMatterProfile
-    integer                                                                                           :: iNode                              , status                    , &
-         &                                                                                               messageVerbosity
+    integer                                                                                           :: iNode                              , status
+    type             (enumerationVerbosityLevelType   )                                               ::  messageVerbosity
     integer         (c_size_t                         )                                               :: iIsolatedNode
     double precision                                                                                  :: radiusScale
     logical                                                                                           :: excessiveHalfMassRadii             , excessiveScaleRadii       , &
@@ -2011,7 +2007,7 @@ contains
     excessiveHalfMassRadii=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Assume that we need to use a fallback method to set halo scale radius.
           useFallbackScaleMethod=.true.
@@ -2141,7 +2137,7 @@ contains
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Get basic and spin components.
           basic => nodeList(iIsolatedNode)%node%basic(                 )
@@ -2208,7 +2204,7 @@ contains
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Assign the named properties.
           basic => nodeList(iIsolatedNode)%node%basic()
@@ -2259,7 +2255,7 @@ contains
     ! Iterate over nodes.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Find the subset with descendents.
           if (associated(nodes(iNode)%descendent)) then
@@ -2270,7 +2266,7 @@ contains
                 endOfBranch =  .false.
                 do while (.not.endOfBranch)
                    ! Record that this node was reachable via descendents of an isolated node.
-                   if (node%isolatedNodeIndex == readNodeReachabilityUnreachable) node%isolatedNodeIndex=readNodeReachabilityReachable
+                   if (node%isolatedNodeIndex == readNodeReachabilityUnreachable%ID) node%isolatedNodeIndex=readNodeReachabilityReachable%ID
                    if (.not.associated(node%descendent)) then
                       ! If there is no descendent then the end of the branch has been reached.
                       endOfBranch=.true.
@@ -2337,7 +2333,7 @@ contains
     ! First pass assigns isolated node indices to all descendents, second pass finds mergers.
     do pass_=passAssign,passMerge
        do iNode=1,size(nodes)
-          if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable) then
+          if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Find the subset with descendents.
              if (associated(nodes(iNode)%descendent)) then
@@ -2406,7 +2402,7 @@ contains
                             progenitorNode => progenitors%current(nodes)
                             if     (                                                                                        &
                                  &                     progenitorNode%nodeIndex         /= node%nodeIndex                   &
-                                 &  .and.              progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable  &
+                                 &  .and.              progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID  &
                                  &  .and.   associated(progenitorNode%descendent                                          ) &
                                  &  .and.massIsGreater(progenitorNode                   ,  node                           ) &
                                  & ) then
@@ -2450,9 +2446,11 @@ contains
                    ! If on the isolated node index assigning pass, skip to the next halo.
                    cycle
                 else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
-                   ! Descendent is not a subhalo but this node is not the primary progenitor. Assume instantaneous merging.
-                   basic => nodeList(iIsolatedNode)%node%basic()
-                   timeSubhaloMerges=basic%time()
+                   ! Descendent is not a subhalo but this node is not the primary progenitor. Assume the halo merges
+                   ! instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of the
+                   ! parent halo.)
+                   basic             => nodeList(iIsolatedNode)%node%parent%basic()
+                   timeSubhaloMerges =  basic                              %time ()
                    ! Flag that this node will merge.
                    nodeWillMerge=.true.
                    ! Record the node with which the merger occurs.
@@ -2516,7 +2514,7 @@ contains
     if (self%presetOrbits) then
        iIsolatedNode=0
        do iNode=1,size(nodes)
-         if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable) then
+         if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Set the orbit for this halo.
              satelliteNode => nodeList(iIsolatedNode)%node
@@ -2695,7 +2693,7 @@ contains
     ! an event to such nodes to handle the jump.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
-       if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable) then
+       if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
           iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
           ! Find those which are a subhalo, or whose descendent is a subhalo.
           descendentNode => null()
@@ -2929,7 +2927,7 @@ contains
             & call Error_Report('presetting subhalo indices requires a component that supports setting of node index histories'//{introspection:location})
        ! Get the default cosmology functions object.
        historyBuildNodeLoop: do iNode=1,size(nodes)
-          historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable) then
+          historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable%ID) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Set a pointer to the current node - this will be updated if any descendents are traced.
              node => nodes(iNode)
@@ -2972,7 +2970,7 @@ contains
                             progenitorNode => progenitors%current(nodes)
                             if     (                                                                                         &
                                  &                      progenitorNode%nodeIndex         /= node%nodeIndex                   &
-                                 &  .and.               progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable  &
+                                 &  .and.               progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID  &
                                  &  .and.    associated(progenitorNode%descendent                                          ) &
                                  &  .and. massIsGreater(progenitorNode                   ,  node                           ) &
                                  & ) then
@@ -3058,7 +3056,7 @@ contains
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable .and. .not.nodes(iNode)%isSubhalo) then
+       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID .and. .not.nodes(iNode)%isSubhalo) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Select nodes with parents.
           if (associated(nodes(iNode)%node%parent)) then
@@ -3135,7 +3133,7 @@ contains
        progenitorNode => progenitors%current(nodes)
        if     (                                                                                        &
             &                     progenitorNode%nodeIndex         /= node%nodeIndex                   &
-            &  .and.              progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable  &
+            &  .and.              progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID  &
             &  .and.   associated(progenitorNode%descendent                                          ) &
             &  .and.massIsGreater(progenitorNode                   ,  node                           ) &
             & ) then
@@ -3706,13 +3704,13 @@ contains
     message=message//pushCount//" links between trees"
     call displayMessage(message,verbosityLevelInfo)
     ! Build a list of push and pull links.
-    call allocateArray(self%splitForestPushTo   ,[pushCount])
-    call allocateArray(self%splitForestPullFrom ,[pushCount])
-    call allocateArray(self%splitForestPushType ,[pushCount])
-    call allocateArray(self%splitForestPushTime ,[pushCount])
-    call allocateArray(self%splitForestIsPrimary,[pushCount])
-    call allocateArray(self%splitForestPushDone ,[pushCount])
-    call allocateArray(self%splitForestPullDone ,[pushCount])
+    allocate(self%splitForestPushTo   (pushCount))
+    allocate(self%splitForestPullFrom (pushCount))
+    allocate(self%splitForestPushType (pushCount))
+    allocate(self%splitForestPushTime (pushCount))
+    allocate(self%splitForestIsPrimary(pushCount))
+    allocate(self%splitForestPushDone (pushCount))
+    allocate(self%splitForestPullDone (pushCount))
     pushCount=0
     do i=1,size(nodes)
        ! Process only nodes with a descendent.
@@ -3924,7 +3922,7 @@ contains
     call displayIndent('Assigning inter-tree events',verbosityLevelInfo)
     do iNode=1,size(nodes)
        ! Process only isolated nodes.
-       if (nodes(iNode)%isolatedNodeIndex == readNodeReachabilityUnreachable) cycle
+       if (nodes(iNode)%isolatedNodeIndex == readNodeReachabilityUnreachable%ID) cycle
        ! Trace through subhalo descendents.
        node => nodes(iNode)
        newEvent => null (     )
@@ -3932,10 +3930,10 @@ contains
           if (self%isOnPushList(node)) then
              iIsolatedNode =  nodes(iNode)%isolatedNodeIndex
              if (.not.self%splitForestPushDone(self%pushListIndex(node))) then
-                select case (self%splitForestPushType(self%pushListIndex(node)))
-                case (pushTypeSubhaloPromotion)
+                select case (self%splitForestPushType(self%pushListIndex(node))%ID)
+                case (pushTypeSubhaloPromotion%ID)
                    allocate(nodeEventSubhaloPromotionInterTree :: newEvent)
-                case (pushTypeBranchJump      )
+                case (pushTypeBranchJump      %ID)
                    allocate(nodeEventBranchJumpInterTree       :: newEvent)
                 end select
                 call nodeList(iIsolatedNode)%node%attachEvent(newEvent)
@@ -3962,10 +3960,10 @@ contains
           if (self%isOnPullList(node)) then
              do iPull=1,self%pullListCount(node)
                 if (.not.self%splitForestPullDone(self%pullListIndex(node,iPull))) then
-                   select case (self%splitForestPushType(self%pullListIndex(node,iPull)))
-                   case (pushTypeSubhaloPromotion)
+                   select case (self%splitForestPushType(self%pullListIndex(node,iPull))%ID)
+                   case (pushTypeSubhaloPromotion%ID)
                       allocate(nodeEventSubhaloPromotionInterTree :: newEvent)
-                   case (pushTypeBranchJump      )
+                   case (pushTypeBranchJump      %ID)
                       allocate(nodeEventBranchJumpInterTree       :: newEvent)
                    case default
                       call Error_Report('unknown push type'//{introspection:location})
@@ -4090,7 +4088,7 @@ contains
           if (associated(node%descendent).and.node%descendent%isSubhalo.and.nodeIsMostMassive) then
              node => node%descendent
              ! If we've reached an isolated node, stop as we will process it in another pass through the loop.
-             if (node%isolatedNodeIndex /= readNodeReachabilityUnreachable) exit
+             if (node%isolatedNodeIndex /= readNodeReachabilityUnreachable%ID) exit
           else
              exit
           end if
@@ -4136,7 +4134,7 @@ contains
           relativeVelocity   =  positionSatellite%velocity()-positionHost%velocity()
           orbit              =  readOrbitConstruct(basicSatellite%mass(),basicHost%mass(),relativePosition,relativeVelocity)
           timeUntilMerging   =  self%satelliteMergingTimescales_%timeUntilMerging(nodeSatellite,orbit)
-          call satelliteSatellite%timeUntilMergingSet(timeUntilMerging)
+          call satelliteSatellite%timeOfMergingSet(timeUntilMerging+basicSatellite%time())
           ! Set target node.
           nodeTarget => nodeHost
           do while (.true.)

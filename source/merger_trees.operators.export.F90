@@ -25,6 +25,7 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatType
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorExport">
@@ -44,12 +45,12 @@
      A merger tree operator class which exports merger trees to file.
      !!}
      private
-     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
-     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     type   (varying_string               )          :: outputFileName
-     integer                                         :: exportFormat
-     logical                                         :: snapshotsRequired
+     class  (cosmologyParametersClass       ), pointer :: cosmologyParameters_      => null()
+     class  (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_       => null()
+     class  (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_ => null()
+     type   (varying_string                 )          :: outputFileName
+     type   (enumerationMergerTreeFormatType)          :: exportFormat
+     logical                                           :: snapshotsRequired
    contains
      final     ::                         exportDestructor
      procedure :: operatePreEvolution  => exportOperatePreEvolution
@@ -73,13 +74,12 @@ contains
     use :: Input_Parameters          , only : inputParameter                   , inputParameters
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatEncode
     implicit none
-    type   (mergerTreeOperatorExport     )                :: self
-    type   (inputParameters              ), intent(inout) :: parameters
-    class  (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
-    class  (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    class  (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    type   (varying_string               )                :: outputFileName            , exportFormatText
-    integer                                               :: exportFormat
+    type (mergerTreeOperatorExport     )                :: self
+    type (inputParameters              ), intent(inout) :: parameters
+    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type (varying_string               )                :: outputFileName            , exportFormat
 
     !![
     <inputParameter>
@@ -91,7 +91,6 @@ contains
     <inputParameter>
       <name>exportFormat</name>
       <source>parameters</source>
-      <variable>exportFormatText</variable>
       <defaultValue>var_str('galacticus')</defaultValue>
       <description>The output format to use when exporting merger trees.</description>
     </inputParameter>
@@ -99,8 +98,7 @@ contains
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
-    self=exportConstructorInternal(char(outputFileName),exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
+    self=exportConstructorInternal(char(outputFileName),enumerationMergerTreeFormatEncode(char(exportFormat),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />
@@ -117,12 +115,12 @@ contains
     use :: Error                     , only : Error_Report
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatIsValid, mergerTreeFormatIrate
     implicit none
-    type     (mergerTreeOperatorExport   )                        :: self
-    character(len=*                      ), intent(in   )         :: outputFileName
-    integer                               , intent(in   )         :: exportFormat
-    class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
-    class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
+    type     (mergerTreeOperatorExport       )                        :: self
+    character(len=*                          ), intent(in   )         :: outputFileName
+    type     (enumerationMergerTreeFormatType), intent(in   )         :: exportFormat
+    class    (cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
+    class    (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
+    class    (cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
     !![
     <constructorAssign variables="outputFileName, exportFormat, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
     !!]

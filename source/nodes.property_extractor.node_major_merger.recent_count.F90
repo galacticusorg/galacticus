@@ -40,7 +40,6 @@
    contains
      final     ::                nodeMajorMergerRecentCountDestructor
      procedure :: extract     => nodeMajorMergerRecentCountExtract
-     procedure :: type        => nodeMajorMergerRecentCountType
      procedure :: name        => nodeMajorMergerRecentCountName
      procedure :: description => nodeMajorMergerRecentCountDescription
   end type nodePropertyExtractorNodeMajorMergerRecentCount
@@ -128,18 +127,6 @@ contains
    return
   end function nodeMajorMergerRecentCountExtract
 
-  integer function nodeMajorMergerRecentCountType(self)
-    !!{
-    Return the type of the major merger count property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorNodeMajorMergerRecentCount), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    nodeMajorMergerRecentCountType=outputAnalysisPropertyTypeLinear
-    return
-  end function nodeMajorMergerRecentCountType
 
   function nodeMajorMergerRecentCountName(self)
     !!{

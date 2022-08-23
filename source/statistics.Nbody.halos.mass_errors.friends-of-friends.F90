@@ -32,6 +32,7 @@
      An N-body halo mass error class which uses a fit appropriate for friends-of-friends group finders.
      !!}
      private
+     double precision :: massParticle
    contains
   end type nbodyHaloMassErrorFriendsOfFriends
 
@@ -81,7 +82,10 @@ contains
     double precision                                    , parameter     :: exponent         =-0.5d00
     double precision                                    , parameter     :: normalization    =+1.25d00
     double precision                                    , parameter     :: errorHighMass    =+0.022d00
-
+    !![
+    <constructorAssign variables="massParticle"/>
+    !!]
+    
     ! Convert from a model defined in terms of particle number (in which the fractional error is 1.2/sqrt(N)) to one defined in
     ! terms of halo mass as used in our parent class.
     nbodyHaloMassErrorFriendsOfFriendsInternal%normalizationSquared          =(normalization*(powerLawMassReference/massParticle)**exponent)**2

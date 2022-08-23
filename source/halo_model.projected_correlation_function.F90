@@ -197,7 +197,7 @@ contains
        correlation=correlation/separation
        ! Project the correlation function.
        call allocateArray(projectedCorrelation,shape(wavenumber))
-       call correlationTable%create(separation(1),separation(wavenumberCount),wavenumberCount,extrapolationTypeExtrapolate)
+       call correlationTable%create(separation(1),separation(wavenumberCount),wavenumberCount,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
        integrandWeightFunction => projectionIntegrandWeight
        do iSeparation=1,wavenumberCount
           projectedSeparation=separation(iSeparation)

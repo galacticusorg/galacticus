@@ -9,8 +9,6 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::LibXML;
 use XML::Simple;
 use XML::Twig;
-use PDL;
-use PDL::NiceSlice;
 use Data::Dumper;
 use Clone qw(clone);
 use List::Util;
@@ -21,6 +19,8 @@ use Galacticus::Launch::Local;
 use Galacticus::Launch::Slurm;
 use Scalar::Util qw(reftype looks_like_number);
 use Storable qw(dclone);
+use PDL;
+use PDL::NiceSlice;
 
 sub parseConfig {
     # Parse a config file, handling xi:xinclude elements.
@@ -230,7 +230,9 @@ sub parameterMatrix {
 	$line =~ s/\s*$//;
 	my @columns = split(/\s+/,$line);
 	my @state = @columns[6..$#columns];
-	$parameterMatrix->(:,$stateCount) .= pdl @state;
+	for(my $i=0;$i<scalar(@state);++$i) {
+	    $parameterMatrix->(($i),($stateCount)) .= $state[$i];
+	}
     }
     close($chainFile);
     return $parameterMatrix;

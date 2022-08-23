@@ -26,21 +26,22 @@ module Galacticus_Nodes
   !!{
   Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
   !!}
-  use            :: Abundances_Structure            , only : abundances
-  use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
-  use            :: Hashes                          , only : doubleHash                , genericHash
-  use            :: Histories                       , only : history                   , longIntegerHistory
-  use            :: IO_HDF5                         , only : hdf5Object
-  use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-  use            :: ISO_Varying_String              , only : varying_string
-  use            :: Kepler_Orbits                   , only : keplerOrbit
-  use            :: Kind_Numbers                    , only : kind_int8
-  use            :: Memory_Management               , only : Memory_Usage_Record       , memoryTypeNodes
-  use            :: Numerical_Constants_Astronomical, only : gigaYear                  , luminosityZeroPointAB         , massSolar, megaParsec
-  use            :: Numerical_Constants_Prefixes    , only : kilo
-  use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
-  use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
-  use            :: Tensors                         , only : tensorNullR2D3Sym         , tensorRank2Dimension3Symmetric
+  use            :: Abundances_Structure               , only : abundances
+  use            :: Chemical_Abundances_Structure      , only : chemicalAbundances
+  use            :: Hashes                             , only : doubleHash                   , genericHash
+  use            :: Histories                          , only : history                      , longIntegerHistory
+  use            :: IO_HDF5                            , only : hdf5Object
+  use, intrinsic :: ISO_C_Binding                      , only : c_size_t
+  use            :: ISO_Varying_String                 , only : varying_string
+  use            :: Kepler_Orbits                      , only : keplerOrbit
+  use            :: Kind_Numbers                       , only : kind_int8
+  use            :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
+  use            :: Memory_Management                  , only : Memory_Usage_Record          , memoryTypeNodes
+  use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar, megaParsec
+  use            :: Numerical_Constants_Prefixes       , only : kilo
+  use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorClass
+  use            :: Stellar_Luminosities_Structure     , only : stellarLuminosities
+  use            :: Tensors                            , only : tensorNullR2D3Sym            , tensorRank2Dimension3Symmetric
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
        &    nodeEventBuildFromRaw       , propertyEvaluate          , propertyActive                , propertyInactive
@@ -119,10 +120,10 @@ module Galacticus_Nodes
   ! Interface for tree event tasks.
   abstract interface
      logical function treeEventTask(event,tree,deadlockStatus)
-       import treeEvent, mergerTree
-       class  (treeEvent ), intent(in   ) :: event
-       type   (mergerTree), intent(inout) :: tree
-       integer            , intent(inout) :: deadlockStatus
+       import treeEvent, mergerTree, enumerationDeadlockStatusType
+       class(treeEvent                    ), intent(in   ) :: event
+       type (mergerTree                   ), intent(inout) :: tree
+       type (enumerationDeadlockStatusType), intent(inout) :: deadlockStatus
      end function treeEventTask
   end interface
   
@@ -1353,10 +1354,14 @@ module Galacticus_Nodes
     !!{
     A null implementation of the enclosed mass in a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
     implicit none
-    class           (nodeComponent), intent(inout) :: self
-    integer                        , intent(in   ) :: componentType, massType, weightBy, weightIndex
-    double precision               , intent(in   ) :: radius
+    class           (nodeComponent               ), intent(inout) :: self
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: radius
     !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
 
     Node_Component_Enclosed_Mass_Null=0.0d0
@@ -1367,11 +1372,13 @@ module Galacticus_Nodes
     !!{
     A null implementation of the acceleration due to a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    double precision               , dimension(3)                :: Node_Component_Acceleration_Null
-    class           (nodeComponent)              , intent(inout) :: self
-    integer                                      , intent(in   ) :: componentType                  , massType
-    double precision               , dimension(3), intent(in   ) :: positionCartesian
+    double precision                              , dimension(3)                :: Node_Component_Acceleration_Null
+    class           (nodeComponent               )              , intent(inout) :: self
+    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
+    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
+    double precision                              , dimension(3), intent(in   ) :: positionCartesian
     !$GLC attributes unused :: self, positionCartesian, componentType, massType
 
     Node_Component_Acceleration_Null=0.0d0
@@ -1382,11 +1389,13 @@ module Galacticus_Nodes
     !!{
     A null implementation of the acceleration due to a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    double precision               , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
-    class           (nodeComponent)              , intent(inout) :: self
-    integer                                      , intent(in   ) :: componentType                             , massType
-    double precision               , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
+    double precision                              , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
+    class           (nodeComponent               )              , intent(inout) :: self
+    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
+    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
+    double precision                              , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
     !$GLC attributes unused :: self, positionCartesian, velocityCartesian, componentType, massType
 
     Node_Component_Chandrasekhar_Integral_Null=0.0d0
@@ -1397,10 +1406,12 @@ module Galacticus_Nodes
     !!{
     A null implementation of the tidal tensor due to a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
     type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Tidal_Tensor_Null
     class           (nodeComponent                 )              , intent(inout) :: self
-    integer                                                       , intent(in   ) :: componentType                   , massType
+    type            (enumerationComponentTypeType  )              , intent(in   ) :: componentType
+    type            (enumerationMassTypeType       )              , intent(in   ) :: massType
     double precision                                , dimension(3), intent(in   ) :: positionCartesian
     !$GLC attributes unused :: self, positionCartesian, componentType, massType
 
@@ -1412,11 +1423,14 @@ module Galacticus_Nodes
     !!{
     A null implementation of the density in a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
     implicit none
-    class           (nodeComponent)              , intent(inout) :: self
-    integer                                      , intent(in   ) :: componentType    , massType, weightBy, &
-         &                                                          weightIndex
-    double precision               , dimension(3), intent(in   ) :: positionSpherical
+    class           (nodeComponent               )              , intent(inout) :: self
+    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
+    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
+    type            (enumerationWeightByType     )              , intent(in   ) :: weightBy
+    integer                                                     , intent(in   ) :: weightIndex
+    double precision                              , dimension(3), intent(in   ) :: positionSpherical
     !$GLC attributes unused :: self, positionSpherical, componentType, massType, weightBy, weightIndex
 
     Node_Component_Density_Null=0.0d0
@@ -1427,11 +1441,14 @@ module Galacticus_Nodes
     !!{
     A null implementation of the spherically-averaged density in a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
     implicit none
-    class           (nodeComponent), intent(inout) :: self
-    integer                        , intent(in   ) :: componentType, massType, weightBy, &
-         &                                            weightIndex
-    double precision               , intent(in   ) :: radius
+    class           (nodeComponent               ), intent(inout) :: self
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
+    integer                                       , intent(in   ) :: weightIndex
+    double precision                              , intent(in   ) :: radius
     !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
 
     Node_Component_Density_Spherical_Average_Null=0.0d0
@@ -1442,11 +1459,14 @@ module Galacticus_Nodes
     !!{
     A null implementation of the surface density in a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
     implicit none
-    class           (nodeComponent)              , intent(inout) :: self
-    integer                                      , intent(in   ) :: componentType      , massType   , &
-         &                                                          weightBy           , weightIndex
-    double precision               , dimension(3), intent(in   ) :: positionCylindrical
+    class           (nodeComponent               )              , intent(inout) :: self
+    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
+    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
+    type            (enumerationWeightByType     )              , intent(in   ) :: weightBy
+    integer                                                     , intent(in   ) :: weightIndex
+    double precision                              , dimension(3), intent(in   ) :: positionCylindrical
     !$GLC attributes unused :: self, positionCylindrical, componentType, massType, weightBy, weightIndex
 
     Node_Component_Surface_Density_Null=0.0d0
@@ -1457,11 +1477,13 @@ module Galacticus_Nodes
     !!{
     A null implementation of the gravitational potential in a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
     implicit none
-    class           (nodeComponent), intent(inout)           :: self
-    integer                        , intent(in   )           :: componentType, massType
-    double precision               , intent(in   )           :: radius
-    integer                        , intent(inout), optional :: status
+    class           (nodeComponent                    ), intent(inout)           :: self
+    type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
+    type            (enumerationMassTypeType          ), intent(in   )           :: massType
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
     !$GLC attributes unused :: self, radius, componentType, massType, status
 
     Node_Component_Potential_Null=0.0d0
@@ -1472,10 +1494,12 @@ module Galacticus_Nodes
     !!{
     A null implementation of the rotation curve due to a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    class           (nodeComponent), intent(inout) :: self
-    integer                        , intent(in   ) :: componentType, massType
-    double precision               , intent(in   ) :: radius
+    class           (nodeComponent               ), intent(inout) :: self
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
     !$GLC attributes unused :: self, radius, componentType, massType
 
     Node_Component_Rotation_Curve_Null=0.0d0
@@ -1486,10 +1510,12 @@ module Galacticus_Nodes
     !!{
     A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
     !!}
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    class           (nodeComponent), intent(inout) :: self
-    integer                        , intent(in   ) :: componentType, massType
-    double precision               , intent(in   ) :: radius
+    class           (nodeComponent               ), intent(inout) :: self
+    type            (enumerationComponentTypeType), intent(in   ) :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ) :: massType
+    double precision                              , intent(in   ) :: radius
     !$GLC attributes unused :: self, radius, componentType, massType
 
     Node_Component_Rotation_Curve_Gradient_Null=0.0d0

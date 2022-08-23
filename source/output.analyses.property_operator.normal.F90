@@ -121,13 +121,13 @@ contains
     use            :: Error_Functions, only : Error_Function
     use, intrinsic :: ISO_C_Binding  , only : c_size_t
     implicit none
-    class           (outputAnalysisPropertyOperatorNormal), intent(inout)           :: self
-    double precision                                      , intent(in   )           :: propertyValue
-    type            (treeNode                            ), intent(inout), optional :: node
-    integer                                               , intent(inout), optional :: propertyType
-    integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
-    double precision                                                                :: integralLower  , integralUpper  , &
-         &                                                                             normalizerLower, normalizerUpper
+    class           (outputAnalysisPropertyOperatorNormal     ), intent(inout)           :: self
+    double precision                                           , intent(in   )           :: propertyValue
+    type            (treeNode                                 ), intent(inout), optional :: node
+    type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType
+    integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex
+    double precision                                                                     :: integralLower  , integralUpper  , &
+         &                                                                                  normalizerLower, normalizerUpper
     !$GLC attributes unused :: propertyType, outputIndex, node
 
     ! Handle special cases.

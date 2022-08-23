@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing dark matter profile algorithms. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="standard"/>
+  <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
+  <spheroidMassDistribution value="hernquist">
+    <dimensionless value="true"/>
+  </spheroidMassDistribution>
+  <mergerRemnantSize value="null"/>
+</parameters>

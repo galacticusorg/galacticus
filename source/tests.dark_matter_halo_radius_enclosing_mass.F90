@@ -72,6 +72,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   double precision                                                                , parameter    :: coefficientSecondOrder                   = 0.00d+00
   double precision                                                                , parameter    :: correlationVelocityRadius                =-1.00d+00
   double precision                                                                , parameter    :: toleranceRelativeVelocityDispersion      = 1.00d-06
+  double precision                                                                , parameter    :: toleranceRelativeVelocityDispersionMaximum= 1.00d-03
   double precision                                                                               :: radiusVirial                                       , radiusScale                           , &
        &                                                                                            toleranceRelative
   type            (varying_string                                                )               :: parameterFile
@@ -139,7 +140,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,alpha                          ,beta                               ,gamma                    ,                       &
        &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
   darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder             ,correlationVelocityRadius                      )
-  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,darkMatterProfileDMONFW_ ,darkMatterHaloScale_,  &
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMONFW_ ,darkMatterHaloScale_,  &
        &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)

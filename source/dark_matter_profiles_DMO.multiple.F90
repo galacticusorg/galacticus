@@ -233,10 +233,10 @@ contains
     \ttfamily radius} (given in units of Mpc).
     !!}
     implicit none
-    class           (darkMatterProfileDMOMultiple), intent(inout)           :: self
-    type            (treeNode                    ), intent(inout), target   :: node
-    double precision                              , intent(in   )           :: radius
-    integer                                       , intent(  out), optional :: status
+    class           (darkMatterProfileDMOMultiple     ), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout), target   :: node
+    double precision                                   , intent(in   )           :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (node%isSatellite()) then
        multiplePotential=self%darkMatterProfileDMOSatellite_%potential(node,radius,status)

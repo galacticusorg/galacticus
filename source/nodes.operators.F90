@@ -35,7 +35,12 @@ module Nodes_Operators
     <description>Class providing operators acting on nodes.</description>
     <default>null</default>
     <method name="nodeInitialize" >
-      <description>Act on the initialization of a node.</description>
+      <description>
+	Perform initialization of node properties prior to tree evolution. This typically includes initializations related to the
+	evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization). Initializations related to
+	the static structure of the tree (e.g. assigning scale radii, merging orbits, etc.) are typically handled by the
+	{\normalfont \ttfamily nodeTreeInitialize} method.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout), target :: node</argument>
@@ -44,7 +49,12 @@ module Nodes_Operators
       </code>
     </method>
     <method name="nodeTreeInitialize" >
-      <description>Act on the initialization of a tree.</description>
+      <description>
+	Perform initialization of node properties immediately after tree construction. This typically includes initializations
+	related to the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
+	evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled by the
+	{\normalfont \ttfamily nodeInitialize} method.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <selfTarget>yes</selfTarget>

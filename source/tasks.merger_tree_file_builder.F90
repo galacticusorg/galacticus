@@ -17,26 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
-  use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
-  use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordial , powerSpectrumPrimordialClass
-  use :: Stateful_Types            , only : statefulDouble          , statefulInteger              , statefulLogical
-  use :: Transfer_Functions        , only : transferFunction        , transferFunctionClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVariance   , cosmologicalMassVarianceClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters        , cosmologyParametersClass
+  use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordial    , powerSpectrumPrimordialClass
+  use :: Stateful_Types            , only : statefulDouble             , statefulInteger              , statefulLogical
+  use :: Transfer_Functions        , only : transferFunction           , transferFunctionClass
+  use :: Merger_Tree_Data_Structure, only : enumerationPropertyTypeType, enumerationMetaDataTypeType  , enumerationMergerTreeFormatType
 
   type :: mergerTreeMetaData
      !!{
      Type used for metadata in merger tree files.
      !!}
-     integer                 :: type
-     type   (varying_string) :: name, content
+     type(enumerationMetaDataTypeType) :: type
+     type(varying_string             ) :: name, content
   end type mergerTreeMetaData
 
   type :: propertyColumn
      !!{
      Type used to specify which property to read from which column,
      !!}
-     integer                 :: property        , column
-     type   (statefulDouble) :: conversionFactor
+     type   (enumerationPropertyTypeType) :: property
+     integer                              :: column
+     type   (statefulDouble             ) :: conversionFactor
   end type propertyColumn
 
   !![
@@ -192,28 +194,28 @@
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
-     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_       => null()
-     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_  => null()
-     class           (powerSpectrumPrimordialClass ), pointer                   :: powerSpectrumPrimordial_   => null()
-     class           (transferFunctionClass        ), pointer                   :: transferFunction_          => null()
-     type            (propertyColumn               ), allocatable, dimension(:) :: properties                          , particleProperties
-     type            (mergerTreeMetaData           ), allocatable, dimension(:) :: metaData
-     type            (varying_string               )                            :: outputFileName                      , inputFileName                   , &
-          &                                                                        particlesFileName
-     integer                                                                    :: outputFormat
-     double precision                                                           :: unitsMassInSI                       , unitsLengthInSI                 , &
-          &                                                                        unitsVelocityInSI
-     integer                                                                    :: unitsMassHubbleExponent             , unitsMassScaleFactorExponent    , &
-          &                                                                        unitsLengthHubbleExponent           , unitsLengthScaleFactorExponent  , &
-          &                                                                        unitsVelocityHubbleExponent         , unitsVelocityScaleFactorExponent
-     type            (varying_string               )                            :: unitsMassName                       , unitsLengthName                 , &
-          &                                                                        unitsVelocityName
-     type            (statefulInteger              )                            :: dummyHostId
-     type            (statefulDouble               )                            :: massParticle
-     type            (statefulLogical              )                            :: haloMassesIncludeSubhalos           , includesHubbleFlow              , &
-          &                                                                        positionsArePeriodic
-     logical                                                                    :: traceParticles                      , columnHeaders
-     character       (len=1                        )                            :: columnSeparator
+     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_       => null()
+     class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_  => null()
+     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_   => null()
+     class           (transferFunctionClass          ), pointer                   :: transferFunction_          => null()
+     type            (propertyColumn                 ), allocatable, dimension(:) :: properties                          , particleProperties
+     type            (mergerTreeMetaData             ), allocatable, dimension(:) :: metaData
+     type            (varying_string                 )                            :: outputFileName                      , inputFileName                   , &
+          &                                                                          particlesFileName
+     type            (enumerationMergerTreeFormatType)                            :: outputFormat
+     double precision                                                             :: unitsMassInSI                       , unitsLengthInSI                 , &
+          &                                                                          unitsVelocityInSI
+     integer                                                                      :: unitsMassHubbleExponent             , unitsMassScaleFactorExponent    , &
+          &                                                                          unitsLengthHubbleExponent           , unitsLengthScaleFactorExponent  , &
+          &                                                                          unitsVelocityHubbleExponent         , unitsVelocityScaleFactorExponent
+     type            (varying_string                 )                            :: unitsMassName                       , unitsLengthName                 , &
+          &                                                                          unitsVelocityName
+     type            (statefulInteger                )                            :: dummyHostId
+     type            (statefulDouble                 )                            :: massParticle
+     type            (statefulLogical                )                            :: haloMassesIncludeSubhalos           , includesHubbleFlow              , &
+          &                                                                          positionsArePeriodic
+     logical                                                                      :: traceParticles                      , columnHeaders
+     character       (len=1                          )                            :: columnSeparator
    contains
      final     ::                       mergerTreeFileBuilderDestructor
      procedure :: perform            => mergerTreeFileBuilderPerform
@@ -576,29 +578,29 @@ contains
     Constructor for the {\normalfont \ttfamily mergerTreeFileBuilder} task class which takes a parameter set as input.
     !!}
     implicit none
-    type            (taskMergerTreeFileBuilder    )                              :: self
-    class           (cosmologyParametersClass     ), intent(in   ), target       :: cosmologyParameters_
-    class           (cosmologicalMassVarianceClass), intent(in   ), target       :: cosmologicalMassVariance_
-    class           (powerSpectrumPrimordialClass ), intent(in   ), target       :: powerSpectrumPrimordial_
-    class           (transferFunctionClass        ), intent(in   ), target       :: transferFunction_
-    type            (varying_string               ), intent(in   )               :: inputFileName              , outputFileName                  , &
-         &                                                                          particlesFileName
-    type            (statefulInteger              ), intent(in   )               :: dummyHostId
-    type            (statefulDouble               ), intent(in   )               :: massParticle
-    type            (statefulLogical              ), intent(in   )               :: haloMassesIncludeSubhalos  , includesHubbleFlow              , &
-         &                                                                          positionsArePeriodic
-    integer                                        , intent(in   )               :: outputFormat
-    type            (propertyColumn               ), intent(in   ), dimension(:) :: properties                 , particleProperties
-    double precision                               , intent(in   )               :: unitsMassInSI              , unitsLengthInSI                 , &
-         &                                                                          unitsVelocityInSI
-    type            (mergerTreeMetaData           ), intent(in   ), dimension(:) :: metaData
-    integer                                        , intent(in   )               :: unitsMassHubbleExponent    , unitsMassScaleFactorExponent    , &
-         &                                                                          unitsLengthHubbleExponent  , unitsLengthScaleFactorExponent  , &
-         &                                                                          unitsVelocityHubbleExponent, unitsVelocityScaleFactorExponent
-    type            (varying_string               ), intent(in   )               :: unitsMassName              , unitsLengthName                 , &
-         &                                                                          unitsVelocityName
-    logical                                        , intent(in   )               :: columnHeaders
-    character       (len=1                        ), intent(in   )               :: columnSeparator
+    type            (taskMergerTreeFileBuilder      )                              :: self
+    class           (cosmologyParametersClass       ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologicalMassVarianceClass  ), intent(in   ), target       :: cosmologicalMassVariance_
+    class           (powerSpectrumPrimordialClass   ), intent(in   ), target       :: powerSpectrumPrimordial_
+    class           (transferFunctionClass          ), intent(in   ), target       :: transferFunction_
+    type            (varying_string                 ), intent(in   )               :: inputFileName              , outputFileName                  , &
+         &                                                                            particlesFileName
+    type            (statefulInteger                ), intent(in   )               :: dummyHostId
+    type            (statefulDouble                 ), intent(in   )               :: massParticle
+    type            (statefulLogical                ), intent(in   )               :: haloMassesIncludeSubhalos  , includesHubbleFlow              , &
+         &                                                                            positionsArePeriodic
+    type            (enumerationMergerTreeFormatType), intent(in   )               :: outputFormat
+    type            (propertyColumn                 ), intent(in   ), dimension(:) :: properties                 , particleProperties
+    double precision                                 , intent(in   )               :: unitsMassInSI              , unitsLengthInSI                 , &
+         &                                                                            unitsVelocityInSI
+    type            (mergerTreeMetaData             ), intent(in   ), dimension(:) :: metaData
+    integer                                          , intent(in   )               :: unitsMassHubbleExponent    , unitsMassScaleFactorExponent    , &
+         &                                                                            unitsLengthHubbleExponent  , unitsLengthScaleFactorExponent  , &
+         &                                                                            unitsVelocityHubbleExponent, unitsVelocityScaleFactorExponent
+    type            (varying_string                 ), intent(in   )               :: unitsMassName              , unitsLengthName                 , &
+         &                                                                            unitsVelocityName
+    logical                                          , intent(in   )               :: columnHeaders
+    character       (len=1                          ), intent(in   )               :: columnSeparator
     !![
     <constructorAssign variables="inputFileName, particlesFileName, outputFileName, outputFormat, columnHeaders, columnSeparator, properties, particleProperties, metaData, massParticle, dummyHostId, haloMassesIncludeSubhalos, includesHubbleFlow, positionsArePeriodic, unitsMassInSI, unitsMassHubbleExponent, unitsMassScaleFactorExponent, unitsMassName, unitsLengthInSI, unitsLengthHubbleExponent, unitsLengthScaleFactorExponent, unitsLengthName, unitsVelocityInSI, unitsVelocityHubbleExponent, unitsVelocityScaleFactorExponent, unitsVelocityName, *cosmologyParameters_, *cosmologicalMassVariance_, *powerSpectrumPrimordial_, *transferFunction_"/>
     !!]

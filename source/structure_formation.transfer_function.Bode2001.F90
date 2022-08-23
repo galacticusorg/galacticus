@@ -26,6 +26,17 @@ Contains a module which implements a transfer function class based on the therma
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
+  <enumeration>
+   <name>scaleCutOffModel</name>
+   <description>The model to use for the cut-off scale in the \cite{bode_halo_2001} transfer function.</description>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="bode2001"   />
+   <entry label="barkana2001"/>
+  </enumeration>
+  !!]
+
+  !![
   <transferFunction name="transferFunctionBode2001">
    <description>
     A transfer function class which applies the thermal \gls{wdm} modifier of \cite{bode_halo_2001} to the provided \gls{cdm}
@@ -44,13 +55,13 @@ Contains a module which implements a transfer function class based on the therma
      A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
      !!}
      private
-     double precision                                    :: epsilon                       , eta        , &
-          &                                                 nu                            , scaleCutOff, &
-          &                                                 time                          , redshift
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     type            (enumerationScaleCutOffModelType)          :: scaleCutOffModel
+     double precision                                           :: epsilon                       , eta        , &
+          &                                                        nu                            , scaleCutOff, &
+          &                                                        time                          , redshift
+     class           (transferFunctionClass          ), pointer :: transferFunctionCDM  => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_  => null()
+     class           (darkMatterParticleClass        ), pointer :: darkMatterParticle_  => null()
    contains
      !![
      <methods>
@@ -92,6 +103,7 @@ contains
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
+    type            (varying_string          )                :: scaleCutOffModel
     double precision                                          :: epsilon             , eta     , &
          &                                                       nu                  , redshift
 
@@ -99,6 +111,12 @@ contains
     if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
+    <inputParameter>
+      <name>scaleCutOffModel</name>
+      <source>parameters</source>
+      <defaultValue>var_str('barkana2001')</defaultValue>
+      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, or ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}.</description>
+    </inputParameter>
     <inputParameter>
       <name>epsilon</name>
       <source>parameters</source>
@@ -131,7 +149,7 @@ contains
       <description>The redshift of the epoch at which the transfer function is defined.</description>
     </inputParameter>
     !!]
-    self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
+    self=transferFunctionBode2001(transferFunctionCDM,enumerationScaleCutOffModelEncode(char(scaleCutOffModel),includesPrefix=.false.),epsilon,eta,nu,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -142,7 +160,7 @@ contains
     return
   end function bode2001ConstructorParameters
 
-  function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
+  function bode2001ConstructorInternal(transferFunctionCDM,scaleCutOffModel,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily bode2001} transfer function class.
     !!}
@@ -150,36 +168,60 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
     use :: Error                , only : Error_Report
     implicit none
-    type            (transferFunctionBode2001)                           :: self
-    class           (transferFunctionClass   ), target   , intent(in   ) :: transferFunctionCDM
-    double precision                                     , intent(in   ) :: epsilon                   , eta                            , &
-         &                                                                  nu                        , time
-    class           (cosmologyParametersClass), target   , intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), target   , intent(in   ) :: cosmologyFunctions_
-    class           (darkMatterParticleClass ), target   , intent(in   ) :: darkMatterParticle_
-    double precision                          , parameter                :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
+    type            (transferFunctionBode2001       )                           :: self
+    class           (transferFunctionClass          ), target   , intent(in   ) :: transferFunctionCDM
+    type            (enumerationScaleCutOffModelType)           , intent(in   ) :: scaleCutOffModel
+    double precision                                            , intent(in   ) :: epsilon                   , eta                            , &
+         &                                                                         nu                        , time
+    class           (cosmologyParametersClass       ), target   , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass        ), target   , intent(in   ) :: cosmologyFunctions_
+    class           (darkMatterParticleClass        ), target   , intent(in   ) :: darkMatterParticle_
+    double precision                                 , parameter                :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
     !![
-    <constructorAssign variables="*transferFunctionCDM, epsilon, eta, nu, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    <constructorAssign variables="*transferFunctionCDM, scaleCutOffModel, epsilon, eta, nu, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
     !!]
 
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-    ! Compute the comoving cut-off scale. This uses equation (4) from Barkana et al. (2001;
-    ! http://adsabs.harvard.edu/abs/2001ApJ...558..482B), with the prefactor of 0.932 to give the cut-off scale at the epoch of
-    ! matter-radiation equality as discussed in the paragraph following their equation (4).
+    ! Compute the comoving cut-off scale.
     select type (particle => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
-       self%scaleCutOff=+0.932d0                                                                  &
-            &           *0.201d0                                                                  &
-            &           *(                                                                        &
-            &             +(                                                                      &
-            &               +self%cosmologyParameters_%OmegaMatter   (                  )         &
-            &               -self%cosmologyParameters_%OmegaBaryon   (                  )         &
-            &              )                                                                      &
-            &             *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2      &
-            &             /0.15d0                                                                 &
-            &            )                                                               **0.15d0 &
-            &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
-            &           /(particle%mass                     ()/            massReference)**1.15d0
+       select case (scaleCutOffModel%ID)
+       case (scaleCutOffModelBarkana2001%ID)
+          ! This uses equation (4) from Barkana et al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...558..482B), with the
+          ! prefactor of 0.932 to give the cut-off scale at the epoch of matter-radiation equality as discussed in the paragraph
+          ! following their equation (4).
+          self%scaleCutOff=+0.932d0                                                                  &
+               &           *0.201d0                                                                  &
+               &           *(                                                                        &
+               &             +(                                                                      &
+               &               +self%cosmologyParameters_%OmegaMatter   (                  )         &
+               &               -self%cosmologyParameters_%OmegaBaryon   (                  )         &
+               &              )                                                                      &
+               &             *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2      &
+               &             /0.15d0                                                                 &
+               &            )                                                               **0.15d0 &
+               &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
+               &           /(particle%mass                     ()/            massReference)**1.15d0
+       case (scaleCutOffModelBode2001   %ID)
+          ! This uses equaton (A9) from Bode et al. (2001; https://ui.adsabs.harvard.edu/abs/2001ApJ...556...93B).
+          self%scaleCutOff=+0.048d0                                                                  &
+               &           *(                                                                        &
+               &             +(                                                                      &
+               &               +self%cosmologyParameters_%OmegaMatter   (                  )         &
+               &               -self%cosmologyParameters_%OmegaBaryon   (                  )         &
+               &              )                                                                      &
+               &             /0.4d0                                                                  &
+               &            )**0.15d0                                                                &
+               &           *(                                                                        &
+               &             +self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
+               &             /0.65d0                                                                 &
+               &            )**1.3d0                                                                 &
+               &           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)           &
+               &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
+               &           /(particle%mass                     ()/            massReference)**1.15d0
+       case default
+          call Error_Report('invalid cut-off scale model'//{introspection:location})
+       end select
     class default
        call Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select

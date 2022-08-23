@@ -47,21 +47,11 @@ module Node_Component_Satellite_Preset
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>timeUntilMerging</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
-      <classDefault>-1.0d0</classDefault>
-      <getFunction>Node_Component_Satellite_Preset_Time_Until_Merging</getFunction>
-      <setFunction>Node_Component_Satellite_Preset_Time_Until_Merging_Set</setFunction>
-      <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-    </property>
-    <property>
       <name>timeOfMerging</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <classDefault>-1.0d0</classDefault>
+      <classDefault>huge(0.0d0)</classDefault>
     </property>
     <property>
       <name>boundMass</name>
@@ -69,7 +59,7 @@ module Node_Component_Satellite_Preset
       <rank>0</rank>
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
       <getFunction>SatellitePresetMergeBoundMass</getFunction>
-      <classDefault>selfBasicComponent%mass()</classDefault>
+      <classDefault>selfBasic%mass()</classDefault>
       <output unitsInSI="massSolar" comment="Bound mass of the node."/>
     </property>
     <property>
@@ -279,9 +269,6 @@ contains
   <interTreePostProcess>
    <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
   </interTreePostProcess>
-  <subhaloPromotionPostProcess>
-   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
-  </subhaloPromotionPostProcess>
   <branchJumpPostProcess>
    <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
   </branchJumpPostProcess>

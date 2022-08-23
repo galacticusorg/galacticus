@@ -104,7 +104,7 @@ sub createNullFunction {
 		 variables  => [ "self" ]
 	     }
 	    );
-    } elsif ( $descriptor->{'attribute'} eq "analytic" ) {
+    } elsif ( $descriptor->{'attribute'} eq "analytic" || $descriptor->{'attribute'} eq "inactive" ) {
 	$returnType = "void";
 	@variables =
 	    (

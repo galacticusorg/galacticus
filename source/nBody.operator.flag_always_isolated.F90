@@ -103,7 +103,7 @@ contains
     type            (nBodyData                      ), intent(inout), dimension(:) :: simulations
     integer         (c_size_t                       ), pointer      , dimension(:) :: alwaysIsolated         , hostID     , &
          &                                                                            descendentID           , particleIDs, &
-         &                                                                            isMostMassiveProgenitor, 
+         &                                                                            isMostMassiveProgenitor
     integer         (c_size_t                       ), allocatable  , dimension(:) :: indexID
     double precision                                 , pointer      , dimension(:) :: massVirial
     double precision                                                               :: massReference

@@ -633,8 +633,7 @@ contains
           if (associated(node)) then
              basic     => node%basic    ()
              satellite => node%satellite()
-             call basic    %            timeSet(                             timeEnd )
-             call satellite%timeUntilMergingSet(satellite%timeUntilMerging()-timeStep)
+             call basic%timeSet(timeEnd)
           end if
           ! Record that we solved this system analytically.
           solved=.true.
@@ -753,18 +752,18 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid           , treeNode
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid  , enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class  (*                    ), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    type   (treeNode             ), pointer       :: nodeHost
-    class  (nodeComponentDisk    ), pointer       :: diskHost               , disk
-    class  (nodeComponentSpheroid), pointer       :: spheroidHost
-    integer                                       :: destinationGasSatellite, destinationGasHost       , &
-         &                                           destinationStarsHost   , destinationStarsSatellite
-    logical                                       :: mergerIsMajor
+    class  (*                              ), intent(inout) :: self
+    type   (treeNode                       ), intent(inout) :: node
+    type   (treeNode                       ), pointer       :: nodeHost
+    class  (nodeComponentDisk              ), pointer       :: diskHost               , disk
+    class  (nodeComponentSpheroid          ), pointer       :: spheroidHost
+    type  (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                     destinationStarsHost   , destinationStarsSatellite
+    logical                                                 :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Check that the disk is of the verySimple class.
@@ -783,8 +782,8 @@ contains
             & )                                                        &
             & spheroidHost => nodeHost%spheroid(autoCreate=.true.)
        ! Move the gas component of the very simple disk to the host.
-       select case (destinationGasSatellite)
-       case (destinationMergerDisk)
+       select case (destinationGasSatellite%ID)
+       case (destinationMergerDisk%ID)
           call diskHost    %massGasSet          (                              &
                &                                  diskHost    %      massGas() &
                &                                 +disk        %      massGas() &
@@ -793,7 +792,7 @@ contains
                &                                  diskHost    %abundancesGas() &
                &                                 +disk        %abundancesGas() &
                &                                )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massGasSet          (                              &
                &                                  spheroidHost%massGas      () &
                &                                 +disk        %massGas      () &
@@ -815,8 +814,8 @@ contains
             &                                                    zeroAbundances          &
             &                                   )
        ! Move the stellar component of the very simple disk to the host.
-       select case (destinationStarsSatellite)
-       case (destinationMergerDisk)
+       select case (destinationStarsSatellite%ID)
+       case (destinationMergerDisk%ID)
           call diskHost    %massStellarSet        (                                    &
                &                                    diskHost    %        massStellar() &
                &                                   +disk        %        massStellar() &
@@ -829,7 +828,7 @@ contains
                &                                    diskHost    %luminositiesStellar() &
                &                                   +disk        %luminositiesStellar() &
                &                                  )
-       case (destinationMergerSpheroid)
+       case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                    &
                &                                    spheroidHost%  massStellar      () &
                &                                   +disk        %  massStellar      () &

@@ -144,7 +144,7 @@
       <accretionNegativeAllowed value="false"/>
     </accretionHalo>
     <intergalacticMediumState value="file">
-      <fileName value="constraints/data/igmState.xml"/>
+      <fileName value="%DATASTATICPATH%/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
     </intergalacticMediumState>
 
     <!-- Hot halo gas cooling model options -->
@@ -248,9 +248,6 @@
     <bondiHoyleAccretionTemperatureSpheroid value="100"/>
     <bondiHoyleAccretionHotModeOnly value="true"/>
 
-    <!-- Satellite orbit options -->
-    <satelliteOrbitStoreOrbitalParameters value="true"/>
-
     <!-- Galaxy merger options -->
     <virialOrbit value="benson2005"/>
     <satelliteMergingTimescales value="jiang2008">
@@ -280,6 +277,9 @@
 	<factorReset value="2.0"/>
       </nodeOperator>
       <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+      <!-- Satellite evolution -->
+      <nodeOperator value="satelliteMergingTime" iterable="no"/>
+      <nodeOperator value="satelliteMassLoss"    iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>

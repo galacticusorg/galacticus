@@ -66,6 +66,7 @@ contains
     use :: Cosmology_Functions     , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
+    use :: Galactic_Structure      , only : galacticStructureClass
     use :: Input_Parameters        , only : inputParameter            , inputParameters
     implicit none
     type            (outputAnalysisQuiescentFractionWagner2016)                              :: self
@@ -77,6 +78,7 @@ contains
     class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
     class           (darkMatterProfileDMOClass                ), pointer                     :: darkMatterProfileDMO_
     class           (virialDensityContrastClass               ), pointer                     :: virialDensityContrast_
+    class           (galacticStructureClass                   ), pointer                     :: galacticStructure_
     double precision                                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
          &                                                                                      weightSystematicErrorPolynomialCoefficient
     double precision                                                                         :: randomErrorMinimum                        , randomErrorMaximum
@@ -138,8 +140,9 @@ contains
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="galacticStructure"          name="galacticStructure_"          source="parameters"/>
     !!]
-    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"       />
@@ -149,11 +152,12 @@ contains
     <objectDestructor name="outputTimes_"               />
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="galacticStructure_"         />
     !!]
     return
   end function quiescentFractionWagner2016ConstructorParameters
 
-  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_) result(self)
     !!{
     Internal constructor for the ``quiescentFractionWagner2016'' output analysis class.
     !!}
@@ -174,7 +178,7 @@ contains
     use :: Virial_Density_Contrast               , only : fixedDensityTypeCritical                           , virialDensityContrastClass   , virialDensityContrastFixed
     implicit none
     type            (outputAnalysisQuiescentFractionWagner2016          )                              :: self
-    integer                                                              , intent(in   )               :: redshiftRange
+    type            (enumerationWagner2016QuiescentRedshiftRangeType    ), intent(in   )               :: redshiftRange
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                    , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                      , systematicErrorPolynomialCoefficient, &
          &                                                                                                weightSystematicErrorPolynomialCoefficient
@@ -185,6 +189,7 @@ contains
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
     class           (virialDensityContrastClass                         ), intent(in   ), target       :: virialDensityContrast_
     class           (darkMatterProfileDMOClass                          ), intent(in   ), target       :: darkMatterProfileDMO_
+    class           (galacticStructureClass                             ), intent(in   ), target       :: galacticStructure_
     type            (galacticFilterHaloNotIsolated                      )               , pointer      :: galacticFilterIsSubhalo_
     type            (galacticFilterHighPass                             )               , pointer      :: galacticFilterHostHaloMass_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilterStellarMass_
@@ -213,22 +218,22 @@ contains
     label      ='Wagner2016'
     description='Quiescent fraction from Wagner et al. (2016) for galaxies with '
     !! Determine redshift range properties. Host halo mass threshold is judged approximately from Figure 1 of Wagner et al. (2016).
-    select case (redshiftRange)
-    case (wagner2016QuiescentRedshiftRangeLow )
+    select case (redshiftRange%ID)
+    case (wagner2016QuiescentRedshiftRangeLow %ID)
        redshiftMinimum  =0.15d0
        redshiftMaximum  =0.41d0
        massHostThreshold=10.0d0**14.8d0
        fileName         =fileName   // '0.15_0.41'
        label            =label      //'Z0.15_0.41'
        description      =description//'$0.15 < z < 0.41$'
-    case (wagner2016QuiescentRedshiftRangeMid )
+    case (wagner2016QuiescentRedshiftRangeMid %ID)
        redshiftMinimum  =0.41d0
        redshiftMaximum  =0.80d0
        massHostThreshold=10.0d0**14.8d0
        fileName         =fileName   // '0.41_0.80'
        label            =label      //'Z0.41_0.80'
        description      =description//'$0.41 < z < 0.80$'
-    case (wagner2016QuiescentRedshiftRangeHigh)
+    case (wagner2016QuiescentRedshiftRangeHigh%ID)
        redshiftMinimum  =0.80d0
        redshiftMaximum  =1.50d0
        massHostThreshold=10.0d0**14.3d0
@@ -348,7 +353,8 @@ contains
          &                                 outputAnalysisDistributionOperator_          , &
          &                                 outputAnalysisWeightPropertyOperator_        , &
          &                                 starFormationRateDisks_                      , &
-         &                                 starFormationRateSpheroids_                    &
+         &                                 starFormationRateSpheroids_                  , &
+         &                                 galacticStructure_                             &
          &                                )
     !![
     <objectDestructor name="galacticFilterIsSubhalo_"             />

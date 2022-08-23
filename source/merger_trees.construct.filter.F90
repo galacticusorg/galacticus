@@ -116,16 +116,23 @@ contains
     !!{
     Construct a merger tree by filtering out trees from another constructor.
     !!}
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes   , only : treeNode
     implicit none
-    class  (mergerTreeConstructorFilter), intent(inout) :: self
     type   (mergerTree                 ), pointer       :: tree
+    class  (mergerTreeConstructorFilter), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: treeNumber
     logical                             , intent(  out) :: finished
-    
+    type   (treeNode                   ), pointer       :: nodeWork
+    type   (mergerTreeWalkerAllNodes   )                :: treeWalkerAll
+
     tree => self%mergerTreeConstructor_%construct(treeNumber,finished)
     if (associated(tree)) then
        ! Apply any tree initialization operators.
-       call self%nodeOperator_%nodeTreeInitialize(tree%nodeBase)
+       treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+       do while (treeWalkerAll%next(nodeWork))
+          call self%nodeOperator_%nodeTreeInitialize(nodeWork)
+       end do
        if (.not.self%mergerTreeFilter_%passes(tree)) then
           call tree%destroy()
           deallocate(tree)

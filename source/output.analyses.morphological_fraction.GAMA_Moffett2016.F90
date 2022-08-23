@@ -52,13 +52,15 @@ contains
     !!{
     Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter    , inputParameters
+    use :: Cosmology_Functions, only : cosmologyFunctions    , cosmologyFunctionsClass
+    use :: Galactic_Structure , only : galacticStructureClass
+    use :: Input_Parameters   , only : inputParameter        , inputParameters
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016)                              :: self
     type            (inputParameters                                   ), intent(inout)               :: parameters
     double precision                                                    , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                           ), pointer                     :: cosmologyFunctions_
+    class           (galacticStructureClass                            ), pointer                     :: galacticStructure_
     class           (outputTimesClass                                  ), pointer                     :: outputTimes_
     double precision                                                                                  :: ratioEarlyType                      , ratioEarlyTypeError             , &
          &                                                                                               randomErrorMinimum                  , randomErrorMaximum
@@ -110,18 +112,20 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
+    self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="outputTimes_"       />
+    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorParameters
 
-  function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
+  function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,galacticStructure_) result (self)
     !!{
     Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
     !!}
@@ -150,6 +154,7 @@ contains
     double precision                                                       , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                                   , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                              ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                     ), intent(inout), target         :: outputTimes_
+    class           (galacticStructureClass                               ), intent(in   ), target         :: galacticStructure_
     integer                                                                , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                       , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.000d08             , covarianceBinomialMassHaloMaximum=1.0d16
     double precision                                                       , allocatable  , dimension(:  ) :: masses                                                                 , functionValueTarget
@@ -343,12 +348,12 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (galacticStructure_                                                        )"/>
     !!]
     ! Create a morpology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(galacticStructure_                                                        )"/>
     !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &

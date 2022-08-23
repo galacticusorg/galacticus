@@ -37,7 +37,8 @@ Contains a module which implements an N-body data operator which computes pairwi
      !!}
      private
      double precision                                      :: separationMinimum               , separationMaximum   , &
-          &                                                   bootstrapSampleRate             , time
+          &                                                   bootstrapSampleRate             , time                , &
+          &                                                   redshift
      integer         (c_size_t                  )          :: separationCount                 , bootstrapSampleCount
      logical                                               :: includeUnbootstrapped           , crossCount          , &
           &                                                   addHubbleFlow
@@ -174,6 +175,7 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
+    self%redshift  =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function pairwiseVelocityStatisticsConstructorInternal
 

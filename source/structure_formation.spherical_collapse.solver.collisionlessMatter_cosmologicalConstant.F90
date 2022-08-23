@@ -237,7 +237,7 @@ contains
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
-    integer                                                                        , intent(in   ) :: calculationType
+    type            (enumerationCllsnlssMttCsmlgclCnstntClcltnType   )             , intent(in   ) :: calculationType
     class           (table1D                                         ), allocatable, intent(inout) :: sphericalCollapse_
     double precision                                                  , parameter                  :: toleranceAbsolute         =0.0d+0 , toleranceRelative         =1.0d-9
     type            (rootFinder                                      ), save                       :: finder
@@ -322,8 +322,8 @@ contains
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the required quantity for this perturbation.
-          select case (calculationType)
-          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity)
+          select case (calculationType%ID)
+          case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity%ID)
              ! Critical linear overdensity.
              if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
              normalization=self%linearGrowth_%value(cllsnlssMttCsmlgclCnstntTime,normalize=normalizeMatterDominated)/expansionFactor
@@ -339,7 +339,7 @@ contains
                   &                           /cllsnlssMttCsmlgclCnstntOmegaMatterEpochal      , &
                   &                           i                                                  &
                   &                           )
-          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+          case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround%ID)
              ! Compute the maximum radius of the perturbation.
              radiusMaximum=+cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
              ! Find the η-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
@@ -369,13 +369,13 @@ contains
                      &           -cmplx(1.0d0,+sqrt(3.0d0),kind=kind_dble)*Delta/2.0d0/a/2.0d0**(1.0d0/3.0d0)/3.0d0**(2.0d0/3.0d0)       &
                      &          )
              end if
-             select case (calculationType)
-             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast)
+             select case (calculationType%ID)
+             case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast%ID)
                 call sphericalCollapse_%populate(                                                                                              &
                      &                           1.0d0/(radiiRatio*cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation))**3, &
                      &                           i                                                                                             &
                      &                          )
-             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
+             case (cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround%ID)
                 call sphericalCollapse_%populate(                                                                                              &
                      &                           1.0d0/ radiiRatio                                                                           , &
                      &                           i                                                                                             &

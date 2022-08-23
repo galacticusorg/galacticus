@@ -33,7 +33,6 @@ Contains a module which implements a black hole mass output analysis property ex
      private
    contains
      procedure :: extract     => massBlackHoleExtract
-     procedure :: type        => massBlackHoleType
      procedure :: quantity    => massBlackHoleQuantity
      procedure :: name        => massBlackHoleName
      procedure :: description => massBlackHoleDescription
@@ -82,26 +81,15 @@ contains
     return
   end function massBlackHoleExtract
 
-  integer function massBlackHoleType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    massBlackHoleType=outputAnalysisPropertyTypeLinear
-    return
-  end function massBlackHoleType
-
-  integer function massBlackHoleQuantity(self)
+  function massBlackHoleQuantity(self)
     !!{
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
-    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: massBlackHoleQuantity
+    class(nodePropertyExtractorMassBlackHole           ), intent(inout) :: self
     !$GLC attributes unused :: self
 
     massBlackHoleQuantity=outputAnalysisPropertyQuantityMass

@@ -120,7 +120,7 @@ contains
     class           (atomicRecombinationRateRadiativeComputed), intent(inout)           :: self
     integer                                                   , intent(in   )           :: atomicNumber                 , ionizationState
     double precision                                          , intent(in   )           :: temperature
-    integer                                                   , intent(in   ), optional :: level
+    type            (enumerationRecombinationCaseType        ), intent(in   ), optional :: level
     double precision                                                                    :: velocityMaximumFactor=100.0d0
     type            (integrator                              )                          :: integrator_
     double precision                                                                    :: velocityMaximum
@@ -169,11 +169,11 @@ contains
          ! detailed balance (Arfken, 1961, Ionization of the Interplanetary Gas, Rept. LAMS-2596, Los Alamos Scientific Laboratory
          ! of the University of California). The cross section used here is summed over all states corresponding to the given
          ! principal quantum number (the argument "level").
-         crossSectionRecombination=+(+energyPhoton/energyIonization      )**2                                                                                        &
-              &                    /(+energyPhoton/energyIonization-1.0d0)                                                                                           &
-              &                    *fineStructure                         **2                                                                                        &
-              &                    /2.0d0                                                                                                                            &
-              &                    *self%atomicCrossSectionIonizationPhoto_%crossSection(atomicNumber,ionizationState,shellNumber=level,wavelength=wavelengthPhoton)
+         crossSectionRecombination=+(+energyPhoton/energyIonization      )**2                                                                                          &
+              &                    /(+energyPhoton/energyIonization-1.0d0)                                                                                             &
+              &                    *fineStructure                         **2                                                                                          &
+              &                    /2.0d0                                                                                                                              &
+              &                    *self%atomicCrossSectionIonizationPhoto_%crossSection(atomicNumber,ionizationState,shellNumber=level%ID,wavelength=wavelengthPhoton)
          rateIntegrand=+4.0d0                     &
               &        /sqrt(Pi)                  &
               &        *(                         &

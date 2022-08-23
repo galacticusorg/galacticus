@@ -297,10 +297,11 @@ contains
     type            (varying_string               )                              :: message
     type            (mergerTree                   )                              :: treeBest
     type            (mergerTreeWalkerIsolatedNodes)                              :: treeWalker
+    type            (enumerationTreeBuildType     )                              :: treeBuilt
     integer                                                                      :: nodeCount                     , i                             , &
-         &                                                                          retryCount                    , treeBuilt                     , &
          &                                                                          attemptsRemaining             , rescaleCount                  , &
-         &                                                                          massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining
+         &                                                                          massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining, &
+         &                                                                          retryCount
     double precision                                                             :: tolerance                     , treeBestWorstFit              , &
          &                                                                          massCutoffScale               , massOvershootScale
     logical                                                                      :: treeBestOverride              , treeNewHasNodeAboveResolution , &
@@ -398,10 +399,10 @@ contains
                    newRescale = .false.
                 end if
                 ! Increment the retry count in cases where the tree was not acepted due to matching tolerance.
-                select case (treeBuilt)
-                case (treeBuildSuccess         )
+                select case (treeBuilt%ID)
+                case (treeBuildSuccess         %ID)
                    retryCount=retryCount-1
-                case (treeBuildFailureTolerance)
+                case (treeBuildFailureTolerance%ID)
                    retryCount=retryCount+1
                 end select
                 ! Decrement the number of attempts remaining and, if the best tree is to be forcibly used, set no attempts remaining.
@@ -457,7 +458,7 @@ contains
     return
   end subroutine augmentOperatePreEvolution
 
-  recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
+  recursive function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
     use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Error               , only : Error_Report      , errorStatusSuccess
     use            :: Galacticus_Nodes    , only : mergerTree        , nodeComponentBasic, treeNode
@@ -465,6 +466,7 @@ contains
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none
+    type            (enumerationTreeBuildType     )                         :: augmentBuildTreeFromNode
     class           (mergerTreeOperatorAugment    ), intent(inout)          :: self
     type            (treeNode                     ), intent(inout), pointer :: node
     double precision                               , intent(in   )          :: timeEarliestIn               , tolerance
@@ -483,7 +485,8 @@ contains
          &                                                                     massInChildren               , newTreeBaseMass
     integer         (c_size_t                     )                         :: timeIndex
     integer                                                                 :: endNodeCount                 , nodeChildCount                , &
-         &                                                                     status                       , treeAccepted
+         &                                                                     status
+    type            (enumerationTreeBuildType     )                         :: treeAccepted
     type            (mergerTreeOperatorPruneByTime)                         :: pruneByTime
     logical                                                                 :: newTreeBest
     type            (varying_string               )                         :: message
@@ -567,7 +570,8 @@ contains
     pruneByTime                    =  mergerTreeOperatorPruneByTime(                                &
          &                                                          timeEarliest,                   &
          &                                                               0.0d0  ,                   &
-         &                                                          huge(0.0d0)                     &
+         &                                                          huge(0.0d0) ,                   &
+         &                                                          self%cosmologyFunctions_        &
          &                                                         )
     nodeBase                       => treeNode                     (node%index(),newTree          )
     basicBase                      => nodeBase%basic               (             autoCreate=.true.)
@@ -719,7 +723,7 @@ contains
     return
   end function augmentBuildTreeFromNode
 
-  recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
+  recursive function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
     !!{
     Determine whether a trial tree is an acceptable match to the original tree structure.
     !!}
@@ -727,6 +731,7 @@ contains
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode             , treeNodeList
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
+    type            (enumerationTreeBuildType     )                                     :: augmentAcceptTree
     class           (mergerTreeOperatorAugment    ), intent(inout)                      :: self
     type            (treeNode                     ), intent(inout)            , pointer :: node                         , primaryProgenitorNode
     type            (treeNode                     )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
@@ -1270,7 +1275,7 @@ contains
     double precision                                                    :: falseWorstFit
     logical                                                             :: falseNewNodeAboveCutoff, falseBestTreeNodeAboveCutoff, &
          &                                                                 falseNewRescale
-    integer                                                             :: treeStatus
+    type            (enumerationTreeBuildType )                         :: treeStatus
 
     falseBestTreeNodeAboveCutoff =  .false.
     falseNewNodeAboveCutoff      =  .false.
@@ -1331,7 +1336,7 @@ contains
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     type   (mergerTree                   ), intent(in   ), target  :: tree
-    integer                               , intent(in   )          :: desiredOutput
+    type   (enumerationTreeStatisticType ), intent(in   )          :: desiredOutput
     type   (treeNode                     )               , pointer :: node
     type   (mergerTreeWalkerIsolatedNodes)                         :: treeWalker
     integer                                                        :: nodeCount    , endNodeCount
@@ -1344,10 +1349,10 @@ contains
        if (.not.associated(node%firstChild)) endNodeCount=endNodeCount+1
     end do
     ! Return the requested quantity.
-    select case (desiredOutput)
-    case (treeStatisticNodeCount   )
+    select case (desiredOutput%ID)
+    case (treeStatisticNodeCount   %ID)
        augmentTreeStatistics=nodeCount
-    case (treeStatisticEndNodeCount)
+    case (treeStatisticEndNodeCount%ID)
        augmentTreeStatistics=endNodeCount
     case default
        augmentTreeStatistics=0

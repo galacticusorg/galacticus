@@ -21,12 +21,13 @@
 Contains a module which implements a property extractor class for the mass and radii of spheres are specified density contrast.
 !!}
 
-  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
-  use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
-  use :: Galacticus_Nodes       , only : nodeComponentBasic , treeNode
-  use :: Galactic_Structure     , only : galacticStructureClass
-  use :: Root_Finder            , only : rootFinder
+  use :: Cosmology_Functions       , only : cosmologyFunctions     , cosmologyFunctionsClass , enumerationDensityCosmologicalType
+  use :: Cosmology_Parameters      , only : cosmologyParameters    , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale    , darkMatterHaloScaleClass
+  use :: Galacticus_Nodes          , only : nodeComponentBasic     , treeNode
+  use :: Galactic_Structure        , only : galacticStructureClass
+  use :: Galactic_Structure_Options, only : enumerationMassTypeType
+  use :: Root_Finder               , only : rootFinder
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
@@ -47,15 +48,16 @@ Contains a module which implements a property extractor class for the mass and r
      A property extractor class for the mass and radii of spheres are specified density contrast.
      !!}
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
-     class           (galacticStructureClass  ), pointer                   :: galacticStructure_   => null()
-     type            (rootFinder              )                            :: finder
-     integer                                                               :: elementCount_                 , countDensityContrasts    , &
-          &                                                                   massTypeSelected              , densityContrastRelativeTo
-     logical                                                               :: darkMatterOnly
-     double precision                          , allocatable, dimension(:) :: densityContrasts
+     class           (cosmologyParametersClass          ), pointer                   :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass           ), pointer                   :: cosmologyFunctions_       => null()
+     class           (darkMatterHaloScaleClass          ), pointer                   :: darkMatterHaloScale_      => null()
+     class           (galacticStructureClass            ), pointer                   :: galacticStructure_        => null()
+     type            (rootFinder                        )                            :: finder
+     integer                                                                         :: elementCount_                      , countDensityContrasts
+     type            (enumerationMassTypeType           )                            :: massTypeSelected
+     type            (enumerationDensityCosmologicalType)                            :: densityContrastRelativeTo
+     logical                                                                         :: darkMatterOnly
+     double precision                                    , allocatable, dimension(:) :: densityContrasts
    contains
      final     ::                       densityContrastsDestructor
      procedure :: size               => densityContrastsSize
@@ -65,7 +67,6 @@ Contains a module which implements a property extractor class for the mass and r
      procedure :: descriptions       => densityContrastsDescriptions
      procedure :: columnDescriptions => densityContrastsColumnDescriptions
      procedure :: unitsInSI          => densityContrastsUnitsInSI
-     procedure :: type               => densityContrastsType
   end type nodePropertyExtractorDensityContrasts
 
   interface nodePropertyExtractorDensityContrasts
@@ -151,7 +152,7 @@ contains
     class           (galacticStructureClass               ), intent(in   ), target       :: galacticStructure_
     double precision                                       , intent(in   ), dimension(:) :: densityContrasts
     logical                                                , intent(in   )               :: darkMatterOnly
-    integer                                                , intent(in   )               :: densityContrastRelativeTo
+    type            (enumerationDensityCosmologicalType   ), intent(in   )               :: densityContrastRelativeTo
     double precision                                       , parameter                   :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-3
     !![
     <constructorAssign variables="densityContrasts, darkMatterOnly, densityContrastRelativeTo, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *galacticStructure_"/>
@@ -247,10 +248,10 @@ contains
     densityContrastsBasic => node%basic()
     ! Find the reference density at this epoch.
     densityReference=self%cosmologyFunctions_%matterDensityEpochal(densityContrastsBasic%time())
-    select case (self%densityContrastRelativeTo)
-    case (densityCosmologicalMean    )
+    select case (self%densityContrastRelativeTo%ID)
+    case (densityCosmologicalMean    %ID)
        ! No modification required.
-    case (densityCosmologicalCritical)
+    case (densityCosmologicalCritical%ID)
        ! Modify reference density to be the critical density.
        densityReference=+densityReference                                                          &
             &           /self%cosmologyFunctions_%OmegaMatterEpochal(densityContrastsBasic%time())
@@ -352,18 +353,6 @@ contains
     return
   end function densityContrastsUnitsInSI
 
-  integer function densityContrastsType(self)
-    !!{
-    Return the type of the {\normalfont \ttfamily densityContrasts} properties.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorDensityContrasts), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    densityContrastsType=outputAnalysisPropertyTypeLinear
-    return
-  end function densityContrastsType
 
   double precision function densityContrastsRoot(radius)
     !!{

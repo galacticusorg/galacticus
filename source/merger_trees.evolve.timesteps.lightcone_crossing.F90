@@ -23,6 +23,7 @@
 
   use :: Geometry_Lightcones   , only : geometryLightconeClass
   use :: Merger_Tree_Outputters, only : mergerTreeOutputterClass
+  use :: Cosmology_Functions   , only : cosmologyFunctionsClass
 
   !![
   <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepLightconeCrossing">
@@ -38,7 +39,8 @@
      private
      class           (geometryLightconeClass  ), pointer :: geometryLightcone_   => null()
      class           (mergerTreeOutputterClass), pointer :: mergerTreeOutputter_ => null()
-     double precision                                    :: timeMinimum
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     double precision                                    :: timeMinimum                   , redshiftMaximum
      integer                                             :: timeMaximumID
     contains
      final     ::                 lightconeCrossingDestructor
@@ -79,28 +81,31 @@ contains
     <objectBuilder class="geometryLightcone"   name="geometryLightcone_"   source="parameters"/>
     <objectBuilder class="mergerTreeOutputter" name="mergerTreeOutputter_" source="parameters"/>
     !!]
-    self=mergerTreeEvolveTimestepLightconeCrossing(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)),geometryLightcone_,mergerTreeOutputter_)
+    self=mergerTreeEvolveTimestepLightconeCrossing(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)),cosmologyFunctions_,geometryLightcone_,mergerTreeOutputter_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
-    <objectDestructor name="geometryLightcone_" />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="geometryLightcone_"  />
+    <objectDestructor name="mergerTreeOutputter_"/>
     !!]
     return
   end function lightconeCrossingConstructorParameters
 
-  function lightconeCrossingConstructorInternal(timeMinimum,geometryLightcone_,mergerTreeOutputter_) result(self)
+  function lightconeCrossingConstructorInternal(timeMinimum,cosmologyFunctions_,geometryLightcone_,mergerTreeOutputter_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepLightconeCrossing)                        :: self
+    class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class           (geometryLightconeClass                   ), intent(in   ), target :: geometryLightcone_
     class           (mergerTreeOutputterClass                 ), intent(in   ), target :: mergerTreeOutputter_
     double precision                                           , intent(in   )         :: timeMinimum
     !![
-    <constructorAssign variables="timeMinimum, *geometryLightcone_, *mergerTreeOutputter_"/>
+    <constructorAssign variables="timeMinimum, *cosmologyFunctions_, *geometryLightcone_, *mergerTreeOutputter_"/>
     !!]
-  
+
+    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMinimum))
     !![
     <addMetaProperty component="position" name="positionInterpolatedTimeMaximum" id="self%timeMaximumID" rank="0" isEvolvable="no" isCreator="no"/>
     !!]
@@ -190,10 +195,10 @@ contains
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use mpi_utilities
     implicit none
-    class  (*         ), intent(inout)          :: self
-    type   (mergerTree), intent(in   )          :: tree
-    type   (treeNode  ), intent(inout), pointer :: node
-    integer            , intent(inout)          :: deadlockStatus
+    class(*                            ), intent(inout)          :: self
+    type (mergerTree                   ), intent(in   )          :: tree
+    type (treeNode                     ), intent(inout), pointer :: node
+    type (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
     !$GLC attributes unused :: tree
 
     select type (self)

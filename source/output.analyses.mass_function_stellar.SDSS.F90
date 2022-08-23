@@ -75,13 +75,15 @@ contains
     !!{
     Constructor for the ``massFunctionStellarSDSS'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters  , only : inputParameter        , inputParameters
+    use :: Galactic_Structure, only : galacticStructureClass
     implicit none
     type            (outputAnalysisMassFunctionStellarSDSS)                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass              ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                     ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass            ), pointer                     :: gravitationalLensing_
+    class           (galacticStructureClass               ), pointer                     :: galacticStructure_
     double precision                                       , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                              :: covarianceBinomialBinsPerDecade
     double precision                                                                     :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -159,19 +161,21 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarSDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarSDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="gravitationalLensing_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function massFunctionStellarSDSSConstructorParameters
 
-  function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
     Constructor for the ``massFunctionStellarSDSS'' output analysis class for internal use.
     !!}
@@ -188,6 +192,7 @@ contains
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
+    class           (galacticStructureClass                             ), intent(in   ) , target      :: galacticStructure_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
     double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
@@ -298,6 +303,7 @@ contains
          &                                   outputAnalysisPropertyOperator_                                                                                   , &
          &                                   outputAnalysisDistributionOperator_                                                                               , &
          &                                   outputTimes_                                                                                                      , &
+         &                                   galacticStructure_                                                                                                , &
          &                                   covarianceBinomialBinsPerDecade                                                                                   , &
          &                                   covarianceBinomialMassHaloMinimum                                                                                 , &
          &                                   covarianceBinomialMassHaloMaximum                                                                                   &

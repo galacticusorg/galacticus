@@ -28,78 +28,6 @@
   use :: Numerical_ODE_Solvers       , only : odeSolver
   use :: Timers                      , only : timer
   
-  !![
-  <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
-   <description>The standard merger tree node evolver.</description>
-   <deepCopy>
-    <ignore variables="galacticStructureSolver_"/>
-   </deepCopy>
-   <stateStorable>
-    <exclude variables="galacticStructureSolver_"/>
-   </stateStorable>
-  </mergerTreeNodeEvolver>
-  !!]
-  type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
-     !!{
-     Implementation of the standard merger tree node evolver.
-     !!}
-     private
-     class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_               => null()
-     double precision                                                           :: odeToleranceAbsolute                         , odeToleranceRelative         , &
-          &                                                                        odeJacobianStepSizeRelative
-     integer                                                                    :: odeAlgorithm                                 , odeAlgorithmNonJacobian
-     class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_            => null()
-     class           (nodeOperatorClass            ), pointer                   :: nodeOperator_                       => null()
-     class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_           => null()
-     integer                                                                    :: odeLatentIntegratorType                      , odeLatentIntegratorOrder     , &
-          &                                                                        odeLatentIntegratorIntervalsMaximum
-     integer         (c_size_t                     )                            :: propertyCountAll                             , propertyCountMaximum         , &
-          &                                                                        propertyCountInactive                        , propertyCountActive          , &
-          &                                                                        propertyCountPrevious                        , countEvaluationsToSuccess
-     double precision                               , allocatable, dimension(:) :: propertyScalesActive                         , propertyValuesActive         , &
-          &                                                                        propertyErrors                               , propertyTolerances           , &
-          &                                                                        propertyValuesActiveSaved                    , propertyScalesInactive       , &
-          &                                                                        propertyValuesInactiveSaved                  , propertyValuesInactive       , &
-          &                                                                        odeTolerancesInactiveRelative                , odeTolerancesInactiveAbsolute
-     logical                                                                    :: profileOdeEvolver                            , reuseODEStepSize
-     integer         (kind=kind_int8               )                            :: activeTreeIndex
-     type            (treeNode                     ), pointer                   :: activeNode
-     integer                                                                    :: trialCount                                   , propertyTypeODE              , &
-          &                                                                        propertyTypeIntegrator
-     logical                                                                    :: interruptFirstFound
-     double precision                                                           :: timeInterruptFirst
-     procedure       (interruptTask                ), pointer    , nopass       :: functionInterruptFirst
-     logical                                                                    :: useJacobian
-     double precision                                                           :: timePrevious
-     double precision                               , allocatable, dimension(:) :: propertyValuesPrevious                       , propertyRatesPrevious
-     integer         (kind_int8                    )                            :: systemClockMaximum
-     type            (timer                        )                            :: stepTimer
-   contains
-     final     ::               standardDestructor
-     procedure :: evolve     => standardEvolve
-     procedure :: promote    => standardPromote
-     procedure :: merge      => standardMerge
-     procedure :: isAccurate => standardIsAccurate
-     procedure :: autoHook   => standardAutoHook
-  end type mergerTreeNodeEvolverStandard
-
-  interface mergerTreeNodeEvolverStandard
-     !!{
-     Constructors for the {\normalfont \ttfamily standard} merger tree node evolver.
-     !!}
-     module procedure standardConstructorParameters
-     module procedure standardConstructorInternal
-  end interface mergerTreeNodeEvolverStandard
-
-  ! Maximum number of trials to solve ODEs.
-  integer                               , parameter :: standardTrialCountMaximum=8
-
-  ! Pointer to self and solver.
-  class  (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
-  type   (odeSolver                    ), pointer   :: standardSolver
-  !$omp threadprivate(standardSelf,standardSolver)
-  !$GLC ignore outlive :: standardSolver
-  
   ! Enumeration of latent variable integrator.
   !![
   <enumeration>
@@ -128,6 +56,78 @@
   </enumeration>
   !!]
 
+  !![
+  <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
+   <description>The standard merger tree node evolver.</description>
+   <deepCopy>
+    <ignore variables="galacticStructureSolver_"/>
+   </deepCopy>
+   <stateStorable>
+    <exclude variables="galacticStructureSolver_"/>
+   </stateStorable>
+  </mergerTreeNodeEvolver>
+  !!]
+  type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
+     !!{
+     Implementation of the standard merger tree node evolver.
+     !!}
+     private
+     class           (mergerTreeNodeMergerClass          ), pointer                   :: mergerTreeNodeMerger_               => null()
+     double precision                                                                 :: odeToleranceAbsolute                         , odeToleranceRelative         , &
+          &                                                                              odeJacobianStepSizeRelative
+     integer                                                                          :: odeAlgorithm                                 , odeAlgorithmNonJacobian
+     class           (galacticStructureSolverClass       ), pointer                   :: galacticStructureSolver_            => null()
+     class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_                       => null()
+     class           (mergerTreeEvolveProfilerClass      ), pointer                   :: mergerTreeEvolveProfiler_           => null()
+     type            (enumerationLatentIntegratorTypeType)                            :: odeLatentIntegratorType
+     integer                                                                          :: odeLatentIntegratorIntervalsMaximum          , odeLatentIntegratorOrder
+     integer         (c_size_t                           )                            :: propertyCountAll                             , propertyCountMaximum         , &
+          &                                                                              propertyCountInactive                        , propertyCountActive          , &
+          &                                                                              propertyCountPrevious                        , countEvaluationsToSuccess
+     double precision                                     , allocatable, dimension(:) :: propertyScalesActive                         , propertyValuesActive         , &
+          &                                                                              propertyErrors                               , propertyTolerances           , &
+          &                                                                              propertyValuesActiveSaved                    , propertyScalesInactive       , &
+          &                                                                              propertyValuesInactiveSaved                  , propertyValuesInactive       , &
+          &                                                                              odeTolerancesInactiveRelative                , odeTolerancesInactiveAbsolute
+     logical                                                                          :: profileOdeEvolver                            , reuseODEStepSize
+     integer         (kind=kind_int8                     )                            :: activeTreeIndex
+     type            (treeNode                           ), pointer                   :: activeNode
+     integer                                                                          :: trialCount                                   , propertyTypeODE              , &
+          &                                                                              propertyTypeIntegrator
+     logical                                                                          :: interruptFirstFound
+     double precision                                                                 :: timeInterruptFirst
+     procedure       (interruptTask                      ), pointer    , nopass       :: functionInterruptFirst
+     logical                                                                          :: useJacobian
+     double precision                                                                 :: timePrevious
+     double precision                                     , allocatable, dimension(:) :: propertyValuesPrevious                       , propertyRatesPrevious
+     integer         (kind_int8                          )                            :: systemClockMaximum
+     type            (timer                              )                            :: stepTimer
+   contains
+     final     ::               standardDestructor
+     procedure :: evolve     => standardEvolve
+     procedure :: promote    => standardPromote
+     procedure :: merge      => standardMerge
+     procedure :: isAccurate => standardIsAccurate
+     procedure :: autoHook   => standardAutoHook
+  end type mergerTreeNodeEvolverStandard
+
+  interface mergerTreeNodeEvolverStandard
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} merger tree node evolver.
+     !!}
+     module procedure standardConstructorParameters
+     module procedure standardConstructorInternal
+  end interface mergerTreeNodeEvolverStandard
+
+  ! Maximum number of trials to solve ODEs.
+  integer                               , parameter :: standardTrialCountMaximum=8
+
+  ! Pointer to self and solver.
+  class  (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
+  type   (odeSolver                    ), pointer   :: standardSolver
+  !$omp threadprivate(standardSelf,standardSolver)
+  !$GLC ignore outlive :: standardSolver
+  
 contains
 
   function standardConstructorParameters(parameters) result(self)
@@ -245,57 +245,57 @@ contains
      use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2  , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
           &                               GSL_ODEIV2_Step_RKF45, GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
      implicit none
-     type            (mergerTreeNodeEvolverStandard)                        :: self
-     integer                                        , intent(in   )         :: odeLatentIntegratorType            , odeLatentIntegratorOrder, &
-          &                                                                    odeLatentIntegratorIntervalsMaximum, odeAlgorithm            , &
-          &                                                                    odeAlgorithmNonJacobian
-     double precision                               , intent(in   )         :: odeToleranceAbsolute               , odeToleranceRelative    , &
-          &                                                                    odeJacobianStepSizeRelative
-     logical                                        , intent(in   )         :: profileOdeEvolver                  , reuseODEStepSize
-     class           (mergerTreeNodeMergerClass    ), intent(in   ), target :: mergerTreeNodeMerger_
-     class           (nodeOperatorClass            ), intent(in   ), target :: nodeOperator_
-     class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
+     type            (mergerTreeNodeEvolverStandard      )                        :: self
+     type            (enumerationLatentIntegratorTypeType), intent(in   )         :: odeLatentIntegratorType
+     type            (enumerationStandardODEAlgorithmType), intent(in   )         :: odeAlgorithm                       , odeAlgorithmNonJacobian
+     integer                                              , intent(in   )         :: odeLatentIntegratorIntervalsMaximum, odeLatentIntegratorOrder
+     double precision                                     , intent(in   )         :: odeToleranceAbsolute               , odeToleranceRelative    , &
+          &                                                                          odeJacobianStepSizeRelative
+     logical                                              , intent(in   )         :: profileOdeEvolver                  , reuseODEStepSize
+     class           (mergerTreeNodeMergerClass          ), intent(in   ), target :: mergerTreeNodeMerger_
+     class           (nodeOperatorClass                  ), intent(in   ), target :: nodeOperator_
+     class           (mergerTreeEvolveProfilerClass      ), intent(in   ), target :: mergerTreeEvolveProfiler_
     !![
     <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, reuseODEStepSize, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
     !!]
 
      ! Construct ODE solver object.
      self%useJacobian=.false.
-     select case (odeAlgorithm           )
-     case (standardODEAlgorithmRungeKuttaCashKarp     )
+     select case (odeAlgorithm           %ID)
+     case (standardODEAlgorithmRungeKuttaCashKarp     %ID)
         self%odeAlgorithm=GSL_ODEIV2_Step_RKCK
-     case (standardODEAlgorithmRungeKuttaSecondOrder  )
+     case (standardODEAlgorithmRungeKuttaSecondOrder  %ID)
         self%odeAlgorithm=GSL_ODEIV2_Step_RK2
-     case (standardODEAlgorithmRungeKutta             )
+     case (standardODEAlgorithmRungeKutta             %ID)
         self%odeAlgorithm=GSL_ODEIV2_Step_RK4
-     case (standardODEAlgorithmRungeKuttaFehlberg     )
+     case (standardODEAlgorithmRungeKuttaFehlberg     %ID)
         self%odeAlgorithm=GSL_ODEIV2_Step_RKF45
-     case (standardODEAlgorithmRungeKuttaPrinceDormand)
+     case (standardODEAlgorithmRungeKuttaPrinceDormand%ID)
         self%odeAlgorithm=GSL_ODEIV2_Step_RK8PD
-     case (standardODEAlgorithmMultistepAdams         )
+     case (standardODEAlgorithmMultistepAdams         %ID)
         self%odeAlgorithm=GSL_ODEIV2_Step_msAdams
-     case (standardODEAlgorithmBulirschStoer          )
+     case (standardODEAlgorithmBulirschStoer          %ID)
         self%odeAlgorithm=GSL_ODEIV2_step_BSimp
         self%useJacobian             =.true.
-     case (standardODEAlgorithmBDF                    )
+     case (standardODEAlgorithmBDF                    %ID)
         self%odeAlgorithm=GSL_ODEIV2_step_MSBDFActive
         self%useJacobian             =.true.
      case default
         call Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
      end select
      ! Construct non-Jacobian ODE solver object.
-     select case (odeAlgorithmNonJacobian)
-     case (standardODEAlgorithmRungeKuttaCashKarp     )
+     select case (odeAlgorithmNonJacobian%ID)
+     case (standardODEAlgorithmRungeKuttaCashKarp     %ID)
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RKCK
-     case (standardODEAlgorithmRungeKuttaSecondOrder  )
+     case (standardODEAlgorithmRungeKuttaSecondOrder  %ID)
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RK2
-     case (standardODEAlgorithmRungeKutta             )
+     case (standardODEAlgorithmRungeKutta             %ID)
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RK4
-     case (standardODEAlgorithmRungeKuttaFehlberg     )
+     case (standardODEAlgorithmRungeKuttaFehlberg     %ID)
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RKF45
-     case (standardODEAlgorithmRungeKuttaPrinceDormand)
+     case (standardODEAlgorithmRungeKuttaPrinceDormand%ID)
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_RK8PD
-     case (standardODEAlgorithmMultistepAdams         )
+     case (standardODEAlgorithmMultistepAdams         %ID)
         self%odeAlgorithmNonJacobian=GSL_ODEIV2_Step_msAdams
      case default
         call Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
@@ -377,29 +377,29 @@ contains
     </include>
     !!]
     implicit none
-    class           (mergerTreeNodeEvolverStandard)             , intent(inout), target  :: self
-    type            (mergerTree                   )             , intent(inout)          :: tree
-    type            (treeNode                     )             , intent(inout), pointer :: node
-    double precision                                            , intent(in   )          :: timeEnd
-    logical                                                     , intent(  out)          :: interrupted
-    procedure       (interruptTask                )             , intent(  out), pointer :: functionInterrupt
-    class           (galacticStructureSolverClass )             , intent(in   ), target  :: galacticStructureSolver__
-    integer         (kind_int8                    ), optional   , intent(in   )          :: systemClockMaximum
-    integer                                        , optional   , intent(  out)          :: status
-    procedure       (standardErrorHandler         )                            , pointer :: errorHandler
-    class           (nodeComponentBasic           )                            , pointer :: basic
-    class           (integratorMultiVectorized1D  ), allocatable                         :: integrator_
-    type            (odeSolver                    )                            , target  :: solver
-    logical                                                                              :: solvedAnalytically       , solvedNumerically, &
-         &                                                                                  jacobianSolver           , solverInitialized
-    double precision                                                                     :: timeStart                , stepSize         , &
-         &                                                                                  timeStartSaved
-    integer                                                                              :: lengthMaximum            , odeStatus        , &
-         &                                                                                  odeAlgorithm
-    integer         (c_size_t                     )                                      :: i
-    integer         (kind_int8                    )                                      :: systemClockCount
-    type            (varying_string               )                                      :: message                  , line
-    character       (len =12                      )                                      :: label
+    class           (mergerTreeNodeEvolverStandard      )             , intent(inout), target  :: self
+    type            (mergerTree                         )             , intent(inout)          :: tree
+    type            (treeNode                           )             , intent(inout), pointer :: node
+    double precision                                                  , intent(in   )          :: timeEnd
+    logical                                                           , intent(  out)          :: interrupted
+    procedure       (interruptTask                      )             , intent(  out), pointer :: functionInterrupt
+    class           (galacticStructureSolverClass       )             , intent(in   ), target  :: galacticStructureSolver__
+    integer         (kind_int8                          ), optional   , intent(in   )          :: systemClockMaximum
+    integer                                              , optional   , intent(  out)          :: status
+    procedure       (standardErrorHandler               )                            , pointer :: errorHandler
+    class           (nodeComponentBasic                 )                            , pointer :: basic
+    class           (integratorMultiVectorized1D        ), allocatable                         :: integrator_
+    type            (odeSolver                          )                            , target  :: solver
+    logical                                                                                    :: solvedAnalytically       , solvedNumerically, &
+         &                                                                                        jacobianSolver           , solverInitialized
+    double precision                                                                           :: timeStart                , stepSize         , &
+         &                                                                                        timeStartSaved
+    integer                                                                                    :: lengthMaximum            , odeStatus        , &
+         &                                                                                        odeAlgorithm
+    integer         (c_size_t                           )                                      :: i
+    integer         (kind_int8                          )                                      :: systemClockCount
+    type            (varying_string                     )                                      :: message                  , line
+    character       (len =12                            )                                      :: label
     
     ! Set status to success.
     if (present(status)) status=errorStatusSuccess
@@ -604,14 +604,14 @@ contains
                    if (jacobianSolver) then
                       ! Initialize integrator.
                       if (.not.allocated(integrator_)) then
-                         select case (self%odeLatentIntegratorType)
-                         case (latentIntegratorTypeGaussKronrod)
+                         select case (self%odeLatentIntegratorType%ID)
+                         case (latentIntegratorTypeGaussKronrod%ID)
                             allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
                             select type (integrator_)
                             type is (integratorMultiVectorizedCompositeGaussKronrod1D)
                                call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum,self%odeLatentIntegratorOrder)
                             end select
-                         case (latentIntegratorTypeTrapezoidal )
+                         case (latentIntegratorTypeTrapezoidal %ID)
                             allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
                             select type (integrator_)
                             type is (integratorMultiVectorizedCompositeTrapezoidal1D )
@@ -1015,22 +1015,23 @@ contains
     !!{
     Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
     !!}
-    use            :: Display        , only : displayIndent      , displayMessage        , displayUnindent, displayVerbosity, &
-          &                                   displayVerbositySet, verbosityLevelStandard
+    use            :: Display        , only : displayIndent      , displayMessage        , displayUnindent              , displayVerbosity, &
+          &                                   displayVerbositySet, verbosityLevelStandard, enumerationVerbosityLevelType
     use, intrinsic :: ISO_C_Binding  , only : c_double           , c_int
     use            :: String_Handling, only : operator(//)
     implicit none
-    integer         (kind=c_int    ), intent(in   )                                              :: status
-    real            (kind=c_double ), intent(in   )                                              :: time
-    real            (kind=c_double ), intent(in   ), dimension(:                               ) :: y
-    real            (kind=c_double )               , dimension(standardSelf%propertyCountActive) :: dydt         , yError        , &
-         &                                                                                          yTolerance
-    type            (varying_string)                                                             :: message      , line
-    integer                                                                                      :: lengthMaximum, verbosityLevel
-    integer         (c_size_t      )                                                             :: i
-    character       (len =12       )                                                             :: label
-    integer         (kind=c_int    )                                                             :: odeStatus
-    double precision                                                                             :: stepFactor
+    integer         (kind=c_int                   ), intent(in   )                                              :: status
+    real            (kind=c_double                ), intent(in   )                                              :: time
+    real            (kind=c_double                ), intent(in   ), dimension(:                               ) :: y
+    real            (kind=c_double                )               , dimension(standardSelf%propertyCountActive) :: dydt          , yError, &
+         &                                                                                                         yTolerance
+    type            (varying_string               )                                                             :: message       , line
+    integer                                                                                                     :: lengthMaximum
+    type            (enumerationVerbosityLevelType)                                                             :: verbosityLevel
+    integer         (c_size_t                     )                                                             :: i
+    character       (len =12                      )                                                             :: label
+    integer         (kind=c_int                   )                                                             :: odeStatus
+    double precision                                                                                            :: stepFactor
 
     ! Check if this is the final trial for this node.
     if (standardSelf%trialCount == standardTrialCountMaximum-1) then

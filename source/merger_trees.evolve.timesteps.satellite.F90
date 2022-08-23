@@ -116,7 +116,7 @@ contains
     <constructorAssign variables="timeOffsetMaximumAbsolute, timeOffsetMaximumRelative, *nodeOperator_"/>
     !!]
 
-    self%limitTimesteps=defaultSatelliteComponent%timeUntilMergingIsGettable()
+    self%limitTimesteps=defaultSatelliteComponent%timeOfMergingIsGettable()
     return
   end function satelliteConstructorInternal
 
@@ -153,7 +153,7 @@ contains
     class           (nodeComponentBasic               )               , pointer           :: basicHost             , basic
     class           (nodeComponentSatellite           )               , pointer           :: satellite
     double precision                                                                      :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
-         &                                                                                   timeUntilMerging
+         &                                                                                   timeOfMerging
     !$GLC attributes unused :: timeEnd
 
     ! By default set a huge timestep so that this class has no effect.
@@ -162,39 +162,38 @@ contains
     taskSelf                        => null(     )
     if (present(lockNode)) lockNode => null(     )
     if (present(lockType)) lockType =  ""
-    ! If not limiting timesteps return.
-    if (.not.self%limitTimesteps) return
+    ! If not limiting timesteps, return.
+    if (.not.self%limitTimesteps  ) return
+    ! If node is not a satellite, return.
+    if (.not.node%isSatellite   ()) return
     ! Find the time of merging.
-    satellite        => node     %satellite       ()
-    timeUntilMerging =  satellite%timeUntilMerging()
-    ! If time is negative, implies this is not a satellite, so return.
-    if (timeUntilMerging < 0.0d0) return
+    basic         => node     %basic        ()
+    satellite     => node     %satellite    ()
+    timeOfMerging =  satellite%timeOfMerging()
+    ! If time is infinite, no merging will ever occur, so return.
+    if (timeOfMerging == huge(0.0d0)) return
     ! Compute the minimum time to which the node we will merge with must have been evolved before merging is allowed.
-    basic => node%basic()
     mergeTargetTimeOffsetMaximum=min(                                 &
          &                           +self%timeOffsetMaximumAbsolute, &
          &                           +self%timeOffsetMaximumRelative  &
-         &                           *(                               &
-         &                             +basic%time            ()      &
-         &                             +      timeUntilMerging        &
-         &                            )                               &
+         &                           *timeOfMerging                   &
          &                          )
-    mergeTargetTimeMinimum=basic%time()+timeUntilMerging-mergeTargetTimeOffsetMaximum
+    mergeTargetTimeMinimum=+timeOfMerging-mergeTargetTimeOffsetMaximum
     ! Find the node to merge with.
     nodeHost  => node    %mergesWith()
     basicHost => nodeHost%basic     ()
     if (basicHost%time() < mergeTargetTimeMinimum .and. associated(nodeHost%parent)) then
        ! Do not set an end of timestep task in this case - we want to wait for the merge target to catch up before triggering a
        ! merger.
-       satelliteTimeEvolveTo           =  max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)+basic%time()
+       satelliteTimeEvolveTo           =  max(timeOfMerging-basic%time()-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)+basic%time()
        if (present(lockNode)) lockNode => nodeHost
        if (present(lockType)) lockType =  "satellite (host)"
        if (        report   ) call Evolve_To_Time_Report("satellite (host): ",satelliteTimeEvolveTo)
     else
        ! Set return value if our timestep is smaller than current one.
-       if (present(lockNode)) lockNode              => nodeHost
-       if (present(lockType)) lockType              =  "satellite (self)"
-       satelliteTimeEvolveTo =  timeUntilMerging+basic%time()
+       if (present(lockNode)) lockNode => nodeHost
+       if (present(lockType)) lockType =  "satellite (self)"
+       satelliteTimeEvolveTo=timeOfMerging
        ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
        ! evolved before merging.
        if (.not.associated(nodeHost%firstChild)) then
@@ -217,13 +216,13 @@ contains
     use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
     use :: String_Handling                    , only : operator(//)
     implicit none
-    class  (*             ), intent(inout)          :: self
-    type   (mergerTree    ), intent(in   )          :: tree
-    type   (treeNode      ), intent(inout), pointer :: node
-    integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: mergee        , mergeeNext       , &
-         &                                             nodeSatellite , nodeSatelliteNext
-    type   (varying_string)                         :: message
+    class(*                            ), intent(inout)          :: self
+    type (mergerTree                   ), intent(in   )          :: tree
+    type (treeNode                     ), intent(inout), pointer :: node
+    type (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
+    type (treeNode                     )               , pointer :: mergee        , mergeeNext       , &
+         &                                                          nodeSatellite , nodeSatelliteNext
+    type (varying_string               )                         :: message
     !$GLC attributes unused :: tree
 
     ! Report if necessary.

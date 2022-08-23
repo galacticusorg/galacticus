@@ -873,64 +873,24 @@ None.
 
 \noindent\emph{Node promotion:} None.\\
 
-\subsection{``Very Simple'' Implementation}
+\subsection{``Merge Time'' Implementation}
 
 \subsubsection{Properties}
 
-The simple satellite orbit implementation defines the following properties:
+The ``merge time'' satellite orbit implementation defines the following properties:
 \begin{description}
- \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
+ \item [{\normalfont \ttfamily timeOfMerging}] The time at which the satellite will merge with its host: $t_\mathrm{satellite, merge}$.
 \end{description}
 
-\subsubsection{Initialization}
-
-None.
-
-\subsubsection{Differential Evolution}
-
-Properties are evolved according to:
-\begin{equation}
- \dot{t}_\mathrm{satellite, merge} = -1.
-\end{equation}
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is assigned a value.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
-
-\subsection{``Simple'' Implementation}\label{sec:SatelliteOrbitComponentSimple}
+\subsection{``Standard'' Implementation}
 
 \subsubsection{Properties}
 
-The simple satellite orbit implementation defines the following properties:
+The standard satellite orbit implementation extends the ``merge time'' implementation and defines the following additional properties:
 \begin{description}
- \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
  \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
 \end{description}
-
-\subsubsection{Initialization}
-
-None.
-
-\subsubsection{Differential Evolution}
-
-Properties are evolved according to:
-\begin{equation}
- \dot{t}_\mathrm{satellite, merge} = -1,
-\end{equation}
-with $\dot{M}_\mathrm{node,bound}$ set to the rate given by the \refClass{darkMatterHaloMassLossRateClass}. The virial orbit is a fixed quantity and does not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\normalfont \ttfamily satelliteOrbitStoreOrbitalParameters}$=${\normalfont \ttfamily true} then a virial orbit is selected (unless one has already been set for the node) using the {\normalfont \ttfamily virialOrbits} (see \refPhysics{virialOrbit}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\normalfont \ttfamily [satelliteOrbitResetOnHaloFormation]}$=${\normalfont \ttfamily true} then satellite orbits will be reset on halo formation events.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
 
 \subsection{``Orbiting'' Implementation}\label{sec:ComponentSatelliteOrbiting}
 

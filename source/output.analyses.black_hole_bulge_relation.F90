@@ -21,6 +21,8 @@
   Contains a module which implements a black hole-bulge mass relation analysis class.
   !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
    <description>A black hole-bulge mass relation output analysis class.</description>
@@ -31,6 +33,7 @@
      A black hole-bulge mass relation output analysis class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
   end type outputAnalysisBlackHoleBulgeRelation
 
   interface outputAnalysisBlackHoleBulgeRelation
@@ -55,6 +58,7 @@ contains
     double precision                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
+    class           (galacticStructureClass              ), pointer                     :: galacticStructure_
     double precision                                                                    :: randomErrorMinimum                  , randomErrorMaximum
 
 
@@ -92,18 +96,20 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
+    self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="outputTimes_"       />
+    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function blackHoleBulgeRelationConstructorParameters
 
-  function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
+  function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,galacticStructure_) result (self)
     !!{
     Constructor for the ``blackHoleBulgeRelation'' output analysis class for internal use.
     !!}
@@ -130,6 +136,7 @@ contains
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
+    class           (galacticStructureClass                             ), intent(inout), target         :: galacticStructure_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses                                                  , functionValueTarget                     , &
@@ -202,25 +209,25 @@ contains
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilter_                                       )
     !![
-    <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterSpheroidStellarMass                  (massThreshold=1.0d8                                                       )"/>
+    <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterSpheroidStellarMass              (massThreshold=1.0d8                                                       )"/>
     !!]
      ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity               (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity           (                                                                          )"/>
     !!]
     ! Build luminosity distance, systematic, and log10() property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
     !!]
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial    (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
     !!]
     allocate(outputAnalysisPropertyOperatorLog10_                  )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10                (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                          )"/>
     !!]
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
@@ -230,7 +237,7 @@ contains
     propertyOperators_%next%next     %operator_      => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence             (propertyOperators_                                                        )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (propertyOperators_                                                        )"/>
     !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
@@ -249,11 +256,11 @@ contains
     ! Build weight property operators.
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"       constructor="outputAnalysisPropertyOperatorLog10                (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"       constructor="outputAnalysisPropertyOperatorLog10            (                                                                          )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorMinMax_           )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorMinMax_"      constructor="outputAnalysisPropertyOperatorMinMax               (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                       )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorMinMax_"      constructor="outputAnalysisPropertyOperatorMinMax           (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                       )"/>
     !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
@@ -261,22 +268,22 @@ contains
     weightPropertyOperators_%next    %operator_      => outputAnalysisWeightPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"            constructor="outputAnalysisPropertyOperatorSequence             (weightPropertyOperators_                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"            constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                  )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10            (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                          )"/>
     !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellarSpheroid (                                                                          )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellarSpheroid       (galacticStructure_                                                        )"/>
     !!]
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole       (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                          )"/>
     !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &

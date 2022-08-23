@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Transfer function options -->
+  <!-- Use the Bode et al. (2001) transfer function for thermal WDM -->
+  <transferFunction value="bode2001">
+    <!--
+	MUSIC has epsilon=1, but uses a prefactor of 0.050 instead of 0.048 (as in equation A9 of Bode et al. 2001) in the cut-off
+	scale so we correct for that here. The values of nu and eta are chosen to match MUSIC. See
+	https://bitbucket.org/ohahn/music/src/6747c54f3b73ec36719c265fd96362849a83cb45/src/plugins/transfer_eisenstein.cc#lines-255
+    -->
+    <scaleCutOffModel value="bode2001"/>
+    <epsilon          value="1.042"   />
+    <eta              value="5.000"   />
+    <nu               value="1.000"   />
+    <!-- Dark matter particle properties -->
+    <darkMatterParticle value="WDMThermal">
+      <degreesOfFreedomEffective value="1.5"/>
+      <mass                      value="5.0"/>
+    </darkMatterParticle>
+    <!-- Bode2001 transfer function works by modifying a CDM transfer function - so feed it a CDM transfer function here -->
+    <transferFunction value="eisensteinHu1999">
+      <!-- Feed this transfer function a CDM particle - otherwise it will see the WDM particle defined above and complain that it
+	   can not compute WDM transfer functions -->
+      <darkMatterParticle value="CDM" />
+      <neutrinoNumberEffective value="3.046"/>
+      <neutrinoMassSummed      value="0.000"/>
+    </transferFunction>
+  </transferFunction>
+
+</parameters>

@@ -18,7 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
+Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, using the specific form given by
+\cite[][eqn.~3]{bohr_halo_2021}.
 !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
@@ -26,12 +27,16 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
 
   !![
   <transferFunction name="transferFunctionETHOSDM">
-   <description>Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.</description>
+    <description>
+      Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, using the specific form given by
+      \cite[][eqn.~3]{bohr_halo_2021}.
+    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionETHOSDM
      !!{
-     Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
+     Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, using the specific form given by
+     \cite[][eqn.~3]{bohr_halo_2021}.
      !!}
      private
      double precision                                    :: alpha                         , beta    , &
@@ -40,7 +45,6 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
           &                                                 hPeak                         , h2      , &
           &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
    contains
      final     ::                          ETHOSDMDestructor
@@ -48,6 +52,7 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
      procedure :: logarithmicDerivative => ETHOSDMLogarithmicDerivative
      procedure :: halfModeMass          => ETHOSDMHalfModeMass
      procedure :: quarterModeMass       => ETHOSDMQuarterModeMass
+     procedure :: fractionModeMass      => ETHOSDMFractionModeMass
      procedure :: epochTime             => ETHOSDMEpochTime
   end type transferFunctionETHOSDM
 
@@ -199,7 +204,7 @@ contains
 
   double precision function ETHOSDMValue(self,wavenumber)
     !!{
-    Return the transfer function at the given wavenumber.
+    Return the transfer function at the given wavenumber, using the specific form given by \cite[][eqn.~3]{bohr_halo_2021}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -269,7 +274,7 @@ contains
 
   double precision function ETHOSDMLogarithmicDerivative(self,wavenumber)
     !!{
-    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    Return the logarithmic derivative of the transfer function at the given wavenumber, using the specific form given by \cite[][eqn.~3]{bohr_halo_2021}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -499,45 +504,28 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
     !!}
-    use :: Error                   , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (transferFunctionETHOSDM), intent(inout), target   :: self
-    integer                                  , intent(  out), optional :: status
-    double precision                                                   :: matterDensity, wavenumberHalfMode
-    type            (rootFinder             )                          :: finder
+    class  (transferFunctionETHOSDM), intent(inout), target   :: self
+    integer                         , intent(  out), optional :: status
 
-    ! There is no analytic solution for the half-mode mass so we resort to numerical root finding. This is complicated by the fact
-    ! that the transfer function oscillates. Our approach is to start at a wavenumber much smaller than the cut-off scale, 1/α,
-    ! and slowly increase the wavenumber until the root is bracketed.
-    finder               =   rootFinder(                                                             &
-         &                              rootFunction                 =modeSolver                   , &
-         &                              toleranceRelative            =1.000d-3                     , &
-         &                              rangeExpandUpward            =1.001d+0                     , &
-         &                              rangeExpandDownward          =0.500d+0                     , &
-         &                              rangeExpandType              =rangeExpandMultiplicative    , &
-         &                              rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                              rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
-         &                             )
-    self_                =>  self
-    modeTarget           =  +0.5d0
-    wavenumberHalfMode   =   finder%find(rootGuess=1.0d-2/self%alpha)
-    matterDensity        =  +self%cosmologyParameters_%OmegaMatter    () &
-         &                  *self%cosmologyParameters_%densityCritical()
-    ETHOSDMHalfModeMass  =  +4.0d0                &
-         &                  *Pi                   &
-         &                  /3.0d0                &
-         &                  *matterDensity        &
-         &                  *(                    &
-         &                    +Pi                 &
-         &                    /wavenumberHalfMode &
-         &                  )**3
-    if (present(status)) status=errorStatusSuccess
+    ETHOSDMHalfModeMass=self%fractionModeMass(0.50d0,status)
     return
   end function ETHOSDMHalfModeMass
 
   double precision function ETHOSDMQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function.
+    !!}
+    implicit none
+    class  (transferFunctionETHOSDM), intent(inout), target   :: self
+    integer                         , intent(  out), optional :: status
+
+    ETHOSDMQuarterModeMass=self%fractionModeMass(0.25d0,status)
+    return
+  end function ETHOSDMQuarterModeMass
+
+  double precision function ETHOSDMFractionModeMass(self,fraction,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     to a \gls{cdm} transfer function.
@@ -547,39 +535,40 @@ contains
     use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (transferFunctionETHOSDM), intent(inout), target   :: self
+    double precision                         , intent(in   )           :: fraction
     integer                                  , intent(  out), optional :: status
     double precision                                                   :: matterDensity, wavenumberQuarterMode
     type            (rootFinder             )                          :: finder
 
-    ! There is no analytic solution for the half-mode mass so we resort to numerical root finding. This is complicated by the fact
+    ! There is no analytic solution for the fraction-mode mass so we resort to numerical root finding. This is complicated by the fact
     ! that the transfer function oscillates. Our approach is to start at a wavenumber much smaller than the cut-off scale, 1/α,
     ! and slowly increase the wavenumber until the root is bracketed.
-    finder                 =   rootFinder(                                                             &
-         &                                rootFunction                 =modeSolver                   , &
-         &                                toleranceRelative            =1.000d-3                     , &
-         &                                rangeExpandUpward            =1.001d+0                     , &
-         &                                rangeExpandDownward          =0.500d+0                     , &
-         &                                rangeExpandType              =rangeExpandMultiplicative    , &
-         &                                rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                                rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
-         &                               )
-    self_                  =>  self
-    modeTarget             =  +0.25d0
-    wavenumberQuarterMode  =   finder%find(rootGuess=1.0d-2/self%alpha)
-    matterDensity          =  +self%cosmologyParameters_%OmegaMatter    () &
-         &                    *self%cosmologyParameters_%densityCritical()
-    ETHOSDMQuarterModeMass =  +4.0d0                &
-         &                    *Pi                   &
-         &                    /3.0d0                &
-         &                    *matterDensity        &
-         &                    *(                    &
-         &                      +Pi                 &
-         &                      /wavenumberQuarterMode &
-         &                     )**3
+    finder                  =   rootFinder(                                                             &
+         &                                 rootFunction                 =modeSolver                   , &
+         &                                 toleranceRelative            =1.000d-3                     , &
+         &                                 rangeExpandUpward            =1.001d+0                     , &
+         &                                 rangeExpandDownward          =0.500d+0                     , &
+         &                                 rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
+         &                                )
+    self_                   =>  self
+    modeTarget              =  +fraction
+    wavenumberQuarterMode   =   finder%find(rootGuess=1.0d-2/self%alpha)
+    matterDensity           =  +self%cosmologyParameters_%OmegaMatter    () &
+         &                     *self%cosmologyParameters_%densityCritical()
+    ETHOSDMFractionModeMass =  +4.0d0                &
+         &                     *Pi                   &
+         &                     /3.0d0                &
+         &                     *matterDensity        &
+         &                     *(                    &
+         &                       +Pi                 &
+         &                       /wavenumberQuarterMode &
+         &                      )**3
     if (present(status)) status=errorStatusSuccess
     return
-  end function ETHOSDMQuarterModeMass
-
+  end function ETHOSDMFractionModeMass
+  
   double precision function modeSolver(wavenumber)
     !!{
     Function used in solving for half- and quarter-mode masses in the ETHOS transfer function.

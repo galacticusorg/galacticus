@@ -37,7 +37,7 @@ Contains a module which implements an N-body data importer for Millennium databa
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      type            (varying_string          )          :: fileName                      , label
-     double precision                                    :: time
+     double precision                                    :: time                          , redshift
    contains
      final     ::           millenniumCSVDestructor
      procedure :: import => millenniumCSVImport
@@ -122,6 +122,7 @@ contains
     <constructorAssign variables="fileName, label, time, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
+    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function millenniumCSVConstructorInternal
 

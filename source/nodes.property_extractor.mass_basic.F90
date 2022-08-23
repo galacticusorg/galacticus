@@ -33,7 +33,6 @@ Contains a module which implements an output analysis property extractor class t
      private
    contains
      procedure :: extract     => massBasicExtract
-     procedure :: type        => massBasicType
      procedure :: name        => massBasicName
      procedure :: description => massBasicDescription
      procedure :: unitsInSI   => massBasicUnitsInSI
@@ -81,18 +80,6 @@ contains
     return
   end function massBasicExtract
 
-  integer function massBasicType(self)
-    !!{
-    Return the type of the halo mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorMassBasic), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    massBasicType=outputAnalysisPropertyTypeLinear
-    return
-  end function massBasicType
 
   function massBasicName(self)
     !!{

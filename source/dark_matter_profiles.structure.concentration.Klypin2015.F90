@@ -27,44 +27,6 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use :: Tables                    , only : table1DGeneric
 
-  !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
-   <deepCopy>
-    <functionClass variables="darkMatterProfileDMODefinition_"/>
-   </deepCopy>
-   <stateStorable>
-    <functionClass variables="darkMatterProfileDMODefinition_"/>
-   </stateStorable>
-  </darkMatterProfileConcentration>
-  !!]
-  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
-     !!}
-     private
-     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
-     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
-     class  (virialDensityContrastClass   ), pointer :: virialDensityContrastDefinition_ => null()
-     type   (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
-     integer                                         :: virialDensityContrast                     , fittingFunction
-     type   (table1DGeneric               )          :: fitParameters
-   contains
-     final     ::                                   klypin2015Destructor
-     procedure :: concentration                  => klypin2015Concentration
-     procedure :: densityContrastDefinition      => klypin2015DensityContrastDefinition
-     procedure :: darkMatterProfileDMODefinition => klypin2015DarkMatterProfileDefinition
-  end type darkMatterProfileConcentrationKlypin2015
-
-  interface darkMatterProfileConcentrationKlypin2015
-     !!{
-     Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
-     !!}
-     module procedure klypin2015ConstructorParameters
-     module procedure klypin2015ConstructorInternal
-  end interface darkMatterProfileConcentrationKlypin2015
-
   ! Labels for virial density contrast definition.
   !![
   <enumeration>
@@ -115,6 +77,45 @@
   </enumeration>
   !!]
 
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
+   <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
+   <deepCopy>
+    <functionClass variables="darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
+  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!}
+     private
+     class(cosmologyFunctionsClass                 ), pointer :: cosmologyFunctions_              => null()
+     class(cosmologyParametersClass                ), pointer :: cosmologyParameters_             => null()
+     class(cosmologicalMassVarianceClass           ), pointer :: cosmologicalMassVariance_        => null()
+     class(virialDensityContrastClass              ), pointer :: virialDensityContrastDefinition_ => null()
+     type (darkMatterProfileDMONFW                 ), pointer :: darkMatterProfileDMODefinition_  => null()
+     type (enumerationklypin2015DensityContrastType)          :: virialDensityContrast
+     type (enumerationklypin2015FittingFunctionType)          :: fittingFunction
+     type (table1DGeneric                          )          :: fitParameters
+   contains
+     final     ::                                   klypin2015Destructor
+     procedure :: concentration                  => klypin2015Concentration
+     procedure :: densityContrastDefinition      => klypin2015DensityContrastDefinition
+     procedure :: darkMatterProfileDMODefinition => klypin2015DarkMatterProfileDefinition
+  end type darkMatterProfileConcentrationKlypin2015
+
+  interface darkMatterProfileConcentrationKlypin2015
+     !!{
+     Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+     !!}
+     module procedure klypin2015ConstructorParameters
+     module procedure klypin2015ConstructorInternal
+  end interface darkMatterProfileConcentrationKlypin2015
+
 contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
@@ -160,18 +161,18 @@ contains
     use :: Table_Labels           , only : extrapolationTypeFix
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
-    type   (darkMatterProfileConcentrationKlypin2015          )                        :: self
-    integer                                                    , intent(in   )         :: sample
-    class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
-    class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
-    class  (cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
-    type   (darkMatterHaloScaleVirialDensityContrastDefinition), pointer               :: darkMatterHaloScaleDefinition_
+    type (darkMatterProfileConcentrationKlypin2015          )                        :: self
+    type (enumerationKlypin2015SampleType                   ), intent(in   )         :: sample
+    class(cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer               :: darkMatterHaloScaleDefinition_
     !![
     <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
     !!]
 
-    select case (sample)
-    case (klypin2015SamplePlanck200CritRelaxedMass)
+    select case (sample%ID)
+    case (klypin2015SamplePlanck200CritRelaxedMass%ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -199,7 +200,7 @@ contains
             &            y                =[4.500d5,2.000d4,8.000d3,7.800d2,1.600d2,2.700d1,1.400d1,6.800d0,1.600d0,0.300d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanck200CritAllMass    )
+    case (klypin2015SamplePlanck200CritAllMass    %ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -227,7 +228,7 @@ contains
             &            y                =[5.500d5,1.000d5,2.000d4,9.000d2,3.000d2,4.200d1,1.700d1,8.500d0,2.000d0,0.300d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanck200CritRelaxedVmax)
+    case (klypin2015SamplePlanck200CritRelaxedVmax%ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -255,7 +256,7 @@ contains
             &            y                =[2.000d5,9.000d3,4.500d3,6.000d2,1.500d2,2.700d1,1.100d1,5.500d0,1.500d0,0.220d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanck200CritAllVmax    )
+    case (klypin2015SamplePlanck200CritAllVmax    %ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -283,7 +284,7 @@ contains
             &            y                =[5.500d5,1.800d4,6.000d3,6.000d2,1.500d2,2.000d1,1.000d1,5.000d0,1.500d0,0.250d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanckVirialRelaxedMass )
+    case (klypin2015SamplePlanckVirialRelaxedMass %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -311,7 +312,7 @@ contains
             &            y                =[1.000d5,1.200d4,5.500d3,7.000d2,1.800d2,3.000d1,1.500d1,7.000d0,1.900d0,0.360d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanckVirialAllMass     )
+    case (klypin2015SamplePlanckVirialAllMass     %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -339,7 +340,7 @@ contains
             &            y                =[5.000d5,2.200d4,1.000d4,1.000d3,2.100d2,4.300d1,1.800d1,9.000d0,1.900d0,0.420d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanckVirialRelaxedVmax )
+    case (klypin2015SamplePlanckVirialRelaxedVmax %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -367,7 +368,7 @@ contains
             &            y                =[2.400d4,5.000d3,2.200d3,5.200d2,1.200d2,2.500d1,1.200d1,5.000d0,1.400d0,0.260d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanckVirialAllVmax     )
+    case (klypin2015SamplePlanckVirialAllVmax     %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -395,7 +396,7 @@ contains
             &            y                =[4.800d4,5.000d3,2.700d3,3.900d2,1.100d2,1.800d1,1.000d1,5.000d0,1.400d0,0.360d0], &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SampleWMAP7200CritRelaxedMass  )
+    case (klypin2015SampleWMAP7200CritRelaxedMass  %ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -423,7 +424,7 @@ contains
             &            y                =[5.500d5,6.000d3,5.000d2,1.000d2,2.000d1,1.000d1,6.000d0,3.000d0]                , &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SampleWMAP7200CritAllMass      )
+    case (klypin2015SampleWMAP7200CritAllMass      %ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -451,7 +452,7 @@ contains
             &            y                =[2.000d6,6.000d4,8.000d2,1.100d2,1.300d1,6.000d0,3.000d0,1.000d0]                , &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SampleWMAP7200CritRelaxedVmax  )
+    case (klypin2015SampleWMAP7200CritRelaxedVmax  %ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -479,7 +480,7 @@ contains
             &            y                =[2.000d5,4.000d3,4.000d2,8.000d1,1.300d1,7.000d0,3.500d0,2.000d0]                , &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SampleWMAP7VirialRelaxedMass   )
+    case (klypin2015SampleWMAP7VirialRelaxedMass   %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -507,7 +508,7 @@ contains
             &            y                =[3.000d5,5.000d3,4.500d2,9.000d1,1.500d1,8.000d0,3.500d0,1.500d0]                , &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SampleWMAP7VirialAllMass       )
+    case (klypin2015SampleWMAP7VirialAllMass       %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -535,7 +536,7 @@ contains
             &            y                =[2.000d6,7.000d3,5.500d2,9.000d1,1.100d1,6.000d0,2.500d0,1.000d0]                , &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SampleWMAP7VirialRelaxedVmax    )
+    case (klypin2015SampleWMAP7VirialRelaxedVmax    %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn24
        call self                                                                                                              &
@@ -563,7 +564,7 @@ contains
             &            y                =[1.300d5,4.000d3,4.000d2,8.000d1,1.100d1,6.000d0,2.500d0,1.200d0]                , &
             &            table            =3                                                                                  &
             &           )
-    case (klypin2015SamplePlanck200CritAllMassUni    )
+    case (klypin2015SamplePlanck200CritAllMassUni    %ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn25
        call self                                                                                                              &
@@ -585,7 +586,7 @@ contains
             &            y                =[0.278d0,0.375d0,0.411d0,0.436d0,0.426d0,0.375d0,0.360d0,0.351d0]                , &
             &            table            =2                                                                                  &
             &           )
-    case (klypin2015SamplePlanck200CritRelaxedMassUni)
+    case (klypin2015SamplePlanck200CritRelaxedMassUni%ID)
        self%virialDensityContrast=klypin2015DensityContrastFixed
        self%fittingFunction      =klypin2015FittingFunctionEqn25
        call self                                                                                                              &
@@ -607,7 +608,7 @@ contains
             &            y                =[0.522d0,0.550d0,0.562d0,0.562d0,0.541d0,0.480d0,0.464d0,0.450d0]                , &
             &            table            =2                                                                                  &
             &           )
-    case (klypin2015SamplePlanckVirialAllMassUni     )
+    case (klypin2015SamplePlanckVirialAllMassUni     %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn25
        call self                                                                                                              &
@@ -629,7 +630,7 @@ contains
             &            y                =[0.567d0,0.541d0,0.529d0,0.496d0,0.474d0,0.421d0,0.393d0]                        , &
             &            table            =2                                                                                  &
             &           )
-    case (klypin2015SamplePlanckVirialRelaxedMassUni )
+    case (klypin2015SamplePlanckVirialRelaxedMassUni %ID)
        self%virialDensityContrast=klypin2015DensityContrastVirial
        self%fittingFunction      =klypin2015FittingFunctionEqn25
        call self                                                                                                              &
@@ -653,8 +654,8 @@ contains
             &           )
     end select
     ! Build definitions.
-    select case (self%virialDensityContrast)
-    case (klypin2015DensityContrastFixed)
+    select case (self%virialDensityContrast%ID)
+    case (klypin2015DensityContrastFixed%ID)
        allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed)
@@ -672,7 +673,7 @@ contains
           </referenceConstruct>
           !!]
        end select
-    case (klypin2015DensityContrastVirial)
+    case (klypin2015DensityContrastVirial%ID)
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
@@ -760,8 +761,8 @@ contains
          &                                                        )             &
          &                                                       )
     ! Determine which fitting function to use.
-    select case (self%fittingFunction)
-    case (klypin2015FittingFunctionEqn24)
+    select case (self%fittingFunction%ID)
+    case (klypin2015FittingFunctionEqn24%ID)
        ! Evaluate fitting function parameters.
        concentration0=self%fitParameters%interpolate(redshift,table=1)
        gamma         =self%fitParameters%interpolate(redshift,table=2)
@@ -773,7 +774,7 @@ contains
             &                    +(massLittleH/mass0        )**0.4d0 &
             &                  )                                     &
             &                  /  (massLittleH/massReference)**gamma
-    case (klypin2015FittingFunctionEqn25)
+    case (klypin2015FittingFunctionEqn25%ID)
        ! Find sigma.
        sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
        ! Evaluate fitting function parameters.

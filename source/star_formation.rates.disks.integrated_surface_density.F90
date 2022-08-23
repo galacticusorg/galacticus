@@ -61,7 +61,7 @@
   class(starFormationRateDisksIntgrtdSurfaceDensity), pointer :: intgrtdSurfaceDensitySelf
   type (treeNode                                   ), pointer :: intgrtdSurfaceDensityNode
   !$omp threadprivate(intgrtdSurfaceDensitySelf,intgrtdSurfaceDensityNode)
-
+    
 contains
 
   function intgrtdSurfaceDensityConstructorParameters(parameters) result(self)
@@ -132,6 +132,8 @@ contains
     implicit none
     class           (starFormationRateDisksIntgrtdSurfaceDensity), intent(inout), target         :: self
     type            (treeNode                                   ), intent(inout), target         :: node
+    double precision                                             , allocatable  , dimension(  :) :: integralsAnalytic
+    logical                                                      , allocatable  , dimension(  :) :: intervalIsAnalytic
     double precision                                             , allocatable  , dimension(:,:) :: intervals
     class           (nodeComponentDisk                          ), pointer                       :: disk
     double precision                                             , parameter                     :: radiusInnerDimensionless=0.0d+00, radiusOuterDimensionless=10.0d0
@@ -163,17 +165,25 @@ contains
           radiusInner=radiusDisk*radiusInnerDimensionless
           radiusOuter=radiusDisk*radiusOuterDimensionless
           ! Get a set of intervals into which this integral should be broken.
-          intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter)
+          intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter,intervalIsAnalytic,integralsAnalytic)
           ! Compute the star formation rate. A low order integration rule (GSL_Integ_Gauss15) works well here.
           integrator_=integrator(intgrtdSurfaceDensityIntegrand,toleranceAbsolute=toleranceAbsolute,toleranceRelative=self%tolerance,integrationRule=GSL_Integ_Gauss15)
           intgrtdSurfaceDensityRate=0.0d0
           do i=1,size(intervals,dim=2)
-             intgrtdSurfaceDensityRate=+intgrtdSurfaceDensityRate                            &
-                  &                    +integrator_%integrate(intervals(1,i),intervals(2,i))
+             if (intervalIsAnalytic(i)) then
+                intgrtdSurfaceDensityRate=+            intgrtdSurfaceDensityRate                                &
+                     &                    +            integralsAnalytic        (                           i )
+             else
+                intgrtdSurfaceDensityRate=+            intgrtdSurfaceDensityRate                                &
+                     &                    +integrator_%integrate                (intervals(1,i),intervals(2,i))
+             end if
           end do
           intgrtdSurfaceDensityRate=+2.0d0                     &
                &                    *Pi                        &
                &                    *intgrtdSurfaceDensityRate
+          if (allocated(intervalIsAnalytic)) deallocate(intervalIsAnalytic)
+          if (allocated(integralsAnalytic )) deallocate(integralsAnalytic )
+
        end if
        self%starFormationRatePrevious=intgrtdSurfaceDensityRate
     end if
@@ -186,8 +196,9 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: radius
-
+    
     intgrtdSurfaceDensityIntegrand=+                                                                                               radius  &
          &                         *intgrtdSurfaceDensitySelf%starFormationRateSurfaceDensityDisks_%rate(intgrtdSurfaceDensityNode,radius)
     return
   end function intgrtdSurfaceDensityIntegrand
+  

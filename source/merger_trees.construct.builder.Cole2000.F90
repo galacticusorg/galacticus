@@ -92,7 +92,8 @@
      logical                                                              :: timeParameterIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                                    , timeEarliest             , &
-          &                                                                  mergeProbability                                  , timeNow
+          &                                                                  mergeProbability                                  , timeNow                  , &
+          &                                                                  redshiftMaximum
      ! Random number sequence variables
      logical                                                              :: branchIntervalStep
      ! Interval distribution.
@@ -234,6 +235,8 @@ contains
     <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
+    ! Store maximum redshift.
+    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeEarliest))
     ! Initialize state.
     self%branchingIntervalDistributionInitialized=.false.
     self%timeParameterIsMassDependent            = self%criticalOverdensity_     %isMassDependent      (     ) &

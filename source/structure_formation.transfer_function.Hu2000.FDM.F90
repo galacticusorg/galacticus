@@ -39,7 +39,6 @@
      double precision                                    :: jeansWavenumberEq             , m22     , &
           &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains
@@ -47,6 +46,7 @@
      procedure :: value                 => hu2000FDMValue
      procedure :: logarithmicDerivative => hu2000FDMLogarithmicDerivative
      procedure :: halfModeMass          => hu2000FDMHalfModeMass
+     procedure :: quarterModeMass       => hu2000FDMQuarterModeMass
      procedure :: epochTime             => hu2000FDMEpochTime
   end type transferFunctionHu2000FDM
 
@@ -78,7 +78,7 @@ contains
     double precision                                           :: redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -238,6 +238,35 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function hu2000FDMHalfModeMass
+
+  double precision function hu2000FDMQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function.
+    !!}
+    use :: Error                   , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (transferFunctionHu2000FDM), intent(inout), target   :: self
+    integer                                    , intent(  out), optional :: status
+    double precision                                                     :: matterDensity, wavenumberQuarterMode
+
+    matterDensity           =+self%cosmologyParameters_%OmegaMatter    () &
+         &                   *self%cosmologyParameters_%densityCritical()
+    wavenumberQuarterMode   =+1.230d0                 &
+         &                   *4.5d0                   &
+         &                   *self%m22**(4.0d0/9.0d0)
+    hu2000FDMQuarterModeMass=+4.0d0                   &
+         &                   *Pi                      &
+         &                   /3.0d0                   &
+         &                   *matterDensity           &
+         &                   *(                       &
+         &                     +Pi                    &
+         &                     /wavenumberQuarterMode &
+         &                    )**3
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function hu2000FDMQuarterModeMass
 
   double precision function hu2000FDMEpochTime(self)
     !!{

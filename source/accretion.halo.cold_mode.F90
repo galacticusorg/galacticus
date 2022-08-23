@@ -204,9 +204,9 @@ contains
     Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloColdMode), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    integer                       , intent(in   ) :: accretionMode
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeAccretionRate=+self%accretionHaloSimple%accretionRate   (node,accretionModeTotal) &
          &                *self                    %coldModeFraction(node,accretionMode     )
@@ -218,9 +218,9 @@ contains
     Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloColdMode), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    integer                       , intent(in   ) :: accretionMode
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeAccretedMass=+self%accretionHaloSimple%accretedMass    (node,accretionModeTotal) &
          &               *self                    %coldModeFraction(node,accretionMode     )
@@ -232,9 +232,9 @@ contains
     Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloColdMode), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    integer                       , intent(in   ) :: accretionMode
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeFailedAccretionRate=+self%accretionHaloSimple%failedAccretionRate(node,accretionModeTotal) &
          &                      *self                    %coldModeFraction   (node,accretionMode     )
@@ -246,9 +246,9 @@ contains
     Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     !!}
     implicit none
-    class  (accretionHaloColdMode), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    integer                       , intent(in   ) :: accretionMode
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeFailedAccretedMass=+self%accretionHaloSimple%failedAccretedMass(node,accretionModeTotal) &
          &                     *self                    %coldModeFraction  (node,accretionMode     )
@@ -260,10 +260,10 @@ contains
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     implicit none
-    type  (abundances           )                :: coldModeAccretionRateMetals
-    class (accretionHaloColdMode), intent(inout) :: self
-    type  (treeNode             ), intent(inout) :: node
-    integer                      , intent(in   ) :: accretionMode
+    type (abundances                  )                :: coldModeAccretionRateMetals
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeAccretionRateMetals=+self%accretionHaloSimple%accretionRateMetals(node,accretionMode) &
          &                      *self                    %coldModeFraction   (node,accretionMode)
@@ -275,10 +275,10 @@ contains
     Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
     implicit none
-    type   (abundances           )                :: coldModeAccretedMassMetals
-    class  (accretionHaloColdMode), intent(inout) :: self
-    type   (treeNode             ), intent(inout) :: node
-    integer                       , intent(in   ) :: accretionMode
+    type (abundances                  )                :: coldModeAccretedMassMetals
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeAccretedMassMetals=+self%accretionHaloSimple%accretedMassMetals(node,accretionMode) &
          &                     *self                    %coldModeFraction  (node,accretionMode)
@@ -323,11 +323,11 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
-    type            (chemicalAbundances   )                :: coldModeAccretionRateChemicals
-    class           (accretionHaloColdMode), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    integer                                , intent(in   ) :: accretionMode
-    double precision                                       :: massAccretionRate
+    type            (chemicalAbundances          )                :: coldModeAccretionRateChemicals
+    class           (accretionHaloColdMode       ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                                              :: massAccretionRate
 
     ! Ensure that chemicals are reset to zero.
     call coldModeAccretionRateChemicals%reset()
@@ -346,11 +346,11 @@ contains
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
-    type            (chemicalAbundances   )                :: coldModeAccretedMassChemicals
-    class           (accretionHaloColdMode), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    integer                                , intent(in   ) :: accretionMode
-    double precision                                       :: massAccreted
+    type            (chemicalAbundances          )                :: coldModeAccretedMassChemicals
+    class           (accretionHaloColdMode       ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                                              :: massAccreted
 
     ! Ensure that chemicals are reset to zero.
     call coldModeAccretedMassChemicals%reset()
@@ -374,19 +374,19 @@ contains
     use :: Numerical_Constants_Astronomical , only : hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
     implicit none
-    type            (chemicalAbundances   )                :: coldModeChemicalMasses
-    class           (accretionHaloColdMode), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    double precision                       , intent(in   ) :: massAccreted
-    integer                                , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic   ), pointer       :: basic
-    type            (chemicalAbundances   ), save          :: chemicalDensities      , chemicalDensitiesHot , &
-         &                                                    chemicalDensitiesCold
+    type            (chemicalAbundances          )                :: coldModeChemicalMasses
+    class           (accretionHaloColdMode       ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: massAccreted
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    type            (chemicalAbundances          ), save          :: chemicalDensities      , chemicalDensitiesHot , &
+         &                                                           chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
-    double precision                                       :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                    temperature            , temperatureHot       , &
-         &                                                    temperatureCold        , fractionCold         , &
-         &                                                    fractionHot
+    double precision                                              :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                           temperature            , temperatureHot       , &
+         &                                                           temperatureCold        , fractionCold         , &
+         &                                                           fractionHot
 
     ! Get the basic component.
     basic                => node%basic()
@@ -406,12 +406,12 @@ contains
     ! Get the chemical densities.
     call self%chemicalState_%chemicalDensities(chemicalDensitiesHot ,numberDensityHydrogen,temperatureHot ,zeroAbundances,self%radiation)
     call self%chemicalState_%chemicalDensities(chemicalDensitiesCold,numberDensityHydrogen,temperatureCold,zeroAbundances,self%radiation)
-    select case (accretionMode)
-    case (accretionModeTotal)
+    select case (accretionMode%ID)
+    case (accretionModeTotal%ID)
        chemicalDensities=chemicalDensitiesHot*fractionHot+chemicalDensitiesCold*fractionCold
-    case (accretionModeHot  )
+    case (accretionModeHot  %ID)
        chemicalDensities=chemicalDensitiesHot*fractionHot
-    case (accretionModeCold)
+    case (accretionModeCold %ID)
        chemicalDensities=                                 chemicalDensitiesCold*fractionCold
     end select
     ! Convert from densities to masses.
@@ -436,25 +436,25 @@ contains
     use :: Numerical_Constants_Units       , only : ergs
     use :: Shocks_1D                       , only : Shocks_1D_Density_Jump  , machNumberInfinite
     implicit none
-    class           (accretionHaloColdMode   ), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    integer                                   , intent(in   ) :: accretionMode
-    double precision                          , parameter     :: adiabaticIndex             =5.0d0/3.0d0
-    double precision                          , parameter     :: perturbationInitialExponent=0.0d0
-    double precision                          , parameter     :: logStabilityRatioMaximum   =60.0d0
-    class           (nodeComponentBasic      ), pointer       :: basic
-    type            (chemicalAbundances      ), save          :: chemicalDensities
+    class           (accretionHaloColdMode       ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    double precision                              , parameter     :: adiabaticIndex             =5.0d0/3.0d0
+    double precision                              , parameter     :: perturbationInitialExponent=0.0d0
+    double precision                              , parameter     :: logStabilityRatioMaximum   =60.0d0
+    class           (nodeComponentBasic          ), pointer       :: basic
+    type            (chemicalAbundances          ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                          :: shockStability                         , stabilityRatio      , &
-         &                                                       radiusShock                            , coolingFunctionValue, &
-         &                                                       densityPreShock                        , densityPostShock    , &
-         &                                                       numberDensityHydrogen                  , temperaturePostShock, &
-         &                                                       velocityPreShock
+    double precision                                              :: shockStability                         , stabilityRatio      , &
+         &                                                           radiusShock                            , coolingFunctionValue, &
+         &                                                           densityPreShock                        , densityPostShock    , &
+         &                                                           numberDensityHydrogen                  , temperaturePostShock, &
+         &                                                           velocityPreShock
 
-    select case (accretionMode)
-    case (accretionModeTotal)
+    select case (accretionMode%ID)
+    case (accretionModeTotal%ID)
        coldModeColdModeFraction=1.0d0
-    case (accretionModeHot,accretionModeCold)
+    case (accretionModeHot%ID,accretionModeCold%ID)
        ! Reset calculations if necessary.
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
        ! Compute cold fraction if not already computed.
@@ -548,10 +548,10 @@ contains
           self%coldFractionComputed=.true.
        end if
        ! Return the appropriate fraction.
-       select case (accretionMode)
-       case (accretionModeHot )
+       select case (accretionMode%ID)
+       case (accretionModeHot %ID)
           coldModeColdModeFraction=1.0d0-self%coldFractionStored
-       case (accretionModeCold)
+       case (accretionModeCold%ID)
           coldModeColdModeFraction=     +self%coldFractionStored
        case default
           coldModeColdModeFraction=1.0d0

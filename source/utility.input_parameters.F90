@@ -967,25 +967,26 @@ contains
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
-    class    (inputParameters)              , intent(inout)           :: self
-    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node           ), pointer                               :: node_                     , ignoreWarningsNode
-    type     (inputParameter ), pointer                               :: currentParameter
-    type     (regEx          ), save                                  :: regEx_
+    class    (inputParameters                         )              , intent(inout)           :: self
+    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
+    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode
+    type     (inputParameter                          ), pointer                               :: currentParameter
+    type     (regEx                                   ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                           :: warningsFound             , parameterMatched    , &
-         &                                                               verbose                   , ignoreWarnings      , &
-         &                                                               isException
-    integer                                                           :: allowedParametersCount    , errorStatus         , &
-         &                                                               distance                  , distanceMinimum     , &
-         &                                                               j
-    character(len=1024       )                                        :: parameterValue
-    character(len=1024       )                                        :: unknownName               , allowedParameterName, &
-         &                                                               parameterNameGuess
-    type     (varying_string )                                        :: message                   , verbosityLevel
-    type     (integerHash    )                                        :: parameterNamesSeen
-    type     (DOMException   )                                        :: exception
+    logical                                                                                    :: warningsFound             , parameterMatched    , &
+         &                                                                                        verbose                   , ignoreWarnings      , &
+         &                                                                                        isException
+    type     (enumerationInputParameterErrorStatusType)                                        :: errorStatus
+    integer                                                                                    :: allowedParametersCount    , status              , &
+         &                                                                                        distance                  , distanceMinimum     , &
+         &                                                                                        j
+    character(len=1024                                )                                        :: parameterValue
+    character(len=1024                                )                                        :: unknownName               , allowedParameterName, &
+         &                                                                                        parameterNameGuess
+    type     (varying_string                          )                                        :: message                   , verbosityLevel
+    type     (integerHash                             )                                        :: parameterNamesSeen
+    type     (DOMException                            )                                        :: exception
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -1007,9 +1008,9 @@ contains
              ignoreWarnings=.false.
              if (hasAttribute(node_,'ignoreWarnings')) then
                 ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
-                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
+                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=status,ex=exception)
                 isException=inException(exception)
-                if (isException .or. errorStatus /= 0) &
+                if (isException .or. status /= 0) &
                      & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
              end if
              ! Check for a match with allowed parameter names.
@@ -1049,10 +1050,10 @@ contains
              end if
              if (errorStatus /= inputParameterErrorStatusSuccess .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
-                select case (errorStatus)
-                case (inputParameterErrorStatusEmptyValue    )
+                select case (errorStatus%ID)
+                case (inputParameterErrorStatusEmptyValue    %ID)
                    message='empty value for parameter ['    //getNodeName(node_)//']'
-                case (inputParameterErrorStatusAmbiguousValue)
+                case (inputParameterErrorStatusAmbiguousValue%ID)
                    message='ambiguous value for parameter ['//getNodeName(node_)//']'
                 end select
                 !$omp end critical (FoX_DOM_Access)
@@ -1439,16 +1440,16 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
-    class           (inputParameters), intent(inout), target   :: self
-    character       (len=*          ), intent(in   )           :: parameterName
-    {Type¦intrinsic}                 , intent(  out)           :: parameterValue
-    {Type¦intrinsic}                 , intent(in   ), optional :: defaultValue
-    integer                          , intent(  out), optional :: errorStatus
-    integer                          , intent(in   ), optional :: copyInstance
-    logical                          , intent(in   ), optional :: writeOutput
-    type            (inputParameters), pointer                 :: parametersRoot
-    type            (inputParameter ), pointer                 :: parameterNode
-    type            (varying_string )                          :: parameterPath
+    class           (inputParameters                         ), intent(inout), target   :: self
+    character       (len=*                                   ), intent(in   )           :: parameterName
+    {Type¦intrinsic}                                          , intent(  out)           :: parameterValue
+    {Type¦intrinsic}                                          , intent(in   ), optional :: defaultValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
+    integer                                                   , intent(in   ), optional :: copyInstance
+    logical                                                   , intent(in   ), optional :: writeOutput
+    type            (inputParameters                         ), pointer                 :: parametersRoot
+    type            (inputParameter                          ), pointer                 :: parameterNode
+    type            (varying_string                          )                          :: parameterPath
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
     !!]
@@ -1496,33 +1497,33 @@ contains
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
     use :: HDF5_Access       , only : hdf5Access
     implicit none
-    class           (inputParameters           ), intent(inout), target      :: self
-    type            (inputParameter            ), intent(inout), target      :: parameterNode
-    {Type¦intrinsic}                            , intent(  out)              :: parameterValue
-    integer                                     , intent(  out), optional    :: errorStatus
-    logical                                     , intent(in   ), optional    :: writeOutput
+    class           (inputParameters                         ), intent(inout), target      :: self
+    type            (inputParameter                          ), intent(inout), target      :: parameterNode
+    {Type¦intrinsic}                                          , intent(  out)              :: parameterValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional    :: errorStatus
+    logical                                                   , intent(in   ), optional    :: writeOutput
 #ifdef MATHEVALAVAIL
-    integer         (kind_int8                 )                             :: evaluator
+    integer         (kind_int8                               )                             :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                 ), external                   :: Evaluator_Create_
-    double precision                            , external                   :: Evaluator_Evaluate_
-    external                                                                 :: Evaluator_Destroy_
+    integer         (kind_int8                               ), external                   :: Evaluator_Create_
+    double precision                                          , external                   :: Evaluator_Evaluate_
+    external                                                                               :: Evaluator_Destroy_
 #endif
-    type            (inputParameter            )               , pointer     :: sibling
-    type            (node                      )               , pointer     :: valueElement
-    type            (inputParameters           )               , pointer     :: rootParameters     , subParameters  , &
-         &                                                                      subParametersNext
-    character       (len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
-    type            (DOMException              )                             :: exception
-    integer                                                                  :: status             , i              , &
-         &                                                                      countNames         , copyCount      , &
-         &                                                                      copyInstance
-    logical                                                                  :: hasValueAttribute  , hasValueElement, &
-         &                                                                      isException
-    character       (len=parameterLengthMaximum)                             :: expression         , parameterName  , &
-         &                                                                      workText           , content
-    type            (varying_string            )                             :: attributeName
-    double precision                                                         :: workValue
+    type            (inputParameter                          )               , pointer     :: sibling
+    type            (node                                    )               , pointer     :: valueElement
+    type            (inputParameters                         )               , pointer     :: rootParameters     , subParameters  , &
+         &                                                                                    subParametersNext
+    character       (len=parameterLengthMaximum              ), dimension(:) , allocatable :: parameterNames
+    type            (DOMException                            )                             :: exception
+    integer                                                                                :: status             , i              , &
+         &                                                                                    countNames         , copyCount      , &
+         &                                                                                    copyInstance
+    logical                                                                                :: hasValueAttribute  , hasValueElement, &
+         &                                                                                    isException
+    character       (len=parameterLengthMaximum              )                             :: expression         , parameterName  , &
+         &                                                                                    workText           , content
+    type            (varying_string                          )                             :: attributeName
+    double precision                                                                       :: workValue
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !![
@@ -1753,15 +1754,15 @@ contains
     use :: Hashes_Cryptographic, only : Hash_MD5
     use :: ISO_Varying_String  , only : assignment(=), char, operator(//)
     implicit none
-    type   (varying_string )                          :: inputParametersSerializeToString
-    class  (inputParameters), intent(inout)           :: self
-    logical                 , intent(in   ), optional :: hashed
-    type   (node           ), pointer                 :: node_
-    type   (inputParameter ), pointer                 :: currentParameter
-    integer                                           :: errorStatus
-    type   (varying_string )                          :: parameterValue
-    logical                                           :: firstParameter
-    type   (inputParameters)                          :: subParameters
+    type   (varying_string                          )                          :: inputParametersSerializeToString
+    class  (inputParameters                         ), intent(inout)           :: self
+    logical                                          , intent(in   ), optional :: hashed
+    type   (node                                    ), pointer                 :: node_
+    type   (inputParameter                          ), pointer                 :: currentParameter
+    type   (enumerationInputParameterErrorStatusType)                          :: errorStatus
+    type   (varying_string                          )                          :: parameterValue
+    logical                                                                    :: firstParameter
+    type   (inputParameters                         )                          :: subParameters
     !![
     <optionalArgument name="hashed" defaultsTo=".false." />
     !!]

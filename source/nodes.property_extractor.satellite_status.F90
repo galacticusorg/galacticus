@@ -22,19 +22,29 @@ Contains a module which implements an ISM mass output analysis property extracto
 !!}
 
   !![
+  <enumeration>
+   <name>satelliteStatusDiscriminator</name>
+   <description>Enumeration of possible discriminators for satellite orphan status.</description>
+   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="boundMass"/>
+   <entry label="position" />
+  </enumeration>
+  !!]
+
+  !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteStatus">
    <description>An ISM mass output analysis property extractor class.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorSatelliteStatus
      !!{
-     A stelalr mass output analysis class.
+     A stellar mass output analysis class.
      !!}
      private
-     integer :: discriminator
+     type(enumerationSatelliteStatusDiscriminatorType) :: discriminator
    contains
      procedure :: extract     => satelliteStatusExtract
-     procedure :: type        => satelliteStatusType
      procedure :: name        => satelliteStatusName
      procedure :: description => satelliteStatusDescription
   end type nodePropertyExtractorSatelliteStatus
@@ -46,17 +56,6 @@ Contains a module which implements an ISM mass output analysis property extracto
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal
   end interface nodePropertyExtractorSatelliteStatus
-
-  !![
-  <enumeration>
-   <name>satelliteStatusDiscriminator</name>
-   <description>Enumeration of possible discriminators for satellite orphan status.</description>
-   <visibility>private</visibility>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="boundMass"/>
-   <entry label="position" />
-  </enumeration>
-  !!]
 
 contains
 
@@ -92,14 +91,14 @@ contains
     use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
     implicit none
-    type   (nodePropertyExtractorSatelliteStatus)                :: self
-    integer                                      , intent(in   ) :: discriminator
+    type(nodePropertyExtractorSatelliteStatus       )                :: self
+    type(enumerationSatelliteStatusDiscriminatorType), intent(in   ) :: discriminator
     !![
     <constructorAssign variables="discriminator"/>
     !!]
 
-    select case (discriminator)
-    case (satelliteStatusDiscriminatorBoundMass)
+    select case (discriminator%ID)
+    case (satelliteStatusDiscriminatorBoundMass%ID)
        if     (                                                                                                             &
             &  .not.                                                                                                        &
             &       (                                                                                                       &
@@ -114,7 +113,7 @@ contains
             &                       )                                                                                    // &
             &         {introspection:location}                                                                              &
             &        )
-    case (satelliteStatusDiscriminatorPosition )
+    case (satelliteStatusDiscriminatorPosition %ID)
        if     (                                                                                                             &
             &  .not.                                                                                                        &
             &       (                                                                                                       &
@@ -153,11 +152,11 @@ contains
 
     if (node%isSatellite()) then
        basic => node%basic()
-       select case (self%discriminator)
-       case (satelliteStatusDiscriminatorBoundMass)
+       select case (self%discriminator%ID)
+       case (satelliteStatusDiscriminatorBoundMass%ID)
           satellite            => node     %satellite       ()
           discriminatorHistory =  satellite%boundMassHistory()
-       case (satelliteStatusDiscriminatorPosition )
+       case (satelliteStatusDiscriminatorPosition %ID)
           position             => node     %position        ()
           discriminatorHistory =  position %positionHistory ()
        end select
@@ -180,18 +179,6 @@ contains
     return
   end function satelliteStatusExtract
 
-  integer function satelliteStatusType(self)
-    !!{
-    Return the type of the stellar mass property.
-    !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
-    implicit none
-    class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    satelliteStatusType=outputAnalysisPropertyTypeLinear
-    return
-  end function satelliteStatusType
 
   function satelliteStatusName(self)
     !!{

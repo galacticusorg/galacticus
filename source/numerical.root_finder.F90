@@ -90,29 +90,29 @@ module Root_Finder
      Type containing all objects required when calling the GSL root solver function.
      !!}
      private
-     type            (c_ptr                         )                  :: gslFunction                  =c_null_ptr
-     type            (c_ptr                         )                  :: solver                       =c_null_ptr
-     type            (c_ptr                         )                  :: solverType                   =c_null_ptr
-     integer                                                           :: solverTypeID
-     double precision                                                  :: toleranceAbsolute
-     double precision                                                  :: toleranceRelative
-     logical                                                           :: initialized
-     logical                                                           :: functionInitialized          =.false.
-     logical                                                           :: resetRequired
-     logical                                                           :: useDerivative
-     integer                                                           :: stoppingCriterion
-     integer                                                           :: rangeExpandType
-     double precision                                                  :: rangeExpandUpward
-     double precision                                                  :: rangeExpandDownward
-     double precision                                                  :: rangeUpwardLimit
-     double precision                                                  :: rangeDownwardLimit
-     logical                                                           :: rangeUpwardLimitSet
-     logical                                                           :: rangeDownwardLimitSet
-     integer                                                           :: rangeExpandUpwardSignExpect  
-     integer                                                           :: rangeExpandDownwardSignExpect
-     procedure       (rootFunctionTemplate          ), nopass, pointer :: finderFunction
-     procedure       (rootFunctionDerivativeTemplate), nopass, pointer :: finderFunctionDerivative
-     procedure       (rootFunctionBothTemplate      ), nopass, pointer :: finderFunctionBoth
+     type            (c_ptr                               )                  :: gslFunction                  =c_null_ptr
+     type            (c_ptr                               )                  :: solver                       =c_null_ptr
+     type            (c_ptr                               )                  :: solverType                   =c_null_ptr
+     integer                                                                 :: solverTypeID
+     double precision                                                        :: toleranceAbsolute
+     double precision                                                        :: toleranceRelative
+     logical                                                                 :: initialized
+     logical                                                                 :: functionInitialized          =.false.
+     logical                                                                 :: resetRequired
+     logical                                                                 :: useDerivative
+     type            (enumerationStoppingCriterionType    )                  :: stoppingCriterion
+     type            (enumerationRangeExpandType          )                  :: rangeExpandType
+     double precision                                                        :: rangeExpandUpward
+     double precision                                                        :: rangeExpandDownward
+     double precision                                                        :: rangeUpwardLimit
+     double precision                                                        :: rangeDownwardLimit
+     logical                                                                 :: rangeUpwardLimitSet
+     logical                                                                 :: rangeDownwardLimitSet
+     type            (enumerationRangeExpandSignExpectType)                  :: rangeExpandUpwardSignExpect  
+     type            (enumerationRangeExpandSignExpectType)                  :: rangeExpandDownwardSignExpect
+     procedure       (rootFunctionTemplate                ), nopass, pointer :: finderFunction
+     procedure       (rootFunctionDerivativeTemplate      ), nopass, pointer :: finderFunctionDerivative
+     procedure       (rootFunctionBothTemplate            ), nopass, pointer :: finderFunctionBoth
    contains
      !![
      <methods>
@@ -326,16 +326,17 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (rootFinder                    )                          :: self
-    double precision                                , intent(in   ), optional :: toleranceAbsolute            , toleranceRelative
-    integer                                         , intent(in   ), optional :: solverType
-    integer                                         , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &
-         &                                                                       rangeExpandUpwardSignExpect  , stoppingCriterion
-    double precision                                , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward, &
-         &                                                                       rangeExpandUpward            , rangeUpwardLimit
-    procedure       (rootFunctionTemplate          )               , optional :: rootFunction
-    procedure       (rootFunctionDerivativeTemplate)               , optional :: rootFunctionDerivative
-    procedure       (rootFunctionBothTemplate      )               , optional :: rootFunctionBoth
+    type            (rootFinder                          )                          :: self
+    double precision                                      , intent(in   ), optional :: toleranceAbsolute            , toleranceRelative
+    integer                                               , intent(in   ), optional :: solverType
+    type            (enumerationRangeExpandType          ), intent(in   ), optional :: rangeExpandType
+    type            (enumerationRangeExpandSignExpectType), intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandUpwardSignExpect
+    type            (enumerationStoppingCriterionType    ), intent(in   ), optional :: stoppingCriterion
+    double precision                                      , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward        , &
+         &                                                                             rangeExpandUpward            , rangeUpwardLimit
+    procedure       (rootFunctionTemplate                )               , optional :: rootFunction
+    procedure       (rootFunctionDerivativeTemplate      )               , optional :: rootFunctionDerivative
+    procedure       (rootFunctionBothTemplate            )               , optional :: rootFunctionBoth
     
     ! Initialize GSL objects to null pointers.
     self%gslFunction                  =c_null_ptr
@@ -377,6 +378,8 @@ contains
     else if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
        call Error_Report('missing "rootFunction"'//{introspection:location})
     end if
+    ! If a stopping criterion is provided, set it.
+    if (present(stoppingCriterion)) self%stoppingCriterion=stoppingCriterion
     ! Validate stopping criterion.
     if (self%useDerivative .and. self%stoppingCriterion == stoppingCriterionInterval) &
          & call Error_Report('"interval" stopping criteria is not valid when using a derivative-based method'//{introspection:location})
@@ -386,8 +389,6 @@ contains
     call self%tolerance(toleranceAbsolute,toleranceRelative)
     ! If range expansion is defined, set it.
     call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
-    ! If a stopping criterion is provided, set it.
-    if (present(stoppingCriterion)) self%stoppingCriterion=stoppingCriterion
     return
   end function rootFinderConstructorInternal
   
@@ -437,24 +438,24 @@ contains
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
-    use            :: Display           , only : displayMessage, verbosityLevelWarn
-    use            :: Error             , only : Error_Report  , errorStatusOutOfRange, errorStatusSuccess
+    use            :: Display           , only : displayMessage            , verbosityLevelWarn
+    use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
+         &                                       GSL_Error_Handler_Abort_On
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
-    use            :: ISO_Varying_String, only : assignment(=) , operator(//)         , varying_string
-    use            :: Interface_GSL     , only : GSL_Success   , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
+    use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
+    use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
     real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
-    integer                               , parameter                             :: iterationMaximum       =1000
-    integer                               , parameter                             :: findersIncrement       =   3
-    type            (c_funptr            )                                        :: standardGslErrorHandler
-    logical                                                                       :: rangeChanged                , rangeLowerAsExpected   , rangeUpperAsExpected
-    integer                                                                       :: iteration                   , statusActual
-    double precision                                                              :: xHigh                       , xLow                   , xRoot               , &
-         &                                                                           xRootPrevious               , fLow                   , fHigh
+    integer                               , parameter                             :: iterationMaximum =1000
+    integer                               , parameter                             :: findersIncrement =   3
+    logical                                                                       :: rangeChanged          , rangeLowerAsExpected   , rangeUpperAsExpected
+    integer                                                                       :: iteration             , statusActual
+    double precision                                                              :: xHigh                 , xLow                   , xRoot               , &
+         &                                                                           xRootPrevious         , fLow                   , fHigh
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -479,7 +480,7 @@ contains
           if (.not.self%solverTypeIsValid()) then
              self%solverTypeID    =gsl_root_fdfsolver_steffenson
              self%solverType      =gsl_fdfsolver_type_get  (self%solverTypeID)
-            end if
+          end if
           self%gslFunction        =gslFunctionFdF          (                               &
                &                                            rootFunctionWrapper          , &
                &                                            rootFunctionDerivativeWrapper, &
@@ -524,24 +525,24 @@ contains
        fHigh=self%finderFunction(xHigh)
        do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
           rangeChanged=.false.
-          select case (self%rangeExpandDownwardSignExpect)
-          case (rangeExpandSignExpectNegative)
+          select case (self%rangeExpandDownwardSignExpect%ID)
+          case (rangeExpandSignExpectNegative%ID)
              rangeLowerAsExpected=(fLow  < 0.0d0)
-          case (rangeExpandSignExpectPositive)
+          case (rangeExpandSignExpectPositive%ID)
              rangeLowerAsExpected=(fLow  > 0.0d0)
           case default
              rangeLowerAsExpected=.false.
           end select
-          select case (self%rangeExpandUpwardSignExpect  )
-          case (rangeExpandSignExpectNegative)
+          select case (self%rangeExpandUpwardSignExpect  %ID)
+          case (rangeExpandSignExpectNegative%ID)
              rangeUpperAsExpected=(fHigh < 0.0d0)
-          case (rangeExpandSignExpectPositive)
+          case (rangeExpandSignExpectPositive%ID)
              rangeUpperAsExpected=(fHigh > 0.0d0)
           case default
              rangeUpperAsExpected=.false.
           end select
-          select case (self%rangeExpandType)
-          case (rangeExpandAdditive      )
+          select case (self%rangeExpandType%ID)
+          case (rangeExpandAdditive      %ID)
              if     (                                  &
                   &   self%rangeExpandUpward   > 0.0d0 &
                   &  .and.                             &
@@ -574,7 +575,7 @@ contains
                 fLow =self%finderFunction(xLow )
                 rangeChanged=.true.
              end if
-          case (rangeExpandMultiplicative)
+          case (rangeExpandMultiplicative%ID)
              if     (                                    &
                   &  (                                   &
                   &   (                                  &
@@ -683,8 +684,8 @@ contains
     end if
     ! Set error handler if necessary.
     if (present(status)) then
-       standardGslErrorHandler=gslSetErrorHandler(rootFinderGSLErrorHandler)
-       statusActual           =errorStatusSuccess
+       call GSL_Error_Handler_Abort_Off()
+       statusActual=errorStatusSuccess
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
@@ -706,12 +707,12 @@ contains
           end if
           if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
           if (iteration > 1) then
-             select case (self%stoppingCriterion)
-             case (stoppingCriterionDelta   )
+             select case (self%stoppingCriterion%ID)
+             case (stoppingCriterionDelta   %ID)
                 xRootPrevious=xRoot
                 xRoot        =GSL_Root_fdfSolver_Root(self%solver)
                 statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
-             case (stoppingCriterionInterval)
+             case (stoppingCriterionInterval%ID)
                 xRoot =GSL_Root_fSolver_Root   (self%solver)
                 xLow  =GSL_Root_fSolver_x_Lower(self%solver)
                 xHigh =GSL_Root_fSolver_x_Upper(self%solver)
@@ -735,26 +736,10 @@ contains
        end if
     end if
     ! Reset error handler.
-    if (present(status)) standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
+    if (present(status)) call GSL_Error_Handler_Abort_On()
     ! Restore state.
     currentFinderIndex=currentFinderIndex-1
     return
-
-  contains
-
-    subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
-      !!{
-      Handle errors from the GSL library during root finding.
-      !!}
-      use, intrinsic :: ISO_C_Binding, only : c_char, c_int
-      character(c_char), dimension(*) :: file       , reason
-      integer  (c_int ), value        :: errorNumber, line
-      !$GLC attributes unused :: reason, file, line
-
-      statusActual=errorNumber
-      return
-    end subroutine rootFinderGSLErrorHandler
-
   end function rootFinderFind
 
   subroutine rootFinderRootFunction(self,rootFunction)
@@ -835,11 +820,11 @@ contains
     Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
     !!}
     implicit none
-    class           (rootFinder), intent(inout)           :: self
-    integer                     , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &
-         &                                                   rangeExpandUpwardSignExpect
-    double precision            , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward, &
-         &                                                   rangeExpandUpward            , rangeUpwardLimit
+    class           (rootFinder                          ), intent(inout)           :: self
+    type            (enumerationRangeExpandType          ), intent(in   ), optional :: rangeExpandType
+    type            (enumerationRangeExpandSignExpectType), intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandUpwardSignExpect
+    double precision                                      , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward        , &
+         &                                                                             rangeExpandUpward            , rangeUpwardLimit
 
     if (present(rangeExpandUpward            )) self%rangeExpandUpward  =rangeExpandUpward
     if (present(rangeExpandDownward          )) self%rangeExpandDownward=rangeExpandDownward
@@ -848,11 +833,11 @@ contains
     else
        self%rangeExpandType    =rangeExpandNull
     end if
-    select case (self%rangeExpandType)
-    case (rangeExpandAdditive      )
+    select case (self%rangeExpandType%ID)
+    case (rangeExpandAdditive      %ID)
        if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward  =0.0d0
        if (.not.present(rangeExpandDownward)) self%rangeExpandDownward=0.0d0
-    case (rangeExpandMultiplicative)
+    case (rangeExpandMultiplicative%ID)
        if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward  =1.0d0
        if (.not.present(rangeExpandDownward)) self%rangeExpandDownward=1.0d0
     end select

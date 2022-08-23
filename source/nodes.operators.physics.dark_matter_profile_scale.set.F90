@@ -105,28 +105,14 @@ contains
     !!{
     Initialize dark matter profile scale radii.
     !!}
-    use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class(nodeOperatorDarkMatterProfileScaleSet), intent(inout), target  :: self
     type (treeNode                             ), intent(inout), target  :: node
-    type (treeNode                             )               , pointer :: nodeWork
-    class(nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile, darkMatterProfileWork
-    type (mergerTreeWalkerAllNodes             )                         :: treeWalker
+    class(nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile
 
-    ! Initialize the scale radius, if necessary. (Scales may have been previously set by calls to this function for other nodes.)
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    if (darkMatterProfile%scale() < 0.0d0) then
-       ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
-       ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
-       ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-       treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-       do while (treeWalker%next(nodeWork))
-          ! Set the scale radius.
-          darkMatterProfileWork => nodeWork%darkMatterProfile(autoCreate=.true.)
-          call darkMatterProfileWork%scaleSet(self%darkMatterProfileScaleRadius_%radius(nodeWork))
-      end do
-    end if
+    call darkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
     return
   end subroutine darkMatterProfileScaleSetNodeTreeInitialize
     

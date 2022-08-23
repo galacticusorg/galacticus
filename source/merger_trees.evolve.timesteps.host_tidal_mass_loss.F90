@@ -154,7 +154,7 @@ contains
           do while (associated(nodeHost))
              if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) then
                 ! Limit the time to that of the halo where the current host will become a subhalo. Include a small offset here to
-                ! avoid deadlockign the tree.
+                ! avoid deadlocking the tree.
                 nodeHost                      => nodeHost %parent
                 basicHost                     => nodeHost %basic ()
                 hostTidalMassLossTimeEvolveTo =  basicHost%time  ()+1.0d-6

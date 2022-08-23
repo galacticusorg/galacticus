@@ -30,6 +30,17 @@ module Radiative_Transfer_Convergences
   private
   
   !![
+  <enumeration>
+   <name>statusCell</name>
+   <description>Specifies cell status for convergence testing.</description>
+   <visibility>public</visibility>
+   <entry label="first"/>
+   <entry label="last" />
+   <entry label="other"/>
+  </enumeration>
+  !!]
+  
+  !![
   <functionClass>
    <name>radiativeTransferConvergence</name>
    <descriptiveName>Radiative Transfer Convergence Criteria</descriptiveName>
@@ -47,22 +58,10 @@ module Radiative_Transfer_Convergences
     <pass>yes</pass>
     <argument>class  (radiativeTransferMatterClass     ), intent(inout) :: radiativeTransferMatter_</argument>
     <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
-    <argument>integer                                   , intent(in   ) :: statusCell</argument>
+    <argument>type   (enumerationStatusCellType        ), intent(in   ) :: statusCell</argument>
     <argument>logical                                   , intent(  out) :: converged</argument>
    </method>
   </functionClass>
   !!]
-  
-  !![
-  <enumeration>
-   <name>statusCell</name>
-   <description>Specifies cell status for convergence testing.</description>
-   <visibility>public</visibility>
-   <entry label="first"/>
-   <entry label="last" />
-   <entry label="other"/>
-  </enumeration>
-  !!]
-
 
 end module Radiative_Transfer_Convergences
