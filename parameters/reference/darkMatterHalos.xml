@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference dark matter halo model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="heated">
+    <darkMatterProfileDMO                       value="NFW"      />
+    <nonAnalyticSolver                          value="numerical"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"      />
+  </darkMatterProfileDMO>
+  <darkMatterProfileHeating value="tidal">
+    <!-- The heating source for dark matter halos is set to be tidal heating from their host halo. Parameter values are based on
+         matching tidal tracks from Errani & Navarro (2021; MNRAS; 505; 18;
+         https://ui.adsabs.harvard.edu/abs/2021MNRAS.505...18E), as described in
+         https://hackmd.io/GAVyCqaKRoWvN_D9_B4qrg#New-Tidal-Heating-Model -->
+    <coefficientSecondOrder0   value="+0.406"/>
+    <correlationVelocityRadius value="-0.333"/>
+  </darkMatterProfileHeating>
+
+  <!-- Dark matter profile scale radii model -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <!-- Limit scale radii to keep concentrations within a reasonable range. -->
+    <concentrationMinimum value="  3.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="johnson2021">
+      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+      <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
+      <energyBoost      value="0.6773"/>
+      <massExponent     value="1.5552"/>
+      <unresolvedEnergy value="0.5500"/> 
+      <darkMatterProfileScaleRadius value="ludlow2016"          >
+	<C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
+	<f                                  value="  0.07534"    />
+	<timeFormationSeekDelta             value="  0.00000"    />
+	<darkMatterProfileScaleRadius value="concentration" >
+	  <correctForConcentrationDefinition    value="true"              />
+	  <darkMatterProfileConcentration value="diemerJoyce2019">
+	    <!-- Use the Diemer & Joyce (2019; ApJ; 871; 168; http://adsabs.harvard.edu/abs/2019ApJ...871..168D) model for concentrations. -->
+	  </darkMatterProfileConcentration>
+	</darkMatterProfileScaleRadius>
+      </darkMatterProfileScaleRadius>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Dark matter halo spin -->
+  <haloSpinDistribution value="bett2007">
+    <!-- For leaf nodes in the tree we fall back to drawing spins from the distribution function given by -->
+    <!-- Benson (2017; MNRAS; 471; 2871; http://adsabs.harvard.edu/abs/2017MNRAS.471.2871B).              -->
+    <!-- Best fit paramter values are taken from that paper.                                              -->
+    <alpha   value="1.7091800"/>
+    <lambda0 value="0.0420190"/>
+  </haloSpinDistribution>
+
+</parameters>
