@@ -371,14 +371,14 @@ contains
     return
   end function sedExtract
 
-  subroutine sedNames(self,time,names)
+  subroutine sedNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily sed} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                             :: self
-    double precision                          , intent(in   )                             :: time
+    double precision                          , intent(in   ), optional                   :: time
     type            (varying_string          ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
@@ -387,14 +387,14 @@ contains
     return
   end subroutine sedNames
 
-  subroutine sedDescriptions(self,time,descriptions)
+  subroutine sedDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                             :: self
-    double precision                          , intent(in   )                             :: time
+    double precision                          , intent(in   ), optional                   :: time
     type            (varying_string          ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -454,13 +454,13 @@ contains
     return
   end function sedWavelengths
 
-  subroutine sedColumnDescriptions(self,time,descriptions)
+  subroutine sedColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
-    double precision                          , intent(in   )                            :: time
+    double precision                          , intent(in   ), optional                  :: time
     type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                          , dimension(:) , allocatable               :: wavelengths
     integer         (c_size_t                )                                           :: i
@@ -495,14 +495,13 @@ contains
     implicit none
     double precision                          , allocatable  , dimension(:) :: sedUnitsInSI
     class           (nodePropertyExtractorSED), intent(inout)               :: self
-    double precision                          , intent(in   )               :: time
+    double precision                          , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(sedUnitsInSI(1))
     sedUnitsInSI(1)=luminositySolar
     return
   end function sedUnitsInSI
-
 
   integer function sedIndexTemplateTime(self,time)
     !!{

@@ -256,7 +256,7 @@ contains
     integer                                                                                                   :: i
     
     allocate(names(size(self%filterNames)))
-    call self%nodePropertyExtractor_%names(time,name)
+    call self%nodePropertyExtractor_%names(name,time)
     do i=1,size(names)
        names(i)=name(1)//":"//self%filterNames(i)
     end do
@@ -275,7 +275,7 @@ contains
     integer                                                                                                   :: i
 
     allocate(descriptions(size(self%filterNames)))
-    call self%nodePropertyExtractor_%descriptions(time,description)
+    call self%nodePropertyExtractor_%descriptions(description,time)
     do i=1,size(descriptions)
        descriptions(i)="Luminosity in "//self%filterNames(i)//" filter in units of the AB-magnitude system zero-point; derived from: "//description(1)
     end do

@@ -999,14 +999,14 @@ contains
        deallocate(descriptionsTmp)
     class is (nodePropertyExtractorArray        )
        ! Array property extractor - get the names, descriptions, and units.
-       call extractor_%names       (time,namesTmp       )
-       call extractor_%descriptions(time,descriptionsTmp)
+       call extractor_%names       (namesTmp       ,time)
+       call extractor_%descriptions(descriptionsTmp,time)
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-          call extractor_%columnDescriptions(time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
+          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,time)
        end do
        do i=1,extractor_%elementCount(                   time)
           call extractor_%metaData(i,self%doubleProperty (doubleProperty +i)%metaData)

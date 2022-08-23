@@ -389,7 +389,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time) 
              if (elementCount > 0) then
-                call extractor_%names(time,namesTmp)
+                call extractor_%names(namesTmp,time)
                 names(offset+1:offset+elementCount)=namesTmp
                 deallocate(namesTmp)
              end if
@@ -463,7 +463,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                call extractor_%columnDescriptions(time,descriptions)
+                call extractor_%columnDescriptions(descriptions,time)
                 return
              end if
           end if
@@ -536,7 +536,7 @@ contains
           if (elementType == elementTypeDouble) then
              elementCount=extractor_%elementCount(time)
              if (elementCount > 0) then
-                call extractor_%descriptions(time,descriptionsTmp)
+                call extractor_%descriptions(descriptionsTmp,time)
                 descriptions(offset+1:offset+elementCount)=descriptionsTmp
                 deallocate(descriptionsTmp)
              end if
