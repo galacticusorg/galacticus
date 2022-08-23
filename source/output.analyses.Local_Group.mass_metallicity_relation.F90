@@ -29,7 +29,7 @@
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassMetallicityRelation
      !!{
-     An output analysis class for Local Group satellite galaxy mass functions.
+     An output analysis class for Local Group satellite galaxy mass-metallicity relations.
      !!}
      private
      class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
@@ -175,9 +175,9 @@ contains
     implicit none
     type            (outputAnalysisLocalGroupMassMetallicityRelation       )                                :: self
     integer                                                                 , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                                        , intent(in   )                 :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum                                 , &
-         &                                                                                                     randomErrorMinimum                                        , randomErrorMaximum
-    double precision                                                        , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient                              , &
+    double precision                                                        , intent(in   )                 :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum                                 , &
+         &                                                                                                     randomErrorMinimum                                         , randomErrorMaximum
+    double precision                                                        , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient                              , &
          &                                                                                                     metallicitySystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
     class           (outputTimesClass                                      ), intent(inout)                 :: outputTimes_
@@ -185,9 +185,9 @@ contains
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMetallicityStellar               )               , pointer        :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorMetallicitySolarRelative)               , pointer        :: outputAnalysisWeightPropertyOperatorMetallicity_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial       )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_          , outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
+    type            (outputAnalysisPropertyOperatorSystmtcPolynomial       )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_           , outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorLog10                   )               , pointer        :: outputAnalysisPropertyOperatorLog10_
-    type            (outputAnalysisPropertyOperatorSequence                )               , pointer        :: outputAnalysisPropertyOperator_                           , outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyOperatorSequence                )               , pointer        :: outputAnalysisPropertyOperator_                            , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10               )               , pointer        :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisWeightOperatorSubsampling               )               , pointer        :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml   )               , pointer        :: outputAnalysisDistributionOperator_
@@ -197,28 +197,33 @@ contains
     type            (galacticFilterSurveyGeometry                          )               , pointer        :: galacticFilterSurveyGeometry_
     type            (galacticFilterAll                                     )               , pointer        :: galacticFilter_
     type            (filterList                                            )               , pointer        :: filters_
-    type            (propertyOperatorList                                  )               , pointer        :: operators_                                                 , weightPropertyOperators_
+    type            (propertyOperatorList                                  )               , pointer        :: operators_                                                  , weightPropertyOperators_
     integer                                                                 , allocatable  , dimension(:  ) :: countTarget
-    logical                                                                 , allocatable  , dimension(:  ) :: isPresentMasses                                            , isPresentMetallicities                                           , &
+    logical                                                                 , allocatable  , dimension(:  ) :: isPresentMasses                                             , isPresentMetallicities                                           , &
          &                                                                                                     isPresentMetallicitiesUncertainties
-    double precision                                                        , allocatable  , dimension(:  ) :: masses                                                     , massesTarget                                                     , &
-         &                                                                                                     metallicitiesTarget                                        , functionValueTarget                                              , &
-         &                                                                                                     metallicitiesUncertaintiesTarget                           , functionVarianceMeasurementTarget                                , &
-         &                                                                                                     functionVarianceSampleTarget
-    double precision                                                        , allocatable  , dimension(:,:) :: outputWeight                                               , functionCovarianceTarget
-    double precision                                                        , parameter                     :: bufferWidthLogarithmic                          =3.0d+0    , errorZeroPoint                                       =10.00d0    , &
-         &                                                                                                     metallicityErrorPolynomialZeroPoint             =0.0d+0    , covarianceLarge                                      = 1.00d3
-    integer         (c_size_t                                              ), parameter                     :: binCount                                        =7_c_size_t, bufferCountMinimum                                   = 5_c_size_t
-    double precision                                                        , parameter                     :: massMinimum                                     =1.0d+3    , massMaximum                                          = 1.00d9    , &
-         &                                                                                                     radiusOuter                                     =3.0d-1    , metallicityUncertaintyDefault                        = 0.25d0
+    double precision                                                        , allocatable  , dimension(:  ) :: masses                                                      , massesTarget                                                     , &
+         &                                                                                                     metallicitiesTarget                                         , functionValueTarget                                              , &
+         &                                                                                                     metallicitiesUncertaintiesTarget                            , functionVarianceMeasurementTarget                                , &
+         &                                                                                                     functionVarianceSampleTarget                                , functionValueTargetNonZero                                       , &
+         &                                                                                                     massesNonZero
+    double precision                                                        , allocatable  , dimension(:,:) :: outputWeight                                                , functionCovarianceTarget                                         , &
+         &                                                                                                     functionCovarianceTargetNonZero
+    double precision                                                        , parameter                     :: bufferWidthLogarithmic                          =+3.0d+0    , errorZeroPoint                                       =10.00d0    , &
+         &                                                                                                     metallicityErrorPolynomialZeroPoint             =+0.0d+0
+    integer         (c_size_t                                              ), parameter                     :: binCount                                        = 7_c_size_t, bufferCountMinimum                                   = 5_c_size_t
+    double precision                                                        , parameter                     :: massMinimum                                     =+1.0d+3    , massMaximum                                          = 1.00d9    , &
+         &                                                                                                     radiusOuter                                     =+3.0d-1    , metallicityUncertaintyDefault                        = 0.25d0
     logical                                                                 , parameter                     :: likelihoodNormalize                             =.false.
-    integer         (c_size_t                                              )                                :: i                                                          , j                                                                , &
-         &                                                                                                     bufferCount
+    integer         (c_size_t                                              )                                :: i                                                           , j                                                                , &
+         &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
-
+    double precision                                                                                        :: massesWidthBin
+    
     ! Construct mass bins.
     allocate(masses(binCount))
-    masses=Make_Range(log10(massMinimum),log10(massMaximum),int(binCount),rangeTypeLinear)
+    masses        =Make_Range(log10(massMinimum),log10(massMaximum),int(binCount),rangeTypeLinear)
+    massesWidthBin=+masses(2) &
+         &         -masses(1)
     ! Construct the target distribution.
     !! Select galaxies within 300 kpc of the Milky Way, excluding the Milky Way itself, then retrieve stellar masses and
     !! metallicities for the selected galaxies.
@@ -269,10 +274,22 @@ contains
                &                                 )                                     /dble(countTarget(j))
           functionCovarianceTarget         (j,j)=+ functionVarianceMeasurementTarget(j)                         &
                &                                 + functionVarianceSampleTarget     (j)
-       else
-          functionValueTarget     (j  )=0.0d0
-          functionCovarianceTarget(j,j)=covarianceLarge
        end if
+    end do
+    ! Find non-empty bins.
+    binCountNonZero=count(countTarget > 0)
+    allocate(massesNonZero                  (binCountNonZero                ))
+    allocate(functionValueTargetNonZero     (binCountNonZero                ))
+    allocate(functionCovarianceTargetNonZero(binCountNonZero,binCountNonZero))
+    functionValueTargetNonZero     =0.0d0
+    functionCovarianceTargetNonZero=0.0d0
+    j                              =0
+    do i=1,binCount
+       if (countTarget(i) == 0) cycle
+       j                                   =j                            +1
+       massesNonZero                  (j  )=masses                  (i  )
+       functionValueTargetNonZero     (j  )=functionValueTarget     (i  )
+       functionCovarianceTargetNonZero(j,j)=functionCovarianceTarget(i,i)
     end do
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                                )
@@ -413,10 +430,10 @@ contains
 	   &amp;                        var_str('M☉'                                                 ), &amp;
 	   &amp;                        massSolar                                                     , &amp;
 	   &amp;                        var_str('metallicityMean'                                    ), &amp;
-           &amp;                        var_str('Mean stellar metallicity'                           ), &amp;
+           &amp;                        var_str('Mean stellar metallicity; ⟨[Fe/H]⟩'                 ), &amp;
            &amp;                        var_str('dimensionless'                                      ), &amp;
            &amp;                        0.0d0                                                         , &amp;
-	   &amp;                        masses                                                        , &amp;
+	   &amp;                        massesNonZero                                                 , &amp;
 	   &amp;                        bufferCount                                                   , &amp;
 	   &amp;                        outputWeight                                                  , &amp;
 	   &amp;                        nodePropertyExtractor_                                        , &amp;
@@ -434,12 +451,13 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMaximum                             , &amp;
            &amp;                        likelihoodNormalize                                           , &amp;
            &amp;                        var_str('$M_\star/\mathrm{M}_\odot$'                         ), &amp;
-           &amp;                        var_str('[Fe/H]'                                             ), &amp;
+           &amp;                        var_str('$[\mathrm{Fe}/\mathrm{H}]$'                         ), &amp;
            &amp;                        .true.                                                        , &amp;
            &amp;                        .false.                                                       , &amp;
            &amp;                        var_str('Galacticus compilation'                             ), &amp;
-           &amp;                        functionValueTarget                                           , &amp;
-           &amp;                        functionCovarianceTarget                                        &amp;
+           &amp;                        functionValueTargetNonZero                                    , &amp;
+           &amp;                        functionCovarianceTargetNonZero                               , &amp;
+	   &amp;                        massesWidthBin                                                  &amp; 
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>
