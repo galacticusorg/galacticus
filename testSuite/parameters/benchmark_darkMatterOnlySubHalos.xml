@@ -38,8 +38,6 @@
   <diskMassToleranceAbsolute     value="1.0e-6"  />
   <spheroidMassToleranceAbsolute value="1.0e-6"  />
 
-  <!-- Tree evolution -->
-
   <!-- Output options -->
   <outputFileName value="testSuite/outputs/benchmark_darkMatterOnlySubHalos.hdf5"/>
   <mergerTreeOutputter value="standard">
