@@ -53,8 +53,8 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
-    type            (inputParameters                           ), intent(inout) :: parameters
-    double precision                                                            :: mean      , rootVariance
+    type            (inputParameters                        ), intent(inout) :: parameters
+    double precision                                                         :: mean      , rootVariance
 
     !![
     <inputParameter>
@@ -81,7 +81,7 @@ contains
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
-    double precision                                            , intent(in   ) :: mean, rootVariance
+    double precision                                         , intent(in   ) :: mean, rootVariance
     !![
     <constructorAssign variables="mean, rootVariance"/>
     !!]
@@ -95,8 +95,8 @@ contains
     !!}
     implicit none
     class           (mergerTreeBuildMassDistributionGaussian), intent(inout) :: self
-    double precision                                            , intent(in   ) :: mass       , massMaximum, &
-         &                                                                         massMinimum, time
+    double precision                                         , intent(in   ) :: mass       , massMaximum, &
+         &                                                                      massMinimum, time
     !$GLC attributes unused :: time
 
     if (mass <= massMinimum .or. mass > massMaximum) then
