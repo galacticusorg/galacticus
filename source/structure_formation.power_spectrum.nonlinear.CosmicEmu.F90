@@ -179,6 +179,7 @@ contains
     use :: Memory_Management   , only : allocateArray               , deallocateArray
     use :: Numerical_Comparison, only : Values_Differ
     use :: System_Command      , only : System_Command_Do
+    use :: System_Download     , only : download
     use :: Table_Labels        , only : extrapolationTypeExtrapolate
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
@@ -188,7 +189,8 @@ contains
          &                                                              parameters
     character       (len=32                         )                :: parameterLabel
     character       (len=128                        )                :: powerSpectrumLine
-    integer                                                          :: iWavenumber      , powerSpectrumUnit
+    integer                                                          :: iWavenumber      , powerSpectrumUnit, &
+         &                                                              status
 
     ! If the time has changed, recompute the power spectrum.
     if (time /= self%timePrevious) then
@@ -242,8 +244,8 @@ contains
                 ! Download the code.
                 if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
                    call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
-                   call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
-                   if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
+                   call download("http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz",char(inputPath(pathTypeDataDynamic))//"CosmicEmu_v1.1.tar.gz",status)
+                   if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
                         & call Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
