@@ -559,6 +559,7 @@ contains
     double precision                                              :: rateCorrection                    , metallicityIGM
 
     ! Return immediately for cold-mode accretion or satellites.
+    naozBarkana2007AccretionRateMetals=zeroAbundances
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
     ! Calculate IGM metalicity from redshift
@@ -625,6 +626,7 @@ contains
     double precision                                              :: rateCorrection                          , metallicityIGM
 
     ! Return immediately for cold-mode accretion or satellites.
+    naozBarkana2007FailedAccretionRateMetals=zeroAbundances
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
     ! Calculate IGM metalicity from redshift
