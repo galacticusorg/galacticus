@@ -115,6 +115,7 @@ jobs:
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
+          name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
           fail-on-alert: true
@@ -175,6 +176,7 @@ jobs:
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
+          name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: testSuite/outputs/benchmark_milkyWay.json
           fail-on-alert: true
