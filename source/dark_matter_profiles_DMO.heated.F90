@@ -270,8 +270,8 @@ contains
     else if (.not.self%noShellCrossingIsValid(heatedNode,radiusInitial,radius)) then
        ! Shell crossing assumption is broken - simply return the density unchanged.
        heatedDensity =+self%darkMatterProfileDMO_%density      (node,radius       )
-    else       
-       massEnclosed  =+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
+    else
+       massEnclosed=+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
        if (massEnclosed > 0.0d0) then
           jacobian      =+1.0d0                                                                                                       &
                &         /(                                                                                                           &
@@ -479,7 +479,7 @@ contains
 
     massEnclosed                = +  self%darkMatterProfileDMO_    %enclosedMass          (node,radiusInitial                           )
     heatedNoShellCrossingIsValid= +  self%darkMatterProfileHeating_%specificEnergyGradient(node,radiusInitial,self%darkMatterProfileDMO_) &
-         &                       <                                                                                                        &
+         &                       >                                                                                                        &
          &                        +0.5d0                                                                                                  &
          &                        *gravitationalConstantGalacticus                                                                        &
          &                        *(                                                                                                      &
@@ -488,10 +488,10 @@ contains
          &                          *radiusInitial**2                                                                                     &
          &                          *self%darkMatterProfileDMO_    %density               (node,radiusInitial                           ) &
          &                          *(                                                                                                    &
-         &                            +1.0d0/radiusFinal                                                                                  &
-         &                            -1.0d0/radiusInitial                                                                                &
+         &                            -1.0d0/radiusFinal                                                                                  &
+         &                            +1.0d0/radiusInitial                                                                                &
          &                           )                                                                                                    &
-         &                          +massEnclosed                                                                                         &
+         &                          -massEnclosed                                                                                         &
          &                          /radiusInitial**2                                                                                     &
          &                         )
     return
