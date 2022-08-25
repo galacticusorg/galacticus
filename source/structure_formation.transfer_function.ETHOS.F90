@@ -45,7 +45,6 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, u
           &                                                 hPeak                         , h2      , &
           &                                                 time                          , redshift
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
    contains
      final     ::                          ETHOSDMDestructor

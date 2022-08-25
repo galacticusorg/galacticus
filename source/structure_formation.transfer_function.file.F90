@@ -134,7 +134,6 @@
      A transfer function class which interpolates a transfer function given in a file.
      !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_               => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                => null()
      class           (transferFunctionClass   ), pointer :: transferFunctionReference          => null()
      type            (varying_string          )          :: fileName

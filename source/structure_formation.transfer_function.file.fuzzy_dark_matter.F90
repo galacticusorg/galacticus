@@ -269,7 +269,7 @@ contains
     Compute the mass corresponding to the wavenumber at which the transfer function is
     suppressed by a factor of two relative to a \gls{cdm} transfer function. Here the
     fitting function from \cite{hu_fuzzy_2000} has been used. Note that:
-    (1) In \cite{hu_fuzzy_2000}, the half-mode wavenumber is defined as the sacle at
+    (1) In \cite{hu_fuzzy_2000}, the half-mode wavenumber is defined as the scale at
         which the matter power spectrum, instead of the transfer function, is suppressed
         by a factor of two. A correction factor has been added in the calculations to be
         consistent with the common definition.

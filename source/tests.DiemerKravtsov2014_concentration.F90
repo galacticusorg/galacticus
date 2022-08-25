@@ -45,7 +45,7 @@ program Test_DiemerKravtsov2014_Concentration
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: System_Command                      , only : System_Command_Do
+  use :: System_Download                     , only : download
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
   use :: Unit_Tests                          , only : Assert                                          , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
@@ -88,12 +88,13 @@ program Test_DiemerKravtsov2014_Concentration
 
   ! Get the data file if we don't have it.
   if (.not.File_Exists(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
-     call System_Command_Do(                                                                           &
-          &                 "wget http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt -O "// &
-          &                 inputPath(pathTypeExec)                                                 // &
-          &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                       &
-          &                )
-     if (.not.File_Exists(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
+     call download(                                                                  &
+          &        "http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt",  &
+          &        char(inputPath(pathTypeExec))                                  // &
+          &        "testSuite/data/diemerKravtsov2014Concentration.txt"           ,  &
+          &        ioStatus                                                          &
+          &       )
+     if (ioStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
           & call Error_Report('unable to retrieve reference dataset'//{introspection:location})
   end if
   ! Create a node.

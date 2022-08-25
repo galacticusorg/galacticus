@@ -25,6 +25,7 @@ module Transfer_Functions
   !!{
   Provides an object that implements transfer functions.
   !!}
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
   private
 
   !![
@@ -33,6 +34,7 @@ module Transfer_Functions
    <descriptiveName>Transfer Function</descriptiveName>
    <description>Class providing transfer functions for power spectra.</description>
    <default>eisensteinHu1999</default>
+   <data>class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
    <method name="value" >
     <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
@@ -71,6 +73,28 @@ module Transfer_Functions
     <selfTarget>yes</selfTarget>
     <argument>double precision, intent(in   )           :: fraction</argument>
     <argument>integer         , intent(  out), optional :: status</argument>
+   </method>
+   <method name="wavenumberFromMass" >
+    <description>Return the wavenumber (in Mpc$^{-1}$) corresponding to a given mass. (For a spherical region at mean density.)</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   ) :: mass</argument>
+    <modules>Numerical_Constants_Math</modules>
+    <code>
+      double precision :: densityMatter
+
+      densityMatter                     =+self%cosmologyParameters_%OmegaMatter    () &amp;
+       &amp;                             *self%cosmologyParameters_%densityCritical()
+      transferFunctionWavenumberFromMass=+Pi                                          &amp;
+       &amp;                             /(                                           &amp;
+       &amp;                               +3.0d0                                     &amp;
+       &amp;                               *mass                                      &amp;
+       &amp;                               /4.0d0                                     &amp;
+       &amp;                               /Pi                                        &amp;
+       &amp;                               /densityMatter                             &amp;
+       &amp;                              )**(1.0d0/3.0d0)
+    </code>
    </method>
   </functionClass>
   !!]
