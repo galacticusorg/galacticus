@@ -25,13 +25,15 @@
   <satelliteOrbitStoreOrbitalParameters value="true"/>
  
   <!-- Orbiting model of satellites -->
-  <!-- Values taken from Yang et al. (2020; MNRAS; 498; 3902; http://adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) for their gamma=0 case using the Caterpillar simulations as calibration target -->
+  <!-- Values are taken from Yang et al. (2021; https://ui.adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) using results for gamma=2.5
+       from the Caterpillar simulations. But note that we use gamma=1.5 here instead as suggested Weinberg 1994a,b, and Gnedin and
+       Ostriker 1999 as discussed in Yang et al. -->
   <satelliteDynamicalFriction value="chandrasekhar1943">
     <logarithmCoulomb value="1.53"/>
   </satelliteDynamicalFriction>
   <satelliteTidalHeatingRate  value="gnedin1999"       >
-    <epsilon          value="0.33"/>
-    <gamma            value="0.00"/>
+    <epsilon          value="0.50"/>
+    <gamma            value="1.50"/>
   </satelliteTidalHeatingRate>
   <satelliteTidalStripping    value="zentner2005"      >
     <efficiency       value="2.86"/>
