@@ -138,6 +138,7 @@ contains
        array            =nodePropertyExtractor__%extract(node     ,basic%time   (),instance)
        scalarizerExtract=array                          (self%item,self %element           )
     class default
+       scalarizerExtract=0.0d0
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
     end select
     return
@@ -155,6 +156,7 @@ contains
     
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
+       call nodePropertyExtractor__%names(names)
        scalarizerName=names(self%element)
     class default
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
@@ -195,6 +197,7 @@ contains
        unitsInSI          =nodePropertyExtractor__%unitsInSI(            )
        scalarizerUnitsInSI=unitsInSI                        (self%element)
     class default
+       scalarizerUnitsInSI=0.0d0
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
     end select
     return
