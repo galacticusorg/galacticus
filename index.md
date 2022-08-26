@@ -1,7 +1,7 @@
 # Galacticus
 
 
-![logo](https://github.com/galacticusorg/galacticus/blob/master/doc/New_Logo_Galaxy_192_Transparent.png)
+![logo](assets/New_Logo_Galaxy_192_Transparent.png)
 
 This site is used to host development and validation metrics for the Galacticus galaxy formation model.
 
