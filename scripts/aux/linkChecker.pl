@@ -137,6 +137,8 @@ sub checkLink {
 	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	$options .= " --user-agent \"Mozilla\""
 	    if ( $url =~ m/sharepoint\.com/ );
+	$options .= " --compressed"
+	    if ( $url =~ m/docs\.github\.com/ );
 	system("sleep 1; curl ".$options." \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;	
 	$options =~ s/\-\-silent//;
