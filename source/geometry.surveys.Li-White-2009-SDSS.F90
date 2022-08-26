@@ -271,7 +271,7 @@ contains
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : operator(//)
-    use :: System_Command          , only : System_Command_Do
+    use :: System_Download         , only : download
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)             :: self
     double precision                               , allocatable, dimension(:) :: angleTmp
@@ -279,12 +279,13 @@ contains
          &                                                                        i             , randomUnit
     double precision                                                           :: rightAscension, declination
     type            (varying_string               )                            :: message
+    integer                                                                    :: status
 
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
        call Directory_Make(inputPath(pathTypeDataDynamic)//"surveyGeometry")
-       call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
-       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
+       call download("http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat",char(inputPath(pathTypeDataDynamic))//"surveyGeometry/lss_random-0.dr72.dat",status)
+       if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if
     randomsCount=Count_Lines_In_File(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
     call allocateArray(self%randomTheta,[randomsCount])
