@@ -95,19 +95,21 @@
        <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMasses"/>
      </methods>
      !!]
-     final     ::                           simpleDestructor
-     procedure :: branchHasBaryons       => simpleBranchHasBaryons
-     procedure :: accretionRate          => simpleAccretionRate
-     procedure :: accretedMass           => simpleAccretedMass
-     procedure :: failedAccretionRate    => simpleFailedAccretionRate
-     procedure :: failedAccretedMass     => simpleFailedAccretedMass
-     procedure :: accretionRateMetals    => simpleAccretionRateMetals
-     procedure :: accretedMassMetals     => simpleAccretedMassMetals
-     procedure :: accretionRateChemicals => simpleAccretionRateChemicals
-     procedure :: accretedMassChemicals  => simpleAccretedMassChemicals
-     procedure :: velocityScale          => simpleVelocityScale
-     procedure :: failedFraction         => simpleFailedFraction
-     procedure :: chemicalMasses         => simpleChemicalMasses
+     final     ::                              simpleDestructor
+     procedure :: branchHasBaryons          => simpleBranchHasBaryons
+     procedure :: accretionRate             => simpleAccretionRate
+     procedure :: accretedMass              => simpleAccretedMass
+     procedure :: failedAccretionRate       => simpleFailedAccretionRate
+     procedure :: failedAccretedMass        => simpleFailedAccretedMass
+     procedure :: accretionRateMetals       => simpleAccretionRateMetals
+     procedure :: accretedMassMetals        => simpleAccretedMassMetals
+     procedure :: failedAccretionRateMetals => simpleFailedAccretionRateMetals
+     procedure :: failedAccretedMassMetals  => simpleFailedAccretedMassMetals
+     procedure :: accretionRateChemicals    => simpleAccretionRateChemicals
+     procedure :: accretedMassChemicals     => simpleAccretedMassChemicals
+     procedure :: velocityScale             => simpleVelocityScale
+     procedure :: failedFraction            => simpleFailedFraction
+     procedure :: chemicalMasses            => simpleChemicalMasses
   end type accretionHaloSimple
 
   interface accretionHaloSimple
@@ -136,7 +138,7 @@ contains
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
     class           (chemicalStateClass           ), pointer       :: chemicalState_
     double precision                                               :: timeReionization         , velocitySuppressionReionization, &
-         &                                                            opticalDepthReionization , redshiftReionization
+         &                                                            opticalDepthReionization , redshiftReionization            
     logical                                                        :: accretionNegativeAllowed , accretionNewGrowthOnly
 
     !![
@@ -207,7 +209,6 @@ contains
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Galacticus_Nodes             , only : defaultBasicComponent
     implicit none
     type            (accretionHaloSimple          ), target                :: self
     double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
@@ -403,16 +404,23 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Abundances_Structure, only : abundances, zeroAbundances
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
-    type  (abundances                  )                :: simpleAccretionRateMetals
-    class (accretionHaloSimple         ), intent(inout) :: self
-    type  (treeNode                    ), intent(inout) :: node
-    type  (enumerationAccretionModeType), intent(in   ) :: accretionMode
-    !$GLC attributes unused :: self, node, accretionMode
+    type            (abundances                  )                :: simpleAccretionRateMetals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic           ), pointer      :: basic 
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
 
-    ! Assume zero metallicity.
-    simpleAccretionRateMetals=zeroAbundances
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleAccretionRateMetals=+     simpleAccretionRateMetals                     &
+         &                    *self%accretionRate            (node,accretionMode)
     return
   end function simpleAccretionRateMetals
 
@@ -420,19 +428,74 @@ contains
     !!{
     Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Abundances_Structure, only : abundances, zeroAbundances
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
-    type   (abundances         )                :: simpleAccretedMassMetals
-    class  (accretionHaloSimple), intent(inout) :: self
-    type   (treeNode           ), intent(inout) :: node
+    type            (abundances                  )                :: simpleAccretedMassMetals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
     type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
-    !$GLC attributes unused :: self, node, accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
 
-    ! Assume zero metallicity.
-    simpleAccretedMassMetals=zeroAbundances
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleAccretedMassMetals=+     simpleAccretedMassMetals                     &
+         &                   *self%accretionRate           (node,accretionMode)
     return
   end function simpleAccretedMassMetals
 
+  function simpleFailedAccretionRateMetals(self,node,accretionMode)
+    !!{
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    implicit none
+    type            (abundances                  )                :: simpleFailedAccretionRateMetals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
+
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleFailedAccretionRateMetals=+     simpleFailedAccretionRateMetals                     &
+         &                          *self%failedAccretionRate            (node,accretionMode)
+    return
+  end function simpleFailedAccretionRateMetals
+
+  function simpleFailedAccretedMassMetals(self,node,accretionMode)
+    !!{
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    implicit none
+    type            (abundances                  )                :: simpleFailedAccretedMassMetals
+    class           (accretionHaloSimple         ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    type            (enumerationAccretionModeType), intent(in   ) :: accretionMode
+    class           (nodeComponentBasic          ), pointer       :: basic
+    double precision                                              :: metallicityIGM
+    !$GLC attributes unused :: accretionMode
+
+    basic          => node%basic                                (            )
+    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
+    call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    simpleFailedAccretedMassMetals=+     simpleFailedAccretedMassMetals                     &
+         &                         *self%accretionRate                 (node,accretionMode)
+    return
+  end function simpleFailedAccretedMassMetals
+  
   function simpleAccretionRateChemicals(self,node,accretionMode)
     !!{
     Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
@@ -488,7 +551,7 @@ contains
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , treeNode
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Astronomical , only : hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
     implicit none
@@ -505,10 +568,11 @@ contains
 
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0
-    ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
+    ! Compute the temperature and density of accreting material, assuming
+    ! accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperature          =  self%darkMatterHaloScale_%temperatureVirial(node)
-    numberDensityHydrogen=  hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
+    temperature          = self%darkMatterHaloScale_%temperatureVirial(node)
+    numberDensityHydrogen= hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     basic => node%basic()
     call self%radiation%timeSet(basic%time())
