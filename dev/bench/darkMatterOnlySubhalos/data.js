@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661531487497,
+  "lastUpdate": 1661532815371,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Benchmark": [
@@ -893,6 +893,45 @@ window.BENCHMARK_DATA = {
             "value": 85.815,
             "unit": "seconds",
             "range": 1.09983862452548
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6b29bbd34d7663c51e218e1d0a594b00aef6cd0",
+          "message": "Merge pull request #279 from galacticusorg/igmMetallicity\n\nIGM metallicity support",
+          "timestamp": "2022-08-26T07:30:11-07:00",
+          "tree_id": "ad646e2409e7de0183b728f8a4143c9051456598",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b6b29bbd34d7663c51e218e1d0a594b00aef6cd0"
+        },
+        "date": 1661532812906,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 56.5237413776784,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.6259954960764,
+            "unit": "|logℒ|"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 13032.8807106922,
+            "unit": "|logℒ|"
           }
         ]
       }
