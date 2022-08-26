@@ -2,7 +2,7 @@ window.BENCHMARK_DATA = {
   "lastUpdate": 1661532815371,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
-    "Benchmark": [
+    "Dark matter-only subhalos benchmarks": [
       {
         "commit": {
           "author": {
@@ -863,9 +863,7 @@ window.BENCHMARK_DATA = {
             "unit": "|logℒ|"
           }
         ]
-      }
-    ],
-    "Dark matter-only subhalos benchmarks": [
+      },
       {
         "commit": {
           "author": {
