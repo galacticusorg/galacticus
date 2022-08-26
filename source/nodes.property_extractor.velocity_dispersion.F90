@@ -385,13 +385,13 @@ contains
     return
   end function velocityDispersionExtract
 
-  subroutine velocityDispersionNames(self,time,names)
+  subroutine velocityDispersionNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily velocityDispersion} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
-    double precision                                         , intent(in   )                             :: time
+    double precision                                         , intent(in   ), optional                   :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
     
@@ -402,13 +402,13 @@ contains
     return
   end subroutine velocityDispersionNames
 
-  subroutine velocityDispersionDescriptions(self,time,descriptions)
+  subroutine velocityDispersionDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily velocityDispersion} property.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
-    double precision                                         , intent(in   )                             :: time
+    double precision                                         , intent(in   ), optional                   :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -419,13 +419,13 @@ contains
     return
   end subroutine velocityDispersionDescriptions
 
-  subroutine velocityDispersionColumnDescriptions(self,time,descriptions)
+  subroutine velocityDispersionColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily velocityDispersion} property.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
-    double precision                                         , intent(in   )                             :: time
+    double precision                                         , intent(in   ), optional                   :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -443,7 +443,7 @@ contains
     implicit none
     double precision                                         , allocatable  , dimension(:) :: velocityDispersionUnitsInSI
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)               :: self
-    double precision                                         , intent(in   )               :: time
+    double precision                                         , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(velocityDispersionUnitsInSI(self%elementCount_))

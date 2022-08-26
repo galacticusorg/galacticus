@@ -67,25 +67,25 @@
   end interface
 
   abstract interface
-     subroutine arrayNames(self,time,names)
+     subroutine arrayNames(self,names,time)
        !!{
        Interface for array names.
        !!}
        import varying_string, nodePropertyExtractorArray
        class           (nodePropertyExtractorArray), intent(inout)                            :: self
-       double precision                            , intent(in   )                            :: time
+       double precision                            , intent(in   ), optional                  :: time
        type            (varying_string            ), intent(inout), allocatable, dimension(:) :: names
     end subroutine arrayNames
   end interface
 
   abstract interface
-     subroutine arrayDescriptions(self,time,descriptions)
+     subroutine arrayDescriptions(self,descriptions,time)
        !!{
        Interface for array descriptions.
        !!}
        import varying_string, nodePropertyExtractorArray
        class           (nodePropertyExtractorArray), intent(inout)                            :: self
-       double precision                            , intent(in   )                            :: time
+       double precision                            , intent(in   ), optional                  :: time
        type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
     end subroutine arrayDescriptions
   end interface
@@ -98,7 +98,7 @@
        import nodePropertyExtractorArray
        double precision                            , allocatable  , dimension(:) :: arrayUnitsInSI
        class           (nodePropertyExtractorArray), intent(inout)               :: self
-       double precision                            , intent(in   )               :: time
+       double precision                            , intent(in   ), optional     :: time
      end function arrayUnitsInSI
   end interface
 

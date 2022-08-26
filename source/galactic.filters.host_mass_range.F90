@@ -31,7 +31,8 @@ Implements a galactic filter which passes nodes with host halo basic mass within
      A galactic filter which passes nodes with host halo basic mass within a specified range.
      !!}
      private
-     double precision :: massMinimum, massMaximum
+     double precision :: massMinimum , massMaximum
+     logical          :: useFinalHost
    contains
      procedure :: passes => hostMassRangePasses
   end type galacticFilterHostMassRange
@@ -54,7 +55,8 @@ contains
     implicit none
     type            (galacticFilterHostMassRange)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
-    double precision                                             :: massMinimum, massMaximum
+    double precision                                             :: massMinimum , massMaximum
+    logical                                                      :: useFinalHost
 
     !![
     <inputParameter>
@@ -67,24 +69,31 @@ contains
       <source>parameters</source>
       <description>The maximum mass of host halo to pass.</description>
     </inputParameter>
+    <inputParameter>
+      <name>useFinalHost</name>
+      <source>parameters</source>
+      <description>If true, the final host (i.e. the isolated host halo in the subhalo hierarchy) is used for filtering, otherwise the immediate host is used.</description>
+    </inputParameter>
     !!]
-    self=galacticFilterHostMassRange(massMinimum,massMaximum)
+    self=galacticFilterHostMassRange(massMinimum,massMaximum,useFinalHost)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function hostMassRangeConstructorParameters
 
-  function hostMassRangeConstructorInternal(massMinimum,massMaximum) result(self)
+  function hostMassRangeConstructorInternal(massMinimum,massMaximum,useFinalHost) result(self)
     !!{
     Internal constructor for the ``hostMassRange'' galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHostMassRange)                :: self
-    double precision                             , intent(in   ) :: massMinimum, massMaximum
+    double precision                             , intent(in   ) :: massMinimum , massMaximum
+    logical                                      , intent(in   ) :: useFinalHost
     !![
-    <constructorAssign variables="massMinimum, massMaximum"/>
+    <constructorAssign variables="massMinimum, massMaximum, useFinalHost"/>
     !!]
+
     return
   end function hostMassRangeConstructorInternal
 
@@ -94,15 +103,22 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(galacticFilterHostMassRange), intent(inout)         :: self
-    type (treeNode                   ), intent(inout), target :: node
-    class(nodeComponentBasic         ), pointer               :: basic
+    class(galacticFilterHostMassRange), intent(inout)          :: self
+    type (treeNode                   ), intent(inout), target  :: node
+    type (treeNode                   )               , pointer :: nodeHost
+    class(nodeComponentBasic         )               , pointer :: basic
 
     if (node%isSatellite()) then
-       basic => node%parent%basic()
+       nodeHost => node%parent
+       if (self%useFinalHost) then
+          do while (associated(nodeHost%parent))
+             nodeHost => nodeHost%parent
+          end do
+       end if
     else
-       basic => node       %basic()
+       nodeHost => node
     end if
+    basic => nodeHost%basic()
     hostMassRangePasses= basic%mass() >= self %massMinimum &
          &              .and.                              &
          &               basic%mass() <  self %massMaximum

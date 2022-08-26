@@ -202,7 +202,7 @@ contains
        call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)
        if (.not.File_Exists(mangleFiles(1))) then
           call download("http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status)
-          if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
+          if (status /= 0 .or. .not.File_Exists(char(mangleFiles(1))//".gz")) &
                & call Error_Report('failed to download mangle polygon file'//{introspection:location})
           call System_Command_Do("gunzip "//mangleFiles(1)//".gz",status)
           if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &

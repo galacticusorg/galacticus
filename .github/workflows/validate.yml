@@ -111,6 +111,7 @@ jobs:
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
         with:
+          name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: testSuite/outputs/validate_darkMatterOnlySubhalos.json
           fail-on-alert: true
@@ -118,6 +119,64 @@ jobs:
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
+          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
+          gh-pages-branch: gh-pages
+          alert-threshold: 110%
+          fail-threshold: 120%
+          max-items-in-chart: 256
+      - name: Push validation result
+        run: |
+          git checkout gh-pages
+          git push --set-upstream origin gh-pages
+        if: github.event_name != 'pull_request'
+      - run: echo "This job's status is ${{ job.status }}."
+  Milky-Way-Model:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run validation
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./validate-milkyWay.pl
+          ./validate-milkyWay.pl 2>&1 | tee test.log
+          ! grep -q FAIL test.log
+      - name: Store validation result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Milky Way model benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: testSuite/outputs/validate_milkyWay.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/milkyWayModel
           gh-pages-branch: gh-pages
           alert-threshold: 110%
           fail-threshold: 120%

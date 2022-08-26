@@ -22,7 +22,7 @@
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisLocalGroupMassFunction">
+  <outputAnalysis name="outputAnalysisLocalGroupStellarMassFunction">
    <description>An output analysis class for Local Group satellite galaxy mass functions.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
@@ -32,7 +32,7 @@
    </stateStorable>
   </outputAnalysis>
   !!]
-  type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassFunction
+  type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupStellarMassFunction
      !!{
      An output analysis class for Local Group satellite galaxy mass functions.
      !!}
@@ -41,7 +41,8 @@
      double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                    , &
           &                                                                           massFunctionTarget
      double precision                                , allocatable, dimension(:,:) :: covariance
-     double precision                                                              :: negativeBinomialScatterFractional          , countFailures
+     double precision                                                              :: negativeBinomialScatterFractional          , countFailures                   , &
+          &                                                                           logLikelihoodZero
      logical                                                                       :: finalized
    contains
      !![
@@ -49,41 +50,44 @@
        <method description="Finalize analysis." method="finalizeAnalysis" />
      </methods>
      !!]
-     final     ::                     localGroupMassFunctionDestructor
-     procedure :: analyze          => localGroupMassFunctionAnalyze
-     procedure :: finalize         => localGroupMassFunctionFinalize
-     procedure :: finalizeAnalysis => localGroupMassFunctionFinalizeAnalysis
-     procedure :: reduce           => localGroupMassFunctionReduce
-     procedure :: logLikelihood    => localGroupMassFunctionLogLikelihood
-  end type outputAnalysisLocalGroupMassFunction
+     final     ::                     localGroupStellarMassFunctionDestructor
+     procedure :: analyze          => localGroupStellarMassFunctionAnalyze
+     procedure :: finalize         => localGroupStellarMassFunctionFinalize
+     procedure :: finalizeAnalysis => localGroupStellarMassFunctionFinalizeAnalysis
+     procedure :: reduce           => localGroupStellarMassFunctionReduce
+     procedure :: logLikelihood    => localGroupStellarMassFunctionLogLikelihood
+  end type outputAnalysisLocalGroupStellarMassFunction
 
-  interface outputAnalysisLocalGroupMassFunction
+  interface outputAnalysisLocalGroupStellarMassFunction
      !!{
-     Constructors for the ``localGroupMassFunction'' output analysis class.
+     Constructors for the ``localGroupStellarMassFunction'' output analysis class.
      !!}
-     module procedure localGroupMassFunctionConstructorParameters
-     module procedure localGroupMassFunctionConstructorInternal
-  end interface outputAnalysisLocalGroupMassFunction
+     module procedure localGroupStellarMassFunctionConstructorParameters
+     module procedure localGroupStellarMassFunctionConstructorInternal
+  end interface outputAnalysisLocalGroupStellarMassFunction
 
 contains
 
-  function localGroupMassFunctionConstructorParameters(parameters) result(self)
+  function localGroupStellarMassFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``localGroupMassFunction'' output analysis class which takes a parameter set as input.
+    Constructor for the ``localGroupStellarMassFunction'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters  , only : inputParameter        , inputParameters
-    use :: Galactic_Structure, only : galacticStructureClass
-    use :: Output_Times      , only : outputTimes           , outputTimesClass
+    use :: Input_Parameters            , only : inputParameter               , inputParameters
+    use :: Galactic_Structure          , only : galacticStructureClass
+    use :: Output_Times                , only : outputTimes                  , outputTimesClass
+    use :: Galactic_Filters            , only : enumerationPositionTypeEncode
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
-    type            (outputAnalysisLocalGroupMassFunction)                              :: self
-    type            (inputParameters                     ), intent(inout)               :: parameters
-    class           (outputTimesClass                    ), pointer                     :: outputTimes_
-    class           (galacticStructureClass              ), pointer                     :: galacticStructure_
-    double precision                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
-    integer                                                                             :: covarianceBinomialBinsPerDecade
-    double precision                                                                    :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
-         &                                                                                 randomErrorMinimum               , randomErrorMaximum                  , &
-         &                                                                                 negativeBinomialScatterFractional
+    type            (outputAnalysisLocalGroupStellarMassFunction)                              :: self
+    type            (inputParameters                            ), intent(inout)               :: parameters
+    class           (outputTimesClass                           ), pointer                     :: outputTimes_
+    class           (galacticStructureClass                     ), pointer                     :: galacticStructure_
+    double precision                                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
+    integer                                                                                    :: covarianceBinomialBinsPerDecade
+    double precision                                                                           :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
+         &                                                                                        randomErrorMinimum               , randomErrorMaximum                  , &
+         &                                                                                        negativeBinomialScatterFractional, logLikelihoodZero
+    type            (varying_string                             )                              :: positionType
 
     ! Check and read parameters.
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient')) then
@@ -153,23 +157,35 @@ contains
       <defaultValue>1.0d16</defaultValue>
       <description>The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
     </inputParameter>
+    <inputParameter>
+      <name>positionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('orbital')</defaultValue>
+      <description>The type of position to use in survey geometry filters.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>logLikelihoodZero</name>
+      <source>parameters</source>
+      <defaultValue>logImprobable</defaultValue>
+      <description>The log-likelihood to assign to bins where the model expectation is zero.</description>
+    </inputParameter>
     <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
     <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupMassFunction(outputTimes_,galacticStructure_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupStellarMassFunction(outputTimes_,galacticStructure_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
     !!]
     return
-  end function localGroupMassFunctionConstructorParameters
+  end function localGroupStellarMassFunctionConstructorParameters
 
-  function localGroupMassFunctionConstructorInternal(outputTimes_,galacticStructure_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupStellarMassFunctionConstructorInternal(outputTimes_,galacticStructure_,positionType,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero) result (self)
     !!{
-    Constructor for the ``localGroupMassFunction'' output analysis class for internal use.
+    Constructor for the ``localGroupStellarMassFunction'' output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
-          &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry
+          &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry       , enumerationPositionTypeType
     use :: Geometry_Surveys                        , only : surveyGeometryCombined                             , surveyGeometryList                 , surveyGeometryLocalGroupClassical     , surveyGeometryLocalGroupDES                    , &
           &                                                 surveyGeometryLocalGroupSDSS
     use :: Interface_Local_Group_DB                , only : comparisonEquals                                   , comparisonLessThan                 , localGroupDB                          , setOperatorIntersection                        , &
@@ -183,15 +199,16 @@ contains
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 propertyOperatorList
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                            , only : outputTimesClass
     implicit none
-    type            (outputAnalysisLocalGroupMassFunction               )                                :: self
+    type            (outputAnalysisLocalGroupStellarMassFunction        )                                :: self
     integer                                                              , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                                     , intent(in   )                 :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum              , &
-         &                                                                                                  negativeBinomialScatterFractional
-    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                         , randomErrorMaximum
-    double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
+    double precision                                                     , intent(in   )                 :: covarianceBinomialMassHaloMinimum                         , covarianceBinomialMassHaloMaximum              , &
+         &                                                                                                  negativeBinomialScatterFractional                         , logLikelihoodZero
+    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                        , randomErrorMaximum
+    double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                          , systematicErrorPolynomialCoefficient
+    type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
     class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
     class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassStellar                   )               , pointer        :: nodePropertyExtractor_
@@ -199,8 +216,8 @@ contains
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10            )               , pointer        :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisWeightOperatorIdentity               )               , pointer        :: outputAnalysisWeightOperator_
-    type            (outputAnalysisDistributionNormalizerIdentity       )               , pointer        :: outputAnalysisDistributionNormalizerCentrals_              , outputAnalysisDistributionNormalizerSatellites_
+    type            (outputAnalysisWeightOperatorSubsampling            )               , pointer        :: outputAnalysisWeightOperator_
+    type            (outputAnalysisDistributionNormalizerIdentity       )               , pointer        :: outputAnalysisDistributionNormalizerCentrals_             , outputAnalysisDistributionNormalizerSatellites_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer        :: outputAnalysisDistributionOperator_
     type            (surveyGeometryLocalGroupClassical                  )               , pointer        :: surveyGeometryClassical_
     type            (surveyGeometryLocalGroupSDSS                       )               , pointer        :: surveyGeometrySDSS_
@@ -211,23 +228,23 @@ contains
     type            (galacticFilterHaloNotIsolated                      )               , pointer        :: galacticFilterHaloNotIsolated_
     type            (galacticFilterHostMassRange                        )               , pointer        :: galacticFilterHostMassRange_
     type            (galacticFilterSurveyGeometry                       )               , pointer        :: galacticFilterSurveyGeometry_
-    type            (galacticFilterAll                                  )               , pointer        :: galacticFilterSatellites_                                  , galacticFilterCentrals_
-    type            (filterList                                         )               , pointer        :: filtersSatellites_                                         , filtersCentrals_
+    type            (galacticFilterAll                                  )               , pointer        :: galacticFilterSatellites_                                 , galacticFilterCentrals_
+    type            (filterList                                         )               , pointer        :: filtersSatellites_                                        , filtersCentrals_
     type            (propertyOperatorList                               )               , pointer        :: operators_
-    double precision                                                     , allocatable  , dimension(:  ) :: massesSatellites                                           , massesCentrals                                             , &
+    double precision                                                     , allocatable  , dimension(:  ) :: massesSatellites                                          , massesCentrals                                             , &
          &                                                                                                  massesTarget
-    double precision                                                     , allocatable  , dimension(:,:) :: outputWeightSatellites                                     , outputWeightCentrals
-    double precision                                                     , parameter                     :: bufferWidthLogarithmic                         = 3.0d0     , errorZeroPoint                                  =10.0d0
-    integer         (c_size_t                                           ), parameter                     :: binCountSatellites                             =11_c_size_t, binCountCentrals                                =2_c_size_t, &
-         &                                                                                                  bufferCountMinimum                             = 5_c_size_t, bufferCountCentrals                             =0_c_size_t
-    double precision                                                     , parameter                     :: massSatelliteMinimum                           =1.0d02     , massSatelliteMaximum                            =1.0d12    , &
-         &                                                                                                  massCentralMinimum                             =1.0d11     , massCentralMaximum                              =1.0d13    , &
-         &                                                                                                  radiusOuter                                    =3.0d-1     , massThresholdClassical                          =1.0d05
-    integer         (c_size_t                                           )                                :: i                                                          , j                                                          , &
+    double precision                                                     , allocatable  , dimension(:,:) :: outputWeightSatellites                                    , outputWeightCentrals
+    double precision                                                     , parameter                     :: bufferWidthLogarithmic                         =3.0d+0    , errorZeroPoint                                  =10.0d0
+    integer         (c_size_t                                           ), parameter                     :: binCountSatellites                             =9_c_size_t, binCountCentrals                                =2_c_size_t, &
+         &                                                                                                  bufferCountMinimum                             =5_c_size_t, bufferCountCentrals                             =0_c_size_t
+    double precision                                                     , parameter                     :: massSatelliteMinimum                           =1.0d+2    , massSatelliteMaximum                            =1.0d10    , &
+         &                                                                                                  massCentralMinimum                             =1.0d+0    , massCentralMaximum                              =1.0d20    , &
+         &                                                                                                  radiusOuter                                    =3.0d-1    , massThresholdClassical                          =1.0d05
+    integer         (c_size_t                                           )                                :: i                                                         , j                                                          , &
          &                                                                                                  bufferCountSatellites
     type            (localGroupDB                                       )                                :: localGroupDB_
     !![
-    <constructorAssign variables="negativeBinomialScatterFractional"/>
+    <constructorAssign variables="negativeBinomialScatterFractional, logLikelihoodZero"/>
     !!]
 
     ! Initialize.
@@ -286,7 +303,7 @@ contains
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_                   )
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity           (                                                   )"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorSubsampling        (                                                   )"/>
     !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_             )
@@ -339,15 +356,16 @@ contains
     !!]
     allocate(galacticFilterSurveyGeometry_ )
     !![
-    <referenceConstruct object="galacticFilterSurveyGeometry_"  constructor="galacticFilterSurveyGeometry     (surveyGeometry_                           )"/>
+    <referenceConstruct object="galacticFilterSurveyGeometry_"  constructor="galacticFilterSurveyGeometry     (positionType,surveyGeometry_              )"/>
     !!]
     allocate(galacticFilterHostMassRange_  )
     !![
     <referenceConstruct object="galacticFilterHostMassRange_">
      <constructor>
-      galacticFilterHostMassRange(                     &amp;
-        &amp;                     massMinimum=1.00d12, &amp;
-        &amp;                     massMaximum=2.00d12  &amp;
+      galacticFilterHostMassRange(                      &amp;
+        &amp;                     massMinimum =1.00d12, &amp;
+        &amp;                     massMaximum =2.00d12, &amp;
+        &amp;                     useFinalHost=.true.   &amp;
         &amp;                    )
      </constructor>
     </referenceConstruct>
@@ -401,7 +419,7 @@ contains
     <referenceConstruct isResult="yes" owner="self" object="volumeFunctionSatellites">
      <constructor>
       outputAnalysisVolumeFunction1D(                                                         &amp;
-       &amp;                         var_str('localGroupMassFunction')                      , &amp;
+       &amp;                         var_str('localGroupStellarMassFunction')               , &amp;
        &amp;                         var_str('Mass function of Local Group satellites')     , &amp;
        &amp;                         var_str('massStellar')                                 , &amp;
        &amp;                         var_str('Stellar mass at the bin center')              , &amp;
@@ -445,7 +463,7 @@ contains
        &amp;                         massesCentrals                                        , &amp;
        &amp;                         bufferCountCentrals                                   , &amp;
        &amp;                         outputWeightCentrals                                  , &amp;
-       &amp;                         nodePropertyExtractor_                      , &amp;
+       &amp;                         nodePropertyExtractor_                                , &amp;
        &amp;                         outputAnalysisPropertyOperator_                       , &amp;
        &amp;                         outputAnalysisPropertyUnoperator_                     , &amp;
        &amp;                         outputAnalysisWeightOperator_                         , &amp;
@@ -460,7 +478,7 @@ contains
        &amp;                        )
      </constructor>
     </referenceConstruct>
-    <objectDestructor name="nodePropertyExtractor_"                />
+    <objectDestructor name="nodePropertyExtractor_"                          />
     <objectDestructor name="outputAnalysisPropertyOperator_"                 />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
@@ -484,66 +502,66 @@ contains
     nullify(operators_         )
     nullify(surveyGeometryList_)
     return
-  end function localGroupMassFunctionConstructorInternal
+  end function localGroupStellarMassFunctionConstructorInternal
 
-  subroutine localGroupMassFunctionDestructor(self)
+  subroutine localGroupStellarMassFunctionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily localGroupMassFunction} output analysis class.
+    Destructor for the {\normalfont \ttfamily localGroupStellarMassFunction} output analysis class.
     !!}
     implicit none
-    type(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
+    type(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
 
     !![
     <objectDestructor name="self%volumeFunctionSatellites"/>
     <objectDestructor name="self%volumeFunctionCentrals"  />
     !!]
     return
-  end subroutine localGroupMassFunctionDestructor
+  end subroutine localGroupStellarMassFunctionDestructor
 
-  subroutine localGroupMassFunctionAnalyze(self,node,iOutput)
+  subroutine localGroupStellarMassFunctionAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis.
+    Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis.
     !!}
     implicit none
-    class  (outputAnalysisLocalGroupMassFunction), intent(inout) :: self
-    type   (treeNode                            ), intent(inout) :: node
-    integer(c_size_t                            ), intent(in   ) :: iOutput
+    class  (outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
+    type   (treeNode                                   ), intent(inout) :: node
+    integer(c_size_t                                   ), intent(in   ) :: iOutput
 
     ! Analyze for all three volume functions.
     call self%volumeFunctionSatellites%analyze(node,iOutput)
     call self%volumeFunctionCentrals  %analyze(node,iOutput)
     return
-  end subroutine localGroupMassFunctionAnalyze
+  end subroutine localGroupStellarMassFunctionAnalyze
 
-  subroutine localGroupMassFunctionReduce(self,reduced)
+  subroutine localGroupStellarMassFunctionReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis reduction.
+    Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
-    class(outputAnalysisClass                 ), intent(inout) :: reduced
+    class(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
+    class(outputAnalysisClass                        ), intent(inout) :: reduced
 
     select type (reduced)
-    class is (outputAnalysisLocalGroupMassFunction)
+    class is (outputAnalysisLocalGroupStellarMassFunction)
        call self%volumeFunctionSatellites%reduce(reduced%volumeFunctionSatellites)
        call self%volumeFunctionCentrals  %reduce(reduced%volumeFunctionCentrals  )
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
     return
-  end subroutine localGroupMassFunctionReduce
+  end subroutine localGroupStellarMassFunctionReduce
 
-  subroutine localGroupMassFunctionFinalizeAnalysis(self)
+  subroutine localGroupStellarMassFunctionFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a {\normalfont \ttfamily localGroupMassFunction} output analysis.
+    Finalize analysis of a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis.
     !!}
     implicit none
-    class           (outputAnalysisLocalGroupMassFunction), intent(inout)                 :: self
-    double precision                                      , allocatable  , dimension(:  ) :: massFunctionCentrals
-    double precision                                      , allocatable  , dimension(:,:) :: covarianceCentrals
-    double precision                                                                      :: weight              , weightVariance
-    integer         (c_size_t                            )                                :: i                   , j
+    class           (outputAnalysisLocalGroupStellarMassFunction), intent(inout)                 :: self
+    double precision                                             , allocatable  , dimension(:  ) :: massFunctionCentrals
+    double precision                                             , allocatable  , dimension(:,:) :: covarianceCentrals
+    double precision                                                                             :: weight              , weightVariance
+    integer         (c_size_t                                   )                                :: i                   , j
 
     ! If already finalized, no need to do anything.
     if (self%finalized) return
@@ -568,20 +586,20 @@ contains
        end do
     end if
     return
-  end subroutine localGroupMassFunctionFinalizeAnalysis
+  end subroutine localGroupStellarMassFunctionFinalizeAnalysis
 
-  subroutine localGroupMassFunctionFinalize(self)
+  subroutine localGroupStellarMassFunctionFinalize(self)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis finalization.
+    Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
-    class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
-    type (hdf5Object                          )                :: analysesGroup, analysisGroup, &
-         &                                                        dataset
+    class(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
+    type (hdf5Object                                 )                :: analysesGroup, analysisGroup, &
+         &                                                               dataset
 
     ! Finalize analysis.
     call self%finalizeAnalysis()
@@ -611,32 +629,29 @@ contains
     call analysesGroup%close         (                                                                                                                                   )
     !$ call hdf5Access%unset()
     return
-  end subroutine localGroupMassFunctionFinalize
+  end subroutine localGroupStellarMassFunctionFinalize
 
-  double precision function localGroupMassFunctionLogLikelihood(self)
+  double precision function localGroupStellarMassFunctionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupMassFunction} output analysis. The likelihood function
+    Return the log-likelihood of a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis. The likelihood function
     assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial
     distribution as was found for dark matter subhalos \citep[][see also
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
     tree realizations, although it in principal could be model-dependent.
     !!}
-    use :: Models_Likelihoods_Constants     , only : logImprobable
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none
-    class           (outputAnalysisLocalGroupMassFunction          ), intent(inout) :: self
+    class           (outputAnalysisLocalGroupStellarMassFunction   ), intent(inout) :: self
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: distribution
     integer                                                                         :: i
     double precision                                                                :: negativeBinomialProbabilitySuccess
 
     call self%finalizeAnalysis()
-    localGroupMassFunctionLogLikelihood=0.0d0
+    localGroupStellarMassFunctionLogLikelihood=0.0d0
     do i=1,size(self%masses)
        if (self%massFunction(i) <= 0.0d0) then
-          if (nint(self%massFunctionTarget(i)) > 0) then
-             localGroupMassFunctionLogLikelihood=logImprobable
-             return
-          end if
+          if (nint(self%massFunctionTarget(i)) > 0) localGroupStellarMassFunctionLogLikelihood=+localGroupStellarMassFunctionLogLikelihood &
+               &                                                                        +self%logLikelihoodZero
        else
           negativeBinomialProbabilitySuccess =+  1.0d0                                                          &
                &                              /(                                                                &
@@ -644,16 +659,14 @@ contains
                &                                +self%negativeBinomialScatterFractional**2*self%massFunction(i) &
                &                               )
           if (negativeBinomialProbabilitySuccess >= 1.0d0) then
-             if (nint(self%massFunctionTarget(i)) > 0) then
-                localGroupMassFunctionLogLikelihood=logImprobable
-                return
-             end if
+             if (nint(self%massFunctionTarget(i)) > 0) localGroupStellarMassFunctionLogLikelihood=+localGroupStellarMassFunctionLogLikelihood &
+                  &                                                                        +self%logLikelihoodZero
           else
-             distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
-             localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
-                  &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+             distribution                              = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
+             localGroupStellarMassFunctionLogLikelihood=+localGroupStellarMassFunctionLogLikelihood                                                                                          &
+                  &                                     +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
           end if
        end if
     end do
     return
-  end function localGroupMassFunctionLogLikelihood
+  end function localGroupStellarMassFunctionLogLikelihood

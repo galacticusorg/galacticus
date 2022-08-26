@@ -6,8 +6,8 @@ use PDL::NiceSlice;
 use PDL::Stats::Basic;
 use JSON::PP;
 
-# Run models to benchmark performance of a dark matter only subhalo evolution model.
-# Andrew Benson (04-August-2022)
+# Run models to benchmark performance of a Milky Way model.
+# Andrew Benson (10-August-2022)
 
 # Make output directory.
 system("mkdir -p outputs/");
@@ -16,13 +16,13 @@ system("mkdir -p outputs/");
 my $runTimes = pdl [];
 for(my $i=0;$i<11;++$i) {
     # Run the model.
-    system("cd ..; /usr/bin/time --format=\"\%e\" --output=testSuite/outputs/benchmark_darkMatterOnlySubhalos.log ./Galacticus.exe testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml");
+    system("cd ..; /usr/bin/time --format=\"\%e\" --output=testSuite/outputs/benchmark_milkyWay.log ./Galacticus.exe testSuite/parameters/benchmark_milkyWay.xml");
     unless ( $? == 0 ) {
-	print "FAIL: dark matter-only subhalos benchmark model failed to run\n";
+	print "FAIL: Milky Way benchmark model failed to run\n";
 	exit;
     }
     # Extract timing data.
-    open(my $logFile,"outputs/benchmark_darkMatterOnlySubhalos.log");
+    open(my $logFile,"outputs/benchmark_milkyWay.log");
     my $runTime = <$logFile>;
     close($logFile);
     chomp($runTime);
@@ -39,7 +39,7 @@ print "Benchmark results: ".$runTimeAverage." ± ".$runTimeStandardDeviation." s
 my @output =
     (
      {
-	 name  => "Dark Matter Only Subhalos - Wall Time",
+	 name  => "Milky Way model - Wall Time",
 	 unit  => "seconds"                              ,
 	 value => $runTimeAverage          ->sclr()      ,
 	 range => $runTimeStandardDeviation->sclr()
@@ -47,10 +47,10 @@ my @output =
     );
 
 my $json = JSON::PP->new()->pretty()->encode(\@output);
-open(my $reportFile,">","outputs/benchmark_darkMatterOnlySubhalos.json");
+open(my $reportFile,">","outputs/benchmark_milkyWay.json");
 print $reportFile $json;
 close($reportFile);
 
-print "SUCCESS: dark matter-only subhalos benchmark model\n";
+print "SUCCESS: Milky Way benchmark model\n";
 
 exit;
