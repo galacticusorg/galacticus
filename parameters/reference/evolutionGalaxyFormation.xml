@@ -22,11 +22,13 @@
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
   <intergalacticMediumFilteringMass value="gnedin2000"/>
-  <intergalacticMediumState value="instantReionization">
-    <electronScatteringOpticalDepth value="0.0633"/>
-    <reionizationTemperature value="2.0e4"/>
-    <presentDayTemperature value="1.0e3"/>
+  <intergalacticMediumState value="metallicityAstraeusV">
+    <intergalacticMediumState value="instantReionization">
+      <electronScatteringOpticalDepth value="0.0633"/>
+      <reionizationTemperature value="2.0e4"/>
+      <presentDayTemperature value="1.0e3"/>
     <intergalacticMediumState value="recFast"/>
+    </intergalacticMediumState>
   </intergalacticMediumState>
 
   <!-- Hot halo gas cooling model options -->
