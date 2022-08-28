@@ -31,7 +31,7 @@ foreach my $analysisName ( $analyses->groups() ) {
 	@output,
 	{
 	 name  => "Milky Way model - Likelihood - ".$analysisName,
-	 unit  => "|logℒ|"                                      ,
+	 unit  => "-logℒ"                                       ,
 	 value => abs($logLikelihood->sclr())
  	}
 	);

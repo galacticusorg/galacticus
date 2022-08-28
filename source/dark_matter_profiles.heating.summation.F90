@@ -52,6 +52,7 @@
      procedure :: specificEnergy                 => summationSpecificEnergy
      procedure :: specificEnergyGradient         => summationSpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero => summationSpecificEnergyIsEverywhereZero
+     procedure :: descriptor                     => summationDescriptor
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
@@ -205,3 +206,25 @@ contains
     end do
     return
   end function summationSpecificEnergyIsEverywhereZero
+
+  subroutine summationDescriptor(self,descriptor,includeClass)
+    !!{
+    Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class  (darkMatterProfileHeatingSummation), intent(inout)           :: self
+    type   (inputParameters                  ), intent(inout)           :: descriptor
+    logical                                   , intent(in   ), optional :: includeClass
+    type   (heatSourceList                   ), pointer                 :: heatSource
+    type   (inputParameters                  )                          :: subParameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter("darkMatterProfileHeating","summation")
+    subParameters=descriptor%subparameters("darkMatterProfileHeating")
+    heatSource => self%heatSources
+    do while (associated(heatSource))
+       call heatSource%heatSource%descriptor(subParameters)
+       heatSource => heatSource%next
+    end do
+    return
+  end subroutine summationDescriptor
