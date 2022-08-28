@@ -35,7 +35,7 @@ my $runTimeAverage           = $runTimes->average();
 my $runTimeStandardDeviation = $runTimes->stdv   ();
 print "Timings: ".$runTimes."\n";
 print "Benchmark results: ".$runTimeAverage." ± ".$runTimeStandardDeviation." s\n";
-print $runTimes."\n";
+
 # Generate JSON report.
 my @output =
     (
