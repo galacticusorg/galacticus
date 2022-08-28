@@ -33,6 +33,7 @@ for(my $i=0;$i<12;++$i) {
 # Find average and standard deviation of run times.
 my $runTimeAverage           = $runTimes->average();
 my $runTimeStandardDeviation = $runTimes->stdv   ();
+print "Timings: ".$runTimes."\n";
 print "Benchmark results: ".$runTimeAverage." ± ".$runTimeStandardDeviation." s\n";
 print $runTimes."\n";
 # Generate JSON report.
