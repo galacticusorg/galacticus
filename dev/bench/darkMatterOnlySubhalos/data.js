@@ -54,17 +54,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 59.6374034521766,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 25.9438445610862,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15985.3915051884,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -91,17 +91,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4700834304176,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 25.9713422051653,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15985.3915051884,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -160,17 +160,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -229,17 +229,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -298,17 +298,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -367,17 +367,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.3760280196577,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 25.9801035872422,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15860.3750582092,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -436,17 +436,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -505,17 +505,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -574,17 +574,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4774519427605,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.1120672478126,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15943.5713987501,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -643,17 +643,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -712,17 +712,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.3737325462995,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0243349969073,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16293.0933038189,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -781,17 +781,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.3760280196577,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 25.9801035872422,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15860.3750582092,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -850,17 +850,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 58.4483790787279,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 26.0576572807858,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 16028.715159035,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
@@ -919,17 +919,17 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
             "value": 56.5237413776784,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
             "value": 25.6259954960764,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 13032.8807106922,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       }

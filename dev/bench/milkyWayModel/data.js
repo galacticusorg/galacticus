@@ -28,32 +28,32 @@ window.BENCHMARK_DATA = {
           {
             "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
             "value": 6.86698366761071,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
             "value": 9.00034524269041,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
             "value": 1.87641313217015,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
             "value": 8.5301452873717,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
             "value": 285.131049109877,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           },
           {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6865601309037,
-            "unit": "|logℒ|"
+            "unit": "-logℒ"
           }
         ]
       },
