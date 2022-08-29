@@ -308,6 +308,7 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDarkHalo       , massTypeAll            , massTypeDark           , &
           &                                   weightByMass    , enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
     use :: Galacticus_Nodes          , only : treeNode
+    use :: Numerical_Constants_Math  , only : Pi
     implicit none
     type            (treeNode                    ), intent(inout) :: node
     type            (enumerationComponentTypeType), intent(in   ) :: componentType
@@ -323,7 +324,11 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
     ! Compute the density
-    Dark_Matter_Profile_Density_Spherical_Average_Task=darkMatterProfile_%density(node,radius)
+    Dark_Matter_Profile_Density_Spherical_Average_Task=+3.0d0                                        &
+         &                                             *darkMatterProfile_%enclosedMass(node,radius) &
+         &                                             /4.0d0                                        &
+         &                                             /Pi                                           &
+         &                                             /radius**3
     return
   end function Dark_Matter_Profile_Density_Spherical_Average_Task
 
