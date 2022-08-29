@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661731959301,
+  "lastUpdate": 1661738567583,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -960,6 +960,45 @@ window.BENCHMARK_DATA = {
             "value": 67.284,
             "unit": "seconds",
             "range": 0.210580151009065
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "91f991ed02d02684b9c6fe322ab95105fc1c87c0",
+          "message": "Merge pull request #283 from galacticusorg/optimization\n\nOptimizations of Blitz2000 star formation rate class",
+          "timestamp": "2022-08-28T12:46:05-07:00",
+          "tree_id": "233fcaf34174c5f8df74f9b76c312ef6c3c86bf3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/91f991ed02d02684b9c6fe322ab95105fc1c87c0"
+        },
+        "date": 1661738566698,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 56.420935650076,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.4765175966543,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 15561.6740983098,
+            "unit": "-logℒ"
           }
         ]
       }
