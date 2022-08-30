@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661795002510,
+  "lastUpdate": 1661877420862,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -1068,6 +1068,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15006.1482196903,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ed42a34055c81d2131b4af2c51351ffd6f74fe6",
+          "message": "Merge pull request #285 from galacticusorg/optimization\n\nOptimize tidal heating functions",
+          "timestamp": "2022-08-30T07:47:14-07:00",
+          "tree_id": "8799dda3d19cd36e353191c5a5c0bacfd67c02ef",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9ed42a34055c81d2131b4af2c51351ffd6f74fe6"
+        },
+        "date": 1661877418900,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 75.097,
+            "unit": "seconds",
+            "range": 0.243360021367579
           }
         ]
       }
