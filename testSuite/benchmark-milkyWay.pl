@@ -31,19 +31,19 @@ for(my $i=0;$i<12;++$i) {
 }
 
 # Find average and standard deviation of run times.
-my $runTimeAverage           = $runTimes->average();
-my $runTimeStandardDeviation = $runTimes->stdv   ();
+my $runTimeAverage       = $runTimes->average()                       ;
+my $runTimeStandardError = $runTimes->stdv   ()/sqrt(nelem($runTimes));
 print "Timings: ".$runTimes."\n";
-print "Benchmark results: ".$runTimeAverage." ± ".$runTimeStandardDeviation." s\n";
+print "Benchmark results: ".$runTimeAverage." ± ".$runTimeStandardError." s\n";
 
 # Generate JSON report.
 my @output =
     (
      {
 	 name  => "Milky Way model - Wall Time",
-	 unit  => "seconds"                              ,
-	 value => $runTimeAverage          ->sclr()      ,
-	 range => $runTimeStandardDeviation->sclr()
+	 unit  => "seconds"                    ,
+	 value => $runTimeAverage      ->sclr(),
+	 range => $runTimeStandardError->sclr()
      }
     );
 

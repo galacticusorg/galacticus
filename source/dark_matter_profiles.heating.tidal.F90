@@ -253,7 +253,7 @@ contains
     double precision                               , intent(in   ) :: radius
     double precision                               , intent(  out) :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                               :: coefficientSecondOrder
+    double precision                                               :: coefficientSecondOrder, densityLogSlope
 
     energyPerturbationFirstOrder=+self%specificEnergyOverRadiusSquared(node)    &
          &                       *radius                                    **2
@@ -265,9 +265,10 @@ contains
          &   self%coefficientSecondOrder2 /= 0.0d0 &
          & ) then
        ! Compute the coefficient for the second order term.
-       coefficientSecondOrder=+self%coefficientSecondOrder0                                                       &
-            &                 +self%coefficientSecondOrder1*darkMatterProfileDMO_%densityLogSlope(node,radius)    &
-            &                 +self%coefficientSecondOrder2*darkMatterProfileDMO_%densityLogSlope(node,radius)**2
+       densityLogSlope       =+darkMatterProfileDMO_%densityLogSlope(node,radius)
+       coefficientSecondOrder=+self%coefficientSecondOrder0                    &
+            &                 +self%coefficientSecondOrder1*densityLogSlope    &
+            &                 +self%coefficientSecondOrder2*densityLogSlope**2
        ! Compute the second order energy perturbation.
        energyPerturbationSecondOrder=+sqrt(2.0d0)                                                 &
             &                        *coefficientSecondOrder                                      &
@@ -303,16 +304,18 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
-    class(darkMatterProfileHeatingTidal), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
-    class(nodeComponentSatellite       ), pointer       :: satellite
+    class  (darkMatterProfileHeatingTidal), intent(inout) :: self
+    type   (treeNode                     ), intent(inout) :: node
+    class  (nodeComponentSatellite       ), pointer       :: satellite
+    integer(kind_int8                    )                :: uniqueID
 
-    if     (                                        &
-         &   node%uniqueID() /= self%parentUniqueID &
-         &  .and.                                   &
-         &   node%uniqueID() /= self%lastUniqueID   &
+    uniqueID=node%uniqueID()
+    if     (                                 &
+         &   uniqueID /= self%parentUniqueID &
+         &  .and.                            &
+         &   uniqueID /= self%lastUniqueID   &
          & ) call self%calculationReset(node)
-    if (node%uniqueID() == self%parentUniqueID) then
+    if (uniqueID == self%parentUniqueID) then
        if (self%specificEnergyOverRadiusSquaredParent_ < 0.0d0) then
           satellite                                   =>      node     %satellite             ()
           self%specificEnergyOverRadiusSquaredParent_ =  max(                                     &
