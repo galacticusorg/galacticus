@@ -554,6 +554,12 @@ contains
                   &   .not.self%rangeUpwardLimitSet    &
                   &  )                                 &
                   & ) then
+                if (rangeLowerAsExpected) then
+                   ! The lower end of the range has the expected sign. Therefore, we can shift the lower end of the range to the
+                   ! current upper end before updating the upper end.
+                   xLow=xHigh
+                   fLow=fHigh
+                end if
                 xHigh=xHigh+self%rangeExpandUpward
                 if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
                 fHigh=self%finderFunction(xHigh)
@@ -570,6 +576,12 @@ contains
                   &   .not.self%rangeDownwardLimitSet  &
                   &  )                                 &
                   & ) then
+                if (rangeUpperAsExpected) then
+                   ! The upper end of the range has the expected sign. Therefore, we can shift the upper end of the range to the
+                   ! current lower end before updating the lower end.
+                   xHigh=xLow
+                   fHigh=fLow
+                end if
                 xLow =xLow +self%rangeExpandDownward
                 if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
                 fLow =self%finderFunction(xLow )
@@ -599,6 +611,12 @@ contains
                   &   .not.self%rangeUpwardLimitSet      &
                   &  )                                   &
                   & ) then
+                if (rangeLowerAsExpected) then
+                   ! The lower end of the range has the expected sign. Therefore, we can shift the lower end of the range to the
+                   ! current upper end before updating the upper end.
+                   xLow=xHigh
+                   fLow=fHigh
+                end if
                 xHigh=xHigh*self%rangeExpandUpward
                 if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
                 fHigh=self%finderFunction(xHigh)
@@ -627,6 +645,12 @@ contains
                   &   .not.self%rangeDownwardLimitSet    &
                   &  )                                   &
                   & ) then
+                if (rangeUpperAsExpected) then
+                   ! The upper end of the range has the expected sign. Therefore, we can shift the upper end of the range to the
+                   ! current lower end before updating the lower end.
+                   xHigh=xLow
+                   fHigh=fLow
+                end if
                 xLow =xLow *self%rangeExpandDownward
                 if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
                 fLow =self%finderFunction(xLow )
