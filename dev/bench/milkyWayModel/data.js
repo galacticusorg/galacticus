@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661807689032,
+  "lastUpdate": 1661887694181,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -252,6 +252,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.653219833373,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ed42a34055c81d2131b4af2c51351ffd6f74fe6",
+          "message": "Merge pull request #285 from galacticusorg/optimization\n\nOptimize tidal heating functions",
+          "timestamp": "2022-08-30T07:47:14-07:00",
+          "tree_id": "8799dda3d19cd36e353191c5a5c0bacfd67c02ef",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9ed42a34055c81d2131b4af2c51351ffd6f74fe6"
+        },
+        "date": 1661887693062,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 393.227,
+            "unit": "seconds",
+            "range": 0.857123153346505
           }
         ]
       }
