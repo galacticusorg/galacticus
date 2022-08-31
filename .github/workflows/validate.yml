@@ -130,7 +130,8 @@ jobs:
           mv testSuite/outputs/results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results" dev/valid/darkMatterOnlySubhalos/results.json
+          git add dev/valid/darkMatterOnlySubhalos/results.json
+          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results"
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
       - run: echo "This job's status is ${{ job.status }}."
@@ -191,7 +192,8 @@ jobs:
           mv testSuite/outputs/results_milkyWayModel.json dev/valid/milkyWayModel/results.json
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results" dev/valid/milkyWayModel/results.json
+          git add dev/valid/milkyWayModel/results.json
+          git commit -m "Update 'milkyWayModel' validation results"
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
       - run: echo "This job's status is ${{ job.status }}."
