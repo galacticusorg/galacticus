@@ -64,7 +64,7 @@
      class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVariance_           => null()
      class           (darkMatterHaloBiasClass                ), pointer                   :: darkMatterHaloBias_                 => null()
      class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null(), transferFunctionReference => null(), &
-          &                                                                                  transferFunctionRelative                 => null()
+          &                                                                                  transferFunctionRelative            => null()
      class           (outputTimesClass                       ), pointer                   :: outputTimes_                        => null()
      class           (darkMatterProfileScaleRadiusClass      ), pointer                   :: darkMatterProfileScaleRadius_       => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
