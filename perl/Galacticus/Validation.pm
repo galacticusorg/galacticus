@@ -144,7 +144,7 @@ sub extract {
 	    results => \@results
 	};
 	my $json = JSON::PP->new()->pretty()->encode($output);
-	open(my $reportFile,">","results_".$suffix.".json");
+	open(my $reportFile,">","outputs/results_".$suffix.".json");
 	print $reportFile "window.ANALYSES_DATA = ";
 	print $reportFile $json;
 	close($reportFile);
