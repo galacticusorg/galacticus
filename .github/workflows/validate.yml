@@ -127,6 +127,10 @@ jobs:
       - name: Push validation result
         run: |
           git checkout gh-pages
+          mv results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
+          git config --local user.email "github@users.noreply.github.com"
+          git config --local user.name "github-action-validate"
+          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results" dev/valid/darkMatterOnlySubhalos/results.json
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
       - run: echo "This job's status is ${{ job.status }}."
@@ -184,6 +188,10 @@ jobs:
       - name: Push validation result
         run: |
           git checkout gh-pages
+          mv results_milkyWayModel.json dev/valid/milkyWayModel/results.json
+          git config --local user.email "github@users.noreply.github.com"
+          git config --local user.name "github-action-validate"
+          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results" dev/valid/milkyWayModel/results.json
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
       - run: echo "This job's status is ${{ job.status }}."

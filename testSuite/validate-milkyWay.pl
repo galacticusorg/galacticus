@@ -20,26 +20,7 @@ unless ( $? == 0 ) {
 }
 
 # Extract and validate the likelihoods.
-my @output;
-my $model    = new PDL::IO::HDF5("outputs/validate_milkyWay.hdf5");
-my $analyses = $model->group('analyses');
-foreach my $analysisName ( $analyses->groups() ) {
-    my $analysis = $analyses->group($analysisName);
-    (my $logLikelihood) = $analysis->attrGet('logLikelihood');
-    print $analysisName."\t".$logLikelihood."\n";
-    push(
-	@output,
-	{
-	 name  => "Milky Way model - Likelihood - ".$analysisName,
-	 unit  => "-logℒ"                                       ,
-	 value => abs($logLikelihood->sclr())
- 	}
-	);
-}
-my $json = JSON::PP->new()->pretty()->encode(\@output);
-open(my $reportFile,">","outputs/validate_milkyWay.json");
-print $reportFile $json;
-close($reportFile);
+&Galacticus::Validation::extract("outputs/validate_milkyWay.hdf5","Milky Way model","milkyWayModel");
 
 print "SUCCESS: Milky Way validation model\n";
 
