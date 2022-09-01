@@ -6,6 +6,9 @@ use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use JSON::PP;
+use PDL;
+use PDL::NiceSlice;
+use PDL::IO::HDF5;
 use Git;
 
 sub extract {
