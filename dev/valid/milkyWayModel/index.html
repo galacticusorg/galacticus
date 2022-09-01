@@ -165,10 +165,20 @@
             const dataTarget = [];
             for (let i = 0; i < dataset.data.xDataset.length; i++) {
 	      if ( dataset.data.yDataset[i] != 0.0 ) {
-	        data.push({x: dataset.data.xDataset[i], y: dataset.data.yDataset[i], yMin: dataset.data.yDataset[i]-dataset.data.yError[i], yMax: dataset.data.yDataset[i]+dataset.data.yError[i]});
+                const p = {x: dataset.data.xDataset[i], y: dataset.data.yDataset[i]};
+                if ( "yError" in dataset.data ) {
+		  p.yMin = dataset.data.yDataset[i]-dataset.data.yError[i];
+		  p.yMax = dataset.data.yDataset[i]+dataset.data.yError[i];
+                }
+	        data.push(p);
               }
 	      if ( dataset.data.yDatasetTarget[i] != 0.0 ) {
-	        dataTarget.push({x: dataset.data.xDataset[i], y: dataset.data.yDatasetTarget[i], yMin: dataset.data.yDatasetTarget[i]-dataset.data.yErrorTarget[i], yMax: dataset.data.yDatasetTarget[i]+dataset.data.yErrorTarget[i]});
+                const p = {x: dataset.data.xDataset[i], y: dataset.data.yDatasetTarget[i]};
+                if ( "yError" in dataset.data ) {
+		  p.yMin = dataset.data.yDatasetTarget[i]-dataset.data.yErrorTarget[i];
+		  p.yMax = dataset.data.yDatasetTarget[i]+dataset.data.yErrorTarget[i];
+                }
+	        dataTarget.push(p);
               }
 	    }
             const options = {
