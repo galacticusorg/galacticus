@@ -79,10 +79,14 @@ sub extract {
 		}
 	    }
 	    # Extract errors.
-	    $data->{'yError'      } = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
-	    $data->{'yErrorTarget'} = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
-	    delete($data->{'yCovariance'      });
-	    delete($data->{'yCovarianceTarget'});
+	    if ( exists($data->{'yCovariance'      }) ) {
+		$data->{'yError'      } = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
+		delete($data->{'yCovariance'      });
+	    }
+	    if ( exists($data->{'yCovarianceTarget'}) ) {
+		$data->{'yErrorTarget'} = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+		delete($data->{'yCovarianceTarget'});
+	    }
 	    # Store results.
 	    my $result;
 	    foreach my $attributeName ( keys(%{$attributes}) ) {
