@@ -1,10 +1,11 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
-use JSON::PP;
+use Galacticus::Validation;
 
 # Run models to validate a Milky Way model.
 # Andrew Benson (10-August-2022)
