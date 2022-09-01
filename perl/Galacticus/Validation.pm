@@ -76,6 +76,15 @@ sub extract {
 			die("failed to find dataset");
 		    }
 		    $data->{$dataset->{'name'}} = $analysisGroup->dataset($analysisDatasetName)->get();
+		    unless ( defined($data->{$dataset->{'name'}}) ) {
+			print "Analysis: ".$analysisName."\n";
+			print "Generic name: ".$dataset->{'name'}."\n";
+			print "Actual name: ".$analysisDatasetName."\n";
+			print "Available datasets:\n";
+			print join("\n",map {"\t".$_} $analysisGroup->datasets())."\n";
+			system("h5dump -A -g analyses/".$analysisName." ".$fileName);
+			die("failed to read dataset");
+		    }
 		}
 	    }
 	    # Extract errors.
