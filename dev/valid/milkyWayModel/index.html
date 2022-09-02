@@ -174,7 +174,7 @@
               }
 	      if ( dataset.data.yDatasetTarget[i] != 0.0 ) {
                 const p = {x: dataset.data.xDataset[i], y: dataset.data.yDatasetTarget[i]};
-                if ( "yError" in dataset.data ) {
+                if ( "yErrorTarget" in dataset.data ) {
 		  p.yMin = dataset.data.yDatasetTarget[i]-dataset.data.yErrorTarget[i];
 		  p.yMax = dataset.data.yDatasetTarget[i]+dataset.data.yErrorTarget[i];
                 }
@@ -184,7 +184,6 @@
             const options = {
               scales: {
                 x: {
-                    type: 'logarithmic',
                     ticks: {
                       beginAtZero: false,
                       callback: (val) => (val.toExponential())
@@ -195,7 +194,6 @@
                     }
                   },
                 y: {
-                    type: 'logarithmic',
                     ticks: {
                       beginAtZero: false,
                       callback: (val) => (val.toExponential())
@@ -207,6 +205,12 @@
                   },
               },
             };
+            if ( dataset.attributes.xAxisIsLog == 1 ) {
+              options.scales.x.type = 'logarithmic';
+            }
+            if ( dataset.attributes.yAxisIsLog == 1 ) {
+              options.scales.y.type = 'logarithmic';
+            }
 
             new Chart(canvas, {
               type: 'scatterWithErrorBars',
