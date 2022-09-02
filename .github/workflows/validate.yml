@@ -175,7 +175,7 @@ jobs:
         with:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/validate_milkyWay.json
+          output-file-path: testSuite/outputs/validate_milkyWayModel.json
           fail-on-alert: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
