@@ -22,6 +22,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Numerical_Integration     , only : integrator
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !![
@@ -75,6 +76,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
           &                                                      timeParent
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_              => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_                   => null()
+     type            (integrator                   )          :: integrator_
    contains
      !![
      <methods>
@@ -193,7 +195,8 @@ contains
     !!{
     Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error                , only : Error_Report
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                        :: self
     double precision                                                  , intent(in   )         :: gamma1                   , gamma2            , &
@@ -216,6 +219,11 @@ contains
     self%deltaCriticalPrevious                 =-1.0d0
     self%massResolutionPrevious                =-1.0d0
     self%probabilityPrevious                   =-1.0d0
+    self%integrator_                           =integrator(                                                                     &
+            &                                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
+            &                                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
+            &                                              integrationRule  =GSL_Integ_Gauss15                                  &
+            &                                             )
     return
   end function parkinsonColeHellyConstructorInternal
 
@@ -427,7 +435,6 @@ contains
     !!{
     Used to find the mass of a merger tree branching event.
     !!}
-    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     double precision            , intent(in   ) :: logMassMaximum
     type            (integrator)                :: integrator_
@@ -439,13 +446,8 @@ contains
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilityMaximum+parkinsonColeHellySelf%probabilityGradientMaximum*(logMassMaximum-parkinsonColeHellySelf%probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)
-       integrator_= integrator                                          (                                                                     &
-            &                                                                              parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-            &                                                            toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
-            &                                                            integrationRule  =GSL_Integ_Gauss15                                  &
-            &                                                           )
-       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                                                                      &
-            &      *integrator_           %integrate                    (parkinsonColeHellySelf%probabilityMinimumMassLog,logMassMaximum)
+       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                                                                            &
+            &      *parkinsonColeHellySelf%integrator_                  %integrate(parkinsonColeHellySelf%probabilityMinimumMassLog,logMassMaximum)
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek-integral
     end if
     return
@@ -532,13 +534,11 @@ contains
     Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     !!}
-    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
          &                                                                                       massResolution, time
     type            (treeNode                                        ), intent(inout), target :: node
-    type            (integrator                                      )                        :: integrator_
     double precision                                                                          :: massMaximum   , massMinimum
     !$GLC attributes unused :: node
 
@@ -559,16 +559,11 @@ contains
           call self%computeCommonFactors(deltaCritical,time,haloMass,node)
           massMinimum             =+           massResolution
           massMaximum             =+0.5d0*self%massHaloParent
-          integrator_             = integrator                               (                                                                     &
-               &                                                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-               &                                                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
-               &                                                              integrationRule   =GSL_Integ_Gauss15                                 &
-               &                                                             )
-          self%probabilityPrevious=+self       %branchingProbabilityPreFactor                                                                      &
-               &                   *integrator_%integrate                    (                                                                     &
-               &                                                                                 log(massMinimum)                                , &
-               &                                                                                 log(massMaximum)                                  &
-               &                                                             )
+          self%probabilityPrevious=+self%branchingProbabilityPreFactor                             &
+               &                   *self%integrator_                  %integrate(                  &
+               &                                                                 log(massMinimum), &
+               &                                                                 log(massMaximum)  &
+               &                                                                )
        else
           self%probabilityPrevious=0.0d0
        end if

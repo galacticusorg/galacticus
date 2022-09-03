@@ -44,6 +44,22 @@ module Numerical_Integration
   <gslConstant variable="GSL_Integ_Gauss61" gslSymbol="GSL_INTEG_GAUSS61" gslHeader="gsl_integration" type="integer"/>
   !!]
 
+  !![
+  <stateStorable class="integrator">
+   <integrator>
+    <methodCall method="GSLReallocate" arguments="gslFree=.true." />
+   </integrator>
+  </stateStorable>
+  !!]
+
+  !![
+  <deepCopyActions class="integrator">
+    <integrator>
+      <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
+    </integrator>
+  </deepCopyActions>
+  !!]
+  
   type :: integrator
      !!{
      Class for performing numerical integrations.
@@ -58,13 +74,17 @@ module Numerical_Integration
    contains
      !![
      <methods>
-       <method description="Evaluate the integral."                    method="integrate"   />
-       <method description="Set tolerances to use in this integrator." method="toleranceSet"/>
+       <method description="Evaluate the integral."                    method="integrate"    />
+       <method description="Set tolerances to use in this integrator." method="toleranceSet" />
+       <method description="Allocate GSL objects."                     method="gslAllocate"  />
+       <method description="Reallocate GSL objects."                   method="gslReallocate"/>
      </methods>
      !!]
-     final     ::                 integratorDestructor
-     procedure :: integrate    => integratorIntegrate
-     procedure :: toleranceSet => integratorToleranceSet
+     final     ::                  integratorDestructor
+     procedure :: integrate     => integratorIntegrate
+     procedure :: toleranceSet  => integratorToleranceSet
+     procedure :: gslAllocate   => integratorGSLAllocate
+     procedure :: gslReallocate => integratorGSLReallocate
   end type integrator
 
   interface integrator
@@ -164,16 +184,13 @@ contains
          &  .and.                        &
          &   toleranceRelative_ <= 0.0d0 &
          & ) call Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
-    allocate(self%integrationWorkspace)
-    allocate(self%integrandFunction   )
-    self%integrand            =>                                 integrand
-    self%intervalsMaximum     =                                  intervalsMaximum_
-    self%hasSingularities     =                                  hasSingularities_
-    self%integrationRule      =                                  integrationRule_
-    self%toleranceAbsolute    =                                  toleranceAbsolute_
-    self%toleranceRelative    =                                  toleranceRelative_
-    self%integrationWorkspace =  gsl_integration_workspace_alloc(intervalsMaximum_ )
-    self%integrandFunction    =  gslFunction                    (integrandWrapper  )
+    self%integrand         => integrand
+    self%intervalsMaximum  =  intervalsMaximum_
+    self%hasSingularities  =  hasSingularities_
+    self%integrationRule   =  integrationRule_
+    self%toleranceAbsolute =  toleranceAbsolute_
+    self%toleranceRelative =  toleranceRelative_
+    call self%gslAllocate()
     return
   end function integratorConstructor
   
@@ -195,6 +212,54 @@ contains
     end if
     return
   end subroutine integratorDestructor
+  
+  subroutine integratorGSLAllocate(self)
+    !!{
+    Allocate GSL objects.
+    !!}
+    implicit none
+    class(integrator), intent(inout) :: self
+
+    if (.not.allocated(self%integrationWorkspace)) then
+       allocate(self%integrationWorkspace)
+       self%integrationWorkspace=gsl_integration_workspace_alloc(self%intervalsMaximum)
+    end if
+    if (.not.allocated(self%integrandFunction)) then
+       allocate(self%integrandFunction)
+       self%integrandFunction   =gslFunction                    (     integrandWrapper)
+    end if
+    return
+  end subroutine integratorGSLAllocate
+
+  subroutine integratorGSLReallocate(self,gslFree)
+    !!{
+    Reallocate GSL objects.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_null_ptr
+    use            :: Interface_GSL, only : gslFunctionDestroy
+    implicit none
+    class  (integrator), intent(inout) :: self
+    logical            , intent(in   ) :: gslFree
+    
+    if (allocated(self%integrationWorkspace)) then
+       if (gslFree) then
+          call gsl_integration_workspace_free(self%integrationWorkspace)
+       else
+          self%integrationWorkspace=c_null_ptr
+       end if
+       deallocate(self%integrationWorkspace)
+    end if
+    if (allocated(self%integrandFunction   )) then
+       if (gslFree) then
+          call gslFunctionDestroy            (self%integrandFunction   )
+       else
+          self%integrandFunction   =c_null_ptr
+       end if
+       deallocate(self%integrandFunction   )
+    end if
+    call self%GSLAllocate()
+    return
+  end subroutine integratorGSLReallocate
   
   subroutine integratorToleranceSet(self,toleranceAbsolute,toleranceRelative)
     !!{
