@@ -807,14 +807,15 @@ contains
            &                                             hk                                          , hhi                                                , &
            &                                             hhj                                         , hhk                                                , &
            &                                             radiusMinimum                               , radiusMaximum
-      type            (integrator    )                :: integrator_
       character       (len= 8        )                :: tableSize
       character       (len= 8        )                :: countSteps
       character       (len=12        )                :: rangeLower                                  , rangeUpper
-      type            (varying_string)                :: message
-      type            (hdf5Object    )                :: file
-      type            (lockDescriptor)                :: fileLock
-
+      type            (integrator    ), allocatable   :: integrator_
+      type            (varying_string), save          :: message
+      type            (hdf5Object    ), save          :: file
+      type            (lockDescriptor), save          :: fileLock
+      !$omp threadprivate(message,file,fileLock)
+      
       ! Read table if we do not have it.
       if (.not.self%tableInitialized) then
          if (File_Exists(self%filenameTable)) then
@@ -920,6 +921,7 @@ contains
               &         *countFactorBoostStellar &
               &         *countRadii
          !$omp parallel private(i,j,k,integrator_,radiusMinimum,radiusMaximum)
+         allocate(integrator_)
          integrator_   = integrator(integrand,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss61)
          do i=1,countFactorBoost
             coefficientFactorBoost_                          =10.0d0**(dble(i-1)*coefficientFactorBoostLogarithmicStep       +self%coefficientFactorBoostLogarithmicOffset       )
@@ -938,6 +940,7 @@ contains
                !$omp end do
             end do
          end do
+         deallocate(integrator_)
          !$omp end parallel
          call displayCounterClear(       verbosityLevelWorking)
          call displayUnindent    ("done",verbosityLevelWorking)
