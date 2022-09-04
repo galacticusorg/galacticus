@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662268152767,
+  "lastUpdate": 1662274525518,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -1559,6 +1559,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15423.3632579593,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "df745f66d461921cb4f2dfdace0c93b6ec7e32c9",
+          "message": "Merge pull request #288 from galacticusorg/dev\n\nAllow trailimg underscores in variable names for auto-descriptors",
+          "timestamp": "2022-09-03T22:19:00-07:00",
+          "tree_id": "a0730866ce50ce26ef9e239a66ba26f5879574d3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/df745f66d461921cb4f2dfdace0c93b6ec7e32c9"
+        },
+        "date": 1662274524587,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 81.471,
+            "unit": "seconds",
+            "range": 0.577831203726378
           }
         ]
       }
