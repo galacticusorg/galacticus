@@ -86,7 +86,8 @@
           &                                                                opticalDepthReionization           , redshiftReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
-     integer                                                            :: countChemicals                     , massProgenitorMaximumID
+     integer                                                            :: countChemicals                     , massProgenitorMaximumID        , &
+          &                                                                abundancePatternSolar
    contains
      !![
      <methods>
@@ -208,6 +209,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     !!}
+    use :: Atomic_Data                  , only : Abundance_Pattern_Lookup
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
     implicit none
     type            (accretionHaloSimple          ), target                :: self
@@ -232,6 +234,7 @@ contains
        <addMetaProperty component="basic" name="massProgenitorMaximum" id="self%massProgenitorMaximumID" isEvolvable="no"/>
        !!]
     end if
+    self%abundancePatternSolar   =Abundance_Pattern_Lookup(abundanceName='solar')
     self%countChemicals          =Chemicals_Property_Count()
     self%redshiftReionization    =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeReionization))
     self%opticalDepthReionization=-huge(0.0d0)
@@ -404,7 +407,6 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
@@ -418,7 +420,7 @@ contains
 
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
-    call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     simpleAccretionRateMetals=+     simpleAccretionRateMetals                     &
          &                    *self%accretionRate            (node,accretionMode)
     return
@@ -428,7 +430,6 @@ contains
     !!{
     Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
@@ -442,7 +443,7 @@ contains
 
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
-    call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     simpleAccretedMassMetals=+     simpleAccretedMassMetals                     &
          &                   *self%accretionRate           (node,accretionMode)
     return
@@ -452,7 +453,6 @@ contains
     !!{
     Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
@@ -466,7 +466,7 @@ contains
 
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
-    call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     simpleFailedAccretionRateMetals=+     simpleFailedAccretionRateMetals                     &
          &                          *self%failedAccretionRate            (node,accretionMode)
     return
@@ -476,7 +476,6 @@ contains
     !!{
     Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     implicit none
@@ -490,7 +489,7 @@ contains
 
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
-    call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     simpleFailedAccretedMassMetals=+     simpleFailedAccretedMassMetals                     &
          &                         *self%accretionRate                 (node,accretionMode)
     return

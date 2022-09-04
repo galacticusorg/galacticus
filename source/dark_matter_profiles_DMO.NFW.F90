@@ -407,17 +407,15 @@ contains
     Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: basic
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: radiusOverScaleRadius, scaleRadius
     !$GLC attributes unused :: self
 
-    basic                 => node%basic            (                 )
     darkMatterProfile     => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius           =  darkMatterProfile%scale()
     radiusOverScaleRadius =  radius/scaleRadius

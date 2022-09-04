@@ -521,8 +521,13 @@ contains
     else
        currentFinders(currentFinderIndex)%lowInitialUsed =.true.
        currentFinders(currentFinderIndex)%highInitialUsed=.true.
-       fLow =self%finderFunction(xLow )
-       fHigh=self%finderFunction(xHigh)
+       fLow=self%finderFunction(xLow)
+       if (xHigh == xLow) then
+          ! If a rootGuess was used, the initial xHigh will equal xLow, so we can avoid re-evaluating the function here.
+          fHigh=fLow
+       else
+          fHigh=self%finderFunction(xHigh)
+       end if
        do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
           rangeChanged=.false.
           select case (self%rangeExpandDownwardSignExpect%ID)

@@ -361,6 +361,7 @@ contains
        if (present(collapsingOut     )) collapsingOut     = self%collapsingUniverse           &
             &                                              .and.                              &
             &                                               self%timeTurnaround     < timeIn
+       return
     end if
     ! If we have an expansion factor, check that it is valid, and compute outputs as required.
     if (present(expansionFactorIn)) then
@@ -381,6 +382,7 @@ contains
        if (present(timeOut           )) timeOut           =self%cosmicTime(expansionFactorIn,collapsingActual)
        if (present(expansionFactorOut)) expansionFactorOut=expansionFactorIn
        if (present(collapsingOut     )) collapsingOut     =collapsingActual
+       return
     end if
     return
   end subroutine matterLambdaEpochValidate

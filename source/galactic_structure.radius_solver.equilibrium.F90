@@ -313,7 +313,8 @@ contains
       integer                             , parameter                         :: activeComponentMaximumIncrement=  2
       integer                                                                 :: activeComponentMaximumCurrent
       character       (len=14            )                                    :: label
-      type            (varying_string    )                                    :: message
+      type            (varying_string    ), save                              :: message
+      !$omp threadprivate(message)
       double precision                                                        :: baryonicVelocitySquared             , darkMatterMassFinal         , &
            &                                                                     darkMatterVelocitySquared           , velocity                    , &
            &                                                                     radius                              , radiusNew

@@ -544,9 +544,8 @@ contains
     !!{
     Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
-    use :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentHotHalo
+    use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     type            (abundances                  )                :: naozBarkana2007AccretionRateMetals
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
@@ -566,7 +565,7 @@ contains
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
     ! Get the rate of metal mass accretion.
-    call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     naozBarkana2007AccretionRateMetals=+     naozBarkana2007AccretionRateMetals                     &
          &                             *self%accretionRate                     (node,accretionMode)
     ! Get required objects.
@@ -611,9 +610,8 @@ contains
     !!{
     Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     !!}
-    use :: Atomic_Data         , only : Abundance_Pattern_Lookup
-    use :: Abundances_Structure, only : abundances              , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
-    use :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentHotHalo
+    use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     type            (abundances                  )                :: naozBarkana2007FailedAccretionRateMetals
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
@@ -633,7 +631,7 @@ contains
     basic          => node%basic                                (            )
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
     ! Get the rate of failed metal mass accretion.
-    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,Abundance_Pattern_Lookup(abundanceName='solar'))
+    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     naozBarkana2007FailedAccretionRateMetals=+     naozBarkana2007FailedAccretionRateMetals                     &
          &                                   *self%failedAccretionRate                     (node,accretionMode)
     ! Get required objects.
