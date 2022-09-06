@@ -31,6 +31,7 @@ Contains a module which implements a boolean analysis property operator class.
      A boolean property operator class.
      !!}
      private
+     logical :: preciseZero
    contains
      procedure :: operate => booleanOperate
   end type outputAnalysisPropertyOperatorBoolean
@@ -40,6 +41,7 @@ Contains a module which implements a boolean analysis property operator class.
      Constructors for the ``boolean'' output analysis class.
      !!}
      module procedure booleanConstructorParameters
+     module procedure booleanConstructorInternal
   end interface outputAnalysisPropertyOperatorBoolean
 
 contains
@@ -52,13 +54,36 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorBoolean)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-
-    self=outputAnalysisPropertyOperatorBoolean()
+    logical :: preciseZero
+    
+    !![
+    <inputParameter>
+      <name>preciseZero</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, {\normalfont \ttfamily epsilon(0.0d0)}. This is useful since a precise 0 is treated differently by the \refClass{outputAnalysisMeanFunction1D} class.</description>
+    </inputParameter>
+    !!]
+    self=outputAnalysisPropertyOperatorBoolean(preciseZero)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function booleanConstructorParameters
+
+  function booleanConstructorInternal(preciseZero) result(self)
+    !!{
+    Internal constructor for the ``boolean'' output analysis property operator class.
+    !!}
+    implicit none
+    type   (outputAnalysisPropertyOperatorBoolean)                :: self
+    logical                                       , intent(in   ) :: preciseZero
+    !![
+    <constructorAssign variables="preciseZero"/>   
+    !!]
+   
+    return
+  end function booleanConstructorInternal
 
   double precision function booleanOperate(self,propertyValue,node,propertyType,outputIndex)
     !!{
@@ -71,10 +96,15 @@ contains
     type            (treeNode                                 ), intent(inout), optional :: node
     type            (enumerationOutputAnalysisPropertyTypeType), intent(inout), optional :: propertyType
     integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex
-    !$GLC attributes unused :: self, propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     if (propertyValue == 0.0d0) then
-       booleanOperate=0.0d0
+       ! Optionally set the result to either precisely zero, or the smallest possible non-zero value.
+       if (self%preciseZero) then
+          booleanOperate=        0.0d0
+       else
+          booleanOperate=epsilon(0.0d0)
+       end if
     else
        booleanOperate=1.0d0
     end if

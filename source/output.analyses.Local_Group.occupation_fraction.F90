@@ -232,7 +232,7 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                 )"/>
     !!]
     ! Build a size weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
@@ -241,15 +241,15 @@ contains
     !!]
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10              (                                                                                   )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10              (                                                                                 )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorFilterHighPass_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorFilterHighPass_"    constructor="outputAnalysisPropertyOperatorFilterHighPass    (log10(massStellarThreshold)                                                      )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorFilterHighPass_"    constructor="outputAnalysisPropertyOperatorFilterHighPass    (log10(massStellarThreshold)                                                       )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorBoolean_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorBoolean_"           constructor="outputAnalysisPropertyOperatorBoolean           (                                                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorBoolean_"           constructor="outputAnalysisPropertyOperatorBoolean           (.false.                                                                           )"/>
     !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
