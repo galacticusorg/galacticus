@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662288202308,
+  "lastUpdate": 1662572951063,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -670,6 +670,34 @@ window.BENCHMARK_DATA = {
             "value": 452.259,
             "unit": "seconds",
             "range": 1.73459012449896
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "62e2f176b90c274707012ee8a7bda3c2ccb0d6f5",
+          "message": "Merge pull request #290 from galacticusorg/optimization\n\nCorrect calculation of Local Group occupation fraction",
+          "timestamp": "2022-09-07T02:45:38Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/62e2f176b90c274707012ee8a7bda3c2ccb0d6f5"
+        },
+        "date": 1662572949958,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 413.632,
+            "unit": "seconds",
+            "range": 5.26532293406646
           }
         ]
       }
