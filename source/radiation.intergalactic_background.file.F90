@@ -111,6 +111,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class which takes a parameter list as input.
     !!}
+    use :: File_Utilities  , only : File_Name_Expand
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (radiationFieldIntergalacticBackgroundFile)                :: self
@@ -126,7 +127,7 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=radiationFieldIntergalacticBackgroundFile(fileName,cosmologyFunctions_)
+    self=radiationFieldIntergalacticBackgroundFile(File_Name_Expand(char(fileName)),cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
