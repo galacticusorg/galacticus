@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662523768405,
+  "lastUpdate": 1662561065554,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -1727,6 +1727,34 @@ window.BENCHMARK_DATA = {
             "value": 75.136,
             "unit": "seconds",
             "range": 0.395229553550926
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "62e2f176b90c274707012ee8a7bda3c2ccb0d6f5",
+          "message": "Merge pull request #290 from galacticusorg/optimization\n\nCorrect calculation of Local Group occupation fraction",
+          "timestamp": "2022-09-07T02:45:38Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/62e2f176b90c274707012ee8a7bda3c2ccb0d6f5"
+        },
+        "date": 1662561064321,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 58.437,
+            "unit": "seconds",
+            "range": 0.0746197024928313
           }
         ]
       }
