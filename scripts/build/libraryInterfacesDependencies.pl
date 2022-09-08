@@ -26,7 +26,7 @@ foreach my $functionClass ( &List::ExtraUtils::hashList($libraryFunctionClasses-
 	./scripts/build/libraryInterfaces.pl
 {$buildPath}libgalacticus/{$name}.p.F90.up: {$buildPath}libgalacticus/{$name}.F90 {$buildPath}hdf5FCInterop.dat {$buildPath}openMPCriticalSections.xml
 	./scripts/build/preprocess.pl {$buildPath}libgalacticus/{$name}.F90 {$buildPath}libgalacticus/{$name}.p.F90
-{$buildPath}libgalacticus/{$name}.p.F90 : | {$buildPath}libgalacticus/{$name}.p.F90.up
+{$buildPath}libgalacticus/{$name}.p.F90 : {$buildPath}libgalacticus/{$name}.p.F90.up
 	@true
 {$buildPath}libgalacticus/{$name}.o : {$buildPath}libgalacticus/{$name}.p.F90 {$buildPath}libgalacticus/{$name}.d Makefile
 	@mkdir -p {$buildPath}/moduleBuild
