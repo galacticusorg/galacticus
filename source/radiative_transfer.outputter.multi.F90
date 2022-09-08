@@ -29,15 +29,7 @@
   !![
   <radiativeTransferOutputter name="radiativeTransferOutputterMulti">
    <description>A radiative transfer outputter class which combines multiple other outputters.</description>
-   <deepCopy>
-    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
-   </allowedParameters>
+   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti

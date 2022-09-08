@@ -24,15 +24,7 @@ Contains a module which implements a galactic filter class which is the ``all'' 
   !![
   <galacticFilter name="galacticFilterAll">
    <description>A galactic filter class which is the ``all'' combination of a set of other filters.</description>
-   <deepCopy>
-    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
-   </allowedParameters>
+   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterAll

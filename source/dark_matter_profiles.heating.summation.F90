@@ -24,15 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingSummation">
    <description>A dark matter profile heating model which sums over other heat sources.</description>
-   <deepCopy>
-    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
-   </allowedParameters>
+   <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
   </darkMatterProfileHeating>
   !!]
 
@@ -52,7 +44,6 @@
      procedure :: specificEnergy                 => summationSpecificEnergy
      procedure :: specificEnergyGradient         => summationSpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero => summationSpecificEnergyIsEverywhereZero
-     procedure :: descriptor                     => summationDescriptor
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
@@ -206,25 +197,3 @@ contains
     end do
     return
   end function summationSpecificEnergyIsEverywhereZero
-
-  subroutine summationDescriptor(self,descriptor,includeClass)
-    !!{
-    Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    !!}
-    use :: Input_Parameters, only : inputParameters
-    implicit none
-    class  (darkMatterProfileHeatingSummation), intent(inout)           :: self
-    type   (inputParameters                  ), intent(inout)           :: descriptor
-    logical                                   , intent(in   ), optional :: includeClass
-    type   (heatSourceList                   ), pointer                 :: heatSource
-    type   (inputParameters                  )                          :: subParameters
-
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter("darkMatterProfileHeating","summation")
-    subParameters=descriptor%subparameters("darkMatterProfileHeating")
-    heatSource => self%heatSources
-    do while (associated(heatSource))
-       call heatSource%heatSource%descriptor(subParameters)
-       heatSource => heatSource%next
-    end do
-    return
-  end subroutine summationDescriptor

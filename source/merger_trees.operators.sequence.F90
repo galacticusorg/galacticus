@@ -24,15 +24,7 @@ Contains a module which implements a sequence of operators on merger trees.
   !![
   <mergerTreeOperator name="mergerTreeOperatorSequence">
    <description>Provides a sequence of operators on merger trees.</description>
-   <deepCopy>
-    <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
-   </allowedParameters>
+   <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
   </mergerTreeOperator>
   !!]
 

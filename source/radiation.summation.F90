@@ -29,15 +29,7 @@ Implements a radiation field class which sums over other radiation fields.
   !![
   <radiationField name="radiationFieldSummation">
    <description>A summation radiation field class.</description>
-   <deepCopy>
-    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
-   </allowedParameters>
+   <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldSummation
