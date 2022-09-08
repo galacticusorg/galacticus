@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662573245741,
+  "lastUpdate": 1662628567698,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -719,6 +719,60 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/62e2f176b90c274707012ee8a7bda3c2ccb0d6f5"
         },
         "date": 1662573244956,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 13.4724051054378,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 8.14361890232308,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.87319917950248,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 37.0077918252162,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 285.355949077026,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 10.6260388538573,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c18590d4d66fae9b67d976192406a3c275c4eddd",
+          "message": "Merge pull request #291 from galacticusorg/dev\n\nFix build dependencies",
+          "timestamp": "2022-09-07T22:17:05-07:00",
+          "tree_id": "0562c216f25ee41c9af54af50f743d2d9375dec4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c18590d4d66fae9b67d976192406a3c275c4eddd"
+        },
+        "date": 1662628566503,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
