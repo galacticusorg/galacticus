@@ -24,15 +24,7 @@ Contains a module which implements a merger tree filter class which is the ``any
   !![
   <mergerTreeFilter name="mergerTreeFilterAny">
    <description>A merger tree filter class which is the ``any'' combination of a set of other filters.</description>
-   <deepCopy>
-    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
-   </allowedParameters>
+   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAny

@@ -29,15 +29,7 @@ Implements a stellar population spectra postprocessor class which applies a sequ
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence">
    <description>A sequence stellar population spectra postprocessor class.</description>
-   <deepCopy>
-    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_"/>
-   </allowedParameters>
+   <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
@@ -49,7 +41,6 @@ Implements a stellar population spectra postprocessor class which applies a sequ
    contains
      final     ::               sequenceDestructor
      procedure :: multiplier => sequenceMultiplier
-     procedure :: descriptor => sequenceDescriptor
   end type stellarPopulationSpectraPostprocessorSequence
 
   interface stellarPopulationSpectraPostprocessorSequence
@@ -154,25 +145,3 @@ contains
     end do
     return
   end function sequenceMultiplier
-
-  subroutine sequenceDescriptor(self,descriptor,includeClass)
-    !!{
-    Return an input parameter list descriptor which could be used to recreate this object.
-    !!}
-    use :: Input_Parameters, only : inputParameters
-    implicit none
-    class  (stellarPopulationSpectraPostprocessorSequence), intent(inout)           :: self
-    type   (inputParameters                              ), intent(inout)           :: descriptor
-    logical                                               , intent(in   ), optional :: includeClass
-    type   (postprocessorList                            ), pointer                 :: postprocessor_
-    type   (inputParameters                              )                          :: parameters
-
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('stellarPopulationSpectraPostprocessor','sequence')
-    parameters     =  descriptor%subparameters ('stellarPopulationSpectraPostprocessor')
-    postprocessor_ => self      %postprocessors
-    do while (associated(postprocessor_))
-       call postprocessor_%postprocessor_%descriptor(parameters)
-       postprocessor_ => postprocessor_%next
-    end do
-    return
-  end subroutine sequenceDescriptor

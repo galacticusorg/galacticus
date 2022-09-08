@@ -29,15 +29,7 @@
   !![
   <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
    <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
-   <deepCopy>
-    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_"/>
-   </allowedParameters>
+   <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti

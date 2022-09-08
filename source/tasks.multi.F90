@@ -25,15 +25,7 @@
   !![
   <task name="taskMulti">
    <description>A task which performs multiple other tasks.</description>
-   <deepCopy>
-    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
-   </allowedParameters>
+   <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
   </task>
   !!]
   type, extends(taskClass) :: taskMulti
