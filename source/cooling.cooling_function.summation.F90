@@ -24,15 +24,7 @@
   !![
   <coolingFunction name="coolingFunctionSummation">
    <description>Class providing a cooling function which sums over other cooling functions.</description>
-   <deepCopy>
-    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction"/>
-   </allowedParameters>
+   <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
   </coolingFunction>
   !!]
 
@@ -53,7 +45,6 @@
      procedure :: coolingFunctionFractionInBand      => summationCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => summationCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => summationCoolingFunctionDensityLogSlope
-     procedure :: descriptor                         => summationDescriptor
   end type coolingFunctionSummation
 
   interface coolingFunctionSummation
@@ -344,25 +335,3 @@ contains
     end if
     return
   end function summationCoolingFunctionTemperatureLogSlope
-
-  subroutine summationDescriptor(self,descriptor,includeClass)
-    !!{
-    Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    !!}
-    use :: Input_Parameters, only : inputParameters
-    implicit none
-    class  (coolingFunctionSummation), intent(inout)           :: self
-    type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeClass
-    type   (coolantList             ), pointer                 :: coolant
-    type   (inputParameters         )                          :: subParameters
-
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter("coolingFunction","summation")
-    subParameters=descriptor%subparameters("coolingFunction")
-    coolant       => self%coolants
-    do while (associated(coolant))
-       call coolant%coolingFunction%descriptor(subParameters)
-       coolant => coolant%next
-    end do
-    return
-  end subroutine summationDescriptor

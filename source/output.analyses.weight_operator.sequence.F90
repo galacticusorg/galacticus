@@ -29,15 +29,7 @@ Contains a module which implements a sequence output analysis weight operator cl
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
    <description>A sequence output analysis weight operator class.</description>
-   <deepCopy>
-    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
-   </allowedParameters>
+   <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence

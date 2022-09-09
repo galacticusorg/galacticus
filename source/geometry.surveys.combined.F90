@@ -29,15 +29,7 @@ Implements a survey geometry which combines multiple other surveys.
   !![
   <surveyGeometry name="surveyGeometryCombined">
    <description>Implements a survey geometry which combines multiple other surveys.</description>
-   <deepCopy>
-    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
-   </allowedParameters>
+   <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryClass) :: surveyGeometryCombined

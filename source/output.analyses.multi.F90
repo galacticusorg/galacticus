@@ -29,15 +29,7 @@
   !![
   <outputAnalysis name="outputAnalysisMulti">
    <description>A merger tree analysis class which combines multiple other analyses.</description>
-   <deepCopy>
-    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_"                                 />
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_"                                 />
-   </allowedParameters>
+   <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMulti

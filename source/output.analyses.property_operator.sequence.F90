@@ -29,15 +29,7 @@ Contains a module which implements a sequence output analysis property operator 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
    <description>A sequence output analysis property operator class.</description>
-   <deepCopy>
-    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_"/>
-   </allowedParameters>
+   <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence
