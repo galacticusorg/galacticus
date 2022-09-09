@@ -112,6 +112,10 @@ sub extract {
 		    $attributes->{$attributeName} =~ s/\\odot/☉/g;
 		    $attributes->{$attributeName} =~ s/\\langle/⟨/g;
 		    $attributes->{$attributeName} =~ s/\\rangle/⟩/g;
+		    $attributes->{$attributeName} =~ s/\\\\star/★/g;
+		    $attributes->{$attributeName} =~ s/\\\\log_{10}/log₁₀/g;
+		    $attributes->{$attributeName} =~ s/\\\\sigma/σ/g;
+		    $attributes->{$attributeName} =~ s/\\\\,/ /g;
 		    $result->{'attributes'}->{$attributeName} = $attributes->{$attributeName};
 		}
 	    }
