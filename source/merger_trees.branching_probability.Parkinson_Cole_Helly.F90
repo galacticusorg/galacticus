@@ -436,9 +436,8 @@ contains
     Used to find the mass of a merger tree branching event.
     !!}
     implicit none
-    double precision            , intent(in   ) :: logMassMaximum
-    type            (integrator)                :: integrator_
-    double precision                            :: integral      , massMaximum
+    double precision, intent(in   ) :: logMassMaximum
+    double precision                :: integral      , massMaximum
 
     if      (logMassMaximum < parkinsonColeHellySelf%probabilityMinimumMassLog) then
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek   +parkinsonColeHellySelf%probabilityGradientMinimum*(logMassMaximum-parkinsonColeHellySelf%probabilityMinimumMassLog)
