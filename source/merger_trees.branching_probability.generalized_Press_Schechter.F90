@@ -328,14 +328,13 @@ contains
     Root function used in solving for the branch mass.
     !!}
     implicit none
-    double precision            , intent(in   ) :: massMaximum
-    type            (integrator)                :: integrator_
+    double precision, intent(in   ) :: massMaximum
 
-    generalizedPressSchechterMassBranchRoot=+                      generalizedPressSchechterSelf%probabilitySeek         &
-         &                                  -integrator_%integrate(                                                      &
-         &                                                         generalizedPressSchechterSelf%probabilityMinimumMass, &
-         &                                                                                                  massMaximum  &
-         &                                                        )
+    generalizedPressSchechterMassBranchRoot=+                                                    generalizedPressSchechterSelf%probabilitySeek         &
+         &                                  -generalizedPressSchechterSelf%integrator_%integrate(                                                      &
+         &                                                                                       generalizedPressSchechterSelf%probabilityMinimumMass, &
+         &                                                                                                                                massMaximum  &
+         &                                                                                      )
     return
   end function generalizedPressSchechterMassBranchRoot
 
