@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662776510239,
+  "lastUpdate": 1662831911880,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -1002,6 +1002,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6326509691206,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "177d7819ed7bbc7abaebbdf14a764bc8a5c2e35b",
+          "message": "Merge pull request #294 from galacticusorg/dev\n\nAllow more `functionClass` objects to support auto-descriptors",
+          "timestamp": "2022-09-10T06:26:23-07:00",
+          "tree_id": "bbc9951cd311f3631e464e30181dc2739203f1d2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/177d7819ed7bbc7abaebbdf14a764bc8a5c2e35b"
+        },
+        "date": 1662831910605,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 347.936,
+            "unit": "seconds",
+            "range": 0.592646943805336
           }
         ]
       }
