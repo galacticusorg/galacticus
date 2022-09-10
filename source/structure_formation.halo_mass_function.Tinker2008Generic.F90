@@ -31,8 +31,8 @@
      A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008} with user-specified parameters.
      !!}
      private
-     double precision :: normalizationValue, aValue, &
-          &              bValue            , cValue
+     double precision :: normalization_, a_, &
+          &              b_            , c_
    contains
      final     ::                  tinker2008GenericDestructor
      procedure :: normalization => tinker2008GenericNormalization
@@ -138,10 +138,10 @@ contains
 
     self%time              =-1.0d0
     self%mass              =-1.0d0
-    self%normalizationValue=normalization
-    self%            aValue=a
-    self%            bValue=b
-    self%            cValue=c
+    self%normalization_=normalization
+    self%            a_=a
+    self%            b_=b
+    self%            c_=c
     return
   end function tinker2008GenericConstructorInternal
 
@@ -170,7 +170,7 @@ contains
     double precision                                   , intent(in   ) :: time, mass
     !$GLC attributes unused :: time, mass
 
-    tinker2008GenericNormalization=self%normalizationValue
+    tinker2008GenericNormalization=self%normalization_
     return
   end function tinker2008GenericNormalization
 
@@ -183,7 +183,7 @@ contains
     double precision                                   , intent(in   ) :: time, mass
     !$GLC attributes unused :: time, mass
 
-    tinker2008GenericA=self%aValue
+    tinker2008GenericA=self%a_
     return
   end function tinker2008GenericA
 
@@ -196,7 +196,7 @@ contains
     double precision                                   , intent(in   ) :: time, mass
     !$GLC attributes unused :: time, mass
 
-    tinker2008GenericB=self%bValue
+    tinker2008GenericB=self%b_
     return
   end function tinker2008GenericB
 
@@ -209,7 +209,7 @@ contains
     double precision                                   , intent(in   ) :: time, mass
     !$GLC attributes unused :: time, mass
 
-    tinker2008GenericC=self%cValue
+    tinker2008GenericC=self%c_
     return
   end function tinker2008GenericC
 

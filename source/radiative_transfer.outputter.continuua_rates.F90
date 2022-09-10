@@ -33,6 +33,7 @@
      integer                                         , allocatable, dimension(:    ) :: elementIndices
      double precision                                , allocatable, dimension(:,:  ) :: continuuaRatesEscaping                , continuumLimitWavelength
      double precision                                , allocatable, dimension(:,:,:) :: continuuaRatesEscapingTagged
+     character       (len=3                         ), allocatable, dimension(:    ) :: elements
      type            (varying_string                ), allocatable, dimension(:    ) :: sourceTypeName
      integer                                                                         :: countElements                         , atomicNumberMaximum
    contains
@@ -96,7 +97,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
     !!}
-    use :: Atomic_Data                 , only : Atomic_Number
+    use :: Atomic_Data                 , only : Atomic_Number, Atomic_Short_Label
     use :: Numerical_Constants_Physical, only : speedLight   , plancksConstant
     use :: Numerical_Constants_Units   , only : electronVolt , angstromsPerMeter
     implicit none
@@ -109,10 +110,12 @@ contains
     !!]
 
     ! Determine maximum atomic number.
-    self%countElements=size(elementIndices)
+    self%countElements      =size(elementIndices)
     self%atomicNumberMaximum=0
+    allocate(self%elements(self%countElements))
     do i=1,self%countElements
-       self%atomicNumberMaximum=max(self%atomicNumberMaximum,Atomic_Number(elementIndices(i)))
+       self%atomicNumberMaximum   =max(self%atomicNumberMaximum,Atomic_Number     (elementIndices(i)))
+       self%elements           (i)=                             Atomic_Short_Label(elementIndices(i))
     end do
     ! Allocate arrays for escape rates and wavelengths.
     allocate(self%continuuaRatesEscaping  (self%countElements,self%atomicNumberMaximum))
