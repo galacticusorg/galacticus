@@ -102,10 +102,10 @@ Contains a module which implements a star formation histories class which record
      private
      class           (outputTimesClass), pointer :: outputTimes_            => null()
      integer                                     :: countMetallicities
-     double precision                            :: timeStep                         , timeStepFine      , &
-          &                                         timeFine                         , metallicityMaximum, &
+     double precision                            :: timeStep                         , timeStepFine          , &
+          &                                         timeFine                         , metallicityMaximum    , &
           &                                         metallicityMinimum
-     double precision, allocatable, dimension(:) :: metallicityTable
+     double precision, allocatable, dimension(:) :: metallicityTable                 , metallicityBoundaries_
      logical                                     :: metallicityTableWritten
    contains
      !![
@@ -180,18 +180,17 @@ contains
     !!]
     if (parameters%isPresent('metallicityBoundaries')) then
        self%countMetallicities=parameters%count('metallicityBoundaries')
-       allocate(metallicityBoundaries(self%countMetallicities+1))
+       allocate(metallicityBoundaries(self%countMetallicities))
        !![
        <inputParameter>
          <name>metallicityBoundaries</name>
          <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
          <source>parameters</source>
-         <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
+         <variable>metallicityBoundaries</variable>
          <type>real</type>
          <cardinality>0..*</cardinality>
        </inputParameter>
        !!]
-       metallicityBoundaries(size(metallicityBoundaries))=metallicitySplitMetallicityInfinite
     else
        !![
        <inputParameter>
@@ -255,8 +254,10 @@ contains
             &  .or.                            &
             &   present(metallicityMaximum   ) &
             & ) call Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
-       allocate(self%metallicityTable(size(metallicityBoundaries)))
-       self%metallicityTable=metallicityBoundaries
+       allocate(self%metallicityTable(size(metallicityBoundaries)+1))
+       self%metallicityTable      (1:size(metallicityBoundaries)  )=metallicityBoundaries
+       self%metallicityTable      (  size(metallicityBoundaries)+1)=metallicitySplitMetallicityInfinite
+       self%metallicityBoundaries_                                 =metallicityBoundaries
     else
        if     (                                &
             &   present(metallicityBoundaries) &
@@ -279,6 +280,7 @@ contains
           if (countMetallicities > 1) self%metallicityTable(1:countMetallicities)=Make_Range(metallicityMinimum,metallicityMaximum,countMetallicities,rangeType=rangeTypeLogarithmic)
           self%metallicityTable(countMetallicities+1)=metallicitySplitMetallicityInfinite
        end select
+       self%metallicityBoundaries_=self%metallicityTable(1:countMetallicities)
     end if
     self%metallicityTableWritten=.false.
     return
