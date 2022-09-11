@@ -115,6 +115,7 @@ sub extract {
 		    $attributes->{$attributeName} =~ s/\\star/★/g;
 		    $attributes->{$attributeName} =~ s/\\log_\{10\}/log₁₀/g;
 		    $attributes->{$attributeName} =~ s/\\sigma/σ/g;
+		    $attributes->{$attributeName} =~ s/\^\{-1\}/⁻¹/g;
 		    $attributes->{$attributeName} =~ s/\\,/ /g;
 		    $result->{'attributes'}->{$attributeName} = $attributes->{$attributeName};
 		}
