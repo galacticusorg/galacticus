@@ -1002,7 +1002,9 @@ contains
                  &          /2.0d0                                                        &
                  &          /Pi**2
          else if (wavenumberMaximum > wavenumberBAO) then
+            call integrator_%toleranceSet(toleranceRelative=self%tolerance,toleranceAbsolute=0.0d0                      )
             integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
+            call integrator_%toleranceSet(toleranceRelative=self%tolerance,toleranceAbsolute=self%tolerance*integrandLow)
             integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
             if (integrandHigh <= 0.0d0) then
                ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power

@@ -64,7 +64,7 @@ contains
     return
   end function farahiMidpointConstructorParameters
 
-  function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !!{
     Internal constructor for the Farahi-midpoint excursion set class first crossing class.
     !!}
@@ -73,12 +73,13 @@ contains
     double precision                                         , intent(in   )         :: timeStepFractional
     integer                                                  , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
          &                                                                              timeNumberPerDecade             , varianceNumberPerDecade
+    logical                                                  , intent(in   )         :: varianceIsUnlimited
     type            (varying_string                         ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass               ), intent(in   ), target :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
 
-    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     return
   end function farahiMidpointConstructorInternal
 
@@ -398,7 +399,8 @@ contains
          &                                                                                        barrier                                      , integralKernelRate       , &
          &                                                                                        growthFactorEffective                        , erfcArgumentNumerator    , &
          &                                                                                        erfcArgumentDenominator                      , erfcValue                , &
-         &                                                                                        crossingFractionNew
+         &                                                                                        crossingFractionNew                          , varianceResidual         , &
+         &                                                                                        offsetEffective
     logical                                                                                    :: varianceMaximumChanged
 
     ! Determine if we need to make the table.
@@ -483,7 +485,7 @@ contains
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
           !!]
-          self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
+          self%varianceMaximumRate       =self%varianceLimit(varianceProgenitor)
           self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
           self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
           ! Store copies of the current tables if these will be used later.
@@ -566,7 +568,7 @@ contains
           ! is initialized and covers the whole range we are intereseted in.
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective,message,label) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual,erfcArgumentNumerator,erfcArgumentDenominator,erfcValue,message,label) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
@@ -625,23 +627,24 @@ contains
                 if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(1)= 0.0_kind_quad
                 else
-                   integralKernelRate           = Error_Function_Complementary(                                                                            &
-                        &                                                      +(                                                                          &
-                        &                                                        +(barrierTableRateQuad   (1)-barrier)                                     &
-                        &                                                        -(barrierMidTableRateQuad(1)-barrier)                                     &
-                        &                                                       )                                                                          &
-                        &                                                      /sqrt(2.0_kind_quad*(varianceTableRateQuad(1)-varianceMidTableRateQuad(1))) &
-                        &                                                     )
+                   offsetEffective              =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(1),varianceMidTableRateQuad(1),0.0_kind_quad,barrierTableRateQuad(1),barrierMidTableRateQuad(1),cosmologicalMassVariance_)
+                   varianceResidual             =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(1),varianceMidTableRateQuad(1)                                                                 ,cosmologicalMassVariance_)
+                   integralKernelRate           =Error_Function_Complementary(                                         &
+                        &                                                     +offsetEffective                         &
+                        &                                                     /sqrt(2.0_kind_quad*varianceResidual)    &
+                        &                                                    )
                    ! If the integral kernel is zero (to machine precision) then simply assume no crossing rate.
                    if (integralKernelRate <= 0.0d0) then
                       firstCrossingTableRateQuad=0.0d0
                       cycle
                    end if
-                   firstCrossingTableRateQuad(1)= Error_Function_Complementary(                                              &
-                        &                                                      +(barrierTableRateQuad(1)-barrier)            &
-                        &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
-                        &                                                     )                                              &
-                        &                        /varianceTableStepRate                                                      &
+                   offsetEffective              =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(1),0.0_kind_quad,0.0_kind_quad,barrierTableRateQuad(1),barrier,cosmologicalMassVariance_)
+                   varianceResidual             =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(1),0.0_kind_quad                                              ,cosmologicalMassVariance_)
+                   firstCrossingTableRateQuad(1)=+Error_Function_Complementary(                                      &
+                        &                                                      +offsetEffective                      &
+                        &                                                      /sqrt(2.0_kind_quad*varianceResidual) &
+                        &                                                     )                                      &
+                        &                        /varianceTableStepRate                                              &
                         &                        /integralKernelRate
                 end if
                 varianceTableStepRate=+varianceTableRateQuad     (1) &
@@ -652,28 +655,37 @@ contains
                    if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                       firstCrossingTableRateQuad(i)=0.0_kind_quad
                    else
-                      effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
-                      integralKernelRate=Error_Function_Complementary(                                                                            &
-                           &                                          +(                                                                          &
-                           &                                            +effectiveBarrierInitial                                                  &
-                           &                                            -barrierMidTableRateQuad(i)                                               &
-                           &                                            +barrier                                                                  &
-                           &                                           )                                                                          &
-                           &                                          /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(i))) &
-                           &                                         )
-                      if (integralKernelRate==0.0_kind_quad) then
+                      effectiveBarrierInitial      =+barrierTableRateQuad(i)-barrier
+                      offsetEffective              =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),varianceMidTableRateQuad(i),barrier,effectiveBarrierInitial,barrierMidTableRateQuad(i)-barrier,cosmologicalMassVariance_)
+                      varianceResidual             =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),varianceMidTableRateQuad(i)                                                                   ,cosmologicalMassVariance_)
+                      if      (varianceResidual <  0.0_kind_quad) then
+                         integralKernelRate=0.0_kind_quad
+                      else if (varianceResidual == 0.0_kind_quad) then                         
+                         ! Zero residual variance - the first crossing rate is either 0 or 1, depending on the sign of the offset.
+                         if (offsetEffective > 0.0_kind_quad) then
+                            integralKernelRate=0.0_kind_quad
+                         else
+                            integralKernelRate=1.0_kind_quad
+                         end if
+                      else
+                         integralKernelRate=Error_Function_Complementary(                                      &
+                              &                                          +offsetEffective                      &
+                              &                                          /sqrt(2.0_kind_quad*varianceResidual) &
+                              &                                         )
+                      end if
+                      if (integralKernelRate == 0.0_kind_quad) then
                          firstCrossingTableRateQuad(i)=0.0_kind_quad
                       else
                          sigma1f=+0.0_kind_quad
                          do j=1,i-1
-                            erfcArgumentNumerator=+effectiveBarrierInitial    &
-                                 &                -barrierMidTableRateQuad(j) &
-                                 &                +barrier
+                            offsetEffective        =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),varianceMidTableRateQuad(j),barrier,effectiveBarrierInitial,barrierMidTableRateQuad(j)-barrier,cosmologicalMassVariance_)
+                            varianceResidual       =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),varianceMidTableRateQuad(j)                                                                   ,cosmologicalMassVariance_)
+                            erfcArgumentNumerator  =offsetEffective
+                            erfcArgumentDenominator=sqrt(2.0_kind_quad*varianceResidual)
                             if (erfcArgumentNumerator == 0.0_kind_quad .or. exponent(erfcArgumentNumerator)-exponent(erfcArgumentDenominator) > maxExponent(0.0_kind_quad)) then
                                erfcValue=1.0_kind_quad
                             else
-                               erfcArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
-                               erfcValue=Error_Function_Complementary(erfcArgumentNumerator/erfcArgumentDenominator)
+                               erfcValue              =Error_Function_Complementary(erfcArgumentNumerator/erfcArgumentDenominator)
                             end if
                             if (erfcValue > 0.0_kind_quad) then
                                varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
@@ -683,11 +695,13 @@ contains
                                     &  *erfcValue
                             end if
                          end do
-                         varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                         firstCrossingTableRateQuad(i)=+Error_Function_Complementary(                                              &
-                              &                                                      +effectiveBarrierInitial                      &
-                              &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
-                              &                                                     )                                              &
+                         varianceTableStepRate        =varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
+                         offsetEffective              =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),0.0_kind_quad,barrier,effectiveBarrierInitial,0.0_kind_quad,cosmologicalMassVariance_)
+                         varianceResidual             =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),0.0_kind_quad                                              ,cosmologicalMassVariance_)
+                         firstCrossingTableRateQuad(i)=+Error_Function_Complementary(                                      &
+                              &                                                      +offsetEffective                      &
+                              &                                                      /sqrt(2.0_kind_quad*varianceResidual) &
+                              &                                                     )                                      &
                               &                        -sigma1f
                          if     (                                                                                                                                   &
                               &   firstCrossingTableRateQuad(i)                                                                        > 0.0d0                      &

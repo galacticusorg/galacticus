@@ -203,20 +203,19 @@ Contains a module which implements a excursion set first crossing statistics cla
        <method description="Initialize the file name for storing excursion set data."                                                      method="fileNameInitialize"/>
      </methods>
      !!]
-     final     ::                               farahiDestructor
-     procedure :: probability                => farahiProbability
-     procedure :: rate                       => farahiRate
-     procedure :: rateNonCrossing            => farahiRateNonCrossing
-     procedure :: rateInterpolate            => farahiRateInterpolate
-     procedure :: rateNonCrossingInterpolate => farahiRateNonCrossingInterpolate
-     procedure :: rateTabulate               => farahiRateTabulate
-     procedure :: fileRead                   => farahiFileRead
-     procedure :: fileWrite                  => farahiFileWrite
-     procedure :: fileNameInitialize         => farahiFileNameInitialize
-     procedure :: varianceRange              => farahiVarianceRange
-     procedure :: varianceLimit              => farahiVarianceLimit
-     procedure :: varianceResidual           => farahiVarianceResidual
-     procedure :: offsetEffective            => farahiOffsetEffective
+     final     ::                       farahiDestructor
+     procedure :: probability        => farahiProbability
+     procedure :: rate               => farahiRate
+     procedure :: rateNonCrossing    => farahiRateNonCrossing
+     procedure :: rateInterpolate    => farahiRateInterpolate
+     procedure :: rateTabulate       => farahiRateTabulate
+     procedure :: fileRead           => farahiFileRead
+     procedure :: fileWrite          => farahiFileWrite
+     procedure :: fileNameInitialize => farahiFileNameInitialize
+     procedure :: varianceRange      => farahiVarianceRange
+     procedure :: varianceLimit      => farahiVarianceLimit
+     procedure :: varianceResidual   => farahiVarianceResidual
+     procedure :: offsetEffective    => farahiOffsetEffective
   end type excursionSetFirstCrossingFarahi
 
   interface excursionSetFirstCrossingFarahi
@@ -676,7 +675,7 @@ contains
              farahiRateInterpolate=+farahiRateInterpolate                                                                                                      &
                   &                +self%hTimeRate             (                                                                                        jTime) &
                   &                *self%hVarianceRate         (                                                               jVariance                     ) &
-                  &                *     hVarianceProgenitor   (                      jVarianceProgenitor                                                    ) &
+                  &                *hVarianceProgenitor        (                      jVarianceProgenitor                                                    ) &
                   &                *self%firstCrossingTableRate(iVarianceProgenitor-1+jVarianceProgenitor,self%iVarianceRate-1+jVariance,self%iTimeRate+jTime)
           end do
        end do
@@ -687,19 +686,6 @@ contains
   double precision function farahiRateNonCrossing(self,variance,time,node)
     !!{
     Return the rate for excursion set non-crossing.
-    !!}
-    implicit none
-    class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time , variance
-    type            (treeNode                       ), intent(inout) :: node
-
-    farahiRateNonCrossing=self%rateNonCrossingInterpolate(variance,time,node)
-    return
-  end function farahiRateNonCrossing
-
-  double precision function farahiRateNonCrossingInterpolate(self,variance,time,node)
-    !!{
-    Interpolate the rate for excursion set non-crossing.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
@@ -720,17 +706,17 @@ contains
        call self%interpolatorVarianceRateBase%linearFactors(variance,self%iVarianceRate,self%hVarianceRate)
     end if
     ! Compute non-crossing probability by interpolating.
-    farahiRateNonCrossingInterpolate=0.0d0
+    farahiRateNonCrossing=0.0d0
     do jTime=0,1
        do jVariance=0,1
-          farahiRateNonCrossingInterpolate=+farahiRateNonCrossingInterpolate                                               &
-               &                           +self%hTimeRate           (                                              jTime) &
-               &                           *self%hVarianceRate       (                     jVariance                     ) &
-               &                           *self%nonCrossingTableRate(self%iVarianceRate-1+jVariance,self%iTimeRate+jTime)
+          farahiRateNonCrossing=+farahiRateNonCrossing                                                          &
+               &                +self%hTimeRate           (                                              jTime) &
+               &                *self%hVarianceRate       (                     jVariance                     ) &
+               &                *self%nonCrossingTableRate(self%iVarianceRate-1+jVariance,self%iTimeRate+jTime)
        end do
     end do
     return
-  end function farahiRateNonCrossingInterpolate
+  end function farahiRateNonCrossing
 
   subroutine farahiRateTabulate(self,varianceProgenitor,time,node)
     !!{
@@ -901,7 +887,7 @@ contains
           ! is initialized and covers the whole range we are intereseted in.
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,massProgenitor,growthFactorEffective,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiDeepCopy)
@@ -951,13 +937,14 @@ contains
                 if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(1)= 0.0_kind_quad
                 else
-                   offsetEffective              =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(1),0.0_kind_quad,barrier,barrierTableRateQuad(1)-barrier,0.0_kind_quad,cosmologicalMassVariance_)
-                   varianceResidual             =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(1),0.0_kind_quad                                                      ,cosmologicalMassVariance_)
-                   firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                      &
-                        &                        *Error_Function_Complementary(                                      &
-                        &                                                      +offsetEffective                      &
-                        &                                                      /sqrt(2.0_kind_quad*varianceResidual) &
-                        &                                                     )                                      &
+                   firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                              &
+                        &                        *Error_Function_Complementary(                                              &
+                        &                                                      +(                                            &
+                        &                                                        +barrierTableRateQuad(1)                    &
+                        &                                                        -barrier                                    &
+                        &                                                       )                                            &
+                        &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
+                        &                                                     )                                              &
                         &                        /varianceTableStepRate
                 end if
                 do i=2,self%varianceTableCountRate
@@ -968,30 +955,30 @@ contains
                       sigma1f                =+0.0_kind_quad
                       do j=1,i-1
                          varianceTableStepRate=(varianceTableRateQuad(j+1)-varianceTableRateQuad(j-1))/2.0_kind_quad
-                         offsetEffective      =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),varianceTableRateQuad(j),barrier,effectiveBarrierInitial,barrierTableRateQuad(j)-barrier,cosmologicalMassVariance_)
-                         varianceResidual     =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),varianceTableRateQuad(j)                                                                ,cosmologicalMassVariance_)
-                         sigma1f              =+sigma1f                                                            &
-                              &                +firstCrossingTableRateQuad(j)                                      &
-                              &                *varianceTableStepRate                                              &
-                              &                *Error_Function_Complementary(                                      &
-                              &                                              +offsetEffective                      &
-                              &                                              /sqrt(2.0_kind_quad*varianceResidual) &
-                              &                                             )
+                         sigma1f=+sigma1f                                                                                               &
+                              &  +firstCrossingTableRateQuad(j)                                                                         &
+                              &  *varianceTableStepRate                                                                                 &
+                              &  *Error_Function_Complementary(                                                                         &
+                              &                                +(                                                                       &
+                              &                                  +effectiveBarrierInitial                                               &
+                              &                                  -barrierTableRateQuad(j)                                               &
+                              &                                  +barrier                                                               &
+                              &                                 )                                                                       &
+                              &                                /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceTableRateQuad(j))) &
+                              &                               )
                       end do
                       varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                      offsetEffective              =self%offsetEffective (self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),0.0_kind_quad,barrier,effectiveBarrierInitial,0.0_kind_quad,cosmologicalMassVariance_)
-                      varianceResidual             =self%varianceResidual(self%timeTableRate(iTime),varianceTableRateBaseQuad(iVariance),varianceTableRateQuad(i),0.0_kind_quad                                              ,cosmologicalMassVariance_)
-                      firstCrossingTableRateQuad(i)=max(                                                                      &
-                           &                            +0.0_kind_quad,                                                       &
-                           &                            +(                                                                    &
-                           &                              +2.0_kind_quad                                                      &
-                           &                              *Error_Function_Complementary(                                      &
-                           &                                                            +offsetEffective                      &
-                           &                                                            /sqrt(2.0_kind_quad*varianceResidual) &
-                           &                                                           )                                      &
-                           &                              -2.0_kind_quad*sigma1f                                              &
-                           &                             )                                                                    &
-                           &                            /varianceTableStepRate                                                &
+                      firstCrossingTableRateQuad(i)=max(                                                                              &
+                           &                            +0.0_kind_quad,                                                               &
+                           &                            +(                                                                            &
+                           &                              +2.0_kind_quad                                                              &
+                           &                              *Error_Function_Complementary(                                              &
+                           &                                                            +effectiveBarrierInitial                      &
+                           &                                                            /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
+                           &                                                           )                                              &
+                           &                              -2.0_kind_quad*sigma1f                                                      &
+                           &                             )                                                                            &
+                           &                            /varianceTableStepRate                                                        &
                            &                           )
                    end if
                 end do
@@ -1345,41 +1332,36 @@ contains
     return
   end function farahiVarianceLimit
 
-  function farahiVarianceResidual(self,time,variance0,variance1,variance2,cosmologicalMassVariance_) result(varianceResidual)
+  function farahiVarianceResidual(self,variance0,variance1,variance2) result(varianceResidual)
     !!{
     Return the residual variance between two points.
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
-    real (kind_quad                               )                :: varianceResidual
-    class(excursionSetFirstCrossingFarahi         ), intent(inout) :: self
-    real (kind_quad                               ), intent(in   ) :: variance0                , variance1, &
-         &                                                            variance2
-    double precision                               , intent(in   ) :: time
-    class           (cosmologicalMassVarianceClass), intent(inout) :: cosmologicalMassVariance_
-    !$GLC attributes unused :: self, variance0, time, cosmologicalMassVariance_
+    real (kind_quad                      )                :: varianceResidual
+    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
+    real (kind_quad                      ), intent(in   ) :: variance0       , variance1, &
+         &                                                   variance2
+    !$GLC attributes unused :: self, variance0
     
     varianceResidual=+variance1 &
          &           -variance2
     return
   end function farahiVarianceResidual
 
-  function farahiOffsetEffective(self,time,variance0,variance1,variance2,delta0,delta1,delta2,cosmologicalMassVariance_) result(offsetEffective)
+  function farahiOffsetEffective(self,delta1,delta2) result(offsetEffective)
     !!{
     Return the residual variance between two points.
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
-    real (kind_quad                               )                :: offsetEffective
-    class(excursionSetFirstCrossingFarahi         ), intent(inout) :: self
-    real (kind_quad                               ), intent(in   ) :: delta0                  , delta1   , &
-         &                                                            delta2                  , variance0, &
-         &                                                            variance1               , variance2
-    double precision                               , intent(in   ) :: time
-    class           (cosmologicalMassVarianceClass), intent(inout) :: cosmologicalMassVariance_
-    !$GLC attributes unused :: self, delta0, variance0, variance1, variance2, time, cosmologicalMassVariance_
+    real (kind_quad                      )                :: offsetEffective
+    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
+    real (kind_quad                      ), intent(in   ) :: delta1         , delta2
+    !$GLC attributes unused :: self
     
     offsetEffective=+delta1 &
          &          -delta2
     return
   end function farahiOffsetEffective
+  
