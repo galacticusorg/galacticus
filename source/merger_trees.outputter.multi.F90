@@ -29,15 +29,7 @@
   !![
   <mergerTreeOutputter name="mergerTreeOutputterMulti">
    <description>A merger tree outputter which combines multiple other outputters.</description>
-   <deepCopy>
-    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
-   </allowedParameters>
+   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti

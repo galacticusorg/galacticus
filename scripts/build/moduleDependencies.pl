@@ -221,7 +221,7 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
 		     print $makefile "\t  rm "      .$workDirectoryName.$modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$preprocessedFileName." ; \\\n";
 		     print $makefile "\t  \$(MAKE) ".$workDirectoryName.$modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$preprocessedFileName." ; \\\n";
 		     print $makefile "\tfi\n";
-		     print $makefile $workDirectoryName.$submodule->{'fileName'}.".p.F90: | ".$workDirectoryName.$submodule->{'fileName'}.".p.F90.up\n\n";
+		     print $makefile $workDirectoryName.$submodule->{'fileName'}.".p.F90: ".$workDirectoryName.$submodule->{'fileName'}.".p.F90.up\n\n";
 		 }
 	    }
 	    (my $objectDependencyFileName = $objectFileName) =~ s/.o$/.d/;

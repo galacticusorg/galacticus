@@ -49,7 +49,8 @@ Contains a module which implements a merger tree processing time estimator using
      A merger tree processing time estimator using a polynomial relation read from file.
      !!}
      private
-     double precision, dimension(0:2) :: fitCoefficient
+     double precision                , dimension(0:2) :: fitCoefficient
+     type            (varying_string)                 :: fileName
    contains
      procedure :: time => fileTime
   end type metaTreeProcessingTimeFile
@@ -101,7 +102,10 @@ contains
     type   (varying_string            ), intent(in   ) :: fileName
     type   (node                      ), pointer       :: doc     , fit
     integer                                            :: ioStatus
-
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
+    
     ! Parse the fit file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(fileName),iostat=ioStatus)

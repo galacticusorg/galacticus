@@ -35,8 +35,8 @@
      private
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
-     double precision                                         :: aValue                             , pValue, &
-          &                                                      normalizationValue                 , qValue
+     double precision                                         :: a_                                 , p_, &
+          &                                                      normalization_                     , q_
    contains
      !![
      <methods>
@@ -137,10 +137,10 @@ contains
     <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_"/>
     !!]
 
-    self%            aValue=a
-    self%            pValue=p
-    self%            qValue=q
-    self%normalizationValue=normalization
+    self%            a_=a
+    self%            p_=p
+    self%            q_=q
+    self%normalization_=normalization
     return
   end function bhattacharya2011ConstructorInternal
 
@@ -216,7 +216,7 @@ contains
     double precision                                  , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    bhattacharya2011A=self%aValue
+    bhattacharya2011A=self%a_
     return
   end function bhattacharya2011A
 
@@ -229,7 +229,7 @@ contains
     double precision                                  , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    bhattacharya2011P=self%pValue
+    bhattacharya2011P=self%p_
     return
   end function bhattacharya2011P
 
@@ -242,7 +242,7 @@ contains
     double precision                                  , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    bhattacharya2011Q=self%qValue
+    bhattacharya2011Q=self%q_
     return
   end function bhattacharya2011Q
 
@@ -255,7 +255,7 @@ contains
     double precision                                  , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    bhattacharya2011Normalization=self%normalizationValue
+    bhattacharya2011Normalization=self%normalization_
     return
   end function bhattacharya2011Normalization
 

@@ -24,15 +24,7 @@
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
    <description>Provides a sequence of normalizers on on-the-fly outputs.</description>
-   <deepCopy>
-    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_"/>
-   </allowedParameters>
+   <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
   </outputAnalysisDistributionNormalizer>
   !!]
 

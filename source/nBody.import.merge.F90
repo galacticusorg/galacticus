@@ -24,16 +24,8 @@ Contains a module which implements an N-body data importer which merges data fro
   !![
   <nbodyImporter name="nbodyImporterMerge">
    <description>An importer which merges data from other importers.</description>
-   <deepCopy>
-    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
-   </allowedParameters>
- </nbodyImporter>
+   <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
+  </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMerge
      !!{

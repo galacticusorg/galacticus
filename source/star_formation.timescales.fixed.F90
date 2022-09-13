@@ -33,7 +33,7 @@
      Implementation of a fixed timescale for star formation.
      !!}
      private
-     double precision :: timescaleValue
+     double precision :: timescale_
    contains
      procedure :: timescale => fixedTimescale
   end type starFormationTimescaleFixed
@@ -81,7 +81,7 @@ contains
     type            (starFormationTimescaleFixed)                :: self
     double precision                             , intent(in   ) :: timescale
 
-    self%timescaleValue=timescale
+    self%timescale_=timescale
     return
   end function fixedConstructorInternal
 
@@ -95,6 +95,6 @@ contains
     class(nodeComponent              ), intent(inout) :: component
     !$GLC attributes unused :: component
 
-    fixedTimescale=self%timescaleValue
+    fixedTimescale=self%timescale_
     return
   end function fixedTimescale

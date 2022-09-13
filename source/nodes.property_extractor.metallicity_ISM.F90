@@ -31,7 +31,8 @@ Contains a module which implements an ISM metallicity output analysis property e
      An ISM metallicity output analysis property extractor class.
      !!}
      private
-     integer :: indexElement
+     integer          :: indexElement
+     character(len=3) :: element
    contains
      procedure :: extract     => metallicityISMExtract
      procedure :: name        => metallicityISMName
@@ -82,6 +83,7 @@ contains
     !!{
     Internal constructor for the ``metallicityISM'' output analysis property extractor class.
     !!}
+    use :: Abundances_Structure, only : Abundances_Names
     implicit none
     type(nodePropertyExtractorMetallicityISM)                :: self
     integer                                  , intent(in   ) :: indexElement
@@ -89,6 +91,7 @@ contains
     <constructorAssign variables="indexElement"/>
     !!]
 
+    self%element=Abundances_Names(indexElement)
     return
   end function metallicityISMConstructorInternal
 

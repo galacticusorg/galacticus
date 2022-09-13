@@ -26,6 +26,7 @@ Implements a merger tree branching probability class using a generalized Press-S
   use :: Excursion_Sets_First_Crossings , only : excursionSetFirstCrossingClass
   use :: Merger_Tree_Branching_Modifiers, only : mergerTreeBranchingProbabilityModifierClass
   use :: Root_Finder                    , only : rootFinder
+  use :: Numerical_Integration          , only : integrator
 
   !![
   <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
@@ -66,6 +67,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_                 => null()
      class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_    => null()
      type            (rootFinder                                 )          :: finder
+     type            (integrator                                 )          :: integrator_
      ! Parent halo shared variables.
      double precision                                                       :: parentDTimeDDeltaCritical                           , parentDelta           , &
           &                                                                    parentHaloMass                                      , parentSigma           , &
@@ -191,6 +193,7 @@ contains
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                        :: self
     class           (cosmologicalMassVarianceClass                  ), intent(in   ), target :: cosmologicalMassVariance_
@@ -209,10 +212,15 @@ contains
     self%subresolutionFractionIntegrandFailureWarned=.false.
     self%massResolutionPrevious                     =-1.0d0
     self%timeNow                                    =self%cosmologyFunctions_%cosmicTime(1.0d0)
-    self%finder                                     =rootFinder(                                                           &
-         &                                                      rootFunction     =generalizedPressSchechterMassBranchRoot, &
-         &                                                      toleranceAbsolute=toleranceAbsolute                      , &
-         &                                                      toleranceRelative=toleranceRelative                        &
+    self%finder                                     =rootFinder(                                                                        &
+         &                                                      rootFunction     =generalizedPressSchechterMassBranchRoot             , &
+         &                                                      toleranceAbsolute=toleranceAbsolute                                   , &
+         &                                                      toleranceRelative=toleranceRelative                                     &
+         &                                                     )
+    self%integrator_                                =integrator(                                                                        &
+         &                                                                        generalizedPressSchechterProbabilityIntegrand       , &
+         &                                                      toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative , &
+         &                                                      integrationRule  =GSL_Integ_Gauss15                                     &
          &                                                     )
     return
   end function generalizedPressSchechterConstructorInternal
@@ -337,23 +345,14 @@ contains
     !!{
     Root function used in solving for the branch mass.
     !!}
-    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
-
-    use :: Error                , only : Warn             , errorStatusSuccess
     implicit none
-    double precision            , intent(in   ) :: massMaximum
-    type            (integrator)                :: integrator_
+    double precision, intent(in   ) :: massMaximum
 
-    integrator_                            = integrator           (                                                                        &
-         &                                                                           generalizedPressSchechterProbabilityIntegrand       , &
-         &                                                         toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative , &
-         &                                                         integrationRule  =GSL_Integ_Gauss15                                     &
-         &                                                        )
-    generalizedPressSchechterMassBranchRoot=+                                        generalizedPressSchechterSelf%probabilitySeek         &
-         &                                  -generalizedPressSchechterSelf%normalization                                                   &
-         &                                  *integrator_%integrate(                                                                        &
-         &                                                                           generalizedPressSchechterSelf%probabilityMinimumMass, &
-         &                                                                                                                    massMaximum  &
+    generalizedPressSchechterMassBranchRoot=+                                                    generalizedPressSchechterSelf%probabilitySeek         &
+         &                                  -generalizedPressSchechterSelf%normalization                                                               &
+         &                                  *generalizedPressSchechterSelf%integrator_%integrate(                                                      &
+         &                                                                                       generalizedPressSchechterSelf%probabilityMinimumMass, &
+         &                                                                                                                                massMaximum  &
          &                                                        )
     return
   end function generalizedPressSchechterMassBranchRoot

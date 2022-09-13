@@ -98,8 +98,9 @@
      class(cosmologicalMassVarianceClass           ), pointer :: cosmologicalMassVariance_        => null()
      class(virialDensityContrastClass              ), pointer :: virialDensityContrastDefinition_ => null()
      type (darkMatterProfileDMONFW                 ), pointer :: darkMatterProfileDMODefinition_  => null()
-     type (enumerationklypin2015DensityContrastType)          :: virialDensityContrast
-     type (enumerationklypin2015FittingFunctionType)          :: fittingFunction
+     type (enumerationKlypin2015DensityContrastType)          :: virialDensityContrast
+     type (enumerationKlypin2015FittingFunctionType)          :: fittingFunction
+     type (enumerationKlypin2015SampleType         )          :: sample
      type (table1DGeneric                          )          :: fitParameters
    contains
      final     ::                                   klypin2015Destructor
@@ -168,7 +169,7 @@ contains
     class(cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer               :: darkMatterHaloScaleDefinition_
     !![
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="sample, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
     !!]
 
     select case (sample%ID)

@@ -46,7 +46,8 @@
      double precision                                    :: expansionFactorFactorPrevious          , exponentVelocityVirial , &
           &                                                 exponentRedshift                       , timescaleNormalization , &
           &                                                 timescaleStored                        , velocityPrevious       , &
-          &                                                 velocityFactorPrevious                 , expansionFactorPrevious
+          &                                                 velocityFactorPrevious                 , expansionFactorPrevious, &
+          &                                                 timeScale_
      logical                                             :: timescaleComputed
      integer         (kind_int8                        ) :: lastUniqueID
    contains
@@ -139,6 +140,7 @@ contains
     self%expansionFactorPrevious      =-1.0d0
     self%expansionFactorFactorPrevious=-1.0d0
     ! Compute the normalization of the timescale.
+    self%timeScale_            =+timescale
     self%timeScaleNormalization=+timescale                                                           &
          &                      /haloScalingVelocityVirialNormalization**self%exponentVelocityVirial
     return

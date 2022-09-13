@@ -76,7 +76,8 @@
           &                                                     enclosedMassPrevious                           , enclosingMassRadiusPrevious                , &
           &                                                     massScalePrevious                              , circularVelocityPrevious                   , &
           &                                                     circularVelocityRadiusPrevious                 , radialVelocityDispersionPrevious           , &
-          &                                                     radialVelocityDispersionRadiusPrevious
+          &                                                     radialVelocityDispersionRadiusPrevious         , enclosedMassScaleFreePrevious              , &
+          &                                                     enclosedMassScaleFreeRadiusPrevious
      logical                                                 :: velocityDispersionUseSeriesExpansion
    contains
      !![
@@ -192,20 +193,22 @@ contains
     <constructorAssign variables="velocityDispersionUseSeriesExpansion,*darkMatterHaloScale_"/>
     !!]
 
-    self%concentrationPrevious             =-1.0d+0
-    self%concentrationMinimum              = 1.0d+0
-    self%concentrationMaximum              =20.0d+0
-    self%freefallRadiusMinimum             = 1.0d-3
-    self%freefallRadiusMaximum             = 1.0d+2
-    self%radiusMinimum                     = 1.0d-3
-    self%radiusMaximum                     = 1.0d+2
-    self%enclosedDensityRadiusMinimum      = 1.0d-3
-    self%enclosedDensityRadiusMaximum      = 1.0d+2
-    self%nfwEnclosedDensityTableInitialized=.false.
-    self%nfwFreefallTableInitialized       =.false.
-    self%nfwInverseTableInitialized        =.false.
-    self%nfwTableInitialized               =.false.
-    self%lastUniqueID                      =-1
+    self%enclosedMassScaleFreePrevious      =-1.0d+0
+    self%enclosedMassScaleFreeRadiusPrevious=-1.0d+0
+    self%concentrationPrevious              =-1.0d+0
+    self%concentrationMinimum               = 1.0d+0
+    self%concentrationMaximum               =20.0d+0
+    self%freefallRadiusMinimum              = 1.0d-3
+    self%freefallRadiusMaximum              = 1.0d+2
+    self%radiusMinimum                      = 1.0d-3
+    self%radiusMaximum                      = 1.0d+2
+    self%enclosedDensityRadiusMinimum       = 1.0d-3
+    self%enclosedDensityRadiusMaximum       = 1.0d+2
+    self%nfwEnclosedDensityTableInitialized =.false.
+    self%nfwFreefallTableInitialized        =.false.
+    self%nfwInverseTableInitialized         =.false.
+    self%nfwTableInitialized                =.false.
+    self%lastUniqueID                       =-1
     ! Ensure that the dark matter profile component supports a "scale" property.
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                        &
          & call Error_Report                                                                                             &
@@ -875,18 +878,22 @@ contains
     !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    double precision                         , intent(in   ) :: concentration                                                   , radius
-    double precision                         , parameter     :: minimumRadiusForExactSolution          =1.0d-6
+    double precision                         , intent(in   ) :: concentration                                    , radius
+    double precision                         , parameter     :: minimumRadiusForExactSolution   =1.0d-6
     ! Precomputed NFW normalization factor for unit radius.
-    double precision                         , parameter     :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
+    double precision                         , parameter     :: nfwNormalizationFactorUnitRadius=log(2.0d0)-0.5d0
 
-    if (radius == 1.0d0) then
-       nfwEnclosedMassScaleFree=nfwNormalizationFactorUnitRadius
-    else if (radius >= minimumRadiusForExactSolution) then
-       nfwEnclosedMassScaleFree=(log(1.0d0+radius)-radius/(1.0d0+radius))
-    else
-       nfwEnclosedMassScaleFree=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
+    if (radius /= self%enclosedMassScaleFreeRadiusPrevious) then
+       self%enclosedMassScaleFreeRadiusPrevious=radius
+       if      (radius == 1.0d0                        ) then
+          self%enclosedMassScaleFreePrevious=nfwNormalizationFactorUnitRadius
+       else if (radius >= minimumRadiusForExactSolution) then
+          self%enclosedMassScaleFreePrevious=(log(1.0d0+radius)-radius/(1.0d0+radius))
+       else
+          self%enclosedMassScaleFreePrevious=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
+       end if
     end if
+    nfwEnclosedMassScaleFree=self%enclosedMassScaleFreePrevious
     ! Compute the mass profile normalization factor.
     call nfwMassNormalizationFactor(self,concentration)
     ! Evaluate the scale-free enclosed mass.

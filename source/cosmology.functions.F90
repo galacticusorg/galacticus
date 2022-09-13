@@ -117,13 +117,13 @@ module Cosmology_Functions
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="equationOfStateDarkEnergy" >
-    <description></description>
+    <description>Return the equation of state paramerter, $w$, for the dark energy component.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time, expansionFactor</argument>
    </method>
    <method name="exponentDarkEnergy" >
-    <description></description>
+    <description>Return the exponent of the dark energy density with expansion factor, i.e. $\gamma$ in $\rho_\mathrm{DE}(a) \propto a^\gamma$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time, expansionFactor</argument>

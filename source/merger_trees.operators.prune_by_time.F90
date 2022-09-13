@@ -31,9 +31,9 @@
      A merger tree operator class which prunes branches to end at a fixed time.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     double precision                                   :: massMinimum        , massMaximum     , &
-          &                                                timeEarliest       , redshiftEarliest
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     double precision                                   :: massMinimum                  , massMaximum     , &
+          &                                                timeEarliest                 , redshiftEarliest
    contains
      final     ::                        pruneByTimeDestructor
      procedure :: operatePreEvolution => pruneByTimeOperatePreEvolution

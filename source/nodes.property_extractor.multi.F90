@@ -31,15 +31,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMulti">
    <description>A multi output extractor property extractor class.</description>
-   <deepCopy>
-    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
-   </stateStore>
-   <allowedParameters>
-     <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
-   </allowedParameters>
+   <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti
