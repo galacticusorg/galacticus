@@ -37,7 +37,7 @@ Contains a module which implements a polynomial systematic shift output analysis
      A polynomial systematic shift output property operator class.
      !!}
      private
-     double precision                            :: propertyValueZeroPoint
+     double precision                            :: zeroPoint
      double precision, allocatable, dimension(:) :: coefficient
    contains
      procedure :: operate => systmtcPolynomialOperate
@@ -88,16 +88,16 @@ contains
     return
   end function systmtcPolynomialConstructorParameters
 
-  function systmtcPolynomialConstructorInternal(propertyValueZeroPoint,coefficient) result(self)
+  function systmtcPolynomialConstructorInternal(zeroPoint,coefficient) result(self)
     !!{
     Internal constructor for the ``randomErrorPolynomial'' output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self
-    double precision                                                 , intent(in   )               :: propertyValueZeroPoint
+    double precision                                                 , intent(in   )               :: zeroPoint
     double precision                                                 , intent(in   ), dimension(:) :: coefficient
     !![
-    <constructorAssign variables="propertyValueZeroPoint, coefficient"/>
+    <constructorAssign variables="zeroPoint, coefficient"/>
     !!]
 
     return
@@ -125,11 +125,11 @@ contains
          &   propertyValue < +huge(0.0d0) &
          & ) then
        do i=1,size(self%coefficient)
-          systmtcPolynomialOperate=+systmtcPolynomialOperate      &
-               &                   +self%coefficient(i)           &
-               &                   *(                             &
-               &                     +     propertyValue          &
-               &                     -self%propertyValueZeroPoint &
+          systmtcPolynomialOperate=+systmtcPolynomialOperate &
+               &                   +self%coefficient(i)      &
+               &                   *(                        &
+               &                     +     propertyValue     & 
+               &                     -self%zeroPoint         &
                &                    )**(i-1)
        end do
     end if

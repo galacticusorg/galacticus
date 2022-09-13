@@ -33,7 +33,7 @@
      property value.
      !!}
      private
-     double precision                            :: propertyValueZeroPoint, errorMinimum, &
+     double precision                            :: zeroPoint, errorMinimum, &
           &                                         errorMaximum
      double precision, allocatable, dimension(:) :: coefficient
    contains
@@ -98,17 +98,17 @@ contains
     return
   end function randomErrorPolynomialConstructorParameters
 
-  function randomErrorPolynomialConstructorInternal(errorMinimum,errorMaximum,propertyValueZeroPoint,coefficient) result(self)
+  function randomErrorPolynomialConstructorInternal(errorMinimum,errorMaximum,zeroPoint,coefficient) result(self)
     !!{
     Internal constructor for the ``randomErrorPolynomial'' output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
-    double precision                                                     , intent(in   )               :: errorMinimum          , errorMaximum, &
-         &                                                                                                propertyValueZeroPoint
+    double precision                                                     , intent(in   )               :: errorMinimum, errorMaximum, &
+         &                                                                                                zeroPoint
     double precision                                                     , intent(in   ), dimension(:) :: coefficient
     !![
-    <constructorAssign variables="errorMinimum, errorMaximum, propertyValueZeroPoint, coefficient"/>
+    <constructorAssign variables="errorMinimum, errorMaximum, zeroPoint, coefficient"/>
     !!]
 
     return
@@ -131,7 +131,7 @@ contains
             &                            +self%coefficient(i)               &
             &                            *(                                 &
             &                              +     propertyValue              &
-            &                              -self%propertyValueZeroPoint     &
+            &                              -self%zeroPoint                  &
             &                             )**(i-1)
     end do
     randomErrorPolynomialRootVariance=min(self%errorMaximum,max(self%errorMinimum,randomErrorPolynomialRootVariance))

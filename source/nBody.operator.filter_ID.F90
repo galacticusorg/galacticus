@@ -31,7 +31,8 @@ Contains a module which implements an N-body data operator which filters particl
      An N-body data operator which filters particles by ID.
      !!}
      private
-     integer(c_size_t), allocatable, dimension(:) :: idSelection
+     integer(c_size_t      ), allocatable, dimension(:) :: idSelection
+     type   (varying_string)                            :: idSelectionFileName
    contains
      procedure :: operate => filterIDOperate
   end type nbodyOperatorFilterID
@@ -89,6 +90,7 @@ contains
     !![
     <inputParametersValidate source="parameters"/>
     !!]
+    if (parameters%isPresent('idSelectionFileName')) self%idSelectionFileName=idSelectionFileName
     return
   end function filterIDConstructorParameters
 
@@ -104,6 +106,7 @@ contains
     <constructorAssign variables="idSelection"/>
     !!]
 
+    self%idSelectionFileName=''
     call sort(self%idSelection)
     return
   end function filterIDConstructorInternal
