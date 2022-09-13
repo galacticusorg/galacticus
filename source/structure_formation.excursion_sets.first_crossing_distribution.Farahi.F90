@@ -1345,41 +1345,76 @@ contains
     return
   end function farahiVarianceLimit
 
-  function farahiVarianceResidual(self,time,variance0,variance1,variance2,cosmologicalMassVariance_) result(varianceResidual)
+  function farahiVarianceResidual(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,cosmologicalMassVariance_) result(varianceResidual)
     !!{
-    Return the residual variance between two points.
+    Return the residual variance between two points for a standard Weiner process.
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
-    real (kind_quad                               )                :: varianceResidual
-    class(excursionSetFirstCrossingFarahi         ), intent(inout) :: self
-    real (kind_quad                               ), intent(in   ) :: variance0                , variance1, &
-         &                                                            variance2
-    double precision                               , intent(in   ) :: time
-    class           (cosmologicalMassVarianceClass), intent(inout) :: cosmologicalMassVariance_
-    !$GLC attributes unused :: self, variance0, time, cosmologicalMassVariance_
+    real            (kind_quad                      )                :: varianceResidual
+    class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
+    real            (kind_quad                      ), intent(in   ) :: varianceCurrent          , varianceIntermediate, &
+         &                                                              varianceProgenitor
+    double precision                                 , intent(in   ) :: time
+    class           (cosmologicalMassVarianceClass  ), intent(inout) :: cosmologicalMassVariance_
+    !$GLC attributes unused :: self, varianceCurrent, time, cosmologicalMassVariance_
     
-    varianceResidual=+variance1 &
-         &           -variance2
+    ! In this function the following translations between internal variable names and math symbols are used:
+    !
+    !   S₁ = varianceCurrent
+    !   S̃ = varianceProgenitor  +varianceCurrent
+    !   S  = varianceIntermediate+varianceCurrent
+    !   δ₁ = deltaCurrent
+    !   δ̃  = deltaProgenitor     +deltaCurrent
+    !   δ  = deltaIntermediate   +deltaCurrent
+    !    
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
+    ! appear with "varianceCurrent" added to them in the above.
+    !
+    ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
+    ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following
+    ! meanings:
+    !
+    !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
+    !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
+    !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
+    varianceResidual=+varianceIntermediate &
+         &           -varianceProgenitor
     return
   end function farahiVarianceResidual
 
-  function farahiOffsetEffective(self,time,variance0,variance1,variance2,delta0,delta1,delta2,cosmologicalMassVariance_) result(offsetEffective)
+  function farahiOffsetEffective(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,deltaCurrent,deltaIntermediate,deltaProgenitor,cosmologicalMassVariance_) result(offsetEffective)
     !!{
-    Return the residual variance between two points.
+    Return the residual variance between two points for a standard Weiner process.
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
-    real (kind_quad                               )                :: offsetEffective
-    class(excursionSetFirstCrossingFarahi         ), intent(inout) :: self
-    real (kind_quad                               ), intent(in   ) :: delta0                  , delta1   , &
-         &                                                            delta2                  , variance0, &
-         &                                                            variance1               , variance2
-    double precision                               , intent(in   ) :: time
-    class           (cosmologicalMassVarianceClass), intent(inout) :: cosmologicalMassVariance_
-    !$GLC attributes unused :: self, delta0, variance0, variance1, variance2, time, cosmologicalMassVariance_
+    real             (kind_quad                     )                :: offsetEffective
+    class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
+    real             (kind_quad                     ), intent(in   ) :: deltaCurrent             , deltaIntermediate , &
+         &                                                              deltaProgenitor          , varianceCurrent   , &
+         &                                                              varianceIntermediate     , varianceProgenitor
+    double precision                                 , intent(in   ) :: time
+    class           (cosmologicalMassVarianceClass  ), intent(inout) :: cosmologicalMassVariance_
+    !$GLC attributes unused :: self, deltaCurrent, varianceCurrent, varianceIntermediate, varianceProgenitor, time, cosmologicalMassVariance_
     
-    offsetEffective=+delta1 &
-         &          -delta2
+    ! In this function the following translations between internal variable names and math symbols are used:
+    !
+    !   S₁ = varianceCurrent
+    !   S̃ = varianceProgenitor  +varianceCurrent
+    !   S  = varianceIntermediate+varianceCurrent
+    !    
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
+    ! appear with "varianceCurrent" added to them in the above.
+    !
+    ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
+    ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following
+    ! meanings:
+    !
+    !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
+    !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
+    !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
+    offsetEffective=+deltaIntermediate &
+         &          -deltaProgenitor
     return
   end function farahiOffsetEffective

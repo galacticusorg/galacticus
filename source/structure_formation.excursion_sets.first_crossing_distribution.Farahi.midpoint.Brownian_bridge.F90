@@ -20,8 +20,8 @@
 !+    Contributions to this file made by: Andrew Benson, Ethan Nadler.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012},
-but using a midpoint method to perform the integrations \citep{du_substructure_2017}, and with a Brownian bridge constraint.
+Implements an excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint
+method to perform the integrations \citep{du_substructure_2017}, and with a Brownian bridge constraint.
 !!}
   
   use :: Cosmological_Density_Field, only : criticalOverdensityClass
@@ -31,7 +31,46 @@ but using a midpoint method to perform the integrations \citep{du_substructure_2
   <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpointBrownianBridge">
     <description>
       An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
-      to perform the integrations \citep{du_substructure_2017}, and with a Brownian bridge constraint.
+      to perform the integrations \citep{du_substructure_2017}, and with a \href{https://en.wikipedia.org/wiki/Brownian_bridge}{Brownian bridge} constraint.
+
+      Specifically, the trajectories are constrained to pass through a point $(S_2,\delta_2)$ (specified by the parameter
+      {\normalfont \ttfamily [varianceConstrained]} and {\normalfont \ttfamily [criticalOverdensityConstrained]}, or equivalently
+      by the parameters {\normalfont \ttfamily [massConstrained]} and {\normalfont \ttfamily [timeConstrained]}---note that
+      $(S_2,\delta_2)$ here follow the convention in excursion set literature that $S_2$ is the variance evaluated at the present
+      day, while $\delta_2$ the the critical overdensity for collapse divided by the linear growth factor), and, of course, always
+      pass through the initial point $(S_1,\delta_1)$ corresponding to the current halo.
+
+      For a Brownian bridge the distribution of $\delta$ at some $S$ (where $S_1 \le S \le S_2$), $P_0(\delta|S)$, is given by a normal distribution with mean
+      \begin{equation}
+      \mu(S) = \delta_1 + \frac{\delta_2-\delta_1}{S_2-S_1}(S - S_1)
+      \end{equation}
+      and variance
+      \begin{equation}
+      \mathrm{Var}(S) =  \frac{(S_2-S)(S-S_1)}{S_2-S_1},
+      \end{equation}
+      and the covariance between two points $S_\mathrm{a}$ and $S_\mathrm{b} > S_\mathrm{a}$ is given by,
+      \begin{equation}
+      \mathrm{Cov}(S_\mathrm{a},S_\mathrm{b}) = \frac{(S_2-S_\mathrm{b})(S_\mathrm{a}-S_1)}{S_2-S_1}.
+      \end{equation}      
+      Therefore, the same approach to solving for the first crossing distribution as was utilized by \cite{benson_dark_2012} and
+      improved by \citep{du_substructure_2017} can be used (see \refClass{excursionSetFirstCrossingFarahi} and
+      \refClass{excursionSetFirstCrossingFarahiMidpoint} for details), with just the appropriate change in the effective offset,
+      $\Delta \delta$, and residual variance, $\Delta S$.
+
+      Considering two points $(S,\delta)$ and $(\tilde{S},\tilde{\delta})$ the effective offset is just the difference in their offsets relative to their local means:
+      \begin{equation}
+      \Delta \delta = [ \delta - \mu(S) ] - [ \tilde{\delta} - \mu(\tilde{S}) ] = \delta - \tilde{\delta} - \frac{S-\tilde{S}}{S_2-S_1}(\delta_2-\delta_1),
+      \end{equation}
+      while the residual variance is, as always, just the variance at $(S,\delta)$ minus the covariance between the two points:
+      \begin{equation}
+      \Delta S = \mathrm{Var}(S) - \mathrm{Cov}(B({\tilde{S}}),\delta) = \frac{(S_2-S)(S-S_1)}{S_2-S_1} - \frac{(S_2-S)(\tilde{S}-S_1)}{S_2-S_1}.
+      \end{equation}
+      which simplifies to
+      \begin{equation}
+      \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-S_1}.
+      \end{equation}
+
+      This class provides functions implementing these modified effective offset and residual variance.
     </description>
   </excursionSetFirstCrossing>
   !!]
@@ -242,7 +281,7 @@ contains
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
-    double precision                                                       , intent(in   ) :: time , variance
+    double precision                                                       , intent(in   ) :: time                          , variance
     type            (treeNode                                             ), intent(inout) :: node
     double precision                                                                       :: rootVarianceConstrained       , varianceConstrained, &
          &                                                                                    criticalOverdensityConstrained
@@ -272,7 +311,8 @@ contains
   
   double precision function farahiMidpointBrownianBridgeVarianceLimit(self,varianceProgenitor)
     !!{
-    Return the maximum variance to which to tabulate.
+    Return the maximum variance to which to tabulate. For the case of a Brownian bridge the variance must not be allowed to exceed
+    the variance $S_2$ at the end of the bridge---all trajectories must have crossed the barrier by this variance by construction.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
@@ -285,44 +325,94 @@ contains
     return
   end function farahiMidpointBrownianBridgeVarianceLimit
 
-  function farahiMidpointBrownianBridgeVarianceResidual(self,time,variance0,variance1,variance2,cosmologicalMassVariance_) result(varianceResidual)
+  function farahiMidpointBrownianBridgeVarianceResidual(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,cosmologicalMassVariance_) result(varianceResidual)
     !!{
-    Return the residual variance between two points.
+    Return the residual variance between two points for a Brownian bridge.
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
     real (kind_quad                                            )                :: varianceResidual
     class(excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
-    real (kind_quad                                            ), intent(in   ) :: variance0                 , variance1           , &
-         &                                                                         variance2
+    real (kind_quad                                            ), intent(in   ) :: varianceCurrent          , varianceIntermediate, &
+         &                                                                         varianceProgenitor
     double precision                                            , intent(in   ) :: time
     class           (cosmologicalMassVarianceClass             ), intent(inout) :: cosmologicalMassVariance_
     real (kind_quad                                            )                :: rootVarianceConstrained  , varianceConstrained
 
+    ! In this function the following translations between internal variable names and math symbols are used:
+    !
+    !   S₂ = varianceConstrained
+    !   S₁ = varianceCurrent
+    !   S̃ = varianceProgenitor+varianceCurrent
+    !   S  = varianceIntermediate+varianceCurrent
+    !    
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
+    ! appear with "varianceCurrent" added to them in the above.
+    !
+    ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
+    ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following
+    ! meanings:
+    !
+    !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
+    !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
+    !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
+
+    ! Find the variance corresponding to the end of the bridge at the current time. Note that this is necessary because the
+    ! variances used throughout the excursion set solver code grow in time according to linear perturbation theory. The fixed
+    ! quantity in our Brownian bridge is the mass and time of the halo at the end of the bridge. Therefore, we must compute the
+    ! variance corresponding to this mass at the requested epoch.
     rootVarianceConstrained=+cosmologicalMassVariance_%rootVariance(self%massConstrained,time)
     varianceConstrained    =+rootVarianceConstrained**2
-    varianceResidual       =+(varianceConstrained-variance1-variance0) &
-         &                  *(variance1          -variance2          ) &
-         &                  /(varianceConstrained          -variance0)
+    ! Compute the residual variance.
+    varianceResidual       =+(varianceConstrained -varianceIntermediate-varianceCurrent) &
+         &                  *(varianceIntermediate-varianceProgenitor                  ) &
+         &                  /(varianceConstrained                      -varianceCurrent)
     return
   end function farahiMidpointBrownianBridgeVarianceResidual
 
-  function farahiMidpointBrownianBridgeOffsetEffective(self,time,variance0,variance1,variance2,delta0,delta1,delta2,cosmologicalMassVariance_) result(offsetEffective)
+  function farahiMidpointBrownianBridgeOffsetEffective(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,deltaCurrent,deltaIntermediate,deltaProgenitor,cosmologicalMassVariance_) result(offsetEffective)
     !!{
-    Return the residual variance between two points.
+    Return the residual variance between two points for a Brownian bridge.
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
-    real (kind_quad                                            )                :: offsetEffective
-    class(excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
-    real (kind_quad                                            ), intent(in   ) :: delta0                        , delta1             , &
-         &                                                                         delta2                        , variance0          , &
-         &                                                                         variance1                     , variance2
-    double precision                                            , intent(in   ) :: time
-    class           (cosmologicalMassVarianceClass             ), intent(inout) :: cosmologicalMassVariance_
-    real (kind_quad                                            )                :: rootVarianceConstrained       , varianceConstrained, &
-         &                                                                         criticalOverdensityConstrained
+    real            (kind_quad                                            )                :: offsetEffective
+    class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
+    real            (kind_quad                                            ), intent(in   ) :: deltaCurrent                  , deltaIntermediate  , &
+         &                                                                                    deltaProgenitor               , varianceCurrent    , &
+         &                                                                                    varianceIntermediate          , varianceProgenitor
+    double precision                                                       , intent(in   ) :: time
+    class           (cosmologicalMassVarianceClass                        ), intent(inout) :: cosmologicalMassVariance_
+    real            (kind_quad                                            )                :: rootVarianceConstrained       , varianceConstrained, &
+         &                                                                                    criticalOverdensityConstrained
 
+
+    ! In this function the following translations between internal variable names and math symbols are used:
+    !
+    !   S₂ = varianceConstrained
+    !   S₁ = varianceCurrent
+    !   S̃ = varianceProgenitor  +varianceCurrent
+    !   S  = varianceIntermediate+varianceCurrent
+    !   δ₂ = criticalOverdensityConstrained
+    !   δ₁ = deltaCurrent
+    !   δ̃  = deltaProgenitor     +deltaCurrent
+    !   δ  = deltaIntermediate   +deltaCurrent
+    !    
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
+    ! appear with "varianceCurrent" added to them in the above. Similarly, "deltaIntermediate" and "deltaProgenitor" are defined relative to "deltaCurrent".
+    !
+    ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
+    ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following
+    ! meanings:
+    !
+    !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
+    !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
+    !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
+
+    ! Find the variance corresponding to the end of the bridge at the current time. Note that this is necessary because the
+    ! variances used throughout the excursion set solver code grow in time according to linear perturbation theory. The fixed
+    ! quantity in our Brownian bridge is the mass and time of the halo at the end of the bridge. Therefore, we must compute the
+    ! variance corresponding to this mass at the requested epoch.
     rootVarianceConstrained       =+cosmologicalMassVariance_%rootVariance(self%massConstrained,time)
     varianceConstrained           =+rootVarianceConstrained**2
     criticalOverdensityConstrained=+self%criticalOverdensityConstrained             &
@@ -330,16 +420,17 @@ contains
          &                               +varianceConstrained                       &
          &                               /self%varianceConstrained                  &
          &                              )
-    offsetEffective              =+(+delta1                        -   delta2) &
-         &                        -(+criticalOverdensityConstrained-   delta0) &
-         &                        *(+           variance1          -variance2) &
-         &                        /(+           varianceConstrained-variance0)    
+    offsetEffective              =+(+deltaIntermediate             -deltaProgenitor   ) &
+         &                        -(+criticalOverdensityConstrained-deltaCurrent      ) &
+         &                        *(+varianceIntermediate          -varianceProgenitor) &
+         &                        /(+varianceConstrained           -varianceCurrent   )    
     return
   end function farahiMidpointBrownianBridgeOffsetEffective
  
   subroutine farahiMidpointBrownianBridgeFileWrite(self)
     !!{
-    Write tabulated data on excursion set first crossing probabilities to file.
+    Write additional data on excursion set first crossing probabilities to file for the case of the Brownian bridge. Specifically,
+    linear growth factors are written to the file as a convenience useful for interpreting the results.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
