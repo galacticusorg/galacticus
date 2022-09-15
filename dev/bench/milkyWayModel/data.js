@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663090352870,
+  "lastUpdate": 1663225437764,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -1422,6 +1422,36 @@ window.BENCHMARK_DATA = {
             "value": 422.696,
             "unit": "seconds",
             "range": 2.15423359921727
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c7afada104bb6692a6570ebc994ae858631bca6",
+          "message": "Merge pull request #297 from galacticusorg/dev\n\nUse thredprivate interpolators for molecular hydrogen cross-sections",
+          "timestamp": "2022-09-14T20:16:12-07:00",
+          "tree_id": "16aed21b912fa88c796a711a1e01a67558a0dbed",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c7afada104bb6692a6570ebc994ae858631bca6"
+        },
+        "date": 1663225436221,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 357.181,
+            "unit": "seconds",
+            "range": 2.64033083154411
           }
         ]
       }
