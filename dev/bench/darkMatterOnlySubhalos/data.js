@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663081414664,
+  "lastUpdate": 1663215594066,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2374,6 +2374,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15583.3961458197,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c7afada104bb6692a6570ebc994ae858631bca6",
+          "message": "Merge pull request #297 from galacticusorg/dev\n\nUse thredprivate interpolators for molecular hydrogen cross-sections",
+          "timestamp": "2022-09-14T20:16:12-07:00",
+          "tree_id": "16aed21b912fa88c796a711a1e01a67558a0dbed",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7c7afada104bb6692a6570ebc994ae858631bca6"
+        },
+        "date": 1663215591584,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 72.011,
+            "unit": "seconds",
+            "range": 0.501885345472535
           }
         ]
       }
