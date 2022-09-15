@@ -70,6 +70,12 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
       \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-S_1}.
       \end{equation}
 
+      Note that, in solving for the first crossing distribution we must also evaluate terms of the form
+      \begin{equation}
+      \int_{-\infty}^{\delta} P_{0}(\delta^\prime,S) \mathrm{d}\delta^\prime = \mathrm{erf}\left( \frac{\delta^\prime - \mu(S)}{\sqrt{2 \mathrm{Var}(S)}}\right).
+      \end{equation}
+      In these cases we still use the residual variance since $\Delta S \rightarrow \mathrm{Var}(S)$ as $\tilde{S} \rightarrow S_1$.
+
       This class provides functions implementing these modified effective offset and residual variance.
     </description>
   </excursionSetFirstCrossing>

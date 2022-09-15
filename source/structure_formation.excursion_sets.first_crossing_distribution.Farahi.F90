@@ -31,55 +31,72 @@ Contains a module which implements a excursion set first crossing statistics cla
   !![
   <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
    <description>
-    An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, which proceeds by finding
-    the solution to the integral equation:
+    An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}. For trajectories originating
+    from a point $(S_1,\delta_1)$, the distribution of first crossings of a barrier $B(S)$, $f(S)$, is obtained by finding the
+    solution to the integral equation:    
     \begin{equation}
-      1 =  \int_0^S f(S^\prime)\mathrm{d}S^\prime + \int_{-\infty}^{B(S)} P(\delta,S) \mathrm{d} \delta,
+      1 =  \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} P(\delta,S) \mathrm{d} \delta,
      \label{eq:OldExcursionMethod}
     \end{equation}
     where $P(\delta,S) \mathrm{d} \delta$ is the probability for a trajectory to lie between $\delta$ and $\delta + \mathrm{d}
-    \delta$ at variance $S$. In the absence of a barrier, $P(\delta,S)$ would be equal to $P_0(\delta,S)$ which is simply a
-    Gaussian distribution with variance $S$:
+    \delta$ at variance $S$, having originated from the point $(S_1,\delta_1)$ having not crossed the barrier at any smaller
+    $\tilde{S} &lt; S$. In the absence of a barrier, $P(\delta,S)$ would be equal to $P_0(\delta,S)$. However, since some
+    trajectories will have crossed the barrier at $\tilde{S} &lt; S$ we must subtract off their contribution to
+    $P_0(\delta,S)$. Writing the distribution of $\delta$ at $S$ for trajectories originating at some $(\tilde{\delta},\tilde{S})$
+    as $P^\prime(\delta|S,\tilde{\delta},\tilde{S})$, we can therefore write
     \begin{equation}
-      P_0(\delta,S) = \frac{1}{\sqrt{2 \pi S}} \exp\left(-{\delta^2 \over 2 S}\right).
-      \label{eq:Gaussian}
+      P(\delta,S) = P_0(\delta,S) - \int_{0}^{S} f(\tilde{S}) P^\prime(\delta|S,\tilde{\delta},\tilde{S}) \mathrm{d}\tilde{S},
     \end{equation}
-    Since the barrier absorbs any random walks which cross is at smaller $S$, the actual $P(\delta,S)$ must therefore be given
-    by:
+
+    For an interesting class of cases, both $P_0(\delta,S)$ and $P^\prime(\delta|S,\tilde{\delta},\tilde{S})$ are normal
+    distributions, and we can write
     \begin{equation}
-       P(\delta,S) = P_0(\delta,S) - \int_{0}^{S} f(S^\prime) P_0[\delta - B(S^\prime),S - S^\prime]\mathrm{d}S^\prime .
-     \label{eq:Displaced}
+     P_0(\delta,S) = \frac{1}{\sqrt{2 \pi S}} \exp\left\{-{\Delta \delta^2 [\delta,\delta_1,S,S_1] \over 2 \Delta S [S,S_1]}\right\},
     \end{equation}
-    In the second term on the right hand side of eqn.~(\ref{eq:Displaced}) represents the $P_0[\delta - B(S^\prime),S -
-    S^\prime]$ term represents the distribution of random trajectories orginating from the point $(S,B(S))$. The integral
-    therefore gives the fraction of trajectories which crossed the barrier at $S&lt;S^\prime$ and which can now be found at
-    $(S,\delta)$.
-    
-    Using this result, we can rewrite eqn.~(\ref{eq:OldExcursionMethod}):
+    and
     \begin{equation}
-      1 = \int_0^S f(S^\prime)\mathrm{d}S^\prime + \int_{-\infty}^{B(S)} \left[ P_0(\delta,S) - \int_{0}^{S} f(S^\prime)
-      P_0(\delta - B(S^\prime),S - S^\prime)\mathrm{d}S^\prime )\right] \mathrm{d} \delta ,
+     P^\prime(\delta|S,\tilde{\delta},\tilde{S}) = \frac{1}{\sqrt{2 \pi \Delta S[S,\tilde{S}]}} \exp\left\{-{\Delta \delta^2 [\delta,\tilde{\delta},S,\tilde{S}] \over 2 \Delta S [S,\tilde{S}]}\right\},
     \end{equation}
-    in general and, for the Gaussian distribution of eqn.~(\ref{eq:Gaussian}):
+    where we refer to $\Delta \delta[\delta,\tilde{\delta},S,\tilde{S}]$ as the ``effective offset'', and to $\Delta
+    S[S,\tilde{S}] = \mathrm{Var}(S) - \mathrm{Cov}(S,\tilde{S})$ as the ``residual variance''. Note that $\mathrm{Cov}(S,S_1) =
+    0$ (since all trajectories pass through $\delta_1$ at $S_1$), and so $\Delta S[S,S_1] = \mathrm{Var}(S)$.
+
+    For a standard Weiner process (such as applies to the standard case considered in excursion set theory, namely uncorrelated
+    and unconstrained steps), we have trivially that
     \begin{equation}
-      1 = \int_0^S f(S^\prime)\mathrm{d}S^\prime + \int_{-\infty}^{B(S)} \left[ \frac{1}{\sqrt{2 \pi S}}
-      \exp\left(-\frac{\delta^2}{2 S}\right) - \int_{0}^{S} f(S^\prime) \frac{1}{\sqrt{2 \pi (S-S^\prime)}}
-      \exp\left(-\frac{[\delta - B(S^\prime)]^2}{2 (S-S^\prime)}\right)\mathrm{d}S^\prime \right] \mathrm{d} \delta .
+     \Delta \delta[\delta,\tilde{\delta},S,\tilde{S}] = \delta - \tilde{\delta},
+    \end{equation}
+    and
+    \begin{equation}
+     \Delta S[S,\tilde{S}] = S - \tilde{S},
+    \end{equation}
+    since the Weiner process is invariant under translations of the starting point.
+
+    Using the above results, we can rewrite eqn.~(\ref{eq:OldExcursionMethod}):
+    \begin{equation}
+      1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} \left[ P_0(\delta,S) - \int_{0}^{S} f(\tilde{S})
+      P^\prime(\delta|S,\tilde{\delta},\tilde{S}) \mathrm{d} \delta \right] ,
+    \end{equation}
+    in general and, for the case of a Gaussian distribution:
+    \begin{equation}
+      1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} \left[ \frac{1}{\sqrt{2 \pi \Delta S[S,S_1]}}
+      \exp\left(-\frac{\Delta \delta^2[\delta,\delta_1,S,S_1]}{2 \Delta S[S,S_1]}\right) - \int_{0}^{S} f(\tilde{S}) \frac{1}{\sqrt{2 \pi \Delta S [S,\tilde{S}]}}
+      \exp\left(-\frac{\Delta \delta^2[\delta,B(\tilde{S}),S,\tilde{S}]}{2 \Delta S [S,\tilde{S}]}\right)\mathrm{d}\tilde{S} \right] \mathrm{d} \delta .
     \end{equation}
     The integral over $\mathrm{d}\delta$ can be carried out analytically to give:
     \begin{equation}
-     1 = \int_0^S f(S^\prime)\mathrm{d}S^\prime+ \hbox{erf}\left[\frac{B(S)}{\sqrt{2S}}\right] - \int_{0}^{S} f(S^\prime)
-     \hbox{erf}\left[\frac{B(S) - B(S^\prime)}{\sqrt{2 (S-S^\prime)}}\right] \mathrm{d}S^{\prime\prime}.
+     1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S}+ \hbox{erf}\left\{\frac{\Delta \delta [B(S),\delta_1,S,S_1]}{\sqrt{2\Delta S[S,S_1]}}\right\} - \int_{0}^{S} f(\tilde{S})
+     \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S [S,\tilde{S}]}}\right\} \mathrm{d}S^{\prime\prime}.
     \label{eq:NewExcursionMethod}
     \end{equation}
     We now discretize eqn.~(\ref{eq:NewExcursionMethod}). Specifically, we divide the $S$ space into $N$ intervals defined by
     the points:
     \begin{equation}
-      S_i = \left\{ \begin{array}{ll}
-                     0 &amp; \hbox{if } i=0 \\
-                     \sum_0^{i-1} \Delta S_i &amp; \hbox{if } i &gt; 1.
-                    \end{array}
-            \right.
+     S_i = \left\{ \begin{array}{ll}
+                    0 &amp; \hbox{if } i=0 \\
+                    \sum_{j=0}^{i-1} \Delta S_j &amp; \hbox{if } i &gt; 1.
+                   \end{array}
+           \right.
     \end{equation}
     Note that $f(0)=0$ by definition, so $f(S_0)=0$ always. We choose $\Delta S_i = S_\mathrm{max}/N$ (i.e. uniform spacing in
     $S$) when computing first crossing distributions, and $\Delta S_i \propto S_i$ (i.e. uniform spacing in $\log(S)$) when
@@ -87,63 +104,65 @@ Contains a module which implements a excursion set first crossing statistics cla
     
     Discretizing the integrals in eqn.~(\ref{eq:NewExcursionMethod}) gives:
     \begin{equation} \label{eq:Des1}
-     \int_0^{S_j} f(S^\prime)\d S^\prime = \sum_{i=0}^{j-1} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i
+     \int_0^{S_i} f(\tilde{S})\d \tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j
     \end{equation}
     and:
     \begin{equation} \label{eq:Des2}
-     \int_{0}^{S_j} f(S^\prime) \hbox{erf}\left[\frac{B(S) - B(S^\prime)}{\sqrt{2 (S-S^\prime)}}\right] \d S^\prime =
-     \sum_{i=0}^{j-1} \frac{1}{2} \left(f(S_i) \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] + f(S_{i+1})
-     \hbox{erf}\left[\frac{B(S_j) - B(S_{i+1})}{\sqrt{2 (S_j-S_{i+1})}}\right] \right) \Delta S_i.
+     \int_{0}^{S_i} f(\tilde{S}) \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S[S,\tilde{S}]}}\right\} \d \tilde{S} =
+     \sum_{j=0}^{i-1} \frac{1}{2} \left(f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j), S_i, S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
+     \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
     \end{equation}
     We can now rewrite eqn.~(\ref{eq:NewExcursionMethod}) in discretized form:
     \begin{equation} \label{eq:DesFinal1}
-     1 = \sum_{i=0}^{j-1} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i + \hbox{erf}\left[\frac{B(S_j)}{\sqrt{2S_j}}\right] -
-     \frac{1}{2} \sum_{i=0}^{j-1} \left( f(S_i) \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] + f(S_{i+1})
-     \hbox{erf}\left[\frac{B(S_j) - B(S_{i+1})}{\sqrt{2 (S_j-S_{i+1})}}\right] \right) \Delta S_i.
+     1 = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j + \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} -
+     \frac{1}{2} \sum_{j=0}^{i-1} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
+     \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
     \end{equation}
-    Solving eqn.~(\ref{eq:DesFinal1}) for $f(S_j)$:
+    Solving eqn.~(\ref{eq:DesFinal1}) for $f(S_i)$:
     \begin{eqnarray} \label{eq:DesFinal11}
-     \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left[\frac{B(S_j) - B(S_j)}{\sqrt{2 (S_j-S_j)}}\right] \right) \Delta S_{j-1}
-     f(S_j) &amp;=&amp; 1 - \sum_{i=0}^{j-2} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i - \frac{f(S_{j-1})}{2} \Delta S_{j-1} -
-     \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} \nonumber\\
-    &amp; &amp; + \frac{1}{2} \sum_{i=0}^{j-2} \left( f(S_i) \hbox{erf}\left\{\frac{[B(S_j) - B(S_i)]}{\sqrt{2 (S_j-S_i)}}\right\} +
-    f(S_{i+1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{i+1})]}{\sqrt{2 (S_j-S_{i+1})}}\right\} \right)\Delta S_i \nonumber \\
-     &amp; &amp; + \frac{1}{2} f(S_{j-1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{j-1})]}{\sqrt{2 (S_j-S_{j-1})}}\right\} \Delta S_{j-1}.
+     \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i), S_i, S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} \right) \Delta S_{i-1}
+     f(S_i) &amp;=&amp; 1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j - \frac{f(S_{i-1})}{2} \Delta S_{i-1} -
+     \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} \nonumber\\
+    &amp; &amp; + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
+    f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
+     &amp; &amp; + \frac{1}{2} f(S_{i-1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{i-1}),S_i,S_{i-1}]}{\sqrt{2 \Delta S [S_i,S_{i-1}]}}\right\} \Delta S_{i-1}.
     \end{eqnarray}
     For all barriers that we consider:
     \begin{equation} 
-    \hbox{erf}\left[\frac{B(S_j) - B(S_j)}{\sqrt{2 (S_j-S_j)}}\right] = 0.
+    \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i),S_i,S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} = 0.
     \end{equation}
     We can then simplify eqn.~(\ref{eq:DesFinal11}):
     \begin{eqnarray} \label{eq:DesFinal2}
-       f(S_j) &amp;=&amp; {2 \over \Delta S_{j-1}}\left[1 - \sum_{i=0}^{j-2} \frac{f(S_i) + f(S_{i+1})}{2} \Delta S_i -
-       \frac{f(S_{j-1})}{2} \Delta S_{j-1} - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} \right.  \nonumber\\
-    &amp; &amp; + \frac{1}{2} \sum_{i=0}^{j-2} \left( f(S_i) \hbox{erf}\left\{\frac{[B(S_j) - B(S_i)]}{\sqrt{2 (S_j-S_i)}}\right\} +
-    f(S_{i+1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{i+1})]}{\sqrt{2 (S_j-S_{i+1})}}\right\} \right)\Delta S_i \nonumber \\
-     &amp; &amp; \left. + \frac{1}{2} f(S_{j-1}) \hbox{erf}\left\{\frac{[B(S_j) - B(S_{j-1})]}{\sqrt{2 (S_j-S_{j-1})}}\right\} \Delta
-     S_{j-1}\right].
+       f(S_i) &amp;=&amp; {2 \over \Delta S_{i-1}}\left[1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j -
+       \frac{f(S_{i-1})}{2} \Delta S_{i-1} - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S [S_i,S_1] }}\right\} \right.  \nonumber\\
+    &amp; &amp; + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
+    f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S [S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
+     &amp; &amp; \left. + \frac{1}{2} f(S_{i-1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{i-1}),S_i,S_{i-1}]}{\sqrt{2 \Delta S [S_i,S_{i-1}]}}\right\} \Delta
+     S_{i-1}\right].
     \end{eqnarray}
     Consolidating terms in the summations:
     \begin{equation} \label{eq:DesFinal2a}
-       f(S_j) = {2 \over \Delta S_{j-1}}\left[1 - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\} - \sum_{i=0}^{j-1}
-       \left\{ 1-\hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] \right\} f(S_i) {\Delta S_{i-1} + \Delta S_i
+       f(S_i) = {2 \over \Delta S_{i-1}}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S[S_i,S_1]}}\right\} - \sum_{j=0}^{i-1}
+       \left( 1-\hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} \right) f(S_j) {\Delta S_{j-1} + \Delta S_j
        \over 2} \right].
     \end{equation}
-    In the case of constant $\Delta S_i(=\Delta S)$ this can be simplified further:
+    In the case of constant $\Delta S_j(=\Delta S)$ this can be simplified further:
     \begin{equation} \label{eq:DesFinal3}
-       f(S_j) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{B(S_j)}{\sqrt{2S_j}}\right\}\right] - 2 \sum_{i=0}^{j-1}
-       \left\{1- \hbox{erf}\left[\frac{B(S_j) - B(S_i)}{\sqrt{2 (S_j-S_i)}}\right] \right\} f(S_i).
+       f(S_i) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S [S_i,S_1]}}\right\}\right] - 2 \sum_{j=0}^{i-1}
+       \left(1- \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} \right) f(S_j).
     \end{equation}
     
     In either case (i.e. eqns.~\ref{eq:DesFinal2a} and \ref{eq:DesFinal3}) solution proceeds recursively: $f(S_0)=0$ by
-    definition, $f(S_1)$ depends only on the known barrier and $f(S_0)$, $f(S_j)$ depends only on the known barrier and
-    $f(S_{&lt;j})$.
+    definition, $f(S_1)$ depends only on the known barrier and $f(S_0)$, $f(S_i)$ depends only on the known barrier and
+    $f(S_{&lt;i})$.
     
-    The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of
-    the progenitor in the $(\delta,S)$ plane, plus a small shift in time. The non-crossing rate is computed directly by
-    integrating over the first crossing rate distribution. Note that since the numerical integration occurs only up to a finite
-    maximum $S$, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality they should have
-    zero non-crossing rate. As such, use of this method for such barriers is not recommended.
+    The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of the
+    progenitor in the $(\delta,S)$ plane, plus a small shift in time. The non-crossing rate, $g(S_\mathrm{max})$, defined as the
+    rate at which trajectories reach the maximum possible variance, $S_\mathrm{max}$, without ever crossing the barrier---is
+    computed directly by integrating over the first crossing rate distribution, i.e. $g(S_\mathrm{max}) = 1
+    -\int_0^{S_\mathrm{max}} f(\tilde{S}) \mathrm{d}\tilde{S}$. Note that since the numerical integration occurs only up to a
+    finite maximum $S_\mathrm{max}$, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality
+    they should have zero non-crossing rate. As such, use of this method for such barriers is not recommended.
    </description>
   </excursionSetFirstCrossing>
   !!]
@@ -192,15 +211,16 @@ Contains a module which implements a excursion set first crossing statistics cla
    contains
      !![
      <methods>
-       <method description="Interpolate in the tabulated excursion set barrier crossing rates."                                            method="rateInterpolate"   />
-       <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate"      />
-       <method description="Build a range of variances at which to tabulate the excursion set solutions."                                  method="varianceRange"     />
-       <method description="Return the maximum variance to which to tabulate."                                                             method="varianceLimit"     />
-       <method description="Compute the residual variance between two points."                                                             method="varianceResidual"  />
-       <method description="Compute the effective offset between two points."                                                              method="offsetEffective"   />
-       <method description="Read excursion set solutions from file."                                                                       method="fileRead"          />
-       <method description="Write excursion set solutions to file."                                                                        method="fileWrite"         />
-       <method description="Initialize the file name for storing excursion set data."                                                      method="fileNameInitialize"/>
+       <method description="Interpolate in the tabulated excursion set barrier crossing rates."                                            method="rateInterpolate"           />
+       <method description="Interpolate in the tabulated excursion set barrier non-crossing rates."                                        method="rateNonCrossingInterpolate"/>
+       <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate"              />
+       <method description="Build a range of variances at which to tabulate the excursion set solutions."                                  method="varianceRange"             />
+       <method description="Return the maximum variance to which to tabulate."                                                             method="varianceLimit"             />
+       <method description="Compute the residual variance between two points."                                                             method="varianceResidual"          />
+       <method description="Compute the effective offset between two points."                                                              method="offsetEffective"           />
+       <method description="Read excursion set solutions from file."                                                                       method="fileRead"                  />
+       <method description="Write excursion set solutions to file."                                                                        method="fileWrite"                 />
+       <method description="Initialize the file name for storing excursion set data."                                                      method="fileNameInitialize"        />
      </methods>
      !!]
      final     ::                               farahiDestructor
@@ -228,7 +248,7 @@ Contains a module which implements a excursion set first crossing statistics cla
   end interface excursionSetFirstCrossingFarahi
 
   ! Parameters controlling tabulation range
-  double precision                , parameter :: farahiRateRedshiftMaximum=30.0d0 , farahiRateRedshiftMinimum=0.0d0
+  double precision, parameter :: farahiRateRedshiftMaximum=30.0d0 , farahiRateRedshiftMinimum=0.0d0
 
 contains
 
@@ -1368,8 +1388,8 @@ contains
     !   δ̃  = deltaProgenitor     +deltaCurrent
     !   δ  = deltaIntermediate   +deltaCurrent
     !    
-    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
-    ! appear with "varianceCurrent" added to them in the above.
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ -
+    ! which is why they appear with "varianceCurrent" added to them in the above.
     !
     ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
     ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following
@@ -1389,9 +1409,9 @@ contains
     !!}
     use :: Kind_Numbers, only : kind_quad
     implicit none
-    real             (kind_quad                     )                :: offsetEffective
+    real            (kind_quad                      )                :: offsetEffective
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    real             (kind_quad                     ), intent(in   ) :: deltaCurrent             , deltaIntermediate , &
+    real            (kind_quad                      ), intent(in   ) :: deltaCurrent             , deltaIntermediate , &
          &                                                              deltaProgenitor          , varianceCurrent   , &
          &                                                              varianceIntermediate     , varianceProgenitor
     double precision                                 , intent(in   ) :: time
@@ -1404,8 +1424,8 @@ contains
     !   S̃ = varianceProgenitor  +varianceCurrent
     !   S  = varianceIntermediate+varianceCurrent
     !    
-    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
-    ! appear with "varianceCurrent" added to them in the above.
+    ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ -
+    ! which is why they appear with "varianceCurrent" added to them in the above.
     !
     ! This function is used in the calculation of the distribution of δ at some S for trajectories originating from (S₁,δ₁) and
     ! which did not cross the barrier at any intermediate variance. As such suffixes in variable names have the following

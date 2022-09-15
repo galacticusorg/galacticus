@@ -20,17 +20,44 @@
 !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
 !!{
-Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+Implements an excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint
+method to perform the integrations \citep{du_substructure_2017}.
 !!}
 
   !![
   <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
-   <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
+    <description>
+      An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
+      to perform the integrations \citep{du_substructure_2017}.
+
+      Specifically, in the method used by \cite{benson_dark_2012} the integral equation for $f(S)$ (see
+      equation~\ref{eq:OldExcursionMethod}) is solved using the trapezoidal rule (see \refClass{excursionSetFirstCrossingFarahi}
+      for complete details):
+      \begin{equation}
+       \int_0^{S_j} f(\tilde{S})K(S_j,\tilde{S}) \mathrm{d}\tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j)K(S_i,S_j)+f(S_{j+1})K(S_i,S_{j+1})}{2} \Delta S_j,
+     \end{equation}
+     where
+     \begin{equation}
+       K(S_i,\tilde{S}) = \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(\tilde{S}), S_i, \tilde{S}]}{\sqrt{2 \Delta S[S_i,\tilde{S}]}}\right\},
+     \end{equation}
+     is the kernel of the integral equation for $f(S)$ which is being solved.
+
+     The method used in this class increases the precision of the solver by replacing the trapezoidal integration rule in the
+     above with a mid-point integration rule:
+     \begin{equation}
+       \int_0^{S_j} f(\tilde{S})K(S_j,\tilde{S}) \mathrm{d}\tilde{S} = \sum_{j=0}^{i-1} f(S_{j+1/2})K(S_i,S_{j+1/2}) \Delta S_j,
+      \end{equation}
+      such that the first crossing distribution at $S_{i-1/2}$ is given by
+      \begin{equation}
+       f(S_{i-1/2}) = \frac{1}{K(S_i,S_{i-1/2})\Delta S_{i-1/2}} \left( \hbox{erfc}\left\{ \frac{\Delta \delta [B(S_i),B(S_1),S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}} \right\} - \sum_{j=0}^{i-2} f(S_{j+1/2} K(S_i,S_{j+1/2}) \Delta S_j) \right).
+      \end{equation}
+    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
      !!{
-     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
+     to perform the integrations \citep{du_substructure_2017}.
      !!}
      private
    contains
