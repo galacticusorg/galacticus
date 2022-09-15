@@ -27,6 +27,7 @@ module Merger_Tree_Build_Controllers
   !!}
   use :: Galacticus_Nodes   , only : treeNode
   use :: Merger_Tree_Walkers, only : mergerTreeWalkerClass
+  use :: Merger_Tree_Branching, only : mergerTreeBranchingProbabilityClass
   private
 
   !![
@@ -42,6 +43,25 @@ module Merger_Tree_Build_Controllers
     <argument>type (treeNode             ), intent(inout), pointer :: node       </argument>
     <argument>class(mergerTreeWalkerClass), intent(inout)          :: treeWalker_</argument>
    </method>
+   <method name="branchingProbabilityObject" >
+    <description>Control the behavior of a tree build.</description>
+    <type>pointer?</type>
+    <pass>yes?</pass>
+    <argument>type (mergerTreeBranchingProbabilityClass             ), intent(inout), pointer :: mergerTreeBranchingProbability_       </argument>
+   </method>
+  </functionClass>
+
+  <functionClass>
+   <name>mergerTreeBuildControllerConstrained</name>
+   <descriptiveName>Merger Tree Build Controllers For Constrained Trees</descriptiveName>
+   <description>Class providing constrained or unconstrained label.</description>
+   <default>unconstrained</default>
+   <method name="constrained" >
+    <description>Mark a tree build as either constrained or unconstrained.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type (treeNode             ), intent(inout), pointer :: node       </argument>
+    <argument>class(mergerTreeWalkerClass), intent(inout)          :: treeWalker_</argument>
   </functionClass>
   !!]
 

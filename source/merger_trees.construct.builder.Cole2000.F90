@@ -376,6 +376,7 @@ contains
              branchIsDone=.true.
           else
              ! Find branching probability rate per unit deltaW.
+             self%mergerTreeBranchingProbability = self%mergerTreeBuildController_%branchingProbabilityObject(mergerTreeBranchingProbabilityClass) ?
              branchingProbabilityRate=+self%mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundUpper,node) &
                   &                   *rootVarianceGrowthFactor
              ! Find accretion rate.
