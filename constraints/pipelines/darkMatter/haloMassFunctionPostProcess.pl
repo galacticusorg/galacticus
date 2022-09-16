@@ -389,8 +389,8 @@ foreach my $simulation ( @simulations ) {
 		$job->{'launchFile'} = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
 		$job->{'logFile'   } = $outputDirectory."/haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
 		$job->{'label'     } =                   "haloMassFunction_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
-		$job->{'ppn'       } = 16;
-		$job->{'nodes'     } =  1;
+		$job->{'ppn'       } = 1;
+		$job->{'nodes'     } = 1;
 		$job->{'mpi'       } = "no";
 		push(@jobs,$job)
 		    unless ( -e $outputDirectory."/haloMassFunction".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
@@ -400,23 +400,23 @@ foreach my $simulation ( @simulations ) {
 	    $parameters->{'outputFileName'}->{'value'} = $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".hdf5";
 	    $parameters->{'haloMassFunction'}->{'value'} = "despali2015";
 	    delete($parameters->{'haloMassFunction'}->{$_})
-		foreach ( "errorFractionalMaximum", "toleranceRelative", "haloMassFunction" );
+	    	foreach ( "errorFractionalMaximum", "toleranceRelative", "haloMassFunction" );
 	    open(my $parameterFile,">",$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml");
 	    print $parameterFile $xml->XMLout($parameters,RootName => "parameters");
 	    close($parameterFile);
 	    # Generate a job to create Despali et al. (2015) mass functions.
 	    {
-		my $job;
-		$job->{'command'   } =
-		    "Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
-		$job->{'launchFile'} = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
-		$job->{'logFile'   } = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
-		$job->{'label'     } =                   "haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
-		$job->{'ppn'       } = 16;
-		$job->{'nodes'     } =  1;
-		$job->{'mpi'       } = "no";
-		push(@jobs,$job)
-		    unless ( -e $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
+	    	my $job;
+	    	$job->{'command'   } =
+	    	    "Galacticus.exe ".$outputDirectory."/haloMassFunctionBase_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".xml";
+	    	$job->{'launchFile'} = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".sh" ;
+	    	$job->{'logFile'   } = $outputDirectory."/haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.".log";
+	    	$job->{'label'     } =                   "haloMassFunction_Despali2015_".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel       ;
+	    	$job->{'ppn'       } = 1;
+	    	$job->{'nodes'     } = 1;
+	    	$job->{'mpi'       } = "no";
+	    	push(@jobs,$job)
+	    	    unless ( -e $outputDirectory."/haloMassFunction_Despali2015".$simulation->{'label'}.$realizationLabel."_".$redshiftLabel.":MPI0000.hdf5" );
 	    }
 	}
     }
@@ -818,10 +818,10 @@ for(my $i=0;$i<=$iMax;++$i) {
 	# Iterate over realizations.
 	foreach my $realization ( @{$simulation->{'realizations'}} ) {
 	    my $redshiftLabelLocal   = sprintf("%5.3f",1.0/$simulation->{'expansionFactors'}->[$i]-1.0);
-	    my $target              = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabelLocal.".hdf5");
-	    my $targetSimulation    = $target          ->group  ('simulation0001'   );
-	    (my $massRegion       ) = $targetSimulation->attrGet('massRegion'       );
-	    (my $overdensityRegion) = $targetSimulation->attrGet('overdensityRegion');
+	    my $target                   = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/haloMassFunction_".$simulation->{'label'}."_".$realization."_z".$redshiftLabelLocal.".hdf5");
+	    my $targetSimulation         = $target          ->group  ('simulation0001'        );
+	    (my $massEnvironment       ) = $targetSimulation->attrGet('massEnvironment'       );
+	    (my $overdensityEnvironment) = $targetSimulation->attrGet('overdensityEnvironment');
 	    my $realizationLabel = $realization eq "" ? "" : "_".$realization;
 	    my $countHalos =
 		(
@@ -848,12 +848,12 @@ for(my $i=0;$i<=$iMax;++$i) {
 	    my $overdensityLow  = -1.50;
 	    my $overdensityHigh = +1.10;
 	    my $fraction;
-	    if ( $overdensityRegion < $overdensityLow ) {
+	    if ( $overdensityEnvironment      < $overdensityLow  ) {
 		$fraction = 0.0;
-	    } elsif ( $overdensityRegion > $overdensityHigh ) {
+	    } elsif ( $overdensityEnvironment > $overdensityHigh ) {
 		$fraction = 1.0;
 	    } else {
-		$fraction = sclr(($overdensityRegion-$overdensityLow)/($overdensityHigh-$overdensityLow));
+		$fraction = sclr(($overdensityEnvironment-$overdensityLow)/($overdensityHigh-$overdensityLow));
 	    }
 	    my @colorLowDensity  = ( 237.0, 0.83, 0.94 );
 	    my @colorHighDensity = (  13.0, 0.83, 0.94 ); 
