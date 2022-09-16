@@ -125,11 +125,11 @@ contains
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
     type           (nBodyData                ), intent(inout), dimension(:  ) :: simulations
     integer         (c_size_t                ), pointer      , dimension(:,:) :: selfBoundStatus
-    double precision                          , parameter                     :: sampleRate          =1.0d0
-    double precision                          , pointer      , dimension(:,:) :: positionMean               , velocityMean
-    double precision                          , pointer      , dimension(:,:) :: position                   , velocity
+    double precision                          , parameter                     :: sampleRate     =1.0d0
+    double precision                          , pointer      , dimension(:,:) :: positionMean          , velocityMean
+    double precision                          , pointer      , dimension(:,:) :: position              , velocity
     double precision                                                          :: weight
-    integer         (c_size_t                )                                :: i                          , j           , &
+    integer         (c_size_t                )                                :: i                     , j           , &
          &                                                                       iSimulation
     
     do iSimulation=1,size(simulations)
