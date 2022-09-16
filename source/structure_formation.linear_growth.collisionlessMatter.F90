@@ -42,7 +42,9 @@
      private
      logical                                                 :: tableInitialized             =  .false.
      double precision                                        :: tableTimeMinimum                       , tableTimeMaximum, &
-          &                                                     normalizationMatterDominated
+          &                                                     normalizationMatterDominated           , valuePrevious   , &
+          &                                                     timePrevious
+     type            (enumerationNormalizeType)              :: normalizePrevious
      class           (table1D                 ), allocatable :: growthFactor
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
@@ -110,10 +112,12 @@ contains
     <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
-    self%tableInitialized=.false.
-    self%tableTimeMinimum= 1.0d0
-    self%tableTimeMaximum=20.0d0
-    timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
+    self%tableInitialized =.false.
+    self%tableTimeMinimum = 1.0d0
+    self%tableTimeMaximum =20.0d0
+    self%timePrevious     =-huge(0.0d0)
+    self%normalizePrevious=normalizeMatterDominated
+    timeBigCrunch         =self%cosmologyFunctions_%timeBigCrunch()
     if (timeBigCrunch > 0.0d0) then
        ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
        if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                                          *timeBigCrunch
@@ -287,15 +291,22 @@ contains
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
-    ! Remake the table if necessary.
-    call self%retabulate(time_)
-    ! Interpolate to get the expansion factor.
-    collisionlessMatterValue=self%growthFactor%interpolate(time_)
-    ! Normalize.
-    select case (normalize_%ID)
-    case (normalizeMatterDominated%ID)
-       collisionlessMatterValue=collisionlessMatterValue*self%normalizationMatterDominated
-    end select
+    ! Check if previous result needs to be updated.
+    if (time_ /= self%timePrevious .or. normalize_ /= self%normalizePrevious) then
+       ! Remake the table if necessary.
+       call self%retabulate(time_)
+       ! Interpolate to get the expansion factor.
+       self%valuePrevious=self%growthFactor%interpolate(time_)
+       ! Normalize.
+       select case (normalize_%ID)
+       case (normalizeMatterDominated%ID)
+          self%valuePrevious=+self%valuePrevious                &
+               &             *self%normalizationMatterDominated
+       end select
+       self%timePrevious     =time_
+       self%normalizePrevious=normalize_
+    end if
+    collisionlessMatterValue=self%valuePrevious
     return
   end function collisionlessMatterValue
 

@@ -1061,21 +1061,21 @@ contains
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
-         &  .and. &
+         &  .and.                                                                                                   &
          &   Values_Agree(                                                                                          &
          &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
-         &  .and. &
+         &  .and.                                                                                                   &
          &   Values_Agree(                                                                                          &
          &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
-         &  .and. &
+         &  .and.                                                                                                   &
          &   Values_Agree(                                                                                          &
          &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &

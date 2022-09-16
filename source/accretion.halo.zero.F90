@@ -32,15 +32,17 @@
      !!}
      private
    contains
-     procedure :: branchHasBaryons       => zeroBranchHasBaryons
-     procedure :: accretionRate          => zeroAccretionRate
-     procedure :: accretedMass           => zeroAccretedMass
-     procedure :: failedAccretionRate    => zeroFailedAccretionRate
-     procedure :: failedAccretedMass     => zeroFailedAccretedMass
-     procedure :: accretionRateMetals    => zeroAccretionRateMetals
-     procedure :: accretedMassMetals     => zeroAccretedMassMetals
-     procedure :: accretionRateChemicals => zeroAccretionRateChemicals
-     procedure :: accretedMassChemicals  => zeroAccretedMassChemicals
+     procedure :: branchHasBaryons          => zeroBranchHasBaryons
+     procedure :: accretionRate             => zeroAccretionRate
+     procedure :: accretedMass              => zeroAccretedMass
+     procedure :: failedAccretionRate       => zeroFailedAccretionRate
+     procedure :: failedAccretedMass        => zeroFailedAccretedMass
+     procedure :: accretionRateMetals       => zeroAccretionRateMetals
+     procedure :: accretedMassMetals        => zeroAccretedMassMetals
+     procedure :: failedAccretionRateMetals => zeroFailedAccretionRateMetals
+     procedure :: failedAccretedMassMetals  => zeroFailedAccretedMassMetals
+     procedure :: accretionRateChemicals    => zeroAccretionRateChemicals
+     procedure :: accretedMassChemicals     => zeroAccretedMassChemicals
   end type accretionHaloZero
 
   interface accretionHaloZero
@@ -168,6 +170,38 @@ contains
     zeroAccretedMassMetals=zeroAbundances
     return
   end function zeroAccretedMassMetals
+
+  function zeroFailedAccretionRateMetals(self,node,accretionMode)
+    !!{
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Abundances_Structure, only : abundances, zeroAbundances
+    implicit none
+    type   (abundances       )                :: zeroFailedAccretionRateMetals
+    class  (accretionHaloZero), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    type (enumerationAccretionModeType)                   , intent(in   ) :: accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
+
+    zeroFailedAccretionRateMetals=zeroAbundances
+    return
+  end function zeroFailedAccretionRateMetals
+
+  function zeroFailedAccretedMassMetals(self,node,accretionMode)
+    !!{
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
+    use :: Abundances_Structure, only : abundances, zeroAbundances
+    implicit none
+    type   (abundances       )                :: zeroFailedAccretedMassMetals
+    class  (accretionHaloZero), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    type (enumerationAccretionModeType)                   , intent(in   ) :: accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
+
+    zeroFailedAccretedMassMetals=zeroAbundances
+    return
+  end function zeroFailedAccretedMassMetals
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
     !!{

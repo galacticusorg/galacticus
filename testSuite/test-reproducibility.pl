@@ -197,7 +197,7 @@ foreach my $test ( @tests ) {
 		    my $propertyName  = $matches[0];
 		    my $propertyIndex = $matches[2];
 		    my $replacement = "\$properties{'$1'}";
-		    $replacement .= "->((".$propertyIndex."),:)"
+		    $replacement .= "->slice('(".$propertyIndex.")','')"
 			if ( defined($propertyIndex) );
 		    $assertion->{'expression'} =~ s/%\[[^%]+\]/$replacement/;
 		    ++$propertyNames{$propertyName};

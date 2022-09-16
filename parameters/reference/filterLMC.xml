@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference filter for LMC selection -->
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Build a filter to select trees with LMCs -->
+  <mergerTreeFilter value="anyNode">
+    <!-- Apply all LMC conditions -->
+    <galacticFilter value="all">
+      <!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+      <galacticFilter value="mainBranch"/>
+      <!-- Consider only halos existing in the last 2 Gyr -->
+      <galacticFilter value="highPass">
+        <nodePropertyExtractor value="time"/>
+        <threshold             value="11.8"/>
+      </galacticFilter>
+      <!-- Consider only halos with a rank-2 child with a maximum circular velocity above 55 km/s -->
+      <galacticFilter value="childNode">
+        <childRank value="2"/>
+        <galacticFilter value="highPass">
+	  <nodePropertyExtractor value="velocityMaximum"/>
+	  <threshold             value="55.0"           />
+        </galacticFilter>
+      </galacticFilter>
+    </galacticFilter>
+  </mergerTreeFilter>
+  
+</parameters>

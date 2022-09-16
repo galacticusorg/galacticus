@@ -29,7 +29,7 @@ Implements a geometry corresponding to the detectability of classical Local Grou
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupClassical
      private
-     double precision:: distanceMaximumSurvey, massThreshold
+     double precision :: distanceMaximumSurvey, massThreshold
    contains
      procedure :: fieldCount                => localGroupClassicalFieldCount
      procedure :: distanceMaximum           => localGroupClassicalDistanceMaximum

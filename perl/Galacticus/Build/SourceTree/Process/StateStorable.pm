@@ -119,9 +119,9 @@ subroutine {$className}StateRestore(self,stateFile,gslStateFile)
  class  ({$className}), intent(inout)               :: self
  integer              , intent(in   )               :: stateFile
  type   (c_ptr       ), intent(in   )               :: gslStateFile
- integer(c_size_t    ), allocatable  , dimension(:) :: storedShape
- logical                                            :: wasAllocated
 CODE
+	my $storedShapeRequired  = 0;
+	my $wasAllocatedRequired = 0;
 	# Close function.
 	my $outputCodeCloser = fill_in_string(<<'CODE', PACKAGE => 'code');
  end select
@@ -232,12 +232,14 @@ CODE
 						$outputCode .= "  end if\n";
 					    }
 					    if ( $allocatable ) {
+						$wasAllocatedRequired =1;
 						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 						$inputCode  .= " if (wasAllocated) then\n";
 					    }
 					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    if ( $allocatable ) {
+						$storedShapeRequired = 1;
 						$inputCode  .= "  allocate(storedShape(".$rank."))\n";
 						$inputCode  .= &performIO("  read (stateFile) storedShape\n");
 						$inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
@@ -276,7 +278,9 @@ CODE
 					foreach my $variableName ( @{$declaration->{'variables'}} ) {
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $labelUsed   = 1;
+					    $storedShapeRequired  = 1;
+					    $wasAllocatedRequired = 1;
+					    $labelUsed            = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 					    $outputCode .= "   if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    $outputCode .= &performIO("    write (label,'(i16)') sizeof(self%".$variableName.")\n");
@@ -371,6 +375,17 @@ CODE
 	    unless ( $gslStateFileUsed );
 	push(@outputUnusedVariables,"label"                           )
 	    unless ( $labelUsed        );
+
+	if ( $storedShapeRequired ) {
+	    $inputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ integer(c_size_t    ), allocatable  , dimension(:) :: storedShape
+CODE
+	}
+	if ( $wasAllocatedRequired ) {
+	    $inputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ logical                                            :: wasAllocated
+CODE
+	}
 	if ( $transferUsed     ) {
 	    $outputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
  integer  (kind=1      ), dimension(:) , allocatable :: transferred

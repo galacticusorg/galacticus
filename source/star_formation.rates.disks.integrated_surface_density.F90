@@ -22,8 +22,9 @@
   the disk.
   !!}
 
+  use :: Numerical_Integration                    , only : integrator
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
-  
+
   !![
   <starFormationRateDisks name="starFormationRateDisksIntgrtdSurfaceDensity">
    <description>
@@ -43,6 +44,7 @@
      !!}
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
+     type            (integrator                               )          :: integrator_
      double precision                                                     :: tolerance                                      , starFormationRatePrevious
    contains
      final     ::         intgrtdSurfaceDensityDestructor
@@ -97,14 +99,19 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
     !!}
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
     type            (starFormationRateDisksIntgrtdSurfaceDensity)                        :: self
     double precision                                             , intent(in   )         :: tolerance
     class           (starFormationRateSurfaceDensityDisksClass  ), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
+    ! Set an absolute tolerance for star formation rate integration. The value chosen is such that below this tolerance much less
+    ! than a single star would form over the age of the Universe.
+    double precision                                             , parameter             :: toleranceAbsolute                    =1.0d-12
     !![
     <constructorAssign variables="tolerance, *starFormationRateSurfaceDensityDisks_"/>
     !!]
 
+    self%integrator_=integrator(intgrtdSurfaceDensityIntegrand,toleranceAbsolute=toleranceAbsolute,toleranceRelative=self%tolerance,integrationRule=GSL_Integ_Gauss15)
     return
   end function intgrtdSurfaceDensityConstructorInternal
 
@@ -128,7 +135,6 @@ contains
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentDisk, treeNode
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator       , GSL_Integ_Gauss15
     implicit none
     class           (starFormationRateDisksIntgrtdSurfaceDensity), intent(inout), target         :: self
     type            (treeNode                                   ), intent(inout), target         :: node
@@ -137,12 +143,8 @@ contains
     double precision                                             , allocatable  , dimension(:,:) :: intervals
     class           (nodeComponentDisk                          ), pointer                       :: disk
     double precision                                             , parameter                     :: radiusInnerDimensionless=0.0d+00, radiusOuterDimensionless=10.0d0
-    ! Set an absolute tolerance for star formation rate integration. The value chosen is such that below this tolerance much less
-    ! than a single star would form over the age of the Universe.
-    double precision                                             , parameter                     :: toleranceAbsolute       =1.0d-12
     double precision                                                                             :: radiusDisk                      , massGas                        , &
          &                                                                                          radiusInner                     , radiusOuter
-    type            (integrator                                 )                                :: integrator_
     integer                                                                                      :: i
 
     ! Test whether the star formation rate surface density function changed. If it did not we can re-use the previous integral.
@@ -167,15 +169,14 @@ contains
           ! Get a set of intervals into which this integral should be broken.
           intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter,intervalIsAnalytic,integralsAnalytic)
           ! Compute the star formation rate. A low order integration rule (GSL_Integ_Gauss15) works well here.
-          integrator_=integrator(intgrtdSurfaceDensityIntegrand,toleranceAbsolute=toleranceAbsolute,toleranceRelative=self%tolerance,integrationRule=GSL_Integ_Gauss15)
           intgrtdSurfaceDensityRate=0.0d0
           do i=1,size(intervals,dim=2)
              if (intervalIsAnalytic(i)) then
-                intgrtdSurfaceDensityRate=+            intgrtdSurfaceDensityRate                                &
-                     &                    +            integralsAnalytic        (                           i )
+                intgrtdSurfaceDensityRate=+                 intgrtdSurfaceDensityRate                                &
+                     &                    +                 integralsAnalytic        (                           i )
              else
-                intgrtdSurfaceDensityRate=+            intgrtdSurfaceDensityRate                                &
-                     &                    +integrator_%integrate                (intervals(1,i),intervals(2,i))
+                intgrtdSurfaceDensityRate=+                 intgrtdSurfaceDensityRate                                &
+                     &                    +self%integrator_%integrate                (intervals(1,i),intervals(2,i))
              end if
           end do
           intgrtdSurfaceDensityRate=+2.0d0                     &

@@ -323,13 +323,13 @@ contains
 
   end function projectedDensityExtract
 
-  subroutine projectedDensityNames(self,time,names)
+  subroutine projectedDensityNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily projectedDensity} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
-    double precision                                       , intent(in   )                             :: time
+    double precision                                       , intent(in   ), optional                   :: time
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
@@ -340,13 +340,13 @@ contains
     return
   end subroutine projectedDensityNames
 
-  subroutine projectedDensityDescriptions(self,time,descriptions)
+  subroutine projectedDensityDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
-    double precision                                       , intent(in   )                             :: time
+    double precision                                       , intent(in   ), optional                   :: time
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -357,13 +357,13 @@ contains
     return
   end subroutine projectedDensityDescriptions
 
-  subroutine projectedDensityColumnDescriptions(self,time,descriptions)
+  subroutine projectedDensityColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
-    double precision                                       , intent(in   )                             :: time
+    double precision                                       , intent(in   ), optional                   :: time
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -380,7 +380,7 @@ contains
     implicit none
     double precision                                       , allocatable  , dimension(:) :: projectedDensityUnitsInSI
     class           (nodePropertyExtractorProjectedDensity), intent(inout)               :: self
-    double precision                                       , intent(in   )               :: time
+    double precision                                       , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(projectedDensityUnitsInSI(self%elementCount_))

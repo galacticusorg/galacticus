@@ -355,18 +355,18 @@ contains
        ! Set module-scope pointers.
        simpleSelf_ => self
        simpleNode_ => node
-       ! Check if cooling time at halo center is reached.
-       if (coolingRadiusRoot(zeroRadius) > 0.0d0) then
-          ! Cooling time at halo center exceeds the time available, return zero radius.
-          self%radiusStored=zeroRadius
-          simpleRadius     =self%radiusStored
-          return
-       end if
        ! Check if cooling time at hot halo outer radius is reached.
        outerRadius=hotHalo%outerRadius()
        if (coolingRadiusRoot(outerRadius) < 0.0d0) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
           self%radiusStored=outerRadius
+          simpleRadius     =self%radiusStored
+          return
+       end if
+       ! Check if cooling time at halo center is reached.
+       if (coolingRadiusRoot(zeroRadius) > 0.0d0) then
+          ! Cooling time at halo center exceeds the time available, return zero radius.
+          self%radiusStored=zeroRadius
           simpleRadius     =self%radiusStored
           return
        end if

@@ -31,15 +31,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMulti">
    <description>A multi output extractor property extractor class.</description>
-   <deepCopy>
-    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
-   </stateStore>
-   <allowedParameters>
-     <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
-   </allowedParameters>
+   <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti
@@ -389,7 +381,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time) 
              if (elementCount > 0) then
-                call extractor_%names(time,namesTmp)
+                call extractor_%names(namesTmp,time)
                 names(offset+1:offset+elementCount)=namesTmp
                 deallocate(namesTmp)
              end if
@@ -463,7 +455,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                call extractor_%columnDescriptions(time,descriptions)
+                call extractor_%columnDescriptions(descriptions,time)
                 return
              end if
           end if
@@ -536,7 +528,7 @@ contains
           if (elementType == elementTypeDouble) then
              elementCount=extractor_%elementCount(time)
              if (elementCount > 0) then
-                call extractor_%descriptions(time,descriptionsTmp)
+                call extractor_%descriptions(descriptionsTmp,time)
                 descriptions(offset+1:offset+elementCount)=descriptionsTmp
                 deallocate(descriptionsTmp)
              end if

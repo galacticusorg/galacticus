@@ -29,15 +29,7 @@
   !![
   <nodeOperator name="nodeOperatorMulti">
    <description>A multi node operator property process class.</description>
-   <deepCopy>
-    <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
-   </allowedParameters>
+   <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMulti

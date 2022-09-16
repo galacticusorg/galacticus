@@ -24,15 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingSummation">
    <description>A dark matter profile heating model which sums over other heat sources.</description>
-   <deepCopy>
-    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
-   </allowedParameters>
+   <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
   </darkMatterProfileHeating>
   !!]
 

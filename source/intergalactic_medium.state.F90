@@ -76,6 +76,13 @@ module Intergalactic_Medium_State
     <argument>double precision, intent(in   )           :: time</argument>
     <code>intergalacticMediumStateDoublyIonizedHeliumFraction=1.0d0-self%singlyIonizedHeliumFraction(time)-self%neutralHeliumFraction(time)</code>
    </method>
+   <method name="metallicity" >
+    <description>Return the metallicity (mass fraction) in the \gls{igm} at the given time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   )           :: time</argument>
+    <code>intergalacticMediumStateMetallicity=0.0d0</code>
+   </method>
    <method name="temperature" >
     <description>Return the temperature (in Kelvin) of the \gls{igm} at the given time.</description>
     <type>double precision</type>

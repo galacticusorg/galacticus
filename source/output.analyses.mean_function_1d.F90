@@ -457,7 +457,7 @@ contains
     ! Build a sequence property operator for the unweight property. This includes any property operator passed to this
     ! constructor, plus the boolean operator.
     !![
-    <referenceConstruct object="propertyOperatorUnweightedBoolean_" constructor="outputAnalysisPropertyOperatorBoolean()"/>
+    <referenceConstruct object="propertyOperatorUnweightedBoolean_" constructor="outputAnalysisPropertyOperatorBoolean(preciseZero=.true.)"/>
     !!]
     propertyOperatorUnweighted_     %operator_ => outputAnalysisWeightPropertyOperator_ ! First operator in the sequence is whatever operator was passed to this constructor.
     propertyOperatorUnweighted_%next%operator_ => propertyOperatorUnweightedBoolean_

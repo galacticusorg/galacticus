@@ -31,8 +31,10 @@ for(my $i=0;$i<11;++$i) {
 }
 
 # Find average and standard deviation of run times.
-my $runTimeAverage           = $runTimes->average();
-my $runTimeStandardDeviation = $runTimes->stdv   ();
+my $runTimeAverage       = $runTimes->average()                       ;
+my $runTimeStandardError = $runTimes->stdv   ()/sqrt(nelem($runTimes));
+print "Timings: ".$runTimes."\n";
+print "Benchmark results: ".$runTimeAverage." ± ".$runTimeStandardError." s\n";
 
 # Generate JSON report.
 my @output =
@@ -40,8 +42,8 @@ my @output =
      {
 	 name  => "Dark Matter Only Subhalos - Wall Time",
 	 unit  => "seconds"                              ,
-	 value => $runTimeAverage          ->sclr()      ,
-	 range => $runTimeStandardDeviation->sclr()
+	 value => $runTimeAverage      ->sclr()          ,
+	 range => $runTimeStandardError->sclr()
      }
     );
 

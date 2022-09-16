@@ -36,8 +36,8 @@ Contains a module which implements a \cite{sheth_ellipsoidal_2001} dark matter h
      private
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
-     double precision                                         :: aValue                             , pValue, &
-          &                                                      normalizationValue
+     double precision                                         :: a_                                 , p_, &
+          &                                                      normalization_
    contains
      !![
      <methods>
@@ -126,9 +126,9 @@ contains
     <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_"/>
     !!]
 
-    self%aValue            =a
-    self%pValue            =p
-    self%normalizationValue=normalization
+    self%a_            =a
+    self%p_            =p
+    self%normalization_=normalization
    return
   end function shethTormenConstructorInternal
 
@@ -204,7 +204,7 @@ contains
     double precision                             , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    shethTormenA=self%aValue
+    shethTormenA=self%a_
     return
   end function shethTormenA
 
@@ -217,7 +217,7 @@ contains
     double precision                             , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    shethTormenP=self%pValue
+    shethTormenP=self%p_
     return
   end function shethTormenP
 
@@ -230,7 +230,7 @@ contains
     double precision                             , intent(in   ) :: time , mass
     !$GLC attributes unused :: time, mass
 
-    shethTormenNormalization=self%normalizationValue
+    shethTormenNormalization=self%normalization_
     return
   end function shethTormenNormalization
 

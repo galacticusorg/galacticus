@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference subhalo orbits model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeConstructor value="filter">
+    <!-- Use a 'filter' constructor here. It will default to an 'always' filter (making it inactive), but this allows models to
+         impose a filter if they wish to do so. -->
+    <mergerTreeConstructor value="build">
+      <redshiftBase value="0.0"/>
+    </mergerTreeConstructor>
+  </mergerTreeConstructor>
+  <mergerTreeBuilder     value="cole2000">
+    <!-- The Cole et al. (2000) merger tree building algorithm is used. The "interval stepping" optimization from Appendix A -->
+    <!-- of Benson, Ludlow, & Cole (2019, MNRAS, 485, 5010; https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B) is used   -->
+    <!-- to speed up tree building.                                                                                          -->
+    <accretionLimit     value="  0.1"/>
+    <mergeProbability   value="  0.1"/>
+    <redshiftMaximum    value="100.0"/>
+    <branchIntervalStep value="true" />
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  
+</parameters>

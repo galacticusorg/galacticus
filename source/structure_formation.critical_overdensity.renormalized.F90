@@ -51,8 +51,9 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
      $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a mass scale $M_\mathrm{match}$.
      !!}
      private
-     class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
-     double precision                                    :: massMatch                     , normalization
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_               => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVarianceReference_ => null()
+     double precision                                         :: massMatch                                   , normalization
     contains
      final     ::                    renormalizeDestructor
      procedure :: value           => renormalizeValue
@@ -129,7 +130,7 @@ contains
     double precision                                , optional, intent(in   ) :: massMatch
     double precision                                                          :: massMatch_
     !![
-    <constructorAssign variables="massMatch, *criticalOverdensity_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    <constructorAssign variables="massMatch, *criticalOverdensity_, *cosmologyFunctions_, *cosmologicalMassVariance_, *cosmologicalMassVarianceReference_, *linearGrowth_"/>
     !!]
 
     ! Determine the mass scale at which to renormalize.
@@ -152,10 +153,11 @@ contains
     type(criticalOverdensityRenormalize), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%criticalOverdensity_"     />
-    <objectDestructor name="self%cosmologyFunctions_"      />
-    <objectDestructor name="self%cosmologicalMassVariance_"/>
-    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%criticalOverdensity_"              />
+    <objectDestructor name="self%cosmologyFunctions_"               />
+    <objectDestructor name="self%cosmologicalMassVariance_"         />
+    <objectDestructor name="self%cosmologicalMassVarianceReference_"/>
+    <objectDestructor name="self%linearGrowth_"                     />
     !!]
     return
   end subroutine renormalizeDestructor

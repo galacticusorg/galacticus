@@ -39,9 +39,10 @@ Contains a module which implements a star formation rate property extractor clas
      A star formation rate property extractor class.
      !!}
      private
-     class(starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
-     class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
-     type (varying_string                 )          :: name_                                , description_
+     class(starFormationRateDisksClass     ), pointer :: starFormationRateDisks_     => null()
+     class(starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_ => null()
+     type (varying_string                  )          :: name_                                , description_, &
+          &                                              component
    contains
      final     ::                starFormationRateDestructor
      procedure :: extract     => starFormationRateExtract
@@ -123,12 +124,15 @@ contains
     if      (associated(self%starFormationRateDisks_).and.associated(self%starFormationRateSpheroids_)) then
        self%name_       ="totalStarFormationRate"
        self%description_="Total (disk + spheroid) star formation rate [M☉ Gyr⁻¹]."
+       self%component   ="total"
     else if (associated(self%starFormationRateDisks_)                                                 ) then
        self%name_       ="diskStarFormationRate"
        self%description_="Disk star formation rate [M☉ Gyr⁻¹]."
+       self%component   ="disk"
     else if (                                             associated(self%starFormationRateSpheroids_)) then
        self%name_       ="spheroidStarFormationRate"
        self%description_="Spheroid star formation rate [M☉ Gyr⁻¹]."
+       self%component   ="spheroid"
     else
        call Error_Report('No star formation rate specified.'//{introspection:location})
     end if

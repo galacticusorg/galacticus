@@ -1,10 +1,11 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
-use JSON::PP;
+use Galacticus::Validation;
 
 # Run models to validate a dark matter only subhalo evolution model.
 # Andrew Benson (05-August-2022)
@@ -20,26 +21,7 @@ unless ( $? == 0 ) {
 }
 
 # Extract and validate the likelihoods.
-my @output;
-my $model    = new PDL::IO::HDF5("outputs/validate_darkMatterOnlySubHalos.hdf5");
-my $analyses = $model->group('analyses');
-foreach my $analysisName ( $analyses->groups() ) {
-    my $analysis = $analyses->group($analysisName);
-    (my $logLikelihood) = $analysis->attrGet('logLikelihood');
-    print $analysisName."\t".$logLikelihood."\n";
-    push(
-	@output,
-	{
-	 name  => "Dark Matter Only Subhalos - Likelihood - ".$analysisName,
-	 unit  => "|logℒ|"                                                ,
-	 value => abs($logLikelihood->sclr())
- 	}
-	);
-}
-my $json = JSON::PP->new()->pretty()->encode(\@output);
-open(my $reportFile,">","outputs/validate_darkMatterOnlySubhalos.json");
-print $reportFile $json;
-close($reportFile);
+&Galacticus::Validation::extract("outputs/validate_darkMatterOnlySubHalos.hdf5","Dark Matter Only Subhalos","darkMatterOnlySubhalos");
 
 print "SUCCESS: dark matter-only subhalos validation model\n";
 

@@ -84,7 +84,7 @@ my @models =
     );
 
 # Run models.
-my $document = << 'OPENER';
+my $document = <<'OPENER';
 <parameterGrid>
   <emailReport>no</emailReport>
   <doAnalysis>no</doAnalysis>

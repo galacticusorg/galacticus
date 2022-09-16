@@ -111,6 +111,7 @@ contains
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     use            :: System_Command                  , only : System_Command_Do
+    use            :: System_Download                 , only : download
     implicit none
     class           (accretionDiskSpectraHopkins2007), intent(inout)               :: self
     double precision                                 , dimension(:  ), allocatable :: wavelength                        , luminosityBolometric
@@ -154,8 +155,8 @@ contains
        ! Download the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
           call Directory_Make(inputPath(pathTypeDataDynamic)//"/AGN_Spectrum")
-          call System_Command_Do("wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
-          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+          call download("http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c",char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c",ioStatus)
+          if (ioStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Error_Report('failed to download agn_spectrum.c'//{introspection:location})
        end if
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then

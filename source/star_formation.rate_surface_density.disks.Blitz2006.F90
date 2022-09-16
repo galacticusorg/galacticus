@@ -25,7 +25,7 @@
   use :: Galactic_Structure , only : galacticStructureClass
   use :: Root_Finder        , only : rootFinder
   use :: Math_Exponentiation, only : fastExponentiator
-
+  
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006">
    <description>
@@ -61,40 +61,53 @@
      Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
      !!}
      private
-     class           (galacticStructureClass), pointer :: galacticStructure_         => null()
-     integer         (kind_int8             )          :: lastUniqueID
-     logical                                           :: factorsComputed                     , assumeMonotonicSurfaceDensity      , &
-          &                                               assumeExponentialDisk
-     double precision                                  :: heightToRadialScaleDisk             , pressureCharacteristic             , &
-          &                                               pressureExponent                    , starFormationFrequencyNormalization, &
-          &                                               surfaceDensityCritical              , surfaceDensityExponent             , &
-          &                                               velocityDispersionDiskGas           , radiusDisk                         , &
-          &                                               massGas                             , hydrogenMassFraction               , &
-          &                                               massStellar                         , massGasPrevious                    , &
-          &                                               massStellarPrevious                 , hydrogenMassFractionPrevious       , &
-          &                                               radiusDiskPrevious                  , radiusCritical                     , &
-          &                                               radiusCriticalPrevious              , factorBoostStellarCoefficient      , &
-          &                                               pressureRatioCoefficient
-     type            (rootFinder            )          :: finder
-     type            (fastExponentiator     )          :: pressureRatioExponentiator
+     class           (galacticStructureClass), pointer                       :: galacticStructure_                           => null()
+     integer         (kind_int8             )                                :: lastUniqueID
+     logical                                                                 :: factorsComputed                                       , assumeMonotonicSurfaceDensity                      , &
+          &                                                                     assumeExponentialDisk                                 , useTabulation
+     double precision                                                        :: heightToRadialScaleDisk                               , pressureCharacteristic                             , &
+          &                                                                     pressureExponent                                      , starFormationFrequencyNormalization                , &
+          &                                                                     surfaceDensityCritical                                , surfaceDensityExponent                             , &
+          &                                                                     velocityDispersionDiskGas                             , radiusDisk                                         , &
+          &                                                                     massGas                                               , hydrogenMassFraction                               , &
+          &                                                                     massStellar                                           , massGasPrevious                                    , &
+          &                                                                     massStellarPrevious                                   , hydrogenMassFractionPrevious                       , &
+          &                                                                     radiusDiskPrevious                                    , radiusCritical                                     , &
+          &                                                                     radiusCriticalPrevious                                , factorBoostStellarCoefficient                      , &
+          &                                                                     pressureRatioCoefficient
+     type            (rootFinder            )                                :: finder
+     type            (fastExponentiator     )                                :: pressureRatioExponentiator
+     double precision                        , allocatable, dimension(:,:,:) :: integralPartiallyMolecularTable
+     logical                                                                 :: tableInitialized
+     double precision                                                        :: coefficientFactorBoostMinimum                         , coefficientFactorBoostMaximum                      , &
+          &                                                                     coefficientFactorBoostStellarMinimum                  , coefficientFactorBoostStellarMaximum               , &
+          &                                                                     radiusScaleFreeMinimum                                , radiusScaleFreeMaximum                             , &
+          &                                                                     coefficientFactorBoostLogarithmicStepInverse          , coefficientFactorBoostStellarLogarithmicStepInverse, &
+          &                                                                     radiusScaleFreeLogarithmicStepInverse                 , radiusScaleFreeLogarithmicOffset                   , &
+          &                                                                     coefficientFactorBoostLogarithmicOffset               , coefficientFactorBoostStellarLogarithmicOffset
+     type            (varying_string        )                                :: filenameTable
    contains
      !![
      <methods>
-       <method description="Reset memoized calculations."                        method="calculationReset"        />
-       <method description="Compute various factors."                            method="computeFactors"          />
-       <method description="Compute the pressure ratio."                         method="pressureRatio"           />
-       <method description="Compute the pressure ratio for an exponential disk." method="pressureRatioExponential"/>
+       <method description="Reset memoized calculations."                                                                       method="calculationReset"          />
+       <method description="Compute various factors."                                                                           method="computeFactors"            />
+       <method description="Compute the pressure ratio."                                                                        method="pressureRatio"             />
+       <method description="Compute the pressure ratio for an exponential disk."                                                method="pressureRatioExponential"  />
+       <method description="Compute the integral of the star formation rate surface density in the fully-molecular regime."     method="integralFullyMolecular"    />
+       <method description="Compute the integral of the star formation rate surface density in the partially-molecular regime." method="integralPartiallyMolecular"/>
      </methods>
      !!]
-     final     ::                             blitz2006Destructor
-     procedure :: autoHook                 => blitz2006AutoHook
-     procedure :: calculationReset         => blitz2006CalculationReset
-     procedure :: rate                     => blitz2006Rate
-     procedure :: computeFactors           => blitz2006ComputeFactors
-     procedure :: unchanged                => blitz2006Unchanged
-     procedure :: intervals                => blitz2006Intervals
-     procedure :: pressureRatio            => blitz2006PressureRatio
-     procedure :: pressureRatioExponential => blitz2006PressureRatioExponential
+     final     ::                               blitz2006Destructor
+     procedure :: autoHook                   => blitz2006AutoHook
+     procedure :: calculationReset           => blitz2006CalculationReset
+     procedure :: rate                       => blitz2006Rate
+     procedure :: computeFactors             => blitz2006ComputeFactors
+     procedure :: unchanged                  => blitz2006Unchanged
+     procedure :: intervals                  => blitz2006Intervals
+     procedure :: pressureRatio              => blitz2006PressureRatio
+     procedure :: pressureRatioExponential   => blitz2006PressureRatioExponential
+     procedure :: integralFullyMolecular     => blitz2006IntegralFullyMolecular
+     procedure :: integralPartiallyMolecular => blitz2006IntegralPartiallyMolecular
   end type starFormationRateSurfaceDensityDisksBlitz2006
 
   interface starFormationRateSurfaceDensityDisksBlitz2006
@@ -124,7 +137,8 @@ contains
          &                                                                            surfaceDensityCritical             , surfaceDensityExponent , &
          &                                                                            starFormationFrequencyNormalization, pressureCharacteristic , &
          &                                                                            pressureExponent
-    logical                                                                        :: assumeMonotonicSurfaceDensity      , assumeExponentialDisk
+    logical                                                                        :: assumeMonotonicSurfaceDensity      , assumeExponentialDisk  , &
+         &                                                                            useTabulation
 
     !![
     <inputParameter>
@@ -188,9 +202,15 @@ contains
       <description>If true, assume that the surface density in disks follows an exponential profile, $\exp(-r/r_\mathrm{d})$.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>useTabulation</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then use tabulated solutions to the integrated star formation rate.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=starFormationRateSurfaceDensityDisksBlitz2006(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,assumeExponentialDisk,galacticStructure_)
+    self=starFormationRateSurfaceDensityDisksBlitz2006(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,assumeExponentialDisk,useTabulation,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticStructure_"/>
@@ -198,11 +218,12 @@ contains
     return
   end function blitz2006ConstructorParameters
 
-  function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,assumeExponentialDisk,galacticStructure_) result(self)
+  function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,assumeExponentialDisk,useTabulation,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
     !!}
     use :: Error                           , only : Error_Report
+    use :: Input_Paths                     , only : inputPath                , pathTypeDataDynamic
     use :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : giga                     , hecto                        , kilo                         , mega
@@ -214,9 +235,10 @@ contains
          &                                                                                    surfaceDensityCritical             , surfaceDensityExponent , &
          &                                                                                    starFormationFrequencyNormalization, pressureCharacteristic , &
          &                                                                                    pressureExponent
-    logical                                                        , intent(in   )         :: assumeMonotonicSurfaceDensity      , assumeExponentialDisk
+    logical                                                        , intent(in   )         :: assumeMonotonicSurfaceDensity      , assumeExponentialDisk  , &
+         &                                                                                    useTabulation
      !![
-     <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent, assumeMonotonicSurfaceDensity, assumeExponentialDisk, *galacticStructure_"/>
+     <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent, assumeMonotonicSurfaceDensity, assumeExponentialDisk, useTabulation, *galacticStructure_"/>
      !!]
 
     self%lastUniqueID   =-1_kind_int8
@@ -246,19 +268,33 @@ contains
             &                 rootFunction                 =blitz2006CriticalDensityRoot           , &
             &                 toleranceAbsolute            =0.0d+0                                 , &
             &                 toleranceRelative            =1.0d-4                                 , &
-            &                 rangeExpandUpward            =2.0d0                                  , &
-            &                 rangeExpandDownward          =0.5d0                                  , &
+            &                 rangeExpandUpward            =2.0d+0                                 , &
+            &                 rangeExpandDownward          =0.5d+0                                 , &
             &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative          , &
             &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive          , &
             &                 rangeExpandType              =rangeExpandMultiplicative                &
             &                )
     end if
     ! Initialize memoized values.
-    self%massGasPrevious             =-huge(0.0d0)
-    self%massStellarPrevious         =-huge(0.0d0)
-    self%radiusDiskPrevious          =-huge(0.0d0)
-    self%hydrogenMassFractionPrevious=-huge(0.0d0)
-    self%radiusCriticalPrevious      =-huge(0.0d0)
+    self%massGasPrevious                     =-huge(0.0d0)
+    self%massStellarPrevious                 =-huge(0.0d0)
+    self%radiusDiskPrevious                  =-huge(0.0d0)
+    self%hydrogenMassFractionPrevious        =-huge(0.0d0)
+    self%radiusCriticalPrevious              =-huge(0.0d0)
+    ! Initialize table.
+    self%tableInitialized                    =.false.
+    self%coefficientFactorBoostMinimum       =+huge(0.0d0)
+    self%coefficientFactorBoostMaximum       =-huge(0.0d0)
+    self%coefficientFactorBoostStellarMinimum=+huge(0.0d0)
+    self%coefficientFactorBoostStellarMaximum=-huge(0.0d0)
+    self%radiusScaleFreeMinimum              =+huge(0.0d0)
+    self%radiusScaleFreeMaximum              =-huge(0.0d0)
+    self%filenameTable                       =     inputPath       (                    pathTypeDataDynamic)// &
+         &                                    'starFormation/'                                              // &
+         &                                    self%objectType      ()                                       // &
+         &                                    '_'                                                           // &
+         &                                    self%hashedDescriptor(includeSourceDigest=.true.)             // &
+         &                                    '.hdf5'
     return
   end function blitz2006ConstructorInternal
 
@@ -438,15 +474,17 @@ contains
     !!{
     Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout), target                      :: self
     double precision                                                              , allocatable, dimension(:,:) :: blitz2006Intervals
     type            (treeNode                                     ), intent(inout), target                      :: node
-    double precision                                               , intent(in   )                              :: radiusInner             , radiusOuter
+    double precision                                               , intent(in   )                              :: radiusInner                  , radiusOuter
     logical                                                        , intent(inout), allocatable, dimension(  :) :: intervalIsAnalytic
     double precision                                               , intent(inout), allocatable, dimension(  :) :: integralsAnalytic
-    double precision                                                                                            :: coefficientNormalization, coefficientFactorBoost
+    double precision                                                                                            :: coefficientNormalization     , coefficientFactorBoost, &
+         &                                                                                                         coefficientFactorBoostStellar, coefficientMolecular
 
     ! Check if we can assume a monotonic surface density.
     if (self%assumeMonotonicSurfaceDensity) then
@@ -464,25 +502,28 @@ contains
              ! The entire disk is below the pressure threshold so use a single interval.
              allocate(blitz2006Intervals(2,1))
              allocate(intervalIsAnalytic(  1))
-             intervalIsAnalytic =.false.
+             if (self%assumeExponentialDisk.and.self%useTabulation) then
+                call computeCoefficients()
+                allocate(integralsAnalytic(1))
+                intervalIsAnalytic=.true.
+                integralsAnalytic =self%integralPartiallyMolecular(coefficientNormalization*coefficientMolecular,coefficientFactorBoost,coefficientFactorBoostStellar,radiusInner,radiusOuter)
+             else
+                intervalIsAnalytic=.false.
+             end if
              blitz2006Intervals =reshape([radiusInner,radiusOuter],[2,1])
              self%radiusCritical=-huge(0.0d0)
           else
              ! Compute coefficients needed for analytic solutions.
-             if (self%assumeExponentialDisk) then
-                coefficientNormalization=self%massGas/2.0d0/Pi                   *self%hydrogenMassFraction*self%starFormationFrequencyNormalization
-                coefficientFactorBoost  =self%massGas/2.0d0/Pi/self%radiusDisk**2*self%hydrogenMassFraction/self%surfaceDensityCritical
-             end if
+             if (self%assumeExponentialDisk.and.self%useTabulation) call computeCoefficients()
              ! Test the surface density at the outer radius.
              if (self%pressureRatio(node,radiusOuter) >= 1.0d0) then
                 ! Entire disk is above the pressure threshold so use a single interval.
                 allocate(blitz2006Intervals(2,1))
                 allocate(intervalIsAnalytic(  1))
-                if (self%assumeExponentialDisk) then
+                if (self%assumeExponentialDisk.and.self%useTabulation) then
                    allocate(integralsAnalytic (  1))
                    intervalIsAnalytic =.true.
-                   integralsAnalytic  =+integralAnalyticFullyMolecular(radiusOuter) &
-                        &              -integralAnalyticFullyMolecular(radiusInner)
+                   integralsAnalytic  =self%integralFullyMolecular(coefficientNormalization,coefficientFactorBoost,radiusInner,radiusOuter)
                 else
                    intervalIsAnalytic=.false.
                 end if
@@ -501,14 +542,13 @@ contains
                 self%radiusCriticalPrevious=self%radiusCritical
                 allocate(blitz2006Intervals(2,2))
                 allocate(intervalIsAnalytic(  2))
-                if (self%assumeExponentialDisk) then
+                if (self%assumeExponentialDisk.and.self%useTabulation) then
                    allocate(integralsAnalytic (  2))
-                   intervalIsAnalytic =[.true.,.false.]
-                   integralsAnalytic  =[                                                      &
-                        &               +integralAnalyticFullyMolecular(self%radiusCritical)  &
-                        &               -integralAnalyticFullyMolecular(     radiusInner   ), &
-                        &               +0.0d0                                                &
-                        &              ]
+                   intervalIsAnalytic =.true.
+                   integralsAnalytic  =[                                                                                                                                                                             &
+                        &               self%integralFullyMolecular    (coefficientNormalization                     ,coefficientFactorBoost                              ,     radiusInner   ,self%radiusCritical), &
+                        &               self%integralPartiallyMolecular(coefficientNormalization*coefficientMolecular,coefficientFactorBoost,coefficientFactorBoostStellar,self%radiusCritical,     radiusOuter   )  &
+                        &              ]                   
                 else
                    intervalIsAnalytic=.false.
                 end if
@@ -528,33 +568,477 @@ contains
 
   contains
 
+    subroutine computeCoefficients()
+      !!{
+      Compute coefficients needed in analytic and tabulated solutions.
+      !!}
+      implicit none
+      
+      coefficientNormalization     =    +self%massGas/2.0d0/Pi                       *self%hydrogenMassFraction*self%starFormationFrequencyNormalization
+      coefficientFactorBoost       =    +self%massGas/2.0d0/Pi/self%radiusDisk**2    *self%hydrogenMassFraction/self%surfaceDensityCritical
+      coefficientMolecular         =+(                                                &
+           &                          +(+self%massGas/2.0d0/Pi/self%radiusDisk**2)**2 &
+           &                          *gravitationalConstantGalacticus                &
+           &                          *Pi                                             &
+           &                          /2.0d0                                          &
+           &                          /self%pressureCharacteristic                    &
+           &                         )**self%pressureExponent
+      coefficientFactorBoostStellar=+self%velocityDispersionDiskGas        &
+           &                        *2.0d0                                 &
+           &                        *Pi                                    &
+           &                        *self%radiusDisk**2                    &
+           &                        /self%massGas                          &
+           &                        *sqrt(                                 &
+           &                              +self%massStellar                &
+           &                              /2.0d0                           &
+           &                              /Pi                              &
+           &                              /self%radiusDisk**2              &
+           &                              /Pi                              &
+           &                              /gravitationalConstantGalacticus &
+           &                              /self%heightToRadialScaleDisk    &
+           &                              /self%radiusDisk                 &
+           &                             ) 
+      return
+    end subroutine computeCoefficients
+    
+    
+  end function blitz2006Intervals
+
+  double precision function blitz2006IntegralFullyMolecular(self,coefficientNormalization,coefficientFactorBoost,radiusInner,radiusOuter)
+    !!{
+    Evaluate the integral of the star formation rate surface density in the fully-molecular regime.
+    !!}
+    implicit none
+    class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
+    double precision                                               , intent(in   ) :: coefficientNormalization, coefficientFactorBoost, &
+         &                                                                            radiusInner             , radiusOuter
+    
+    blitz2006IntegralFullyMolecular=+integralAnalyticFullyMolecular(radiusOuter) &
+         &                          -integralAnalyticFullyMolecular(radiusInner)
+    return
+    
+  contains
+    
     double precision function integralAnalyticFullyMolecular(r)
       !!{
-      Analytic solution to the integral of the star formation rate surface density over an exponential disk.
+      Analytic solution to the improper integral of the star formation rate surface density over an exponential disk.
       !!}
       implicit none
       double precision, intent(in   ) :: r
       double precision                :: x
 
-      x                             =+r                                                &
+      x                             =+r                                                  &
            &                         /self%radiusDisk
-      integralAnalyticFullyMolecular=+coefficientNormalization                         &
-           &                         *exp(-x)                                          &
-           &                         *(                                                &
-           &                           -1.0d0                                          &
-           &                           -x                                              &
-           &                           -(                                              &
-           &                             +coefficientFactorBoost                       &
-           &                             *exp(-x)                                      &
-           &                            )**self%surfaceDensityExponent                 &
-           &                         *(1.0d0+x*(1.0d0+self%surfaceDensityExponent)   ) &
-           &                         /         (1.0d0+self%surfaceDensityExponent)**2  &
-           &                         )
+      integralAnalyticFullyMolecular=+coefficientNormalization                           &
+           &                         *exp(-x)                                            &
+           &                         *(                                                  &
+           &                           -1.0d0                                            &
+           &                           -x                                                &
+           &                           -(                                                &
+           &                             +coefficientFactorBoost                         &
+           &                             *exp(-x)                                        &
+           &                            )**self%surfaceDensityExponent                   &
+           &                           *(1.0d0+x*(1.0d0+self%surfaceDensityExponent)   ) &
+           &                           /         (1.0d0+self%surfaceDensityExponent)**2  &
+           &                          )
       return
     end function integralAnalyticFullyMolecular
     
-  end function blitz2006Intervals
+  end function blitz2006IntegralFullyMolecular
+  
+  double precision function blitz2006IntegralPartiallyMolecular(self,coefficientNormalization,coefficientFactorBoost,coefficientFactorBoostStellar,radiusInner,radiusOuter)
+    !!{
+    Evaluate the integral of the star formation rate surface density in the fully-molecular regime.
+    !!}
+    implicit none
+    class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
+    double precision                                               , intent(in   ) :: radiusInner                              , radiusOuter                          , &
+         &                                                                            coefficientNormalization                 , coefficientFactorBoost               , &
+         &                                                                            coefficientFactorBoostStellar
+    double precision                                               , parameter     :: coefficientFactorBoostStellarLarge=1.0d+4, radiusScaleFreeTiny           =1.0d-3
+    double precision                                               , save          :: coefficientFactorBoost_                  , coefficientFactorBoostStellar_
+    !$omp threadprivate(coefficientFactorBoost_,coefficientFactorBoostStellar_)
+    integer                                                                        :: i
+    double precision                                                               :: multiplier                               , radiusScaleFree                      , &
+         &                                                                            radiusScaleFreeInner                     , radiusScaleFreeOuter
+    
+    ! Compute scale free radii.
+    radiusScaleFreeInner=radiusInner/self%radiusDisk
+    radiusScaleFreeOuter=radiusOuter/self%radiusDisk
+    ! Handle cases where we have an (approximate) analytic solution.
+    if      (coefficientFactorBoostStellar <= 0.0d0                            ) then
+       ! If the stellar boost is zero, we have an analytic solution.
+       blitz2006IntegralPartiallyMolecular=+integralAnalyticPartiallyMolecularZeroStellarBoost (radiusScaleFreeOuter) &
+            &                              -integralAnalyticPartiallyMolecularZeroStellarBoost (radiusScaleFreeInner)
+       return
+    else if (coefficientFactorBoostStellar > coefficientFactorBoostStellarLarge) then
+       ! If the stellar boost is large, we have an approximate analytic solution.
+       blitz2006IntegralPartiallyMolecular=+integralAnalyticPartiallyMolecularLargeStellarBoost(radiusScaleFreeOuter) &
+            &                              -integralAnalyticPartiallyMolecularLargeStellarBoost(radiusScaleFreeInner)
+       return
+    else
+       ! General case - no analytic solution available.
+       blitz2006IntegralPartiallyMolecular=0.0d0
+       do i=1,2
+         select case (i)
+         case (1)
+            radiusScaleFree=radiusInner/self%radiusDisk
+            multiplier     =-1.0d0
+         case (2)
+            radiusScaleFree=radiusOuter/self%radiusDisk
+            multiplier     =+1.0d0
+         end select
+         ! Use series or tabulated solutions.
+         if (radiusScaleFree < radiusScaleFreeTiny) then
+            ! Small radius limit - use a series solution.
+            blitz2006IntegralPartiallyMolecular=+blitz2006IntegralPartiallyMolecular                           &
+                 &                              +multiplier                                                    &
+                 &                              *integralAnalyticPartiallyMolecularSmallRadii(radiusScaleFree)
+         else
+            ! No approximation available - use the tabulated solution.
+            blitz2006IntegralPartiallyMolecular=+blitz2006IntegralPartiallyMolecular                           &
+                 &                              +multiplier                                                    &
+                 &                              *integralAnalyticPartiallyMolecularGeneric   (radiusScaleFree)
+         end if
+      end do
+   end if
+   return
 
+  contains
+
+    double precision function integralAnalyticPartiallyMolecularZeroStellarBoost(x)
+      !!{
+      Analytic solution to the improper integral of the star formation rate surface density over an exponential disk for the case of zero stellar boost factor..
+      !!}
+      implicit none
+      double precision, intent(in   ) :: x
+
+      integralAnalyticPartiallyMolecularZeroStellarBoost=+coefficientNormalization                                                       &
+           &                                             *exp(-x*(1.0d0+2.0d0*self%pressureExponent))                                    &
+           &                                             *(                                                                              &
+           &                                               -1.0d0/(1.0d0+2.0d0*self%pressureExponent)**2                                 &
+           &                                               -x    /(1.0d0+2.0d0*self%pressureExponent)                                    &
+           &                                               -(                                                                            &
+           &                                                 +coefficientFactorBoost                                                     &
+           &                                                 *exp(-x)                                                                    &
+           &                                                )**self%surfaceDensityExponent                                               &
+           &                                               *(1.0d0+x*(1.0d0+self%surfaceDensityExponent+2.0d0*self%pressureExponent)   ) &
+           &                                               /         (1.0d0+self%surfaceDensityExponent+2.0d0*self%pressureExponent)**2  &
+           &                                              )
+      return
+    end function integralAnalyticPartiallyMolecularZeroStellarBoost
+    
+    double precision function integralAnalyticPartiallyMolecularLargeStellarBoost(x)
+      !!{
+      Analytic solution to the improper integral of the star formation rate surface density over an exponential disk for the case
+      of large stellar boost factor.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: x
+
+      integralAnalyticPartiallyMolecularLargeStellarBoost=+coefficientNormalization                                                            &
+           &                                             *exp(-x*(1.0d0+2.0d0*self%pressureExponent))                                          &
+           &                                             *(+coefficientFactorBoostStellar*exp(x/2))**self%pressureExponent                     &
+           &                                             *(                                                                                    &
+           &                                               -4.0d0  /(2.0d0+3.0d0*self%pressureExponent)**2                                     & 
+           &                                               -2.0d0*x/(2.0d0+3.0d0*self%pressureExponent)                                        &
+           &                                               -2.0d0                                                                              &
+           &                                               *(                                                                                  &
+           &                                                 +coefficientFactorBoost                                                           &
+           &                                                 *exp(-x)                                                                          &
+           &                                                )**self%surfaceDensityExponent                                                     &
+           &                                               *(2.0d0+x*(2.0d0+2.0d0*self%surfaceDensityExponent+3.0d0*self%pressureExponent)   ) &
+           &                                               /         (2.0d0+2.0d0*self%surfaceDensityExponent+3.0d0*self%pressureExponent)**2  &
+           &                                              )
+      return
+    end function integralAnalyticPartiallyMolecularLargeStellarBoost
+   
+    double precision function integralAnalyticPartiallyMolecularSmallRadii(x)
+      !!{
+      Analytic solution to the improper integral of the star formation rate surface density over an exponential disk for the case
+      of small radii. Uses a series solution.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: x
+
+      integralAnalyticPartiallyMolecularSmallRadii=-coefficientNormalization                                                                                                 &
+           &                                       /6.0d0                                                                                                                    &
+           &                                       *(1.0d0+coefficientFactorBoostStellar)**(-1.0d0+self%pressureExponent)                                                    &
+           &                                       *x**2                                                                                                                     &
+           &                                       *(                                                                                                                        &
+           &                                         +(1.0d0+      coefficientFactorBoostStellar)*(-3.0d0+2.0d0*x)                                                           &
+           &                                         +(4.0d0+3.0d0*coefficientFactorBoostStellar)*x*self%pressureExponent                                                    &
+           &                                         +coefficientFactorBoost**self%surfaceDensityExponent                                                                    &
+           &                                         *(                                                                                                                      &
+           &                                           -3.0d0                                                                                                                &
+           &                                           +                                      2.0d0*x*(1.0d0+2.0d0*self%pressureExponent+      self%surfaceDensityExponent)  &
+           &                                           +      coefficientFactorBoostStellar*(-3.0d0+x*(2.0d0+3.0d0*self%pressureExponent+2.0d0*self%surfaceDensityExponent)) &
+           &                                          )                                                                                                                      &
+           &                                        )
+      return
+    end function integralAnalyticPartiallyMolecularSmallRadii
+   
+    double precision function integralAnalyticPartiallyMolecularGeneric(radiusScaleFree)
+      !!{
+      Analytic solution to the improper integral of the star formation rate surface density over an exponential disk for the general case.
+      !!}
+      use :: Display              , only : displayCounter , displayCounterClear  , displayIndent, displayMessage, &
+           &                               displayUnindent, verbosityLevelWorking
+      use :: Numerical_Integration, only : integrator     , GSL_Integ_Gauss61
+      use :: HDF5_Access          , only : hdf5Access
+      use :: IO_HDF5              , only : hdf5Object
+      use :: File_Utilities       , only : File_Exists    , File_Lock            , File_Unlock  , lockDescriptor, &
+           &                               Directory_Make , File_Path
+      implicit none
+      double precision                , intent(in   ) :: radiusScaleFree
+      double precision                , parameter     :: toleranceRelative                    =1.0d-6
+      double precision                , parameter     :: coefficientFactorBoostTiny           =1.0d-6, coefficientFactorBoostStellarTiny           =1.0d-6
+      integer                         , parameter     :: pointsPerDecadeFactorBoost           =30    , pointsPerDecadeFactorBoostStellar           =30    , &
+           &                                             pointsPerDecadeRadius                =30
+      integer                                         :: countFactorBoost                            , countFactorBoostStellar                            , &
+           &                                             countRadii                                  , i                                                  , &
+           &                                             j                                           , k                                                  , &
+           &                                             ii                                          , jj                                                 , &
+           &                                             kk                                          , loopCount                                         ,  &
+           &                                             loopCountTotal
+      double precision                                :: radiusScaleFreeLogarithmicStep              , integral                                           , &
+           &                                             coefficientFactorBoostLogarithmicStep       , coefficientFactorBoostStellarLogarithmicStep       , &
+           &                                             hi                                          , hj                                                 , &
+           &                                             hk                                          , hhi                                                , &
+           &                                             hhj                                         , hhk                                                , &
+           &                                             radiusMinimum                               , radiusMaximum
+      character       (len= 8        )                :: tableSize
+      character       (len= 8        )                :: countSteps
+      character       (len=12        )                :: rangeLower                                  , rangeUpper
+      type            (integrator    ), allocatable   :: integrator_
+      type            (varying_string), save          :: message
+      type            (hdf5Object    ), save          :: file
+      type            (lockDescriptor), save          :: fileLock
+      !$omp threadprivate(message,file,fileLock)
+      
+      ! Read table if we do not have it.
+      if (.not.self%tableInitialized) then
+         if (File_Exists(self%filenameTable)) then
+            message='Reading Blitz2006 star formation rate tabulation from file: '//self%filenameTable
+            call displayMessage(message,verbosityLevelWorking)
+            ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+            call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
+            !$ call hdf5Access%set()
+            call file%openFile     (                                                      char(self%filenameTable                                      ),readOnly=.true.)
+            call file%readAttribute('coefficientFactorBoostMinimum'                      ,     self%coefficientFactorBoostMinimum                                       )
+            call file%readAttribute('coefficientFactorBoostMaximum'                      ,     self%coefficientFactorBoostMaximum                                       )
+            call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,     self%coefficientFactorBoostStellarMinimum                                )
+            call file%readAttribute('coefficientFactorBoostStellarMaximum'               ,     self%coefficientFactorBoostStellarMaximum                                )
+            call file%readAttribute('radiusScaleFreeMinimum'                             ,     self%radiusScaleFreeMinimum                                              )
+            call file%readAttribute('radiusScaleFreeMaximum'                             ,     self%radiusScaleFreeMaximum                                              )
+            call file%readAttribute('coefficientFactorBoostLogarithmicOffset'            ,     self%coefficientFactorBoostLogarithmicOffset                             )
+            call file%readAttribute('coefficientFactorBoostStellarLogarithmicOffset'     ,     self%coefficientFactorBoostStellarLogarithmicOffset                      )
+            call file%readAttribute('radiusScaleFreeLogarithmicOffset'                   ,     self%radiusScaleFreeLogarithmicOffset                                    )
+            call file%readAttribute('coefficientFactorBoostLogarithmicStepInverse'       ,     self%coefficientFactorBoostLogarithmicStepInverse                        )
+            call file%readAttribute('coefficientFactorBoostStellarLogarithmicStepInverse',     self%coefficientFactorBoostStellarLogarithmicStepInverse                 )
+            call file%readAttribute('radiusScaleFreeLogarithmicStepInverse'              ,     self%radiusScaleFreeLogarithmicStepInverse                               )
+            call file%readDataset  ('integral'                                           ,     self%integralPartiallyMolecularTable                                     )
+            call file%close        (                                                                                                                                    )
+            !$ call hdf5Access%unset()
+            call File_Unlock(fileLock)
+            self%tableInitialized=.true.
+         end if
+      end if
+      ! Recompute table if it has insufficient range.
+      if     (                                                                                 &
+           &   (                                                                               &
+           &     coefficientFactorBoost            < self%coefficientFactorBoostMinimum        &
+           &    .and.                                                                          &
+           &     coefficientFactorBoostTiny        < self%coefficientFactorBoostMinimum        &
+           &   )                                                                               &
+           &  .or.                                                                             &
+           &     coefficientFactorBoost            > self%coefficientFactorBoostMaximum        &
+           &  .or.                                                                             &
+           &   (                                                                               &
+           &     coefficientFactorBoostStellar     < self%coefficientFactorBoostStellarMinimum &
+           &    .and.                                                                          &
+           &     coefficientFactorBoostStellarTiny < self%coefficientFactorBoostStellarMinimum &
+           &   )                                                                               &
+           &  .or.                                                                             &
+           &     coefficientFactorBoostStellar     > self%coefficientFactorBoostStellarMaximum &
+           &  .or.                                                                             &
+           &     radiusScaleFree                   < self%radiusScaleFreeMinimum               &
+           &  .or.                                                                             &
+           &     radiusScaleFree                   > self%radiusScaleFreeMaximum               &
+           & ) then
+         ! Find range encompassing the existing table and the new point (with some buffer).
+         self%coefficientFactorBoostMinimum       =max(min(self%coefficientFactorBoostMinimum       ,coefficientFactorBoost       /2.0d0),coefficientFactorBoostTiny             )
+         self%coefficientFactorBoostMaximum       =    max(self%coefficientFactorBoostMaximum       ,coefficientFactorBoost       *2.0d0 ,coefficientFactorBoostTiny       *2.0d0)
+         self%coefficientFactorBoostStellarMinimum=max(min(self%coefficientFactorBoostStellarMinimum,coefficientFactorBoostStellar/2.0d0),coefficientFactorBoostStellarTiny      )
+         self%coefficientFactorBoostStellarMaximum=    max(self%coefficientFactorBoostStellarMaximum,coefficientFactorBoostStellar*2.0d0 ,coefficientFactorBoostStellarTiny*2.0d0)
+         self%radiusScaleFreeMinimum              =    min(self%radiusScaleFreeMinimum              ,radiusScaleFree              /2.0d0                                         )
+         self%radiusScaleFreeMaximum              =    max(self%radiusScaleFreeMaximum              ,radiusScaleFree              *2.0d0                                         )
+         ! Create the table.
+         !! Number of points in each axis.
+         countFactorBoost       =int(log10(self%coefficientFactorBoostMaximum       /self%coefficientFactorBoostMinimum       )*dble(pointsPerDecadeFactorBoost       ))+1
+         countFactorBoostStellar=int(log10(self%coefficientFactorBoostStellarMaximum/self%coefficientFactorBoostStellarMinimum)*dble(pointsPerDecadeFactorBoostStellar))+1
+         countRadii             =int(log10(self%radiusScaleFreeMaximum              /self%radiusScaleFreeMinimum              )*dble(pointsPerDecadeRadius            ))+1
+         !! Step sizes.
+         coefficientFactorBoostLogarithmicStep       =log10(self%coefficientFactorBoostMaximum       /self%coefficientFactorBoostMinimum       )/dble(countFactorBoost       -1)
+         coefficientFactorBoostStellarLogarithmicStep=log10(self%coefficientFactorBoostStellarMaximum/self%coefficientFactorBoostStellarMinimum)/dble(countFactorBoostStellar-1)
+         radiusScaleFreeLogarithmicStep              =log10(self%radiusScaleFreeMaximum              /self%radiusScaleFreeMinimum              )/dble(countRadii             -1)
+         !! Inverse step sizes.
+         self%coefficientFactorBoostLogarithmicOffset            =log10(self%coefficientFactorBoostMinimum       )
+         self%coefficientFactorBoostStellarLogarithmicOffset     =log10(self%coefficientFactorBoostStellarMinimum)
+         self%radiusScaleFreeLogarithmicOffset                   =log10(self%radiusScaleFreeMinimum              )
+         self%coefficientFactorBoostLogarithmicStepInverse       =1.0d0/coefficientFactorBoostLogarithmicStep
+         self%coefficientFactorBoostStellarLogarithmicStepInverse=1.0d0/coefficientFactorBoostStellarLogarithmicStep
+         self%radiusScaleFreeLogarithmicStepInverse              =1.0d0/radiusScaleFreeLogarithmicStep
+         !! Allocate the table.
+         if (self%tableInitialized) deallocate(self%integralPartiallyMolecularTable)
+         allocate(self%integralPartiallyMolecularTable(countFactorBoost,countFactorBoostStellar,countRadii))
+         !! Populate the table.
+         call displayIndent("tabulating solutions for Blitz2006 star formation rate in exponential disks",verbosityLevelWorking)
+         call displayIndent("table ranges"                                                               ,verbosityLevelWorking)
+         write (rangeLower,'(e12.6)') self%coefficientFactorBoostMinimum
+         write (rangeUpper,'(e12.6)') self%coefficientFactorBoostMaximum
+         write (countSteps,'(i6   )')      countFactorBoost
+         message=rangeLower//" ≤ boost gas     ≤ "//rangeUpper//" ["//countSteps//" steps]"
+         call displayMessage(message,verbosityLevelWorking)
+         write (rangeLower,'(e12.6)') self%coefficientFactorBoostStellarMinimum
+         write (rangeUpper,'(e12.6)') self%coefficientFactorBoostStellarMaximum
+         write (countSteps,'(i6   )')      countFactorBoostStellar
+         message=rangeLower//" ≤ boost stellar ≤ "//rangeUpper//" ["//countSteps//" steps]"
+         call displayMessage(message,verbosityLevelWorking)
+         write (rangeLower,'(e12.6)') self%radiusScaleFreeMinimum
+         write (rangeUpper,'(e12.6)') self%radiusScaleFreeMaximum
+         write (countSteps,'(i6   )')      countRadii
+         message=rangeLower//" ≤ radius        ≤ "//rangeUpper//" ["//countSteps//" steps]"
+         call displayMessage(message,verbosityLevelWorking)
+         call displayUnindent("",verbosityLevelWorking)
+         call displayIndent("table size",verbosityLevelWorking)
+         write (tableSize,'(f8.4)') dble(sizeof(self%integralPartiallyMolecularTable))/1024.0d0**2
+         message=trim(adjustl(tableSize))//" MiB"
+         call displayMessage(message,verbosityLevelWorking)
+         call displayUnindent("",verbosityLevelWorking)
+         loopCount     =+0
+         loopCountTotal=+countFactorBoost        &
+              &         *countFactorBoostStellar &
+              &         *countRadii
+         !$omp parallel private(i,j,k,integrator_,radiusMinimum,radiusMaximum)
+         allocate(integrator_)
+         integrator_   = integrator(integrand,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss61)
+         do i=1,countFactorBoost
+            coefficientFactorBoost_                          =10.0d0**(dble(i-1)*coefficientFactorBoostLogarithmicStep       +self%coefficientFactorBoostLogarithmicOffset       )
+            do j=1,countFactorBoostStellar
+               coefficientFactorBoostStellar_                =10.0d0**(dble(j-1)*coefficientFactorBoostStellarLogarithmicStep+self%coefficientFactorBoostStellarLogarithmicOffset)
+               !$omp do
+               do k=1,countRadii
+                  radiusMinimum                              = 0.0d0
+                  radiusMaximum                              =10.0d0**(dble(k-1)*radiusScaleFreeLogarithmicStep              +self%radiusScaleFreeLogarithmicOffset              )
+                  self%integralPartiallyMolecularTable(i,j,k)=log(integrator_%integrate(radiusMinimum,radiusMaximum))
+                  !$omp critical(blitz2006Tabulation)
+                  call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
+                  loopCount=loopCount+1
+                  !$omp end critical(blitz2006Tabulation)
+               end do
+               !$omp end do
+            end do
+         end do
+         deallocate(integrator_)
+         !$omp end parallel
+         call displayCounterClear(       verbosityLevelWorking)
+         call displayUnindent    ("done",verbosityLevelWorking)
+         self%tableInitialized=.true.
+         ! Write the table to file.
+         message='Writing Blitz2006 star formation rate tabulation to file: '//self%filenameTable
+         call displayMessage(message,verbosityLevelWorking)
+         call Directory_Make(char(File_Path(char(self%filenameTable))))
+         ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+         call File_Lock     (char(self%filenameTable),fileLock,lockIsShared=.false.)
+         !$ call hdf5Access%set()
+         call file%openFile      (char(self%filenameTable                                      )                                                     ,overWrite=.true.,readOnly=.false.)
+         call file%writeAttribute(     self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                                                       )
+         call file%writeAttribute(     self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                                                       )
+         call file%writeAttribute(     self%coefficientFactorBoostStellarMinimum                ,'coefficientFactorBoostStellarMinimum'                                                )
+         call file%writeAttribute(     self%coefficientFactorBoostStellarMaximum                ,'coefficientFactorBoostStellarMaximum'                                                )
+         call file%writeAttribute(     self%radiusScaleFreeMinimum                              ,'radiusScaleFreeMinimum'                                                              )
+         call file%writeAttribute(     self%radiusScaleFreeMaximum                              ,'radiusScaleFreeMaximum'                                                              )
+         call file%writeAttribute(     self%coefficientFactorBoostLogarithmicOffset             ,'coefficientFactorBoostLogarithmicOffset'                                             )
+         call file%writeAttribute(     self%coefficientFactorBoostStellarLogarithmicOffset      ,'coefficientFactorBoostStellarLogarithmicOffset'                                      )
+         call file%writeAttribute(     self%radiusScaleFreeLogarithmicOffset                    ,'radiusScaleFreeLogarithmicOffset'                                                    )
+         call file%writeAttribute(     self%coefficientFactorBoostLogarithmicStepInverse        ,'coefficientFactorBoostLogarithmicStepInverse'                                        )
+         call file%writeAttribute(     self%coefficientFactorBoostStellarLogarithmicStepInverse ,'coefficientFactorBoostStellarLogarithmicStepInverse'                                 )
+         call file%writeAttribute(     self%radiusScaleFreeLogarithmicStepInverse               ,'radiusScaleFreeLogarithmicStepInverse'                                               )
+         call file%writeDataset  (     self%integralPartiallyMolecularTable                     ,'integral'                                                                            )
+         call file%close         (                                                                                                                                                     )
+         !$ call hdf5Access%unset()
+         call File_Unlock(fileLock)            
+      end if
+      ! Interpolate in table.
+      integralAnalyticPartiallyMolecularGeneric=0.0d0
+      coefficientFactorBoost_            =max(coefficientFactorBoost       ,coefficientFactorBoostTiny       )
+      coefficientFactorBoostStellar_     =max(coefficientFactorBoostStellar,coefficientFactorBoostStellarTiny)
+      i                                  =int((log10(coefficientFactorBoost_       )-self%coefficientFactorBoostLogarithmicOffset       )*self%coefficientFactorBoostLogarithmicStepInverse       )+1
+      j                                  =int((log10(coefficientFactorBoostStellar_)-self%coefficientFactorBoostStellarLogarithmicOffset)*self%coefficientFactorBoostStellarLogarithmicStepInverse)+1
+      hi                                 =    (log10(coefficientFactorBoost_       )-self%coefficientFactorBoostLogarithmicOffset       )*self%coefficientFactorBoostLogarithmicStepInverse        +1.0d0-dble(i)
+      hj                                 =    (log10(coefficientFactorBoostStellar_)-self%coefficientFactorBoostStellarLogarithmicOffset)*self%coefficientFactorBoostStellarLogarithmicStepInverse +1.0d0-dble(j)
+      k                                  =int((log10(radiusScaleFree               )-self%radiusScaleFreeLogarithmicOffset              )*self%radiusScaleFreeLogarithmicStepInverse              )+1
+      hk                                 =    (log10(radiusScaleFree               )-self%radiusScaleFreeLogarithmicOffset              )*self%radiusScaleFreeLogarithmicStepInverse               +1.0d0-dble(k)
+      integral=0.0d0
+      do ii=0,1
+         if (ii == 0) then
+            hhi=+1.0d0-hi
+         else
+            hhi=      +hi
+         end if
+         do jj=0,1
+               if (jj == 0) then
+                  hhj=+1.0d0-hj
+               else
+                  hhj=      +hj
+               end if
+               do kk=0,1
+                  if (kk == 0) then
+                     hhk=+1.0d0-hk
+                  else
+                     hhk=      +hk
+                  end if
+                  integral=+integral                                             &
+                       &   +self%integralPartiallyMolecularTable(i+ii,j+jj,k+kk) &
+                       &   *                                      hhi            &
+                       &   *                                           hhj       &
+                       &   *                                                hhk
+               end do
+            end do
+         end do
+         integralAnalyticPartiallyMolecularGeneric=+integralAnalyticPartiallyMolecularGeneric &
+              &                                    +exp(integral)                             &
+              &                                    *coefficientNormalization
+      return
+    end function integralAnalyticPartiallyMolecularGeneric
+   
+    double precision function integrand(radiusScaleFree)
+      !!{
+      Integrand for the partially molecular case.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: radiusScaleFree
+
+      integrand=+exp(-(1.0d0+2.0d0*self%pressureExponent)*radiusScaleFree) &
+           &    *(                                                         &
+           &      +1.0d0                                                   &
+           &      +coefficientFactorBoostStellar_                          &
+           &      *exp(0.5d0*radiusScaleFree)                              &
+           &     )**self%pressureExponent                                  &
+           &    *(                                                         &
+           &      +1.0d0                                                   &
+           &      +(                                                       &
+           &        +coefficientFactorBoost_                               &
+           &        *exp(-radiusScaleFree)                                 &
+           &       )**self%surfaceDensityExponent                          &
+           &     )                                                         &
+           &    *radiusScaleFree
+      return
+    end function integrand
+    
+  end function blitz2006IntegralPartiallyMolecular
+  
   double precision function blitz2006CriticalDensityRoot(radius)
     !!{
     Root function used in finding the radius in a disk where the pressure ratio exceeds the critical ratio.

@@ -25,15 +25,7 @@
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsSummation">
    <description>A photon source class for summation sources.</description>
-   <deepCopy>
-    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows"/>
-   </allowedParameters>
+   <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSummation

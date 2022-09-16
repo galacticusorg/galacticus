@@ -261,13 +261,13 @@ contains
     return
   end function rotationCurveExtract
 
-  subroutine rotationCurveNames(self,time,names)
+  subroutine rotationCurveNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily rotationCurve} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
-    double precision                                    , intent(in   )                             :: time
+    double precision                                    , intent(in   ), optional                   :: time
     type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
@@ -278,13 +278,13 @@ contains
     return
   end subroutine rotationCurveNames
 
-  subroutine rotationCurveDescriptions(self,time,descriptions)
+  subroutine rotationCurveDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
-    double precision                                    , intent(in   )                             :: time
+    double precision                                    , intent(in   ), optional                   :: time
     type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
     
@@ -295,13 +295,13 @@ contains
     return
   end subroutine rotationCurveDescriptions
 
-  subroutine rotationCurveColumnDescriptions(self,time,descriptions)
+  subroutine rotationCurveColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
-    double precision                                    , intent(in   )                             :: time
+    double precision                                    , intent(in   ), optional                   :: time
     type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -319,7 +319,7 @@ contains
     implicit none
     double precision                                    , allocatable  , dimension(:) :: rotationCurveUnitsInSI
     class           (nodePropertyExtractorRotationCurve), intent(inout)               :: self
-    double precision                                    , intent(in   )               :: time
+    double precision                                    , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
     
     allocate(rotationCurveUnitsInSI(self%elementCount_))

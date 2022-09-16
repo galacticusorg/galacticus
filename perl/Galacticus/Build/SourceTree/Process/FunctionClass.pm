@@ -194,6 +194,8 @@ sub Process_FunctionClass {
 	    my $addLabel         = 0;
 	    my $rankMaximum      = 0;
 	    my $descriptorUsed   = 0;
+	    my $descriptorLinkedListVariables;
+	    @{$descriptorLinkedListVariables} = ();
 	    $descriptorCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
@@ -439,6 +441,14 @@ sub Process_FunctionClass {
 						$descriptor = $potentialDescriptor
 						    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
 					    }
+					} elsif ( grep {lc($_) eq lc($name)."_"} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
+					    push(@{$descriptorParameters->{'parameters'}},{name => $name."_", inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+					    # Find the matched variable.
+					    my $descriptor;
+					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
+						$descriptor = $potentialDescriptor
+						    if ( grep {lc($_) eq lc($name)."_"} @{$potentialDescriptor->{'variableNames'}} );
+					    }
 					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'enumerations'}}) ) {
 					    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
 					    # Find the matched variable.
@@ -463,6 +473,8 @@ sub Process_FunctionClass {
 				    $name =~ s/\s//g;
 				    if ( grep {$_ eq lc($name)} @{$potentialNames->{'objects'}} ) {
 					push(@{$descriptorParameters->{'objects'}},{name => $name, source => $constructorNode->{'directive'}->{'source'}});
+				    } elsif ( exists($nonAbstractClass->{'linkedList'}) && $nonAbstractClass->{'linkedList'}->{'object'} eq $name ) {
+					push(@{$descriptorParameters->{'linkedLists'}},$nonAbstractClass->{'linkedList'});
 				    } else {
 					$supported = -5;
 					push(@failureMessage,"could not find a matching internal object for object [".$name."]");
@@ -629,7 +641,13 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "call self%".$_->{'name'}."%descriptor(".$_->{'source'}.")\n";
+				    $descriptorCode .= "call self%".$_->{'name'}."%descriptor(parameters)\n";
+				}
+			    }
+			    # Handle linked lists.
+			    if ( defined($descriptorParameters->{'linkedLists'}) ) {
+				foreach ( @{$descriptorParameters->{'linkedLists'}} ) {
+				    $descriptorCode .= &autoDescriptorLinkedList($_,$descriptorLinkedListVariables);
 				}
 			    }
 			}
@@ -647,6 +665,9 @@ sub Process_FunctionClass {
 		}
 	    }
 	    $descriptorCode .= "end select\n";
+	    if ( scalar(@{$descriptorLinkedListVariables}) > 0 ) {
+           	$descriptorCode = &Fortran::Utils::Format_Variable_Definitions($descriptorLinkedListVariables).$descriptorCode;
+	    }
 	    if ( $descriptorUsed ) {
 		$descriptorCode = "logical :: includeClass_\n".$descriptorCode;
 	    } else {
@@ -3687,8 +3708,8 @@ sub deepCopyLinkedList {
     my $linkedListFinalizeVariables = shift();
     my $debugging                   = shift();
     return ("","","")
-	unless ( exists($nonAbstractClass->{'deepCopy'}->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'deepCopy'}->{'linkedList'};
+	unless ( exists($nonAbstractClass->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},
@@ -3784,8 +3805,8 @@ sub stateStoreLinkedList {
     my $nonAbstractClass    = shift();
     my $linkedListVariables = shift();
     return ("","","")
-	unless ( exists($nonAbstractClass->{'stateStore'}->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'stateStore'}->{'linkedList'};
+	unless ( exists($nonAbstractClass->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},
@@ -3824,8 +3845,8 @@ sub allowedParametesLinkedList {
     my $linkedListVariables = shift();
     my $source              = shift();
     return ""
-	unless ( exists($nonAbstractClass->{'allowedParameters'}->{'linkedList'}) );
-    my $linkedList = $nonAbstractClass->{'allowedParameters'}->{'linkedList'};
+	unless ( exists($nonAbstractClass->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'linkedList'};
     # Add variables needed for linked list processing.
     push(
 	@{$linkedListVariables},
@@ -3846,6 +3867,35 @@ sub allowedParametesLinkedList {
 item_ => self%{$variable}
 do while (associated(item_))
    call item_%{$object}%allowedParameters(allowedParameters,'{$source}',.true.)
+   item_ => item_%{$next}
+end do
+CODE
+    return $iterator;
+}
+
+sub autoDescriptorLinkedList {
+    # Create auto-descriptor instructions for linked list objects.
+    my $linkedList          = shift();
+    my $linkedListVariables = shift();
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ 'item_' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    # Generate code for the walk through the linked list.
+    $code::variable = $linkedList->{'variable'};
+    $code::object   = $linkedList->{'object'  };
+    $code::next     = $linkedList->{'next'    };
+    my $iterator   = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%descriptor(parameters)
    item_ => item_%{$next}
 end do
 CODE
