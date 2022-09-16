@@ -218,8 +218,8 @@ CODE
 		}
 		if ( $status == 0 ) {
 		    (my $massEnvironment, my $overdensityEnvironment) = $hmf->attrGet('massEnvironment', 'overdensityEnvironment');
-		    $code::massEnvironment = sprintf("%+13.6e",$massEnvironment);
-		    $code::overdensityEnvironment = sprintf("%+9.6f    ",$overdensityEnvironment);
+		    $code::massEnvironment        = sprintf("%13.6e",       $massEnvironment);
+		    $code::overdensityEnvironment = sprintf("%+9.6f",$overdensityEnvironment);
 		    my $base = fill_in_string(<<'CODE', PACKAGE => 'code');
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
