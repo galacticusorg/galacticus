@@ -75,7 +75,9 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   Dark-Matter-Only-Subhalos:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container:
+      image: docker://galacticusorg/buildenv:latest
+      options: --privileged
     needs: Build-Executables
     steps:
       - run: echo "The job was automatically triggered by a $githubevent_name event."
@@ -130,7 +132,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   Milky-Way-Model:
     runs-on: ubuntu-latest
-    container: docker://galacticusorg/buildenv:latest
+    container:
+      image: docker://galacticusorg/buildenv:latest
+      options: --privileged
     needs: Build-Executables
     steps:
       - run: echo "The job was automatically triggered by a $githubevent_name event."
