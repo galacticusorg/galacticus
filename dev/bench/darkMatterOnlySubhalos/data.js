@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663220244204,
+  "lastUpdate": 1663397934463,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2443,6 +2443,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15423.3632579593,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0dbba3591f5cfcd5630fed699b2b0e2481982dc7",
+          "message": "Merge pull request #298 from galacticusorg/dev\n\nAdd a workaround for missing `pthread_mutex_destroy()` function in `GLIBC >= 2.34`",
+          "timestamp": "2022-09-16T21:50:37-07:00",
+          "tree_id": "3b8dba61a247c4b2bd3edba2f306dc14f241d068",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0dbba3591f5cfcd5630fed699b2b0e2481982dc7"
+        },
+        "date": 1663397933324,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 57.808,
+            "unit": "seconds",
+            "range": 0.0584944441806356
           }
         ]
       }
