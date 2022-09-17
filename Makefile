@@ -71,14 +71,23 @@ FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
 FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 # For OpenMP compilation.
-FCFLAGS += -fopenmp
+FCFLAGS  += -fopenmp
+CFLAGS   += -fopenmp
+CPPFLAGS += -fopenmp
+# Detect static compilation
+STATIC=$(findstring -static,${FCFLAGS})
+ifeq '${STATIC}' '-static'
+FCFLAGS  += -DSTATIC
+CFLAGS   += -DSTATIC
+CPPFLAGS += -DSTATIC
+endif
 
 # C compiler flags:
-CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
+CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
 export CFLAGS
 
 # C++ compiler flags:
-CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}
+CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
 
 # Detect library compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
