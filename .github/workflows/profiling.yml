@@ -115,7 +115,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml  
-          perf record -g -e cycles --call-graph dwarf -F 1000 -o ./testSuite/outputs/darkMatterOnlySubhalos.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
+          perf record -g -e cycles --call-graph dwarf -F 500 -o ./testSuite/outputs/darkMatterOnlySubhalos.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
           perf script -i ./testSuite/outputs/darkMatterOnlySubhalos.perf.data > ./testSuite/outputs/darkMatterOnlySubhalos.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -176,7 +176,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml  
-          perf record -g -e cycles --call-graph dwarf -F 1000 -o ./testSuite/outputs/milkyWay.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
+          perf record -g -e cycles --call-graph dwarf -F 100 -o ./testSuite/outputs/milkyWay.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
           perf script -i ./testSuite/outputs/milkyWay.perf.data > ./testSuite/outputs/milkyWay.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
