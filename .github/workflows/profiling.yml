@@ -148,13 +148,15 @@ jobs:
           du -sh ./testSuite/outputs/darkMatterOnlySubhalos.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: johnwbyrd/update-release@v1.0.0
+        uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./testSuite/outputs/darkMatterOnlySubhalos.perf
-          release: bleeding-edge
+          tag: bleeding-edge
           prerelease: true
-          message: Bleeding edge release
+          allow-override: true
+          gzip: true
+          name: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
