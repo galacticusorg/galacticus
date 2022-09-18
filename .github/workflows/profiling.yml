@@ -66,6 +66,9 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -fno-omit-frame-pointer"
+          export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -fno-omit-frame-pointer"
+          export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -fno-omit-frame-pointer"
           make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v2
@@ -115,7 +118,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml  
-          perf record -g -F 1000 -o ./testSuite/outputs/darkMatterOnlySubhalos.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
+          perf record -g -e cycles -F 1000 -o ./testSuite/outputs/darkMatterOnlySubhalos.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
           perf script -i ./testSuite/outputs/darkMatterOnlySubhalos.perf.data > ./testSuite/outputs/darkMatterOnlySubhalos.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -176,7 +179,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml  
-          perf record -g -F 1000 -o ./testSuite/outputs/milkyWay.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
+          perf record -g -e cycles -F 1000 -o ./testSuite/outputs/milkyWay.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
           perf script -i ./testSuite/outputs/milkyWay.perf.data > ./testSuite/outputs/milkyWay.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
