@@ -73,6 +73,34 @@ jobs:
           name: galacticus-exec
           path: '**.exe'
       - run: echo "This job's status is ${{ job.status }}."
+  Build-Executables-Instrumented:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
+          export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
+          export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
+          make -j2 Galacticus.exe
+      - name: Upload executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: galacticus-exec-inst
+          path: '**.exe'
+      - run: echo "This job's status is ${{ job.status }}."
   Dark-Matter-Only-Subhalos:
     runs-on: ubuntu-latest
     container:
@@ -186,6 +214,124 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./testSuite/outputs/milkyWay.perf
+          release: bleeding-edge
+          prerelease: true
+          message: Bleeding edge release
+          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
+      - name: Update release tag
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  Dark-Matter-Only-Subhalos-GProf:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://galacticusorg/buildenv:latest
+      options: --privileged
+    needs: Build-Executables-Instrumented
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Extract branch name
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec-inst
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run benchmark
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml  
+          rm gmon.out
+          ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
+          gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/darkMatterOnlySubhalos.gprof
+          du -sh ./testSuite/outputs/darkMatterOnlySubhalos.gprof
+      - name: Update release
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: johnwbyrd/update-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./testSuite/outputs/darkMatterOnlySubhalos.gprof
+          release: bleeding-edge
+          prerelease: true
+          message: Bleeding edge release
+          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
+      - name: Update release tag
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  Milky-Way-GProf:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://galacticusorg/buildenv:latest
+      options: --privileged
+    needs: Build-Executables-Instrumented
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Extract branch name
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec-inst
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run benchmark
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml  
+          rm gmon.out
+          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
+          gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay.gprof
+          du -sh ./testSuite/outputs/milkyWay.gprof
+      - name: Update release
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: johnwbyrd/update-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./testSuite/outputs/milkyWay.gprof
           release: bleeding-edge
           prerelease: true
           message: Bleeding edge release
