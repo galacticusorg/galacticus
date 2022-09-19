@@ -3319,7 +3319,8 @@ CODE
                 my @unusedVariables = ( "self" );
 		foreach my $argument ( @arguments ) {
 		    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
-		    $argumentList .= $separator.$variables;
+		    my $isOpenMP = $argument =~ m/^\s*!\$/;
+		    $argumentList .= ($isOpenMP ? " &\n!\$ & " : "").$separator.$variables.($isOpenMP ? " &\n& " : "");
 		    $argumentCode .= "      ".$argument."\n";
 		    $separator     = ",";
 		    my $declaration = &Fortran::Utils::Unformat_Variables($argument);
