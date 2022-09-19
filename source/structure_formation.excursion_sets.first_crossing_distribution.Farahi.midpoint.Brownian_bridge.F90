@@ -344,12 +344,23 @@ contains
     double precision                                            , intent(in   ) :: time
     class           (cosmologicalMassVarianceClass             ), intent(inout) :: cosmologicalMassVariance_
     real (kind_quad                                            )                :: rootVarianceConstrained  , varianceConstrained
+    
+    ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
+    !
+    !  • the root-variance of the density field smoothed on a mass scale M is a function of time, σ(M,t) = σ(M,t₀) D(t)/D(t₀),
+    !    where D(t) is the linear growth factor (which may also be scale-dependent);
+    !  • the critical overdensity for collapse does not include a factor of the linear growth factor, i.e. δ_c ≅ 1.686 at all
+    !    epochs (varying only due to the weak dependence on the epoch-dependent cosmological parameters).
+    !
+    ! This differs from standard treatments of the excursion set problem in which typically the root-variance, σ(M), is evaluated
+    ! at z=0, and the critical overdensity for collapse is replaced with δ_c(t)/D(t). Mathematically these two approaches are
+    ! equivalent, but it can be important to keep these distinctions in mind.
 
     ! In this function the following translations between internal variable names and math symbols are used:
     !
     !   S₂ = varianceConstrained
     !   S₁ = varianceCurrent
-    !   S̃ = varianceProgenitor+varianceCurrent
+    !   S̃ = varianceProgenitor  +varianceCurrent
     !   S  = varianceIntermediate+varianceCurrent
     !    
     ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
@@ -392,6 +403,16 @@ contains
     real            (kind_quad                                            )                :: rootVarianceConstrained       , varianceConstrained, &
          &                                                                                    criticalOverdensityConstrained
 
+    ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
+    !
+    !  • the root-variance of the density field smoothed on a mass scale M is a function of time, σ(M,t) = σ(M,t₀) D(t)/D(t₀),
+    !    where D(t) is the linear growth factor (which may also be scale-dependent);
+    !  • the critical overdensity for collapse does not include a factor of the linear growth factor, i.e. δ_c ≅ 1.686 at all
+    !    epochs (varying only due to the weak dependence on the epoch-dependent cosmological parameters).
+    !
+    ! This differs from standard treatments of the excursion set problem in which typically the root-variance, σ(M), is evaluated
+    ! at z=0, and the critical overdensity for collapse is replaced with δ_c(t)/D(t). Mathematically these two approaches are
+    ! equivalent, but it can be important to keep these distinctions in mind.
 
     ! In this function the following translations between internal variable names and math symbols are used:
     !
@@ -455,9 +476,9 @@ contains
     call dataFile%openFile(char(self%fileName),overWrite=.false.)
     ! Check if the rate table is populated.
     if (self%tableInitializedRate) then
-       allocate(linearGrowthFactor(size(self%timeTableRate)))
-       do i=1,size(self%timeTableRate)
-          linearGrowthFactor(i)=self%linearGrowth_%value(time=self%timeTableRate(i))
+       allocate(linearGrowthFactor(size(self%timeRate)))
+       do i=1,size(self%timeRate)
+          linearGrowthFactor(i)=self%linearGrowth_%value(time=self%timeRate(i))
        end do
        dataGroup=dataFile%openGroup("rate")
        call dataGroup%writeDataset(linearGrowthFactor,'linearGrowthFactor','The linear growth factors at the times at which results are tabulated.')
