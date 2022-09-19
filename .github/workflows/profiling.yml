@@ -211,14 +211,16 @@ jobs:
           perf script -i ./testSuite/outputs/milkyWay.perf.data > ./testSuite/outputs/milkyWay.perf
           du -sh ./testSuite/outputs/milkyWay.perf
       - name: Update release
-        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: johnwbyrd/update-release@v1.0.0
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }} 
+        uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./testSuite/outputs/milkyWay.perf
-          release: bleeding-edge
+          tag: bleeding-edge
           prerelease: true
-          message: Bleeding edge release
+          allow_override: true
+          gzip: true
+          name: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -332,13 +334,15 @@ jobs:
           du -sh ./testSuite/outputs/milkyWay.gprof
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: johnwbyrd/update-release@v1.0.0
+        uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./testSuite/outputs/milkyWay.gprof
-          release: bleeding-edge
+          tag: bleeding-edge
           prerelease: true
-          message: Bleeding edge release
+          allow_override: true
+          gzip: true
+          name: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
