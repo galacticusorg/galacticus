@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663428974557,
+  "lastUpdate": 1663715657258,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2565,6 +2565,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/3d444eccb2e80ee2cdceed04c629367ff984a2b4"
         },
         "date": 1663428973269,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 56.4862273307091,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.5165582430658,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 15423.3632579593,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c32d658774a67608334f68cc885bf4a2bff06662",
+          "message": "fix: Trim trailing whitespace from input path names",
+          "timestamp": "2022-09-20T11:47:56-07:00",
+          "tree_id": "5dd15d6b43a55ef86f020c106e45d7904a82e716",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c32d658774a67608334f68cc885bf4a2bff06662"
+        },
+        "date": 1663715655993,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
