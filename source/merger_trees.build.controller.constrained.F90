@@ -31,16 +31,21 @@ Contains a module which implements a merger tree build controller class which bu
      A merger tree build controller class which builds constrained trees.
      !!}
      private
-  contains
-     procedure :: branchingProbabilityObject => branchingProbabilityObjectConstrained
-     procedure :: is_contrained => is_constrained
+     class  (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbabilityUnconstrained_ => null(), mergerTreeBranchingProbabilityConstrained_ => null()
+     integer                                               :: isConstrainedID
+   contains
+     final     ::                               constrainedDestructor
+     procedure :: control                    => constrainedControl
+     procedure :: branchingProbabilityObject => constrainedBranchingProbabilityObject
+     procedure :: nodesInserted              => constrainedNodesInserted
   end type mergerTreeBuildControllerConstrained
-
+  
   interface mergerTreeBuildControllerConstrained
      !!{
      Constructors for the ``constrained'' merger tree build controller class.
      !!}
      module procedure constrainedConstructorParameters
+     module procedure constrainedConstructorInternal
   end interface mergerTreeBuildControllerConstrained
 
 contains
@@ -51,42 +56,123 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeBuildControllerConstrained)               :: self
-    type(inputParameters                    ), intent(inout) :: parameters
-  
-    self=mergerTreeBuildControllerConstrained()
+    type (mergerTreeBuildControllerConstrained)               :: self
+    type (inputParameters                    ), intent(inout) :: parameters
+    class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
+
+    !![
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityUnconstrained_" parameterName="mergerTreeBranchingProbabilityUnconstrained" source="parameters"/>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityConstrained_"   parameterName="mergerTreeBranchingProbabilityConstrained"   source="parameters"/>
+    !!]
+    self=mergerTreeBuildControllerConstrained(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBranchingProbabilityUnconstrained_"/>
+    <objectDestructor name="mergerTreeBranchingProbabilityConstrained_"  />
     !!]
     return
   end function constrainedConstructorParameters
 
-  function branchingProbabilityObjectConstrained(self,mergerTreeBranchingProbability_)
+  function constrainedConstructorInternal(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_) result(self)
     !!{
-    Return a pointer to a constrained branching probability object.
-    }
-    implicit none
-    class(mergerTreeBuildControllerConstrained), intent(inout)         :: self
-    class(mergerTreeBranchingProbabilityClass),  intent(inout)         :: mergerTreeBranchingProbability_
-    !$GLC attributes unused :: self
-
-    ! Do something to associate mergerTreeBranchingProbability_ with a constrained branching probability object?
-
-  logical function is_constrained(self,node,treeWalker_)
-    !!{
-    Mark a node as "constrained" or "unconstrained."
+    Internal constructor for the ``constrained'' merger tree build controller class.
     !!}
     implicit none
-    class(mergerTreeBuildControllerConstrained), intent(inout)         :: self    
-    type (treeNode                           ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass              ), intent(inout)          :: treeWalker_
-    !$GLC attributes unused :: self
+    type (mergerTreeBuildControllerConstrained)                        :: self
+    class(mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
+    !![
+    <constructorAssign variables="*mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_"/>
+    !!]
 
-    is_constrained=.true.
-    ! Returned "true" if this it the primary node, and "false" otherwise (but do primary and secondary always map to nodeNew1 and nodeNew2)?
-    if (is_constrained.and.node%isPrimaryProgenitor())
-       is_constrained=.true.
-    else
-       is_constrained=.false.
+    !! NOTE: Here we add a "meta-property" to the "basic" component of each node. (The basic component is the thing that stores
+    !! the total mass and current time of the node, so it's guaraneteed to already exist at this point. A meta-property is just
+    !! some arbitrary data that we want to attach to each node in the tree. The directive below will obtain and store an ID value
+    !! associated with this meta-property that we can then use to get and set it.) We'll use this meta-property to store the
+    !! status of whether a node is on the constrained branch or not.
+    !![
+    <addMetaProperty component="basic" name="isConstrained" type="integer" id="self%isConstrainedID" isCreator="yes"/>
+    !!]
     return
-  end function is_constrained
+  end function constrainedConstructorInternal
+
+  subroutine constrainedDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily constrained} merger tree build controller class.
+    !!}
+    implicit none
+    type(mergerTreeBuildControllerConstrained), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%mergerTreeBranchingProbabilityUnconstrained_"/>
+    <objectDestructor name="self%mergerTreeBranchingProbabilityConstrained_"  />
+    !!]
+    return
+  end subroutine constrainedDestructor
+
+  logical function constrainedControl(self,node,treeWalker_)
+    !!{
+    Apply control to merger tree building.
+    !!}
+    implicit none
+    class(mergerTreeBuildControllerConstrained), intent(inout)          :: self
+    type (treeNode                            ), intent(inout), pointer :: node
+    class(mergerTreeWalkerClass               ), intent(inout)          :: treeWalker_
+    !$GLC attributes unused :: self, node, treeWalker_
+
+    ! Always return true as we never want to halt tree building.
+    constrainedControl=.true.
+    return
+  end function constrainedControl
+
+  function constrainedBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
+    !!{
+    Return a pointer the the merger tree branching probability object to use.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class  (mergerTreeBranchingProbabilityClass ), pointer       :: mergerTreeBranchingProbability_
+    class  (mergerTreeBuildControllerConstrained), intent(inout) :: self
+    type   (treeNode                            ), intent(inout) :: node
+    class  (nodeComponentBasic                  ), pointer       :: basic
+    logical                                                      :: isConstrained
+
+    basic         => node %basic                      (                   )
+    isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
+    !! NOTE: "isConstrained" will now be true if this node is on the constrained branch. So, we need an if/else here to return a
+    !! pointer to the appropriate mergerTreeBranching object depending on the state of "isConstrained".  I think one further
+    !! detail here is that we will need to also check if this node is the root node of the tree (which we can do with
+    !! ".not.associated(node%parent)"). If it is, we also need to return the constrained branching probabilty, *and* mark it as
+    !! being on the constrained branch.
+    return
+  end function constrainedBranchingProbabilityObject
+
+  subroutine constrainedNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+    !!{
+    Act on the insertion of nodes into the merger tree.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class (mergerTreeBuildControllerConstrained), intent(inout)           :: self
+    type  (treeNode                            ), intent(inout)           :: nodeCurrent     , nodeProgenitor1
+    type  (treeNode                            ), intent(inout), optional :: nodeProgenitor2
+    class (nodeComponentBasic                  ), pointer                 :: basicCurrent    , basicProgenitor1, &
+         &                                                                   basicProgenitor2
+    logical                                                               :: isConstrained
+
+    !! NOTE: Here is where we should mark nodes as on the constrained branch or not.
+    basicCurrent     => nodeCurrent    %basic                      (                    )
+    basicProgenitor1 => nodeProgenitor1%basic                      (                    )
+    isConstrained    =  basicCurrent   %integerRank0MetaPropertyGet(self%isConstrainedID) == 1
+    if (isConstrained) then
+       !! NOTE: Parent is on the constrained branch, so this progenitor also is - mark it as such using the "integerRank0MetaPropertySet" function.
+    else
+       !! NOTE: Parent is not on the constrained branch, so this progenitor also is not - mark it as such using the "integerRank0MetaPropertySet" function.
+    end if
+    ! If the second progenitor is present, mark it as not on the constrained branch.
+    if (present(nodeProgenitor2)) then
+       basicProgenitor2 => nodeProgenitor2%basic()
+       !! NOTE: Need to mark this secondary progenitor as not on the main branch, e.g.:
+       call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,0)
+    end if
+    return
+  end subroutine constrainedNodesInserted

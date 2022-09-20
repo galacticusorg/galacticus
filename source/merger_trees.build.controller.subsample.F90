@@ -42,10 +42,14 @@ Contains a module which implements a merger tree build controller class which pe
      each parent and child. If {\normalfont \ttfamily [factorMassGrowthConsolidate]}$\le 0$ no consolidation will be performed.     
      !!}
      private
-     double precision :: massThreshold, subsamplingRateAtThreshold, &
-          &              exponent     , factorMassGrowthConsolidate
+     class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
+     double precision                                               :: massThreshold                            , subsamplingRateAtThreshold , &
+          &                                                            exponent                                 , factorMassGrowthConsolidate
   contains
-     procedure :: control => controlSubsample
+     final     ::                               subsampleDestructor
+     procedure :: control                    => subsampleControl
+     procedure :: branchingProbabilityObject => subsampleBranchingProbabilityObject
+     procedure :: nodesInserted              => subsampleNodesInserted
   end type mergerTreeBuildControllerSubsample
 
   interface mergerTreeBuildControllerSubsample
@@ -64,10 +68,11 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (mergerTreeBuildControllerSubsample)                :: self
-    type            (inputParameters                   ), intent(inout) :: parameters
-    double precision                                                    :: massThreshold, subsamplingRateAtThreshold, &
-         &                                                                 exponent     , factorMassGrowthConsolidate
+    type            (mergerTreeBuildControllerSubsample )                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
+    double precision                                                     :: massThreshold                  , subsamplingRateAtThreshold , &
+         &                                                                  exponent                       , factorMassGrowthConsolidate
     
     !![
     <inputParameter>
@@ -91,30 +96,46 @@ contains
       <description>The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.</description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     !!]
-    self=mergerTreeBuildControllerSubsample(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate)
+    self=mergerTreeBuildControllerSubsample(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,mergerTreeBranchingProbability_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBranchingProbability_"/>
     !!]
     return
   end function subsampleConstructorParameters
 
-  function subsampleConstructorInternal(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate) result(self)
+  function subsampleConstructorInternal(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,mergerTreeBranchingProbability_) result(self)
     !!{
     Internal constructor for the ``subsample'' merger tree build controller class.
     !!}
     implicit none
-    type            (mergerTreeBuildControllerSubsample)                :: self
-    double precision                                    , intent(in   ) :: massThreshold, subsamplingRateAtThreshold, &
-         &                                                                 exponent     , factorMassGrowthConsolidate
+    type            (mergerTreeBuildControllerSubsample )                        :: self
+    class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
+    double precision                                     , intent(in   )         :: massThreshold                  , subsamplingRateAtThreshold , &
+         &                                                                          exponent                       , factorMassGrowthConsolidate
     !![
-    <constructorAssign variables="massThreshold, subsamplingRateAtThreshold, exponent, factorMassGrowthConsolidate"/>
+    <constructorAssign variables="massThreshold, subsamplingRateAtThreshold, exponent, factorMassGrowthConsolidate, *mergerTreeBranchingProbability_"/>
     !!]
     
     return
   end function subsampleConstructorInternal
 
-  logical function controlSubsample(self,node,treeWalker_)
+  subroutine subsampleDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily subsample} merger tree build controller class.
+    !!}
+    implicit none
+    type(mergerTreeBuildControllerSubsample), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    !!]
+    return
+  end subroutine subsampleDestructor
+
+  logical function subsampleControl(self,node,treeWalker_)
     !!{
     Subsample branches of a tree under construction.
     !!}
@@ -136,7 +157,7 @@ contains
     finished=.false.
     do while (.not.finished)
        finished        =.true.
-       controlSubsample=.true.
+       subsampleControl=.true.
        ! Root node is not eligible for pruning.
        if (.not.associated(node%parent)) return
        ! Set the subsampling weight for this node to equal that of its parent.
@@ -158,7 +179,7 @@ contains
        else
           ! Prune the node.
           !! Get the next node to walk to in the tree.
-          controlSubsample=treeWalker_%next(nodeNext)
+          subsampleControl=treeWalker_%next(nodeNext)
           !! Decouple the node from the tree.
           nodeParent => node      %parent
           nodeChild  => nodeParent%firstChild
@@ -211,8 +232,36 @@ contains
              end if
           end if
           ! We pruned a node. Therefore, if a next node was found we must now check whether we want to prune it too.
-          finished=.not.controlSubsample
+          finished=.not.subsampleControl
        end if
     end do
     return
-  end function controlSubsample
+  end function subsampleControl
+
+  function subsampleBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
+    !!{
+    Return a pointer the the merger tree branchin probability object to use.
+    !!}
+    implicit none
+    class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
+    class(mergerTreeBuildControllerSubsample ), intent(inout) :: self
+    type (treeNode                           ), intent(inout) :: node
+    !$GLC attributes unused :: node
+
+    mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbability_
+    return
+  end function subsampleBranchingProbabilityObject
+
+  subroutine subsampleNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+    !!{
+    Act on the insertion of nodes into the merger tree.
+    !!}
+    implicit none
+    class(mergerTreeBuildControllerSubsample), intent(inout)           :: self
+    type (treeNode                          ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
+    type (treeNode                          ), intent(inout), optional :: nodeProgenitor2
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+
+    ! Nothing to do.
+    return
+  end subroutine subsampleNodesInserted

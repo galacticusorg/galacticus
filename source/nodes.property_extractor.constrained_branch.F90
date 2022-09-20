@@ -24,19 +24,20 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorConstrainedStatus">
    <description>
-    A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the
-    node follows the constrained branching rate solution and a value of 0 indicating that it
-    does not.
+    A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
+    extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
+    branching rate solution and a value of 0 indicating that it does not.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorConstrainedStatus
      !!{
-     A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the
-     node follows the constrained branching rate solution and a value of 0 indicating that it
-     does not.
-      !!}
+     A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
+     extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
+     branching rate solution and a value of 0 indicating that it does not.
+     !!}
      private
+     integer :: isConstrainedID
    contains
      procedure :: extract     => constrainedStatusExtract
      procedure :: name        => constrainedStatusName
@@ -59,12 +60,9 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodePropertyExtractorConstrainedStatus)               :: self
-    type   (inputParameters                      ), intent(inout) :: parameters
+    type(nodePropertyExtractorConstrainedStatus)               :: self
+    type(inputParameters                      ), intent(inout) :: parameters
 
-    !![
-
-    !!]
     self=nodePropertyExtractorConstrainedStatus()
     !![
     <inputParametersValidate source="parameters"/>
@@ -77,10 +75,13 @@ contains
     Internal constructor for the {\normalfont \ttfamily constrainedStatus} node property extractor class.
     !!}
     implicit none
-    type   (nodePropertyExtractorConstrainedStatus)                :: self
+    type(nodePropertyExtractorConstrainedStatus) :: self
+
+    !! NOTE: Use a matched "meta-property" as we used in the constrained tree build controller. This allows us to recover the
+    !! stored "isConstrained" state of each node that was written by that object.
     !![
+    <addMetaProperty component="basic" name="isConstrained" type="integer" id="self%isConstrainedID" isCreator="no"/>
     !!]
-   
     return
   end function constrainedStatusConstructorInternal
 
@@ -88,16 +89,22 @@ contains
     !!{
     Implement a {\normalfont \ttfamily constrainedStatus} node property extractor.
     !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    integer         (kind_int8                            )                          :: constrainedStatusExtract
-    class           (nodePropertyExtractorConstrainedStatus), intent(inout)          :: self
-    type            (treeNode                             ), intent(inout), target   :: node
-    double precision                                       , intent(in   )           :: time
-    type            (multiCounter                         ), intent(inout), optional :: instance
-    !$GLC attributes unused :: self, instance, time
+    integer         (kind_int8                             )                          :: constrainedStatusExtract
+    class           (nodePropertyExtractorConstrainedStatus), intent(inout)           :: self
+    type            (treeNode                              ), intent(inout), target   :: node
+    double precision                                        , intent(in   )           :: time
+    type            (multiCounter                          ), intent(inout), optional :: instance
+    class           (nodeComponentBasic                    )               , pointer  :: basic
+    logical                                                                           :: isConstrained
+    !$GLC attributes unused :: instance, time
 
 
-    if (node%is_constrained()) then
+    basic         => node %basic                      (                    )
+    isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
+    !! NOTE: "isConstrained" will now be true if this node is on the constrained branch. So, we use an if/else here to return the appropriate status.
+    if (isConstrained) then
        constrainedStatusExtract=1
     else
        constrainedStatusExtract=0
@@ -110,23 +117,23 @@ contains
     Return the name of the constrainedStatus property.
     !!}
     implicit none
-    type (varying_string                       )                :: constrainedStatusName
+    type (varying_string                        )                :: constrainedStatusName
     class(nodePropertyExtractorConstrainedStatus), intent(inout) :: self
     !$GLC attributes unused :: self
-
-    mainBranchStatusName=var_str('nodeIsConstrained')
+    
+    constrainedStatusName=var_str('nodeIsConstrained')
     return
   end function constrainedStatusName
-
+  
   function constrainedStatusDescription(self)
     !!{
     Return a description of the constrainedStatus property.
     !!}
     implicit none
-    type (varying_string                       )                :: constrainedStatusDescription
+    type (varying_string                        )                :: constrainedStatusDescription
     class(nodePropertyExtractorConstrainedStatus), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    constrainedStatusDescription=var_str('Indicates if the node is constrained (0|1).')
+    constrainedStatusDescription=var_str('Indicates if the node is on the constrained branch (0|1).')
     return
   end function constrainedStatusDescription
