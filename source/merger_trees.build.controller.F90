@@ -56,7 +56,7 @@ module Merger_Tree_Build_Controllers
    <descriptiveName>Merger Tree Build Controllers For Constrained Trees</descriptiveName>
    <description>Class providing constrained or unconstrained label.</description>
    <default>unconstrained</default>
-   <method name="constrained" >
+   <method name="is_constrained" >
     <description>Mark a tree build as either constrained or unconstrained.</description>
     <type>logical</type>
     <pass>yes</pass>

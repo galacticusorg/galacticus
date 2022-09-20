@@ -570,6 +570,9 @@ contains
                    if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
                    call basicNew2%massSet(nodeMass2     )
                    call basicNew2%timeSet(deltaCritical2)
+                   ! Mark constrained and unconstrained branches?
+                   nodeNew1   %is_constrained => mergerTreeBranchingProbability_%is_constrained(nodeNew1,treeWalkerConstruction)
+                   nodeNew2   %is_constrained => mergerTreeBranchingProbability_%is_constrained(nodeNew2,treeWalkerConstruction)
                    ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
                    if (nodeMass2 > nodeMass1) then
                       node    %firstChild => nodeNew2
