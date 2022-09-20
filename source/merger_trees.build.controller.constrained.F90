@@ -32,6 +32,9 @@ Contains a module which implements a merger tree build controller class which bu
   <enumeration>
    <name>constructionOption</name>
    <description>Specifies option for constructing merger tree.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="constrainedBranchOnly" />
    <entry label="constrainedAndMainBranchOnly"   />
    <entry label="allBranches"   />
@@ -79,7 +82,7 @@ contains
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityUnconstrained_" parameterName="mergerTreeBranchingProbabilityUnconstrained" source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityConstrained_"   parameterName="mergerTreeBranchingProbabilityConstrained"   source="parameters"/>
     !!]
-    self=mergerTreeBuildControllerConstrained(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_)
+    self=mergerTreeBuildControllerConstrained(enumerationConstructionOption(char(constructionOption),includesPrefix=.false.),mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBranchingProbabilityUnconstrained_"/>
@@ -94,6 +97,7 @@ contains
     !!}
     implicit none
     type (mergerTreeBuildControllerConstrained)                        :: self
+    type (enumerationConstructionOption ), intent(in   )               :: constructionOption
     class(mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
     !![
     <constructorAssign variables="*mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_"/>
