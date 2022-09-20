@@ -1132,9 +1132,10 @@ sub zoomInsPreProcessExtractUncontaminated {
 	    my $parametersUncontaminated = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/zoomInSelectUncontaminated.xml");
 	    # Modify file names.
 	    (my $snapshot) = map {$simulation->{'expansionFactors'}->[$_] == $expansionFactor ? $simulation->{'snapshots'}->[$_] : ()} 0..$#{$simulation->{'expansionFactors'}};
-	    $parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'}->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
-	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'   }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel};
-	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'}->{'value'} = $uncontaminatedFileName;
+	    $parametersUncontaminated->{'nbodyImporter'}                        ->{'fileName'      }->{'value'} = $pathName."snapshots/snapshot_".$snapshot;
+	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'point'         }->{'value'} = $simulation->{$realization}->{$expansionFactorLabel};
+	    $parametersUncontaminated->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'      }->{'value'} = $uncontaminatedFileName;
+	    $parametersUncontaminated                                           ->{'outputFileName'}->{'value'} = $pathName."uncontaminatedExtract_".$redshiftLabel.".hdf5";
 	    # Write parameter file.
 	    my $parameterFileName = $pathName."uncontaminated_".$redshiftLabel.".xml";
 	    open(my $outputFile,">",$parameterFileName);
@@ -1149,7 +1150,7 @@ sub zoomInsPreProcessExtractUncontaminated {
 	    $job->{'ppn'       } = $ompThreads;
 	    $job->{'ompThreads'} = $ompThreads;
 	    $job->{'nodes'     } = 1;
-	    $job->{'mem'       } = "8G";
+	    $job->{'mem'       } = "16G";
 	    $job->{'walltime'  } = "8:00:00";
 	    $job->{'mpi'       } = "no";
 	    push(@{$jobs},$job)
@@ -1247,7 +1248,7 @@ sub zoomInsPostprocessSelectInSphere {
 	$job->{'ppn'       } = $ompThreads;
 	$job->{'ompThreads'} = $ompThreads;
 	$job->{'nodes'     } =  1;
-	$job->{'mem'       } = "8G";
+	$job->{'mem'       } = "16G";
 	$job->{'walltime'  } = "8:00:00";
 	$job->{'mpi'       } = "no";
 	push(@{$jobs},$job)
@@ -1301,6 +1302,7 @@ sub zoomInsPostprocessSelectInICs {
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'idSelectionFileName'}->{'value'} =                $pathName                   ."selectedParticlesIDs_".$redshiftLabel.    ".hdf5" ;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'fileName'           }->{'value'} =                $pathName                   ."selectedParticles_"   .$redshiftLabel."_ICs.hdf5" ;
 	$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'redshift'           }->{'value'} = sprintf("%.3f",$simulation->{'redshiftICs'}                                                   );
+	$parameters                                           ->{'outputFileName'     }->{'value'} =                $pathName                   ."selectInICs_"         .$redshiftLabel.    ".hdf5" ;
 	my $parameterFileName = $pathName."selectInICs_".$redshiftLabel.".xml";
 	open(my $outputFile,">",$parameterFileName);
 	print $outputFile $xml->XMLout($parameters, RootName => "parameters");
@@ -1387,10 +1389,13 @@ sub zoomInsPostprocessSetVolume {
 	my $boxSize                                                     = (    $mass/$densityMean       )**(1.0/3.0);
 	$simulation->{$realization}->{$redshiftLabel}->{'radiusRegion'} = (3.0*$mass/$densityMean/4.0/PI)**(1.0/3.0);
 	$simulation->{$realization}->{$redshiftLabel}->{'massRegion'  } =      $mass                                ;
-	# Set the box size.
-	my $halosFile                                                   = new PDL::IO::HDF5(">".$pathName."alwaysIsolated_".$redshiftLabel."_subVolume0_0_0.hdf5");
-	$halosFile->group('Snapshot00001'       )->group('HaloCatalog')->attrSet(boxSize => $boxSize);
-	$halosFile->group('SimulationProperties')                      ->attrSet(boxSize => $boxSize);
+	# Iterate over halo types.
+	foreach my $haloType ( "alwaysIsolated", "nonFlyby", "all" ) {
+	    # Set the box size.
+	    my $halosFile = new PDL::IO::HDF5(">".$pathName.$haloType."_".$redshiftLabel."_subVolume0_0_0.hdf5");
+	    $halosFile->group('Snapshot00001'       )->group('HaloCatalog')->attrSet(boxSize => $boxSize);
+	    $halosFile->group('SimulationProperties')                      ->attrSet(boxSize => $boxSize);
+	}
     }
 }
 
