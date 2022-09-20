@@ -26,6 +26,18 @@ Contains a module which implements a merger tree build controller class which bu
    <description>A merger tree build controller class which builds constrained trees.</description>
   </mergerTreeBuildController>
   !!]
+
+  ! Enumeration for different fitting function types.
+  !![
+  <enumeration>
+   <name>constructionOption</name>
+   <description>Specifies option for constructing merger tree.</description>
+   <entry label="constrainedBranchOnly" />
+   <entry label="constrainedAndMainBranchOnly"   />
+   <entry label="allBranches"   />
+  </enumeration>
+  !!]
+
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerConstrained
      !!{     
      A merger tree build controller class which builds constrained trees.
@@ -33,7 +45,7 @@ Contains a module which implements a merger tree build controller class which bu
      private
      class  (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbabilityUnconstrained_ => null(), mergerTreeBranchingProbabilityConstrained_ => null()
      integer                                               :: isConstrainedID
-     logical                                                   :: constrainedBranchOnly, constrainedAndMainBranchOnly, allBranches
+     type (enumerationConstructionOption)                  :: constructionOption
    contains
      final     ::                               constrainedDestructor
      procedure :: control                    => constrainedControl
@@ -56,36 +68,18 @@ contains
     Constructor for the ``constrained'' merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
+
     implicit none
     type (mergerTreeBuildControllerConstrained)               :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    logical                                                   :: constrainedBranchOnly, constrainedAndMainBranchOnly, allBranches
+    type (enumerationConstructionOption)                      :: constructionOption
     class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
-
-    <inputParameter>
-      <name>constrainedBranchOnly</name>
-      <source>parameters</source>
-      <defaultValue>.true.</defaultValue>
-      <description>If true, only the constrained branch is constructed.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>constrainedAndMainBranchOnly</name>
-      <source>parameters</source>
-      <defaultValue>.true.</defaultValue>
-      <description>If true, both the constrained and main branches are constructed.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>allBranches</name>
-      <source>parameters</source>
-      <defaultValue>.true.</defaultValue>
-      <description>If true, all branches (constrained and unconstrained) are constructed.</description>
-    </inputParameter>
 
     !![
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityUnconstrained_" parameterName="mergerTreeBranchingProbabilityUnconstrained" source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityConstrained_"   parameterName="mergerTreeBranchingProbabilityConstrained"   source="parameters"/>
     !!]
-    self=mergerTreeBuildControllerConstrained(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,constrainedBranchOnly,constrainedAndMainBranchOnly,allBranches)
+    self=mergerTreeBuildControllerConstrained(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBranchingProbabilityUnconstrained_"/>
@@ -94,17 +88,27 @@ contains
     return
   end function constrainedConstructorParameters
 
-  function constrainedConstructorInternal(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,constrainedBranchOnly,constrainedAndMainBranchOnly,allBranches) result(self)
+  function constrainedConstructorInternal(mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_) result(self)
     !!{
     Internal constructor for the ``constrained'' merger tree build controller class.
     !!}
     implicit none
     type (mergerTreeBuildControllerConstrained)                        :: self
     class(mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
-    logical                                                            :: constrainedBranchOnly, constrainedAndMainBranchOnly, allBranches
     !![
     <constructorAssign variables="*mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_"/>
     !!]
+
+    ! Check construction option.
+    if (self%constructorOption_%constrainedBranchOnly() == .true.) then
+       self%constructorOption=constructorOptionConstrainedBranchOnly
+    else if (self%constructorOption_%constrainedAndMainBranchOnly() == .true.) then
+       self%constructorOption=constructorOptionConstrainedAndMainBranchOnly
+    else if (self%constructorOption_%allBranches() == .true.) then
+       self%constructorOption=constructorOptionAllBranches
+    else
+       call Error_Report('No merger tree construction option set.'//{introspection:location})
+    end if
 
     !! NOTE: Here we add a "meta-property" to the "basic" component of each node. (The basic component is the thing that stores
     !! the total mass and current time of the node, so it's guaraneteed to already exist at this point. A meta-property is just
@@ -144,15 +148,21 @@ contains
     ! Always return true as we never want to halt tree building.
     constrainedControl=.true.
     ! Move to the next node in the tree while such exists, and the current node is on a side branch.
-    if (self%constrainedBranchOnly) then
-       do while (constrainedControl)
+    select case (self%constructionOption%ID)
+    case (constructionOptionConstrainedBranchOnly  %ID)
+       basic => node%basic()
+       do while (constrainedControl.and.associated(node%parent).and.basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1)
           constrainedControl=treeWalker_%next(node)
-    else if (self%constrainedAndMainBranchOnly) then
-       do while (constrainedControl.or.node%isOnMainBranch)
+          if (constrainedControl) basic => node%basic()
+       end do
+    case (constructionOptionConstrainedAndMainBranchOnly  %ID)
+       basic => node%basic()
+       do while (constrainedControl.and.associated(node%parent).and.(basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1 .or. node%isOnMainBranch()))
           constrainedControl=treeWalker_%next(node)
-    else if (self%allBranches) then
+          if (constrainedControl) basic => node%basic()
+       end do
+    case (constructionOptionAllBranches  %ID)
        constrainedControl=.true.
-    end if
     return
   end function constrainedControl
 
@@ -175,9 +185,10 @@ contains
     !! detail here is that we will need to also check if this node is the root node of the tree (which we can do with
     !! ".not.associated(node%parent)"). If it is, we also need to return the constrained branching probabilty, *and* mark it as
     !! being on the constrained branch.
-    if .not.associated(node%parent) then
+    if (.not.associated(node%parent)) then
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityConstrained_
-       isConstrained = .true.
+       basic => node%basic()
+       call basic%%integerRank0MetaPropertySet(self%isConstrainedID,1)
     else if (isConstrained) then
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityConstrained_
     else
