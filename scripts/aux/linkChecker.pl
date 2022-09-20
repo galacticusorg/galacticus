@@ -139,6 +139,8 @@ sub checkLink {
 	    if ( $url =~ m/sharepoint\.com/ );
 	$options .= " --compressed"
 	    if ( $url =~ m/docs\.github\.com/ );
+	$options .= " --http1.1"
+	    if ( $url =~ m/camb\.info/ );
 	system("sleep 1; curl ".$options." \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;	
 	$options =~ s/\-\-silent//;
