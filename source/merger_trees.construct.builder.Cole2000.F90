@@ -285,6 +285,7 @@ contains
          &                                                                       nodeChild
     class           (nodeComponentBasic              ), pointer               :: basicNew1                    , basicNew2                  , basic                     , &
          &                                                                       basicParent                  , basicChild
+    class           (mergerTreeBranchingProbabilityClass), pointer            :: mergerTreeBranchingProbability_
     double precision                                  , parameter             :: toleranceTimeEarliest =2.0d-6
     double precision                                  , parameter             :: toleranceDeltaCritical=1.0d-6
     double precision                                  , parameter             :: toleranceTime         =1.0d-6
@@ -376,8 +377,8 @@ contains
              branchIsDone=.true.
           else
              ! Find branching probability rate per unit deltaW.
-             self%mergerTreeBranchingProbability = self%mergerTreeBuildController_%branchingProbabilityObject(mergerTreeBranchingProbabilityClass) ?
-             branchingProbabilityRate=+self%mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundUpper,node) &
+             mergerTreeBranchingProbability_ => self%mergerTreeBuildController_%branchingProbabilityObject()
+             branchingProbabilityRate=+mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundUpper,node) &
                   &                   *rootVarianceGrowthFactor
              ! Find accretion rate.
              accretionFraction       =+self%mergerTreeBranchingProbability_%fractionSubresolution(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution                              ,node) &

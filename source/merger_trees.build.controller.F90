@@ -45,8 +45,8 @@ module Merger_Tree_Build_Controllers
    </method>
    <method name="branchingProbabilityObject" >
     <description>Control the behavior of a tree build.</description>
-    <type>pointer?</type>
-    <pass>yes?</pass>
+    <type>pointer</type>
+    <pass>yes</pass>
     <argument>type (mergerTreeBranchingProbabilityClass             ), intent(inout), pointer :: mergerTreeBranchingProbability_       </argument>
    </method>
   </functionClass>
