@@ -229,6 +229,70 @@ jobs:
           tag_name: bleeding-edge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  Milky-Way-SIDM-Model:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://galacticusorg/buildenv:latest
+      options: --privileged
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Extract branch name
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Install tools
+        run: |
+          apt -y update
+          apt install -y linux-tools-$(uname -r) linux-tools-generic
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run benchmark
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml  
+          perf record -g -e cycles --call-graph dwarf -F 100 -o ./testSuite/outputs/milkyWay_SIDM.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml
+          perf script -i ./testSuite/outputs/milkyWay_SIDM.perf.data > ./testSuite/outputs/milkyWay_SIDM.perf
+          du -sh ./testSuite/outputs/milkyWay_SIDM.perf
+      - name: Update release
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }} 
+        uses: meeDamian/github-release@2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./testSuite/outputs/milkyWay_SIDM.perf
+          tag: bleeding-edge
+          prerelease: true
+          allow_override: true
+          gzip: true
+          name: Bleeding edge release
+          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
+      - name: Update release tag
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   Dark-Matter-Only-Subhalos-GProf:
     runs-on: ubuntu-latest
     container:
@@ -338,6 +402,67 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./testSuite/outputs/milkyWay.gprof
+          tag: bleeding-edge
+          prerelease: true
+          allow_override: true
+          gzip: true
+          name: Bleeding edge release
+          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
+      - name: Update release tag
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  Milky-Way-SIDM-GProf:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://galacticusorg/buildenv:latest
+      options: --privileged
+    needs: Build-Executables-Instrumented
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Extract branch name
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec-inst
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run benchmark
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml  
+          rm gmon.out
+          ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml
+          gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay_SIDM.gprof
+          du -sh ./testSuite/outputs/milkyWay_SIDM.gprof
+      - name: Update release
+        if: ${{ steps.extract_branch.outputs.branch == 'master' }}
+        uses: meeDamian/github-release@2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./testSuite/outputs/milkyWay_SIDM.gprof
           tag: bleeding-edge
           prerelease: true
           allow_override: true
