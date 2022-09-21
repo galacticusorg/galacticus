@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663716275705,
+  "lastUpdate": 1663738111483,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2650,6 +2650,34 @@ window.BENCHMARK_DATA = {
             "value": 66.29,
             "unit": "seconds",
             "range": 0.095414883534666
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "c2599dc3265cfff8cf13cf366711b3f942b21083",
+          "message": "Merge pull request #300 from galacticusorg/optimization\n\nAdd benchmarking for a Milky Way SIDM model",
+          "timestamp": "2022-09-21T00:11:27Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c2599dc3265cfff8cf13cf366711b3f942b21083"
+        },
+        "date": 1663738110341,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 56.663,
+            "unit": "seconds",
+            "range": 0.0595491393727868
           }
         ]
       }
