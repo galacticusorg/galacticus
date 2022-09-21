@@ -437,9 +437,10 @@ contains
 
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
- $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
- !!}
+    Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit
+    change in $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
+    deltaCritical}. The integral is computed numerically.
+    !!}
     use :: Display              , only : displayMagenta   , displayReset
     use :: Error                , only : Warn             , errorStatusSuccess
     use :: ISO_Varying_String   , only : varying_string
