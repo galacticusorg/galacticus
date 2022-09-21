@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference dark matter halo tidal heating model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  
+  <!-- Dark matter halo tidal heating model options -->
+  <darkMatterProfileHeating value="tidal">
+    <!-- The heating source for dark matter halos is set to be tidal heating from their host halo. Parameter values are based on
+         matching tidal tracks from Errani & Navarro (2021; MNRAS; 505; 18;
+         https://ui.adsabs.harvard.edu/abs/2021MNRAS.505...18E), as described in
+         https://hackmd.io/GAVyCqaKRoWvN_D9_B4qrg#New-Tidal-Heating-Model -->
+    <coefficientSecondOrder0   value="+0.406"/>
+    <correlationVelocityRadius value="-0.333"/>
+  </darkMatterProfileHeating>
+
+</parameters>

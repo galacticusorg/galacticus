@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference dark matter particle model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+</parameters>
