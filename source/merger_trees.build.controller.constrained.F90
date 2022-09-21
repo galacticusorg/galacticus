@@ -73,10 +73,10 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
 
     implicit none
-    type (mergerTreeBuildControllerConstrained)               :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    type (varying_string                               )      :: constructionOption
-    class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
+    type (mergerTreeBuildControllerConstrained)                :: self
+    type (inputParameters                     ), intent(inout) :: parameters
+    type (varying_string                      )                :: constructionOption
+    class(mergerTreeBranchingProbabilityClass ), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
 
     !![
     <inputParameter>
@@ -102,7 +102,7 @@ contains
     !!}
     implicit none
     type (mergerTreeBuildControllerConstrained)                        :: self
-    type (enumerationConstructionOptionType ), intent(in   )           :: constructionOption
+    type (enumerationConstructionOptionType   ), intent(in   )         :: constructionOption
     class(mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
 
     !![
@@ -141,29 +141,33 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(mergerTreeBuildControllerConstrained), intent(inout)          :: self
-
     type (treeNode                            ), intent(inout), pointer :: node
     class(mergerTreeWalkerClass               ), intent(inout)          :: treeWalker_
-    class(nodeComponentBasic                  ), pointer :: basic
+    class(nodeComponentBasic                  )               , pointer :: basic
     !$GLC attributes unused :: self, node, treeWalker_
 
     ! Always return true as we never want to halt tree building.
     constrainedControl=.true.
-    ! Move to the next node in the tree while such exists, and the current node is on a side branch.
+    ! Mark the root node as being on the constrained branch.
+    if (.not.associated(node%parent)) then
+       basic => node%basic()
+       call basic%integerRank0MetaPropertySet(self%isConstrainedID,1)
+    end if
+    ! Continue with this node if it meets the criteria.
     select case (self%constructionOption%ID)
-    case (constructionOptionConstrainedBranchOnly  %ID)
+    case (constructionOptionConstrainedBranchOnly       %ID)
        basic => node%basic()
-       do while (constrainedControl.and.associated(node%parent).and.basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1)
+       do while (constrainedControl.and.associated(node%parent).and. basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0                                 )
           constrainedControl=treeWalker_%next(node)
           if (constrainedControl) basic => node%basic()
        end do
-    case (constructionOptionConstrainedAndMainBranchOnly  %ID)
+    case (constructionOptionConstrainedAndMainBranchOnly%ID)
        basic => node%basic()
-       do while (constrainedControl.and.associated(node%parent).and.(basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1 .or. node%isOnMainBranch()))
+       do while (constrainedControl.and.associated(node%parent).and.(basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0 .and. .not.node%isOnMainBranch()))
           constrainedControl=treeWalker_%next(node)
           if (constrainedControl) basic => node%basic()
        end do
-    case (constructionOptionAllBranches  %ID)
+    case (constructionOptionAllBranches                 %ID)
        constrainedControl=.true.
     end select
     return
@@ -188,11 +192,7 @@ contains
     !! detail here is that we will need to also check if this node is the root node of the tree (which we can do with
     !! ".not.associated(node%parent)"). If it is, we also need to return the constrained branching probabilty, *and* mark it as
     !! being on the constrained branch.
-    if (.not.associated(node%parent)) then
-       mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityConstrained_
-       basic => node%basic()
-       call basic%integerRank0MetaPropertySet(self%isConstrainedID,1)
-    else if (isConstrained) then
+    if (isConstrained) then
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityConstrained_
     else
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityUnconstrained_
