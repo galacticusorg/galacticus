@@ -134,7 +134,7 @@ jobs:
       - name: Install tools
         run: |
           apt -y update
-          apt install -y linux-tools-$(uname -r) linux-tools-generic
+          apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -146,17 +146,16 @@ jobs:
           perf record -g -e cycles --call-graph dwarf -F 500 -o ./testSuite/outputs/darkMatterOnlySubhalos.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
           perf script -i ./testSuite/outputs/darkMatterOnlySubhalos.perf.data > ./testSuite/outputs/darkMatterOnlySubhalos.perf
           du -sh ./testSuite/outputs/darkMatterOnlySubhalos.perf
+          bzip2 ./testSuite/outputs/darkMatterOnlySubhalos.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: meeDamian/github-release@2.0
+        uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./testSuite/outputs/darkMatterOnlySubhalos.perf
-          tag: bleeding-edge
+          files: ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2
+          release: bleeding-edge
           prerelease: true
-          allow_override: true
-          gzip: true
-          name: Bleeding edge release
+          message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -198,7 +197,7 @@ jobs:
       - name: Install tools
         run: |
           apt -y update
-          apt install -y linux-tools-$(uname -r) linux-tools-generic
+          apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -210,17 +209,16 @@ jobs:
           perf record -g -e cycles --call-graph dwarf -F 100 -o ./testSuite/outputs/milkyWay.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
           perf script -i ./testSuite/outputs/milkyWay.perf.data > ./testSuite/outputs/milkyWay.perf
           du -sh ./testSuite/outputs/milkyWay.perf
+          bzip2 ./testSuite/outputs/milkyWay.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }} 
-        uses: meeDamian/github-release@2.0
+        uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./testSuite/outputs/milkyWay.perf
-          tag: bleeding-edge
+          files: ./testSuite/outputs/milkyWay.perf.bz2
+          release: bleeding-edge
           prerelease: true
-          allow_override: true
-          gzip: true
-          name: Bleeding edge release
+          message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -229,7 +227,7 @@ jobs:
           tag_name: bleeding-edge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  Milky-Way-SIDM-Model:
+  Milky-Way-SIDM_Model:
     runs-on: ubuntu-latest
     container:
       image: docker://galacticusorg/buildenv:latest
@@ -262,7 +260,7 @@ jobs:
       - name: Install tools
         run: |
           apt -y update
-          apt install -y linux-tools-$(uname -r) linux-tools-generic
+          apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -274,17 +272,16 @@ jobs:
           perf record -g -e cycles --call-graph dwarf -F 100 -o ./testSuite/outputs/milkyWay_SIDM.perf.data ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml
           perf script -i ./testSuite/outputs/milkyWay_SIDM.perf.data > ./testSuite/outputs/milkyWay_SIDM.perf
           du -sh ./testSuite/outputs/milkyWay_SIDM.perf
+          bzip2 ./testSuite/outputs/milkyWay_SIDM.perf
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }} 
-        uses: meeDamian/github-release@2.0
+        uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./testSuite/outputs/milkyWay_SIDM.perf
-          tag: bleeding-edge
+          files: ./testSuite/outputs/milkyWay_SIDM.perf.bz2
+          release: bleeding-edge
           prerelease: true
-          allow_override: true
-          gzip: true
-          name: Bleeding edge release
+          message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -323,6 +320,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: galacticus-exec-inst
+      - name: Install tools
+        run: |
+          apt -y update
+          apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -335,17 +336,16 @@ jobs:
           ./Galacticus.exe ./testSuite/parameters/benchmark_darkMatterOnlySubHalos.xml
           gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/darkMatterOnlySubhalos.gprof
           du -sh ./testSuite/outputs/darkMatterOnlySubhalos.gprof
+          bzip2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: meeDamian/github-release@2.0
+        uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./testSuite/outputs/darkMatterOnlySubhalos.gprof
-          tag: bleeding-edge
+          files: ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2
+          release: bleeding-edge
           prerelease: true
-          allow_override: true
-          gzip: true
-          name: Bleeding edge release
+          message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -384,6 +384,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: galacticus-exec-inst
+      - name: Install tools
+        run: |
+          apt -y update
+          apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -396,17 +400,16 @@ jobs:
           ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay.xml
           gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay.gprof
           du -sh ./testSuite/outputs/milkyWay.gprof
+          bzip2 ./testSuite/outputs/milkyWay.gprof
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: meeDamian/github-release@2.0
+        uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./testSuite/outputs/milkyWay.gprof
-          tag: bleeding-edge
+          files: ./testSuite/outputs/milkyWay.gprof.bz2
+          release: bleeding-edge
           prerelease: true
-          allow_override: true
-          gzip: true
-          name: Bleeding edge release
+          message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
@@ -445,6 +448,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: galacticus-exec-inst
+      - name: Install tools
+        run: |
+          apt -y update
+          apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -457,17 +464,16 @@ jobs:
           ./Galacticus.exe ./testSuite/parameters/benchmark_milkyWay_SIDM.xml
           gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay_SIDM.gprof
           du -sh ./testSuite/outputs/milkyWay_SIDM.gprof
+          bzip2 ./testSuite/outputs/milkyWay_SIDM.gprof
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
-        uses: meeDamian/github-release@2.0
+        uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./testSuite/outputs/milkyWay_SIDM.gprof
-          tag: bleeding-edge
+          files: ./testSuite/outputs/milkyWay_SIDM.gprof.bz2
+          release: bleeding-edge
           prerelease: true
-          allow_override: true
-          gzip: true
-          name: Bleeding edge release
+          message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - name: Update release tag
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
