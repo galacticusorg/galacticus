@@ -261,9 +261,8 @@ contains
          &                               /self%varianceConstrained                  &
          &                              )
     ! Determine whether to use the conditioned or unconditioned solutions.
-    if (.not.node%isOnMainBranch() .or. self%excursionSetBarrier_%barrier(varianceProgenitor,time,node,rateCompute=.true.) > criticalOverdensityConstrained) then
-       ! Node is either not on the main branch, or it is on the main branch, but the time corresponds to a barrier above the
-       ! constrained point. In either case we want the unconstrained solution.
+    if (self%excursionSetBarrier_%barrier(varianceProgenitor,time,node,rateCompute=.true.) > criticalOverdensityConstrained) then
+       ! The time corresponds to a barrier above the constrained point. Therefpre we want the unconstrained solution.
        farahiMidpointBrownianBridgeRate=self%excursionSetFirstCrossing_%rate           (variance,varianceProgenitor,time,node)
     else if (varianceProgenitor >= varianceConstrained) then
        ! For progenitor variances in excess of the constrained variance the first crossing rate must be zero.
