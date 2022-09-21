@@ -48,7 +48,7 @@ Contains a module which implements a merger tree build controller class which bu
      private
      class  (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbabilityUnconstrained_ => null(), mergerTreeBranchingProbabilityConstrained_ => null()
      integer                                               :: isConstrainedID
-     type (enumerationConstructionOption)                  :: constructionOption
+     type (enumerationConstructionOptionType)              :: constructionOption
    contains
      final     ::                               constrainedDestructor
      procedure :: control                    => constrainedControl
@@ -75,7 +75,7 @@ contains
     implicit none
     type (mergerTreeBuildControllerConstrained)               :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    type (enumerationConstructionOption)                      :: constructionOption
+    type (varying_string                               )      :: constructionOption
     class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
 
     !![
@@ -97,7 +97,7 @@ contains
     !!}
     implicit none
     type (mergerTreeBuildControllerConstrained)                        :: self
-    type (enumerationConstructionOption ), intent(in   )               :: constructionOption
+    type (enumerationConstructionOptionType ), intent(in   )           :: constructionOption
     class(mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
     !![
     <constructorAssign variables="*mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_"/>
