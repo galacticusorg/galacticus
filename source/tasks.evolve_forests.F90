@@ -517,6 +517,7 @@ contains
                 ! the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
                 ! evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled
                 ! by the mergerTreeInitializor class which is called later.
+                call    evolveForestsMergerTreeOperator_%operatePreInitialization(tree)
                 treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                 do while (treeWalkerAll%next(node))
                    call evolveForestsNodeOperator_      %nodeTreeInitialize (node)
