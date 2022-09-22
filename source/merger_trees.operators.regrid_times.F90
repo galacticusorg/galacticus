@@ -47,7 +47,7 @@
      double precision                                              :: snapTolerance
      double precision                  , allocatable, dimension(:) :: timeGrid
    contains
-     final     ::                        regridTimesDestructor
+     final     ::                             regridTimesDestructor
      procedure :: operatePreInitialization => regridTimesOperatePreInitialization
   end type mergerTreeOperatorRegridTimes
 
