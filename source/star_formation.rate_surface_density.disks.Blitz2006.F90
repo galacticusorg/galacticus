@@ -820,6 +820,7 @@ contains
       ! Read table if we do not have it.
       haveLock=.false.
       if (.not.self%tableInitialized) then
+         call Directory_Make(char(File_Path(char(self%filenameTable))))
          call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
          haveLock=.true.
          if (File_Exists(self%filenameTable)) then
