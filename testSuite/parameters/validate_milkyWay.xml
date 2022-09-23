@@ -14,6 +14,7 @@
   <xi:include href="../../parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="../../parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="../../parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../parameters/reference/filterLMC.xml"                   xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <xi:include href="../../parameters/reference/evolutionGalaxyFormation.xml"    xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
   <!-- Set verbosity to standard level. -->
