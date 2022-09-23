@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference SIDM dark matter halo profile model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="heatedMonotonic">
+    <darkMatterProfileDMO value="SIDMIsothermal">
+      <darkMatterParticle value="selfInteractingDarkMatter">
+        <crossSectionSelfInteraction value="1.0"/>
+        <darkMatterParticle value="CDM"/>
+      </darkMatterParticle>
+      <darkMatterProfileDMO value="NFW"      />
+    </darkMatterProfileDMO>
+    <nonAnalyticSolver    value="numerical"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+  </darkMatterProfileDMO>
+
+</parameters>

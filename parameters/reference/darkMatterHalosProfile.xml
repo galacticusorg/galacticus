@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference dark matter halo profile model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  
+  <!-- Dark matter halo profile options -->
+  <darkMatterProfileDMO value="heated">
+    <darkMatterProfileDMO                       value="NFW"      />
+    <nonAnalyticSolver                          value="numerical"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"      />
+  </darkMatterProfileDMO>
+
+</parameters>
