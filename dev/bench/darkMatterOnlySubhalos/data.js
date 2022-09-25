@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664087056373,
+  "lastUpdate": 1664090889607,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2745,6 +2745,45 @@ window.BENCHMARK_DATA = {
             "value": 57.653,
             "unit": "seconds",
             "range": 0.0634830686088814
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1aa340a7dba4eed8f69baa0b2054f9e2ed4c81ef",
+          "message": "Merge pull request #302 from galacticusorg/cambStaticFix\n\nAdd workaround for missing `pthread_mutex_destroy` for static builds of CAMB",
+          "timestamp": "2022-09-24T22:15:49-07:00",
+          "tree_id": "a730a270bf15c6434e6d4c003773c45815d81ac8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1aa340a7dba4eed8f69baa0b2054f9e2ed4c81ef"
+        },
+        "date": 1664090887369,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 56.4862273307091,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.5165582430658,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 15423.3632579593,
+            "unit": "-logℒ"
           }
         ]
       }
