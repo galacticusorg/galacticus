@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664097557593,
+  "lastUpdate": 1664104160831,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -1732,6 +1732,60 @@ window.BENCHMARK_DATA = {
             "value": 374.63,
             "unit": "seconds",
             "range": 0.828948731830183
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1aa340a7dba4eed8f69baa0b2054f9e2ed4c81ef",
+          "message": "Merge pull request #302 from galacticusorg/cambStaticFix\n\nAdd workaround for missing `pthread_mutex_destroy` for static builds of CAMB",
+          "timestamp": "2022-09-24T22:15:49-07:00",
+          "tree_id": "a730a270bf15c6434e6d4c003773c45815d81ac8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1aa340a7dba4eed8f69baa0b2054f9e2ed4c81ef"
+        },
+        "date": 1664104158077,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassMetallicityRelation",
+            "value": 13.467601037897,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassSizeRelation",
+            "value": 7.97369171345806,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupMassVelocityDispersionRelation",
+            "value": 1.87353749555388,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupOccupationFraction",
+            "value": 37.0077871038772,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassFunction",
+            "value": 285.234302023188,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
+            "value": 10.627296601425,
+            "unit": "-logℒ"
           }
         ]
       }
