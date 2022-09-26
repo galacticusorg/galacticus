@@ -594,6 +594,10 @@ sub Build_Scale_Functions {
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
 	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "offset" ]
+	     },
 	     $propertyTypeDescriptor
 	    ]
     };
@@ -610,21 +614,44 @@ sub Build_Scale_Functions {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 CODE
-    $code::offsetName = &offsetName('all',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offset = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (nodeAnalytics({$offsetNameAll})) return
+if (rateComputeState == propertyTypeAll          ) then
+ offset={$offsetNameAll}
+else if (rateComputeState == propertyTypeActive  ) then
+ if (     nodeInactives({$offsetNameAll})) return
+ offset={$offsetNameActive}
+else if (rateComputeState == propertyTypeInactive) then
+ if (.not.nodeInactives({$offsetNameAll})) return
+ offset={$offsetNameInactive}
+else if (rateComputeState == propertyTypeNumerics) then
+ offset={$offsetNameActive}
+else
+ return
+end if
+CODE
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-nodeScales({$offsetName})=setValue
+{$offset}
+nodeScales(offset)=setValue
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-nodeScales({$offsetName}:{$offsetName}+size(setValue))=setValue
+{$offset}
+nodeScales(offset:offset+size(setValue))=setValue
 CODE
 	}
     } else {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 count=setValue%serializeCount()
-if (count > 0) call setValue%serialize(nodeScales({$offsetName}:{$offsetName}+count-1))
+if (count > 0) then
+{$offset}
+   call setValue%serialize(nodeScales(offset:offset+count-1))
+end if
 CODE
     }
     # Insert a type-binding for this function into the relevant type.

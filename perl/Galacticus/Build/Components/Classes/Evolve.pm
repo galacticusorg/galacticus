@@ -149,17 +149,37 @@ sub Build_Meta_Scale_Functions {
 		 intrinsic  => "double precision",
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "setValue" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "offset" ]
 	     }
 	    ]
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$code::className  = $class->{'name'};
-	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
+	$code::className          = $class->{'name'};
+	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'floatRank0MetaProperties');
+	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'floatRank0MetaProperties');
+	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 if (.not.{$className}FloatRank0MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}FloatRank0MetaPropertyLabels(metaPropertyID)),'float',0)
-nodeScales({$offsetName}(metaPropertyID))=setValue
+if (nodeAnalytics({$offsetNameAll}(metaPropertyID))) return
+if (rateComputeState == propertyTypeAll          ) then
+ offset={$offsetNameAll}(metaPropertyID)
+else if (rateComputeState == propertyTypeActive  ) then
+ if (     nodeInactives({$offsetNameAll}(metaPropertyID))) return
+ offset={$offsetNameActive}(metaPropertyID)
+else if (rateComputeState == propertyTypeInactive) then
+ if (.not.nodeInactives({$offsetNameAll}(metaPropertyID))) return
+ offset={$offsetNameInactive}(metaPropertyID)
+else if (rateComputeState == propertyTypeNumerics) then
+ offset={$offsetNameActive}(metaPropertyID)
+else
+ return
+end if
+nodeScales(offset)=setValue
 CODE
 	}
     # Insert a type-binding for this function into the relevant type.
