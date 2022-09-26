@@ -102,7 +102,7 @@ contains
     ! Append a final "/" if necessary.
     if (pathValue(pathLength:pathLength) /= "/") pathValue=trim(pathValue)//"/"
     ! Store the path.
-    paths(pathType%ID)=pathValue
+    paths(pathType%ID)=trim(pathValue)
     return
   end subroutine pathsRetrieve
 
