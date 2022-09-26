@@ -21,6 +21,10 @@
 Contains a module which implements a merger tree build controller class which builds constrained trees.
 !!}
 
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Linear_Growth             , only : linearGrowthClass 
+
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerConstrained">
    <description>A merger tree build controller class which builds constrained trees.</description>
@@ -46,14 +50,23 @@ Contains a module which implements a merger tree build controller class which bu
      A merger tree build controller class which builds constrained trees.
      !!}
      private
-     class  (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbabilityUnconstrained_ => null(), mergerTreeBranchingProbabilityConstrained_ => null()
-     integer                                               :: isConstrainedID
-     type (enumerationConstructionOptionType)              :: constructionOption
+     class           (cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_                          => null()
+     class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbabilityUnconstrained_ => null(), mergerTreeBranchingProbabilityConstrained_ => null()
+     class           (linearGrowthClass                  ), pointer :: linearGrowth_                                => null()
+     class           (criticalOverdensityClass           ), pointer :: criticalOverdensity_                         => null()
+     class           (cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_                    => null()
+     integer                                                        :: isConstrainedID
+     type            (enumerationConstructionOptionType  )          :: constructionOption
+     double precision                                               :: criticalOverdensityConstrained                        , varianceConstrained                                 , &
+          &                                                            timeConstrained                                       , massConstrained                                     , &
+          &                                                            redshiftConstrained
    contains
      final     ::                               constrainedDestructor
      procedure :: control                    => constrainedControl
      procedure :: branchingProbabilityObject => constrainedBranchingProbabilityObject
      procedure :: nodesInserted              => constrainedNodesInserted
+     procedure :: timeMaximum                => constrainedTimeMaximum
+     procedure :: controlTimeMaximum         => constrainedControlTimeMaximum
   end type mergerTreeBuildControllerConstrained
   
   interface mergerTreeBuildControllerConstrained
@@ -73,47 +86,128 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
 
     implicit none
-    type (mergerTreeBuildControllerConstrained)                :: self
-    type (inputParameters                     ), intent(inout) :: parameters
-    type (varying_string                      )                :: constructionOption
-    class(mergerTreeBranchingProbabilityClass ), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
+    type            (mergerTreeBuildControllerConstrained)                :: self
+    type            (inputParameters                     ), intent(inout) :: parameters
+    type            (varying_string                      )                :: constructionOption
+    class           (mergerTreeBranchingProbabilityClass ), pointer       :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
+    class           (cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass                   ), pointer       :: linearGrowth_
+    class           (criticalOverdensityClass            ), pointer       :: criticalOverdensity_ 
+    class           (cosmologicalMassVarianceClass       ), pointer       :: cosmologicalMassVariance_
+    double precision                                                      :: criticalOverdensityConstrained              , varianceConstrained                       , &
+         &                                                                   timeConstrained                             , massConstrained                           , &
+         &                                                                   timePresent                                 , redshiftConstrained                       , &
+         &                                                                   expansionFactor
 
     !![
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityUnconstrained_" parameterName="mergerTreeBranchingProbabilityUnconstrained" source="parameters"/>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityConstrained_"   parameterName="mergerTreeBranchingProbabilityConstrained"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"                                                                                      source="parameters"/>
+    <objectBuilder class="linearGrowth"                   name="linearGrowth_"                                                                                            source="parameters"/>
+    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"                                                                                     source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"                                                                                source="parameters"/>
     <inputParameter>
       <name>constructionOption</name>
       <source>parameters</source>
       <description>Controls which branches of the tree to build.</description>
     </inputParameter>
-    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityUnconstrained_" parameterName="mergerTreeBranchingProbabilityUnconstrained" source="parameters"/>
-    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbabilityConstrained_"   parameterName="mergerTreeBranchingProbabilityConstrained"   source="parameters"/>
     !!]
-    self=mergerTreeBuildControllerConstrained(enumerationConstructionOptionEncode(char(constructionOption),includesPrefix=.false.),mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_)
+    timePresent=cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+    if      (parameters%isPresent('criticalOverdensityConstrained')) then
+       if     (                                                                                                                                                                       &
+            &  .not.parameters%isPresent('varianceConstrained')                                                                                                                       &
+            & ) call Error_Report('both "criticalOverdensityConstrained" and "varianceConstrained" must be provided'                                      //{introspection:location})
+       if     (                                                                                                                                                                       &
+            &       parameters%isPresent('redshiftConstrained'           )                                                                                                            &
+            &  .or.                                                                                                                                                                   &
+            &       parameters%isPresent('massConstrained'               )                                                                                                            &
+            & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
+       !![
+       <inputParameter>
+         <name>criticalOverdensityConstrained</name>
+         <source>parameters</source>
+         <description>The critical overdensity at the end of the Brownian bridge.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>varianceConstrained</name>
+         <source>parameters</source>
+         <description>The variance at the end of the Brownian bridge.</description>
+       </inputParameter>
+       !!]
+       massConstrained=self%cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
+       timeConstrained=self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=criticalOverdensityConstrained,mass        =     massConstrained     )
+    else if (parameters%isPresent('redshiftConstrained           ')) then
+       if     (                                                                                                                                                                       &
+            &  .not.parameters%isPresent('massConstrained'    )                                                                                                                       &
+            & ) call Error_Report('both "redshiftConstrained" and "massConstrained" must be provided'                                                     //{introspection:location})
+       if     (                                                                                                                                                                       &
+            &       parameters%isPresent('criticalOverdensityConstrained')                                                                                                            &
+            &  .or.                                                                                                                                                                   &
+            &       parameters%isPresent('varianceConstrained'           )                                                                                                            &
+            & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
+       !![
+       <inputParameter>
+         <name>redshiftConstrained</name>
+         <source>parameters</source>
+         <description>The redshift at the end of the Brownian bridge.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>massConstrained</name>
+         <source>parameters</source>
+         <description>The halo mass at the end of the Brownian bridge.</description>
+       </inputParameter>
+       !!]
+       expansionFactor               =+cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )
+       timeConstrained               =+cosmologyFunctions_      %cosmicTime                 (expansionFactor=expansionFactor                     )
+       criticalOverdensityConstrained=+criticalOverdensity_     %value                      (time           =timeConstrained,mass=massConstrained)    &
+            &                         /linearGrowth_            %value                      (time           =timeConstrained                     )
+       varianceConstrained           =+cosmologicalMassVariance_%rootVariance               (time           =timePresent    ,mass=massConstrained)**2
+    else
+       criticalOverdensityConstrained=0.0d0
+       varianceConstrained           =0.0d0
+       timeConstrained               =0.0d0
+       massConstrained               =0.0d0
+       call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [timeConstrained] and [massConstrained]')
+    end if
+    self=mergerTreeBuildControllerConstrained(criticalOverdensityConstrained,varianceConstrained,enumerationConstructionOptionEncode(char(constructionOption),includesPrefix=.false.),mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBranchingProbabilityUnconstrained_"/>
     <objectDestructor name="mergerTreeBranchingProbabilityConstrained_"  />
+    <objectDestructor name="cosmologyFunctions_"                         />
+    <objectDestructor name="linearGrowth_"                               />
+    <objectDestructor name="criticalOverdensity_"                        />
+    <objectDestructor name="cosmologicalMassVariance_"                   />
     !!]
     return
   end function constrainedConstructorParameters
 
-  function constrainedConstructorInternal(constructionOption,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_) result(self)
+  function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
     Internal constructor for the ``constrained'' merger tree build controller class.
     !!}
     implicit none
-    type (mergerTreeBuildControllerConstrained)                        :: self
-    type (enumerationConstructionOptionType   ), intent(in   )         :: constructionOption
-    class(mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
-
+    type            (mergerTreeBuildControllerConstrained)                        :: self
+    type            (enumerationConstructionOptionType   ), intent(in   )         :: constructionOption
+    class           (mergerTreeBranchingProbabilityClass ), intent(in   ), target :: mergerTreeBranchingProbabilityUnconstrained_, mergerTreeBranchingProbabilityConstrained_
+    class           (cosmologyFunctionsClass             ), intent(in   ), target :: cosmologyFunctions_
+    class           (linearGrowthClass                   ), intent(in   ), target :: linearGrowth_
+    class           (criticalOverdensityClass            ), intent(in   ), target :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass       ), intent(in   ), target :: cosmologicalMassVariance_
+    double precision                                      , intent(in   )         :: criticalOverdensityConstrained              , varianceConstrained
+    double precision                                                              :: timePresent                                 , expansionFactor
     !![
-    <constructorAssign variables="constructionOption, *mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_"/>
+    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, constructionOption, *mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_, *cosmologyFunctions_, *linearGrowth_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
-    !! NOTE: Here we add a "meta-property" to the "basic" component of each node. (The basic component is the thing that stores
-    !! the total mass and current time of the node, so it's guaraneteed to already exist at this point. A meta-property is just
-    !! some arbitrary data that we want to attach to each node in the tree. The directive below will obtain and store an ID value
-    !! associated with this meta-property that we can then use to get and set it.) We'll use this meta-property to store the
-    !! status of whether a node is on the constrained branch or not.
+        ! Find mass and time corresponding to the constraint point.
+    timePresent             =self%cosmologyFunctions_      %cosmicTime                 (expansionFactor    =1.0d0                                                                          )
+    self%massConstrained    =self%cosmologicalMassVariance_%mass                       (time               =timePresent                        ,rootVariance=sqrt(self%varianceConstrained))
+    self%timeConstrained    =self%criticalOverdensity_     %timeOfCollapse             (criticalOverdensity=self%criticalOverdensityConstrained,mass        =     self%massConstrained     )
+    expansionFactor         =self%cosmologyFunctions_      %expansionFactor            (time               =self%timeConstrained                                                           )
+    self%redshiftConstrained=self%cosmologyFunctions_      %redshiftFromExpansionFactor(expansionFactor    =expansionFactor                                                                )
+    ! Here we add a "meta-property" to the "basic" component of each node to store the status of whether a node is on the
+    ! constrained branch or not.    
     !![
     <addMetaProperty component="basic" name="isConstrained" type="integer" id="self%isConstrainedID" isCreator="yes"/>
     !!]
@@ -130,6 +224,10 @@ contains
     !![
     <objectDestructor name="self%mergerTreeBranchingProbabilityUnconstrained_"/>
     <objectDestructor name="self%mergerTreeBranchingProbabilityConstrained_"  />
+    <objectDestructor name="self%cosmologyFunctions_"                         />
+    <objectDestructor name="self%linearGrowth_"                               />
+    <objectDestructor name="self%criticalOverdensity_"                        />
+    <objectDestructor name="self%cosmologicalMassVariance_"                   />
     !!]
     return
   end subroutine constrainedDestructor
@@ -144,7 +242,6 @@ contains
     type (treeNode                            ), intent(inout), pointer :: node
     class(mergerTreeWalkerClass               ), intent(inout)          :: treeWalker_
     class(nodeComponentBasic                  )               , pointer :: basic
-    !$GLC attributes unused :: self, node, treeWalker_
 
     ! Always return true as we never want to halt tree building.
     constrainedControl=.true.
@@ -173,6 +270,96 @@ contains
     return
   end function constrainedControl
 
+  double precision function constrainedTimeMaximum(self,node,massBranch,criticalOverdensityBranch)
+    !!{
+    Return the maximum allowed time for this node.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class           (mergerTreeBuildControllerConstrained), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(in   ) :: massBranch, criticalOverdensityBranch
+    class           (nodeComponentBasic                  ), pointer       :: basic
+    logical                                                               :: isConstrained
+
+    basic         => node %basic                      (                   )
+    isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
+    if (isConstrained .and. criticalOverdensityBranch < self%criticalOverdensityConstrained) then
+       constrainedTimeMaximum=self%criticalOverdensityConstrained
+    else
+       constrainedTimeMaximum=huge(0.0d0)
+    end if
+    return
+  end function constrainedTimeMaximum
+  
+  logical function constrainedControlTimeMaximum(self,node,massBranch,criticalOverdensityBranch,nodeIndex)
+    !!{
+    Control when the maximum time is reached.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Kind_Numbers    , only : kind_int8
+    implicit none
+    class           (mergerTreeBuildControllerConstrained), intent(inout)         :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    double precision                                      , intent(in   )         :: massBranch                      , criticalOverdensityBranch
+    integer         (kind=kind_int8                      ), intent(inout)         :: nodeIndex
+    type            (treeNode                            ), pointer               :: nodeParent                      , nodeConstrained              , &
+         &                                                                           nodeUnconstrained
+    class           (nodeComponentBasic                  ), pointer               :: basic                           , basicConstrained             , &
+         &                                                                           basicUnconstrained
+    double precision                                      , parameter             :: toleranceRelative        =1.0d-3
+    double precision                                                              :: criticalOverdensityParent       , criticalOverdensityProgenitor, &
+         &                                                                           massParent
+
+    ! The constraint time has been reached. We need to insert the merger to the constrained halo mass. First, check if the halo
+    ! has any progenitors - this is unlikely but could happen if another merger happened precisely at this time.
+    if (associated(node%firstChild)) then
+       ! Node has children - find the one on the constrained branch.
+       nodeParent => node      %firstChild
+       basic      => nodeParent%basic     ()
+       do while (basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 0)
+          nodeParent => nodeParent%sibling
+          if (.not.associated(nodeParent)) call Error_Report('unable to locate constrained branch'//{introspection:location})
+          basic      => nodeParent%basic ()
+       end do
+       criticalOverdensityParent =  basic%time()
+       massParent                =  basic%mass()
+    else
+       ! Node has no children, so it is the parent for our merger.
+       nodeParent                => node
+       criticalOverdensityParent =  criticalOverdensityBranch
+       massParent                =  massBranch
+    end if
+    ! Determine the time at which to insert the progenitors.
+    criticalOverdensityProgenitor=max(self%criticalOverdensityConstrained,criticalOverdensityBranch*(1.0d0+toleranceRelative))
+    ! Create progenitors for the parent.
+    nodeConstrained    => treeNode(nodeIndex+1,nodeParent%hostTree)
+    nodeUnconstrained  => treeNode(nodeIndex+2,nodeParent%hostTree)
+    basicConstrained   => nodeConstrained  %basic(autoCreate=.true.)
+    basicUnconstrained => nodeUnconstrained%basic(autoCreate=.true.)
+    nodeIndex          =  nodeIndex+2
+    call basicConstrained  %massSet                    (           self%massConstrained                )
+    call basicConstrained  %timeSet                    (                criticalOverdensityProgenitor  )
+    call basicUnconstrained%massSet                    (massParent-self%massConstrained                )
+    call basicUnconstrained%timeSet                    (                criticalOverdensityProgenitor  )
+    call basicConstrained  %integerRank0MetaPropertySet(self%isConstrainedID                         ,1)
+    nodeConstrained  %parent => nodeParent
+    nodeUnconstrained%parent => nodeParent
+    if (self%massConstrained > 0.5d0*massParent) then
+       ! Constrained node is the main progenitor.
+       nodeParent       %firstChild => nodeConstrained
+       nodeConstrained  %sibling    => nodeUnconstrained
+    else
+       ! Constrained node is the secondary progenitor.
+       nodeParent       %firstChild => nodeUnconstrained
+       nodeUnconstrained%sibling    => nodeConstrained
+    end if    
+    ! Return false indicating that the current node is finished, so building should continue from its progenitor nodes.
+    constrainedControlTimeMaximum=.false.
+    return
+  end function constrainedControlTimeMaximum
+  
   function constrainedBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
     !!{
     Return a pointer the the merger tree branching probability object to use.
@@ -187,11 +374,6 @@ contains
 
     basic         => node %basic                      (                   )
     isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
-    !! NOTE: "isConstrained" will now be true if this node is on the constrained branch. So, we need an if/else here to return a
-    !! pointer to the appropriate mergerTreeBranching object depending on the state of "isConstrained".  I think one further
-    !! detail here is that we will need to also check if this node is the root node of the tree (which we can do with
-    !! ".not.associated(node%parent)"). If it is, we also need to return the constrained branching probabilty, *and* mark it as
-    !! being on the constrained branch.
     if (isConstrained) then
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityConstrained_
     else
@@ -213,21 +395,20 @@ contains
          &                                                                   basicProgenitor2
     logical                                                               :: isConstrained
 
-    !! NOTE: Here is where we should mark nodes as on the constrained branch or not.
     basicCurrent     => nodeCurrent    %basic                      (                    )
     basicProgenitor1 => nodeProgenitor1%basic                      (                    )
     isConstrained    =  basicCurrent   %integerRank0MetaPropertyGet(self%isConstrainedID) == 1
     if (isConstrained) then
-       !! NOTE: Parent is on the constrained branch, so this progenitor also is - mark it as such using the "integerRank0MetaPropertySet" function.
+       ! Parent is on the constrained branch, so this progenitor also is - mark it as such using the "integerRank0MetaPropertySet" function.
        call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,1)
     else
-       !! NOTE: Parent is not on the constrained branch, so this progenitor also is not - mark it as such using the "integerRank0MetaPropertySet" function.
+       ! Parent is not on the constrained branch, so this progenitor also is not - mark it as such using the "integerRank0MetaPropertySet" function.
        call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,0)
     end if
     ! If the second progenitor is present, mark it as not on the constrained branch.
     if (present(nodeProgenitor2)) then
        basicProgenitor2 => nodeProgenitor2%basic()
-       !! NOTE: Need to mark this secondary progenitor as not on the main branch, e.g.:
+       ! Need to mark this secondary progenitor as not on the main branch, e.g.:
        call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,0)
     end if
     return

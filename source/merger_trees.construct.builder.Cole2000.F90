@@ -299,9 +299,10 @@ contains
          &                                                                          massResolution               , accretionFractionCumulative, branchMassCurrent         , &
          &                                                                          branchDeltaCriticalCurrent   , branchingInterval          , branchingIntervalScaleFree, &
          &                                                                          branchingProbabilityRate     , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                          collapseTimeTruncate         , rootVarianceGrowthFactor   , time
+         &                                                                          collapseTimeTruncate         , rootVarianceGrowthFactor   , time                      , &
+         &                                                                          deltaWController
     logical                                                                      :: doBranch                     , branchIsDone               , snapAccretionFraction     , &
-         &                                                                          snapEarliestTime
+         &                                                                          snapEarliestTime             , controlLimited
     type            (varying_string                     )                        :: message
     character       (len=20                             )                        :: label
 
@@ -456,6 +457,17 @@ contains
                 else
                    snapEarliestTime     =.false.
                 end if
+                ! Limit the timestep according to the build controller.
+                deltaWController=+self%mergerTreeBuildController_%timeMaximum(node,branchMassCurrent,branchDeltaCriticalCurrent) &
+                     &           -branchDeltaCriticalCurrent
+                if (deltaWController < deltaW) then
+                   deltaW               =deltaWController
+                   controlLimited       =.true.
+                   snapAccretionFraction=.false.
+                   snapEarliestTime     =.false.
+                else
+                   controlLimited       =.false.
+                end if
                 ! Scale values to the determined timestep.
                 branchingProbability       =0.0d0
                 if (.not.self%branchIntervalStep)                           &
@@ -471,6 +483,7 @@ contains
                    deltaW                     =deltaW              *0.5d0
                    snapAccretionFraction      =.false.
                    snapEarliestTime           =.false.
+                   controlLimited             =.false.
                 end do
                 ! Decide if a branching occurs.
                 if (self%branchIntervalStep) then
@@ -496,6 +509,7 @@ contains
                             deltaW               =branchingInterval
                             snapAccretionFraction=.false.
                             snapEarliestTime     =.false.
+                            controlLimited       =.false.
                             ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
                             uniformRandom       =tree%randomNumberGenerator_%uniformSample()       
                             branchingProbability=uniformRandom*branchingProbabilityRate
@@ -535,7 +549,7 @@ contains
                    deltaCritical=+self%criticalOverdensity_     %value       (time=self%timeEarliest,mass=branchMassCurrent,node=node) &
                         &        *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow     ,mass=branchMassCurrent          ) &
                         &        /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=branchMassCurrent          )
-                else
+               else
                    deltaCritical=+branchDeltaCriticalCurrent &
                         &        +deltaW
                 end if
@@ -598,7 +612,6 @@ contains
                       deltaCritical1=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,nodeNew1)
                       call basicNew1%massSet(nodeMass1     )
                       call basicNew1%timeSet(deltaCritical1)
-                      !! NOTE: Here we can call our new "nodesInserted" function in the controller with the current and new node.
                       ! Inform the build controller of this new node.
                       call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1)
                       ! Create links from old to new node and vice-versa.
@@ -615,6 +628,8 @@ contains
                       branchMassCurrent         =nodeMass1
                    end if
                 end select
+                ! If the timestep was limited by the build controller, allow the build controller to response.
+                if (controlLimited) branchIsDone=.not.self%mergerTreeBuildController_%controlTimeMaximum(node,branchMassCurrent,branchDeltaCriticalCurrent,nodeIndex)
              end if
           end if
        end do
