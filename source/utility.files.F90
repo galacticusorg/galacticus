@@ -229,7 +229,7 @@ contains
          & parentName=parentName(1:lengthParent-1)
     parentName       =char(File_Path(parentName))
     ! Sync the parent directory to ensure that any file system caching is updated.
-    call syncdir_C(trim(parentName)//char(0))
+    !  TEMPORARILY REMOVED call syncdir_C(trim(parentName)//char(0))
     ! Test for file existance.
     !![
     <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
