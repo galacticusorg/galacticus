@@ -77,8 +77,8 @@ contains
     implicit none
     type(nodePropertyExtractorConstrainedStatus) :: self
 
-    !! NOTE: Use a matched "meta-property" as we used in the constrained tree build controller. This allows us to recover the
-    !! stored "isConstrained" state of each node that was written by that object.
+    ! Use a matched "meta-property" as we used in the constrained tree build controller. This allows us to recover the stored
+    ! "isConstrained" state of each node that was written by that object.
     !![
     <addMetaProperty component="basic" name="isConstrained" type="integer" id="self%isConstrainedID" isCreator="no"/>
     !!]
@@ -103,7 +103,6 @@ contains
 
     basic         => node %basic                      (                    )
     isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
-    !! NOTE: "isConstrained" will now be true if this node is on the constrained branch. So, we use an if/else here to return the appropriate status.
     if (isConstrained) then
        constrainedStatusExtract=1
     else
