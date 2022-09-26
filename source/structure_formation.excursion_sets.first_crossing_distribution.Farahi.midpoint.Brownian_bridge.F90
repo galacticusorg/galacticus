@@ -84,7 +84,8 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
      class           (linearGrowthClass             ), pointer :: linearGrowth_                  => null()
      class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_           => null()
      double precision                                          :: criticalOverdensityConstrained          , varianceConstrained, &
-          &                                                       timeConstrained                         , massConstrained
+          &                                                       timeConstrained                         , massConstrained    , &
+          &                                                       redshiftConstrained
    contains
      final     ::                     farahiMidpointBrownianBridgeDestructor
      procedure :: rate             => farahiMidpointBrownianBridgeRate
@@ -116,7 +117,8 @@ contains
     type            (inputParameters                                      ), intent(inout) :: parameters
     double precision                                                                       :: criticalOverdensityConstrained, varianceConstrained, &
          &                                                                                    timeConstrained               , massConstrained    , &
-         &                                                                                    timePresent
+         &                                                                                    timePresent                   , redshiftConstrained, &
+         &                                                                                    expansionFactor
 
     self%excursionSetFirstCrossingFarahiMidpoint=excursionSetFirstCrossingFarahiMidpoint(parameters)
     !![
@@ -126,14 +128,14 @@ contains
     !!]
     timePresent=self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
     if      (parameters%isPresent('criticalOverdensityConstrained')) then
-       if     (                                                                                                                                                                   &
-            &  .not.parameters%isPresent('varianceConstrained')                                                                                                                   &
-            & ) call Error_Report('both "criticalOverdensityConstrained" and "varianceConstrained" must be provided'                                  //{introspection:location})
-       if     (                                                                                                                                                                   &
-            &       parameters%isPresent('timeConstrained'               )                                                                                                        &
-            &  .or.                                                                                                                                                               &
-            &       parameters%isPresent('massConstrained'               )                                                                                                        &
-            & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "timeConstrained/massConstrained" constraints'//{introspection:location})
+       if     (                                                                                                                                                                       &
+            &  .not.parameters%isPresent('varianceConstrained')                                                                                                                       &
+            & ) call Error_Report('both "criticalOverdensityConstrained" and "varianceConstrained" must be provided'                                      //{introspection:location})
+       if     (                                                                                                                                                                       &
+            &       parameters%isPresent('redshiftConstrained'           )                                                                                                            &
+            &  .or.                                                                                                                                                                   &
+            &       parameters%isPresent('massConstrained'               )                                                                                                            &
+            & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
        <inputParameter>
          <name>criticalOverdensityConstrained</name>
@@ -148,20 +150,20 @@ contains
        !!]
        massConstrained=self%cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
        timeConstrained=self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=criticalOverdensityConstrained,mass        =     massConstrained     )
-    else if (parameters%isPresent('timeConstrained               ')) then
-       if     (                                                                                                                                                                   &
-            &  .not.parameters%isPresent('massConstrained'    )                                                                                                                   &
-            & ) call Error_Report('both "timeConstrained" and "massConstrained" must be provided'                                                     //{introspection:location})
-       if     (                                                                                                                                                                   &
-            &       parameters%isPresent('criticalOverdensityConstrained')                                                                                                        &
-            &  .or.                                                                                                                                                               &
-            &       parameters%isPresent('varianceConstrained'           )                                                                                                        &
-            & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "timeConstrained/massConstrained" constraints'//{introspection:location})
+    else if (parameters%isPresent('redshiftConstrained           ')) then
+       if     (                                                                                                                                                                       &
+            &  .not.parameters%isPresent('massConstrained'    )                                                                                                                       &
+            & ) call Error_Report('both "redshiftConstrained" and "massConstrained" must be provided'                                                     //{introspection:location})
+       if     (                                                                                                                                                                       &
+            &       parameters%isPresent('criticalOverdensityConstrained')                                                                                                            &
+            &  .or.                                                                                                                                                                   &
+            &       parameters%isPresent('varianceConstrained'           )                                                                                                            &
+            & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
        <inputParameter>
-         <name>timeConstrained</name>
+         <name>redshiftConstrained</name>
          <source>parameters</source>
-         <description>The time at the end of the Brownian bridge.</description>
+         <description>The redshift at the end of the Brownian bridge.</description>
        </inputParameter>
        <inputParameter>
          <name>massConstrained</name>
@@ -169,9 +171,11 @@ contains
          <description>The halo mass at the end of the Brownian bridge.</description>
        </inputParameter>
        !!]
-       criticalOverdensityConstrained=+self%criticalOverdensity_     %value       (time=timeConstrained,mass=massConstrained)    &
-            &                         /self%linearGrowth_            %value       (time=timeConstrained                     )
-       varianceConstrained           =+self%cosmologicalMassVariance_%rootVariance(time=timePresent    ,mass=massConstrained)**2
+       expansionFactor               =+self%cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )
+       timeConstrained               =+self%cosmologyFunctions_      %cosmicTime                 (expansionFactor=expansionFactor                     )
+       criticalOverdensityConstrained=+self%criticalOverdensity_     %value                      (time           =timeConstrained,mass=massConstrained)    &
+            &                         /self%linearGrowth_            %value                      (time           =timeConstrained                     )
+       varianceConstrained           =+self%cosmologicalMassVariance_%rootVariance               (time           =timePresent    ,mass=massConstrained)**2
     else
        criticalOverdensityConstrained=0.0d0
        varianceConstrained           =0.0d0
@@ -183,6 +187,7 @@ contains
     self%varianceConstrained           =varianceConstrained
     self%timeConstrained               =timeConstrained
     self%massConstrained               =massConstrained
+    self%redshiftConstrained           =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeConstrained))    
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -207,16 +212,18 @@ contains
     class           (linearGrowthClass                                    ), intent(in   ), target :: linearGrowth_
     class           (criticalOverdensityClass                             ), intent(in   ), target :: criticalOverdensity_
     class           (excursionSetFirstCrossingClass                       ), intent(in   ), target :: excursionSetFirstCrossing_
-    double precision                                                                               :: timePresent
+    double precision                                                                               :: timePresent                     , expansionFactor
     !![
     <constructorAssign variables="varianceConstrained, criticalOverdensityConstrained, *criticalOverdensity_, *linearGrowth_, *excursionSetFirstCrossing_"/>
     !!]
     
     self%excursionSetFirstCrossingFarahiMidpoint=excursionSetFirstCrossingFarahiMidpoint(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     ! Find mass and time corresponding to the constraint point.
-    timePresent         =self%cosmologyFunctions_      %cosmicTime    (expansionFactor    =1.0d0                                                                          )
-    self%massConstrained=self%cosmologicalMassVariance_%mass          (time               =timePresent                        ,rootVariance=sqrt(self%varianceConstrained))
-    self%timeConstrained=self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=self%criticalOverdensityConstrained,mass        =     self%massConstrained     )
+    timePresent             =self%cosmologyFunctions_      %cosmicTime                 (expansionFactor    =1.0d0                                                                          )
+    self%massConstrained    =self%cosmologicalMassVariance_%mass                       (time               =timePresent                        ,rootVariance=sqrt(self%varianceConstrained))
+    self%timeConstrained    =self%criticalOverdensity_     %timeOfCollapse             (criticalOverdensity=self%criticalOverdensityConstrained,mass        =     self%massConstrained     )
+    expansionFactor         =self%cosmologyFunctions_      %expansionFactor            (time               =self%timeConstrained                                                           )
+    self%redshiftConstrained=self%cosmologyFunctions_      %redshiftFromExpansionFactor(expansionFactor    =expansionFactor                                                                )
     return
   end function farahiMidpointBrownianBridgeConstructorInternal
 
@@ -262,7 +269,7 @@ contains
          &                              )
     ! Determine whether to use the conditioned or unconditioned solutions.
     if (self%excursionSetBarrier_%barrier(varianceProgenitor,time,node,rateCompute=.true.) > criticalOverdensityConstrained) then
-       ! The time corresponds to a barrier above the constrained point. Therefpre we want the unconstrained solution.
+       ! The time corresponds to a barrier above the constrained point. Therefore we want the unconstrained solution.
        farahiMidpointBrownianBridgeRate=self%excursionSetFirstCrossing_%rate           (variance,varianceProgenitor,time,node)
     else if (varianceProgenitor >= varianceConstrained) then
        ! For progenitor variances in excess of the constrained variance the first crossing rate must be zero.
