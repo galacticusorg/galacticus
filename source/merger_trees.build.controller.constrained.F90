@@ -21,9 +21,10 @@
 Contains a module which implements a merger tree build controller class which builds constrained trees.
 !!}
 
-  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
-  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
-  use :: Linear_Growth             , only : linearGrowthClass 
+  use :: Cosmology_Functions               , only : cosmologyFunctionsClass
+  use :: Cosmological_Density_Field        , only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Linear_Growth                     , only : linearGrowthClass 
+  use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
 
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerConstrained">
@@ -55,6 +56,7 @@ Contains a module which implements a merger tree build controller class which bu
      class           (linearGrowthClass                  ), pointer :: linearGrowth_                                => null()
      class           (criticalOverdensityClass           ), pointer :: criticalOverdensity_                         => null()
      class           (cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_                    => null()
+     class           (mergerTreeMassResolutionClass      ), pointer :: mergerTreeMassResolution_                    => null()
      integer                                                        :: isConstrainedID
      type            (enumerationConstructionOptionType  )          :: constructionOption
      double precision                                               :: criticalOverdensityConstrained                        , varianceConstrained                                 , &
@@ -94,6 +96,7 @@ contains
     class           (linearGrowthClass                   ), pointer       :: linearGrowth_
     class           (criticalOverdensityClass            ), pointer       :: criticalOverdensity_ 
     class           (cosmologicalMassVarianceClass       ), pointer       :: cosmologicalMassVariance_
+    class           (mergerTreeMassResolutionClass       ), pointer       :: mergerTreeMassResolution_
     double precision                                                      :: criticalOverdensityConstrained              , varianceConstrained                       , &
          &                                                                   timeConstrained                             , massConstrained                           , &
          &                                                                   timePresent                                 , redshiftConstrained                       , &
@@ -106,7 +109,8 @@ contains
     <objectBuilder class="linearGrowth"                   name="linearGrowth_"                                                                                            source="parameters"/>
     <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"                                                                                     source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"                                                                                source="parameters"/>
-    <inputParameter>
+    <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"                                                                                source="parameters"/>
+     <inputParameter>
       <name>constructionOption</name>
       <source>parameters</source>
       <description>Controls which branches of the tree to build.</description>
@@ -169,7 +173,7 @@ contains
        massConstrained               =0.0d0
        call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [timeConstrained] and [massConstrained]')
     end if
-    self=mergerTreeBuildControllerConstrained(criticalOverdensityConstrained,varianceConstrained,enumerationConstructionOptionEncode(char(constructionOption),includesPrefix=.false.),mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=mergerTreeBuildControllerConstrained(criticalOverdensityConstrained,varianceConstrained,enumerationConstructionOptionEncode(char(constructionOption),includesPrefix=.false.),mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBranchingProbabilityUnconstrained_"/>
@@ -178,11 +182,12 @@ contains
     <objectDestructor name="linearGrowth_"                               />
     <objectDestructor name="criticalOverdensity_"                        />
     <objectDestructor name="cosmologicalMassVariance_"                   />
+    <objectDestructor name="mergerTreeMassResolution_"                   />
     !!]
     return
   end function constrainedConstructorParameters
 
-  function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_) result(self)
     !!{
     Internal constructor for the ``constrained'' merger tree build controller class.
     !!}
@@ -194,10 +199,11 @@ contains
     class           (linearGrowthClass                   ), intent(in   ), target :: linearGrowth_
     class           (criticalOverdensityClass            ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass       ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (mergerTreeMassResolutionClass       ), intent(in   ), target :: mergerTreeMassResolution_
     double precision                                      , intent(in   )         :: criticalOverdensityConstrained              , varianceConstrained
     double precision                                                              :: timePresent                                 , expansionFactor
     !![
-    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, constructionOption, *mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_, *cosmologyFunctions_, *linearGrowth_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, constructionOption, *mergerTreeBranchingProbabilityUnconstrained_, *mergerTreeBranchingProbabilityConstrained_, *cosmologyFunctions_, *linearGrowth_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeMassResolution_"/>
     !!]
 
         ! Find mass and time corresponding to the constraint point.
@@ -228,6 +234,7 @@ contains
     <objectDestructor name="self%linearGrowth_"                               />
     <objectDestructor name="self%criticalOverdensity_"                        />
     <objectDestructor name="self%cosmologicalMassVariance_"                   />
+    <objectDestructor name="self%mergerTreeMassResolution_"                   />
     !!]
     return
   end subroutine constrainedDestructor
@@ -250,6 +257,15 @@ contains
        basic => node%basic()
        call basic%integerRank0MetaPropertySet(self%isConstrainedID,1)
     end if
+    ! Enforce that the mass on the constrained branch can not be below the constrained mass at times after the constrained time.
+    basic => node%basic()
+    if     (                                                                                                &
+         &   basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1                                   &
+         &  .and.                                                                                           &
+         &   basic%time                       (                    ) <  self%criticalOverdensityConstrained &
+         &  .and.                                                                                           &
+         &   basic%mass                       (                    ) <  self%massConstrained                &
+         & ) call basic%massSet(self%massConstrained)
     ! Continue with this node if it meets the criteria.
     select case (self%constructionOption%ID)
     case (constructionOptionConstrainedBranchOnly       %ID)
@@ -310,7 +326,7 @@ contains
          &                                                                           basicUnconstrained
     double precision                                      , parameter             :: toleranceRelative        =1.0d-3
     double precision                                                              :: criticalOverdensityParent       , criticalOverdensityProgenitor, &
-         &                                                                           massParent
+         &                                                                           massParent                      , massSecondary
 
     ! The constraint time has been reached. We need to insert the merger to the constrained halo mass. First, check if the halo
     ! has any progenitors - this is unlikely but could happen if another merger happened precisely at this time.
@@ -334,27 +350,34 @@ contains
     ! Determine the time at which to insert the progenitors.
     criticalOverdensityProgenitor=max(self%criticalOverdensityConstrained,criticalOverdensityBranch*(1.0d0+toleranceRelative))
     ! Create progenitors for the parent.
-    nodeConstrained    => treeNode(nodeIndex+1,nodeParent%hostTree)
-    nodeUnconstrained  => treeNode(nodeIndex+2,nodeParent%hostTree)
-    basicConstrained   => nodeConstrained  %basic(autoCreate=.true.)
-    basicUnconstrained => nodeUnconstrained%basic(autoCreate=.true.)
-    nodeIndex          =  nodeIndex+2
-    call basicConstrained  %massSet                    (           self%massConstrained                )
-    call basicConstrained  %timeSet                    (                criticalOverdensityProgenitor  )
-    call basicUnconstrained%massSet                    (massParent-self%massConstrained                )
-    call basicUnconstrained%timeSet                    (                criticalOverdensityProgenitor  )
-    call basicConstrained  %integerRank0MetaPropertySet(self%isConstrainedID                         ,1)
-    nodeConstrained  %parent => nodeParent
-    nodeUnconstrained%parent => nodeParent
-    if (self%massConstrained > 0.5d0*massParent) then
-       ! Constrained node is the main progenitor.
-       nodeParent       %firstChild => nodeConstrained
-       nodeConstrained  %sibling    => nodeUnconstrained
+    nodeIndex               =  nodeIndex+1
+    nodeConstrained         => treeNode(nodeIndex,nodeParent%hostTree)
+    basicConstrained        => nodeConstrained%basic(autoCreate=.true.)
+    nodeConstrained %parent => nodeParent
+    call basicConstrained%massSet                    (           self%massConstrained                )
+    call basicConstrained%timeSet                    (                criticalOverdensityProgenitor  )
+    call basicConstrained%integerRank0MetaPropertySet(self%isConstrainedID                         ,1)
+    massSecondary=+     massParent      &
+         &        -self%massConstrained
+    if (massSecondary > self%mergerTreeMassResolution_%resolution(node%hostTree)) then
+       nodeIndex                 =  nodeIndex+1
+       nodeUnconstrained         => treeNode(nodeIndex,nodeParent%hostTree)
+       basicUnconstrained        => nodeUnconstrained%basic(autoCreate=.true.)
+       nodeUnconstrained %parent => nodeParent
+       call basicUnconstrained%massSet(massParent-self%massConstrained              )
+       call basicUnconstrained%timeSet(                criticalOverdensityProgenitor)
+       if (self%massConstrained > massSecondary) then
+          ! Constrained node is the main progenitor.
+          nodeParent       %firstChild => nodeConstrained
+          nodeConstrained  %sibling    => nodeUnconstrained
+       else
+          ! Constrained node is the secondary progenitor.
+          nodeParent       %firstChild => nodeUnconstrained
+          nodeUnconstrained%sibling    => nodeConstrained
+       end if
     else
-       ! Constrained node is the secondary progenitor.
-       nodeParent       %firstChild => nodeUnconstrained
-       nodeUnconstrained%sibling    => nodeConstrained
-    end if    
+       nodeParent%firstChild => nodeConstrained
+    end if
     ! Return false indicating that the current node is finished, so building should continue from its progenitor nodes.
     constrainedControlTimeMaximum=.false.
     return
