@@ -269,7 +269,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),gnedin2000FileLock,lockIsShared=.true.)
        call self%fileRead()
-       call File_Unlock(gnedin2000FileLock)
+       call File_Unlock(gnedin2000FileLock,sync=.false.)
     end if
     if (self%remakeTable(time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
