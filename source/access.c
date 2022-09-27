@@ -35,7 +35,7 @@ void syncdir_C(const char *name) {
   //% Fortran-callable function to sync a directory. This is done by opening and closing the directory. According to the this
   //% \href{https://stackoverflow.com/a/30630912}{answer} on Stackoverflow this will invalidate the NFS cache for this directory.
 
-  DIR *fd = opendir (name);
+  DIR *fd = opendir(name);
   if (fd == NULL) {
     // Directory was not opened.
     if (errno != ENOENT) {
@@ -45,6 +45,6 @@ void syncdir_C(const char *name) {
     }
   } else {
     // Directory was opened - now close it.
-    int i   = closedir(  fd);
+    int i   = closedir(fd);
   }
 }
