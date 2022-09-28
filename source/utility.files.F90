@@ -173,6 +173,17 @@ module File_Utilities
      end function access_C
   end interface
 
+  ! Declare interface for a directory sync function.
+  interface
+     subroutine syncdir_C(name) bind(c,name='syncdir_C')
+       !!{
+       Template for a C function that syncs a directory.
+       !!}
+       import
+       character(c_char) :: name
+     end subroutine syncdir_C
+  end interface
+
   type, public :: lockDescriptor
      !!{
      Type used to store file lock descriptors.
@@ -205,9 +216,21 @@ contains
     !!{
     Checks for existance of file {\normalfont \ttfamily fileName} (version for character argument).
     !!}
+    use :: ISO_Varying_String, only : char
     implicit none
-    character(len=*), intent(in   ) :: fileName
+    character(len=*            ), intent(in   ) :: fileName
+    character(len=len(fileName))                :: parentName
+    integer                                     :: lengthParent
 
+    ! Find the name of the parent directory.
+    parentName  =      fileName
+    lengthParent=len(parentName)
+    if (parentName(lengthParent:lengthParent) == "/") &
+         & parentName=parentName(1:lengthParent-1)
+    parentName       =char(File_Path(parentName))
+    ! Sync the parent directory to ensure that any file system caching is updated.
+    call syncdir_C(trim(parentName)//char(0))
+    ! Test for file existance.
     !![
     <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
      <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existance.</description>
