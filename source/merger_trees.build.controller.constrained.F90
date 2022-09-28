@@ -421,18 +421,27 @@ contains
     basicCurrent     => nodeCurrent    %basic                      (                    )
     basicProgenitor1 => nodeProgenitor1%basic                      (                    )
     isConstrained    =  basicCurrent   %integerRank0MetaPropertyGet(self%isConstrainedID) == 1
-    if (basicCurrent%time() > self%criticalOverdensityConstrained) then
-       if (present(nodeProgenitor2)) then
-          basicProgenitor2 => nodeProgenitor2%basic()
-          if (basicProgenitor1%mass() > basicProgenitor2%mass()) then
-             call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,1)
-             call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,0)
+    if (basicCurrent%time() >= self%criticalOverdensityConstrained) then
+       if (isConstrained) then
+          if (present(nodeProgenitor2)) then
+             basicProgenitor2 => nodeProgenitor2%basic()
+             if (basicProgenitor1%mass() > basicProgenitor2%mass()) then
+                call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,1)
+                call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,0)
+             else
+                call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,0)
+                call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,1)
+             end if
           else
-             call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,0)
-             call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,1)
+             call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,1)
           end if
        else
-          call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,1)
+          call basicProgenitor1%integerRank0MetaPropertySet(self%isConstrainedID,0)
+          if (present(nodeProgenitor2)) then
+             basicProgenitor2 => nodeProgenitor2%basic()
+             ! Need to mark this secondary progenitor as not on the constrained branch, e.g.:
+             call basicProgenitor2%integerRank0MetaPropertySet(self%isConstrainedID,0)
+          end if
        end if
     else
        if (isConstrained) then
