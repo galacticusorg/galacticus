@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664353145900,
+  "lastUpdate": 1664392364309,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2853,6 +2853,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15423.3632579593,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c1e34f1915ba917cccac84b95e15081142ed4361",
+          "message": "feat: Add a `nodePropertyExtractor` for SIDM halo interaction radius",
+          "timestamp": "2022-09-28T09:45:02-07:00",
+          "tree_id": "d050a47e941f84ae04c787aa2537fa07c77c1b86",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c1e34f1915ba917cccac84b95e15081142ed4361"
+        },
+        "date": 1664392363206,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 73.636,
+            "unit": "seconds",
+            "range": 0.158626605587545
           }
         ]
       }
