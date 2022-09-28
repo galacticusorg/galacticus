@@ -128,7 +128,7 @@ module Events_Hooks
      !!{
      List of pointers to hooks.
      !!}
-     class(hook), pointer :: hook_
+     class(hook), pointer :: hook_ => null()
   end type hookList
   
   type :: eventHook
@@ -304,20 +304,19 @@ contains
            end do
        end if
     end do
-    ! Generate an ordering which satisfies all dependencies.
-    allocate(order(self%count_))
-    call Sort_Topological(self%count_,dependencyCount,dependentIndices(1:dependencyCount,:),order,countOrdered,status)
-    if (status /= errorStatusSuccess) call Error_Report('unable to resolve hooked function dependencies'//{introspection:location})
-    ! Build an array of pointers to our hooks with this ordering.
-    allocate(hooksOrdered(self%count_))
-    do i=1,self%count_
-       hooksOrdered(i)%hook_ => self%hooks_(order(i))%hook_
-    end do
-    deallocate(self%hooks_)
-    call move_alloc(hooksOrdered,self%hooks_)
-    ! Clean up.
-    deallocate(dependentIndices)
-    deallocate(order           )
+    ! If there are dependencies present then generate an ordering which satisfies all dependencies.
+    if (dependencyCount > 0) then
+       allocate(order(self%count_))
+       call Sort_Topological(self%count_,dependencyCount,dependentIndices(1:dependencyCount,:),order,countOrdered,status)
+       if (status /= errorStatusSuccess) call Error_Report('unable to resolve hooked function dependencies'//{introspection:location})
+       ! Build an array of pointers to our hooks with this ordering.
+       allocate(hooksOrdered(self%count_))
+       do i=1,self%count_
+          hooksOrdered(i)%hook_ => self%hooks_(order(i))%hook_
+       end do
+       deallocate(self%hooks_)
+       call move_alloc(hooksOrdered,self%hooks_)
+    end if
     return
   end subroutine eventHookResolveDependencies
   
@@ -364,6 +363,7 @@ contains
           select type (hook_ => self%hooks_(i)%hook_)
           type is (hookUnspecified)
              if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+                deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
                    allocate(self%hooks_(self%count_-1))
@@ -374,7 +374,6 @@ contains
                    deallocate(self%hooks_)
                 end if
                 self%count_=self%count_-1
-                deallocate(hook_)
                 return
              end if
           end select

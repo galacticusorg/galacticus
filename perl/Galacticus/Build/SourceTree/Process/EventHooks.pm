@@ -189,6 +189,7 @@ CODE
           select type (hook_ => self%hooks_(i)%hook_)
           type is (hook{$interfaceType})
              if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+                deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
                    allocate(self%hooks_(self%count_-1))
@@ -199,7 +200,6 @@ CODE
                    deallocate(self%hooks_)
                 end if
                 self%count_=self%count_-1
-                deallocate(hook_)
                 return
              end if
           end select
