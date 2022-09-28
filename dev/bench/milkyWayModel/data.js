@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664361488013,
+  "lastUpdate": 1664404986193,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -1870,6 +1870,36 @@ window.BENCHMARK_DATA = {
             "value": 374.76,
             "unit": "seconds",
             "range": 0.889026433802085
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c1e34f1915ba917cccac84b95e15081142ed4361",
+          "message": "feat: Add a `nodePropertyExtractor` for SIDM halo interaction radius",
+          "timestamp": "2022-09-28T09:45:02-07:00",
+          "tree_id": "d050a47e941f84ae04c787aa2537fa07c77c1b86",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c1e34f1915ba917cccac84b95e15081142ed4361"
+        },
+        "date": 1664404983739,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 525.599,
+            "unit": "seconds",
+            "range": 3.87196886609433
           }
         ]
       }
