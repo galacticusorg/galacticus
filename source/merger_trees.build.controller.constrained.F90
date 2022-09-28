@@ -421,7 +421,7 @@ contains
     basicCurrent     => nodeCurrent    %basic                      (                    )
     basicProgenitor1 => nodeProgenitor1%basic                      (                    )
     isConstrained    =  basicCurrent   %integerRank0MetaPropertyGet(self%isConstrainedID) == 1
-    if (basicCurrent%time() <= self%timeConstrained) then
+    if (basicCurrent%time() >= self%criticalOverdensityConstrained) then
        if (present(nodeProgenitor2)) then
           basicProgenitor2 => nodeProgenitor2%basic()
           if (basicProgenitor1%mass() > basicProgenitor2%mass()) then
