@@ -184,6 +184,9 @@ contains
     !!}
     use    :: Error  , only : Error_Report
     !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
+#ifdef USEMPI
+    use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
     class     (eventHookUnspecified              ), intent(inout)                            :: self
     class     (*                                 ), intent(in   ), target                    :: object_
@@ -228,7 +231,13 @@ contains
     self%hooks_(self%count_+1)%hook_ => hook_
     ! Increment the count of hooks into this event and resolve dependencies.
     self%count_=self%count_+1
+#ifdef USEMPI
+    write (0,*) "GO RESDEP  ",mpiSelf%rank()
+#endif
     call self%resolveDependencies(hook_,dependencies)
+#ifdef USEMPI
+    write (0,*) "DONE RESDEP  ",mpiSelf%rank()
+#endif
     return
   end subroutine eventHookUnspecifiedAttach
 
