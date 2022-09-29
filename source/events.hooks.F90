@@ -238,6 +238,9 @@ contains
     !!}
     use :: Error              , only : Error_Report    , errorStatusSuccess
     use :: Sorting_Topological, only : Sort_Topological
+#ifdef USEMPI
+    use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
     class    (eventHook ), intent(inout)                           :: self
     class    (hook      ), intent(inout)                           :: hookNew
@@ -252,6 +255,9 @@ contains
     logical                                                        :: matches
     
     ! Add dependencies to the new hooked function.
+#ifdef USEMPI
+    write (0,*) "RESDEP #1 ",mpiSelf%rank(),present(dependencies)
+#endif
     if (present(dependencies)) then
        allocate(hookNew%dependencies(size(dependencies)),mold=dependencies)
        hookNew%dependencies=dependencies
@@ -262,14 +268,26 @@ contains
           end select
        end do
     end if
+#ifdef USEMPI
+    write (0,*) "RESDEP #2 ",mpiSelf%rank()
+#endif
     ! Build the dependency array.
     allocate(dependentIndices(1,2))
     dependencyCount =  0
     do i=1,self%count_
+#ifdef USEMPI
+    write (0,*) "RESDEP #2.i ",mpiSelf%rank(),i,self%count_
+#endif
        if (allocated(self%hooks_(i)%hook_%dependencies)) then
           do k=1,size(self%hooks_(i)%hook_%dependencies)
+#ifdef USEMPI
+    write (0,*) "RESDEP #2.k ",mpiSelf%rank(),k,size(self%hooks_(i)%hook_%dependencies)
+#endif
              j    = 0
              do j=1,self%count_
+#ifdef USEMPI
+    write (0,*) "RESDEP #2.j ",mpiSelf%rank(),j,self%count_
+#endif
                 matches=.false.
                 select type (dependency_ => self%hooks_(i)%hook_%dependencies(k))
                 type is (dependencyExact)
@@ -305,18 +323,36 @@ contains
        end if
     end do
     ! If there are dependencies present then generate an ordering which satisfies all dependencies.
+#ifdef USEMPI
+    write (0,*) "RESDEP #3 ",mpiSelf%rank(),dependencyCount
+#endif
     if (dependencyCount > 0) then
        allocate(order(self%count_))
+#ifdef USEMPI
+    write (0,*) "RESDEP #3.1 ",mpiSelf%rank()
+#endif
        call Sort_Topological(self%count_,dependencyCount,dependentIndices(1:dependencyCount,:),order,countOrdered,status)
        if (status /= errorStatusSuccess) call Error_Report('unable to resolve hooked function dependencies'//{introspection:location})
        ! Build an array of pointers to our hooks with this ordering.
        allocate(hooksOrdered(self%count_))
        do i=1,self%count_
+#ifdef USEMPI
+    write (0,*) "RESDEP #3.i ",mpiSelf%rank(),i,self%count_
+#endif
           hooksOrdered(i)%hook_ => self%hooks_(order(i))%hook_
        end do
+#ifdef USEMPI
+    write (0,*) "RESDEP #3.2 ",mpiSelf%rank(),i,self%count_
+#endif
        deallocate(self%hooks_)
        call move_alloc(hooksOrdered,self%hooks_)
+#ifdef USEMPI
+    write (0,*) "RESDEP #3.3 ",mpiSelf%rank(),i,self%count_
+#endif
     end if
+#ifdef USEMPI
+    write (0,*) "RESDEP #4 ",mpiSelf%rank()
+#endif
     return
   end subroutine eventHookResolveDependencies
   
