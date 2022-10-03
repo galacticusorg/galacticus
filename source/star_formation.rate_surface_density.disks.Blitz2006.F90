@@ -306,7 +306,7 @@ contains
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,blitz2006CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,blitz2006CalculationReset,openMPThreadBindingAllLevels,label='starFormationRateSurfaceDensityDisksBlitz2006')
     return
   end subroutine blitz2006AutoHook
 

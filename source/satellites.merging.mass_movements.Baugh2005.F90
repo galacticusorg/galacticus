@@ -155,7 +155,7 @@ contains
     implicit none
     class(mergerMassMovementsBaugh2005), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,baugh2005CalculationReset,openMPThreadBindingAllLevels                                                )
+    call calculationResetEvent%attach(self,baugh2005CalculationReset,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsBaugh2005')
     call satelliteMergerEvent %attach(self,baugh2005GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsBaugh2005')
     return
   end subroutine baugh2005AutoHook

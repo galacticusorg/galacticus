@@ -179,7 +179,7 @@ contains
     implicit none
     class(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
 
-    call mergerTreeExtraOutputEvent%attach(self,recordEvolutionOutput)
+    call mergerTreeExtraOutputEvent%attach(self,recordEvolutionOutput,label='mergerTreeEvolveTimestepRecordEvolution')
    return
   end subroutine recordEvolutionAutoHook
 

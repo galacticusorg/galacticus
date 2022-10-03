@@ -205,7 +205,7 @@ contains
     implicit none
     class(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
-    call hdf5PreCloseEvent%attach(self,historyWrite)
+    call hdf5PreCloseEvent%attach(self,historyWrite,label='mergerTreeEvolveTimestepHistory')
     return
   end subroutine historyAutoHook
 

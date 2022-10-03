@@ -295,7 +295,7 @@ contains
 
     ! Hook to universe pre-evolve events.
     !$omp master
-    call universePreEvolveEvent%attach(self,intergalacticBackgroundInternalUniversePreEvolve)
+    call universePreEvolveEvent%attach(self,intergalacticBackgroundInternalUniversePreEvolve,label='radiationFieldIntergalacticBackgroundInternal')
     !$omp end master
     return
   end subroutine intergalacticBackgroundInternalAutoHook

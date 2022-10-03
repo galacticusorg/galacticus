@@ -146,7 +146,7 @@ contains
     implicit none
     class(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,extendedSchmidtCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,extendedSchmidtCalculationReset,openMPThreadBindingAllLevels,label='starFormationRateSurfaceDensityDisksExtendedS\chmidt')
     return
   end subroutine extendedSchmidtAutoHook
 

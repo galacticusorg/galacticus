@@ -122,7 +122,7 @@ contains
     implicit none
     class(intergalacticMediumStateInternal), intent(inout) :: self
 
-    call intergalacticMediumStateEvolveUpdateEvent%attach(self,internalStateSet)
+    call intergalacticMediumStateEvolveUpdateEvent%attach(self,internalStateSet,label='intergalacticMediumStateInternal')
     return
   end subroutine internalAutoHook
 

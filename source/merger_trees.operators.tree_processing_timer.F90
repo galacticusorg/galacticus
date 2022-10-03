@@ -124,7 +124,7 @@ contains
     implicit none
     class(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
 
-    if (self%collectMemoryUsageData) call postEvolveEvent%attach(self,treeProcessingTimerPostEvolve,openMPThreadBindingAtLevel)
+    if (self%collectMemoryUsageData) call postEvolveEvent%attach(self,treeProcessingTimerPostEvolve,openMPThreadBindingAtLevel,label='mergerTreeOperatorTreeProcessingTimer')
     return
   end subroutine treeProcessingTimerAutoHook
 

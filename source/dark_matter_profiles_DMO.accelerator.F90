@@ -139,7 +139,7 @@ contains
     implicit none
     class(darkMatterProfileDMOAccelerator), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,acceleratorCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,acceleratorCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOAccelerator')
     return
   end subroutine acceleratorAutoHook
 
