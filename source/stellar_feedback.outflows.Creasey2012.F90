@@ -106,6 +106,7 @@ contains
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
+    <objectDestructor name="galacticStructure_"                   />
     !!]
     return
   end function creasey2012ConstructorParameters

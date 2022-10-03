@@ -87,6 +87,8 @@ contains
     self=nodeOperatorSatelliteMergingTime(resetOnHaloFormation,virialOrbit_,satelliteMergingTimescales_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialOrbit_"               />
+    <objectDestructor name="satelliteMergingTimescales_"/>
     !!]
     return
   end function satelliteMergingTimeConstructorParameters
