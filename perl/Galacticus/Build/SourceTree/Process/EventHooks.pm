@@ -118,8 +118,11 @@ CODE
     !!{
     Attach an object to an event hook.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
+    use    :: Display           , only : displayMessage             , verbosityLevelStandard
+    use    :: Error             , only : Error_Report
+    use    :: ISO_Varying_String, only : varying_string             , var_str               , assignment(=), operator(//)
+    use    :: String_Handling   , only : operator(//)
+    !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
     class     (eventHook{$interfaceType}         ), intent(inout)                            :: self
     class     (*                                 ), intent(in   ), target                    :: object_
@@ -129,6 +132,7 @@ CODE
     procedure (interface{$interfaceType}         )                                           :: function_
     type      (hookList                          )               , allocatable, dimension(:) :: hooksTmp
     type      (hook{$interfaceType}              )                            , pointer      :: hook_
+    type      (varying_string                    )                                           :: threadLabel
     !$ integer                                                                               :: i
     !![
     <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
@@ -153,18 +157,25 @@ CODE
     else
        hook_%label=""
     end if
-    !$ if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
-    !$    hook_%openMPLevel=OMP_Get_Level()
-    !$    allocate(hook_%openMPThread(0:hook_%openMPLevel))
-    !$    do i=0,hook_%openMPLevel
-    !$       hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
-    !$    end do
-    !$ end if
+    !$omp atomic
+    eventID            =eventID+1
+    hook_      %eventID=eventID
+    threadLabel        =""
+    !$ threadLabel=" from thread "
+    !$ hook_%openMPLevel=OMP_Get_Level()
+    !$ allocate(hook_%openMPThread(0:hook_%openMPLevel))
+    !$ do i=0,hook_%openMPLevel
+    !$    hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+    !$    if (i > 0) threadLabel=threadLabel//" -> "
+    !$    threadLabel=threadLabel//hook_%openMPThread(i)
+    !$ end do
     ! Insert the hook into the list.
     self%hooks_(self%count_+1)%hook_ => hook_
     ! Increment the count of hooks into this event and resolve dependencies.
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
+    ! Report
+    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelStandard)
     return
   end subroutine eventHook{$interfaceType}Attach
 CODE
@@ -176,19 +187,32 @@ CODE
     !!{
     Attach an object to an event hook.
     !!}
-    use :: Error, only : Error_Report
+    use    :: Display           , only : displayMessage             , verbosityLevelStandard
+    use    :: Error             , only : Error_Report
+    use    :: ISO_Varying_String, only : varying_string             , var_str               , assignment(=), operator(//)
+    use    :: String_Handling   , only : operator(//)
+    !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
     class    (eventHook{$interfaceType}), intent(inout)               :: self
     class    (*                        ), intent(in   ), target       :: object_
     procedure(                         )                              :: function_
     type     (hookList                 ), allocatable  , dimension(:) :: hooksTmp
-    integer                                                           :: i
+    type     (varying_string           )                              :: threadLabel
+    integer                                                           :: i          , j
     
     if (allocated(self%hooks_)) then
        do i=1,self%count_
           select type (hook_ => self%hooks_(i)%hook_)
           type is (hook{$interfaceType})
              if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+                ! Report
+                threadLabel   =""
+                !$ threadLabel=" from thread "
+                !$ do j=0,OMP_Get_Level()
+                !$    if (j > 0) threadLabel=threadLabel//" -> "
+                !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
+                !$ end do
+                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelStandard)
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
@@ -276,11 +300,28 @@ CODE
             # Build a function to perform copy in of the current event lists on entering a new OpenMP parallel region.
             my $copyIn = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventsHooksFilterCopyIn_()
+   use    :: Display           , only : displayMessage             , verbosityLevelStandard
+   use    :: ISO_Varying_String, only : var_str                    , operator(//)          , varying_string, assignment(=)
+   use    :: String_Handling   , only : operator(//)
+   !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
    implicit none
+   type   (varying_string) :: threadLabel
+   integer                 :: i
+
+   threadLabel=""
+   !$ threadLabel=" from thread "
+   !$ do i=0,OMP_Get_Level()
+   !$    if (i > 0) threadLabel=threadLabel//" -> "
+   !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(i)
+   !$ end do
 CODE
             foreach my $hook ( @hooks ) {
-		$copyIn .= "   ".$hook->{'name'}."Event      =".$hook->{'name'}."Event_\n";
-		$copyIn .= "   ".$hook->{'name'}."EventBackup=".$hook->{'name'}."Event_\n";
+		$code::name = $hook->{'name'};
+		$copyIn .= fill_in_string(<<'CODE', PACKAGE => 'code');
+   {$name}Event      ={$name}Event_
+   {$name}EventBackup={$name}Event_
+   call displayMessage(var_str("{$name}: storing ")//{$name}EventBackup%count_//" hooks"//threadLabel,verbosityLevelStandard)
+CODE
             }
             $copyIn .= fill_in_string(<<'CODE', PACKAGE => 'code');
    return
@@ -298,10 +339,27 @@ CODE
             # Build a function to perform restore of the current event lists before leaving a OpenMP parallel region.
             my $restore = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventsHooksFilterRestore_()
+   use    :: Display           , only : displayMessage             , verbosityLevelStandard
+   use    :: ISO_Varying_String, only : var_str                    , operator(//)          , varying_string, assignment(=)
+   use    :: String_Handling   , only : operator(//)
+   !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
    implicit none
+   type   (varying_string) :: threadLabel
+   integer                 :: i
+
+   threadLabel=""
+   !$ threadLabel=" from thread "
+   !$ do i=0,OMP_Get_Level()
+   !$    if (i > 0) threadLabel=threadLabel//" -> "
+   !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(i)
+   !$ end do
 CODE
             foreach my $hook ( @hooks ) {
-		$restore .= "   ".$hook->{'name'}."Event      =".$hook->{'name'}."EventBackup\n";
+		$code::name = $hook->{'name'};
+		$restore .= fill_in_string(<<'CODE', PACKAGE => 'code');
+   call displayMessage(var_str("{$name}: restoring ")//{$name}EventBackup%count_//" hooks"//threadLabel,verbosityLevelStandard)
+   {$name}Event={$name}EventBackup
+CODE
             }
             $restore .= fill_in_string(<<'CODE', PACKAGE => 'code');
    return
