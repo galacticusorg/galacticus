@@ -62,7 +62,7 @@
      class           (outputTimesClass           ), pointer :: outputTimes_                  => null()
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      ! Pointer to the parameters for this task.
-     type            (inputParameters            )          :: parameters
+     type            (inputParameters            ), pointer          :: parameters
      logical                                                :: initialized                   =.false., nodeComponentsInitialized=.false.
    contains
      !![
@@ -240,10 +240,9 @@ contains
     <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_"/>
     !!]
 
-    self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
-    self%initialized=.true.
-    return
+    self%parameters  => parameters
+    self%initialized =  .true.
+    return 
   end function evolveForestsConstructorInternal
 
   subroutine evolveForestsAutoHook(self)
@@ -254,8 +253,8 @@ contains
     implicit none
     class(taskEvolveForests), intent(inout) :: self
 
-    call stateStoreEvent  %attach(self,evolveForestsStateStore  ,openMPThreadBindingNone)
-    call stateRestoreEvent%attach(self,evolveForestsStateRestore,openMPThreadBindingNone)
+    call stateStoreEvent  %attach(self,evolveForestsStateStore  ,openMPThreadBindingNone,label='evolveForests')
+    call stateRestoreEvent%attach(self,evolveForestsStateRestore,openMPThreadBindingNone,label='evolveForests')
     return
   end subroutine evolveForestsAutoHook
 
@@ -392,6 +391,7 @@ contains
     double precision                               , allocatable, dimension(:), save :: massBranch
     integer                                                                   , save :: forestSection
     double precision                                                          , save :: timeSectionForestBegin
+    type            (inputParameters              ) , allocatable             , save :: parameters
     logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
          &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
          &                                                                              triggerFinish
@@ -399,7 +399,7 @@ contains
     integer         (omp_lock_kind                )                                  :: initializationLock
     integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
     double precision                                                                 :: evolveToTimeForest
-    !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection,treeNumber,treesFinished)
+    !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection,treeNumber,treesFinished,parameters)
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -425,6 +425,7 @@ contains
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
     self%universeWaiting  =universe()
+
     self%universeProcessed=universe()
 
     ! Set record of whether any trees were evolved to false initially.
@@ -460,7 +461,10 @@ contains
     !!]
     !$omp end critical(evolveForestsDeepCopy)
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
-    call Node_Components_Thread_Initialize(self%parameters)
+    allocate(parameters)
+    parameters=inputParameters(self%parameters)
+    call parameters%parametersGroupCopy(self%parameters)
+    call Node_Components_Thread_Initialize(parameters)
     ! Allow events to be attached to the universe.
     !$omp master
     self%universeWaiting%event => null()
@@ -977,7 +981,6 @@ contains
     ! Reduce outputs back into the original outputter object.
     call evolveForestsMergerTreeOutputter_%reduce  (self%mergerTreeOutputter_)
     ! Explicitly deallocate objects.
-    call Node_Components_Thread_Uninitialize()
     !![
     <objectDestructor name="evolveForestsMergerTreeOutputter_"  />
     <objectDestructor name="evolveForestsMergerTreeInitializor_"/>
@@ -986,6 +989,13 @@ contains
     <objectDestructor name="evolveForestsMergerTreeOperator_"   />
     <objectDestructor name="evolveForestsNodeOperator_"         />
     !!]
+    call Node_Components_Thread_Uninitialize()
+    !$omp barrier
+    !$omp critical(evolveForestReset)
+    call parameters%reset()
+    !$omp end critical(evolveForestReset)
+    !$omp barrier
+    deallocate(parameters)
     !$omp end parallel
 
     ! Finalize outputs.
