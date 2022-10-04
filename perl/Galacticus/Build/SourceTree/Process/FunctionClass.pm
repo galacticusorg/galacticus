@@ -1678,6 +1678,20 @@ CODE
 		# Build the code.
 		$stateStoreCode   .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$stateRestoreCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		if ( exists($nonAbstractClass->{'recursive'}) && $nonAbstractClass->{'recursive'} eq "yes" ) {
+		    # Object allows recursion. If this object is a recursive copy, call the state store/restore functions on the actual copy.
+		    $stateStoreCode   .= "if (self%isRecursive) then\n";
+		    $stateStoreCode   .= " call displayUnindent('recursive copy - moving to actual',verbosity=verbosityLevelWorking)\n";
+		    $stateStoreCode   .= " call self%recursiveSelf%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
+		    $stateStoreCode   .= " return\n";
+		    $stateStoreCode   .= "end if\n";
+		    $stateRestoreCode .= "if (self%isRecursive) then\n";
+		    $stateRestoreCode .= " call displayUnindent('recursive copy - moving to actual',verbosity=verbosityLevelWorking)\n";
+		    $stateRestoreCode .= " call self%recursiveSelf%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
+		    $stateRestoreCode .= " return\n";
+		    $stateRestoreCode .= "end if\n";
+		    print "WTF ".$nonAbstractClass->{'name'}."\n";
+		}
 		$stateStoreCode   .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
 		$stateStoreCode   .= " call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)\n";
 		$stateStoreCode   .= " return\n";
