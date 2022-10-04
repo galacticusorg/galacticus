@@ -70,11 +70,11 @@ module Node_Component_Black_Hole_Noncentral
   logical :: tripleBlackHoleInteraction
 
   ! Index of black hole instance about to merge.
-  integer          :: mergingInstance
+  integer :: mergingInstance
   !$omp threadprivate(mergingInstance)
 
   ! Index of black hole involved in three-body interactions
-  integer          :: binaryInstance           , tripleInstance
+  integer :: binaryInstance           , tripleInstance
   !$omp threadprivate(binaryInstance,tripleInstance)
 
 contains
