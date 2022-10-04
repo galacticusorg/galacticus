@@ -151,6 +151,14 @@ module Events_Hooks
      procedure :: filter              => eventHookFilter
   end type eventHook
 
+  type :: eventHookList
+     !!{
+     List of event hooks.
+     !!}
+     class(eventHook    ), allocatable :: eventHook_
+     class(eventHookList), pointer     :: next       => null()
+  end type eventHookList
+  
   type, extends(eventHook) :: eventHookUnspecified
      !!{
      Class used to define a set of hooked function calls for a given event.
@@ -185,9 +193,9 @@ contains
     !!{
     Attach an object to an event hook.
     !!}
-    use    :: Display           , only : displayMessage             , verbosityLevelStandard
+    use    :: Display           , only : displayMessage             , verbosityLevelInfo
     use    :: Error             , only : Error_Report
-    use    :: ISO_Varying_String, only : varying_string             , var_str               , assignment(=), operator(//)
+    use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
     use    :: String_Handling   , only : operator(//)
     !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
@@ -242,7 +250,7 @@ contains
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
-    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelStandard)
+    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
     return
   end subroutine eventHookUnspecifiedAttach
 
@@ -364,9 +372,9 @@ contains
     !!{
     Attach an object to an event hook.
     !!}
-    use    :: Display           , only : displayMessage             , verbosityLevelStandard
+    use    :: Display           , only : displayMessage             , verbosityLevelInfo
     use    :: Error             , only : Error_Report
-    use    :: ISO_Varying_String, only : varying_string             , var_str               , assignment(=), operator(//)
+    use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
     use    :: String_Handling   , only : operator(//)
     !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
@@ -389,7 +397,7 @@ contains
                 !$    if (j > 0) threadLabel=threadLabel//" -> "
                 !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
                 !$ end do
-                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelStandard)
+                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)

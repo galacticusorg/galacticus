@@ -118,9 +118,9 @@ CODE
     !!{
     Attach an object to an event hook.
     !!}
-    use    :: Display           , only : displayMessage             , verbosityLevelStandard
+    use    :: Display           , only : displayMessage             , verbosityLevelInfo
     use    :: Error             , only : Error_Report
-    use    :: ISO_Varying_String, only : varying_string             , var_str               , assignment(=), operator(//)
+    use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
     use    :: String_Handling   , only : operator(//)
     !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
@@ -175,7 +175,7 @@ CODE
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
-    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelStandard)
+    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
     return
   end subroutine eventHook{$interfaceType}Attach
 CODE
@@ -187,9 +187,9 @@ CODE
     !!{
     Attach an object to an event hook.
     !!}
-    use    :: Display           , only : displayMessage             , verbosityLevelStandard
+    use    :: Display           , only : displayMessage             , verbosityLevelInfo
     use    :: Error             , only : Error_Report
-    use    :: ISO_Varying_String, only : varying_string             , var_str               , assignment(=), operator(//)
+    use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
     use    :: String_Handling   , only : operator(//)
     !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
@@ -212,7 +212,7 @@ CODE
                 !$    if (j > 0) threadLabel=threadLabel//" -> "
                 !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
                 !$ end do
-                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelStandard)
+                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
@@ -268,9 +268,10 @@ CODE
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@isAttacherNodes);
 		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
 	        }
-		$hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
-		$hookObject .= "type(eventHook".$code::interfaceType.")         :: ".$hook->{'name'}."Event_, ".$hook->{'name'}."EventBackup\n";
-		$hookObject .= "!\$omp threadprivate (".$hook->{'name'}."Event,".$hook->{'name'}."EventBackup)\n";
+		$hookObject .= "type(eventHook".$code::interfaceType."), public  :: ".$hook->{'name'}."Event\n";
+		$hookObject .= "type(eventHook".$code::interfaceType.")          :: ".$hook->{'name'}."Event_\n";
+		$hookObject .= "type(eventHookList                    ), pointer :: ".$hook->{'name'}."EventBackups => null()\n";
+		$hookObject .= "!\$omp threadprivate (".$hook->{'name'}."Event,".$hook->{'name'}."EventBackups)\n";
 		my $hookTree = &Galacticus::Build::SourceTree::ParseCode($hookObject,"null()");
 		my @hookNodes = &Galacticus::Build::SourceTree::Children($hookTree);
 		&Galacticus::Build::SourceTree::InsertAfterNode($node,\@hookNodes);
@@ -300,13 +301,14 @@ CODE
             # Build a function to perform copy in of the current event lists on entering a new OpenMP parallel region.
             my $copyIn = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventsHooksFilterCopyIn_()
-   use    :: Display           , only : displayMessage             , verbosityLevelStandard
-   use    :: ISO_Varying_String, only : var_str                    , operator(//)          , varying_string, assignment(=)
+   use    :: Display           , only : displayMessage             , verbosityLevelInfo
+   use    :: ISO_Varying_String, only : var_str                    , operator(//)      , varying_string, assignment(=)
    use    :: String_Handling   , only : operator(//)
    !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
    implicit none
-   type   (varying_string) :: threadLabel
-   integer                 :: i
+   type   (eventHookList ), pointer :: eventHookBackup
+   type   (varying_string)          :: threadLabel
+   integer                          :: i
 
    threadLabel=""
    !$ threadLabel=" from thread "
@@ -318,9 +320,13 @@ CODE
             foreach my $hook ( @hooks ) {
 		$code::name = $hook->{'name'};
 		$copyIn .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   {$name}Event      ={$name}Event_
-   {$name}EventBackup={$name}Event_
-   call displayMessage(var_str("{$name}: storing ")//{$name}EventBackup%count_//" hooks"//threadLabel,verbosityLevelStandard)
+   allocate(eventHookBackup)
+   {$name}Event               =  {$name}Event_
+   eventHookBackup%eventHook_ =  {$name}Event_
+   if (associated({$name}EventBackups)) eventHookBackup%next => {$name}EventBackups
+   {$name}EventBackups        => eventHookBackup
+   call displayMessage(var_str("{$name}: storing ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel,verbosityLevelInfo)
+   nullify(eventHookBackup)
 CODE
             }
             $copyIn .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -339,13 +345,15 @@ CODE
             # Build a function to perform restore of the current event lists before leaving a OpenMP parallel region.
             my $restore = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventsHooksFilterRestore_()
-   use    :: Display           , only : displayMessage             , verbosityLevelStandard
-   use    :: ISO_Varying_String, only : var_str                    , operator(//)          , varying_string, assignment(=)
+   use    :: Display           , only : displayMessage             , verbosityLevelInfo
+   use    :: Error             , only : Error_Report
+   use    :: ISO_Varying_String, only : var_str                    , operator(//)      , varying_string, assignment(=)
    use    :: String_Handling   , only : operator(//)
    !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
    implicit none
-   type   (varying_string) :: threadLabel
-   integer                 :: i
+   type   (eventHookList ), pointer :: eventHookBackup
+   type   (varying_string)          :: threadLabel
+   integer                          :: i
 
    threadLabel=""
    !$ threadLabel=" from thread "
@@ -355,10 +363,21 @@ subroutine eventsHooksFilterRestore_()
    !$ end do
 CODE
             foreach my $hook ( @hooks ) {
-		$code::name = $hook->{'name'};
+		$code::name          = $hook->{'name'};
+		$code::interfaceType = &interfaceTypeGet($hook);
+		$code::location      = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		$restore .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call displayMessage(var_str("{$name}: restoring ")//{$name}EventBackup%count_//" hooks"//threadLabel,verbosityLevelStandard)
-   {$name}Event={$name}EventBackup
+   eventHookBackup     => {$name}EventBackups
+   {$name}EventBackups => {$name}EventBackups%next
+   select type (eventHook_ => eventHookBackup%eventHook_)
+   type is (eventHook{$interfaceType})
+      {$name}Event        =  eventHook_
+   class default
+      call Error_Report('eventHook has incorrect class'//{$location})
+   end select
+   call displayMessage(var_str("{$name}: restoring ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel,verbosityLevelInfo)
+   deallocate(eventHookBackup)
+   nullify   (eventHookBackup)
 CODE
             }
             $restore .= fill_in_string(<<'CODE', PACKAGE => 'code');
