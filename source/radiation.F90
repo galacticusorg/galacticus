@@ -77,7 +77,6 @@ contains
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
     use :: Numerical_Integration2      , only : integratorAdaptiveCompositeTrapezoidal1D
-    use :: Timers
     implicit none
     class           (radiationFieldClass                     ), target      , intent(inout) :: self
     double precision                                          , dimension(2), intent(in   ) :: wavelengthRange
