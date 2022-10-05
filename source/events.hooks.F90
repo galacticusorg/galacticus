@@ -26,7 +26,7 @@ module Events_Hooks
   Handles hooking of object function class into events.
   !!}
   use :: Regular_Expressions, only : regEx
-  use :: Locks              , only : ompLock
+  use :: Locks              , only : ompLock, ompReadWriteLock
   private
   public :: hook, hookUnspecified, dependencyExact, dependencyRegEx, eventsHooksInitialize
 
@@ -136,19 +136,28 @@ module Events_Hooks
      Class used to define a set of hooked function calls for a given event.
      !!}
      private
-     integer                                              :: count_=0
-     type   (hookList), allocatable, dimension(:), public :: hooks_
+     logical                                                                  :: isGlobal    =.false.
+     !$ type            (ompReadWriteLock)                                    :: lock_
+#ifdef OMPPROFILE
+     !$ double precision                                                      :: waitTimeRead=0.0d0  , waitTimeWrite=0.0d0
+#endif
+     integer                                                                  :: count_=0
+     type               (hookList        ), allocatable, dimension(:), public :: hooks_
    contains
      !![
      <methods>
        <method description="Return a count of the number of hooks into this event."  method="count"              />
        <method description="Reorder hooked functions to resolved any dependencies."  method="resolveDependencies"/>
        <method description="Filter events to match the current OpenMP thread/level." method="filter"             />
+       <method description="Lock the event."                                         method="lock"               />
+       <method description="Unlock the event."                                       method="unlock"             />
      </methods>
      !!]
      procedure :: count               => eventHookCount
      procedure :: resolveDependencies => eventHookResolveDependencies
      procedure :: filter              => eventHookFilter
+     procedure :: lock                => eventHookLock
+     procedure :: unlock              => eventHookUnlock
   end type eventHook
 
   type :: eventHookList
@@ -213,6 +222,14 @@ contains
     <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
     !!]
 
+    ! Validate the thread binding model.
+    if (self%isGlobal) then
+       if (openMPThreadBinding_ /= openMPThreadBindingNone) call Error_Report("global event hooks permit only 'openMPThreadBindingNone'"         //{introspection:location})
+    else
+       if (openMPThreadBinding_ == openMPThreadBindingNone) call Error_Report("threadprivate event hooks do not permit 'openMPThreadBindingNone'"//{introspection:location})
+    end if
+    ! Lock the object.
+    !$ if (self%isGlobal) call self%lock()
     ! Resize the array of hooks.
     if (allocated(self%hooks_)) then
        call move_alloc(self%hooks_,hooksTmp)
@@ -251,6 +268,7 @@ contains
     call self%resolveDependencies(hook_,dependencies)
     ! Report
     call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+    !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHookUnspecifiedAttach
 
@@ -353,18 +371,21 @@ contains
     procedure(                    )                         :: function_
     integer                                                 :: i
     
+    !$ if (self%isGlobal) call self%lock(writeLock=.false.)
     if (allocated(self%hooks_)) then
        do i=1,self%count_
           select type (hook_ => self%hooks_(i)%hook_)
           type is (hookUnspecified)
              if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
                 eventHookUnspecifiedIsAttached=.true.
+                !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
                 return
              end if
           end select
        end do
     end if
     eventHookUnspecifiedIsAttached=.false.
+    !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
     return
   end function eventHookUnspecifiedIsAttached
 
@@ -385,6 +406,7 @@ contains
     type     (varying_string      )                              :: threadLabel
     integer                                                      :: i          , j
     
+    !$ if (self%isGlobal) call self%lock()
     if (allocated(self%hooks_)) then
        do i=1,self%count_
           select type (hook_ => self%hooks_(i)%hook_)
@@ -409,12 +431,14 @@ contains
                    deallocate(self%hooks_)
                 end if
                 self%count_=self%count_-1
+               !$ if (self%isGlobal) call self%unlock()
                 return
              end if
           end select
        end do
     end if
     call Error_Report('object/function not attached to this event'//{introspection:location})
+    !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHookUnspecifiedDetach
 
@@ -426,27 +450,12 @@ contains
     implicit none
     class(eventHook), intent(inout):: self
 
+    !$ if (self%isGlobal) call self%  lock(writeLock=.false.)
     eventHookCount=self%count_
+    !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
     return
   end function eventHookCount
 
-  subroutine eventsHooksInitialize()
-    !!{
-    Initialize the events hooks subsystem by setting pointers to our filter functions that are globally-callable.
-    !!}
-    use :: Events_Filters, only : eventsHooksFilterFunction, eventsHooksFilterCopyOut, eventsHooksFilterCopyIn, eventsHooksFilterCopyDone, &
-         &                        eventsHooksFilterRestore
-    implicit none
-
-    eventsHooksFilterFunction => eventsHooksFilterFunction_
-    eventsHooksFilterCopyOut  => eventsHooksFilterCopyOut_
-    eventsHooksFilterCopyIn   => eventsHooksFilterCopyIn_
-    eventsHooksFilterCopyDone => eventsHooksFilterCopyDone_
-    eventsHooksFilterRestore  => eventsHooksFilterRestore_
-    call copyLock%initialize()
-    return
-  end subroutine eventsHooksInitialize
-  
   subroutine eventHookFilter(self)
     !!{
     Filter hooked functions for the current OpenMP thread/level.
@@ -526,6 +535,68 @@ contains
     return
   end subroutine eventHookFilter
   
+  subroutine eventHookLock(self,writeLock)
+    !!{
+    Lock the event to avoid race conditions between OpenMP threads.
+    !!}
+#ifdef OMPPROFILE
+    !$ use :: OMP_Lib, only : OMP_Get_WTime
+#endif
+    implicit none
+#ifdef OMPPROFILE
+    double precision                            :: ompProfileTimeWaitStart, ompProfileTimeWaitEnd
+#endif
+    class  (eventHook), intent(inout)           :: self
+    logical           , intent(in   ), optional :: writeLock
+    !![
+    <optionalArgument name="writeLock" defaultsTo=".true."/>
+    !!]
+
+    if (writeLock_) then
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitStart=OMP_Get_WTime()
+#endif
+       !$ call self%lock_%setWrite(haveReadLock=.false.)
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitEnd=OMP_Get_WTime()
+       !$ ompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart
+       !$omp atomic
+       !$ self%waitTimeWrite=self%waitTimeWrite+ompProfileTimeWaitEnd
+#endif
+    else
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitStart=OMP_Get_WTime()
+#endif
+       !$ call self%lock_%setRead (                    )
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitEnd=OMP_Get_WTime()
+       !$ ompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart
+       !$omp atomic
+       !$ self%waitTimeRead =self%waitTimeRead +ompProfileTimeWaitEnd
+#endif
+    end if
+    return
+  end subroutine eventHookLock
+
+  subroutine eventHookUnlock(self,writeLock)
+    !!{
+    Unlock the event to avoid race conditions between OpenMP threads.
+    !!}
+    implicit none
+    class  (eventHook), intent(inout)           :: self
+    logical           , intent(in   ), optional :: writeLock
+    !![
+    <optionalArgument name="writeLock" defaultsTo=".true."/>
+    !!]
+
+    if (writeLock_) then
+       !$ call self%lock_%unsetWrite(haveReadLock=.false.)
+    else
+       !$ call self%lock_%unsetRead (                    )
+    end if
+    return
+  end subroutine eventHookUnlock
+  
   function dependencyExactConstructor(direction,label) result(self)
     !!{
     Constructor for an exact dependency.
@@ -556,5 +627,11 @@ contains
     self%regEx_=regEx(label)
     return
   end function dependencyRegExConstructor
+
+  !![
+  <hdfPreCloseTask>
+   <unitName>eventsHooksWaitTimes</unitName>
+  </hdfPreCloseTask>
+  !!]
 
 end module Events_Hooks

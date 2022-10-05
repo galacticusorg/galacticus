@@ -249,12 +249,12 @@ contains
     !!{
     Attach to state store/restore event hooks.
     !!}
-    use :: Events_Hooks, only : openMPThreadBindingNone, stateRestoreEvent, stateStoreEvent
+    use :: Events_Hooks, only : openMPThreadBindingNone, stateRestoreEventGlobal, stateStoreEventGlobal
     implicit none
     class(taskEvolveForests), intent(inout) :: self
 
-    call stateStoreEvent  %attach(self,evolveForestsStateStore  ,openMPThreadBindingNone,label='evolveForests')
-    call stateRestoreEvent%attach(self,evolveForestsStateRestore,openMPThreadBindingNone,label='evolveForests')
+    call   stateStoreEventGlobal%attach(self,evolveForestsStateStore  ,openMPThreadBindingNone,label='evolveForests')
+    call stateRestoreEventGlobal%attach(self,evolveForestsStateRestore,openMPThreadBindingNone,label='evolveForests')
     return
   end subroutine evolveForestsAutoHook
 
@@ -304,7 +304,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily evolveForests} task class.
     !!}
-    use :: Events_Hooks   , only : stateRestoreEvent           , stateStoreEvent
+    use :: Events_Hooks   , only : stateRestoreEventGlobal     , stateStoreEventGlobal
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskEvolveForests), intent(inout) :: self
@@ -321,9 +321,9 @@ contains
     <objectDestructor name="self%mergerTreeOutputter_"   />
     <objectDestructor name="self%mergerTreeInitializor_" />
     !!]
-    if (stateStoreEvent  %isAttached(self,evolveForestsStateStore  )) call stateStoreEvent  %detach(self,evolveForestsStateStore  )
-    if (stateRestoreEvent%isAttached(self,evolveForestsStateRestore)) call stateRestoreEvent%detach(self,evolveForestsStateRestore)
-    if (self%nodeComponentsInitialized)                               call Node_Components_Uninitialize()
+    if (stateStoreEventGlobal  %isAttached(self,evolveForestsStateStore  )) call stateStoreEventGlobal  %detach(self,evolveForestsStateStore  )
+    if (stateRestoreEventGlobal%isAttached(self,evolveForestsStateRestore)) call stateRestoreEventGlobal%detach(self,evolveForestsStateRestore)
+    if (self%nodeComponentsInitialized                                    ) call Node_Components_Uninitialize()
     return
   end subroutine evolveForestsDestructor
 

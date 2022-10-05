@@ -138,6 +138,7 @@ CODE
     <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
     !!]
 
+    !$ if (self%isGlobal) call self%lock()
     ! Resize the array of hooks.
     if (allocated(self%hooks_)) then
        call move_alloc(self%hooks_,hooksTmp)
@@ -176,6 +177,7 @@ CODE
     call self%resolveDependencies(hook_,dependencies)
     ! Report
     call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+    !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHook{$interfaceType}Attach
 CODE
@@ -200,6 +202,7 @@ CODE
     type     (varying_string           )                              :: threadLabel
     integer                                                           :: i          , j
     
+    !$ if (self%isGlobal) call self%lock()
     if (allocated(self%hooks_)) then
        do i=1,self%count_
           select type (hook_ => self%hooks_(i)%hook_)
@@ -224,12 +227,14 @@ CODE
                    deallocate(self%hooks_)
                 end if
                 self%count_=self%count_-1
+                !$ if (self%isGlobal) call self%unlock()
                 return
              end if
           end select
        end do
     end if
     call Error_Report('object/function not attached to this event'//{$location})
+    !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHook{$interfaceType}Detach
 CODE
@@ -248,18 +253,21 @@ CODE
     procedure(                         )                         :: function_
     integer                                                      :: i
     
+    !$ if (self%isGlobal) call self%lock(writeLock=.false.)
     if (allocated(self%hooks_)) then
        do i=1,self%count_
           select type (hook_ => self%hooks_(i)%hook_)
           type is (hook{$interfaceType})
              if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
                 eventHook{$interfaceType}IsAttached=.true.
+                !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
                 return
              end if
           end select
        end do
     end if
     eventHook{$interfaceType}IsAttached=.false.
+    !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
     return
   end function eventHook{$interfaceType}IsAttached
 CODE
@@ -268,7 +276,7 @@ CODE
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@isAttacherNodes);
 		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
 	        }
-		$hookObject .= "type(eventHook".$code::interfaceType."), public  :: ".$hook->{'name'}."Event\n";
+		$hookObject .= "type(eventHook".$code::interfaceType."), public  :: ".$hook->{'name'}."Event                 , ".$hook->{'name'}."EventGlobal\n";
 		$hookObject .= "type(eventHook".$code::interfaceType.")          :: ".$hook->{'name'}."Event_\n";
 		$hookObject .= "type(eventHookList                    ), pointer :: ".$hook->{'name'}."EventBackups => null()\n";
 		$hookObject .= "!\$omp threadprivate (".$hook->{'name'}."Event,".$hook->{'name'}."EventBackups)\n";
@@ -431,6 +439,94 @@ CODE
                 line       => 1
 	    };
             &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$filterNode]);
+	    # Build a function to initialize all event hooks.
+	    my $initializor = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine eventsHooksInitialize()
+   use :: Events_Filters, only : eventsHooksFilterFunction, eventsHooksFilterCopyOut, eventsHooksFilterCopyIn, eventsHooksFilterCopyDone, &
+        &                        eventsHooksFilterRestore
+   implicit none
+
+   eventsHooksFilterFunction => eventsHooksFilterFunction_
+   eventsHooksFilterCopyOut  => eventsHooksFilterCopyOut_
+   eventsHooksFilterCopyIn   => eventsHooksFilterCopyIn_
+   eventsHooksFilterCopyDone => eventsHooksFilterCopyDone_
+   eventsHooksFilterRestore  => eventsHooksFilterRestore_
+   call copyLock%initialize()
+CODE
+	    foreach my $hook ( @hooks ) {
+		$initializor .= "   ".$hook->{'name'}."EventGlobal%isGlobal=.true.\n";
+		$initializor .= "   ".$hook->{'name'}."EventGlobal%lock_   =ompReadWriteLock()\n";
+	    }
+	    $initializor .= fill_in_string(<<'CODE', PACKAGE => 'code');
+   return
+end subroutine eventsHooksInitialize
+CODE
+	    my $initializorNode   =
+	    {
+		type       => "code",
+		content    => $initializor,
+		firstChild => undef(),
+		source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+		line       => 1
+	    };
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$initializorNode]);
+	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"eventsHooksInitialize","public");
+	    # Build a function to output meta-data on event hook lock wait times.
+	    $code::hookCount             = scalar(                           @hooks);
+	    $code::hookNameLengthMaximum = max   (map {length($_->{'name'})} @hooks);
+	    my $waitTimeWriter           = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine eventsHooksWaitTimes()
+#ifdef OMPPROFILE
+    use :: Galacticus_HDF5   , only : galacticusOutputFile
+    use :: IO_HDF5           , only : hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: ISO_Varying_String, only : varying_string      , var_str
+#endif
+    implicit none
+#ifdef OMPPROFILE
+    type            (hdf5Object                  )                          :: waitTimeGroup         , waitTimeDataset        , metaDataGroup
+    character       (len={$hookNameLengthMaximum}), dimension({$hookCount}) :: eventHookNames
+    double precision                              , dimension({$hookCount}) :: eventHookReadWaitTimes, eventHookWriteWaitTimes
+
+CODE
+	    my $i = 0;
+	    foreach my $hook ( @hooks ) {
+		++$i;
+		$waitTimeWriter .= "   eventHookNames         (".$i.")='".$hook->{'name'}."'\n";
+		$waitTimeWriter .= "   eventHookReadWaitTimes (".$i.")=" .$hook->{'name'}."Event%waitTimeRead\n";
+		$waitTimeWriter .= "   eventHookWriteWaitTimes(".$i.")=" .$hook->{'name'}."Event%waitTimeWrite\n";
+	    }
+	    $waitTimeWriter .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    ! Open output group.
+    !$ call hdf5Access%set()
+    metaDataGroup=galacticusOutputFile%openGroup('metaData','Galacticus meta data.'           )
+    waitTimeGroup=metaDataGroup       %openGroup('openMP'  ,'Meta-data on OpenMP performance.')
+    ! Write wait time data.
+    call waitTimeGroup%writeDataset(eventHookNames         ,"eventHookNames"         ,"Names of event hooks"                                                              )
+    call waitTimeGroup%writeDataset(eventHookReadWaitTimes ,"eventHookReadWaitTimes" ,"Total time spent waiting to read-lock event hooks" ,datasetReturned=waitTimeDataset)
+    call waitTimeDataset%writeAttribute(1.0d0,"unitsInSI")
+    call waitTimeDataset%close()
+    call waitTimeGroup%writeDataset(eventHookWriteWaitTimes,"eventHookWriteWaitTimes","Total time spent waiting to write-lock event hooks",datasetReturned=waitTimeDataset)
+    call waitTimeDataset%writeAttribute(1.0d0,"unitsInSI")
+    call waitTimeDataset%close()
+    ! Close output groups.
+    call waitTimeGroup%close()
+    call metaDataGroup%close()
+    !$ call hdf5Access%unset()
+#endif
+   return
+end subroutine eventsHooksWaitTimes
+CODE
+	    my $waitTimeWriterNode   =
+	    {
+		type       => "code",
+		content    => $waitTimeWriter,
+		firstChild => undef(),
+		source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+		line       => 1
+	    };
+	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$waitTimeWriterNode]);
+	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"eventsHooksWaitTimes","public");
 	}
 	# Handle eventHook directives by creating code to call any hooked functions.
 	if ( $node->{'type'} eq "eventHook" && ! $node->{'directive'}->{'processed'} ) {
@@ -474,6 +570,14 @@ CODE
 	    $code::callWith      = exists($node->{'directive'}->{'callWith'}) ? ",".$node->{'directive'}->{'callWith'} : "";
 	    $code::eventName     = $node->{'directive'}->{'name'};
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
+if ({$eventName}EventGlobal%count() > 0) then
+  do {$eventName}Iterator=1,{$eventName}EventGlobal%count()
+     select type (hook_ => {$eventName}EventGlobal%hooks_({$eventName}Iterator)%hook_)
+     type is (hook{$interfaceType})
+       call hook_%function_(hook_%object_{$callWith})
+     end select
+  end do
+end if
 if ({$eventName}Event%count() > 0) then
   do {$eventName}Iterator=1,{$eventName}Event%count()
      select type (hook_ => {$eventName}Event%hooks_({$eventName}Iterator)%hook_)
