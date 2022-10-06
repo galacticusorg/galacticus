@@ -289,13 +289,13 @@ contains
   end function intergalacticBackgroundInternalConstructorInternal
 
   subroutine intergalacticBackgroundInternalAutoHook(self)
-    use :: Events_Hooks, only : universePreEvolveEvent
+    use :: Events_Hooks, only : universePreEvolveEventGlobal
     implicit none
     class(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
 
     ! Hook to universe pre-evolve events.
     !$omp master
-    call universePreEvolveEvent%attach(self,intergalacticBackgroundInternalUniversePreEvolve)
+    call universePreEvolveEventGlobal%attach(self,intergalacticBackgroundInternalUniversePreEvolve,label='radiationFieldIntergalacticBackgroundInternal')
     !$omp end master
     return
   end subroutine intergalacticBackgroundInternalAutoHook
@@ -304,6 +304,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
     !!}
+    use :: Events_Hooks, only : universePreEvolveEventGlobal
     implicit none
     type(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
 
@@ -318,6 +319,9 @@ contains
     <objectDestructor name="self%stellarPopulationSelector_"        />
     <objectDestructor name="self%outputTimes_"                      />
     !!]
+    !$omp master
+    if (universePreEvolveEventGlobal%isAttached(self,intergalacticBackgroundInternalUniversePreEvolve)) call universePreEvolveEventGlobal%detach(self,intergalacticBackgroundInternalUniversePreEvolve)
+    !$omp end master
     return
   end subroutine intergalacticBackgroundInternalDestructor
 

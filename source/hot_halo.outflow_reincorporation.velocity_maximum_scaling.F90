@@ -187,7 +187,7 @@ contains
     implicit none
     class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,velocityMaximumScalingCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,velocityMaximumScalingCalculationReset,openMPThreadBindingAllLevels,label='hotHaloOutflowReincorporationVelocityMaximumScaling')
     return
   end subroutine velocityMaximumScalingAutoHook
 

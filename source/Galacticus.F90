@@ -92,6 +92,7 @@ program Galacticus
   !!]
   if (task_%requiresOutputFile()) call Output_HDF5_Open_File (parameters)
   call task_     %perform()
+  call parameters%reset  ()
   call parameters%destroy()
   if (task_%requiresOutputFile()) call Output_HDF5_Close_File(          )
   !![

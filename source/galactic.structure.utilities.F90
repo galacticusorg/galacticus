@@ -42,7 +42,7 @@ contains
    <unitName>galacticStructureConstruct</unitName>
    <type>void</type>
    <module>Input_Parameters, only : inputParameters</module>
-   <arguments>type (inputParameters), intent(inout)          :: parameters</arguments>
+   <arguments>type (inputParameters), intent(inout), target  :: parameters</arguments>
    <arguments>class(*              ), intent(  out), pointer :: galacticStructure_</arguments>
   </functionGlobal>
   !!]
@@ -55,12 +55,18 @@ contains
     use :: Input_Parameters  , only : inputParameter        , inputParameters
     use :: Galactic_Structure, only : galacticStructureClass, galacticStructure
     implicit none
-    type (inputParameters), intent(inout)          :: parameters
+    type (inputParameters), intent(inout), target  :: parameters
     class(*              ), intent(  out), pointer :: galacticStructure_
+    type (inputParameters)               , pointer :: parametersCurrent
 
+    parametersCurrent => parameters
+    do while (.not.parametersCurrent%isPresent('galacticStructurw').and.associated(parametersCurrent%parent))
+       parametersCurrent => parametersCurrent%parent
+    end do
+    if (.not.parametersCurrent%isPresent('galacticStructure')) parametersCurrent => parameters
     galacticStructure__ => galacticStructure(parameters)
     select type (galacticStructure__)
-    class is (galacticStructureClass)
+    class is (galacticStructureClass) 
        !![
        <referenceCountIncrement object="galacticStructure__"/>
        !!]

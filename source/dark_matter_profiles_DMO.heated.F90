@@ -201,7 +201,7 @@ contains
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,heatedCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,heatedCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOHeated')
     return
   end subroutine heatedAutoHook
 

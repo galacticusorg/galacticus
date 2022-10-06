@@ -178,7 +178,7 @@ contains
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOTruncatedExponential')
     return
   end subroutine truncatedExponentialAutoHook
 

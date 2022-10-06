@@ -243,7 +243,7 @@ contains
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,normalCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,normalCalculationReset,openMPThreadBindingAllLevels,label='haloEnvironmentNormal')
     return
   end subroutine normalAutoHook
 

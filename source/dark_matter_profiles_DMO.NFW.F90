@@ -234,7 +234,7 @@ contains
     implicit none
     class(darkMatterProfileDMONFW), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,nfwCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,nfwCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMONFW')
     return
   end subroutine nfwAutoHook
 

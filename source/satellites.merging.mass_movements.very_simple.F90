@@ -111,7 +111,7 @@ contains
     implicit none
     class(mergerMassMovementsVerySimple), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,verySimpleCalculationReset,openMPThreadBindingAllLevels                                                 )
+    call calculationResetEvent%attach(self,verySimpleCalculationReset,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsVerySimple')
     call satelliteMergerEvent %attach(self,verySimpleGetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:massMovementsVerySimple')
     return
   end subroutine verySimpleAutoHook

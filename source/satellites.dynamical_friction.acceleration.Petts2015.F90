@@ -116,7 +116,10 @@ contains
     type(satelliteDynamicalFrictionPetts2015), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyParameters_" />
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine petts2015Destructor

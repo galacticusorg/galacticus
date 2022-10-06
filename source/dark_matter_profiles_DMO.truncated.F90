@@ -156,7 +156,7 @@ contains
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,truncatedCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,truncatedCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOTruncated)')
     return
   end subroutine truncatedAutoHook
 

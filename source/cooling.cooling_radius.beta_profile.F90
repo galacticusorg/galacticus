@@ -214,7 +214,7 @@ contains
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,betaProfileCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,betaProfileCalculationReset,openMPThreadBindingAllLevels,label='coolingRadiusBetaProfile')
     return
   end subroutine betaProfileAutoHook
 

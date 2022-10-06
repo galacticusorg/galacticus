@@ -167,7 +167,7 @@ contains
     implicit none
     class(accretionHaloColdMode), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,coldModeCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,coldModeCalculationReset,openMPThreadBindingAllLevels,label='accretionHaloColdMode')
     return
   end subroutine coldModeAutoHook
 

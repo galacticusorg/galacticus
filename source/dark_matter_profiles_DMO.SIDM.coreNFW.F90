@@ -161,7 +161,7 @@ contains
     implicit none
     class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,sidmCoreNFWCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,sidmCoreNFWCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOSIDMCoreNFW')
     return
   end subroutine sidmCoreNFWAutoHook
 
