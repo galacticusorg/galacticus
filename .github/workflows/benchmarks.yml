@@ -169,6 +169,10 @@ jobs:
         run: |
           apt -y update
           apt install -y time
+      -name: Clean datasets
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -atime +1 -print -delete
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
