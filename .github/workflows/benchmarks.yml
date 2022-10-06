@@ -150,7 +150,7 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The $githubrepository repository has been cloned to the runner."
-      - name: update cache on every commit
+      - name: Cache dynamically-generated datasets
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/datasets/dynamic
