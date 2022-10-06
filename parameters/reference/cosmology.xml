@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Reference cosmological model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="67.36000"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaMatter     value=" 0.31530"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaDarkEnergy value=" 0.68470"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaBaryon     value=" 0.04930"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+</parameters>

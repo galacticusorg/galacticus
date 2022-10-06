@@ -203,7 +203,7 @@ contains
     implicit none
     class(coolingRadiusIsothermal), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,isothermalCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,isothermalCalculationReset,openMPThreadBindingAllLevels,label='coolingRadiusIsothermal')
     return
   end subroutine isothermalAutoHook
 

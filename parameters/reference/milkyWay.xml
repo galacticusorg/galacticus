@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters for galaxy formation calculations. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Include required parameters -->
+  <xi:include href="cosmology.xml"                xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="powerSpectrum.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="structureFormation.xml"       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="darkMatterHalos.xml"          xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="subhaloOrbits.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="mergerTrees.xml"              xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="evolutionGalaxyFormation.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Set verbosity to standard level. -->
+  <verbosityLevel value="working"/>
+
+  <!-- Set up the tasks to perform. -->
+  <task value="evolveForests">
+    <!-- Evolve merger tree forests. -->
+  </task>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeBuildMasses value="fixedMass">
+    <!-- Halo masses fixed at a single value. -->
+    <!-- The value used is the median estimate at r=262kpc from Slizewski et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...924..131S) -->
+    <massTree   value="1.520e12"/>
+    <radiusTree value="0.262e00"/>
+    <treeCount  value="1"      />
+  </mergerTreeBuildMasses>
+
+  <!-- Halo mass resolution -->
+  <mergerTreeMassResolution value="fixed">
+    <!-- All trees are set to have the same halo mass resolution. -->
+    <massResolution value="1.0e10"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output epochs -->
+  <outputTimes value="list">
+    <!-- Additional redshifts can be added to this list to generate more outputs. -->
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+  <!-- Output properties -->
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"     />
+    <nodePropertyExtractor value="virialProperties"/>
+  </nodePropertyExtractor>
+
+  <!-- Output file -->
+  <outputFileName value="milkyWay.hdf5"/>
+
+</parameters>

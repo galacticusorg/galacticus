@@ -197,7 +197,7 @@ contains
     implicit none
     class(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,penarrubia2010CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,penarrubia2010CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOPenarrubia2010')
     return
   end subroutine penarrubia2010AutoHook
 

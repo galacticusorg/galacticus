@@ -42,7 +42,7 @@
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_    => null()
-     double precision                                    :: timescaleValue                  , exponentVelocity, &
+     double precision                                    :: timescale_                      , exponentVelocity, &
           &                                                 exponentExpansionFactor
    contains
      final     ::              baugh2005Destructor
@@ -116,7 +116,7 @@ contains
     <constructorAssign variables="exponentVelocity, exponentExpansionFactor, *cosmologyFunctions_"/>
     !!]
 
-    self%timescaleValue=timescale
+    self%timescale_=timescale
     return
   end function baugh2005ConstructorInternal
 
@@ -162,7 +162,7 @@ contains
        basic              =>  component%hostNode%basic                              (    )
        time               =  +basic             %time                               (    )
        expansionFactor    =  +self              %cosmologyFunctions_%expansionFactor(time)
-       baugh2005Timescale =  +                                                       self%timescaleValue           &
+       baugh2005Timescale =  +                                                       self%timescale_               &
             &                *(velocity       /baugh2005VelocityVirialNormalization)**self%exponentVelocity        &
             &                * expansionFactor                                      **self%exponentExpansionFactor
     end if

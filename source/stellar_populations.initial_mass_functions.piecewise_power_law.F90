@@ -43,7 +43,8 @@
      private
      integer                                     :: countPieces
      double precision, allocatable, dimension(:) :: normalization, exponent , &
-          &                                         massLower    , massUpper
+          &                                         massLower    , massUpper, &
+          &                                         mass
    contains
      procedure :: massMinimum => piecewisePowerLawMassMinimum
      procedure :: massMaximum => piecewisePowerLawMassMaximum
@@ -115,12 +116,14 @@ contains
     if (size(mass) /= size(exponent)+1                             ) call Error_Report('number of exponents must match number of intervals'   //{introspection:location})
     if (.not.Array_Is_Monotonic(mass,direction=directionIncreasing)) call Error_Report('masses must be monotonically increasing'              //{introspection:location})
     ! Set upper and lower masses.
-    allocate(self%massLower    (size(exponent)))
-    allocate(self%massUpper    (size(exponent)))
-    allocate(self%exponent     (size(exponent)))
-    allocate(self%normalization(size(exponent)))
+    allocate(self%massLower    (size(exponent)  ))
+    allocate(self%massUpper    (size(exponent)  ))
+    allocate(self%mass         (size(exponent)+1))
+    allocate(self%exponent     (size(exponent)  ))
+    allocate(self%normalization(size(exponent)  ))
     self%massLower  =mass    (1:size(exponent)  )
     self%massUpper  =mass    (2:size(exponent)+1)
+    self%mass       =mass
     self%exponent   =exponent
     self%countPieces=size(exponent)
     ! Find total mass in the IMF.

@@ -183,9 +183,10 @@ contains
     !!{
     Return a list of \gls{mangle} files.
     !!}
-    use :: File_Utilities, only : File_Exists      , File_Lock, File_Unlock, lockDescriptor
-    use :: Error         , only : Error_Report
-    use :: System_Command, only : System_Command_Do
+    use :: File_Utilities , only : File_Exists      , File_Lock, File_Unlock, lockDescriptor
+    use :: Error          , only : Error_Report
+    use :: System_Download, only : download
+    use :: System_Command , only : System_Command_Do
     implicit none
     class  (surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
     type   (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
@@ -200,9 +201,12 @@ contains
     if (.not.File_Exists(mangleFiles(1))) then
        call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)
        if (.not.File_Exists(mangleFiles(1))) then
-          call System_Command_Do("wget http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz -O - | gunzip -c > "//mangleFiles(1),status)
-          if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
+          call download("http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status)
+          if (status /= 0 .or. .not.File_Exists(char(mangleFiles(1))//".gz")) &
                & call Error_Report('failed to download mangle polygon file'//{introspection:location})
+          call System_Command_Do("gunzip "//mangleFiles(1)//".gz",status)
+          if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
+               & call Error_Report('failed to decompress mangle polygon file'//{introspection:location})
        end if
        call File_Unlock(                     lock                     )
     end if

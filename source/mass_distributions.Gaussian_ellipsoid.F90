@@ -46,6 +46,8 @@
      integer                              , dimension(3          ) :: axesMapIn                        , axesMapOut
      double precision                     , dimension(2          ) :: axisRatio
      type            (matrix)                                      :: rotationIn                       , rotationOut
+     double precision                     , dimension(3)           :: axis1                            , axis2                                 , &
+          &                                                           axis3
    contains
      !![
      <methods>
@@ -144,7 +146,7 @@ contains
     Constructor for ``gaussianEllipsoid'' convergence class.
     !!}
     use :: Error               , only : Error_Report
-    use :: Linear_Algebra      , only : vector
+    use :: Linear_Algebra      , only : vector       , assignment(=)
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type            (massDistributionGaussianEllipsoid)                                        :: self
@@ -170,6 +172,10 @@ contains
        end if
        self%mass=1.0d0
     end if
+    ! Store axes.
+    self%axis1=axes(1)
+    self%axis2=axes(2)
+    self%axis3=axes(3)
     ! Initialize structural properties.
     call self%initialize(scaleLength,axes,rotation)
     ! Set acceleration as uninitialized.

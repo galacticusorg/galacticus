@@ -181,7 +181,7 @@ contains
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,finiteResolutionCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,finiteResolutionCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOFiniteResolution')
     return
   end subroutine finiteResolutionAutoHook
 

@@ -29,15 +29,7 @@ Contains a module which implements an N-body data operator which applies a seque
   !![
   <nbodyOperator name="nbodyOperatorSequence">
    <description>An N-body data operator which applies a sequence of other operators.</description>
-   <deepCopy>
-    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
-   </deepCopy>
-   <stateStore>
-    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_"/>
-   </stateStore>
-   <allowedParameters>
-    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_"/>
-   </allowedParameters>
+   <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence

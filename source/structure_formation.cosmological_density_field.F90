@@ -152,7 +152,7 @@ module Cosmological_Density_Field
      <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
     </modules>
     <code>
-     call calculationResetEvent%attach(self,criticalOverdensityCalculationReset,openMPThreadBindingAllLevels)
+     call calculationResetEvent%attach(self,criticalOverdensityCalculationReset,openMPThreadBindingAllLevels,label='criticalOverdensity')
      return
     </code>
    </autoHook>

@@ -30,17 +30,22 @@ program Test_MPI
   use               :: Display      , only : displayMessage     , displayVerbositySet   , verbosityLevelStandard
   !$ use            :: OMP_Lib      , only : OMP_Get_Max_Threads
 #ifdef USEMPI
+  use               :: Events_Hooks , only : eventsHooksInitialize
   use               :: MPI          , only : MPI_Thread_Multiple
   use               :: MPI_Utilities, only : mpiBarrier         , mpiCounter            , mpiFinalize           , mpiInitialize    , &
           &                                  mpiSelf
+#endif
   implicit none
+#ifdef USEMPI
   type   (mpiCounter) :: counter
   integer(c_size_t  ) :: i
-
+#endif
+  
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
-
-  call mpiInitialize(MPI_Thread_Multiple)
+#ifdef USEMPI
+  call mpiInitialize        (MPI_Thread_Multiple)
+  call eventsHooksInitialize(                   )
   if (mpiSelf%rank() == 0) call Unit_Tests_Begin_Group("MPI")
   ! Test MPI/OpenMP counters.
   counter=mpiCounter()

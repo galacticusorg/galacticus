@@ -63,7 +63,8 @@
      class           (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_                => null()
      class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVariance_           => null()
      class           (darkMatterHaloBiasClass                ), pointer                   :: darkMatterHaloBias_                 => null()
-     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null(), transferFunctionReference => null()
+     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null(), transferFunctionReference => null(), &
+          &                                                                                  transferFunctionRelative            => null()
      class           (outputTimesClass                       ), pointer                   :: outputTimes_                        => null()
      class           (darkMatterProfileScaleRadiusClass      ), pointer                   :: darkMatterProfileScaleRadius_       => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
@@ -114,7 +115,8 @@ contains
     class           (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
     class           (cosmologicalMassVarianceClass          ), pointer                     :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass                ), pointer                     :: darkMatterHaloBias_
-    class           (transferFunctionClass                  ), pointer                     :: transferFunction_                  , transferFunctionReference
+    class           (transferFunctionClass                  ), pointer                     :: transferFunction_                  , transferFunctionReference, &
+         &                                                                                    transferFunctionRelative
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass      ), pointer                     :: darkMatterProfileScaleRadius_
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                     :: darkMatterHaloMassAccretionHistory_
@@ -208,7 +210,12 @@ contains
     !!]
     if (parameters%isPresent('transferFunctionReference')) then
        !![
-       <objectBuilder class="transferFunction"                   name="transferFunction_"                   source="parameters" parameterName="transferFunctionReference"/>
+       <objectBuilder class="transferFunction"                   name="transferFunctionReference"           source="parameters" parameterName="transferFunctionReference"/>
+       !!]
+    end if
+    if (parameters%isPresent('transferFunctionRelative' )) then
+       !![
+       <objectBuilder class="transferFunction"                   name="transferFunctionRelative"            source="parameters" parameterName="transferFunctionRelative" />
        !!]
     end if
     if (parameters%isPresent('massDefinitions',requireValue=.false.)) then
@@ -278,6 +285,7 @@ contains
          &amp;                   )
      </call>
      <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
+     <argument name="transferFunctionRelative"  value="transferFunctionRelative"  parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"               />
@@ -301,6 +309,11 @@ contains
     if (parameters%isPresent('transferFunctionReference')) then
        !![
        <objectDestructor name="transferFunctionReference"/>
+       !!]
+    end if
+    if (parameters%isPresent('transferFunctionRelative' )) then
+       !![
+       <objectDestructor name="transferFunctionRelative" />
        !!]
     end if
     if (size(virialDensityContrasts) > 0) then
@@ -341,7 +354,8 @@ contains
        &                                       randomNumberGenerator_             , &
        &                                       virialDensityContrasts             , &
        &                                       parameters                         , &
-       &                                       transferFunctionReference            &
+       &                                       transferFunctionReference          , &
+       &                                       transferFunctionRelative             &
        &                                      ) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
@@ -363,7 +377,7 @@ contains
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target                 :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass                ), intent(in   ), target                 :: darkMatterHaloBias_
     class           (transferFunctionClass                  ), intent(in   ), target                 :: transferFunction_
-    class           (transferFunctionClass                  ), intent(in   ), target      , optional :: transferFunctionReference
+    class           (transferFunctionClass                  ), intent(in   ), target      , optional :: transferFunctionReference          , transferFunctionRelative
     class           (outputTimesClass                       ), intent(in   ), target                 :: outputTimes_
     class           (randomNumberGeneratorClass             ), intent(in   ), target                 :: randomNumberGenerator_
     type            (virialDensityContrastList              ), intent(in   ), dimension(:)           :: virialDensityContrasts
@@ -376,7 +390,7 @@ contains
     type            (inputParameters                        ), intent(in   ), target                 :: parameters
     integer                                                                                          :: i
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *outputTimes_, *randomNumberGenerator_"/>
+    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -422,6 +436,11 @@ contains
     if (associated(self%transferFunctionReference)) then
        !![
        <objectDestructor name="self%transferFunctionReference"/>
+       !!]
+    end if
+    if (associated(self%transferFunctionRelative )) then
+       !![
+       <objectDestructor name="self%transferFunctionRelative" />
        !!]
     end if
     if (allocated(self%virialDensityContrasts)) then
@@ -472,7 +491,8 @@ contains
          &                                                                                              outputRedshifts                                        , outputTimes                  , &
          &                                                                                              outputVirialDensityContrast                            , outputTurnAroundRadius       , &
          &                                                                                              massHalo                                               , massHaloOutput               , &
-         &                                                                                              massFractionMode
+         &                                                                                              massFractionMode                                       , slopeFractionMode            , &
+         &                                                                                              wavenumberFractionMode
     double precision                                         , allocatable  , dimension(:,:,:)       :: massAlternate                                          , radiusAlternate
     integer                                                  , allocatable  , dimension(:    )       :: statusFractionMode
     ! The upper limit to halo mass used when computing cumulative mass functions.
@@ -494,6 +514,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass      ), pointer                               :: darkMatterProfileScaleRadius_                 => null()
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                               :: darkMatterHaloMassAccretionHistory_           => null()
     class           (virialDensityContrastClass             ), pointer                               :: virialDensityContrast_                        => null()
+    !$omp threadprivate(haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,criticalOverdensity_)
     type            (virialDensityContrastList              ), allocatable   , dimension(:   )       :: virialDensityContrasts
     type            (mergerTree                             ), allocatable   , target         , save :: tree
     !$omp threadprivate(tree)
@@ -506,7 +527,9 @@ contains
          &                                                                                              massCritical                                           , massQuarterMode              , &
          &                                                                                              densityMean                                            , densityCritical              , &
          &                                                                                              massHaloMinimum                                        , massHaloMaximum              , &
-         &                                                                                              massHalfModeReference
+         &                                                                                              massHalfModeReference                                  , slopeHalfMode                , &
+         &                                                                                              slopeQuarterMode                                       , wavenumberHalfMode           , &
+         &                                                                                              wavenumberQuarterMode
     type            (hdf5Object                             )                                        :: outputsGroup                                           , outputGroup                  , &
          &                                                                                              containerGroup                                         , powerSpectrumGroup           , &
          &                                                                                              cosmologyGroup                                         , dataset
@@ -571,10 +594,40 @@ contains
     massHalfMode   =self%transferFunction_%halfModeMass   (statusHalfModeMass   )
     massQuarterMode=self%transferFunction_%quarterModeMass(statusQuarterModeMass)
     if (size(self%fractionModeMasses) > 0) then
-       allocate(massFractionMode  (size(self%fractionModeMasses)))
-       allocate(statusFractionMode(size(self%fractionModeMasses)))
+       allocate(massFractionMode      (size(self%fractionModeMasses)))
+       allocate(statusFractionMode    (size(self%fractionModeMasses)))
+       allocate(wavenumberFractionMode(size(self%fractionModeMasses)))
+       allocate(slopeFractionMode     (size(self%fractionModeMasses)))
        do iMass=1,size(self%fractionModeMasses)
           massFractionMode(iMass)=self%transferFunction_%fractionModeMass(self%fractionModeMasses(iMass),statusFractionMode(iMass))
+       end do
+    end if
+    ! If a relative transfer function is provided, compute the relative logarithmic slope of the transfer function at the mode masses.
+    wavenumberHalfMode   =-huge(0.0d0)
+    wavenumberQuarterMode=-huge(0.0d0)
+    slopeHalfMode        =-huge(0.0d0)
+    slopeQuarterMode     =-huge(0.0d0)
+    if (size(self%fractionModeMasses) > 0) then
+       wavenumberFractionMode=-huge(0.0d0)
+       slopeFractionMode     =-huge(0.0d0)
+    end if
+    if (associated(self%transferFunctionRelative )) then
+       if (statusHalfModeMass    == errorStatusSuccess) then
+          wavenumberHalfMode   =+self%transferFunction_       %wavenumberFromMass   (         massHalfMode)
+          slopeHalfMode        =+self%transferFunction_       %logarithmicDerivative(   wavenumberHalfMode) &
+               &                -self%transferFunctionRelative%logarithmicDerivative(   wavenumberHalfMode)
+       end if
+       if (statusQuarterModeMass == errorStatusSuccess) then
+          wavenumberQuarterMode=+self%transferFunction_       %wavenumberFromMass   (      massQuarterMode)
+          slopeQuarterMode     =+self%transferFunction_       %logarithmicDerivative(wavenumberQuarterMode) &
+               &                -self%transferFunctionRelative%logarithmicDerivative(wavenumberQuarterMode)
+       end if
+       do iMass=1,size(self%fractionModeMasses)
+          if (statusFractionMode(iMass) == errorStatusSuccess) then
+             wavenumberFractionMode(iMass)=+self%transferFunction_       %wavenumberFromMass   (      massFractionMode(iMass))
+             slopeFractionMode     (iMass)=+self%transferFunction_       %logarithmicDerivative(wavenumberFractionMode(iMass)) &
+                  &                        -self%transferFunctionRelative%logarithmicDerivative(wavenumberFractionMode(iMass))
+          end if
        end do
     end if
     ! If a reference transfer function is provided from which to derive a half-mode mass for mass scaling, get that now.
@@ -594,7 +647,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,virialDensityContrasts,integrator_)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
@@ -731,7 +784,7 @@ contains
        massFunctionDifferentialLogarithmic(:,iOutput)=+massFunctionDifferential(:,iOutput) &
             &                                         *massHalo
        !$omp end single
-    end do
+    end do    
     call tree%destroy()
     nullify   (basic                )
     nullify   (darkMatterProfileHalo)
@@ -742,6 +795,7 @@ contains
     <objectDestructor name="virialDensityContrast_             "/>
     <objectDestructor name="cosmologyParameters_               "/>
     <objectDestructor name="cosmologyFunctions_                "/>
+    <objectDestructor name="criticalOverdensity_               "/>
     <objectDestructor name="cosmologicalMassVariance_          "/>
     <objectDestructor name="haloMassFunction_                  "/>
     <objectDestructor name="darkMatterHaloScale_               "/>
@@ -760,10 +814,10 @@ contains
     !$omp end parallel
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
-       outputsGroup  =outputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
-       containerGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
-       outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
+       containerGroup=outputFile    %openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
+       outputsGroup  =containerGroup%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Store half- and quarter-mode masses if possible.
     if     (                                             &
@@ -776,13 +830,25 @@ contains
        else
           powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        end if
-       if (statusHalfModeMass    == errorStatusSuccess) call powerSpectrumGroup%writeAttribute(massHalfMode   ,'massHalfMode'   )
-       if (statusQuarterModeMass == errorStatusSuccess) call powerSpectrumGroup%writeAttribute(massQuarterMode,'massQuarterMode')
+       if (statusHalfModeMass    == errorStatusSuccess) then
+          call powerSpectrumGroup%writeAttribute(         massHalfMode,                  'massHalfMode')
+          call powerSpectrumGroup%writeAttribute(   wavenumberHalfMode,            'wavenumberHalfMode')
+          call powerSpectrumGroup%writeAttribute(        slopeHalfMode,   'logarithmicGradientHalfMode')
+       end if
+       if (statusQuarterModeMass == errorStatusSuccess) then
+          call powerSpectrumGroup%writeAttribute(      massQuarterMode,               'massQuarterMode')
+          call powerSpectrumGroup%writeAttribute(wavenumberQuarterMode,         'wavenumberQuarterMode')
+          call powerSpectrumGroup%writeAttribute(     slopeQuarterMode,'logarithmicGradientQuarterMode')
+       end if
        if (size(self%fractionModeMasses) > 0) then
           do iMass=1,size(self%fractionModeMasses)
-             write (label,'(a,e8.2)') 'massFractionMode_',self%fractionModeMasses(iMass)
-             if (statusFractionMode(iMass) == errorStatusSuccess) call powerSpectrumGroup%writeAttribute(massFractionMode(iMass),trim(label))
-          end do          
+             write (label,'(e8.2)') self%fractionModeMasses(iMass)
+             if (statusFractionMode(iMass) == errorStatusSuccess) then
+                call powerSpectrumGroup%writeAttribute(      massFractionMode(iMass),               'massFractionMode_'//trim(label))
+                call powerSpectrumGroup%writeAttribute(wavenumberFractionMode(iMass),         'wavenumberFractionMode_'//trim(label))
+                call powerSpectrumGroup%writeAttribute(     slopeFractionMode(iMass),'logarithmicGradientFractionMode_'//trim(label))
+             end if
+          end do
        end if
        call                                                            powerSpectrumGroup%close         (                                   )
     end if

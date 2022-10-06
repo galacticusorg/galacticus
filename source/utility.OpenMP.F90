@@ -28,6 +28,9 @@ module OpenMP_Utilities
   private
   public :: OpenMP_Critical_Wait_Times
 
+  ! Add a dependency on the OpenMP workarounds code.
+  !: $(BUILDPATH)/utility.OpenMP.workaround.o
+  
 contains
 
   !![

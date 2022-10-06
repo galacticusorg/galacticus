@@ -21,7 +21,7 @@
 Contains a module which implements regular expressions by wrappring the GNU C Library implementations.
 !!}
 
-! Specify an explicit dependence on the semaphores.o object file.
+! Specify an explicit dependence on the regular_expressions.o object file.
 !: $(BUILDPATH)/regular_expressions.o
 
 module Regular_Expressions

@@ -234,7 +234,7 @@ contains
     write (redshiftMaximumLabel,'(f4.2)') redshiftMaximum
     allocate(surveyGeometry_)
     !![
-    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)"/>
+    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryFullSky(redshiftMinimum=redshiftMinimum,redshiftMaximum=redshiftMaximum,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     ! Create output time weights.
     call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])

@@ -62,14 +62,16 @@
    contains
      !![
      <methods>
-       <method description="Reset memoized calculations."                                                                                    method="calculationReset"/>
-       <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"   />
+       <method description="Reset memoized calculations."                                                                                    method="calculationReset"      />
+       <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"         />
+       <method description="Return true if the no shell crossing assumption is valid locally."                                               method="noShellCrossingIsValid"/>
      </methods>
      !!]
      final     ::                                      heatedDestructor
      procedure :: autoHook                          => heatedAutoHook
      procedure :: calculationReset                  => heatedCalculationReset
      procedure :: radiusInitial                     => heatedRadiusInitial
+     procedure :: noShellCrossingIsValid            => heatedNoShellCrossingIsValid
      procedure :: density                           => heatedDensity
      procedure :: densityLogSlope                   => heatedDensityLogSlope
      procedure :: radiusEnclosingDensity            => heatedRadiusEnclosingDensity
@@ -199,7 +201,7 @@ contains
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,heatedCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,heatedCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOHeated')
     return
   end subroutine heatedAutoHook
 
@@ -248,7 +250,7 @@ contains
     Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radius} (given in units of Mpc).
     !!}
-    use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
@@ -262,8 +264,14 @@ contains
     if (radius == 0.0d0 .and. radiusInitial == 0.0d0) then
        ! At zero radius, the density is unchanged.
        heatedDensity =+densityInitial
+    else if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
+       ! No heating, the density is unchanged.
+       heatedDensity =+densityInitial
+    else if (.not.self%noShellCrossingIsValid(heatedNode,radiusInitial,radius)) then
+       ! Shell crossing assumption is broken - simply return the density unchanged.
+       heatedDensity =+self%darkMatterProfileDMO_%density      (node,radius       )
     else
-       massEnclosed  =+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
+       massEnclosed=+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
        if (massEnclosed > 0.0d0) then
           jacobian      =+1.0d0                                                                                                       &
                &         /(                                                                                                           &
@@ -457,6 +465,38 @@ contains
     return
   end function heatedRadiusInitial
 
+  logical function heatedNoShellCrossingIsValid(self,node,radiusInitial,radiusFinal)
+    !!{
+    Determines if the no shell crossing assumption is valid.
+    !!}
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radiusInitial, radiusFinal
+    double precision                                            :: massEnclosed
+
+    massEnclosed                = +  self%darkMatterProfileDMO_    %enclosedMass          (node,radiusInitial                           )
+    heatedNoShellCrossingIsValid= +  self%darkMatterProfileHeating_%specificEnergyGradient(node,radiusInitial,self%darkMatterProfileDMO_) &
+         &                       >                                                                                                        &
+         &                        +0.5d0                                                                                                  &
+         &                        *gravitationalConstantGalacticus                                                                        &
+         &                        *(                                                                                                      &
+         &                          +4.0d0                                                                                                &
+         &                          *Pi                                                                                                   &
+         &                          *radiusInitial**2                                                                                     &
+         &                          *self%darkMatterProfileDMO_    %density               (node,radiusInitial                           ) &
+         &                          *(                                                                                                    &
+         &                            -1.0d0/radiusFinal                                                                                  &
+         &                            +1.0d0/radiusInitial                                                                                &
+         &                           )                                                                                                    &
+         &                          -massEnclosed                                                                                         &
+         &                          /radiusInitial**2                                                                                     &
+         &                         )
+    return
+  end function heatedNoShellCrossingIsValid
+  
   double precision function heatedRadiusInitialRoot(radiusInitial)
     !!{
     Root function used in finding initial radii in heated dark matter halo profiles.
@@ -464,37 +504,20 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radiusInitial
-    double precision, parameter     :: fractionRadiusSmall   =1.0d-3
+    double precision, parameter     :: fractionRadiusSmall=1.0d-3
     double precision                :: massEnclosed
-    logical                         :: noShellCrossingIsValid
     
-    massEnclosed=+heatedSelf%darkMatterProfileDMO_%enclosedMass(heatedNode,radiusInitial)
     if (radiusInitial < fractionRadiusSmall*heatedRadiusFinal) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
        ! no root exists. In this case shell crossing is likely to be occuring. Simply return a value of zero, which places the
        ! root at the current radius.
-       noShellCrossingIsValid= +  heatedSelf%darkMatterProfileHeating_%specificEnergyGradient(heatedNode,radiusInitial,heatedSelf%darkMatterProfileDMO_) &
-            &                 <                                                                                                                          &
-            &                  +0.5d0                                                                                                                    &
-            &                  *gravitationalConstantGalacticus                                                                                          &
-            &                  *(                                                                                                                        &
-            &                    +4.0d0                                                                                                                  &
-            &                    *Pi                                                                                                                     &
-            &                    *radiusInitial**2                                                                                                       &
-            &                    *heatedSelf%darkMatterProfileDMO_    %density               (heatedNode,radiusInitial                                 ) &
-            &                    *(                                                                                                                      &
-            &                      +1.0d0/heatedRadiusFinal                                                                                              &
-            &                      -1.0d0/radiusInitial                                                                                                  &
-            &                     )                                                                                                                      &
-            &                    +massEnclosed                                                                                                           &
-            &                    /radiusInitial**2                                                                                                       &
-            &                   )
-       if (.not.noShellCrossingIsValid) then
+       if (.not.heatedSelf%noShellCrossingIsValid(heatedNode,radiusInitial,heatedRadiusFinal)) then
           heatedRadiusInitialRoot=0.0d0
           return
        end if
     end if
+    massEnclosed           =+heatedSelf%darkMatterProfileDMO_    %enclosedMass  (heatedNode,radiusInitial                                 )
     heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,radiusInitial,heatedSelf%darkMatterProfileDMO_) &
          &                  +0.5d0                                                                                                          &
          &                  *gravitationalConstantGalacticus                                                                                &

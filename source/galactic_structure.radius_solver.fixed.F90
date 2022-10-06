@@ -153,7 +153,7 @@ contains
     type (dependencyRegEx             ), dimension(1)  :: dependencies
 
     dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
-    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                       )
+    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
     call      postEvolveEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
     call satelliteMergerEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)
     call   nodePromotionEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverFixed',dependencies=dependencies)

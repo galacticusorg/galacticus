@@ -165,7 +165,7 @@ foreach my $directive ( sort(keys(%{$includeDirectives})) ) {
     # OpenMP critical sections can be referenced by name.
     print $directivesMakefile $fileName.".up: ".$ENV{'BUILDPATH'}."/".$directive.".xml ".join(" ",@extraDependencies)." \$(BUILDPATH)/hdf5FCInterop.dat \$(BUILDPATH)/openMPCriticalSections.xml\n";
     print $directivesMakefile "\t./scripts/build/buildCode.pl ".$installDirectoryName." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
-    print $directivesMakefile $fileName.": | ".$fileName.".up\n";
+    print $directivesMakefile $fileName.": ".$fileName.".up\n";
     print $directivesMakefile "\n";
     # Output the directive itself.
     open(my $directiveFile,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");

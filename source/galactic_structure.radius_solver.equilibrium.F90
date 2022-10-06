@@ -23,6 +23,7 @@
 
   use :: Dark_Matter_Profiles    , only : darkMatterProfileClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
@@ -38,6 +39,7 @@
      logical                                              :: includeBaryonGravity                , useFormationHalo         , &
           &                                                  solveForInactiveProperties          , convergenceFailureIsFatal
      double precision                                     :: solutionTolerance
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_       => null()
      class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_         => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
      class           (galacticStructureClass   ), pointer :: galacticStructure_         => null()
@@ -75,6 +77,7 @@ contains
     implicit none
     type            (galacticStructureSolverEquilibrium)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileClass            ), pointer       :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class           (galacticStructureClass            ), pointer       :: galacticStructure_
@@ -113,13 +116,15 @@ contains
       <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_)
+    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfile_"   />
     <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="galacticStructure_"   />
@@ -127,7 +132,7 @@ contains
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
     !!}
@@ -136,11 +141,12 @@ contains
     logical                                             , intent(in   )         :: useFormationHalo          , includeBaryonGravity     , &
          &                                                                         solveForInactiveProperties, convergenceFailureIsFatal
     double precision                                    , intent(in   )         :: solutionTolerance
+    class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterProfile_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -157,7 +163,7 @@ contains
     type (dependencyRegEx                   ), dimension(1)  :: dependencies
 
     dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
-    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                             )
+    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='structureSolverEquilibrium'                          )
     call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
     call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
     call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverEquilibrium',dependencies=dependencies)
@@ -173,6 +179,7 @@ contains
     type(galacticStructureSolverEquilibrium), intent(inout) :: self
 
     !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfile_"   />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%galacticStructure_"   />
@@ -293,7 +300,7 @@ contains
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Display                         , only : displayVerbosity               , displayVerbositySet, verbosityLevelStandard
-      use :: Galactic_Structure_Options      , only : massTypeBaryonic
+      use :: Galactic_Structure_Options      , only : massTypeBaryonic               , radiusLarge
       use :: Error                           , only : Error_Report
       use :: ISO_Varying_String              , only : varying_string
       use :: Memory_Management               , only : allocateArray                  , deallocateArray
@@ -313,10 +320,12 @@ contains
       integer                             , parameter                         :: activeComponentMaximumIncrement=  2
       integer                                                                 :: activeComponentMaximumCurrent
       character       (len=14            )                                    :: label
-      type            (varying_string    )                                    :: message
+      type            (varying_string    ), save                              :: message
+      !$omp threadprivate(message)
       double precision                                                        :: baryonicVelocitySquared             , darkMatterMassFinal         , &
            &                                                                     darkMatterVelocitySquared           , velocity                    , &
-           &                                                                     radius                              , radiusNew
+           &                                                                     radius                              , radiusNew                   , &
+           &                                                                     specificAngularMomentumMaximum
 
       ! Count the number of active comonents.
       equilibriumActiveComponentCount=equilibriumActiveComponentCount+1
@@ -331,10 +340,18 @@ contains
          radius=radiusGet(node)
          if (radius <= 0.0d0) then
             ! No previous radius was set, so make a simple estimate of sizes of all components ignoring equilibrium contraction and self-gravity.
-            ! Find the radius in the dark matter profile with the required specific angular momentum
-            radius  =self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(equilibriumHaloNode,specificAngularMomentum)
+            ! First check that there is a solution within a reasonable radius.
+            specificAngularMomentumMaximum=+self%darkMatterProfileDMO_%circularVelocity(equilibriumHaloNode,radiusLarge) & 
+                 &                         *                                                                radiusLarge
+            if (specificAngularMomentumMaximum < specificAngularMomentum) then
+               ! No solution exists even within a very large radius. Use a simple estimate of the virial radius.
+               radius=self%darkMatterHaloScale_%radiusVirial                      (equilibriumHaloNode                        )
+            else
+               ! Find the radius in the dark matter profile with the required specific angular momentum
+               radius=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(equilibriumHaloNode,specificAngularMomentum)
+            end if
             ! Find the velocity at this radius.
-            velocity=self%darkMatterProfileDMO_%circularVelocity                 (equilibriumHaloNode,radius                 )
+            velocity=self%darkMatterProfileDMO_%circularVelocity                  (equilibriumHaloNode,radius                 )
          else
             ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
             velocity=velocityGet(node)

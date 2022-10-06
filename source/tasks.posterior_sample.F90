@@ -30,7 +30,7 @@
      !!}
      private
      class  (posteriorSampleSimulationClass), pointer :: posteriorSampleSimulation_    => null()
-     logical                                          :: nodeClassHierarchyInitialized =  .false.
+     logical                                          :: nodeClassHierarchyInitialized =  .false., initializeNodeClassHierarchy
    contains
      final     ::            posteriorSampleDestructor
      procedure :: perform => posteriorSamplePerform
@@ -85,6 +85,7 @@ contains
     <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
     !!]
     self=taskPosteriorSample(posteriorSampleSimulation_)
+    self%initializeNodeClassHierarchy=initializeNodeClassHierarchy
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="posteriorSampleSimulation_"/>
@@ -104,6 +105,7 @@ contains
     <constructorAssign variables="*posteriorSampleSimulation_"/>
     !!]
 
+    self%initializeNodeClassHierarchy=.false.
     return
   end function posteriorSampleConstructorInternal
 

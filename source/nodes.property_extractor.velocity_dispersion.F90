@@ -54,6 +54,7 @@
      class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
+     double precision                                             :: toleranceRelative
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
@@ -100,6 +101,7 @@ contains
     type   (varying_string                         ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
     class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
+    double precision                                                              :: toleranceRelative
     logical                                                                       :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -115,10 +117,16 @@ contains
       <description>Specifies whether or not the radii at which velocity dispersion data are output should also be included in the output file.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>toleranceRelative</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The relative tolerance to usebin integrals.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_)
+    self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,toleranceRelative,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -127,19 +135,20 @@ contains
     return
   end function velocityDispersionConstructorParameters
 
-  function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_) result(self)
+  function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
-    type   (nodePropertyExtractorVelocityDispersion)                              :: self
-    type   (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
-    class  (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
-    class  (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
-    logical                                         , intent(in   )               :: includeRadii
+    type            (nodePropertyExtractorVelocityDispersion)                              :: self
+    type            (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
+    class           (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
+    class           (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
+    logical                                                  , intent(in   )               :: includeRadii
+    double precision                                         , intent(in   )               :: toleranceRelative
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, toleranceRelative, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     if (includeRadii) then
@@ -385,13 +394,13 @@ contains
     return
   end function velocityDispersionExtract
 
-  subroutine velocityDispersionNames(self,time,names)
+  subroutine velocityDispersionNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily velocityDispersion} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
-    double precision                                         , intent(in   )                             :: time
+    double precision                                         , intent(in   ), optional                   :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
     
@@ -402,13 +411,13 @@ contains
     return
   end subroutine velocityDispersionNames
 
-  subroutine velocityDispersionDescriptions(self,time,descriptions)
+  subroutine velocityDispersionDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily velocityDispersion} property.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
-    double precision                                         , intent(in   )                             :: time
+    double precision                                         , intent(in   ), optional                   :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -419,13 +428,13 @@ contains
     return
   end subroutine velocityDispersionDescriptions
 
-  subroutine velocityDispersionColumnDescriptions(self,time,descriptions)
+  subroutine velocityDispersionColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily velocityDispersion} property.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
-    double precision                                         , intent(in   )                             :: time
+    double precision                                         , intent(in   ), optional                   :: time
     type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -443,7 +452,7 @@ contains
     implicit none
     double precision                                         , allocatable  , dimension(:) :: velocityDispersionUnitsInSI
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)               :: self
-    double precision                                         , intent(in   )               :: time
+    double precision                                         , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(velocityDispersionUnitsInSI(self%elementCount_))
@@ -680,8 +689,8 @@ contains
     type            (integrator)                :: integratorVelocityDensity, integratorDensity
     double precision                            :: densityIntegral          , velocityDensityIntegral
 
-    integratorVelocityDensity=integrator                         (velocityDispersionVelocityDensityIntegrand,toleranceRelative            =1.0d-3)
-    integratorDensity        =integrator                         (velocityDispersionDensityIntegrand        ,toleranceRelative            =1.0d-3)
+    integratorVelocityDensity=integrator                         (velocityDispersionVelocityDensityIntegrand,toleranceRelative            =velocityDispersionSelf%toleranceRelative)
+    integratorDensity        =integrator                         (velocityDispersionDensityIntegrand        ,toleranceRelative            =velocityDispersionSelf%toleranceRelative)
     velocityDensityIntegral  =integratorVelocityDensity%integrate(radius                                    ,velocityDispersionRadiusOuter       )
     densityIntegral          =integratorDensity        %integrate(radius                                    ,velocityDispersionRadiusOuter       )
     if (velocityDensityIntegral <= 0.0d0) then

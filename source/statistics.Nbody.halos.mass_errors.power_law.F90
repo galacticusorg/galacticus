@@ -32,8 +32,9 @@ errors are a power-law in halo mass.
      An N-body halo mass error class in which errors are a power-law in halo mass.
      !!}
      private
-     double precision :: normalizationSquared          , exponent, &
-          &              fractionalErrorHighMassSquared
+     double precision :: normalizationSquared          , exponent     , &
+          &              fractionalErrorHighMassSquared, normalization, &
+          &              fractionalErrorHighMass
    contains
      procedure :: errorFractional => powerLawErrorFractional
      procedure :: correlation     => powerLawCorrelation
@@ -52,34 +53,32 @@ errors are a power-law in halo mass.
 
 contains
 
-  function nbodyHaloMassErrorPowerLawParameters(parameters)
+  function nbodyHaloMassErrorPowerLawParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nbodyHaloMassErrorPowerLaw)                :: nbodyHaloMassErrorPowerLawParameters
+    type            (nbodyHaloMassErrorPowerLaw)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
-    double precision                                            :: normalization                       , fractionalErrorHighMass
+    double precision                                            :: normalization, fractionalErrorHighMass, &
+         &                                                         exponent
 
     ! Check and read parameters.
     !![
     <inputParameter>
       <name>normalization</name>
       <source>parameters</source>
-      <variable>normalization</variable>
       <description>Parameter $\sigma_{12}$ appearing in model for random errors in the halo mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>fractionalErrorHighMass</name>
       <source>parameters</source>
-      <variable>fractionalErrorHighMass</variable>
       <description>Parameter $\sigma_\infty$ appearing in model for random errors in the halo mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>exponent</name>
       <source>parameters</source>
-      <variable>nbodyHaloMassErrorPowerLawParameters%exponent</variable>
       <description>
        Parameter $\gamma$ appearing in model for random errors in the halo mass
        function. Specifically, the fractional error is given by
@@ -91,26 +90,27 @@ contains
       </description>
     </inputParameter>
     !!]
-    nbodyHaloMassErrorPowerLawParameters%normalizationSquared          =normalization          **2
-    nbodyHaloMassErrorPowerLawParameters%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
+    self=nbodyHaloMassErrorPowerLaw(normalization,exponent,fractionalErrorHighMass)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function nbodyHaloMassErrorPowerLawParameters
 
-  function nbodyHaloMassErrorPowerLawInternal(normalization,exponent,fractionalErrorHighMass)
+  function nbodyHaloMassErrorPowerLawInternal(normalization,exponent,fractionalErrorHighMass) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class.
     !!}
     implicit none
-    type            (nbodyHaloMassErrorPowerLaw)                :: nbodyHaloMassErrorPowerLawInternal
-    double precision                            , intent(in   ) :: normalization                     , exponent, &
+    type            (nbodyHaloMassErrorPowerLaw)                :: self
+    double precision                            , intent(in   ) :: normalization          , exponent, &
          &                                                         fractionalErrorHighMass
+    !![
+    <constructorAssign variables="normalization, exponent, fractionalErrorHighMass"/>
+    !!]
 
-    nbodyHaloMassErrorPowerLawInternal%normalizationSquared          =normalization          **2
-    nbodyHaloMassErrorPowerLawInternal%exponent                      =exponent
-    nbodyHaloMassErrorPowerLawInternal%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
+    self%normalizationSquared          =normalization          **2
+    self%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
     return
   end function nbodyHaloMassErrorPowerLawInternal
 

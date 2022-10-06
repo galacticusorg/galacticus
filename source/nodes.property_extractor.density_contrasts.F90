@@ -285,13 +285,13 @@ contains
     return
   end function densityContrastsExtract
 
-  subroutine densityContrastsNames(self,time,names)
+  subroutine densityContrastsNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily densityContrasts} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
-    double precision                                       , intent(in   )                             :: time
+    double precision                                       , intent(in   ), optional                   :: time
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
@@ -301,13 +301,13 @@ contains
     return
   end subroutine densityContrastsNames
 
-  subroutine densityContrastsDescriptions(self,time,descriptions)
+  subroutine densityContrastsDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
-    double precision                                       , intent(in   )                             :: time
+    double precision                                       , intent(in   ), optional                   :: time
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -317,13 +317,13 @@ contains
     return
   end subroutine densityContrastsDescriptions
 
-  subroutine densityContrastsColumnDescriptions(self,time,descriptions)
+  subroutine densityContrastsColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
-    double precision                                       , intent(in   )                             :: time
+    double precision                                       , intent(in   ), optional                   :: time
     type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     character       (len=32                               )                                            :: label
     integer         (c_size_t                             )                                            :: i
@@ -345,7 +345,7 @@ contains
     implicit none
     double precision                                       , allocatable  , dimension(:) :: densityContrastsUnitsInSI
     class           (nodePropertyExtractorDensityContrasts), intent(inout)               :: self
-    double precision                                       , intent(in   )               :: time
+    double precision                                       , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(densityContrastsUnitsInSI(self%elementCount_))

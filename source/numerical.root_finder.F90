@@ -442,24 +442,24 @@ contains
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
-    use            :: Display           , only : displayMessage, verbosityLevelWarn
-    use            :: Error             , only : Error_Report  , errorStatusOutOfRange, errorStatusSuccess
+    use            :: Display           , only : displayMessage            , verbosityLevelWarn
+    use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
+         &                                       GSL_Error_Handler_Abort_On
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
-    use            :: ISO_Varying_String, only : assignment(=) , operator(//)         , varying_string
-    use            :: Interface_GSL     , only : GSL_Success   , gslFunction          , gslFunctionFdF    , gslSetErrorHandler
+    use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
+    use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
     real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
-    integer                               , parameter                             :: iterationMaximum       =1000
-    integer                               , parameter                             :: findersIncrement       =   3
-    type            (c_funptr            )                                        :: standardGslErrorHandler
-    logical                                                                       :: rangeChanged                , rangeLowerAsExpected   , rangeUpperAsExpected
-    integer                                                                       :: iteration
-    double precision                                                              :: xHigh                       , xLow                   , xRoot               , &
-         &                                                                           xRootPrevious               , fLow                   , fHigh
+    integer                               , parameter                             :: iterationMaximum =1000
+    integer                               , parameter                             :: findersIncrement =   3
+    logical                                                                       :: rangeChanged          , rangeLowerAsExpected   , rangeUpperAsExpected
+    integer                                                                       :: iteration             , statusActual
+    double precision                                                              :: xHigh                 , xLow                   , xRoot               , &
+         &                                                                           xRootPrevious         , fLow                   , fHigh
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -525,8 +525,13 @@ contains
     else
        currentFinders(currentFinderIndex)%lowInitialUsed =.true.
        currentFinders(currentFinderIndex)%highInitialUsed=.true.
-       fLow =self%finderFunction(xLow )
-       fHigh=self%finderFunction(xHigh)
+       fLow=self%finderFunction(xLow)
+       if (xHigh == xLow) then
+          ! If a rootGuess was used, the initial xHigh will equal xLow, so we can avoid re-evaluating the function here.
+          fHigh=fLow
+       else
+          fHigh=self%finderFunction(xHigh)
+       end if
        do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
           rangeChanged=.false.
           select case (self%rangeExpandDownwardSignExpect%ID)
@@ -558,6 +563,12 @@ contains
                   &   .not.self%rangeUpwardLimitSet    &
                   &  )                                 &
                   & ) then
+                if (rangeLowerAsExpected) then
+                   ! The lower end of the range has the expected sign. Therefore, we can shift the lower end of the range to the
+                   ! current upper end before updating the upper end.
+                   xLow=xHigh
+                   fLow=fHigh
+                end if
                 xHigh=xHigh+self%rangeExpandUpward
                 if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
                 fHigh=self%finderFunction(xHigh)
@@ -574,6 +585,12 @@ contains
                   &   .not.self%rangeDownwardLimitSet  &
                   &  )                                 &
                   & ) then
+                if (rangeUpperAsExpected) then
+                   ! The upper end of the range has the expected sign. Therefore, we can shift the upper end of the range to the
+                   ! current lower end before updating the lower end.
+                   xHigh=xLow
+                   fHigh=fLow
+                end if
                 xLow =xLow +self%rangeExpandDownward
                 if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
                 fLow =self%finderFunction(xLow )
@@ -603,6 +620,12 @@ contains
                   &   .not.self%rangeUpwardLimitSet      &
                   &  )                                   &
                   & ) then
+                if (rangeLowerAsExpected) then
+                   ! The lower end of the range has the expected sign. Therefore, we can shift the lower end of the range to the
+                   ! current upper end before updating the upper end.
+                   xLow=xHigh
+                   fLow=fHigh
+                end if
                 xHigh=xHigh*self%rangeExpandUpward
                 if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
                 fHigh=self%finderFunction(xHigh)
@@ -631,6 +654,12 @@ contains
                   &   .not.self%rangeDownwardLimitSet    &
                   &  )                                   &
                   & ) then
+                if (rangeUpperAsExpected) then
+                   ! The upper end of the range has the expected sign. Therefore, we can shift the upper end of the range to the
+                   ! current lower end before updating the lower end.
+                   xHigh=xLow
+                   fHigh=fLow
+                end if
                 xLow =xLow *self%rangeExpandDownward
                 if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
                 fLow =self%finderFunction(xLow )
@@ -688,10 +717,8 @@ contains
     end if
     ! Set error handler if necessary.
     if (present(status)) then
-       !$omp critical(gslErrorHandler)
-       standardGslErrorHandler=gslSetErrorHandler(rootFinderGSLErrorHandler)
-       !$omp end critical(gslErrorHandler)
-       statusActual           =errorStatusSuccess
+       call GSL_Error_Handler_Abort_Off()
+       statusActual=errorStatusSuccess
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
@@ -742,11 +769,7 @@ contains
        end if
     end if
     ! Reset error handler.
-    if (present(status)) then
-       !$omp critical(gslErrorHandler)
-       standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
-       !$omp end critical(gslErrorHandler)
-    end if
+    if (present(status)) call GSL_Error_Handler_Abort_On()
     ! Restore state.
     currentFinderIndex=currentFinderIndex-1
     return

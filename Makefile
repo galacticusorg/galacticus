@@ -71,14 +71,23 @@ FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
 FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 # For OpenMP compilation.
-FCFLAGS += -fopenmp
+FCFLAGS  += -fopenmp
+CFLAGS   += -fopenmp
+CPPFLAGS += -fopenmp
+# Detect static compilation
+STATIC=$(findstring -static,${FCFLAGS})
+ifeq '${STATIC}' '-static'
+FCFLAGS  += -DSTATIC
+CFLAGS   += -DSTATIC
+CPPFLAGS += -DSTATIC
+endif
 
 # C compiler flags:
-CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
+CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
 export CFLAGS
 
 # C++ compiler flags:
-CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}
+CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
 
 # Detect library compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
@@ -159,7 +168,7 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 vpath %.F90 source
 $(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
-$(BUILDPATH)/%.p.F90 : | $(BUILDPATH)/%.p.F90.up
+$(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
@@ -349,7 +358,7 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 # complaints from the preprocessor.
 $(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
-$(BUILDPATH)/%.Inc : | $(BUILDPATH)/%.Inc.up
+$(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
@@ -460,7 +469,7 @@ $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)
 	./scripts/build/libraryInterfaces.pl
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
-$(BUILDPATH)/libgalacticus.p.Inc : | $(BUILDPATH)/libgalacticus.p.Inc.up
+$(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
 $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
@@ -494,7 +503,7 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 # Rules for memory management routines.
 $(BUILDPATH)/allocatableArrays.xml.up: ./scripts/build/allocatableArrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/allocatableArrays.pl `pwd`
-$(BUILDPATH)/allocatableArrays.xml: | $(BUILDPATH)/allocatableArrays.xml.up
+$(BUILDPATH)/allocatableArrays.xml: $(BUILDPATH)/allocatableArrays.xml.up
 
 $(BUILDPATH)/utility.memory_management.preContain.inc: ./scripts/build/memoryManagementFunctions.pl $(BUILDPATH)/allocatableArrays.xml
 	./scripts/build/memoryManagementFunctions.pl

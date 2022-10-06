@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.
+  Implements a stellar initial mass function class used by the \href{https://bpass.auckland.ac.nz/}{BPASS} library.
   !!}
 
   !![
   <initialMassFunction name="initialMassFunctionBPASS">
    <description>
-    A stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library:
+    A stellar initial mass function class used by the \href{https://bpass.auckland.ac.nz/}{BPASS} library:
     \begin{equation}
      \phi(M) \propto \left\{ \begin{array}{ll}
      M^{-1.30} &amp; \hbox{ for } 0.1M_\odot &lt; M &lt; 0.5M_\odot \\
@@ -36,7 +36,7 @@
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionBPASS
      !!{
-     A stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.
+     A stellar initial mass function class used by the \href{https://bpass.auckland.ac.nz/}{BPASS} library.
      !!}
      private
    contains

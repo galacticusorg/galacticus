@@ -41,7 +41,8 @@
      double precision                                     :: expansionFactorFactorPrevious          , exponentVelocity            , &
           &                                                  exponentRedshift                       , timescaleNormalization      , &
           &                                                  timescaleStored                        , velocityMaximumPrevious     , &
-          &                                                  velocityFactorPrevious                 , expansionFactorPrevious
+          &                                                  velocityFactorPrevious                 , expansionFactorPrevious     , &
+          &                                                  timeScale_
      logical                                              :: timescaleComputed
      integer         (kind_int8                )          :: lastUniqueID
      type            (fastExponentiator        )          :: velocityExponentiator                  , expansionFactorExponentiator
@@ -136,6 +137,7 @@ contains
     self%expansionFactorPrevious      =-1.0d0
     self%expansionFactorFactorPrevious=-1.0d0
     ! Compute the normalization of the timescale.
+    self%timeScale_            =+timescale
     self%timeScaleNormalization=+timescale                                                     &
          &                      /velocityMaxScalingVelocityNormalization**self%exponentVelocity
     ! Initialize exponentiators.
@@ -152,7 +154,7 @@ contains
     implicit none
     class(starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels,label='starFormationTimescaleVelocityMaxScaling')
     return
   end subroutine velocityMaxScalingAutoHook
 

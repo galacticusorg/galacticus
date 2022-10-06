@@ -167,7 +167,7 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-     self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+    self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -209,7 +209,7 @@ contains
     self%concentrationMeanPrevious=-1.0d0
     self%GTildePrevious           =-1.0d0
     self%finder                   =rootFinder(                                                             &
-         &                                    rootFunction=GRoot                                         , &
+         &                                    rootFunction                 =GRoot                        , &
          &                                    rangeExpandDownward          =0.5d0                        , &
          &                                    rangeExpandUpward            =2.0d0                        , &
          &                                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
@@ -354,7 +354,7 @@ contains
        if (self%truncateConcentration .and. GRoot(1.0d0) <= 0.0d0) then
           GTilde=1.0d0
        else
-          GTilde                           = self%finder%find(rootGuess=self%GTildePrevious)
+          GTilde=self%finder%find(rootGuess=self%GTildePrevious)
        end if
        self%GTildePrevious              =   GTilde
        self%concentrationMeanPrevious   = C*GTilde

@@ -260,13 +260,13 @@ contains
     return
   end function densityProfileExtract
 
-  subroutine densityProfileNames(self,time,names)
+  subroutine densityProfileNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily densityProfile} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
-    double precision                                     , intent(in   )                             :: time
+    double precision                                     , intent(in   ), optional                   :: time
     type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
@@ -276,13 +276,13 @@ contains
     return
   end subroutine densityProfileNames
 
-  subroutine densityProfileDescriptions(self,time,descriptions)
+  subroutine densityProfileDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily densityProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
-    double precision                                     , intent(in   )                             :: time
+    double precision                                     , intent(in   ), optional                   :: time
     type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -293,13 +293,13 @@ contains
     return
   end subroutine densityProfileDescriptions
 
-  subroutine densityProfileColumnDescriptions(self,time,descriptions)
+  subroutine densityProfileColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
-    double precision                                     , intent(in   )                             :: time
+    double precision                                     , intent(in   ), optional                   :: time
     type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -316,7 +316,7 @@ contains
     implicit none
     double precision                                     , allocatable  , dimension(:) :: densityProfileUnitsInSI
     class           (nodePropertyExtractorDensityProfile), intent(inout)               :: self
-    double precision                                     , intent(in   )               :: time
+    double precision                                     , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(densityProfileUnitsInSI(self%elementCount_))

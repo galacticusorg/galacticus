@@ -145,7 +145,7 @@ contains
     implicit none
     class(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,king1962CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,king1962CalculationReset,openMPThreadBindingAllLevels,label='satelliteTidalStrippingRadiusKing1962')
     return
   end subroutine king1962AutoHook
 
@@ -195,7 +195,7 @@ contains
     !!}
     use :: Error                           , only : Error_Report             , errorStatusSuccess
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, massTypeDark
-    use :: Galacticus_Nodes                , only : nodeComponentBasic       , nodeComponentSatellite         , treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , treeNode
     use :: Linear_Algebra                  , only : assignment(=)            , matrix                         , vector
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
@@ -207,7 +207,6 @@ contains
     class           (satelliteTidalStrippingRadiusKing1962), intent(inout), target :: self
     type            (treeNode                             ), intent(inout), target :: node
     type            (treeNode                             ), pointer               :: nodeHost
-    class           (nodeComponentBasic                   ), pointer               :: basic
     class           (nodeComponentSatellite               ), pointer               :: satellite
     double precision                                       , dimension(3  )        :: position                               , velocity                        , &
          &                                                                            tidalTensorEigenValueComponents
@@ -272,12 +271,13 @@ contains
        ! Initial estimate of the tidal radius.
        king1962TidalPull=frequencyAngular**2-tidalFieldRadial
        if (self%radiusTidalPrevious <= 0.0d0) then
-          self%radiusTidalPrevious=+(                                 &
-               &                     +gravitationalConstantGalacticus &
-               &                     *massSatellite                   &
-               &                     /king1962TidalPull               &
-               &                     *(kilo*gigaYear/megaParsec)**2   &
-               &                    )**(1.0d0/3.0d0)
+          self%radiusTidalPrevious=+sqrt(                                              &
+               &                         +gravitationalConstantGalacticus              &
+               &                         *massSatellite                                &
+               &                         /self%darkMatterHaloScale_%radiusVirial(node) &
+               &                         /king1962TidalPull                            &
+               &                         *(kilo*gigaYear/megaParsec)**2                &
+               &                        )
           self%expandMultiplier   =+2.0d0
        end if
        ! Find the tidal radius in the dark matter profile.
@@ -308,7 +308,6 @@ contains
     else
        ! If the bound mass of the satellite exceeds the original mass (which can happen during failed ODE steps), simply return
        ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
-       basic => node%basic()
        if (massSatellite > self%galacticStructure_%massEnclosed(node,radius=self%darkMatterHaloScale_%radiusVirial(node),massType=massTypeDark)) then
           king1962Radius=self%darkMatterHaloScale_%radiusVirial       (node                                                            )
        else

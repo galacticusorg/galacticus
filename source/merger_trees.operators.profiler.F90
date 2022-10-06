@@ -42,7 +42,10 @@
      integer                                                                :: massBinsCount              , timeBinsCount
      double precision                         , allocatable, dimension(:  ) :: mass                       , time
      double precision                                                       :: massMinimumLogarithmic     , timeMinimumLogarithmic     , &
-          &                                                                    massLogarithmicDeltaInverse, timeLogarithmicDeltaInverse
+          &                                                                    massLogarithmicDeltaInverse, timeLogarithmicDeltaInverse, &
+          &                                                                    massMinimum                , massMaximum                , &
+          &                                                                    redshiftMinimum            , redshiftMaximum
+     integer                                                                :: massBinsPerDecade          , timeBinsPerDecade
    contains
      final     ::                        profilerDestructor
      procedure :: operatePreEvolution => profilerOperatePreEvolution
@@ -133,7 +136,7 @@ contains
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     double precision                                                    :: timeMinimum        , timeMaximum
     !![
-    <constructorAssign variables="*cosmologyFunctions_"/>
+    <constructorAssign variables="*cosmologyFunctions_, massMinimum, massMaximum, redshiftMinimum, redshiftMaximum, massBinsPerDecade, timeBinsPerDecade"/>
     !!]
 
     ! Construct bins in mass and time.

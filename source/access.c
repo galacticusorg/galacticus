@@ -20,8 +20,31 @@
 //% Implements Fortran-callable wrappers around the POSIX access() function.
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 
 int access_C(const char *name) {
   //% Fortran-callable wrapper around the POSIX access() function to check file existance.
   return access(name,F_OK);
+}
+
+void syncdir_C(const char *name) {
+  //% Fortran-callable function to sync a directory. This is done by opening and closing the directory. According to the this
+  //% \href{https://stackoverflow.com/a/30630912}{answer} on Stackoverflow this will invalidate the NFS cache for this directory.
+
+  DIR *fd = opendir(name);
+  if (fd == NULL) {
+    // Directory was not opened.
+    if (errno != ENOENT) {
+      // Open failure for some reason other than the directory not existing. In this case report the error.
+      printf("Opening directory '%s' failed\n",name);
+      abort();
+    }
+  } else {
+    // Directory was opened - now close it.
+    int i   = closedir(fd);
+  }
 }

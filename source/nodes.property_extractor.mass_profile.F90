@@ -255,13 +255,13 @@ contains
     return
   end function massProfileExtract
 
-  subroutine massProfileNames(self,time,names)
+  subroutine massProfileNames(self,names,time)
     !!{
     Return the names of the {\normalfont \ttfamily massProfile} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
-    double precision                                  , intent(in   )                             :: time
+    double precision                                  , intent(in   ), optional                   :: time
     type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
@@ -271,13 +271,13 @@ contains
     return
   end subroutine massProfileNames
 
-  subroutine massProfileDescriptions(self,time,descriptions)
+  subroutine massProfileDescriptions(self,descriptions,time)
     !!{
     Return descriptions of the {\normalfont \ttfamily massProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
-    double precision                                  , intent(in   )                             :: time
+    double precision                                  , intent(in   ), optional                   :: time
     type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -288,13 +288,13 @@ contains
     return
   end subroutine massProfileDescriptions
 
-  subroutine massProfileColumnDescriptions(self,time,descriptions)
+  subroutine massProfileColumnDescriptions(self,descriptions,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily massProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
-    double precision                                  , intent(in   )                             :: time
+    double precision                                  , intent(in   ), optional                   :: time
     type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
@@ -311,7 +311,7 @@ contains
     implicit none
     double precision                                  , allocatable  , dimension(:) :: massProfileUnitsInSI
     class           (nodePropertyExtractorMassProfile), intent(inout)               :: self
-    double precision                                  , intent(in   )               :: time
+    double precision                                  , intent(in   ), optional     :: time
     !$GLC attributes unused :: time
 
     allocate(massProfileUnitsInSI(self%elementCount_))

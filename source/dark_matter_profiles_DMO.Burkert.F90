@@ -248,7 +248,7 @@ contains
     implicit none
     class(darkMatterProfileDMOBurkert), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,burkertCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,burkertCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOBurkert')
     return
   end subroutine burkertAutoHook
 

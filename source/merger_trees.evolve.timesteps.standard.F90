@@ -34,9 +34,11 @@
      {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.
      !!}
      private
-     type(mergerTreeEvolveTimestepSimple              ), pointer :: simple               => null()
-     type(mergerTreeEvolveTimestepSatellite           ), pointer :: satellite            => null()
-     type(mergerTreeEvolveTimestepSatelliteDestruction), pointer :: satelliteDestruction => null()
+     type (mergerTreeEvolveTimestepSimple              ), pointer :: simple               => null()
+     type (mergerTreeEvolveTimestepSatellite           ), pointer :: satellite            => null()
+     type (mergerTreeEvolveTimestepSatelliteDestruction), pointer :: satelliteDestruction => null()
+     class(cosmologyFunctionsClass                     ), pointer :: cosmologyFunctions_  => null()
+     class(nodeOperatorClass                           ), pointer :: nodeOperator_        => null()
    contains
      final     ::                 standardDestructor
      procedure :: timeEvolveTo => standardTimeEvolveTo
@@ -97,7 +99,10 @@ contains
     type (mergerTreeEvolveTimestepStandard)                        :: self
     class(cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     class(nodeOperatorClass               ), intent(in   ), target :: nodeOperator_
-
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *nodeOperator_"/>
+    !!]
+    
     allocate(self%simple              )
     allocate(self%satellite           )
     allocate(self%satelliteDestruction)
@@ -120,6 +125,8 @@ contains
     <objectDestructor name="self%simple"              />
     <objectDestructor name="self%satellite"           />
     <objectDestructor name="self%satelliteDestruction"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%nodeOperator_"       />
     !!]
     return
   end subroutine standardDestructor
