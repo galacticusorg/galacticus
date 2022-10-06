@@ -35,10 +35,12 @@
      double precision :: limitLower      , limitUpper      , &
           &              cdfAtLowerLimit , cdfAtUpperLimit , &
           &              gamma           , mu              , &
-          &              sigma
+          &              sigma           , fwhm
  contains
      procedure :: density    => voightDensity
      procedure :: cumulative => voightCumulative
+     procedure :: minimum    => voightMinimum
+     procedure :: maximum    => voightMaximum
   end type distributionFunction1DVoight
 
   interface distributionFunction1DVoight
@@ -108,11 +110,12 @@ contains
     Constructor for ``voight'' 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
-    double precision                              , intent(in   )                   :: gamma                 , mu        , &
+    double precision                              , intent(in   )                   :: gamma                 , mu          , &
          &                                                                             sigma
     class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
     double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
-    double precision                                                                :: cdfLower              , cdfUpper
+    double precision                                                                :: cdfLower              , cdfUpper    , &
+         &                                                                             fwhmLorentzian        , fwhmGaussian
     !![
     <constructorAssign variables="gamma, mu, sigma, *randomNumberGenerator_"/>
     !!]
@@ -135,9 +138,44 @@ contains
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=cdfUpper
     end if
+    ! Estimate the Full Width at Half Maximum (Olivero & Longbothum; 1977; Journal of Quantative Spectroscopy and Radiative
+    ! Transfer; 17; 233; https://www.sciencedirect.com/science/article/pii/0022407377901613).
+    fwhmLorentzian=2.0d0*gamma
+    fwhmGaussian  =2.0d0*sigma*sqrt(2.0d0*log(2.0d0))
+    self%fwhm     =0.5346d0*fwhmLorentzian+sqrt(0.2166d0*fwhmLorentzian**2+fwhmGaussian**2)
     return
   end function voightConstructorInternal
 
+  double precision function voightMaximum(self)
+    !!{
+    Return the maximum extent a Voight distribution.
+    !!}
+    implicit none
+    class(distributionFunction1DVoight), intent(inout) :: self
+
+    if (self%limitUpperExists) then
+       voightMaximum=self%limitUpper
+    else
+       voightMaximum=+huge(0.0d0)
+    end if
+    return
+  end function voightMaximum
+  
+  double precision function voightMinimum(self)
+    !!{
+    Return the minimum extent a Voight distribution.
+    !!}
+    implicit none
+    class(distributionFunction1DVoight), intent(inout) :: self
+
+    if (self%limitLowerExists) then
+       voightMinimum=self%limitLower
+    else
+       voightMinimum=-huge(0.0d0)
+    end if
+    return
+  end function voightMinimum
+  
   double precision function voightDensity(self,x)
     !!{
     Return the density of a Voight distribution.
@@ -178,14 +216,15 @@ contains
     implicit none
     class           (distributionFunction1DVoight), intent(inout)               :: self
     double precision                              , intent(in   )               :: x
-    double complex                                , parameter    , dimension(2) :: a=[dcmplx(1.0d0,0.0d0),dcmplx(1.0d0,0.0d0)]
-    double complex                                , parameter    , dimension(2) :: b=[dcmplx(1.5d0,0.0d0),dcmplx(2.0d0,0.0d0)]
+    double complex                                , parameter    , dimension(2) :: a           =[dcmplx(1.0d0,0.0d0),dcmplx(1.0d0,0.0d0)]
+    double complex                                , parameter    , dimension(2) :: b           =[dcmplx(1.5d0,0.0d0),dcmplx(2.0d0,0.0d0)]
+    double precision                              , parameter                   :: widthMaximum=100.0d0
     double precision                                                            :: x0
     double complex                                                              :: z
 
-    if      (self%limitLowerExists .and. x < self%limitLower) then
+    if      ((self%limitLowerExists .and. x < self%limitLower) .or. x < self%mu-widthMaximum*self%fwhm) then
        voightCumulative=0.0d0
-    else if (self%limitUpperExists .and. x > self%limitUpper) then
+    else if ((self%limitUpperExists .and. x > self%limitUpper) .or. x > self%mu+widthMaximum*self%fwhm) then
        voightCumulative=1.0d0
     else
        ! Compute the value of x relative to the mean of the Gaussian component.
@@ -193,7 +232,7 @@ contains
        ! Evaluate z.
        z =dcmplx(x0,self%gamma)/sqrt(2.0d0)/self%sigma
        ! Evaluate the cumulative distribution.
-       voightCumulative=                 &
+       voightCumulative=                             &
             & +(                                     &
             &   +real(                               &
             &         +0.5d0                         &

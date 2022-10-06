@@ -56,6 +56,48 @@ module Statistics_Distributions
      <selfTarget>yes</selfTarget>
      <argument>double precision, intent(in   ) :: p</argument>
      <description>Return the value of the independent variable corresponding to cumulative probability {\normalfont \ttfamily p}.</description>
+     <modules>Root_Finder Error</modules>
+     <code>
+       ! Numerically solve for the inverse.
+       type            (rootFinder), save      :: finder
+       logical                     , save      :: initialized              =.false.
+       double precision            , parameter :: fractionalStep           =1.0d-02
+       double precision            , parameter :: toleranceRelative        =1.0d-06
+       double precision            , parameter :: toleranceAbsoluteDefault =1.0d-16
+       double precision            , parameter :: toleranceAbsoluteRelative=1.0d-06
+       double precision                        :: pdfStep                          , pdfMidpoint, &amp;
+         &amp;                                    toleranceAbsolute
+       !$omp threadprivate(initialized,finder)
+       
+       if (p &lt; 0.0d0 .or. p &gt; 1.0d0) call Error_Report('probability out of range'//{introspection:location})
+       if (.not.initialized) then
+	 finder     =rootFinder(inverseRoot)
+	 initialized=.true.
+       end if
+       self_      => self
+       p_         =  p
+       pdfStep    =  fractionalStep*self%maximum()-fractionalStep*self%minimum()
+       pdfMidpoint=  0.5d0*(self%maximum()+self%minimum())
+       if (self%minimum() == -huge(0.0d0) .or. self%maximum() == +huge(0.0d0)) then
+          toleranceAbsolute=toleranceAbsoluteDefault
+       else
+          toleranceAbsolute=toleranceAbsoluteRelative*pdfStep
+       end if
+       call finder%tolerance  (                                                             &amp;
+          &amp;                toleranceRelative            =toleranceRelative            , &amp;
+          &amp;                toleranceAbsolute            =toleranceAbsolute              &amp;
+          &amp;               )
+       call finder%rangeExpand(                                                             &amp;
+          &amp;                rangeExpandType              =rangeExpandAdditive          , &amp;
+          &amp;                rangeExpandUpward            =pdfStep                      , &amp;
+          &amp;                rangeExpandDownward          =pdfStep                      , &amp;
+          &amp;                rangeUpwardLimit             =self%maximum()               , &amp;
+          &amp;                rangeDownwardLimit           =self%minimum()               , &amp;
+          &amp;                rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &amp;
+          &amp;                rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &amp;
+          &amp;               )
+	 distributionFunction1DInverse=finder%find(rootGuess=pdfMidpoint)
+     </code>
    </method>
    <method name="sample" >
      <type>double precision</type>
@@ -81,15 +123,26 @@ module Statistics_Distributions
      <type>double precision</type>
      <pass>yes</pass>
      <description>Returns the minimum possible value in the distribution.</description>
+     <code>
+       distributionFunction1DMinimum=-huge(1.0d0)
+     </code>
    </method>
    <method name="maximum" >
      <type>double precision</type>
      <pass>yes</pass>
      <description>Returns the maximum possible value in the distribution.</description>
+     <code>
+       distributionFunction1DMaximum=+huge(1.0d0)
+     </code>
    </method>
   </functionClass>
   !!]
 
+  ! Module-scope variables used in root-finding.
+  class(distributionFunction1DClass), pointer :: self_
+  double precision :: p_
+  !$omp threadprivate(self_,p_)
+  
   ! Define a list of distributions.
   type, public :: distributionFunction1DList
      class(distributionFunction1DClass), pointer :: distributionFunction1D_
@@ -108,5 +161,17 @@ contains
     !!]
     return
   end subroutine distributionFunction1DFinalize
+
+  double precision function inverseRoot(x)
+    !!{
+    Root function used in numerically inverting cumulative distribution functions.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: x
+
+    inverseRoot=+self_%cumulative(x) &
+         &      -p_
+    return
+  end function inverseRoot
   
 end module Statistics_Distributions
