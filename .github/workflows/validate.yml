@@ -151,6 +151,13 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: benchmarks-milkyWay-${{ github.run_id }}
+          restore-keys: |
+            benchmarks-milkyWay
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV

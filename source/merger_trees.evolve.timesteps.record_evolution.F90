@@ -175,18 +175,19 @@ contains
     !!{
     Create a hook to the merger tree extra output event to allow us to write out our data.
     !!}
-    use :: Events_Hooks, only : mergerTreeExtraOutputEvent
+    use :: Events_Hooks, only : mergerTreeExtraOutputEvent, openMPThreadBindingAtLevel
     implicit none
     class(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
 
-    call mergerTreeExtraOutputEvent%attach(self,recordEvolutionOutput)
-   return
+    call mergerTreeExtraOutputEvent%attach(self,recordEvolutionOutput,label='mergerTreeEvolveTimestepRecordEvolution',openMPThreadBinding=openMPThreadBindingAtLevel)
+    return
   end subroutine recordEvolutionAutoHook
 
   subroutine recordEvolutionDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
     !!}
+    use :: Events_Hooks, only : mergerTreeExtraOutputEvent
     implicit none
     type(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
 
@@ -195,6 +196,7 @@ contains
     <objectDestructor name="self%outputTimes_"       />
     <objectDestructor name="self%galacticStructure_" />
     !!]
+    if (mergerTreeExtraOutputEvent%isAttached(self,recordEvolutionOutput)) call mergerTreeExtraOutputEvent%detach(self,recordEvolutionOutput)
     return
   end subroutine recordEvolutionDestructor
 
@@ -314,14 +316,14 @@ contains
              self%oneTimeDatasetsWritten=.true.
           end if
           datasetName=var_str("stellarMass")//treeIndex
-          call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."       ,datasetReturned=dataset)
-          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                )
-          call dataset    %close         (                                                                                                            )
+          call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."           ,datasetReturned=dataset)
+          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
+          call dataset    %close         (                                                                                                                )
           datasetName=var_str("totalMass"  )//treeIndex
-          call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor.",datasetReturned=dataset)
-          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                )
-          call dataset    %close         (                                                                                                            )
-          call outputGroup%close         (                                                                                                            )
+          call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor."    ,datasetReturned=dataset)
+          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
+          call dataset    %close         (                                                                                                                )
+          call outputGroup%close         (                                                                                                                )
           !$ call hdf5Access%unset()
           call    self      %reset()
        end if

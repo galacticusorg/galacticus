@@ -145,7 +145,7 @@ contains
     implicit none
     class(mergerRemnantSizeCovington2008), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,covington2008CalculationReset,openMPThreadBindingAllLevels                                                  )
+    call calculationResetEvent%attach(self,covington2008CalculationReset,openMPThreadBindingAllLevels,label='remnantStructure:remnantSizeCovington2008')
     call satelliteMergerEvent %attach(self,covington2008GetHook         ,openMPThreadBindingAllLevels,label='remnantStructure:remnantSizeCovington2008')
     return
   end subroutine covington2008AutoHook

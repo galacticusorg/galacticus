@@ -154,7 +154,7 @@ contains
     implicit none
     class(starFormationTimescaleVelocityMaxScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels,label='starFormationTimescaleVelocityMaxScaling')
     return
   end subroutine velocityMaxScalingAutoHook
 

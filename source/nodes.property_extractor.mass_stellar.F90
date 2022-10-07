@@ -35,6 +35,7 @@ Contains a module which implements a stellar mass property extractor class.
      private
      class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                massStellarDestructor
      procedure :: extract     => massStellarExtract
      procedure :: name        => massStellarName
      procedure :: description => massStellarDescription

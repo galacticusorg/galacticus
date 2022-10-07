@@ -306,7 +306,7 @@ contains
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,blitz2006CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,blitz2006CalculationReset,openMPThreadBindingAllLevels,label='starFormationRateSurfaceDensityDisksBlitz2006')
     return
   end subroutine blitz2006AutoHook
 
@@ -814,15 +814,19 @@ contains
       type            (varying_string), save          :: message
       type            (hdf5Object    ), save          :: file
       type            (lockDescriptor), save          :: fileLock
+      logical                                         :: haveLock
       !$omp threadprivate(message,file,fileLock)
       
       ! Read table if we do not have it.
+      haveLock=.false.
       if (.not.self%tableInitialized) then
+         call Directory_Make(char(File_Path(char(self%filenameTable))))
+         call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
+         haveLock=.true.
          if (File_Exists(self%filenameTable)) then
             message='Reading Blitz2006 star formation rate tabulation from file: '//self%filenameTable
             call displayMessage(message,verbosityLevelWorking)
             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-            call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
             !$ call hdf5Access%set()
             call file%openFile     (                                                      char(self%filenameTable                                      ),readOnly=.true.)
             call file%readAttribute('coefficientFactorBoostMinimum'                      ,     self%coefficientFactorBoostMinimum                                       )
@@ -840,7 +844,6 @@ contains
             call file%readDataset  ('integral'                                           ,     self%integralPartiallyMolecularTable                                     )
             call file%close        (                                                                                                                                    )
             !$ call hdf5Access%unset()
-            call File_Unlock(fileLock)
             self%tableInitialized=.true.
          end if
       end if
@@ -866,6 +869,11 @@ contains
            &  .or.                                                                             &
            &     radiusScaleFree                   > self%radiusScaleFreeMaximum               &
            & ) then
+         ! Obtain a file lock if we don't already have one.
+         if (.not.haveLock) then
+            call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
+            haveLock=.true.
+         end if
          ! Find range encompassing the existing table and the new point (with some buffer).
          self%coefficientFactorBoostMinimum       =max(min(self%coefficientFactorBoostMinimum       ,coefficientFactorBoost       /2.0d0),coefficientFactorBoostTiny             )
          self%coefficientFactorBoostMaximum       =    max(self%coefficientFactorBoostMaximum       ,coefficientFactorBoost       *2.0d0 ,coefficientFactorBoostTiny       *2.0d0)
@@ -949,8 +957,6 @@ contains
          message='Writing Blitz2006 star formation rate tabulation to file: '//self%filenameTable
          call displayMessage(message,verbosityLevelWorking)
          call Directory_Make(char(File_Path(char(self%filenameTable))))
-         ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-         call File_Lock     (char(self%filenameTable),fileLock,lockIsShared=.false.)
          !$ call hdf5Access%set()
          call file%openFile      (char(self%filenameTable                                      )                                                     ,overWrite=.true.,readOnly=.false.)
          call file%writeAttribute(     self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                                                       )
@@ -968,7 +974,10 @@ contains
          call file%writeDataset  (     self%integralPartiallyMolecularTable                     ,'integral'                                                                            )
          call file%close         (                                                                                                                                                     )
          !$ call hdf5Access%unset()
+      end if
+      if (haveLock) then
          call File_Unlock(fileLock)            
+         haveLock=.false.
       end if
       ! Interpolate in table.
       integralAnalyticPartiallyMolecularGeneric=0.0d0

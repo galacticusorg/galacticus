@@ -83,6 +83,7 @@ contains
     self=nodeOperatorSatelliteMassLoss(massBoundIsInactive,darkMatterHaloMassLossRate_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloMassLossRate_"/>
     !!]
     return
   end function satelliteMassLossConstructorParameters

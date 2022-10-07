@@ -784,16 +784,17 @@ contains
     type            (treeNode                     ), intent(  out), optional, pointer :: nodeLock
     type            (varying_string               ), intent(  out), optional          :: lockType
     procedure       (timestepTask                 )                         , pointer :: timestepTaskInternal
-    class           (nodeComponentBasic           )                         , pointer :: basicParent         , basicSatellite    , &
-         &                                                                               basicSibling        , basic
+    class           (nodeComponentBasic           )                         , pointer :: basicParent           , basicSatellite    , &
+         &                                                                               basicSibling          , basic
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: event
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    double precision                                                                  :: expansionFactor     , expansionTimescale, &
-         &                                                                               hostTimeLimit       , time              , &
-         &                                                                               timeEarliest        , evolveToTimeStep  , &
-         &                                                                               hostTimeStep        , timeNode          , &
+    double precision                                                                  :: expansionFactor       , expansionTimescale, &
+         &                                                                               hostTimeLimit         , time              , &
+         &                                                                               timeEarliest          , evolveToTimeStep  , &
+         &                                                                               hostTimeStep          , timeNode          , &
          &                                                                               timeSatellite
+    logical                                                                           :: isLimitedByTimestepper
     character       (len=9                        )                                   :: timeFormatted
     type            (varying_string               ), save                             :: message
     !$omp threadprivate(message)
@@ -860,11 +861,13 @@ contains
     if (report) call displayIndent("timestepping criteria")
     evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(evolveToTime,node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
-       evolveToTime  =  evolveToTimeStep
-       timestepTask_ => timestepTaskInternal
+       evolveToTime           =  evolveToTimeStep
+       timestepTask_          => timestepTaskInternal
+       isLimitedByTimestepper =  .true.
     else
-       timestepTask_ => null()
-       timestepSelf  => null()
+       timestepTask_          => null()
+       timestepSelf           => null()
+       isLimitedByTimestepper =  .false.
     end if
     if (report) call displayUnindent("done")
     if (evolveToTime == timeNode) return
@@ -876,7 +879,8 @@ contains
        if (max(timeSatellite,timeNode) < evolveToTime) then
           if (present(nodeLock)) nodeLock => nodeSatellite
           if (present(lockType)) lockType =  "hosted satellite"
-          evolveToTime=max(timeSatellite,timeNode)
+          evolveToTime          =max(timeSatellite,timeNode)
+          isLimitedByTimestepper=.false.
        end if
        if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,nodeSatellite%index())
        if (evolveToTime == timeNode) exit
@@ -895,7 +899,8 @@ contains
              write (timeFormatted,'(f7.4)') max(satelliteSatellite%timeOfMerging(),timeNode)
              lockType =  "mergee ("//trim(timeFormatted)//")"
           end if
-          evolveToTime=max(satelliteSatellite%timeOfMerging(),timeNode)
+          evolveToTime          =max(satelliteSatellite%timeOfMerging(),timeNode)
+          isLimitedByTimestepper=.false.
        end if
        if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,nodeSatellite%index())
        nodeSatellite => nodeSatellite%siblingMergee
@@ -911,7 +916,8 @@ contains
           if (max(timeNode,basicSibling%time()) < evolveToTime) then
              if (present(nodeLock)) nodeLock => nodeSibling
              if (present(lockType)) lockType =  "sibling"
-             evolveToTime=max(timeNode,basicSibling%time())
+             evolveToTime          =max(timeNode,basicSibling%time())
+             isLimitedByTimestepper=.false.
           end if
           if (report) call Evolve_To_Time_Report("sibling: ",evolveToTime,nodeSibling%index())
           nodeSibling => nodeSibling%sibling
@@ -928,7 +934,8 @@ contains
           if (basicParent%time() < evolveToTime) then
              if (present(nodeLock)) nodeLock => node%parent
              if (present(lockType)) lockType =  "promotion"
-             evolveToTime=basicParent%time()
+             evolveToTime          =basicParent%time()
+             isLimitedByTimestepper=.false.
           end if
        end if
        if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
@@ -983,10 +990,16 @@ contains
        if (hostTimeLimit < evolveToTime) then
           if (present(nodeLock)) nodeLock => node%parent
           if (present(lockType)) lockType =  "satellite in host"
-          evolveToTime=hostTimeLimit
+          evolveToTime          =hostTimeLimit
+          isLimitedByTimestepper=.false.
        end if
        if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
     end select
+    ! If the timestepper class provided the limit, allow it to optionally refuse to evolve (e.g. if the step is too small to be
+    ! efficient).
+    if (isLimitedByTimestepper) then
+       if (self%mergerTreeEvolveTimestep_%refuseToEvolve(node)) evolveToTime=timeNode
+    end if
     ! Check that end time exceeds current time.
     if (evolveToTime < timeNode) then
        message='end time ('

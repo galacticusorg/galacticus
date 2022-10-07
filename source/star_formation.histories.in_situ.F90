@@ -141,7 +141,7 @@ contains
     implicit none
     class(starFormationHistoryInSitu), intent(inout) :: self
 
-    call satelliteMergerEvent%attach(self,inSituSatelliteMerger,openMPThreadBindingAllLevels)
+    call satelliteMergerEvent%attach(self,inSituSatelliteMerger,openMPThreadBindingAllLevels,label='starFormationHistoryInSitu')
     return
   end subroutine inSituAutoHook
 

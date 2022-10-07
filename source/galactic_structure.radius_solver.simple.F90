@@ -125,7 +125,7 @@ contains
     type (dependencyRegEx              ), dimension(1)  :: dependencies
 
     dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponent')
-    call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,openMPThreadBindingAtLevel                                                        )
+    call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
     call      postEvolveEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
     call satelliteMergerEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)
     call   nodePromotionEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel,label='structureSolverSimple',dependencies=dependencies)

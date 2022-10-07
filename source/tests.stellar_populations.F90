@@ -27,6 +27,7 @@ program Test_Stellar_Populations
   !!}
   use :: Abundances_Structure                      , only : abundances
   use :: Display                                   , only : displayVerbositySet                    , verbosityLevelWorking
+  use :: Events_Hooks                              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities                , only : Functions_Global_Set
   use :: Input_Paths                               , only : inputPath                              , pathTypeDataStatic
   use :: ISO_Varying_String                        , only : char
@@ -61,6 +62,7 @@ program Test_Stellar_Populations
   call displayVerbositySet(verbosityLevelWorking)
   parameters=inputParameters()
   call Functions_Global_Set      (          )
+  call eventsHooksInitialize     (          )
   call Node_Components_Initialize(parameters)
   call abundances_%metallicitySet(metallicitySolar)
   initialMassFunction_     =initialMassFunctionChabrier2001        (                                                                                                                                   &

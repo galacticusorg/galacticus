@@ -33,7 +33,7 @@ module Bessel_Functions
   private
   public :: Bessel_Function_J0, Bessel_Function_J1     , Bessel_Function_K0     , Bessel_Function_K1     , &
        &    Bessel_Function_I0, Bessel_Function_I1     , Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, &
-       &    Bessel_Function_Jn, Bessel_Function_Jn_Zero
+       &    Bessel_Function_Jn, Bessel_Function_Jn_Zero, Bessel_Function_In
 
   interface
      function gsl_sf_bessel_J0(x) bind(c,name='gsl_sf_bessel_J0')
@@ -109,6 +109,16 @@ module Bessel_Functions
        real(c_double)        :: gsl_sf_bessel_I1
        real(c_double), value :: x
      end function gsl_sf_bessel_I1
+
+     function gsl_sf_bessel_In(n,x) bind(c,name='gsl_sf_bessel_In')
+       !!{
+       Template for the GSL I₁ Bessel function.
+       !!}
+       import
+       real   (c_double)        :: gsl_sf_bessel_In
+       integer(c_int   ), value :: n
+       real   (c_double), value :: x
+     end function gsl_sf_bessel_In
 
      function gsl_sf_bessel_K0(x) bind(c,name='gsl_sf_bessel_K0')
        !!{
@@ -242,5 +252,17 @@ contains
     Bessel_Function_I1=GSL_SF_Bessel_I1(argument)
     return
   end function Bessel_Function_I1
+
+  double precision function Bessel_Function_In(n,argument)
+    !!{
+    Computes the $I_n$ Bessel function.
+    !!}
+    implicit none
+    integer         , intent(in   ) :: n
+    double precision, intent(in   ) :: argument
+
+    Bessel_Function_In=GSL_SF_Bessel_In(n,argument)
+    return
+  end function Bessel_Function_In
 
 end module Bessel_Functions

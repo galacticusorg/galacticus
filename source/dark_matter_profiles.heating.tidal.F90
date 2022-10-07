@@ -151,7 +151,7 @@ contains
     implicit none
     class(darkMatterProfileHeatingTidal), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,tidalCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,tidalCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileHeatingTidal')
     return
   end subroutine tidalAutoHook
 

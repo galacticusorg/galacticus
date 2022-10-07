@@ -78,8 +78,10 @@ contains
     type            (treeNode                ), intent(inout), target   :: node
     double precision                          , intent(in   ), optional :: timeAge
     class           (nodeComponentBasic      )               , pointer  :: basic
-    type            (rootFinder              )                          :: finder
-    double precision                          , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder              ), save                    :: finder
+    logical                                   , save                    :: finderInitialized=.false.
+    double precision                          , parameter               :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+    !$omp threadprivate(finder,finderInitialized)
 
     if (node%uniqueID() /= self%uniqueIDPreviousSIDM .or. self%radiusInteractivePrevious < 0.0d0) then
        self_         =>  self
@@ -100,18 +102,21 @@ contains
           class default
           call Error_Report('expected self-interacting dark matter particle'//{introspection:location})
        end select
-       finder=rootFinder(                                             &
-            &            rootFunction     =sidmRadiusInteractionRoot, &
-            &            toleranceAbsolute=toleranceAbsolute        , &
-            &            toleranceRelative=toleranceRelative          &
-            &           )
-       call finder%rangeExpand(                                                             &
-            &                  rangeExpandUpward            =2.0d0                        , &
-            &                  rangeExpandDownward          =0.5d0                        , &
-            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                  rangeExpandType              =rangeExpandMultiplicative      &
-            &                 )       
+       if (.not.finderInitialized) then
+          finder=rootFinder(                                             &
+               &            rootFunction     =sidmRadiusInteractionRoot, &
+               &            toleranceAbsolute=toleranceAbsolute        , &
+               &            toleranceRelative=toleranceRelative          &
+               &           )
+          call finder%rangeExpand(                                                             &
+               &                  rangeExpandUpward            =2.0d0                        , &
+               &                  rangeExpandDownward          =0.5d0                        , &
+               &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+               &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+               &                  rangeExpandType              =rangeExpandMultiplicative      &
+               &                 )
+          finderInitialized=.true.
+       end if
        self%radiusInteractivePrevious=finder%find    (rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
        self%uniqueIDPreviousSIDM     =node  %uniqueID(                                                      )
     end if

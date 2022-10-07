@@ -242,7 +242,7 @@ contains
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,krumholz2009CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,krumholz2009CalculationReset,openMPThreadBindingAllLevels,label='starFormationRateSurfaceDensityDisksKrumholz2009')
     return
   end subroutine krumholz2009AutoHook
 

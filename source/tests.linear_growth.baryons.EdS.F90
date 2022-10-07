@@ -24,6 +24,7 @@ program Tests_Linear_Growth_EdS_Baryons
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Display                   , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Intergalactic_Medium_State, only : intergalacticMediumStateSimple
   use :: Linear_Growth             , only : componentDarkMatter           , linearGrowthBaryonsDarkMatter
   use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -40,6 +41,8 @@ program Tests_Linear_Growth_EdS_Baryons
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Construct model.
   cosmologyParameters_=cosmologyParametersSimple          (                                                      &
        &                                                   OmegaMatter               = 1.00d0                  , &

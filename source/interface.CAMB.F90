@@ -113,7 +113,9 @@ contains
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
        command='cd '//cambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//compiler(languageFortran)//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//compiler(languageFortran)//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
-       command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
+       command=command//'"/ Makefile'
+       if (static_) command=command//'; cp $GALACTICUS_EXEC_PATH/source/utility.OpenMP.workaround.c '//cambPath//'; gcc -DSTATIC -c utility.OpenMP.workaround.c -o utility.OpenMP.workaround.o; sed -E -i~ s/"\-o camb$"/"utility\.OpenMP\.workaround\.o \-o camb"/ Makefile_main'
+       command=command//'; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Error_Report("failed to build CAMB code"//{introspection:location})
        call File_Unlock(fileLock)

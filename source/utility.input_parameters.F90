@@ -377,8 +377,8 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
     !!}
     implicit none
-    type(inputParameters)                :: inputParametersConstructorCopy
-    type(inputParameters), intent(in   ) :: parameters
+    type (inputParameters)                :: inputParametersConstructorCopy
+    type (inputParameters), intent(in   ) :: parameters
 
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
@@ -389,7 +389,7 @@ contains
        inputParametersConstructorCopy%warnedDefaults=parameters%warnedDefaults
     end if
     if (associated(parameters%lock)) then
-       nullify(inputParametersConstructorCopy%lock)
+       deallocate(inputParametersConstructorCopy%lock)
        allocate(inputParametersConstructorCopy%lock)
        inputParametersConstructorCopy%lock=ompLock()
     end if
@@ -839,10 +839,12 @@ contains
        !$ deallocate(self%objects)
        !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
     end if
-    self%objects(instance)%object => object
-    !![
-    <referenceCountIncrement owner="self%objects(instance)" object="object"/>
-    !!]
+    if (.not.associated(self%objects(instance)%object)) then      
+       self%objects(instance)%object => object
+       !![
+       <referenceCountIncrement owner="self%objects(instance)" object="object"/>
+       !!]
+    end if
     !$omp end critical (inputParameterObjects)
     return
   end subroutine inputParameterObjectSet
@@ -851,12 +853,13 @@ contains
     !!{
     Reset objects associated with this parameter and any sub-parameters.
     !!}
-    use :: FoX_DOM, only : destroy
+    use    :: FoX_DOM, only : destroy
+    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(inout), target   :: self
     logical                , intent(in   ), optional :: children, evaluations
     type   (inputParameter), pointer                 :: child   , childNext
-    integer                                          :: i
+    integer                                          :: instance
     !![
     <optionalArgument name="children"    defaultsTo=".true." />
     <optionalArgument name="evaluations" defaultsTo=".false."/>
@@ -864,13 +867,18 @@ contains
 
     ! Destroy any objects associated with this parameter node.
     if (allocated(self%objects)) then
-       do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
-          if (associated(self%objects(i)%object)) then
-             !![
-             <objectDestructor name="self%objects(i)%object"/>
-             !!]
-          end if
-       end do
+       !$omp critical (inputParameterObjects)
+       !$ if (OMP_In_Parallel()) then
+       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$ else
+       instance=0
+       !$ end if
+       if (associated(self%objects(instance)%object)) then
+          !![
+          <objectDestructor name="self%objects(instance)%object"/>
+          !!]
+       end if
+       !$omp end critical (inputParameterObjects)
     end if
     ! For evaluated parameters, restore them to their unevaluated state.
     if (evaluations_) then

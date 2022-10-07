@@ -118,11 +118,11 @@ contains
     !!{
     Hook into the internal intergalactic medium state evolver to receive updates.
     !!}
-    use :: Events_Hooks, only : intergalacticMediumStateEvolveUpdateEvent
+    use :: Events_Hooks, only : intergalacticMediumStateEvolveUpdateEventGlobal
     implicit none
     class(intergalacticMediumStateInternal), intent(inout) :: self
 
-    call intergalacticMediumStateEvolveUpdateEvent%attach(self,internalStateSet)
+    call intergalacticMediumStateEvolveUpdateEventGlobal%attach(self,internalStateSet,label='intergalacticMediumStateInternal')
     return
   end subroutine internalAutoHook
 
@@ -130,6 +130,7 @@ contains
     !!{
     Destructor for the internal \gls{igm} state class.
     !!}
+    use :: Events_Hooks, only : intergalacticMediumStateEvolveUpdateEventGlobal
     implicit none
     type(intergalacticMediumStateInternal), intent(inout) :: self
 
@@ -137,6 +138,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
+    if (intergalacticMediumStateEvolveUpdateEventGlobal%isAttached(self,internalStateSet)) call intergalacticMediumStateEvolveUpdateEventGlobal%detach(self,internalStateSet)
     return
   end subroutine internalDestructor
 
@@ -337,7 +339,6 @@ contains
          &                                              densityHydrogen2, densityHelium1  , &
          &                                              densityHelium2  , densityHelium3  , &
          &                                              temperature     , massFiltering
-
     select type (self)
     class is (intergalacticMediumStateInternal)
        if (allocated(self%time            )) call deallocateArray(self%time            )

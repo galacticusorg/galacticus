@@ -25,13 +25,14 @@ program Test_Locks
   !!{
   Tests of OpenMP locking functions.
   !!}
-  use            :: Array_Utilities   , only : Array_Is_Monotonic, directionIncreasing
-  use            :: Display           , only : displayMessage    , displayVerbositySet   , verbosityLevelStandard
+  use            :: Array_Utilities   , only : Array_Is_Monotonic   , directionIncreasing
+  use            :: Display           , only : displayMessage       , displayVerbositySet   , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
+  use            :: ISO_Varying_String, only : operator(//)         , var_str               , varying_string
   use            :: Locks             , only : ompIncrementalLock
   use            :: String_Handling   , only : operator(//)
-  use            :: Unit_Tests        , only : Assert            , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
+  use            :: Unit_Tests        , only : Assert               , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
+  use            :: Events_Hooks      , only : eventsHooksInitialize
   implicit none
   integer         (c_size_t          ), parameter               :: elementCount   =100_c_size_t
   integer         (c_size_t          ), dimension(elementCount) :: orderedCount
@@ -44,7 +45,8 @@ program Test_Locks
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
-
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   call Unit_Tests_Begin_Group("OpenMP")
   ! Test incremental locks. We generate a counter which is not guaranteed to be ordered in terms of OpenMP threads. Then we use an
   ! incremental lock to force the access back to being ordered by counter value and thereby construct and ordered array.

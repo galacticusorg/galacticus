@@ -152,7 +152,7 @@ contains
     implicit none
     class(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,wechsler2002CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,wechsler2002CalculationReset,openMPThreadBindingAllLevels,label='darkMatterHaloMassAccretionHistoryWechsler2002')
     return
   end subroutine wechsler2002AutoHook
   

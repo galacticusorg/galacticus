@@ -210,7 +210,7 @@ contains
     implicit none
     class(darkMatterProfileDMOZhao1996), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,zhao1996CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,zhao1996CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOZhao1996')
     return
   end subroutine zhao1996AutoHook
 

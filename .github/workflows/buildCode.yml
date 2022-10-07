@@ -74,6 +74,11 @@ jobs:
           grep -v -q Warning: build.log
           grep -v 'is up to date' build.log | grep -v -q make: 
           md5sum Galacticus.exe
+      - name: Upload executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: galacticus-exec
+          path: '**.exe'
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: johnwbyrd/update-release@v1.0.0

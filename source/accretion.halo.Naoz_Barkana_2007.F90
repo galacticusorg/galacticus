@@ -186,7 +186,7 @@ contains
     implicit none
     class(accretionHaloNaozBarkana2007), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,naozBarkana2007CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,naozBarkana2007CalculationReset,openMPThreadBindingAllLevels,label='accretionHaloNaozBarkana2007')
     return
   end subroutine naozBarkana2007AutoHook
 

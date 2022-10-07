@@ -181,8 +181,7 @@ contains
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,constantRotationCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,constantRotationCalculationReset,openMPThreadBindingAllLevels,label='coolingSpecificAngularMomentumConstantRotation')
     return
   end subroutine constantRotationAutoHook
 

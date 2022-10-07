@@ -1023,6 +1023,7 @@ contains
     class  (matrix  ), intent(inout)           :: self
     type   (vector  ), intent(in   )           :: y
     integer          , intent(  out), optional :: status
+    type   (vector  )                          :: CyT
     integer(c_size_t)                          :: i      , j
     logical                                    :: allZero
 
@@ -1058,7 +1059,8 @@ contains
           end if
        end do
     end if
-    matrixCovarianceProduct=y.dot.self%linearSystemSolve(y)
+    CyT=self%linearSystemSolve(y)
+    matrixCovarianceProduct=y.dot.CyT
     if (matrixCovarianceProduct < 0.0d0) then
        if (present(status)) then
           status=GSL_ESing

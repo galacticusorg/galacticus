@@ -187,7 +187,7 @@ contains
     implicit none
     class(galacticStructureStandard), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,standardCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,standardCalculationReset,openMPThreadBindingAllLevels,label='galacticStructureStandard')
     return
   end subroutine standardAutoHook
 

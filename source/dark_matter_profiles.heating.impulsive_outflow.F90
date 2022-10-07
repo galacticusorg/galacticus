@@ -283,8 +283,15 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Functions_Global, only : galacticStructureDeepCopy_
+    use :: Error             , only : Error_Report
+    use :: Functions_Global  , only : galacticStructureDeepCopy_
+#ifdef OBJECTDEBUG
+    use :: Display           , only : displayMessage            , verbosityLevelSilent
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Function_Classes  , only : debugReporting
+    use :: ISO_Varying_String, only : operator(//)              , var_str
+    use :: String_Handling   , only : operator(//)
+#endif
     implicit none
     class(darkMatterProfileHeatingImpulsiveOutflow), intent(inout) :: self
     class(darkMatterProfileHeatingClass           ), intent(inout) :: destination
@@ -299,6 +306,9 @@ contains
        if (associated(self%galacticStructure_)) then
           allocate(destination%galacticStructure_,mold=self%galacticStructure_)
           call galacticStructureDeepCopy_(self%galacticStructure_,destination%galacticStructure_)
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): galacticstructure : [destination] : ')//loc(destination)//' : '//loc(destination%galacticStructure_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
           destination%referenceCount=1          
        end if
     class default

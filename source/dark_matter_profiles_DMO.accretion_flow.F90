@@ -55,7 +55,14 @@
      class(*                            ), pointer :: accretionFlows_           => null()
      class(darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_     => null()
    contains
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset"/>
+     </methods>
+     !!]
      final     ::                                      accretionFlowDestructor
+     procedure :: autoHook                          => accretionFlowAutoHook
+     procedure :: calculationReset                  => accretionFlowCalculationReset
      procedure :: density                           => accretionFlowDensity
      procedure :: densityLogSlope                   => accretionFlowDensityLogSlope
      procedure :: radiusEnclosingDensity            => accretionFlowRadiusEnclosingDensity
@@ -157,6 +164,18 @@ contains
     return
   end function accretionFlowConstructorInternal
 
+  subroutine accretionFlowAutoHook(self)
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,accretionFlowCalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine accretionFlowAutoHook
+
   subroutine accretionFlowDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily accretionFlow} dark matter halo profile class.
@@ -176,6 +195,26 @@ contains
     if (associated(self%accretionFlows_)) call accretionFlowsDestruct_(self%accretionFlows_)
     return
   end subroutine accretionFlowDestructor
+
+  subroutine accretionFlowCalculationReset(self,node)
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
+    implicit none
+    class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
+
+    self%genericLastUniqueID                         =node%uniqueID()
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    return
+  end subroutine accretionFlowCalculationReset
 
   double precision function accretionFlowDensity(self,node,radius)
     !!{

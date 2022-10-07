@@ -76,13 +76,13 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                :: self
-    type            (inputParameters                                              ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass                                      ), pointer       :: cosmologyFunctions_
-    class           (linearGrowthClass                                            ), pointer       :: linearGrowth_
-    class           (cosmologicalMassVarianceClass                                ), pointer       :: cosmologicalMassVariance_
-    class           (darkMatterParticleClass                                      ), pointer       :: darkMatterParticle_
-    double precision                                                                               :: normalization
-    logical                                                                                        :: tableStore
+    type            (inputParameters                                             ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                                     ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass                                           ), pointer       :: linearGrowth_
+    class           (cosmologicalMassVarianceClass                               ), pointer       :: cosmologicalMassVariance_
+    class           (darkMatterParticleClass                                     ), pointer       :: darkMatterParticle_
+    double precision                                                                              :: normalization
+    logical                                                                                       :: tableStore
 
     !![
     <inputParameter>
