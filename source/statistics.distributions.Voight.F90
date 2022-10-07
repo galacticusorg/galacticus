@@ -35,7 +35,7 @@
      double precision :: limitLower      , limitUpper      , &
           &              cdfAtLowerLimit , cdfAtUpperLimit , &
           &              gamma           , mu              , &
-          &              sigma           , fwhm
+          &              sigma
  contains
      procedure :: density    => voightDensity
      procedure :: cumulative => voightCumulative
@@ -114,8 +114,7 @@ contains
          &                                                                             sigma
     class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
     double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
-    double precision                                                                :: cdfLower              , cdfUpper    , &
-         &                                                                             fwhmLorentzian        , fwhmGaussian
+    double precision                                                                :: cdfLower              , cdfUpper
     !![
     <constructorAssign variables="gamma, mu, sigma, *randomNumberGenerator_"/>
     !!]
@@ -138,11 +137,6 @@ contains
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=cdfUpper
     end if
-    ! Estimate the Full Width at Half Maximum (Olivero & Longbothum; 1977; Journal of Quantative Spectroscopy and Radiative
-    ! Transfer; 17; 233; https://www.sciencedirect.com/science/article/pii/0022407377901613).
-    fwhmLorentzian=2.0d0*gamma
-    fwhmGaussian  =2.0d0*sigma*sqrt(2.0d0*log(2.0d0))
-    self%fwhm     =0.5346d0*fwhmLorentzian+sqrt(0.2166d0*fwhmLorentzian**2+fwhmGaussian**2)
     return
   end function voightConstructorInternal
 
@@ -222,9 +216,9 @@ contains
     double precision                                                            :: x0
     double complex                                                              :: z
 
-    if      ((self%limitLowerExists .and. x < self%limitLower) .or. x < self%mu-widthMaximum*self%fwhm) then
+    if      (self%limitLowerExists .and. x < self%limitLower) then
        voightCumulative=0.0d0
-    else if ((self%limitUpperExists .and. x > self%limitUpper) .or. x > self%mu+widthMaximum*self%fwhm) then
+    else if (self%limitUpperExists .and. x > self%limitUpper) then
        voightCumulative=1.0d0
     else
        ! Compute the value of x relative to the mean of the Gaussian component.
