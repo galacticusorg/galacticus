@@ -1,9 +1,8 @@
 name: Test-Cosmology
 on:
   workflow_run:
-    workflows: Builder
-    types:
-      - completed
+    workflows: [Builder]
+    types: [completed]
 defaults:
   run:
     shell: bash
