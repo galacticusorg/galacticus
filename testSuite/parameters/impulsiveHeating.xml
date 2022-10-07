@@ -458,7 +458,8 @@
       <!-- This timestep criterion makes sure that subsubahlos do not evolve too far ahead of their host subhalos when
            the host density and mass change rapidily due to tidal effects. It also limits the evolution time of subhalos
            to the time at which the hosts first becomes subhalos. -->
-      <timeStepRelative value="0.1"/>
+      <timeStepRelative        value="0.1"/>
+      <fractionTimestepMinimum value="0.1"/>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
 

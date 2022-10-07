@@ -89,6 +89,16 @@ module Merger_Tree_Timesteps
     <argument>type            (treeNode      ), intent(  out), optional, pointer :: lockNode</argument>
     <argument>type            (varying_string), intent(  out), optional          :: lockType</argument>
    </method>
+   <method name="refuseToEvolve">
+    <description>Return true if evolution should be refused.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <code>
+      !$GLC attributes unused :: self, node
+      mergerTreeEvolveTimestepRefuseToEvolve=.false.
+    </code>
+   </method>
   </functionClass>
   !!]
 

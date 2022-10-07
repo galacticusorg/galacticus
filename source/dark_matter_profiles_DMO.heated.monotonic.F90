@@ -228,18 +228,24 @@ contains
     type (treeNode                           ), intent(inout) :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID                    =node%uniqueID()
-    self%genericLastUniqueID             =node%uniqueID() 
-    self%isBound                         =.true.
-    self%radiusInitialMinimum            =+huge(0.0d0)
-    self%radiusInitialMaximum            =-huge(0.0d0)
-    self%radiusFinalMinimum              =+huge(0.0d0)
-    self%radiusFinalMaximum              =-huge(0.0d0)
-    self%genericEnclosedMassRadiusMinimum=+huge(0.0d0)
-    self%genericEnclosedMassRadiusMaximum=-huge(0.0d0)
-    if (allocated(self%massProfile              )) deallocate(self%massProfile              )
-    if (allocated(self%genericEnclosedMassMass  )) deallocate(self%genericEnclosedMassMass  )
-    if (allocated(self%genericEnclosedMassRadius)) deallocate(self%genericEnclosedMassRadius)
+    self%lastUniqueID                                =node%uniqueID()
+    self%genericLastUniqueID                         =node%uniqueID() 
+    self%isBound                                     =.true.
+    self%radiusInitialMinimum                        =+huge(0.0d0)
+    self%radiusInitialMaximum                        =-huge(0.0d0)
+    self%radiusFinalMinimum                          =+huge(0.0d0)
+    self%radiusFinalMaximum                          =-huge(0.0d0)
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
+    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
+    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
+    if (allocated(self%massProfile                            )) deallocate(self%massProfile                            )
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine heatedMonotonicCalculationReset
 
