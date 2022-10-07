@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664931591122,
+  "lastUpdate": 1665144654582,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -2991,6 +2991,36 @@ window.BENCHMARK_DATA = {
             "value": 74.576,
             "unit": "seconds",
             "range": 0.486537151715869
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "47b34f5f964ff4e8bbc59105179d241927630f7b",
+          "message": "feat: Add interface to GSL regular modified cynlindrical Bessel functions of arbitrary order",
+          "timestamp": "2022-10-06T14:34:26-07:00",
+          "tree_id": "c3594dd571b6c5cd2a728dee252fc735ab1065ef",
+          "url": "https://github.com/galacticusorg/galacticus/commit/47b34f5f964ff4e8bbc59105179d241927630f7b"
+        },
+        "date": 1665144653398,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 66.596,
+            "unit": "seconds",
+            "range": 0.123565367316858
           }
         ]
       }
