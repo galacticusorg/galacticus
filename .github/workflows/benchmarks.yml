@@ -172,6 +172,12 @@ jobs:
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
+          echo mtime
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f | ls -lct --time=mtime
+          echo ctime
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f | ls -lct --time=ctime
+          echo atime
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f | ls -lct --time=atime
           find $GALACTICUS_DATA_PATH/dynamic/ -type f -atime +1 -print -delete
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
