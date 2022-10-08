@@ -30,17 +30,18 @@ program Test_Math_Distributions
   use            :: Input_Parameters                   , only : inputParameters
   use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution, Poisson_Binomial_Distribution_Mean_Pairs
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorGSL
-  use            :: Statistics_Distributions           , only : distributionFunction1DGamma
+  use            :: Statistics_Distributions           , only : distributionFunction1DGamma  , distributionFunction1DVoight
   use            :: Unit_Tests                         , only : Assert                       , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  double precision                             , dimension(  10) :: p                , x           , y
-  integer                                      , dimension(0:10) :: trials
-  double precision                             , dimension(0:10) :: Pk               , PkMonteCarlo, errorMonteCarlo
-  integer                                      , parameter       :: trialCount=100000
-  type            (distributionFunction1DGamma)                  :: distributionGamma_
-  integer                                                        :: i                , j           , k
-  type            (randomNumberGeneratorGSL   )                  :: prng
-  type            (inputParameters            )                  :: parameters
+  double precision                              , dimension(  10) :: p                  , x           , y
+  integer                                       , dimension(0:10) :: trials
+  double precision                              , dimension(0:10) :: Pk                 , PkMonteCarlo, errorMonteCarlo
+  integer                                       , parameter       :: trialCount=100000
+  type            (distributionFunction1DGamma )                  :: distributionGamma_
+  type            (distributionFunction1DVoight)                  :: distributionVoight_
+  integer                                                         :: i                  , j           , k
+  type            (randomNumberGeneratorGSL    )                  :: prng
+  type            (inputParameters             )                  :: parameters
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -80,9 +81,18 @@ program Test_Math_Distributions
   x=[0.3d0,0.8d0,1.3d0,1.8d0,2.3d0,2.8d0,3.3d0,3.8d0,5.0d0,5.9d0]
   do i=1,10
      p(i)=distributionGamma_%cumulative(x(i))
-     y(i)=distributionGamma_%inverse(p(i))
+     y(i)=distributionGamma_%inverse   (p(i))
   end do
   call Assert("Gamma: inversion",x,y,relTol=1.0d-4)
+
+  ! Voight distribution.
+  distributionVoight_=distributionFunction1DVoight(1.0d0,0.0d0,0.5d0,limitLower=-10.0d0,limitUpper=10.0d0,randomNumberGenerator_=prng)
+  x=[0.3d0,0.8d0,1.3d0,1.8d0,2.3d0,2.8d0,3.3d0,3.8d0,5.0d0,5.9d0]
+  do i=1,10
+     p(i)=distributionVoight_%cumulative(x(i))
+     y(i)=distributionVoight_%inverse   (p(i))
+  end do
+  call Assert("Voight: inversion",x,y,relTol=1.0d-4)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
