@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665187177128,
+  "lastUpdate": 1665244221959,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -3129,6 +3129,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15423.3632579593,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "af76d5c03d144df542234405a1ac271b0fcba5f1",
+          "message": "Merge pull request #309 from galacticusorg/statsInverse\n\nAdd a default, numerical implementation of the `inverse()` function for the `distributionFunction1D` class",
+          "timestamp": "2022-10-08T07:28:50-07:00",
+          "tree_id": "4a93a7e8cea82858c04744e54208494820eba2d2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/af76d5c03d144df542234405a1ac271b0fcba5f1"
+        },
+        "date": 1665244220746,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 55.721,
+            "unit": "seconds",
+            "range": 0.0804791898568005
           }
         ]
       }
