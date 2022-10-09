@@ -169,18 +169,9 @@ jobs:
         run: |
           apt -y update
           apt install -y time
-      - name: "Clean datasets"
+      - name: Mark time
         run: |
-          echo Removing outdated dynamically-generated datasets
-          echo access
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f | xargs ls -lt --time=access
-          echo ctime
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f | xargs ls -lt --time=ctime
-          echo atime
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f | xargs ls -lt --time=atime
-          echo creation
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f | xargs ls -lt --time=creation
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -atime +1 -print -delete
+          echo mark > mark.time
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -213,4 +204,11 @@ jobs:
           git checkout gh-pages
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo FILES ACCESSED
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          echo FILES NOT ACCESSED
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - run: echo "This job's status is ${{ job.status }}."
