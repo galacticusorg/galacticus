@@ -169,7 +169,7 @@ jobs:
         run: |
           apt -y update
           apt install -y time
-      - name: Mark time
+      - name: Mark time for cache accesses
         run: |
           echo mark > mark.time
       - name: Create test suite output directory
@@ -207,8 +207,7 @@ jobs:
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
-          echo FILES ACCESSED
+          echo Retaining:
           find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          echo FILES NOT ACCESSED
           find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - run: echo "This job's status is ${{ job.status }}."

@@ -168,10 +168,13 @@ jobs:
           name: galacticus-exec
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run validation
         run: |
           cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH/
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./validate-milkyWay.pl
@@ -203,4 +206,10 @@ jobs:
           git commit -m "Update 'milkyWayModel' validation results"
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - run: echo "This job's status is ${{ job.status }}."
