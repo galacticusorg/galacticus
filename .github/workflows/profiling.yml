@@ -488,7 +488,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-SID,-milkyWay-${{ github.run_id }}
+          key: benchmarks-SIDM-milkyWay-${{ github.run_id }}
           restore-keys: |
             benchmarks-SIDM-milkyWay
       - name: "Set environmental variables"
