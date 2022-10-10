@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665272065474,
+  "lastUpdate": 1665426420878,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -2206,6 +2206,34 @@ window.BENCHMARK_DATA = {
             "value": 381.649,
             "unit": "seconds",
             "range": 1.94056406748202
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "a770fbb9cadeb6578d5c17d093c5ad769f9a52e3",
+          "message": "fix: Correct job dependencies",
+          "timestamp": "2022-10-10T15:40:19Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a770fbb9cadeb6578d5c17d093c5ad769f9a52e3"
+        },
+        "date": 1665426418388,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 368.814,
+            "unit": "seconds",
+            "range": 1.83056231797811
           }
         ]
       }
