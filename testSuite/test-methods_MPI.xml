@@ -9,7 +9,7 @@
   <baseParameters>testSuite/test-methods-base.xml</baseParameters>
   <launchMethod>pbs</launchMethod>
   <pbs>
-    <executable>Galacticus.exe_MPI</executable>
+    <executable>Galacticus.exe</executable>
     <mpiLaunch>yes</mpiLaunch>
     <mpiNodes>4</mpiNodes>
     <mpiProcesses>48</mpiProcesses>
