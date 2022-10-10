@@ -169,6 +169,9 @@ jobs:
         run: |
           apt -y update
           apt install -y time
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run benchmark
@@ -201,4 +204,10 @@ jobs:
           git checkout gh-pages
           git push --set-upstream origin gh-pages
         if: github.event_name != 'pull_request'
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - run: echo "This job's status is ${{ job.status }}."

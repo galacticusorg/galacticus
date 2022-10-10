@@ -269,7 +269,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-milkyWay-${{ github.run_id }}
+          key: regressions-Cole2000-${{ github.run_id }}
           restore-keys: |
             regressions-Cole2000
       - name: "Set environmental variables"
@@ -282,6 +282,9 @@ jobs:
           name: galacticus-exec
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -290,6 +293,12 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - run: echo "This job's status is ${{ job.status }}."
   Deadlock-Merge-Target-In-Descendent-Of-Mergee-2:
     runs-on: ubuntu-latest
@@ -486,7 +495,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: benchmarks-milkyWay-${{ github.run_id }}
+          key: regressions-issue142-${{ github.run_id }}
           restore-keys: |
             regressions-issue142
       - name: "Set environmental variables"
@@ -499,6 +508,9 @@ jobs:
           name: galacticus-exec
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -507,6 +519,12 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/issue142.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - run: echo "This job's status is ${{ job.status }}."
   Linear-Growth-For-Future-Model:
     runs-on: ubuntu-latest

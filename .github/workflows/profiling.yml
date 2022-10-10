@@ -182,6 +182,13 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: benchmarks-milkyWay-${{ github.run_id }}
+          restore-keys: |
+            benchmarks-milkyWay
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -200,6 +207,9 @@ jobs:
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run benchmark
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -210,6 +220,12 @@ jobs:
           perf script -i ./testSuite/outputs/milkyWay.perf.data > ./testSuite/outputs/milkyWay.perf
           du -sh ./testSuite/outputs/milkyWay.perf
           bzip2 ./testSuite/outputs/milkyWay.perf
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }} 
         uses: johnwbyrd/update-release@v1.0.0
@@ -227,7 +243,7 @@ jobs:
           tag_name: bleeding-edge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  Milky-Way-SIDM_Model:
+  Milky-Way-SIDM-Model:
     runs-on: ubuntu-latest
     container:
       image: docker://galacticusorg/buildenv:latest
@@ -245,6 +261,13 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: benchmarks-SIDM-milkyWay-${{ github.run_id }}
+          restore-keys: |
+            benchmarks-SIDM-milkyWay
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -263,6 +286,9 @@ jobs:
           apt install -y linux-tools-$(uname -r) linux-tools-generic bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run benchmark
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -273,6 +299,12 @@ jobs:
           perf script -i ./testSuite/outputs/milkyWay_SIDM.perf.data > ./testSuite/outputs/milkyWay_SIDM.perf
           du -sh ./testSuite/outputs/milkyWay_SIDM.perf
           bzip2 ./testSuite/outputs/milkyWay_SIDM.perf
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }} 
         uses: johnwbyrd/update-release@v1.0.0
@@ -372,6 +404,13 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: benchmarks-milkyWay-${{ github.run_id }}
+          restore-keys: |
+            benchmarks-milkyWay
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -389,7 +428,10 @@ jobs:
           apt -y update
           apt install -y bzip2
       - name: Create test suite output directory
-        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs 
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run benchmark
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -401,6 +443,12 @@ jobs:
           gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay.gprof
           du -sh ./testSuite/outputs/milkyWay.gprof
           bzip2 ./testSuite/outputs/milkyWay.gprof
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: johnwbyrd/update-release@v1.0.0
@@ -436,6 +484,13 @@ jobs:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: Cache dynamically-generated datasets
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/datasets/dynamic
+          key: benchmarks-SIDM-milkyWay-${{ github.run_id }}
+          restore-keys: |
+            benchmarks-SIDM-milkyWay
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -454,6 +509,9 @@ jobs:
           apt install -y bzip2
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Mark time for cache accesses
+        run: |
+          echo mark > mark.time
       - name: Run benchmark
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -465,6 +523,12 @@ jobs:
           gprof ./Galacticus.exe gmon.out > ./testSuite/outputs/milkyWay_SIDM.gprof
           du -sh ./testSuite/outputs/milkyWay_SIDM.gprof
           bzip2 ./testSuite/outputs/milkyWay_SIDM.gprof
+      - name: "Clean datasets"
+        run: |
+          echo Removing outdated dynamically-generated datasets
+          echo Retaining:
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
       - name: Update release
         if: ${{ steps.extract_branch.outputs.branch == 'master' }}
         uses: johnwbyrd/update-release@v1.0.0
