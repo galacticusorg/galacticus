@@ -717,6 +717,12 @@ jobs:
           mkdir galacticus/python
           # Find all dynamic libraries needed (filtering out any non-"local" ones) and copy to our folder.
           otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local | xargs -n 1 -I{} cp {} galacticus/lib/
+          # Remake the library using these "local" libraries.
+          export DYLD_LIBRARY_PATH=./galacticus/lib
+          rm libgalacticus.so
+          make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          echo libgalacticus.so dynamic libraries:
+          otool -L libgalacticus.so
           mv galacticus.py galacticus/python/
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
