@@ -31,6 +31,7 @@
 #endif
 #endif
 #endif
+#endif
 #ifdef __APPLE__
 #define mallinfo2_available
 #endif
