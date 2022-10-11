@@ -184,7 +184,7 @@ contains
     implicit none
     class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,kennicuttSchmidtCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,kennicuttSchmidtCalculationReset,openMPThreadBindingAllLevels,label='starFormationRateSurfaceDensityDisksKennicutt\Schmidt')
     return
   end subroutine kennicuttSchmidtAutoHook
 

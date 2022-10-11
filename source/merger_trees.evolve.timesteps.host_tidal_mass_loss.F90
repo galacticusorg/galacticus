@@ -38,10 +38,12 @@
      !!}
      private
      class           (satelliteTidalStrippingClass), pointer :: satelliteTidalStripping_ => null()
-     double precision                                        :: timeStepRelative
+     double precision                                        :: timeStepRelative                  , fractionTimestepMinimum
+     logical                                                 :: refuseToEvolve_
    contains
-     final     ::                 hostTidalMassLossDestructor
-     procedure :: timeEvolveTo => hostTidalMassLossTimeEvolveTo
+     final     ::                   hostTidalMassLossDestructor
+     procedure :: timeEvolveTo   => hostTidalMassLossTimeEvolveTo
+     procedure :: refuseToEvolve => hostTidalMassLossRefuseToEvolve
   end type mergerTreeEvolveTimestepHostTidalMassLoss
 
   interface mergerTreeEvolveTimestepHostTidalMassLoss
@@ -63,7 +65,7 @@ contains
     type            (mergerTreeEvolveTimestepHostTidalMassLoss)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (satelliteTidalStrippingClass             ), pointer       :: satelliteTidalStripping_
-    double precision                                                           :: timeStepRelative
+    double precision                                                           :: timeStepRelative        , fractionTimestepMinimum
 
     !![
     <inputParameter>
@@ -72,9 +74,15 @@ contains
       <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>fractionTimestepMinimum</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The minimum fraction of the timestep imposed by this timestepper to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
     !!]
-    self=mergerTreeEvolveTimestepHostTidalMassLoss(timeStepRelative,satelliteTidalStripping_)
+    self=mergerTreeEvolveTimestepHostTidalMassLoss(timeStepRelative,fractionTimestepMinimum,satelliteTidalStripping_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStripping_"/>
@@ -82,16 +90,16 @@ contains
     return
   end function hostTidalMassLossConstructorParameters
 
-  function hostTidalMassLossConstructorInternal(timeStepRelative,satelliteTidalStripping_) result(self)
+  function hostTidalMassLossConstructorInternal(timeStepRelative,fractionTimestepMinimum,satelliteTidalStripping_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily hostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepHostTidalMassLoss)                        :: self
-    double precision                                           , intent(in   )         :: timeStepRelative
+    double precision                                           , intent(in   )         :: timeStepRelative        , fractionTimestepMinimum
     class           (satelliteTidalStrippingClass             ), intent(in   ), target :: satelliteTidalStripping_
     !![
-    <constructorAssign variables="timeStepRelative, *satelliteTidalStripping_"/>
+    <constructorAssign variables="timeStepRelative, fractionTimestepMinimum, *satelliteTidalStripping_"/>
     !!]
 
     return
@@ -134,10 +142,12 @@ contains
          &                                                                                           timescaleMassLoss
     !$GLC attributes unused :: timeEnd
 
+    self%refuseToEvolve_=.false.
     hostTidalMassLossTimeEvolveTo=huge(0.0d0)
     if (node%isSatellite()) then
        nodeHost  => node    %parent
        basicHost => nodeHost%basic ()
+       basic     => node%basic     ()
        if (nodeHost%isSatellite()) then
           ! The host halo is currently a subhalo. Find the current mass loss timescale of the host.
           satellite    =>     nodeHost                          %satellite   (        )
@@ -146,6 +156,8 @@ contains
           if (self%timeStepRelative > 0.0d0 .and. boundMass > 0.0d0 .and. massLossRate > 0.0d0) then
              timescaleMassLoss            =self%timeStepRelative*boundMass/massLossRate
              hostTidalMassLossTimeEvolveTo=timescaleMassLoss+basicHost%time()
+             ! If the allowed timestep is too small, we will refuse to evolve, allowing the host halo to evolve instead.
+             if (hostTidalMassLossTimeEvolveTo-basic%time() < self%fractionTimestepMinimum*timescaleMassLoss) self%refuseToEvolve_=.true.
           end if
        else
           ! The host halo is currently not a subhalo. If it will ever become a subhalo, then limit the evolution time of this
@@ -164,7 +176,6 @@ contains
           end do
        end if
        ! Prevent the target time being eariler than the current time of the node.
-       basic                         => node%basic()
        hostTidalMassLossTimeEvolveTo =  max(hostTidalMassLossTimeEvolveTo,basic%time())
     end if
     task                               => null()
@@ -174,3 +185,16 @@ contains
     if (        report   ) call Evolve_To_Time_Report("hostTidalMassLoss: ",hostTidalMassLossTimeEvolveTo)
     return
   end function hostTidalMassLossTimeEvolveTo
+
+  logical function hostTidalMassLossRefuseToEvolve(self,node)
+    !!{
+    Refuse to evolve if the timestep is too small.
+    !!}
+    implicit none
+    class(mergerTreeEvolveTimestepHostTidalMassLoss), intent(inout) :: self
+    type (treeNode                                 ), intent(inout) :: node
+    !$GLC attributes unused :: node
+
+    hostTidalMassLossRefuseToEvolve=self%refuseToEvolve_
+    return
+  end function hostTidalMassLossRefuseToEvolve

@@ -514,6 +514,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass      ), pointer                               :: darkMatterProfileScaleRadius_                 => null()
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                               :: darkMatterHaloMassAccretionHistory_           => null()
     class           (virialDensityContrastClass             ), pointer                               :: virialDensityContrast_                        => null()
+    !$omp threadprivate(haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,criticalOverdensity_)
     type            (virialDensityContrastList              ), allocatable   , dimension(:   )       :: virialDensityContrasts
     type            (mergerTree                             ), allocatable   , target         , save :: tree
     !$omp threadprivate(tree)
@@ -646,7 +647,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,virialDensityContrasts,integrator_)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
@@ -783,7 +784,7 @@ contains
        massFunctionDifferentialLogarithmic(:,iOutput)=+massFunctionDifferential(:,iOutput) &
             &                                         *massHalo
        !$omp end single
-    end do
+    end do    
     call tree%destroy()
     nullify   (basic                )
     nullify   (darkMatterProfileHalo)
@@ -794,6 +795,7 @@ contains
     <objectDestructor name="virialDensityContrast_             "/>
     <objectDestructor name="cosmologyParameters_               "/>
     <objectDestructor name="cosmologyFunctions_                "/>
+    <objectDestructor name="criticalOverdensity_               "/>
     <objectDestructor name="cosmologicalMassVariance_          "/>
     <objectDestructor name="haloMassFunction_                  "/>
     <objectDestructor name="darkMatterHaloScale_               "/>

@@ -29,6 +29,7 @@ program Test_Mass_Distributions
   use :: Display                 , only : displayVerbositySet        , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
   use :: Error                   , only : Error_Report
+  use :: Events_Hooks            , only : eventsHooksInitialize
   use :: Linear_Algebra          , only : assignment(=)              , vector
   use :: Mass_Distributions      , only : massDistributionBetaProfile, massDistributionClass , massDistributionExponentialDisk, massDistributionGaussianEllipsoid, &
           &                               massDistributionHernquist  , massDistributionSersic, massDistributionSpherical
@@ -60,6 +61,8 @@ program Test_Mass_Distributions
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
 

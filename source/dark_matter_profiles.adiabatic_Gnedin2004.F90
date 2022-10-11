@@ -313,7 +313,7 @@ contains
     implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileAdiabaticGnedin2004')
     return
   end subroutine adiabaticGnedin2004AutoHook
 
@@ -1094,8 +1094,15 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Functions_Global, only : galacticStructureDeepCopy_
+    use :: Error             , only : Error_Report
+    use :: Functions_Global  , only : galacticStructureDeepCopy_
+#ifdef OBJECTDEBUG
+    use :: Display           , only : displayMessage            , verbosityLevelSilent
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Function_Classes  , only : debugReporting
+    use :: ISO_Varying_String, only : operator(//)              , var_str
+    use :: String_Handling   , only : operator(//)
+#endif
     implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     class(darkMatterProfileClass              ), intent(inout) :: destination
@@ -1157,6 +1164,9 @@ contains
              self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
              call destination%cosmologyParameters_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyparameters : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyParameters_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        nullify(destination%darkMatterProfileDMO_)
        if (associated(self%darkMatterProfileDMO_)) then
@@ -1174,11 +1184,17 @@ contains
              self%darkMatterProfileDMO_%copiedSelf => destination%darkMatterProfileDMO_
              call destination%darkMatterProfileDMO_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofiledmo_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterProfileDMO_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        nullify(destination%galacticStructure_)
        if (associated(self%galacticStructure_)) then
           allocate(destination%galacticStructure_,mold=self%galacticStructure_)
           call galacticStructureDeepCopy_(self%galacticStructure_,destination%galacticStructure_)
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): galacticstructure : [destination] : ')//loc(destination)//' : '//loc(destination%galacticStructure_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        nullify(destination%darkMatterHaloScale_)
        if (associated(self%darkMatterHaloScale_)) then
@@ -1196,6 +1212,9 @@ contains
              self%darkMatterHaloScale_%copiedSelf => destination%darkMatterHaloScale_
              call destination%darkMatterHaloScale_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterhaloscale : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterHaloScale_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        call destination%finder%deepCopyActions()
     class default

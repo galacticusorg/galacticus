@@ -145,7 +145,7 @@ contains
     implicit none
     class(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,king1962CalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,king1962CalculationReset,openMPThreadBindingAllLevels,label='satelliteTidalStrippingRadiusKing1962')
     return
   end subroutine king1962AutoHook
 

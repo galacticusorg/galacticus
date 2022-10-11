@@ -170,13 +170,13 @@ contains
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,virialDensityContrastDefinitionCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,virialDensityContrastDefinitionCalculationReset,openMPThreadBindingAllLevels,label='darkMatterHaloScaleVirialDensityContrastDefinition')
     return
   end subroutine virialDensityContrastDefinitionAutoHook
 
   subroutine virialDensityContrastDefinitionDestructor(self)
     !!{
-    Destructir for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    Destructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -544,7 +544,14 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+#ifdef OBJECTDEBUG
+    use :: Display           , only : displayMessage            , verbosityLevelSilent
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Function_Classes  , only : debugReporting
+    use :: ISO_Varying_String, only : operator(//)              , var_str
+    use :: String_Handling   , only : operator(//)
+#endif
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     class(darkMatterHaloScaleClass                          ), intent(inout) :: destination
@@ -601,6 +608,9 @@ contains
              self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
              call destination%cosmologyParameters_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyparameters : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyParameters_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        if (associated(self%cosmologyFunctions_)) then
           if (associated(self%cosmologyFunctions_%copiedSelf)) then
@@ -617,6 +627,9 @@ contains
              self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
              call destination%cosmologyFunctions_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        if (associated(self%virialDensityContrast_)) then
           if (associated(self%virialDensityContrast_%copiedSelf)) then
@@ -633,6 +646,9 @@ contains
              self%virialDensityContrast_%copiedSelf => destination%virialDensityContrast_
              call destination%virialDensityContrast_%autoHook()
           end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): virialdensitycontrast : [destination] : ')//loc(destination)//' : '//loc(destination%virialDensityContrast_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
        end if
        call destination%densityMeanTable%deepCopyActions()
     class default

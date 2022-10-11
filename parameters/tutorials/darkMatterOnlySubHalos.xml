@@ -96,6 +96,9 @@
   <excursionSetFirstCrossing value="linearBarrier"/>
 
   <!-- Intergalactic medium evolution -->
+  <intergalacticMediumFilteringMass value="gnedin2000">
+    <timeTooEarlyIsFatal value="false"/>
+  </intergalacticMediumFilteringMass>
   <intergalacticMediumState value="instantReionization">
     <reionizationRedshift           value="8.0e0"  />
     <reionizationTemperature        value="1.5e4"  />

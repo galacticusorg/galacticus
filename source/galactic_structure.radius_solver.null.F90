@@ -72,10 +72,10 @@ contains
     implicit none
     class(galacticStructureSolverNull), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,nullSolvePreDeriativeHook,openMPThreadBindingAtLevel)
-    call      postEvolveEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel)
-    call satelliteMergerEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel)
-    call   nodePromotionEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel)
+    call   preDerivativeEvent%attach(self,nullSolvePreDeriativeHook,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
+    call      postEvolveEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
+    call satelliteMergerEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
+    call   nodePromotionEvent%attach(self,nullSolveHook            ,openMPThreadBindingAtLevel,label='galacticStructureSolverNull')
     return
   end subroutine nullAutoHook
 

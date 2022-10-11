@@ -27,7 +27,7 @@ program Test_Math_Special_Functions
   !!}
   use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_J0                     , Bessel_Function_J0_Zero       , &
           &                               Bessel_Function_J1               , Bessel_Function_J1_Zero                        , Bessel_Function_Jn                     , Bessel_Function_Jn_Zero       , &
-          &                               Bessel_Function_K0               , Bessel_Function_K1
+          &                               Bessel_Function_K0               , Bessel_Function_K1                             , Bessel_Function_In
   use :: Binomial_Coefficients   , only : Binomial_Coefficient
   use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
@@ -57,7 +57,7 @@ program Test_Math_Special_Functions
        &                             hypergeometric2F1NegativeArgument                                                                                                                                                           , hypergeometric2F1approxNegativeArgument    , &
        &                             hypergeometric3F2NegativeArgument                                                                                                                                                           , hypergeometric3F2Accelerated               , &
        &                             polylogarithm2                                                                                                                                                                              , polylogarithm3                             , &
-       &                             hypergeometric1F2Regularized
+       &                             hypergeometric1F2Regularized                                                                                                                                                                , BesselI2
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -79,6 +79,7 @@ program Test_Math_Special_Functions
      BesselJ2Zero                               (i)=Bessel_Function_Jn_Zero                        (2.0d0                            ,                 i                                       )
      BesselI0                                   (i)=Bessel_Function_I0                             (                                          argument(i)                                      )
      BesselI1                                   (i)=Bessel_Function_I1                             (                                          argument(i)                                      )
+     BesselI2                                   (i)=Bessel_Function_In                             (2                                ,        argument(i)                                      )
      sineIntegral                               (i)=Sine_Integral                                  (                                          argument(i)                                      )
      cosineIntegral                             (i)=Cosine_Integral                                (                                          argument(i)                                      )
      factorials                                 (i)=Factorial                                      (                                                   i                                       )
@@ -263,7 +264,22 @@ program Test_Math_Special_Functions
        &       ],                   &
        &       relTol=1.0d-6        &
        &     )
-
+  call Assert("Bessel I₂(x)",          &
+       &       BesselI2,               &
+       &       [                       &
+       &        +1.357476697670383d-1, &
+       &        +6.889484476987382d-1, &
+       &        +2.245212440929951d+0, &
+       &        +6.422189375284105d+0, &
+       &        +1.750561496662423d+1, &
+       &        +4.678709471726457d+1, &
+       &        +1.240113105474453d+2, &
+       &        +3.275958315261646d+2, &
+       &        +8.644961939520510d+2, &
+       &        +2.281518967726002d+3  &
+       &       ],                      &
+       &       relTol=1.0d-6           &
+       &     )
   ! Test exponential integrals.
   call Assert("sine integral, Si(x)",   &
        &       sineIntegral,            &

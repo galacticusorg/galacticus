@@ -30,6 +30,12 @@
   <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
    <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
+   <deepCopy>
+     <ignore  variables="mergerTreeEvolveTimestep_"/>
+   </deepCopy>
+   <stateStorable>
+     <exclude variables="mergerTreeEvolveTimestep_"/>
+   </stateStorable> 
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
@@ -37,10 +43,12 @@
      Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
      !!}
      private
-     type(multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps => null()
+     type (multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps => null()
+     class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_ => null()
    contains
-     final     ::                       multiDestructor
-     procedure :: timeEvolveTo       => multiTimeEvolveTo
+     final     ::                   multiDestructor
+     procedure :: timeEvolveTo   => multiTimeEvolveTo
+     procedure :: refuseToEvolve => multiRefuseToEvolve
   end type mergerTreeEvolveTimestepMulti
 
   interface mergerTreeEvolveTimestepMulti
@@ -162,6 +170,7 @@ contains
        </conditionalCall>
        !!]
        if (timeEvolveTo < multiTimeEvolveTo) then
+          self%mergerTreeEvolveTimestep_  => mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_
           multiTimeEvolveTo               =  timeEvolveTo
           task                            => task_
           taskSelf                        => taskSelf_
@@ -172,3 +181,15 @@ contains
     end do
     return
   end function multiTimeEvolveTo
+
+  logical function multiRefuseToEvolve(self,node)
+    !!{
+    Refuse to evolve if the timestep is too small.
+    !!}
+    implicit none
+    class(mergerTreeEvolveTimestepMulti), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+
+    multiRefuseToEvolve=self%mergerTreeEvolveTimestep_%refuseToEvolve(node)
+    return
+  end function multiRefuseToEvolve

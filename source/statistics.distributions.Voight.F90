@@ -39,6 +39,8 @@
  contains
      procedure :: density    => voightDensity
      procedure :: cumulative => voightCumulative
+     procedure :: minimum    => voightMinimum
+     procedure :: maximum    => voightMaximum
   end type distributionFunction1DVoight
 
   interface distributionFunction1DVoight
@@ -108,7 +110,7 @@ contains
     Constructor for ``voight'' 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
-    double precision                              , intent(in   )                   :: gamma                 , mu        , &
+    double precision                              , intent(in   )                   :: gamma                 , mu          , &
          &                                                                             sigma
     class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
     double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
@@ -138,6 +140,36 @@ contains
     return
   end function voightConstructorInternal
 
+  double precision function voightMaximum(self)
+    !!{
+    Return the maximum extent a Voight distribution.
+    !!}
+    implicit none
+    class(distributionFunction1DVoight), intent(inout) :: self
+
+    if (self%limitUpperExists) then
+       voightMaximum=self%limitUpper
+    else
+       voightMaximum=+huge(0.0d0)
+    end if
+    return
+  end function voightMaximum
+  
+  double precision function voightMinimum(self)
+    !!{
+    Return the minimum extent a Voight distribution.
+    !!}
+    implicit none
+    class(distributionFunction1DVoight), intent(inout) :: self
+
+    if (self%limitLowerExists) then
+       voightMinimum=self%limitLower
+    else
+       voightMinimum=-huge(0.0d0)
+    end if
+    return
+  end function voightMinimum
+  
   double precision function voightDensity(self,x)
     !!{
     Return the density of a Voight distribution.
@@ -178,8 +210,9 @@ contains
     implicit none
     class           (distributionFunction1DVoight), intent(inout)               :: self
     double precision                              , intent(in   )               :: x
-    double complex                                , parameter    , dimension(2) :: a=[dcmplx(1.0d0,0.0d0),dcmplx(1.0d0,0.0d0)]
-    double complex                                , parameter    , dimension(2) :: b=[dcmplx(1.5d0,0.0d0),dcmplx(2.0d0,0.0d0)]
+    double complex                                , parameter    , dimension(2) :: a           =[dcmplx(1.0d0,0.0d0),dcmplx(1.0d0,0.0d0)]
+    double complex                                , parameter    , dimension(2) :: b           =[dcmplx(1.5d0,0.0d0),dcmplx(2.0d0,0.0d0)]
+    double precision                              , parameter                   :: widthMaximum=100.0d0
     double precision                                                            :: x0
     double complex                                                              :: z
 
@@ -193,7 +226,7 @@ contains
        ! Evaluate z.
        z =dcmplx(x0,self%gamma)/sqrt(2.0d0)/self%sigma
        ! Evaluate the cumulative distribution.
-       voightCumulative=                 &
+       voightCumulative=                             &
             & +(                                     &
             &   +real(                               &
             &         +0.5d0                         &

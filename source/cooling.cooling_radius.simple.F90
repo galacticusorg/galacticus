@@ -204,7 +204,7 @@ contains
     implicit none
     class(coolingRadiusSimple), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels,label='coolingRadiusSimple')
     return
   end subroutine simpleAutoHook
 

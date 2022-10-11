@@ -154,7 +154,7 @@ contains
     implicit none
     class(starFormationTimescaleHaloScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,haloScalingCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,haloScalingCalculationReset,openMPThreadBindingAllLevels,label='starFormationTimescaleHaloScaling')
     return
   end subroutine haloScalingAutoHook
 

@@ -275,6 +275,9 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($usedModule).".mod")
 			unless ( grep {$_ eq lc($usedModule)} @externalModules );
 		}
+		# Find any OpenMP parallel directives - these require a dependence on the event hooks module.
+		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."events_filters.mod")
+		    if ( $line =~ m/^\s*\!\$omp\s+parallel/i );
 		# Find any OpenMP critical directives - these require a dependence on the OpenMP utilities data module.
 		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."openmp_utilities_data.mod")
 		    if ( $line =~ m/^\s*\!\$omp\s+critical\s*\([a-z0-9_]+\)/i );

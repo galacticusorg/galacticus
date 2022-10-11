@@ -198,7 +198,7 @@ contains
     implicit none
     class(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,sidmIsothermalCalculationReset,openMPThreadBindingAllLevels)
+    call calculationResetEvent%attach(self,sidmIsothermalCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOSIDMIsothermal')
     return
   end subroutine sidmIsothermalAutoHook
 

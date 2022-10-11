@@ -62,55 +62,64 @@ print "Counts (prior to matching):\n";
 print "     own = ".$count->{   'own'}."\n"  ;
 print "  disown = ".$count->{'disown'}."\n\n";
 
-# Scan owns.
-foreach my $object ( keys(%{$actions}) ) {
-    foreach my $owner ( keys(%{$actions->{$object}->{'own'}}) ) {
-	# Search for a matching disown.
-	my $matchedDisowner = 0;
-	foreach my $disowner ( keys(%{$actions->{$object}->{'disown'}}) ) {
-	    if ( $disowner eq $owner ) {
-		$matchedDisowner = 1;
-		# Owner and disowner names match - look for matches.
-		foreach my $own ( @{$actions->{$object}->{'own'}->{$owner}} ) {
-		    next
-			unless ( defined($own) );
-		    my $matched = 0;
-		    foreach my $disown ( @{$actions->{$object}->{'disown'}->{$owner}} ) {
+# Scan owns. We make 2 passes. The first requires exact match of owner/disowner. The second is less strict and handles some
+# special cases where utility modules may have handled the own/disown action.
+for(my $pass=0;$pass<2;++$pass) {
+    foreach my $object ( keys(%{$actions}) ) {
+	foreach my $owner ( keys(%{$actions->{$object}->{'own'}}) ) {
+	    # Search for a matching disown.
+	    my $matchedDisowner = 0;
+	    foreach my $disowner ( keys(%{$actions->{$object}->{'disown'}}) ) {
+		# Owner and disowner must match, unless (special cases):
+		#  - Disowner is "module:Galactic_Structure_Utilities"
+		if (
+		    $disowner eq $owner
+		    ||
+		    ($disowner eq "module:Galactic_Structure_Utilities" && $pass == 1)
+		    ) {
+		    $matchedDisowner = 1;
+		    # Owner and disowner names match - look for matches.
+		    foreach my $own ( @{$actions->{$object}->{'own'}->{$owner}} ) {
 			next
-			    unless ( defined($disown) && ! $matched );
-			# Require a match by thread unless we have an owner object loc.
-			if ( $own->{'thread'} eq $disown->{'thread'} || $owner =~ m/^\d/ ) {
-			    $matched = 1;
-			    undef($disown);
-			    --$count->{'disown'};
+			    unless ( defined($own) );
+			my $matched = 0;
+			foreach my $disown ( @{$actions->{$object}->{'disown'}->{$disowner}} ) {
+			    next
+				unless ( defined($disown) && ! $matched );
+			    # Require a match by thread unless we have an owner object loc.
+			    if ( $own->{'thread'} eq $disown->{'thread'} || $owner =~ m/^\d/ ) {
+				$matched = 1;
+				undef($disown);
+				--$count->{'disown'};
+			    }
 			}
-		    }
-		    if ( $matched ) {
-			# A match was found, so we can remove the owner (we've already removed the disowner).
-			undef($own);
-			--$count->{'own'};
-		    } else {
-			print "Own lacks matching disown:\n";
-			print "   Object: ".$object               ."\n"  ;
-			print "    Owner: ".$owner                ."\n"  ;
-			print "   Thread: ".$own   ->{'thread'   }."\n"  ;
-			print "    Class: ".$own   ->{'class'    }."\n"  ;
-			print "   Source: ".$own   ->{'sourceLoc'}."\n\n";
+			if ( $matched ) {
+			    # A match was found, so we can remove the owner (we've already removed the disowner).
+			    undef($own);
+			    --$count->{'own'};
+			} else {
+			    print "Own lacks matching disown:\n";
+			    print "   Object: ".$object               ."\n"  ;
+			    print "    Owner: ".$owner                ."\n"  ;
+			    print "   Thread: ".$own   ->{'thread'   }."\n"  ;
+			    print "    Class: ".$own   ->{'class'    }."\n"  ;
+			    print "   Source: ".$own   ->{'sourceLoc'}."\n\n";
+			}
 		    }
 		}
 	    }
-	}
-	if ( ! $matchedDisowner ) {
-	    # No matching disowner was found.
-	    foreach my $own ( @{$actions->{$object}->{'own'}->{$owner}} ) {
-		next
-		    unless ( defined($own) );
-		print "Own lacks matching disown:\n";
-		print "   Object: ".$object               ."\n"  ;
-		print "    Owner: ".$owner                ."\n"  ;
-		print "   Thread: ".$own   ->{'thread'   }."\n"  ;
-		print "    Class: ".$own   ->{'class'    }."\n"  ;
-		print "   Source: ".$own   ->{'sourceLoc'}."\n\n";
+	    if ( ! $matchedDisowner && $pass == 1 ) {
+		# No matching disowner was found.
+		foreach my $own ( @{$actions->{$object}->{'own'}->{$owner}} ) {
+		    next
+			unless ( defined($own) );
+		    print "Own lacks matching disown:\n";
+		    print "   Object: ".$object               ."\n"  ;
+		    print "    Owner: ".$owner                ."\n"  ;
+		    print "   Thread: ".$own   ->{'thread'   }."\n"  ;
+		    print "    Class: ".$own   ->{'class'    }."\n"  ;
+		    print "   Source: ".$own   ->{'sourceLoc'}."\n\n";
+		}
 	    }
 	}
     }
