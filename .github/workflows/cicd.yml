@@ -716,8 +716,6 @@ jobs:
           mkdir galacticus/lib
           mkdir galacticus/python
           # Find all dynamic libraries needed (filtering out any non-"local" ones) and copy to our folder.
-          echo LIBRARIES
-          otool -L libgalacticus.so
           otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local | xargs -n 1 -I{} cp {} galacticus/lib/
           mv galacticus.py galacticus/python/
           mv libgalacticus.so galacticus/lib/
@@ -5519,7 +5517,7 @@ jobs:
           ./test-mass-conservation-standard.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
-  Cold-Mode:
+  Test-Mass-Conservation-Cold-Mode:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
@@ -9150,6 +9148,7 @@ jobs:
           echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
           echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=$GITHUB_WORKSPACE/galacticus/lib" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
