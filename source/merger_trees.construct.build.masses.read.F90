@@ -57,7 +57,6 @@ contains
     !!{
     Construct a set of merger tree masses by reading from a file.
     !!}
-    use :: Memory_Management, only : allocateArray
     use :: Sorting          , only : sort
     implicit none
     class           (mergerTreeBuildMassesRead), intent(inout)                            :: self
@@ -72,8 +71,8 @@ contains
        call sort(mass,weight)
     else
        call sort(mass       )
-       call allocateArray(massMinimum,shape(mass))
-       call allocateArray(massMaximum,shape(mass))
+       allocate(massMinimum,mold=mass)
+       allocate(massMaximum,mold=mass)
        do i=1,size(mass)
           massMinimum(i)=+mass(i)/sqrt(1.0d0+self%massIntervalFractional)
           massMaximum(i)=+mass(i)*sqrt(1.0d0+self%massIntervalFractional)

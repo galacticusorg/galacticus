@@ -224,7 +224,6 @@ contains
     Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Memory_Management  , only : allocateArray
     use :: Sorting            , only : sort
     implicit none
     type            (mergerTreeOperatorAugment)                                        :: self
@@ -244,7 +243,7 @@ contains
 
     if (present(timeSnapshots)) then
        allocate(self%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
-       call allocateArray(self%timeSnapshots,shape(timeSnapshots))
+       allocate(self%timeSnapshots,mold=timeSnapshots)
        self%timeSnapshots=timeSnapshots
        call sort(self%timeSnapshots)
        self%timeEarliest=min(                                                           &
@@ -1368,7 +1367,6 @@ contains
     use :: Output_HDF5      , only : outputFile
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
-    use :: Memory_Management, only : allocateArray       , deallocateArray
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)               :: self
     integer         (c_size_t                 ), allocatable  , dimension(:) :: retryHistogram        , trialCount
@@ -1380,14 +1378,14 @@ contains
     if (outputFile%hasGroup('augmentStatistics')) then
        ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
        augmentStatisticsGroup=outputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)
-       call allocateArray(retryHistogram,shape(self%retryHistogram))
-       call allocateArray(trialCount    ,shape(self%trialCount    ))
+       allocate(retryHistogram(size(self%retryHistogram)))
+       allocate(trialCount    (size(self%trialCount    )))
        call augmentStatisticsGroup%readDataset('retryHistogram',retryHistogram)
        call augmentStatisticsGroup%readDataset('trialCount'    ,trialCount    )
        self%retryHistogram=self%retryHistogram+retryHistogram
        self%trialCount    =self%trialCount    +trialCount
-       call deallocateArray(retryHistogram)
-       call deallocateArray(trialCount    )
+       deallocate(retryHistogram)
+       deallocate(trialCount    )
     else
        ! Our group does not already exist. Simply write the data.
        augmentStatisticsGroup=outputFile%openGroup('augmentStatistics','Statistics of merger tree augmentation.',objectsOverwritable=.true.,overwriteOverride=.true.)

@@ -230,7 +230,6 @@ contains
 #ifdef USEMPI
     use    :: MPI_Utilities      , only : mpiSelf
 #endif
-    use    :: Memory_Management  , only : deallocateArray
     use    :: Nearest_Neighbors  , only : nearestNeighbors
     use    :: Node_Components    , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Ranges   , only : Make_Range                       , rangeTypeLinear

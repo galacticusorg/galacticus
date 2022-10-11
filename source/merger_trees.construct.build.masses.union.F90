@@ -119,7 +119,6 @@ contains
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray, deallocateArray
     use            :: Sorting          , only : sortIndex
     implicit none
     class           (mergerTreeBuildMassesUnion), intent(inout)                            :: self
@@ -143,33 +142,33 @@ contains
        if (allocated(mass)) then
           if (useWeight.and..not.allocated(weightMember)) &
                & call Error_Report('all members must provide weights, or mass intervals - a mixture of the two is not permitted'//{introspection:location})
-          call move_alloc(mass,massTmp)
-          call allocateArray(mass,shape(massTmp)+shape(massMember))
+          call move_alloc(mass,     massTmp                  )
+          allocate       (mass(size(massTmp)+size(massMember)))
           mass(1:size(massTmp))=massTmp
-          call deallocateArray(massTmp)
+          deallocate(massTmp)
           if (useWeight) then
-             call move_alloc(weight,weightTmp)
-             call allocateArray(weight,shape(weightTmp)+shape(weightMember))
+             call move_alloc(weight,     weightTmp                    )
+             allocate       (weight(size(weightTmp)+size(weightMember)))
              weight(1:size(weightTmp))=weightTmp
-             call deallocateArray(weightTmp)
+             deallocate(weightTmp)
           else
-             call move_alloc(massMinimum,massMinimumTmp)
-             call move_alloc(massMaximum,massMaximumTmp)
-             call allocateArray(massMinimum,shape(massMinimumTmp)+shape(massMinimumMember))
-             call allocateArray(massMaximum,shape(massMaximumTmp)+shape(massMaximumMember))
+             call move_alloc(massMinimum,     massMinimumTmp                         )
+             call move_alloc(massMaximum,     massMaximumTmp                         )
+             allocate       (massMinimum(size(massMinimumTmp)+size(massMinimumMember)))
+             allocate       (massMaximum(size(massMaximumTmp)+size(massMaximumMember)))
              massMinimum(1:size(massMinimumTmp))=massMinimumTmp
              massMaximum(1:size(massMaximumTmp))=massMaximumTmp
-             call deallocateArray(massMinimumTmp)
-             call deallocateArray(massMaximumTmp)
+             deallocate(massMinimumTmp)
+             deallocate(massMaximumTmp)
           end if
        else
           useWeight=allocated(weightMember)
-          call allocateArray(mass,shape(massMaximumMember))
+          allocate(mass,mold=massMaximumMember)
           if (useWeight) then
-             call allocateArray(weight,shape(weightMember))
+             allocate(weight,mold=weightMember)
           else
-             call allocateArray(massMaximum,shape(massMaximumMember))
-             call allocateArray(massMaximum,shape(massMaximumMember))
+             allocate(massMaximum,mold=massMaximumMember)
+             allocate(massMaximum,mold=massMaximumMember)
           end if
        end if
        mass(treeCount:treeCount+size(massMember))=massMember

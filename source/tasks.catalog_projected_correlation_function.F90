@@ -282,7 +282,6 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
-    use :: Memory_Management               , only : allocateArray                    , deallocateArray
     use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate  , Points_Survey_Geometry, &
@@ -329,12 +328,8 @@ contains
     call displayMessage(message)
     call displayUnindent("done")
     ! Copy data.
-    !![
-    <allocate variable="galaxyPosition" shape="galaxyPosition_"/>
-    <allocate variable="galaxyVelocity" shape="galaxyVelocity_"/>
-    !!]
-    galaxyPosition=galaxyPosition_
-    galaxyVelocity=galaxyVelocity_
+    allocate(galaxyPosition,source=galaxyPosition_)
+    allocate(galaxyVelocity,source=galaxyVelocity_)
     deallocate(galaxyPosition_)
     deallocate(galaxyVelocity_)
     ! Get cosmic time.
@@ -355,7 +350,7 @@ contains
        randomPointCount=0
        call Error_Report('unknown random sample count type'//{introspection:location})
     end select
-    call allocateArray(randomPosition,[3,randomPointCount])
+    allocate(randomPosition(3,randomPointCount))
     do i=1,3
        do j=1,randomPointCount
           randomPosition(i,j)=self%randomNumberGenerator_%uniformSample()*simulationBoxSize
@@ -409,8 +404,8 @@ contains
        randomPointCount=0
        call Error_Report('unknown random sample count type'//{introspection:location})
     end select
-    call deallocateArray(randomPosition                     )
-    call allocateArray  (randomPosition,[3,randomPointCount])
+    deallocate(randomPosition                     )
+    allocate(randomPosition(3,randomPointCount))
     do i=1,3
        do j=1,randomPointCount
           randomPosition(i,j)=(self%randomNumberGenerator_%uniformSample()-0.5d0)*dble(2*replications+1)*simulationBoxSize

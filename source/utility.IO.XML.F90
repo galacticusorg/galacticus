@@ -132,7 +132,6 @@ contains
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (node       )                           , intent(in   ), pointer :: xmlElement
     character       (len=*      )                           , intent(in   )          :: arrayElementName
@@ -143,7 +142,7 @@ contains
     integer                                                                          :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
-    call allocateArray(column1,[size(arrayElements)])
+    allocate(column1(size(arrayElements)))
     do i=1,size(arrayElements)
        arrayElement => arrayElements(i-1)%element
        call extractDataContent(arrayELement,dataValues)
@@ -157,7 +156,6 @@ contains
     Read two columns of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (node       )                           , intent(in   ), pointer :: xmlElement
     character       (len=*      )                           , intent(in   )          :: arrayElementName
@@ -168,8 +166,8 @@ contains
     integer                                                                          :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
-    call allocateArray(column1,[size(arrayElements)])
-    call allocateArray(column2,[size(arrayElements)])
+    allocate(column1(size(arrayElements)))
+    allocate(column2(size(arrayElements)))
     do i=1,size(arrayElements)
        arrayElement => arrayElements(i-1)%element
        call extractDataContent(arrayELement,dataValues)
@@ -184,7 +182,6 @@ contains
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, node
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (xmlNodeList)             , dimension(0:), intent(in   ) :: xmlElements
     character       (len=*      )                            , intent(in   ) :: arrayElementName
@@ -193,7 +190,7 @@ contains
     double precision                          , dimension(1 )                :: dataValues
     integer                                                                  :: i
 
-    call allocateArray(column1,[size(xmlElements)])
+    allocate(column1(size(xmlElements)))
     do i=1,size(xmlElements)
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
        call extractDataContent(arrayELement,dataValues)

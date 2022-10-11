@@ -415,7 +415,6 @@ contains
     !!}
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendentNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
           &                                                 galacticFilterHaloMass                          , galacticFilterNot
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorDescendentNode             , nodePropertyExtractorRatio
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                      , rangeTypeLogarithmic
@@ -487,10 +486,10 @@ contains
     ! Initialize state.
     self%weightsFinalized=.false.
     ! Build grid of mass ratios.
-    call allocateArray(massRatios,[countMassRatio])
+    allocate(massRatios(countMassRatio))
     massRatios=Make_Range(massRatioMinimum,massRatioMaximum,int(countMassRatio),rangeType=rangeTypeLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[countMassRatio,outputTimes_%count()])
+    allocate(outputWeight(countMassRatio,outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%time(iOutput),timeProgenitor,absTol=timeTolerance)) then

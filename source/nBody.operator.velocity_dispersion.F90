@@ -137,7 +137,6 @@ contains
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (nbodyOperatorVelocityDispersion), intent(inout)                 :: self
     type            (nBodyData                      ), intent(inout), dimension(:  ) :: simulations
@@ -158,10 +157,10 @@ contains
        position => simulations(iSimulation)%propertiesRealRank1%value('position')
        velocity => simulations(iSimulation)%propertiesRealRank1%value('velocity')
        ! Allocate workspace.
-       call allocateArray(distanceRadialSquared,[  size(     position   ,dim =2       )                          ])
-       call allocateArray(positionRelative     ,[3,size(     position   ,dim =2       )                          ])
-       call allocateArray(velocityDispersion   ,[  size(self%radiusInner,kind=c_size_t),self%bootstrapSampleCount])
-       call allocateArray(mask                 ,[  size(     position   ,dim =2       )                          ])
+       allocate(distanceRadialSquared(  size(     position   ,dim =2)                          ))
+       allocate(positionRelative     (3,size(     position   ,dim =2)                          ))
+       allocate(velocityDispersion   (  size(self%radiusInner       ),self%bootstrapSampleCount))
+       allocate(mask                 (  size(     position   ,dim =2)                          ))
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
@@ -171,7 +170,7 @@ contains
              call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
-          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          allocate(selfBoundStatus(size(position,dim=2),self%bootstrapSampleCount))
           do i=1,self%bootstrapSampleCount
              do j=1,size(position,dim=2)
                 selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
@@ -210,11 +209,11 @@ contains
        call simulations(iSimulation)%analysis%writeDataset(self%radiusInner  ,'velocityDispersionRadiusOuter')
        call simulations(iSimulation)%analysis%writeDataset(velocityDispersion,'velocityDispersion'           )
        ! Deallocate workspace.
-       call deallocateArray(selfBoundStatus      )
-       call deallocateArray(distanceRadialSquared)
-       call deallocateArray(positionRelative     )
-       call deallocateArray(velocityDispersion   )
-       call deallocateArray(mask                 )
+       deallocate(selfBoundStatus      )
+       deallocate(distanceRadialSquared)
+       deallocate(positionRelative     )
+       deallocate(velocityDispersion   )
+       deallocate(mask                 )
     end do
     return
   end subroutine velocityDispersionOperate

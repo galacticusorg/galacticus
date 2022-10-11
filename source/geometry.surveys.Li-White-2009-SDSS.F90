@@ -268,7 +268,6 @@ contains
     use :: Error                   , only : Error_Report
     use :: Input_Paths             , only : inputPath              , pathTypeDataDynamic
     use :: ISO_Varying_String      , only : varying_string
-    use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : operator(//)
     use :: System_Download         , only : download
@@ -288,8 +287,8 @@ contains
        if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if
     randomsCount=Count_Lines_In_File(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
-    call allocateArray(self%randomTheta,[randomsCount])
-    call allocateArray(self%randomPhi  ,[randomsCount])
+    allocate(self%randomTheta(randomsCount))
+    allocate(self%randomPhi  (randomsCount))
     open(newUnit=randomUnit,file=char(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
     j=0
     do i=1,randomsCount
@@ -310,13 +309,13 @@ contains
     close(randomUnit)
     randomsCount=j
     call Move_Alloc   (self%randomTheta,angleTmp      )
-    call allocateArray  (self%randomTheta,[randomsCount])
+    allocate(self%randomTheta(randomsCount))
     self%randomTheta=angleTmp(1:randomsCount)
-    call deallocateArray(angleTmp                       )
+    deallocate(angleTmp                       )
     call Move_Alloc   (self%randomPhi  ,angleTmp      )
-    call allocateArray  (self%randomPhi  ,[randomsCount])
+    allocate(self%randomPhi  (randomsCount))
     self%randomPhi  =angleTmp(1:randomsCount)
-    call deallocateArray(angleTmp                       )
+    deallocate(angleTmp                       )
     message="Read "
     message=message//randomsCount//" random points and kept "//randomsCount//" of them"
     call displayMessage(message)

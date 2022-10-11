@@ -413,7 +413,6 @@ contains
     Constructor for the ``correlationFunction'' output analysis class for internal use.
     !!}
     use, intrinsic :: ISO_C_Binding            , only : c_size_t
-    use            :: Memory_Management        , only : allocateArray
     use            :: Numerical_Ranges         , only : Make_Range                                 , rangeTypeLogarithmic
     use            :: Output_Analysis_Utilities, only : Output_Analysis_Output_Weight_Survey_Volume
     implicit none
@@ -449,7 +448,7 @@ contains
     ! Compute weight that applies to each output redshift.
     self%massCount=size(self%massMinima               )
     self%binCount =size(self%separations,kind=c_size_t)
-    call allocateArray(self%outputWeight,[self%massCount,self%outputTimes_%count()])
+    allocate(self%outputWeight(self%massCount,self%outputTimes_%count()))
     do i=1,self%massCount
        self%outputWeight(i,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,massMinima(i))
     end do
@@ -458,17 +457,17 @@ contains
     self%countBinsMassHalo                 =                             int(log10(massHaloMaximum/massHaloMinimum)*dble(massHaloBinsPerDecade)+0.5d0)
     self%massHaloIntervalLogarithmicInverse=dble(self%countBinsMassHalo)/    log10(massHaloMaximum/massHaloMinimum)
     ! Allocate wavenumbers.
-    call allocateArray(self%wavenumber           ,[self%wavenumberCount                                      ])
-    call allocateArray(self%probabilityCentral   ,[                     self%massCount                       ])
-    call allocateArray(self%probabilitySatellite ,[     1_c_size_t     ,self%massCount                       ])
-    call allocateArray(self%meanDensity          ,[                     self%massCount                       ])
-    call allocateArray(self%meanDensityMainBranch,[                     self%massCount,self%countBinsMassHalo])
-    call allocateArray(self%countMainBranch      ,[                                    self%countBinsMassHalo])
-    call allocateArray(self%oneHaloTermMainBranch,[self%wavenumberCount,self%massCount,self%countBinsMassHalo])
-    call allocateArray(self%twoHaloTermMainBranch,[self%wavenumberCount,self%massCount,self%countBinsMassHalo])
-    call allocateArray(self%oneHaloTerm          ,[self%wavenumberCount,self%massCount                       ])
-    call allocateArray(self%twoHaloTerm          ,[self%wavenumberCount,self%massCount                       ])
-    call allocateArray(self%termCovariance       ,[self%massCount*(2*self%wavenumberCount+1),self%massCount*(2*self%wavenumberCount+1)])
+    allocate(self%wavenumber           (self%wavenumberCount                                      ))
+    allocate(self%probabilityCentral   (                     self%massCount                       ))
+    allocate(self%probabilitySatellite (     1              ,self%massCount                       ))
+    allocate(self%meanDensity          (                     self%massCount                       ))
+    allocate(self%meanDensityMainBranch(                     self%massCount,self%countBinsMassHalo))
+    allocate(self%countMainBranch      (                                    self%countBinsMassHalo))
+    allocate(self%oneHaloTermMainBranch(self%wavenumberCount,self%massCount,self%countBinsMassHalo))
+    allocate(self%twoHaloTermMainBranch(self%wavenumberCount,self%massCount,self%countBinsMassHalo))
+    allocate(self%oneHaloTerm          (self%wavenumberCount,self%massCount                       ))
+    allocate(self%twoHaloTerm          (self%wavenumberCount,self%massCount                       ))
+    allocate(self%termCovariance       (self%massCount*(2*self%wavenumberCount+1),self%massCount*(2*self%wavenumberCount+1)))
     self%wavenumber=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(self%wavenumberCount),rangeTypeLogarithmic)
     ! Compute logarithmic masses.
     allocate(self%massMinimaLogarithmic(self%massCount))
@@ -935,7 +934,6 @@ contains
 #ifdef USEMPI
     use :: MPI_Utilities           , only : mpiSelf
 #endif
-    use :: Memory_Management       , only : allocateArray                      , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Table_Labels            , only : extrapolationTypeExtrapolate
     use :: Tables                  , only : table1DLogarithmicLinear           , tablesIntegrationWeightFunction
@@ -1058,8 +1056,8 @@ contains
        end do
     end do
     ! Normalize one- and two-halo terms.
-    call allocateArray(jacobian            ,[self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount+1)])
-    call allocateArray(oneTwoHaloCovariance,[self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount  )])
+    allocate(jacobian            (self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount+1)))
+    allocate(oneTwoHaloCovariance(self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount  )))
     ! One-halo term.
     jacobian=0.0d0
     do n=1,self%massCount
@@ -1090,9 +1088,9 @@ contains
           self%twoHaloTerm(:,n)=self%twoHaloTerm(:,n)/self%meanDensity(n)
        end if
     end do
-    call deallocateArray(jacobian)
+    deallocate(jacobian)
     ! Square the two halo term, and multiply by the linear theory power spectrum.
-    call allocateArray(jacobian            ,[self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount)])
+    allocate(jacobian            (self%massCount*(2*self%wavenumberCount),self%massCount*(2*self%wavenumberCount)))
     jacobian=0.0d0
     do n=1,self%massCount
        do i=1,self%wavenumberCount
@@ -1109,11 +1107,11 @@ contains
           self%twoHaloTerm(i,n)=+self%twoHaloTerm(i,n)**2
        end do
     end do
-    call deallocateArray(jacobian)
+    deallocate(jacobian)
     ! Construct the final power spectra.
-    call allocateArray(powerSpectrumValue     ,[               self%wavenumberCount,self%massCount                         ])
-    call allocateArray(powerSpectrumCovariance,[self%massCount*self%wavenumberCount,self%massCount*   self%wavenumberCount ])
-    call allocateArray(jacobian               ,[self%massCount*self%wavenumberCount,self%massCount*(2*self%wavenumberCount)])
+    allocate(powerSpectrumValue     (               self%wavenumberCount,self%massCount                         ))
+    allocate(powerSpectrumCovariance(self%massCount*self%wavenumberCount,self%massCount*   self%wavenumberCount ))
+    allocate(jacobian               (self%massCount*self%wavenumberCount,self%massCount*(2*self%wavenumberCount)))
     jacobian=0.0d0
     do n=1,self%massCount
        do i=1,self%wavenumberCount
@@ -1127,11 +1125,11 @@ contains
     do n=1,self%massCount
        powerSpectrumValue(:,n)=self%oneHaloTerm(:,n)+self%twoHaloTerm(:,n)
     end do
-    call deallocateArray(jacobian            )
-    call deallocateArray(oneTwoHaloCovariance)
+    deallocate(jacobian            )
+    deallocate(oneTwoHaloCovariance)
     ! Allocate correlation function and separation arrays.
-    call allocateArray(correlation,shape(powerSpectrumValue))
-    call allocateArray(separation ,[self%wavenumberCount])
+    allocate(correlation,mold=powerSpectrumValue)
+    allocate(separation (self%wavenumberCount))
     ! Fourier transform the power spectrum to get the correlation function.
     do n=1,self%massCount
        call FFTLogSineTransform(                          &
@@ -1147,8 +1145,8 @@ contains
        correlation(:,n)=correlation(:,n)/separation
     end do
     ! Compute the covariance of the correlation function.
-    call allocateArray(covarianceTmp        ,[self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount])
-    call allocateArray(correlationCovariance,[self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount])
+    allocate(covarianceTmp        (self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount))
+    allocate(correlationCovariance(self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount))
     ! Apply wavenumber weighting to the power spectrum covariance.
     do n=1,self%massCount
        do m=1,self%massCount
@@ -1206,13 +1204,13 @@ contains
           end do
        end do
     end do
-    call deallocateArray(covarianceTmp)
+    deallocate(covarianceTmp)
     ! Construct correlation table.
     call correlationTable%create(separation(1),separation(self%wavenumberCount),size(separation),extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
     ! Project the correlation function.
-    call allocateArray(jacobian                      ,[self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount])
-    call allocateArray(projectedCorrelationCovariance,[self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount])
-    call allocateArray(projectedCorrelation          ,[               self%wavenumberCount,self%massCount                     ])
+    allocate(jacobian                      (self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount))
+    allocate(projectedCorrelationCovariance(self%massCount*self%wavenumberCount,self%massCount*self%wavenumberCount))
+    allocate(projectedCorrelation          (               self%wavenumberCount,self%massCount                     ))
     jacobian=0.0d0
     integrandWeightFunction => projectionIntegrandWeight
     do i=1,self%wavenumberCount
@@ -1233,7 +1231,7 @@ contains
     jacobianMatrix                =jacobian
     covarianceMatrix              =correlationCovariance
     projectedCorrelationCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
-    call deallocateArray(jacobian)
+    deallocate(jacobian)
     ! If the integral was taken over the half range, 0 < π < πₘₐₓ, rather than the full range, -πₘₐₓ < π < πₘₐₓ, then divide
     ! the projected correlation function by two.
     if (self%halfIntegral) then
@@ -1241,9 +1239,9 @@ contains
        projectedCorrelationCovariance=projectedCorrelationCovariance/2.0d0**2
     end if
     ! Integrate the projected correlation function over bins.
-    call allocateArray(self%binnedProjectedCorrelation          ,[               size(self%separations,kind=c_size_t),self%massCount                                          ])
-    call allocateArray(self%binnedProjectedCorrelationCovariance,[self%massCount*size(self%separations,kind=c_size_t),self%massCount*size(self%separations     ,kind=c_size_t)])
-    call allocateArray(     jacobian                            ,[self%massCount*size(self%separations,kind=c_size_t),self%massCount*     self%wavenumberCount                ])
+    allocate(self%binnedProjectedCorrelation          (               size(self%separations),self%massCount                           ))
+    allocate(self%binnedProjectedCorrelationCovariance(self%massCount*size(self%separations),self%massCount*size(self%separations    )))
+    allocate(     jacobian                            (self%massCount*size(self%separations),self%massCount*     self%wavenumberCount ))
     jacobian=0.0d0
     integrandWeightFunction => binningIntegrandWeight
     binWidthLogarithmic=log(self%separations(2)/self%separations(1))
@@ -1268,7 +1266,7 @@ contains
     jacobianMatrix                           =jacobian
     covarianceMatrix                         =projectedCorrelationCovariance
     self%binnedProjectedCorrelationCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
-    call deallocateArray(jacobian)
+    deallocate(jacobian)
     call correlationTable%destroy()
     ! Apply the integral constraint.
     self%binnedProjectedCorrelation=self%binnedProjectedCorrelation/self%integralConstraint

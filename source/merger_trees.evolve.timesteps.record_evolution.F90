@@ -143,7 +143,6 @@ contains
     Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeEvolveTimestepRecordEvolution)                        :: self
@@ -157,10 +156,10 @@ contains
     <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_, *galacticStructure_"/>
     !!]
 
-    call allocateArray(self%time           ,[self%countSteps])
-    call allocateArray(self%expansionFactor,[self%countSteps])
-    call allocateArray(self%massStellar    ,[self%countSteps])
-    call allocateArray(self%massTotal      ,[self%countSteps])
+    allocate(self%time           (self%countSteps))
+    allocate(self%expansionFactor(self%countSteps))
+    allocate(self%massStellar    (self%countSteps))
+    allocate(self%massTotal      (self%countSteps))
     self%time=Make_Range(self%timeBegin,self%timeEnd,self%countSteps,rangeTypeLogarithmic)
     do timeIndex=1,self%countSteps
        self%expansionFactor(timeIndex)=self%cosmologyFunctions_%expansionFactor(self%time(timeIndex))

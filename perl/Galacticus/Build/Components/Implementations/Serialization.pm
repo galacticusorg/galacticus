@@ -486,10 +486,6 @@ sub Implementation_Deserialize_Raw {
 	type        => "void",
 	name        => $implementationTypeName."DeserializeRaw",
 	description => "Deserialize the contents of a ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component from raw (binary) file.",
-	modules     =>
-	    [
-	     "Memory_Management"
-	    ],
 	variables   =>
 	    [
 	     {
@@ -560,7 +556,7 @@ if (isAllocated) then
 CODE
 	    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call allocateArray(self%{$property->{'name'}}Data,[arraySize])
+   allocate(self%{$property->{'name'}}Data(arraySize))
    read (fileHandle) self%{$property->{'name'}}Data
 CODE
 	    } else {

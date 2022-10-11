@@ -303,7 +303,6 @@ contains
     use :: Display                         , only : displayIndent          , displayUnindent
     use :: Error                , only : Error_Report, errorStatusSuccess
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Memory_Management               , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Integration           , only : integrator
@@ -354,20 +353,20 @@ contains
     self%countTimeBins=int(log10(timeMaximum/timeMinimum)*dble(timePointsPerDecade))+1
     ! Allocate arrays.
     countFields=self%surveyGeometry_%fieldCount()
-    call allocateArray(     mass             ,[self%countMassBins                   ])
-    call allocateArray(self%logMassBinCenter ,[self%countMassBins                   ])
-    call allocateArray(self%log10MassBinWidth,[self%countMassBins                   ])
-    call allocateArray(self%logMassBinWidth  ,[self%countMassBins                   ])
-    call allocateArray(     massFunction     ,[self%countMassBins                   ])
-    call allocateArray(     volume           ,[self%countMassBins,     countFields  ])
-    call allocateArray(     covariance       ,[self%countMassBins,self%countMassBins])
-    call allocateArray(     covariancePoisson,[self%countMassBins,self%countMassBins])
-    call allocateArray(     covarianceHalo   ,[self%countMassBins,self%countMassBins])
-    call allocateArray(     covarianceLSS    ,[self%countMassBins,self%countMassBins])
-    call allocateArray(     correlation      ,[self%countMassBins,self%countMassBins])
-    call allocateArray(     varianceLSS      ,[self%countMassBins,self%countMassBins])
-    call allocateArray(self%timeTable        ,[self%countTimeBins                   ])
-    call allocateArray(self%biasTable        ,[self%countTimeBins,self%countMassBins])
+    allocate(     mass             (self%countMassBins                   ))
+    allocate(self%logMassBinCenter (self%countMassBins                   ))
+    allocate(self%log10MassBinWidth(self%countMassBins                   ))
+    allocate(self%logMassBinWidth  (self%countMassBins                   ))
+    allocate(     massFunction     (self%countMassBins                   ))
+    allocate(     volume           (self%countMassBins,     countFields  ))
+    allocate(     covariance       (self%countMassBins,self%countMassBins))
+    allocate(     covariancePoisson(self%countMassBins,self%countMassBins))
+    allocate(     covarianceHalo   (self%countMassBins,self%countMassBins))
+    allocate(     covarianceLSS    (self%countMassBins,self%countMassBins))
+    allocate(     correlation      (self%countMassBins,self%countMassBins))
+    allocate(     varianceLSS      (self%countMassBins,self%countMassBins))
+    allocate(self%timeTable        (self%countTimeBins                   ))
+    allocate(self%biasTable        (self%countTimeBins,self%countMassBins))
     ! Build integrators.
     integratorVolume           =integrator(massFunctionCovarianceVolumeIntegrand           ,toleranceRelative=1.0d-3)
     integratorTimeI            =integrator(massFunctionCovarianceMassFunctionTimeIntegrandI,toleranceRelative=1.0d-3)
@@ -594,9 +593,9 @@ contains
        end do
     end do
     ! Deallocate arrays.
-    call deallocateArray(self%logMassBinCenter)
-    call deallocateArray(     volume          )
-    call deallocateArray(     varianceLSS     )
+    deallocate(self%logMassBinCenter)
+    deallocate(     volume          )
+    deallocate(     varianceLSS     )
     ! Write out the covariance matrix.
     call massFunctionFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                    ,datasetReturned=dataset)
     call dataset%writeAttribute(massSolar          ,"unitsInSI"                                    )
@@ -995,7 +994,6 @@ contains
     use            :: Display                 , only : displayCounter  , displayCounterClear
     use            :: FFTW3                   , only : FFTW_Wavenumber
     use, intrinsic :: ISO_C_Binding           , only : c_double_complex
-    use            :: Memory_Management       , only : allocateArray   , deallocateArray
     use            :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self
@@ -1076,12 +1074,12 @@ contains
           <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
           !!]
           !$omp end critical(massFunctionCovarianceDeepCopy)
-          call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
-          call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
-          call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumI        ,[countFields])
-          call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumJ        ,[countFields])
-          call allocateArray(massFunctionCovarianceSelfCopy%timeMaximumI        ,[countFields])
-          call allocateArray(massFunctionCovarianceSelfCopy%timeMaximumJ        ,[countFields])
+          allocate(massFunctionCovarianceSelfCopy%volumeNormalizationI(countFields))
+          allocate(massFunctionCovarianceSelfCopy%volumeNormalizationJ(countFields))
+          allocate(massFunctionCovarianceSelfCopy%timeMinimumI        (countFields))
+          allocate(massFunctionCovarianceSelfCopy%timeMinimumJ        (countFields))
+          allocate(massFunctionCovarianceSelfCopy%timeMaximumI        (countFields))
+          allocate(massFunctionCovarianceSelfCopy%timeMaximumJ        (countFields))
           call massFunctionCovarianceComputeVolumeNormalizations(                                                        &
                &                                                 massFunctionCovarianceSelfCopy%logMassBinCenter    (i), &
                &                                                 redshiftMinimum                                       , &
@@ -1181,7 +1179,6 @@ contains
     Compute variance due to large scale structure by integration over the angular power spectrum.
     !!}
     use :: Display                 , only : displayCounter, displayCounterClear
-    use :: Memory_Management       , only : allocateArray , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
@@ -1212,12 +1209,12 @@ contains
     <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
     !!]
     !$omp end critical(massFunctionCovarianceDeepCopy)
-    call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
-    call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
-    call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumI        ,[countFields])
-    call allocateArray(massFunctionCovarianceSelfCopy%timeMinimumJ        ,[countFields])
-    call allocateArray(massFunctionCovarianceSelfCopy%timeMaximumI        ,[countFields])
-    call allocateArray(massFunctionCovarianceSelfCopy%timeMaximumJ        ,[countFields])
+    allocate(massFunctionCovarianceSelfCopy%volumeNormalizationI(countFields))
+    allocate(massFunctionCovarianceSelfCopy%volumeNormalizationJ(countFields))
+    allocate(massFunctionCovarianceSelfCopy%timeMinimumI        (countFields))
+    allocate(massFunctionCovarianceSelfCopy%timeMinimumJ        (countFields))
+    allocate(massFunctionCovarianceSelfCopy%timeMaximumI        (countFields))
+    allocate(massFunctionCovarianceSelfCopy%timeMaximumJ        (countFields))
     integrator_=integrator(massFunctionCovarianceAngularPowerIntegrand,toleranceRelative=1.0d-2)
     !$omp do schedule (dynamic)
     do i=1,massBinCount

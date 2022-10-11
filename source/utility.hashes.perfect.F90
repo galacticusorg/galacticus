@@ -79,7 +79,6 @@ contains
     !!}
     use :: Error            , only : Error_Report
     use :: Kind_Numbers     , only : kind_int8
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (hashPerfect   )                             , intent(inout)           :: hash
     integer(kind=kind_int8)             , dimension(:)  , intent(in   )           :: keys
@@ -105,13 +104,15 @@ contains
 
     ! Allocate data structures.
     call hash%destroy()
-    call allocateArray(A     ,int([hash%rowSize,hash%rowSize]),lowerBounds=[0,0])
-    call allocateArray(hash%r,int([hash%rowSize             ]),lowerBounds=[0  ])
-    call allocateArray(hash%C,int([hashTableMax             ]),lowerBounds=[0  ])
+    allocate(A     (0:hash%rowSize-1,0:hash%rowSize-1))
+    allocate(hash%r(0:hash%rowSize-1                 ))
+    allocate(hash%C(0:hashTableMax-1                 ))
     allocate(row(0:hash%rowSize-1))
     if (hash%hasValues) then
-       call allocateArray(B     ,int([hash%rowSize,hash%rowSize]),lowerBounds=[0,0])
-       call allocateArray(hash%v,int([hashTableMax             ]),lowerBounds=[0  ])
+       allocate(B     (0:hash%rowSize-1,hash%rowSize-1))
+       allocate(hash%v(0:hashTableMax-1               ))
+    else
+       allocate(B     (0               , 0            ))
     end if
 
     ! Record that the hash has been created.
@@ -194,26 +195,26 @@ contains
    end do
 
    ! Deallocate data structures.
-   call deallocateArray(A)
-   if (allocated(B)) call deallocateArray(B)
+   deallocate(A)
+   if (allocated(B)) deallocate(B)
    deallocate(row)
 
    ! Reduce the size of stored arrays if possible.
    if (hash%hasInverseTable) then
-      call Move_Alloc(hash%C,resizeTemp)
-      call allocateArray(hash%C,int([hash%hashSize]),lowerBounds=[0])
+      call move_alloc(hash%C,resizeTemp)
+      allocate(hash%C(0:hash%hashSize-1))
       hash%C=resizeTemp(0:hash%hashSize-1)
-      call deallocateArray(resizeTemp)
+      deallocate(resizeTemp)
    end if
    if (hash%hasValues) then
-      call Move_Alloc(hash%v,resizeTemp)
-      call allocateArray(hash%v,int([hash%hashSize]),lowerBounds=[0])
+      call move_alloc(hash%v,resizeTemp)
+      allocate(hash%v(0:hash%hashSize-1))
       hash%v=resizeTemp(0:hash%hashSize-1)
-      call deallocateArray(resizeTemp)
+      deallocate(resizeTemp)
    end if
 
    ! Drop the inverse table if requested.
-   if (.not.hash%hasInverseTable) call deallocateArray(hash%C)
+   if (.not.hash%hasInverseTable) deallocate(hash%C)
 
    return
  end subroutine Hash_Perfect_Create
@@ -222,14 +223,13 @@ contains
     !!{
     Destroy a perfect hash.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(hashPerfect), intent(inout) :: hash
 
     hash%created=.false.
-    if (allocated(hash%r)) call deallocateArray(hash%r)
-    if (allocated(hash%C)) call deallocateArray(hash%C)
-    if (allocated(hash%v)) call deallocateArray(hash%v)
+    if (allocated(hash%r)) deallocate(hash%r)
+    if (allocated(hash%C)) deallocate(hash%C)
+    if (allocated(hash%v)) deallocate(hash%v)
     return
   end subroutine Hash_Perfect_Destroy
 

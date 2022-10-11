@@ -28,7 +28,6 @@ program Test_Perfect_Hashes
   use :: Display          , only : displayVerbositySet, verbosityLevelStandard
   use :: Hashes_Perfect   , only : hashPerfect
   use :: Kind_Numbers     , only : kind_int8
-  use :: Memory_Management, only : allocateArray
   use :: Unit_Tests       , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                , parameter                        :: keyCount   =11
@@ -53,7 +52,7 @@ program Test_Perfect_Hashes
   call hash%create(keys,values)
 
   ! Allocate arrays.
-  call allocateArray(bucketCount,int([hash%size()]),lowerBounds=[0])
+  allocate(bucketCount(0:hash%size()-1))
 
   ! Look up indices and presence.
   bucketCount=0

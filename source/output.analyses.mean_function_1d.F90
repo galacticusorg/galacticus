@@ -86,7 +86,6 @@ contains
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
-    use :: Memory_Management      , only : allocateArray
     use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisMeanFunction1D           )                              :: self
@@ -130,8 +129,8 @@ contains
     !!]
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
-    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                     ])
-    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*outputTimes_%count()])
+    allocate(binCenter   (int(parameters%count('binCenter'))                     ))
+    allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
@@ -745,7 +744,6 @@ contains
     !!{
     Implement a meanFunction1D output analysis finalization.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (outputAnalysisMeanFunction1D)                             , intent(inout)           :: self
     double precision                              , allocatable, dimension(:  ), intent(inout), optional :: binCenter     , meanValue
@@ -755,18 +753,18 @@ contains
     call self%finalizeAnalysis()
     ! Return results.
     if (present(binCenter     )) then
-       if (allocated(binCenter     )) call deallocateArray(binCenter     )
-       call allocateArray(binCenter         ,shape(self%binCenter ))
+       if (allocated(binCenter     )) deallocate(binCenter     )
+       allocate(binCenter(size(self%binCenter)))
        binCenter         =self%binCenter
     end if
     if (present(meanValue     )) then
-       if (allocated(meanValue     )) call deallocateArray(meanValue     )
-       call allocateArray(meanValue     ,shape(self%meanValue     ))
+       if (allocated(meanValue     )) deallocate(meanValue     )
+       allocate(meanValue(size(self%meanValue)))
        meanValue     =self%meanValue
     end if
     if (present(meanCovariance)) then
-       if (allocated(meanCovariance)) call deallocateArray(meanCovariance)
-       call allocateArray(meanCovariance,shape(self%meanCovariance))
+       if (allocated(meanCovariance)) deallocate(meanCovariance)
+       allocate(meanCovariance(size(self%meanCovariance,dim=1),size(self%meanCovariance,dim=2)))
        meanCovariance=self%meanCovariance
     end if
     return

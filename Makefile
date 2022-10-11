@@ -151,9 +151,6 @@ endif
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies
 
-# List of files which must always be checked for update.
-UPDATE_DEPS = $(BUILDPATH)/allocatableArrays.xml.up
-
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
 CCOMPILER_VERSION = `$(CCOMPILER) -v 2>&1`
@@ -454,7 +451,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
-%.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS) $(UPDATE_DEPS)
+%.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` $*.exe
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
 	./scripts/build/sourceDigests.pl `pwd` $*.exe
@@ -499,17 +496,6 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 # Include module use dependencies. Include this after Makefile_Directives, as Makefile_Directives will
 # specify dependencies for Makefile_Use_Dependencies
 -include $(BUILDPATH)/Makefile_Use_Dependencies
-
-# Rules for memory management routines.
-$(BUILDPATH)/allocatableArrays.xml.up: ./scripts/build/allocatableArrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
-	./scripts/build/allocatableArrays.pl `pwd`
-$(BUILDPATH)/allocatableArrays.xml: $(BUILDPATH)/allocatableArrays.xml.up
-
-$(BUILDPATH)/utility.memory_management.preContain.inc: ./scripts/build/memoryManagementFunctions.pl $(BUILDPATH)/allocatableArrays.xml
-	./scripts/build/memoryManagementFunctions.pl
-
-$(BUILDPATH)/utility.memory_management.postContain.inc:
-	@touch $(BUILDPATH)/utility.memory_management.postContain.inc
 
 $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc: $(BUILDPATH)/openMPCriticalSections.xml
 	@touch $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc

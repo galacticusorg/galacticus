@@ -230,7 +230,6 @@ contains
     use            :: Output_HDF5                     , only : outputFile
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Integration           , only : GSL_Integ_Gauss15 , integrator
@@ -259,19 +258,22 @@ contains
     ! Compute number of tabulation points.
     wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*dble(self%pointsPerDecade))+1
     ! Allocate arrays for power spectra.
-    call    allocateArray(wavenumber               ,[wavenumberCount            ])
-    call    allocateArray(powerSpectrumLinear      ,[wavenumberCount,outputCount])
-    call    allocateArray(transferFunction         ,[wavenumberCount,outputCount])
-    call    allocateArray(massScale                ,[wavenumberCount            ])
-    call    allocateArray(sigma                    ,[wavenumberCount,outputCount])
-    call    allocateArray(sigmaGradient            ,[wavenumberCount,outputCount])
-    call    allocateArray(growthFactor             ,[wavenumberCount,outputCount])
-    call    allocateArray(growthFactorLogDerivative,[wavenumberCount,outputCount])
-    call    allocateArray(epochTime                ,[                outputCount])
-    call    allocateArray(epochRedshift            ,[                outputCount])
+    allocate(wavenumber               (wavenumberCount            ))
+    allocate(powerSpectrumLinear      (wavenumberCount,outputCount))
+    allocate(transferFunction         (wavenumberCount,outputCount))
+    allocate(massScale                (wavenumberCount            ))
+    allocate(sigma                    (wavenumberCount,outputCount))
+    allocate(sigmaGradient            (wavenumberCount,outputCount))
+    allocate(growthFactor             (wavenumberCount,outputCount))
+    allocate(growthFactorLogDerivative(wavenumberCount,outputCount))
+    allocate(epochTime                (outputCount))
+    allocate(epochRedshift            (outputCount))
     if (self%includeNonLinear) then
-       call allocateArray(powerSpectrumNonLinear   ,[wavenumberCount,outputCount])
-       call allocateArray(sigmaNonLinear           ,[wavenumberCount,outputCount])
+       allocate(powerSpectrumNonLinear   (wavenumberCount,outputCount))
+       allocate(sigmaNonLinear           (wavenumberCount,outputCount))
+    else
+       allocate(powerSpectrumNonLinear   (              0,          0))
+       allocate(sigmaNonLinear           (              0,          0))
     end if
     ! Build a range of wavenumbers.
     wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)

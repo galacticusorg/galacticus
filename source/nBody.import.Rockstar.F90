@@ -320,7 +320,6 @@ contains
     use :: File_Utilities              , only : Count_Lines_in_File
     use :: Hashes                      , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
           &                                     rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash , genericHash
-    use :: Memory_Management           , only : allocateArray         , deallocateArray
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: String_Handling             , only : String_Split_Words    , String_Count_Words
     implicit none

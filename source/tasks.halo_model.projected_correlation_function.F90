@@ -202,7 +202,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
     !!}
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (taskHaloModelProjectedCorrelationFunction)                        :: self
@@ -229,8 +228,8 @@ contains
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
-    call allocateArray(self%separationProjectedBinned ,[self%countSeparations])
-    call allocateArray(self%correlationProjectedBinned,[self%countSeparations])
+    allocate(self%separationProjectedBinned (self%countSeparations))
+    allocate(self%correlationProjectedBinned(self%countSeparations))
     self%separationProjectedBinned=Make_Range(self%separationMinimum,self%separationMaximum,self%countSeparations,rangeTypeLogarithmic)
     return
   end function haloModelProjectedCorrelationFunctionConstructorInternal

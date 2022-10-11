@@ -117,26 +117,28 @@ sub Build_Set_Functions {
 	     $propertyTypeDescriptor
 	    ]
     };
-    push(@{$function->{'modules'}},"Memory_Management")
-	if ( $code::property->{'data'}->{'rank'} > 0 );
-	     # Build the function.
-	     if ( $code::property->{'data'}->{'rank'} == 0 ) {
-		 $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+    # Build the function.
+    if ( $code::property->{'data'}->{'rank'} == 0 ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 self%{$property->{'name'}}Data=setValue
 CODE
-	     } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
-		 $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.allocated(self%{$property->{'name'}}Data)) then
-   call    allocateArray  (self%{$property->{'name'}}Data,shape(setValue))
+      !![
+      <allocate variable="self%{$property->{'name'}}Data" size="setValue" rank="{$property->{'data'}->{'rank'}}"/>
+      !!]
 else
    if (size(self%{$property->{'name'}}Data) /= size(setValue)) then
-      call deallocateArray(self%{$property->{'name'}}Data                )
-      call allocateArray  (self%{$property->{'name'}}Data,shape(setValue))
+      deallocate(self%{$property->{'name'}}Data)
+      !![
+      <allocate variable="self%{$property->{'name'}}Data" size="setValue" rank="{$property->{'data'}->{'rank'}}"/>
+      !!]
    end if
 end if
 self%{$property->{'name'}}Data=setValue
 CODE
-	     }
+    }
     # Insert a type-binding for this function into the relevant type.
     push(
 	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},

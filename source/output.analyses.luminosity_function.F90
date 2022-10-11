@@ -245,7 +245,6 @@ contains
     use :: Galactic_Filters                        , only : galacticFilterClass
     use :: Geometry_Surveys                        , only : surveyGeometryClass
     use :: ISO_Varying_String                      , only : var_str                                     , varying_string
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000
     use :: Numerical_Constants_Astronomical        , only : megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
@@ -290,7 +289,7 @@ contains
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(magnitudesAbsolute,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
+    allocate(outputWeight(self%binCount,outputTimes_%count()))
     do iBin=1,self%binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do

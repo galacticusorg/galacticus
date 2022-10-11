@@ -144,7 +144,6 @@ contains
     use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
     use :: ISO_Varying_String , only : char                       , len
     use :: Input_Parameters   , only : inputParameters
-    use :: Memory_Management  , only : allocateArray
     implicit none
     type   (inputParameters  ), intent(inout) :: parameters_
     integer                                   :: iChemical
@@ -161,9 +160,9 @@ contains
     ! If tracking chemicals, read names of which ones to track.
     if (chemicalsCount > 0) then
        allocate(chemicalsToTrack(chemicalsCount))
-       call allocateArray(chemicalsIndices,[chemicalsCount])
-       call allocateArray(chemicalsCharges,[chemicalsCount])
-       call allocateArray(chemicalsMasses ,[chemicalsCount])
+       allocate(chemicalsIndices(chemicalsCount))
+       allocate(chemicalsCharges(chemicalsCount))
+       allocate(chemicalsMasses (chemicalsCount))
        !![
        <inputParameter>
          <name>chemicalsToTrack</name>
@@ -182,8 +181,8 @@ contains
        end do
     end if
     ! Create zero and unit chemical abundances objects.
-    call allocateArray(zeroChemicalAbundances%chemicalValue,[propertyCount])
-    call allocateArray(unitChemicalAbundances%chemicalValue,[propertyCount])
+    allocate(zeroChemicalAbundances%chemicalValue(propertyCount))
+    allocate(unitChemicalAbundances%chemicalValue(propertyCount))
     zeroChemicalAbundances%chemicalValue=0.0d0
     unitChemicalAbundances%chemicalValue=1.0d0
     return
@@ -530,7 +529,6 @@ contains
     !!{
     Read all chemical values in binary.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     class  (chemicalAbundances), intent(inout) :: chemicals
     integer                    , intent(in   ) :: fileHandle
@@ -538,7 +536,7 @@ contains
 
     read (fileHandle) isAllocated
     if (isAllocated) then
-       call allocateArray(chemicals%chemicalValue,[chemicalsCount])
+       allocate(chemicals%chemicalValue(chemicalsCount))
        read (fileHandle) chemicals%chemicalValue
     end if
     return
@@ -603,11 +601,10 @@ contains
     !!{
     Destroy a chemical abundances object.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals
 
-    if (allocated(chemicals%chemicalValue)) call deallocateArray(chemicals%chemicalValue)
+    if (allocated(chemicals%chemicalValue)) deallocate(chemicals%chemicalValue)
     return
   end subroutine Chemicals_Abundances_Destroy
 
@@ -615,7 +612,6 @@ contains
     !!{
     Ensure that the {\normalfont \ttfamily chemicalValue} array in an {\normalfont \ttfamily chemicalsStructure} is allocated.
     !!}
-    use :: Memory_Management, only : Memory_Usage_Record
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals
 
@@ -623,7 +619,6 @@ contains
     type is (chemicalAbundances)
        if (.not.allocated(chemicals%chemicalValue)) then
           allocate(chemicals%chemicalValue(chemicalsCount))
-          call Memory_Usage_Record(sizeof(chemicals%chemicalValue))
        end if
     end select
     return

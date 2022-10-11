@@ -171,7 +171,6 @@ contains
     use            :: File_Utilities                  , only : File_Exists
     use            :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash    , rank2DoublePtrHash, &
          &                                                     doubleHash              , varyingStringHash       , integerSizeTHash      , genericHash
-    use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : kilo
     implicit none

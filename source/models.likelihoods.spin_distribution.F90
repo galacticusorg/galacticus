@@ -169,7 +169,6 @@ contains
     !!}
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -214,8 +213,8 @@ contains
          &                        +size(self%spin)           &
          &                        -1                         &
          &                       )
-    call allocateArray(self%spinMinimum,shape(self%spin))
-    call allocateArray(self%spinMaximum,shape(self%spin))
+    allocate(self%spinMinimum,mold=self%spin)
+    allocate(self%spinMaximum,mold=self%spin)
     do i=1,size(self%spin)
        self%spinMinimum(i)=self%spin(i)*exp(-0.5d0*spinIntervalLogarithmic)
        self%spinMaximum(i)=self%spin(i)*exp(+0.5d0*spinIntervalLogarithmic)

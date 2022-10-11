@@ -63,7 +63,6 @@ contains
     !!}
     use :: Error            , only : Error_Report
     use :: Input_Parameters , only : inputParameter, inputParameters
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                            :: self
     type            (inputParameters               ), intent(inout)             :: parameters
@@ -115,9 +114,9 @@ contains
        if (fixedHalosCount == -1) fixedHalosCount=parameters%count('radiusTree')
     end if
     if (fixedHalosCount == -1) fixedHalosCount=1
-    call allocateArray(massTree  ,[fixedHalosCount])
-    call allocateArray(treeCount ,[fixedHalosCount])
-    call allocateArray(radiusTree,[fixedHalosCount])
+    allocate(massTree  (fixedHalosCount))
+    allocate(treeCount (fixedHalosCount))
+    allocate(radiusTree(fixedHalosCount))
     !![
     <inputParameter>
       <name>massTree</name>
@@ -205,7 +204,6 @@ contains
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     use :: Galacticus_Nodes   , only : nodeComponentBasic           , treeNode  , mergerTree
-    use :: Memory_Management  , only : allocateArray
     use :: Root_Finder        , only : rangeExpandMultiplicative    , rootFinder
     use :: Sorting            , only : sort
     implicit none
@@ -253,9 +251,9 @@ contains
        end if
     end do
     call tree%destroy()
-    call allocateArray(mass       ,[sum(self%treeCount)])
-    call allocateArray(massMinimum,[sum(self%treeCount)])
-    call allocateArray(massMaximum,[sum(self%treeCount)])
+    allocate(mass       (sum(self%treeCount)))
+    allocate(massMinimum(sum(self%treeCount)))
+    allocate(massMaximum(sum(self%treeCount)))
     indexStart=1
     do i=1,size(self%treeCount)
        mass      (indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)
