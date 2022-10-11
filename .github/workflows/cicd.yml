@@ -41,6 +41,9 @@ on:
       - 'perl/Fortran/**'
       - 'scripts/build/**'
       - 'schema/**'
+  concurrency:
+    group: cicd-${{ github.ref }}
+    cancel-in-progress: true  
 jobs:
   # Build and deploy
   ## Linux
@@ -48,9 +51,6 @@ jobs:
   Build-Executable-Linux:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
-    concurrency:
-      group: build-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -169,9 +169,6 @@ jobs:
   Build-Library-Linux:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
-    concurrency:
-      group: build-library-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -233,9 +230,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
        HAVE_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN != '' }}
-    concurrency:
-      group: builddocker-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - name: Check out the repo
         if: ${{ env.HAVE_DOCKER_TOKEN == 'true' }}
@@ -264,9 +258,6 @@ jobs:
   Build-Documentation-Linux:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
-    concurrency:
-      group: doc-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -309,9 +300,6 @@ jobs:
   Build-Tools:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
-    concurrency:
-      group: tools-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -379,9 +367,6 @@ jobs:
   ### Static executable
   Build-Executable-MacOS:
     runs-on: macos-11
-    concurrency:
-      group: buildmacos-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -569,9 +554,6 @@ jobs:
   ## Library
   Build-Library-MacOS:
     runs-on: macos-11
-    concurrency:
-      group: build-library-macos-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -766,9 +748,6 @@ jobs:
   ### Tools
   Build-Tools-MacOS:
     runs-on: macos-11
-    concurrency:
-      group: toolsmacos-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -9090,9 +9069,6 @@ jobs:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Library-Linux
-    concurrency:
-      group: test-python-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -9158,9 +9134,6 @@ jobs:
   Test-Python-Interface-MacOS:
     runs-on: macos-11
     needs: Build-Library-MacOS
-    concurrency:
-      group: test-python-macos-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
