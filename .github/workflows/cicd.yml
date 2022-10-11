@@ -637,6 +637,13 @@ jobs:
           make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
+          export GALACTICUS_EXEC_PATH=`pwd`
+          export FCCOMPILER=gfortran-11
+          export CCOMPILER=gcc-11
+          export CPPCOMPILER=g++-11
+          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib"
+          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
+          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir galacticus
