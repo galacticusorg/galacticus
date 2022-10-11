@@ -1690,7 +1690,6 @@ CODE
 		    $stateRestoreCode .= " call self%recursiveSelf%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
 		    $stateRestoreCode .= " return\n";
 		    $stateRestoreCode .= "end if\n";
-		    print "WTF ".$nonAbstractClass->{'name'}."\n";
 		}
 		$stateStoreCode   .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
 		$stateStoreCode   .= " call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)\n";

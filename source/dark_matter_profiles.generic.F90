@@ -316,8 +316,9 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     \ttfamily radius} (given in units of Mpc) using a numerical calculation.
     !!}
-    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
-    use :: Numerical_Integration     , only : integrator
+    use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Integration           , only : integrator
     implicit none
     class           (darkMatterProfileGeneric         ), intent(inout), target   :: self
     type            (treeNode                         ), intent(inout), target   :: node
@@ -337,10 +338,20 @@ contains
     call self%solverSet  (node)
     radiusMaximum             =  +radiusMaximumFactor                          &
          &                       *self%darkMatterHaloScale_%radiusVirial(node)
-    genericPotentialNumerical =   integrator_%integrate(               &
-         &                                              radius       , &
-         &                                              radiusMaximum  &
-         &                                             )
+    if (radius < radiusMaximum) then
+       genericPotentialNumerical =   integrator_%integrate(               &
+            &                                              radius       , &
+            &                                              radiusMaximum  &
+            &                                             )
+    else
+       ! Beyond some large radius approximate as a point mass.
+       genericPotentialNumerical=+gravitationalConstantGalacticus                                                   &
+            &                    *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radiusMaximum) &
+            &                    *(                                                                                 &
+            &                      +1.0d0/radiusMaximum                                                             &
+            &                      -1.0d0/radius                                                                    &
+            &                     )
+    end if
     call self%solverUnset(   )
     return
   end function genericPotentialNumerical
