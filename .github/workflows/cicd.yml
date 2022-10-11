@@ -78,12 +78,12 @@ jobs:
           grep -v 'is up to date' build.log | grep -v -q make: 
           md5sum Galacticus.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -129,7 +129,7 @@ jobs:
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
           make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -155,12 +155,12 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -206,7 +206,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -539,12 +539,12 @@ jobs:
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec-MacOS
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
@@ -741,7 +741,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -987,7 +987,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Install tools
@@ -1055,7 +1055,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Install tools
@@ -1132,7 +1132,7 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Install tools
@@ -1202,7 +1202,7 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Install tools
@@ -1281,7 +1281,7 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Install tools
@@ -1353,7 +1353,7 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-instrumented
       - name: Install tools
@@ -1424,7 +1424,7 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-instrumented
       - name: Install tools
@@ -1504,7 +1504,7 @@ jobs:
         run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-instrumented
       - name: Install tools
@@ -1572,7 +1572,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -1641,7 +1641,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -1715,7 +1715,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1749,7 +1749,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1783,7 +1783,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1817,7 +1817,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1851,7 +1851,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1885,7 +1885,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1919,7 +1919,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1953,7 +1953,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -1987,7 +1987,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2021,7 +2021,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2055,7 +2055,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2089,7 +2089,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2123,7 +2123,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2157,7 +2157,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2191,7 +2191,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2225,7 +2225,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2259,7 +2259,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2293,7 +2293,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2327,7 +2327,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2361,7 +2361,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2395,7 +2395,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2429,7 +2429,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2463,7 +2463,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2497,7 +2497,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2531,7 +2531,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2565,7 +2565,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2599,7 +2599,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2633,7 +2633,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2667,7 +2667,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2701,7 +2701,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2735,7 +2735,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2769,7 +2769,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2803,7 +2803,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2837,7 +2837,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2871,7 +2871,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2905,7 +2905,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2939,7 +2939,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -2973,7 +2973,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3007,7 +3007,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3041,7 +3041,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3075,7 +3075,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3109,7 +3109,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3143,7 +3143,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3177,7 +3177,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3211,7 +3211,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3245,7 +3245,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3279,7 +3279,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3313,7 +3313,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3347,7 +3347,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3381,7 +3381,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3415,7 +3415,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3449,7 +3449,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3483,7 +3483,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3517,7 +3517,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3551,7 +3551,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3585,7 +3585,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3619,7 +3619,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3653,7 +3653,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3687,7 +3687,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3721,7 +3721,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3755,7 +3755,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3789,7 +3789,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3823,7 +3823,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3857,7 +3857,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3891,7 +3891,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3925,7 +3925,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3959,7 +3959,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -3993,7 +3993,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4027,7 +4027,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4061,7 +4061,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4095,7 +4095,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4129,7 +4129,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4163,7 +4163,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4203,7 +4203,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4237,7 +4237,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4271,7 +4271,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4305,7 +4305,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4339,7 +4339,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4373,7 +4373,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4407,7 +4407,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4441,7 +4441,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4475,7 +4475,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4509,7 +4509,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4543,7 +4543,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4577,7 +4577,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4611,7 +4611,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4645,7 +4645,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4679,7 +4679,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4713,7 +4713,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4747,7 +4747,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4781,7 +4781,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4815,7 +4815,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4849,7 +4849,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4883,7 +4883,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4917,7 +4917,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4951,7 +4951,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -4985,7 +4985,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5019,7 +5019,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5053,7 +5053,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5086,7 +5086,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5120,7 +5120,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5154,7 +5154,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5188,7 +5188,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5222,7 +5222,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Install valgrind
@@ -5260,7 +5260,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Install valgrind
@@ -5298,7 +5298,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs
       - name: Create test suite output directory
@@ -5333,7 +5333,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs-MPI
       - name: Create test suite output directory
@@ -5367,7 +5367,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs-MPI
       - name: Create test suite output directory
@@ -5402,7 +5402,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5439,7 +5439,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5483,7 +5483,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5525,7 +5525,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5567,7 +5567,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5610,7 +5610,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5652,7 +5652,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5694,7 +5694,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5736,7 +5736,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5778,7 +5778,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5821,7 +5821,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5863,7 +5863,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5900,7 +5900,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5936,7 +5936,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -5972,7 +5972,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6008,7 +6008,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6044,7 +6044,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6080,7 +6080,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6116,7 +6116,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6152,7 +6152,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6188,7 +6188,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6282,7 +6282,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6318,7 +6318,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6355,7 +6355,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6392,7 +6392,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6428,7 +6428,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6464,7 +6464,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6500,7 +6500,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6600,7 +6600,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6636,7 +6636,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6672,7 +6672,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6708,7 +6708,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6744,7 +6744,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6780,7 +6780,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6816,7 +6816,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6852,7 +6852,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6888,7 +6888,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6924,7 +6924,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6961,7 +6961,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -6997,7 +6997,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7033,7 +7033,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7069,7 +7069,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7105,7 +7105,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7141,7 +7141,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7177,7 +7177,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7213,7 +7213,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7249,7 +7249,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7285,7 +7285,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7322,7 +7322,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7357,7 +7357,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7393,7 +7393,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7428,7 +7428,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7463,7 +7463,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7505,7 +7505,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7549,7 +7549,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7584,7 +7584,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7619,7 +7619,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7654,7 +7654,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7689,7 +7689,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7731,7 +7731,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7775,7 +7775,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7810,7 +7810,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7845,7 +7845,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7880,7 +7880,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7916,7 +7916,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7951,7 +7951,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -7993,7 +7993,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8029,7 +8029,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8064,7 +8064,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8099,7 +8099,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8134,7 +8134,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8169,7 +8169,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8205,7 +8205,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8241,7 +8241,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8277,7 +8277,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8313,7 +8313,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8349,7 +8349,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8385,7 +8385,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8421,7 +8421,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8457,7 +8457,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8493,7 +8493,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8529,7 +8529,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8565,7 +8565,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8601,7 +8601,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8637,7 +8637,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8673,7 +8673,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8709,7 +8709,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8745,7 +8745,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8781,7 +8781,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8817,7 +8817,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8853,7 +8853,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8889,7 +8889,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec
       - name: Create test suite output directory
@@ -8926,7 +8926,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MPI
       - name: Create test suite output directory
@@ -8962,7 +8962,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MPI
       - name: Create test suite output directory
@@ -8998,7 +8998,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MPI
       - name: Create test suite output directory
@@ -9034,7 +9034,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MPI
       - name: Create test suite output directory
@@ -9070,7 +9070,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-exec-MPI
       - name: Create test suite output directory
@@ -9111,7 +9111,7 @@ jobs:
           apt -y update
           apt -y install python2.7
       - name: Download library
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-library
       - name: Test interface
@@ -9141,7 +9141,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: test-execs-MacOS
       - name: Create test suite output directory
@@ -9181,7 +9181,7 @@ jobs:
           echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Download library
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: galacticus-library-MacOS
       - name: Test interface
