@@ -22,6 +22,7 @@
 #include <malloc.h>
 #include <unistd.h>
 
+#ifdef __linux__
 #ifdef __GNUC__
 #include <gnu/libc-version.h>
 #ifdef __GLIBC__
@@ -29,6 +30,9 @@
 #define mallinfo2_available
 #endif
 #endif
+#endif
+#ifdef __APPLE__
+#define mallinfo2_available
 #endif
 
 
