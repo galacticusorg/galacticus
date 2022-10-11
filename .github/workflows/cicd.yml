@@ -41,9 +41,9 @@ on:
       - 'perl/Fortran/**'
       - 'scripts/build/**'
       - 'schema/**'
-  concurrency:
-    group: cicd-${{ github.ref }}
-    cancel-in-progress: true  
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: true  
 jobs:
   # Build and deploy
   ## Linux
