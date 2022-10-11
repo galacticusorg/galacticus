@@ -8978,7 +8978,11 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib\"" >> $GITHUB_ENV
+          echo "FCCOMPILER=gfortran-11" >> $GITHUB_ENV
+          echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
+          echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
