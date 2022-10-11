@@ -19,7 +19,7 @@
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
   </pbs>
   <local>
-    <executable>Galacticus.exe_MPI</executable>
+    <executable>Galacticus.exe</executable>
   </local>
   
   <!-- Tree construction methods -->
