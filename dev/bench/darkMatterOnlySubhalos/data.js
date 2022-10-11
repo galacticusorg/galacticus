@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665507082109,
+  "lastUpdate": 1665527984167,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -3494,6 +3494,34 @@ window.BENCHMARK_DATA = {
             "value": 58.918,
             "unit": "seconds",
             "range": 0.347757961806618
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "2fb19f435e2253aca6313c4de0a1e9c843f257e8",
+          "message": "fix: Set executable permissions",
+          "timestamp": "2022-10-11T19:19:55Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2fb19f435e2253aca6313c4de0a1e9c843f257e8"
+        },
+        "date": 1665527982207,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.006,
+            "unit": "seconds",
+            "range": 0.696309126753286
           }
         ]
       }
