@@ -395,6 +395,7 @@ CODE
 		    $code::property->{'data'}->{'type'} eq "logical"
 		    ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (allocated(self%{$property->{'name'}}Data)) deallocate(self%{$property->{'name'}}Data)
   allocate(self%{$property->{'name'}}Data(getLength(propertyList)))
   do i=1,getLength(propertyList)
     property => item(propertyList,i-1)
@@ -407,6 +408,7 @@ CODE
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (allocated(self%{$property->{'name'}})) deallocate(self%{$property->{'name'}})
   allocate(self%{$property->{'name'}}(getLength(propertyList)))
   do i=1,getLength(propertyList)
     property => item(propertyList,i-1)
@@ -459,6 +461,7 @@ CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (getLength(propertyList) >= 1) then
+    if (allocated(self%{$prefix}MetaProperties(i)%values)) deallocate(self%{$prefix}MetaProperties(i)%values)
     allocate(self%{$prefix}MetaProperties(i)%values(getLength(propertyList)))
     do j=1,getLength(propertyList)
      property => item(propertyList,j-1)

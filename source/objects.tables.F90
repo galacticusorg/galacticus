@@ -787,6 +787,8 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
     allocate(self%xv(xCount                 ))
     allocate(self%yv(xCount,tableCountActual))
     self%xv            =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)

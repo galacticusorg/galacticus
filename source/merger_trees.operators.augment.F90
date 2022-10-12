@@ -242,7 +242,6 @@ contains
     !!]
 
     if (present(timeSnapshots)) then
-       allocate(self%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
        allocate(self%timeSnapshots,mold=timeSnapshots)
        self%timeSnapshots=timeSnapshots
        call sort(self%timeSnapshots)

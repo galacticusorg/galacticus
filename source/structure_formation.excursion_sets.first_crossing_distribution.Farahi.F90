@@ -421,9 +421,9 @@ contains
              self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
           end if
           self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
-          allocate(self%varianceTable                (0:1+self%varianceTableCount                    ))
-          allocate(self%timeTable                    (                            self%timeTableCount))
-          allocate(self%firstCrossingProbabilityTable(0:1+self%varianceTableCount,self%timeTableCount))
+          allocate(self%varianceTable                (0:self%varianceTableCount                    ))
+          allocate(self%timeTable                    (                          self%timeTableCount))
+          allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
           self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
           self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
           self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
@@ -471,7 +471,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiDeepCopy)
-          allocate(barrierTable(0:1+self%varianceTableCount))
+          allocate(barrierTable(0:self%varianceTableCount))
           !$omp do schedule(dynamic)
           do iTime=1,self%timeTableCount
 #ifdef USEMPI
@@ -797,11 +797,11 @@ contains
           self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
           self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
           self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
-          allocate(self%varianceTableRate     (0:1+self%varianceTableCountRate                                                            ))
-          allocate(self%varianceTableRateBase (                                0:1+self%varianceTableCountRateBase                        ))
-          allocate(self%timeTableRate         (                                                                    self%timeTableCountRate))
-          allocate(self%firstCrossingTableRate(0:1+self%varianceTableCountRate,0:1+self%varianceTableCountRateBase,self%timeTableCountRate))
-          allocate(self%nonCrossingTableRate  (                                0:1+self%varianceTableCountRateBase,self%timeTableCountRate))
+          allocate(self%varianceTableRate     (0:self%varianceTableCountRate                                                          ))
+          allocate(self%varianceTableRateBase (                              0:self%varianceTableCountRateBase                        ))
+          allocate(self%timeTableRate         (                                                                self%timeTableCountRate))
+          allocate(self%firstCrossingTableRate(0:self%varianceTableCountRate,0:self%varianceTableCountRateBase,self%timeTableCountRate))
+          allocate(self%nonCrossingTableRate  (                              0:self%varianceTableCountRateBase,self%timeTableCountRate))
           ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
           self%varianceTableRate    (0                                )=0.0d0
           self%varianceTableRate    (1:self%varianceTableCountRate    )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%varianceTableCountRate      ,exponent =1.0d0          )
@@ -1073,8 +1073,8 @@ contains
        self%varianceTableCount=size(varianceTableTmp)-1
        self%timeTableCount    =size(self%timeTable  )
        ! Transfer to tables.
-       allocate(self%varianceTable                (0:1+self%varianceTableCount                    ))
-       allocate(self%firstCrossingProbabilityTable(0:1+self%varianceTableCount,self%timeTableCount))
+       allocate(self%varianceTable                (0:self%varianceTableCount                    ))
+       allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
        self%varianceTable                (0:self%varianceTableCount  )=varianceTableTmp           (1:self%varianceTableCount+1  )
        self%firstCrossingProbabilityTable(0:self%varianceTableCount,:)=firstCrossingProbabilityTmp(1:self%varianceTableCount+1,:)
        deallocate(varianceTableTmp           )
@@ -1127,10 +1127,10 @@ contains
        self%varianceTableCountRateBase=size(varianceTableBaseTmp)-1
        self%timeTableCountRate        =size(self%timeTableRate  )
        ! Transfer to tables.
-       allocate(self%varianceTableRate     (0:1+self%varianceTableCountRate                                                            ))
-       allocate(self%varianceTableRateBase (                                0:1+self%varianceTableCountRateBase                        ))
-       allocate(self%firstCrossingTableRate(0:1+self%varianceTableCountRate,0:1+self%varianceTableCountRateBase,self%timeTableCountRate))
-       allocate(self%nonCrossingTableRate  (                                0:1+self%varianceTableCountRateBase,self%timeTableCountRate))
+       allocate(self%varianceTableRate     (0:self%varianceTableCountRate                                                          ))
+       allocate(self%varianceTableRateBase (                              0:self%varianceTableCountRateBase                        ))
+       allocate(self%firstCrossingTableRate(0:self%varianceTableCountRate,0:self%varianceTableCountRateBase,self%timeTableCountRate))
+       allocate(self%nonCrossingTableRate  (                              0:self%varianceTableCountRateBase,self%timeTableCountRate))
        self%varianceTableRate     (0:self%varianceTableCountRate                                    )=varianceTableTmp    (1:self%varianceTableCountRate+1                                      )
        self%varianceTableRateBase (                              0:self%varianceTableCountRateBase  )=varianceTableBaseTmp(                                1:self%varianceTableCountRateBase+1  )
        self%firstCrossingTableRate(0:self%varianceTableCountRate,0:self%varianceTableCountRateBase,:)=firstCrossingRateTmp(1:self%varianceTableCountRate+1,1:self%varianceTableCountRateBase+1,:)

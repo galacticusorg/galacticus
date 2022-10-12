@@ -152,10 +152,10 @@ contains
              self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
           end if
           self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
-          allocate(self%varianceTable                (0:1+self%varianceTableCount                    ))
-          allocate(self%timeTable                    (                            self%timeTableCount))
-          allocate(self%firstCrossingProbabilityTable(0:1+self%varianceTableCount,self%timeTableCount))
-          allocate(     varianceMidTable             (0:1+self%varianceTableCount                    ))
+          allocate(self%varianceTable                (0:self%varianceTableCount                    ))
+          allocate(self%timeTable                    (                          self%timeTableCount))
+          allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
+          allocate(     varianceMidTable             (0:self%varianceTableCount                    ))
           self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
           self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
           self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
@@ -208,8 +208,8 @@ contains
 	  <deepCopyFinalize variables="excursionSetBarrier_"/>
 	  !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          allocate(barrierTable   (0:+self%varianceTableCount))
-          allocate(barrierMidTable(0:+self%varianceTableCount))
+          allocate(barrierTable   (0:self%varianceTableCount))
+          allocate(barrierMidTable(0:self%varianceTableCount))
           !$omp do schedule(dynamic)
           do iTime=1,self%timeTableCount
 #ifdef USEMPI
@@ -497,11 +497,11 @@ contains
           if (allocated(self%timeTableRate         )) deallocate(self%timeTableRate         )
           if (allocated(self%firstCrossingTableRate)) deallocate(self%firstCrossingTableRate)
           if (allocated(self%nonCrossingTableRate  )) deallocate(self%nonCrossingTableRate  )
-          allocate(self%varianceTableRate     (0:1+self%varianceTableCountRate                                                            ))
-          allocate(self%varianceTableRateBase (                                0:1+self%varianceTableCountRateBase                        ))
-          allocate(self%timeTableRate         (                                                                    self%timeTableCountRate))
-          allocate(self%firstCrossingTableRate(0:1+self%varianceTableCountRate,0:1+self%varianceTableCountRateBase,self%timeTableCountRate))
-          allocate(self%nonCrossingTableRate  (                                0:1+self%varianceTableCountRateBase,self%timeTableCountRate))
+          allocate(self%varianceTableRate     (0:self%varianceTableCountRate                                                          ))
+          allocate(self%varianceTableRateBase (                              0:self%varianceTableCountRateBase                        ))
+          allocate(self%timeTableRate         (                                                                self%timeTableCountRate))
+          allocate(self%firstCrossingTableRate(0:self%varianceTableCountRate,0:self%varianceTableCountRateBase,self%timeTableCountRate))
+          allocate(self%nonCrossingTableRate  (                              0:self%varianceTableCountRateBase,self%timeTableCountRate))
           ! If only times have changed then pre-populate the tables with results previously computed.
           if (.not.varianceMaximumChanged) then
              self%firstCrossingTableRate(:,:,countNewLower+1:countNewLower+size(firstCrossingTableRate,dim=3))=firstCrossingTableRate
@@ -521,7 +521,7 @@ contains
           ! The time table is logarithmically distributed in time.
           self%timeTableRate=Make_Range(self%timeMinimumRate,self%timeMaximumRate,self%timeTableCountRate,rangeType=rangeTypeLogarithmic)
           ! Compute the variance at the mid-points.
-          allocate(varianceMidTableRateQuad(0:1+self%varianceTableCountRate))
+          allocate(varianceMidTableRateQuad(0:self%varianceTableCountRate))
           varianceMidTableRateQuad(0)=0.0_kind_quad
           forall(i=1:self%varianceTableCountRate)
              varianceMidTableRateQuad(i)=(varianceTableRateQuad(i-1)+varianceTableRateQuad(i))/2.0_kind_quad
