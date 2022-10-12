@@ -9157,8 +9157,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./doc/Galacticus_Usage.pdf ./doc/Galacticus_Physics.pdf ./doc/Galacticus_Development.pdf ./doc/Galacticus_Source.pdf ./datasets/tools.tar.bz2 --clobber
-          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./doc/Galacticus_Usage.pdf ./doc/Galacticus_Physics.pdf ./doc/Galacticus_Development.pdf ./doc/Galacticus_Source.pdf ./datasets/tools.tar.bz2
+          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
+         rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@v3
         with:
@@ -9176,8 +9176,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mv ./Galacticus.exe ./Galacticus_MacOS.exe
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./datasets/toolsMacOS.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./datasets/toolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip --clobber
+          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubhalos)
         uses: actions/download-artifact@v3
         with:
@@ -9206,8 +9206,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2 ./testSuite/outputs/milkyWay.perf.bz2 ./testSuite/outputs/milkyWay_SIDM.perf.bz2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2 ./testSuite/outputs/milkyWay.gprof.bz2 ./testSuite/outputs/milkyWay_SIDM.gprof.bz2 --clobber
-          rm ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2 ./testSuite/outputs/milkyWay.perf.bz2 ./testSuite/outputs/milkyWay_SIDM.perf.bz2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2 ./testSuite/outputs/milkyWay.gprof.bz2 ./testSuite/outputs/milkyWay_SIDM.gprof.bz2
+          gh release upload bleeding-edge ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
+          rm ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
