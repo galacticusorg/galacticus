@@ -831,9 +831,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -877,9 +877,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -942,9 +942,9 @@ jobs:
       options: --privileged
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -989,9 +989,9 @@ jobs:
       options: --privileged
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1052,9 +1052,9 @@ jobs:
       options: --privileged
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1115,9 +1115,9 @@ jobs:
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1163,9 +1163,9 @@ jobs:
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1227,9 +1227,9 @@ jobs:
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1290,9 +1290,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1334,9 +1334,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6786,9 +6786,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6823,9 +6823,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6860,9 +6860,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6897,9 +6897,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6934,9 +6934,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6971,9 +6971,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7008,9 +7008,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7045,9 +7045,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7082,9 +7082,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7119,9 +7119,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8064,9 +8064,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8101,9 +8101,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8138,9 +8138,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8175,9 +8175,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8212,9 +8212,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8249,9 +8249,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8286,9 +8286,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8323,9 +8323,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8360,9 +8360,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8397,9 +8397,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8434,9 +8434,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8471,9 +8471,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8508,9 +8508,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8545,9 +8545,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8582,9 +8582,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8619,9 +8619,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8656,9 +8656,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8693,9 +8693,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8730,9 +8730,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8767,9 +8767,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8916,9 +8916,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8953,9 +8953,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
