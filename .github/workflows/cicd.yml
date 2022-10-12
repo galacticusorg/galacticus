@@ -68,6 +68,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
+          set -o pipefail
           make -j2 all 2>&1 | tee build.log
           grep -v -q Error: build.log
           grep -v -q Warning: build.log
@@ -446,6 +447,7 @@ jobs:
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
           export BUILDPATH=./work/build
+          set -o pipefail
           make -j3 Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
@@ -784,6 +786,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" -lforutils -o camb
@@ -857,6 +860,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./benchmark-darkMatterOnlySubhalos.pl
+          set -o pipefail
           ./benchmark-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: Upload benchmark result
@@ -912,6 +916,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./benchmark-milkyWay.pl
+          set -o pipefail
           ./benchmark-milkyWay.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: Upload benchmark result
@@ -1310,6 +1315,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./validate-darkMatterOnlySubhalos.pl
+          set -o pipefail
           ./validate-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: Upload validation result
@@ -1363,6 +1369,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./validate-milkyWay.pl
+          set -o pipefail
           ./validate-milkyWay.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: Upload validation result
@@ -1413,6 +1420,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.nodes.exe
+          set -o pipefail
           ./tests.nodes.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1447,6 +1455,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.parameters.exe
+          set -o pipefail
           ./tests.parameters.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1481,6 +1490,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.files.exe
+          set -o pipefail
           ./tests.files.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1515,6 +1525,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.IO.HDF5.exe
+          set -o pipefail
           ./tests.IO.HDF5.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1549,6 +1560,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.IO.XML.exe
+          set -o pipefail
           ./tests.IO.XML.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1583,6 +1595,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.ODE_solver.exe
+          set -o pipefail
           ./tests.ODE_solver.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1617,6 +1630,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.random.exe
+          set -o pipefail
           ./tests.random.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1651,6 +1665,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.random.quasi.exe
+          set -o pipefail
           ./tests.random.quasi.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1685,6 +1700,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.arrays.exe
+          set -o pipefail
           ./tests.arrays.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1719,6 +1735,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.meshes.exe
+          set -o pipefail
           ./tests.meshes.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1753,6 +1770,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.convex_hulls.exe
+          set -o pipefail
           ./tests.convex_hulls.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1787,6 +1805,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.comparisons.exe
+          set -o pipefail
           ./tests.comparisons.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1821,6 +1840,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.geometry.coordinate_systems.exe
+          set -o pipefail
           ./tests.geometry.coordinate_systems.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1855,6 +1875,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.exe
+          set -o pipefail
           ./tests.hashes.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1889,6 +1910,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.perfect.exe
+          set -o pipefail
           ./tests.hashes.perfect.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1923,6 +1945,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.regular_expressions.exe
+          set -o pipefail
           ./tests.regular_expressions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1957,6 +1980,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.cryptographic.exe
+          set -o pipefail
           ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1991,6 +2015,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.integration.exe
+          set -o pipefail
           ./tests.integration.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2025,6 +2050,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.integration2.exe
+          set -o pipefail
           ./tests.integration2.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2059,6 +2085,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.differentiation.exe
+          set -o pipefail
           ./tests.differentiation.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2093,6 +2120,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tables.exe
+          set -o pipefail
           ./tests.tables.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2127,6 +2155,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.interpolation.exe
+          set -o pipefail
           ./tests.interpolation.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2161,6 +2190,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.interpolation.2D.exe
+          set -o pipefail
           ./tests.interpolation.2D.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2195,6 +2225,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.make_ranges.exe
+          set -o pipefail
           ./tests.make_ranges.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2229,6 +2260,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_distributions.exe
+          set -o pipefail
           ./tests.mass_distributions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2263,6 +2295,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math_special_functions.exe
+          set -o pipefail
           ./tests.math_special_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2297,6 +2330,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math_distributions.exe
+          set -o pipefail
           ./tests.math_distributions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2331,6 +2365,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math.fast.exe
+          set -o pipefail
           ./tests.math.fast.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2365,6 +2400,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math.linear_algebra.exe
+          set -o pipefail
           ./tests.math.linear_algebra.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2399,6 +2435,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.root_finding.exe
+          set -o pipefail
           ./tests.root_finding.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2433,6 +2470,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.multi_dimensional_minimizer.exe
+          set -o pipefail
           ./tests.multi_dimensional_minimizer.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2467,6 +2505,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.search.exe
+          set -o pipefail
           ./tests.search.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2501,6 +2540,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Roman_numerals.exe
+          set -o pipefail
           ./tests.Roman_numerals.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2535,6 +2575,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sort.exe
+          set -o pipefail
           ./tests.sort.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2569,6 +2610,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sort.topological.exe
+          set -o pipefail
           ./tests.sort.topological.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2603,6 +2645,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.string_utilities.exe
+          set -o pipefail
           ./tests.string_utilities.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2637,6 +2680,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.vectors.exe
+          set -o pipefail
           ./tests.vectors.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2671,6 +2715,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.multi_counters.exe
+          set -o pipefail
           ./tests.multi_counters.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2705,6 +2750,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tensors.exe
+          set -o pipefail
           ./tests.tensors.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2739,6 +2785,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.cosmic_age.exe
+          set -o pipefail
           ./tests.cosmic_age.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2773,6 +2820,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.open.exe
+          set -o pipefail
           ./tests.spherical_collapse.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2807,6 +2855,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.flat.exe
+          set -o pipefail
           ./tests.spherical_collapse.flat.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2841,6 +2890,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.EdS.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2875,6 +2925,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.open.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2909,6 +2960,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.lambda.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.lambda.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2943,6 +2995,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2977,6 +3030,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3011,6 +3065,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3045,6 +3100,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3079,6 +3135,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.baryons_dark_matter.exe
+          set -o pipefail
           ./tests.spherical_collapse.baryons_dark_matter.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3113,6 +3170,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.nonlinear.exe
+          set -o pipefail
           ./tests.spherical_collapse.nonlinear.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3147,6 +3205,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.warm_dark_matter.exe
+          set -o pipefail
           ./tests.warm_dark_matter.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3181,6 +3240,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.cosmological_constant.exe
+          set -o pipefail
           ./tests.linear_growth.cosmological_constant.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3215,6 +3275,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.EdS.exe
+          set -o pipefail
           ./tests.linear_growth.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3249,6 +3310,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.open.exe
+          set -o pipefail
           ./tests.linear_growth.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3283,6 +3345,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.dark_energy.exe
+          set -o pipefail
           ./tests.linear_growth.dark_energy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3317,6 +3380,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.baryons.EdS.exe
+          set -o pipefail
           ./tests.linear_growth.baryons.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3351,6 +3415,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.Tinker.exe
+          set -o pipefail
           ./tests.halo_mass_function.Tinker.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3385,6 +3450,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.Reed2007.exe
+          set -o pipefail
           ./tests.halo_mass_function.Reed2007.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3419,6 +3485,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.environment_averaged.exe
+          set -o pipefail
           ./tests.halo_mass_function.environment_averaged.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3453,6 +3520,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.comoving_distance.exe
+          set -o pipefail
           ./tests.comoving_distance.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3487,6 +3555,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Correa2015.exe
+          set -o pipefail
           ./tests.mass_accretion_history.Correa2015.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3521,6 +3590,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.dark_energy.exe
+          set -o pipefail
           ./tests.Zhao2009_algorithms.dark_energy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3555,6 +3625,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.EdS.exe
+          set -o pipefail
           ./tests.Zhao2009_algorithms.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3589,6 +3660,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.open.exe
+          set -o pipefail
           ./tests.Zhao2009_algorithms.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3623,6 +3695,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.NFW96_concentration.dark_energy.exe
+          set -o pipefail
           ./tests.NFW96_concentration.dark_energy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3657,6 +3730,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Prada2011_concentration.exe
+          set -o pipefail
           ./tests.Prada2011_concentration.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3691,6 +3765,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.DiemerKravtsov2014_concentration.exe
+          set -o pipefail
           ./tests.DiemerKravtsov2014_concentration.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3725,6 +3800,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.concentration.Correa2015.exe
+          set -o pipefail
           ./tests.concentration.Correa2015.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3759,6 +3835,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.concentrations.exe
+          set -o pipefail
           ./tests.concentrations.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3793,6 +3870,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.biases.exe
+          set -o pipefail
           ./tests.biases.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3827,6 +3905,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.kepler_orbits.exe
+          set -o pipefail
           ./tests.kepler_orbits.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3861,12 +3940,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.abundances.exe
-          echo ls
-          ls
-          echo ls ..
-          ls ..
-          echo ls ../../
-          ls ../../
+          set -o pipefail
           ./tests.abundances.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3901,6 +3975,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sigma.exe
+          set -o pipefail
           ./tests.sigma.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3935,6 +4010,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.power_spectrum.primordial.exe
+          set -o pipefail
           ./tests.power_spectrum.primordial.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3969,6 +4045,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.power_spectrum.exe
+          set -o pipefail
           ./tests.power_spectrum.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4003,6 +4080,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.transfer_functions.exe
+          set -o pipefail
           ./tests.transfer_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4037,6 +4115,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.black_hole_fundamentals.exe
+          set -o pipefail
           ./tests.black_hole_fundamentals.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4071,6 +4150,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.bug745815.exe
+          set -o pipefail
           ./tests.bug745815.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4105,6 +4185,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.gaunt_factors.exe
+          set -o pipefail
           ./tests.gaunt_factors.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4139,6 +4220,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.cooling_functions.exe
+          set -o pipefail
           ./tests.cooling_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4173,6 +4255,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.accretion_disks.exe
+          set -o pipefail
           ./tests.accretion_disks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4207,6 +4290,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Hearin2021.exe
+          set -o pipefail
           ./tests.mass_accretion_history.Hearin2021.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4241,6 +4325,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Hearin2021_stochastic.exe
+          set -o pipefail
           ./tests.mass_accretion_history.Hearin2021_stochastic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4275,6 +4360,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4309,6 +4395,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.adiabaticGnedin2004.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.adiabaticGnedin2004.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."        
@@ -4343,6 +4430,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.heated.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.heated.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4377,6 +4465,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_halo_radius_enclosing_mass.exe
+          set -o pipefail
           ./tests.dark_matter_halo_radius_enclosing_mass.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4411,6 +4500,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.tidal_tracks.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.tidal_tracks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4445,6 +4535,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.generic.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.generic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4479,6 +4570,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.finite_resolution.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.finite_resolution.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4513,6 +4605,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spectra.postprocess.Inoue2014.exe
+          set -o pipefail
           ./tests.spectra.postprocess.Inoue2014.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4547,6 +4640,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.recombination_computed.exe
+          set -o pipefail
           ./tests.recombination_computed.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4581,6 +4675,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.recombination_cooling.Hummer.exe
+          set -o pipefail
           ./tests.recombination_cooling.Hummer.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4615,6 +4710,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.locks.exe
+          set -o pipefail
           ./tests.locks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4649,6 +4745,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.initial_mass_functions.exe
+          set -o pipefail
           ./tests.initial_mass_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4683,6 +4780,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.stellar_populations.exe
+          set -o pipefail
           ./tests.stellar_populations.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4717,6 +4815,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.stellar_populations.luminosities.exe
+          set -o pipefail
           ./tests.stellar_populations.luminosities.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4784,6 +4883,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.fail.exe
+          set -o pipefail
           ./tests.fail.exe 2>&1 | tee test.log
           grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4818,6 +4918,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.excursion_sets.exe
+          set -o pipefail
           ./tests.excursion_sets.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4852,6 +4953,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.merger_tree_branching.exe
+          set -o pipefail
           ./tests.merger_tree_branching.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4886,6 +4988,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.event_hooks.exe
+          set -o pipefail
           ./tests.event_hooks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4924,6 +5027,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tree_branch_destroy.exe
+          set -o pipefail
           valgrind --error-exitcode=1 ./tests.tree_branch_destroy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4962,6 +5066,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.binary_search_trees.exe
+          set -o pipefail
           ./tests.binary_search_trees.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4996,6 +5101,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.orbits.exe
+          set -o pipefail
           ./tests.orbits.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5031,6 +5137,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.MPI.exe
+          set -o pipefail
           mpirun -np 2 --allow-run-as-root ./tests.MPI.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5065,6 +5172,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.radiative_transfer.atomic_matter.state_solver.exe
+          set -o pipefail
           mpirun -np 2 --allow-run-as-root ./tests.radiative_transfer.atomic_matter.state_solver.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5102,6 +5210,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-cosmology.pl
+          set -o pipefail
           ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
           ! grep -q FAIL test.log
@@ -5139,6 +5248,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-cosmology.pl
+          set -o pipefail
           ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
           ! grep -q FAIL test.log
@@ -5183,6 +5293,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-simple.pl
+          set -o pipefail
           ./test-mass-conservation-simple.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5225,6 +5336,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-standard.pl
+          set -o pipefail
           ./test-mass-conservation-standard.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5267,6 +5379,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-coldMode.pl
+          set -o pipefail
           ./test-mass-conservation-coldMode.pl --launchMethod local --threadMaximum 1 --ompThreads 2  2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5310,6 +5423,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:4 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5352,6 +5466,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:4 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5394,6 +5509,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 3:4 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5436,6 +5552,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 4:4 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5478,6 +5595,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-write.pl
+          set -o pipefail
           ./test-merger-tree-write.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5521,6 +5639,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
+          set -o pipefail
           ./test-model-integration.pl --instance 1:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5563,6 +5682,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
+          set -o pipefail
           ./test-model-integration.pl --instance 2:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5600,6 +5720,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-allowed-parameters.pl
+          set -o pipefail
           ./test-allowed-parameters.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5636,6 +5757,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-bar-instability.pl
+          set -o pipefail
           ./test-bar-instability.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5672,6 +5794,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-Bolshoi-tree-builder.pl
+          set -o pipefail
           ./test-Bolshoi-tree-builder.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5708,6 +5831,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-branchlessTrees.pl
+          set -o pipefail
           ./test-branchlessTrees.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5744,6 +5868,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-branchSubsampling.pl
+          set -o pipefail
           ./test-branchSubsampling.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5780,6 +5905,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-CGM-mass-cooled.pl
+          set -o pipefail
           ./test-CGM-mass-cooled.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5816,6 +5942,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-concentration-Ludlow2016.pl
+          set -o pipefail
           ./test-concentration-Ludlow2016.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5852,6 +5979,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-constraint-deterministic-spins.pl
+          set -o pipefail
           ./test-constraint-deterministic-spins.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5888,6 +6016,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-constraint-mass-function.pl
+          set -o pipefail
           ./test-constraint-mass-function.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5917,6 +6046,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-extract-directives.pl
+          set -o pipefail
           ./test-extract-directives.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5946,6 +6076,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-fortran-utils.pl
+          set -o pipefail
           ./test-fortran-utils.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5982,6 +6113,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-halo-mass-functions.pl
+          set -o pipefail
           ./test-halo-mass-functions.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6018,6 +6150,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-inactive_luminosities.pl
+          set -o pipefail
           ./test-inactive_luminosities.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6055,6 +6188,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-interoutput-star-formation-rate.pl
+          set -o pipefail
           ./test-interoutput-star-formation-rate.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6092,6 +6226,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-host-maximum.pl
+          set -o pipefail
           ./test-mass-host-maximum.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6128,6 +6263,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-Millennium-tree-builder.pl
+          set -o pipefail
           ./test-Millennium-tree-builder.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6164,6 +6300,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-output.pl
+          set -o pipefail
           ./test-output.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6200,6 +6337,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-output-tree-contiguousity.pl
+          set -o pipefail
           ./test-output-tree-contiguousity.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6229,6 +6367,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-parameter-validation.pl
+          set -o pipefail
           ./test-parameter-validation.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6264,6 +6403,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-perl-modules.pl
+          set -o pipefail
           ./test-perl-modules.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6300,6 +6440,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-reproducibility.pl
+          set -o pipefail
           ./test-reproducibility.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6336,6 +6477,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-splitForests.pl
+          set -o pipefail
           ./test-splitForests.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6372,6 +6514,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.pl
+          set -o pipefail
           ./test-star-formation-histories-adaptive.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6408,6 +6551,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stateRestore.pl
+          set -o pipefail
           ./test-stateRestore.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6444,6 +6588,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stellar-mass-weighted-ages.pl
+          set -o pipefail
           ./test-stellar-mass-weighted-ages.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6480,6 +6625,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-tidalTracks.pl
+          set -o pipefail
           ./test-tidalTracks.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6516,6 +6662,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-galacticStructureStateDeallocateBug.pl
+          set -o pipefail
           ./test-galacticStructureStateDeallocateBug.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6552,6 +6699,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-inactiveNumerics.pl
+          set -o pipefail
           ./test-inactiveNumerics.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6588,6 +6736,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-impulsiveHeating.pl
+          set -o pipefail
           ./test-impulsiveHeating.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6624,6 +6773,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-haloTriaxiality.pl
+          set -o pipefail
           ./test-haloTriaxiality.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6661,6 +6811,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl --launchMethod local  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6697,6 +6848,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6733,6 +6885,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 3:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6769,6 +6922,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 4:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6805,6 +6959,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 5:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6841,6 +6996,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 6:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6877,6 +7033,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 7:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6913,6 +7070,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 8:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6949,6 +7107,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 9:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6985,6 +7144,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 10:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7021,6 +7181,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/bug1053153.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7057,6 +7218,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/bug1066052.pl
+          set -o pipefail
           ./testSuite/regressions/bug1066052.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7092,6 +7254,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/bug711424.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7127,6 +7290,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/bug725315.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7162,6 +7326,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/coincidentMergerAndBranchJump.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7207,6 +7372,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: "Clean datasets"
@@ -7248,6 +7414,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7283,6 +7450,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7318,6 +7486,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/finalTimeBeforeOutputTime.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7353,6 +7522,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/immediateSubSubMergerThenBranchJump.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7388,6 +7558,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7433,6 +7604,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/issue142.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: "Clean datasets"
@@ -7474,6 +7646,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/linearGrowthForFutureModel.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7509,6 +7682,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7544,6 +7718,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7580,6 +7755,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/mergerTreeBoxSizeWeight.pl
+          set -o pipefail
           ./testSuite/regressions/mergerTreeBoxSizeWeight.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7615,6 +7791,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/particulate.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7651,6 +7828,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/satellitePresetBoundMassNonZero.pl
+          set -o pipefail
           ./testSuite/regressions/satellitePresetBoundMassNonZero.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7693,6 +7871,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/setProperties.pl
+          set -o pipefail
           ./testSuite/regressions/setProperties.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7728,6 +7907,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7763,6 +7943,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/subhaloTwoConsecutiveMergers.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7798,6 +7979,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7833,6 +8015,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/treeWithNoPrimaryProgenitor.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7868,6 +8051,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/barInstabilityFPE.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7905,6 +8089,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 1:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7941,6 +8126,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 2:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7977,6 +8163,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 3:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8013,6 +8200,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 4:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8049,6 +8237,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 5:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8085,6 +8274,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 6:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8121,6 +8311,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 7:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8157,6 +8348,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 8:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8193,6 +8385,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 9:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8229,6 +8422,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 10:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8265,6 +8459,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 11:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8301,6 +8496,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 12:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8337,6 +8533,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 13:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8373,6 +8570,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 14:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8409,6 +8607,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 15:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8445,6 +8644,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 16:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8481,6 +8681,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 17:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8517,6 +8718,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 18:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8553,6 +8755,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 19:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8589,6 +8792,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 20:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8626,6 +8830,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stateRestore_MPI.pl
+          set -o pipefail
           ./test-stateRestore_MPI.pl --processesPerNode 8 --allow-run-as-root yes 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8662,6 +8867,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-radiativeTransfer-StromgrenSphere_MPI.pl
+          set -o pipefail
           ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8697,6 +8903,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           export OMP_NUM_THREADS=1
+          set -o pipefail
           mpirun --allow-run-as-root -np 4 ./Galacticus.exe parameters/tutorials/mcmcConfig.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8734,6 +8941,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
+          set -o pipefail
           ./test-methods_MPI.pl --launchMethod local --threadMaximum 1 --ompThreads 1 --instance 1:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8770,6 +8978,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
+          set -o pipefail
           ./test-methods_MPI.pl --launchMethod local --threadMaximum 1 --ompThreads 1 --instance 2:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8836,6 +9045,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.cryptographic.exe
+          set -o pipefail
           ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -9051,7 +9261,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mv ./Galacticus.exe ./Galacticus_MacOS.exe
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip --clobber
           rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubhalos)
