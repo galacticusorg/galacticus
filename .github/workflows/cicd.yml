@@ -44,6 +44,9 @@ on:
 concurrency:
   group: cicd-${{ github.ref }}
   cancel-in-progress: true  
+defaults:
+  run:
+    shell: bash
 jobs:
   # Build and deploy
   ## Linux
