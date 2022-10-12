@@ -392,7 +392,7 @@ contains
          &                                                                                        massProgenitor                               , timeMinimumRate          , &
          &                                                                                        timeMaximumRate
     character       (len=64                                 )                                  :: label
-    type            (varying_string                         )                                  :: message
+    type            (varying_string                         )                                  :: message                                      , reasonRemake
     type            (lockDescriptor                         )                                  :: fileLock
     real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial  , &
          &                                                                                        sigma1f                                      , varianceTableStepRate    , &
@@ -432,6 +432,15 @@ contains
        end if
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
        if (makeTable) then
+          ! Determine reason(s) for the remake.
+          reasonRemake=''
+          if (.not.self%tableInitializedRate) then
+             reasonRemake=reasonRemake//' table does not exist;'
+          else
+             if (varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)) reasonRemake=reasonRemake//' progenitor variance exceeds previous maximum; '
+             if (time               < self%timeMinimumRate                              ) reasonRemake=reasonRemake//' time exceeds previous minimum; '
+             if (time               > self%timeMaximumRate                              ) reasonRemake=reasonRemake//' time exceeds previous minimum; '
+          end if
           ! Construct or expand the range of times to tabulate.
           countNewLower=0
           countNewUpper=0
@@ -532,15 +541,17 @@ contains
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
              call displayIndent("solving for excursion set barrier crossing rates",verbosityLevelWorking)
-             message="    time: "
-             write (label,'(f6.3)') self%timeMinimumRate
-             message=message//label//" to "
-             write (label,'(f6.3)') self%timeMaximumRate
-             message=message//label
+             message="reason(s):"//reasonRemake
              call displayMessage(message,verbosityLevelWorking)
-             message="variance: "
+             message="     time: "
+             write (label,'(f6.3)') self%timeMinimumRate
+             message=message//trim(label)//" to "
+             write (label,'(f6.3)') self%timeMaximumRate
+             message=message//trim(label)
+             call displayMessage(message,verbosityLevelWorking)
+             message=" variance: "
              write (label,'(f9.3)') self%varianceMaximumRate
-             message=message//label
+             message=message//trim(label)
              call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
           end if

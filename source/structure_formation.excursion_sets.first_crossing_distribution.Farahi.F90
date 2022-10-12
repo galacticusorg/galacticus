@@ -1090,6 +1090,7 @@ contains
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : operator(//) , var_str         , varying_string
     use :: Memory_Management , only : allocateArray, deallocateArray
+    use :: String_Handling   , only : operator(//)
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                   , dataGroup
@@ -1153,6 +1154,11 @@ contains
        write (label,'(e22.16)') self%varianceMaximum
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
+       message=var_str('      table size: ')//size(self%timeTable)//' ⨉ '//size(self%varianceTable)
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(f7.3)') dble(sizeof(self%timeTable)+sizeof(self%varianceTable)+sizeof(self%firstCrossingProbabilityTable))/1024.0d0**3
+       message=var_str('     memory size: ')//label//' Gib'
+       call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Check if the rate table is populated.
@@ -1212,6 +1218,11 @@ contains
        write (label,'(e22.16)') self%varianceMaximumRate
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
+       message=var_str('      table size: ')//size(self%timeTableRate)//' ⨉ '//size(self%varianceTableRate)//' ⨉ '//size(self%varianceTableRateBase)
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(f7.3)') dble(sizeof(self%timeTableRate)+sizeof(self%varianceTableRate)+sizeof(self%varianceTableRateBase)+sizeof(self%firstCrossingTableRate)+sizeof(self%nonCrossingTableRate))/1024.0d0**3
+       message=var_str('     memory size: ')//label//' Gib'
+       call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Close the data file.
@@ -1229,6 +1240,7 @@ contains
     use :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
     use :: HDF5              , only : hsize_t
     use :: ISO_Varying_String, only : operator(//) , var_str       , varying_string
+    use :: String_Handling   , only : operator(//)
     implicit none
     class    (excursionSetFirstCrossingFarahi), intent(inout) :: self
     type     (hdf5Object                     )                :: dataFile, dataGroup
@@ -1261,6 +1273,10 @@ contains
        write (label,'(e22.16)') self%varianceMaximum
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
+       message=var_str('      table size: ')//size(self%timeTable)//' ⨉ '//size(self%varianceTable)
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(f7.3)') dble(sizeof(self%timeTable)+sizeof(self%varianceTable)+sizeof(self%firstCrossingProbabilityTable))/1024.0d0**3
+       message=var_str('     memory size: ')//label//' Gib'
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Check if the rate table is populated.
@@ -1282,6 +1298,11 @@ contains
        message=var_str('    time maximum: ')//label//' Gyr'
        write (label,'(e22.16)') self%varianceMaximumRate
        message=var_str('variance maximum: ')//label
+       call displayMessage (message,verbosityLevelWorking)
+       message=var_str('      table size: ')//size(self%timeTableRate)//' ⨉ '//size(self%varianceTableRate)//' ⨉ '//size(self%varianceTableRateBase)
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(f7.3)') dble(sizeof(self%timeTableRate)+sizeof(self%varianceTableRate)+sizeof(self%varianceTableRateBase)+sizeof(self%firstCrossingTableRate)+sizeof(self%nonCrossingTableRate))/1024.0d0**3
+       message=var_str('     memory size: ')//label//' Gib'
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
