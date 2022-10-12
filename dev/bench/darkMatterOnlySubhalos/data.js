@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665527984167,
+  "lastUpdate": 1665539589797,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -3522,6 +3522,34 @@ window.BENCHMARK_DATA = {
             "value": 53.006,
             "unit": "seconds",
             "range": 0.696309126753286
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "81c9fcee77350b61157c6ae63025cbdfe91c40f0",
+          "message": "fix: Add define of `PYTHONPATH`",
+          "timestamp": "2022-10-11T23:03:45Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/81c9fcee77350b61157c6ae63025cbdfe91c40f0"
+        },
+        "date": 1665539587261,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 75.311,
+            "unit": "seconds",
+            "range": 0.15684674048239
           }
         ]
       }
