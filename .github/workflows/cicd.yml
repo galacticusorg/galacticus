@@ -58,10 +58,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -159,10 +155,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -231,10 +223,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -266,10 +254,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -320,10 +304,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -489,10 +469,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -670,10 +646,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -1009,10 +981,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1067,10 +1035,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1134,10 +1098,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1194,10 +1154,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1253,10 +1209,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1321,10 +1273,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -8971,10 +8919,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
