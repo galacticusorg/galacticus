@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665474586205,
+  "lastUpdate": 1665542759045,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -2366,6 +2366,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6199224142232,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "81c9fcee77350b61157c6ae63025cbdfe91c40f0",
+          "message": "fix: Add define of `PYTHONPATH`",
+          "timestamp": "2022-10-11T23:03:45Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/81c9fcee77350b61157c6ae63025cbdfe91c40f0"
+        },
+        "date": 1665542757933,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 330.833,
+            "unit": "seconds",
+            "range": 1.00387852850947
           }
         ]
       }
