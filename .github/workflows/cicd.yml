@@ -473,7 +473,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec-MacOS
-          path: 'Galacticus.exe'
+          path: 'Galacticus_MacOS.exe'
       - name: Upload test code executables
         uses: actions/upload-artifact@v3
         with:
