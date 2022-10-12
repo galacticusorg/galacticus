@@ -104,15 +104,15 @@ contains
 
     ! Allocate data structures.
     call hash%destroy()
-    allocate(A     (0:hash%rowSize-1,0:hash%rowSize-1))
-    allocate(hash%r(0:hash%rowSize-1                 ))
-    allocate(hash%C(0:hashTableMax-1                 ))
-    allocate(row(0:hash%rowSize-1))
+    allocate   (A     (0:hash%rowSize-1,0:hash%rowSize-1))
+    allocate   (hash%r(0:hash%rowSize-1                 ))
+    allocate   (hash%C(0:hashTableMax-1                 ))
+    allocate   (row   (0:hash%rowSize-1                 ))
     if (hash%hasValues) then
-       allocate(B     (0:hash%rowSize-1,hash%rowSize-1))
-       allocate(hash%v(0:hashTableMax-1               ))
+       allocate(B     (0:hash%rowSize-1,0:hash%rowSize-1))
+       allocate(hash%v(0:hashTableMax-1                 ))
     else
-       allocate(B     (0               , 0            ))
+       allocate(B     (0               ,0               ))
     end if
 
     ! Record that the hash has been created.
@@ -145,7 +145,7 @@ contains
    ! The algorithm needs to know which row of A() is most full, 2nd most full,
    ! etc. This is most easily done by sorting an array of row-item-counts and
    ! remembering which row the item counts go with. That is what the array
-   ! Row() does for us.
+   ! row() does for us.
    ! I saw no point in trying to be clever here, so a simple bubble sort is used.
    do i=0,hash%rowSize-2
       do j=i+1,hash%rowSize-1
@@ -184,7 +184,6 @@ contains
       if (offset == hashTableMax-hash%rowSize-1) call Error_Report('failed to fit row into hash table - this should not happen'//{introspection:location})
       i=i+1
    end do
-
    ! Find the size of the resulting hash table.
    hash%hashSize=0_kind_int8
    do k=hashTableMax-1,0,-1
@@ -195,8 +194,8 @@ contains
    end do
 
    ! Deallocate data structures.
-   deallocate(A)
-   if (allocated(B)) deallocate(B)
+   deallocate(A  )
+   deallocate(B  )
    deallocate(row)
 
    ! Reduce the size of stored arrays if possible.
@@ -215,7 +214,6 @@ contains
 
    ! Drop the inverse table if requested.
    if (.not.hash%hasInverseTable) deallocate(hash%C)
-
    return
  end subroutine Hash_Perfect_Create
 

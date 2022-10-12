@@ -43,10 +43,10 @@ program Test_Perfect_Hashes
   call Unit_Tests_Begin_Group("Perfect hashes")
 
   ! Create a list of keys.
-  keys  =[6,28,65,14,88,184,38,44,523,12,98]
+  keys  =[ 6,28,65,14,88,184,38,44,523,12,98]
 
   ! Create a list of values.
-  values=[99,88,77,66,55,44,33,22,11,86,34]
+  values=[99,88,77,66,55, 44,33,22, 11,86,34]
 
   ! Create the hash function.
   call hash%create(keys,values)
