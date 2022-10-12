@@ -285,6 +285,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe parameters/buildTools.xml
           cd $GALACTICUS_DATA_PATH
           tar cfj tools.tar.bz2 \
@@ -472,7 +473,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec-MacOS
-          path: 'Galacticus.exe'
+          path: 'Galacticus_MacOS.exe'
       - name: Upload test code executables
         uses: actions/upload-artifact@v3
         with:
@@ -651,12 +652,6 @@ jobs:
           mkdir galacticus/python
           # Find all dynamic libraries needed (filtering out any non-"local" ones) and copy to our folder.
           otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local | xargs -n 1 -I{} cp {} galacticus/lib/
-          # Remake the library using these "local" libraries.
-          export DYLD_LIBRARY_PATH=./galacticus/lib
-          rm libgalacticus.so
-          make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
-          echo libgalacticus.so dynamic libraries:
-          otool -L libgalacticus.so
           mv galacticus.py galacticus/python/
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
@@ -8969,7 +8964,6 @@ jobs:
   ### Test Python Interface
   Test-Python-Interface-MacOS:
     runs-on: macos-11
-    needs: Build-Library-MacOS
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -8977,6 +8971,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Extract branch name
+        shell: bash
+        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -8986,17 +8984,151 @@ jobs:
           echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
           echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
-          echo "DYLD_LIBRARY_PATH=$GITHUB_WORKSPACE/galacticus/lib" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
-      - name: Download library
-        uses: actions/download-artifact@v3
-        with:
-          name: galacticus-library-MacOS
+      - name: Install MacPorts
+        run: |
+          curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
+          sudo installer -pkg ./MacPorts-2.7.1-11-BigSur.pkg -target /
+          rm ./MacPorts-2.7.1-11-BigSur.pkg
+      - name: Install guile
+        run: sudo port install guile18
+      - name: Install libmatheval
+        run: sudo port install libmatheval
+      - name: Install qhull
+        run: |
+          curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
+          tar xvfz qhull-2020-src-8.0.2.tgz
+          cd qhull-2020.2
+          make -j3 CC=gcc-11 CXX=g++-11
+          sudo make install
+          cd ..
+          rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
+      - name: Install GSL
+        run: |
+          curl -L ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
+          tar xvfz gsl-2.6.tar.gz
+          cd gsl-2.6
+          CC=gcc-11 ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf gsl-2.6 gsl-2.6.tar.gz
+      - name: Install HDF5
+        run: |
+          curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
+          tar -vxzf hdf5-1.8.20.tar.gz 
+          cd hdf5-1.8.20 
+          CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz 
+      - name: Install FoX
+        run: |
+          curl -L https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
+          tar xvfz FoX-4.1.0.tar.gz
+          cd fox-4.1.0
+          FC=gfortran-11 ./configure --prefix=/usr/local
+          make -j3
+          sudo make install
+          cd ..
+          rm -rf fox-4.1.0 FoX-4.1.0.tar.gz
+      - name: Install FFTW3
+        run: |
+          curl -L ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
+          tar xvfz fftw-3.3.4.tar.gz
+          cd fftw-3.3.4
+          F77=gfortran-11 CC=gcc-11 ./configure --prefix=/usr/local
+          make -j4
+          sudo make install
+          cd ..
+          rm -rf fftw-3.3.4 fftw-3.3.4.tar.gz
+      - name: Install ANN
+        run: |
+          curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
+          tar xvfz ann_1.1.2.tar.gz
+          cd ann_1.1.2
+          sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
+          make macosx-g++
+          cp bin/* /usr/local/bin/.
+          cp lib/* /usr/local/lib/.
+          cp -R include/* /usr/local/include/.
+      - name: Install IO::Socket::SSL
+        run: |
+          curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
+          tar xvfz Net-SSLeay-1.90.tar.gz
+          cd Net-SSLeay-1.90
+          perl Makefile.PL
+          make -j3
+          sudo make install
+          cd ..
+          curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-1.966.tar.gz --output IO-Socket-SSL-1.966.tar.gz
+          tar xvfz IO-Socket-SSL-1.966.tar.gz
+          cd IO-Socket-SSL-1.966
+          perl Makefile.PL
+          make -j3
+          sudo make install
+          cd ..
+          cd ..
+          curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
+          tar xvfz Sys-CPU-0.52.tar.gz
+          cd Sys-CPU-0.52
+          perl Makefile.PL
+          make -j3
+          sudo make install
+      - name: Install CPAN
+        run: |
+          sudo perl -MCPAN -e shell
+          sudo perl -MCPAN -e 'install Bundle::CPAN'
+      - name: Install Perl modules
+        run: |
+          export CFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
+          sudo perl -MCPAN -e 'force("install","NestedMap")'
+          sudo perl -MCPAN -e 'force("install","Scalar::Util")'
+          sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
+          sudo perl -MCPAN -e 'force("install","Text::Table")'
+          sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
+          sudo perl -MCPAN -e 'install Path::Tiny'
+          sudo perl -MCPAN -e 'install PkgConfig'
+          sudo perl -MCPAN -e 'install Alien::Base::Wrapper'
+          sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
+          sudo perl -MCPAN -e 'install XML::LibXML::SAX'
+          sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
+          sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
+          sudo perl -MCPAN -e 'force("install","Text::Template")'
+          sudo perl -MCPAN -e 'force("install","List::Uniq")'
+          sudo perl -MCPAN -e 'force("install","IO::Util")'
+          sudo perl -MCPAN -e 'force("install","Class::Util")'
+          sudo perl -MCPAN -e 'force("install","CGI::Builder")'
+          sudo perl -MCPAN -e 'force("install","Simple")'
+          sudo perl -MCPAN -e 'force("install","Readonly")'
+          sudo perl -MCPAN -e 'force("install","File::Slurp")'
+          sudo perl -MCPAN -e 'force("install","XML::Simple")'
+          sudo perl -MCPAN -e 'force("install","List::MoreUtils")'
+          sudo perl -MCPAN -e 'force("install","Clone")'
+          sudo perl -MCPAN -e 'force("install","IO::Scalar")'
+          sudo perl -MCPAN -e 'force("install","Regexp::Common")'
+          sudo perl -MCPAN -e 'install LaTeX::Encode'
+          sudo perl -MCPAN -e 'install Sub::Identify'
+      - name: Build Galacticus
+        run: |
+          export GALACTICUS_EXEC_PATH=`pwd`
+          export FCCOMPILER=gfortran-11
+          export CCOMPILER=gcc-11
+          export CPPCOMPILER=g++-11
+          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib"
+          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
+          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
+          make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          mkdir galacticus
+          mkdir galacticus/lib
+          mkdir galacticus/python
+          mv galacticus.py galacticus/python/
+          mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          unzip libgalacticusMacOS.zip
           python2 testSuite/test-Python-interface.py
       - run: echo "This job's status is ${{ job.status }}."
   # Deploy and update
@@ -9005,6 +9137,8 @@ jobs:
     if: github.ref == 'refs/heads/master'
     needs: [ Build-Executable-Linux, Build-Executables-Instrumented-Linux, Build-Executables-MPI-Linux, Build-Library-Linux, Build-Docker-Linux, Build-Documentation-Linux, Build-Tools, Build-Executable-MacOS, Build-Library-MacOS, Build-Tools-MacOS, Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Profile-Dark-Matter-Only-Subhalos, Profile-Milky-Way-Model, Profile-Milky-Way-SIDM-Model, Profile-Dark-Matter-Only-Subhalos-GProf, Profile-Milky-Way-GProf, Profile-Milky-Way-SIDM-GProf, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Test-Nodes, Test-Parameters, Tests-Files, Tests-IO-HDF5, Tests-IO-XML, Tests-ODE-Solver, Tests-Random, Tests-Random-Quasi, Tests-Arrays, Tests-Meshes, Tests-Convex-Hulls, Tests-Comparisons, Tests-Geometry-Coordinate-Systems, Tests-Hashes, Tests-Hashes-Perfect, Tests-Regular-Expressions, Tests-Hashes-Cryptographic, Tests-Integration, Tests-Integration2, Tests-Differentiation, Tests-Tables, Tests-Interpolation, Tests-Interpolation-2D, Tests-Make-Ranges, Tests-Mass-Distributions, Tests-Math-Special-Functions, Tests-Math-Distributions, Tests-Math-Fast, Tests-Math-Linear-Algebra, Tests-Root-Finding, Tests-Multi-Dimensional-Minimizer, Tests-Search, Tests-Roman-Numerals, Tests-Sort, Tests-Sort-Topological, Tests-String-Utilities, Tests-Vectors, Tests-Multi-Counters, Tests-Tensors, Tests-Cosmic-Age, Tests-Spherical-Collapse-Open, Tests-Spherical-Collapse-Flat, Tests-Spherical-Collapse-Dark-Energy-EdS, Tests-Spherical-Collapse-Dark-Energy-Open, Tests-Spherical-Collapse-Dark-Energy-Lambda, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusHalf, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusTwoThirds, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-6, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-8, Tests-Spherical-Collapse-Baryons-Dark-Matter, Tests-Spherical-Collapse-Nonlinear, Tests-Warm-Dark-Matter, Tests-Linear-Growth-Cosmological-Constant, Tests-Linear-Growth-EdS, Tests-Linear-Growth-Open, Tests-Linear-Growth-Dark-Energy, Tests-Linear-Growth-Baryons-EdS, Tests-Halo-Mass-Function-Tinker, Tests-Halo-Mass-Function-Reed2007, Tests-Halo-Mass-Function-Environment-Averaged, Tests-Comoving-Distance, Tests-Mass-Accretion-History-Correa2015, Tests-Zhao2009-Algorithms-Dark-Energy, Tests-Zhao2009-Algorithms-EdS, Tests-Zhao2009-Algorithms-Open, Tests-NFW96-Concentration-Dark-Energy, Tests-Prada2011-Concentration, Tests-DiemerKravtsov2014-Concentration, Tests-Concentration-Correa2015, Tests-Concentrations, Tests-Biases, Tests-Kepler-Orbits, Tests-Abundances, Tests-Sigma, Tests-Power-Spectrum-Primordial, Tests-Power-Spectrum, Tests-Transfer-Functions, Tests-Black-Hole-Fundamentals, Tests-Bug745815, Tests-Gaunt-Factors, Tests-Cooling-Functions, Tests-Accretion-Disks, Tests-Mass-Accretion-History-Hearin2021, Tests-Mass-Accretion-History-Hearin2021-Stochastic, Tests-Dark-Matter-Profiles, Tests-Dark-Matter-Profiles-Adiabatic-Gnedin2004, Tests-Dark-Matter-Profiles-Heated, Tests-Dark-Matter-Halo-Radius-Enclosing-Mass, Tests-Dark-Matter-Profiles-Tidal-Tracks, Tests-Dark-Matter-Profiles-Generic, Tests-Dark-Matter-Profiles-Finite_Resolution, Tests-Spectra-Postprocess-Inoue2014, Tests-Recombination-Computed, Tests-Recombination-Cooling-Hummer, Tests-Locks, Tests-Initial-Mass-Functions, Tests-Stellar-Populations, Tests-Stellar-Populations-Luminosities, Tests-Crash, Tests-Fail, Tests-Excursion-Sets, Tests-Merger-Tree-Branching, Tests-Event-Hooks, Tests-Tree-Branch_Destroy, Tests-Binary-Search-Trees, Tests-Orbits, Test-MPI, Test-MPI-Radiative-Transfer-Atomic-Matter-State-Solver, Test-Cosmology-01, Test-Cosmology-02, Test-Mass-Conservation-Simple, Test-Mass-Conservation-Standard, Test-Mass-Conservation-Cold-Mode, Test-Merger-Tree-Builder-01, Test-Merger-Tree-Builder-02, Test-Merger-Tree-Builder-03, Test-Merger-Tree-Builder-04, Test-Merger-Tree-Write, Test-Model-Integration-01, Test-Model-Integration-02, Test-Allowed-Parameters, Test-Bar-Instability, Test-Bolshoi-Tree-Builder, Test-Branchless-Trees, Test-Branch-Subsampling, Test-CGM-Mass-Cooled, Test-Concentration-Ludlow2016, Test-Constraint-Deterministic-Spins, Test-Constraint-Mass-Function, Test-Extract-Directives, Test-Fortran-Utils, Test-Halo-Mass-Functions, Test-Inactive-Luminosities, Test-Interoutput-Star-Formation-Rate, Test-Mass-Host-Maximum, Test-Millennium-Tree-Builder, Test-Output, Test-Output-Tree-Contiguousity, Test-Parameter-Validation, Test-Perl-Modules, Test-Reproducibility, Test-Split-Forests, Test-Star-Formation-Histories-Adaptive, Test-State-Restore, Test-Stellar-Mass-Weighted-Ages, Test-Tidal-Tracks, Test-galacticStructureState-Deallocate-Bug, Test-Inactive-Numerics, Test-Impulsive-Heating, Test-Halo-Triaxiality, Test-Outputs-01, Test-Outputs-02, Test-Outputs-03, Test-Outputs-04, Test-Outputs-05, Test-Outputs-06, Test-Outputs-07, Test-Outputs-08, Test-Outputs-09, Test-Outputs-10, Regressions-Bug-1053153, Regressions-Bug-1066052, Regressions-Bug-711424, Regressions-Bug-725315, Regressions-Coincident-Merger-And-Branch-Jump, Regressions-Cole2000-Tree-Builder-WDM-Node-Well-Ordering, Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee-2, Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee, Regressions-Final-Time-Before-Output-Time, Regressions-Immediate-Sub-Sub-Merger-Then-Branch-Jump, Regressions-Initial-Satellite-No-Primary-Progenitor, Regressions-Issue-142, Regressions-Linear-Growth-For-Future-Model, Regressions-Ludlow-Scale-Set-Before-Tree-Initialization, Regressions-Merger-At-Final-Time-In-Tree, Regressions-Merger-Tree-Box-Size-Weight, Regressions-Particulate, Regressions-Satellite-Preset-Bound-Mass-Non-Zero, Regressions-Set-Properties, Regressions-Subhalo-Merges-At-Final-Time-Of-Tree, Regressions-Subhalo-Two-Consecutive-Mergers, Regressions-Tree-With-Initial-Satellite-In-Progenitorless-Host, Regressions-Tree-With-No-Primary-Progenitor, Regressions-Bar-Instability-FPE, Test-Methods-01, Test-Methods-02, Test-Methods-03, Test-Methods-04, Test-Methods-05, Test-Methods-06, Test-Methods-07, Test-Methods-08, Test-Methods-09, Test-Methods-10, Test-Methods-11, Test-Methods-12, Test-Methods-13, Test-Methods-14, Test-Methods-15, Test-Methods-16, Test-Methods-17, Test-Methods-18, Test-Methods-19, Test-Methods-20, Test-MPI-State-Restore, Test-MPI-Radiative-Transfer-Stromgren-Sphere, Test-MPI-MCMC, Test-MPI-Methods-01, Test-MPI-Methods-02, Test-Python-Interface, Tests-Hashes-Cryptographic-MacOS, Test-Python-Interface-MacOS ]
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
       - name: Download artifacts (executable-linux)
         uses: actions/download-artifact@v3
         with:
@@ -9025,8 +9159,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./doc/Galacticus_Usage.pdf ./doc/Galacticus_Physics.pdf ./doc/Galacticus_Development.pdf ./doc/Galacticus_Source.pdf ./datasets/tools.tar.bz2 --clobber
-          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./doc/Galacticus_Usage.pdf ./doc/Galacticus_Physics.pdf ./doc/Galacticus_Development.pdf ./doc/Galacticus_Source.pdf ./datasets/tools.tar.bz2
+          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
+          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@v3
         with:
@@ -9044,8 +9178,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mv ./Galacticus.exe ./Galacticus_MacOS.exe
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./datasets/toolsMacOS.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./datasets/toolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip --clobber
+          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubhalos)
         uses: actions/download-artifact@v3
         with:
@@ -9074,8 +9208,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2 ./testSuite/outputs/milkyWay.perf.bz2 ./testSuite/outputs/milkyWay_SIDM.perf.bz2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2 ./testSuite/outputs/milkyWay.gprof.bz2 ./testSuite/outputs/milkyWay_SIDM.gprof.bz2 --clobber
-          rm ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2 ./testSuite/outputs/milkyWay.perf.bz2 ./testSuite/outputs/milkyWay_SIDM.perf.bz2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2 ./testSuite/outputs/milkyWay.gprof.bz2 ./testSuite/outputs/milkyWay_SIDM.gprof.bz2
+          gh release upload bleeding-edge ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
+          rm ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
