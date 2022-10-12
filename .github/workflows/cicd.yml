@@ -9158,7 +9158,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
-         rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
+          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@v3
         with:
