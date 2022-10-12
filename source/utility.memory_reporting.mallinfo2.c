@@ -19,7 +19,11 @@
 
 //% Implements Fortran-callable wrappers around the Linux mallinfo2() function.
 
+#ifdef __APPLE__
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #include <unistd.h>
 
 #ifdef __linux__
@@ -32,13 +36,14 @@
 #endif
 #endif
 #endif
-#ifdef __APPLE__
-#define mallinfo2_available
-#endif
-
 
 size_t mallinfo2_c() {
   //% Fortran-callable wrapper around the mallinfo2() function to get memory usage information.
+#ifdef __APPLE__
+  struct mstats ms = mstats();
+  size_t uordblks = ms.bytes_used;
+  return uordblks;
+#else
 #ifdef mallinfo2_available
   struct mallinfo2 info;
   info = mallinfo2();
@@ -48,6 +53,7 @@ size_t mallinfo2_c() {
   info = mallinfo();
   size_t uordblks = info.uordblks;
   return uordblks;
+#endif
 #endif
 }
 
