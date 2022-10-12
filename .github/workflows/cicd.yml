@@ -859,27 +859,11 @@ jobs:
           chmod u=wrx ./benchmark-darkMatterOnlySubhalos.pl
           ./benchmark-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v3
         with:
-          name: Dark matter-only subhalos benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
-          gh-pages-branch: gh-pages
-          alert-threshold: 150%
-          fail-threshold: 200%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: benchmark-darkMatterOnlySubhalos
+          path: 'testSuite/outputs/benchmark_darkMatterOnlySubhalos.json'
       - run: echo "This job's status is ${{ job.status }}."
   Benchmark-Milky-Way-Model:
     runs-on: ubuntu-latest
@@ -930,27 +914,11 @@ jobs:
           chmod u=wrx ./benchmark-milkyWay.pl
           ./benchmark-milkyWay.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v3
         with:
-          name: Milky Way model benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/benchmark_milkyWay.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/milkyWayModel
-          gh-pages-branch: gh-pages
-          alert-threshold: 150%
-          fail-threshold: 200%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: benchmark-milkyWay
+          path: 'testSuite/outputs/benchmark_milkyWay.json'
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
@@ -1344,32 +1312,13 @@ jobs:
           chmod u=wrx ./validate-darkMatterOnlySubhalos.pl
           ./validate-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store validation result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload validation result
+        uses: actions/upload-artifact@v3
         with:
-          name: Dark matter-only subhalos benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/validate_darkMatterOnlySubhalos.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
-          gh-pages-branch: gh-pages
-          alert-threshold: 110%
-          fail-threshold: 120%
-          max-items-in-chart: 256
-      - name: Push validation result
-        run: |
-          git checkout gh-pages
-          mv testSuite/outputs/results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
-          git config --local user.email "github@users.noreply.github.com"
-          git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json
-          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results"
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: validation-darkMatterOnlySubhalos
+          path: |
+            'testSuite/outputs/validation_darkMatterOnlySubhalos.json'
+            'testSuite/outputs/results_darkMatterOnlySubhalos.json'
       - run: echo "This job's status is ${{ job.status }}."
   Validate-Milky-Way-Model:
     runs-on: ubuntu-latest
@@ -1416,32 +1365,13 @@ jobs:
           chmod u=wrx ./validate-milkyWay.pl
           ./validate-milkyWay.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store validation result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload validation result
+        uses: actions/upload-artifact@v3
         with:
-          name: Milky Way model benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/validate_milkyWayModel.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/milkyWayModel
-          gh-pages-branch: gh-pages
-          alert-threshold: 110%
-          fail-threshold: 120%
-          max-items-in-chart: 256
-      - name: Push validation result
-        run: |
-          git checkout gh-pages
-          mv testSuite/outputs/results_milkyWayModel.json dev/valid/milkyWayModel/results.json
-          git config --local user.email "github@users.noreply.github.com"
-          git config --local user.name "github-action-validate"
-          git add dev/valid/milkyWayModel/results.json
-          git commit -m "Update 'milkyWayModel' validation results"
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: validation-milkyWayModel
+          path: |
+            'testSuite/outputs/validation_milkyWayModel.json'
+            'testSuite/outputs/results_milkyWayModel.json'
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
@@ -9154,6 +9084,97 @@ jobs:
         run: |
           gh release upload bleeding-edge ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+      - name: Download artifacts (benchmark-darkMatterOnlySubhalos)
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-darkMatterOnlySubhalos
+      - name: Download artifacts (benchmark-milkyWay)
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-milkyWay
+      - name: Download artifacts (validation-darkMatterOnlySubhalos)
+        uses: actions/download-artifact@v3
+        with:
+          name: validation-darkMatterOnlySubhalos
+      - name: Download artifacts (validation-milkyWay)
+        uses: actions/download-artifact@v3
+        with:
+          name: validation-milkyWay
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Dark matter-only subhalos benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark_darkMatterOnlySubhalos.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
+          gh-pages-branch: gh-pages
+          alert-threshold: 150%
+          fail-threshold: 200%
+          max-items-in-chart: 256
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Milky Way model benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark_milkyWay.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/milkyWayModel
+          gh-pages-branch: gh-pages
+          alert-threshold: 150%
+          fail-threshold: 200%
+          max-items-in-chart: 256
+      - name: Store validation result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Dark matter-only subhalos benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: validate_darkMatterOnlySubhalos.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
+          gh-pages-branch: gh-pages
+          alert-threshold: 110%
+          fail-threshold: 120%
+          max-items-in-chart: 256
+      - name: Store validation result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Milky Way model benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: validate_milkyWayModel.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/milkyWayModel
+          gh-pages-branch: gh-pages
+          alert-threshold: 110%
+          fail-threshold: 120%
+          max-items-in-chart: 256
+      - name: Push validation result
+        run: |
+          git checkout gh-pages
+          mv results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_milkyWayModel.json          dev/valid/milkyWayModel/results.json
+          git config --local user.email "github@users.noreply.github.com"
+          git config --local user.name "github-action-validate"
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json
+          git commit -m "Update validation results"
+          git push --set-upstream origin gh-pages
+        if: github.event_name != 'pull_request'
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
