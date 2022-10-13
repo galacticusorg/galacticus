@@ -75,6 +75,7 @@ jobs:
           make -j2 all 2>&1 | tee build.log
           grep -v -q Error: build.log
           grep -v -q Warning: build.log
+          set +o pipefail
           grep -v 'is up to date' build.log | grep -v -q make: 
           md5sum Galacticus.exe
       - name: Upload Galacticus executable
