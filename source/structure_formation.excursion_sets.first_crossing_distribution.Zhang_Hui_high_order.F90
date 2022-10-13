@@ -237,9 +237,9 @@ contains
        if (allocated(self%varianceTable                )) deallocate(self%varianceTable                )
        if (allocated(self%timeTable                    )) deallocate(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) deallocate(self%firstCrossingProbabilityTable)
-       allocate(self%varianceTable                (0:1+self%varianceTableCount                    ))
-       allocate(self%timeTable                    (                            self%timeTableCount))
-       allocate(self%firstCrossingProbabilityTable(0:1+self%varianceTableCount,self%timeTableCount))
+       allocate(self%varianceTable                (0:self%varianceTableCount                    ))
+       allocate(self%timeTable                    (                          self%timeTableCount))
+       allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
        self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
        self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
        self%varianceTableStep=+self%varianceTable(4) &
