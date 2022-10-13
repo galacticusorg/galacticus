@@ -216,6 +216,8 @@ contains
        end do
     end if
     ! Create zero and unit abundances objects.
+    if (allocated(zeroAbundances%elementalValue)) deallocate(zeroAbundances%elementalValue)
+    if (allocated(unitAbundances%elementalValue)) deallocate(unitAbundances%elementalValue)
     allocate(zeroAbundances%elementalValue(elementsCount))
     allocate(unitAbundances%elementalValue(elementsCount))
     zeroAbundances%metallicityValue=0.0d0

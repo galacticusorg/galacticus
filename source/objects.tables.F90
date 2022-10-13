@@ -1177,6 +1177,13 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%sv)) deallocate(self%sv)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
+    if (allocated(self%dv)) deallocate(self%dv)
     allocate(self%xv(xCount                   ))
     allocate(self%yv(xCount  ,tableCountActual))
     allocate(self%sv(xCount  ,tableCountActual))

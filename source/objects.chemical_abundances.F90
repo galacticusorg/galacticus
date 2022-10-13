@@ -181,6 +181,8 @@ contains
        end do
     end if
     ! Create zero and unit chemical abundances objects.
+    if (allocated(zeroChemicalAbundances%chemicalValue)) deallocate(zeroChemicalAbundances%chemicalValue)
+    if (allocated(unitChemicalAbundances%chemicalValue)) deallocate(unitChemicalAbundances%chemicalValue)
     allocate(zeroChemicalAbundances%chemicalValue(propertyCount))
     allocate(unitChemicalAbundances%chemicalValue(propertyCount))
     zeroChemicalAbundances%chemicalValue=0.0d0

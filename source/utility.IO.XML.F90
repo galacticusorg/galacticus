@@ -142,6 +142,7 @@ contains
     integer                                                                          :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
+    if (allocated(column1)) deallocate(column1)
     allocate(column1(size(arrayElements)))
     do i=1,size(arrayElements)
        arrayElement => arrayElements(i-1)%element
@@ -166,6 +167,8 @@ contains
     integer                                                                          :: i
 
     call XML_Get_Elements_By_Tag_Name(xmlElement,arrayElementName,arrayElements)
+    if (allocated(column1)) deallocate(column1)
+    if (allocated(column2)) deallocate(column2)
     allocate(column1(size(arrayElements)))
     allocate(column2(size(arrayElements)))
     do i=1,size(arrayElements)
@@ -190,6 +193,7 @@ contains
     double precision                          , dimension(1 )                :: dataValues
     integer                                                                  :: i
 
+    if (allocated(column1)) deallocate(column1)
     allocate(column1(size(xmlElements)))
     do i=1,size(xmlElements)
        arrayElement => XML_Get_First_Element_By_Tag_Name(xmlElements(i-1)%element,arrayElementName)
