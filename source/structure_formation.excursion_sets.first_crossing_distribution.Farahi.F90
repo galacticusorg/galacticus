@@ -1215,6 +1215,7 @@ contains
        call displayMessage (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%varianceMaximumRate
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
@@ -1286,7 +1287,7 @@ contains
        call dataGroup%writeDataset(self%varianceTableRateBase ,'varianceBase'     ,'The variance of the base halo at which results are tabulated.'              )
        call dataGroup%writeDataset(self%timeTableRate         ,'time'             ,'The cosmic times at which results are tabulated.'                           )
        call dataGroup%writeDataset(self%firstCrossingTableRate,'firstCrossingRate','The probability rate of first crossing as a function of variances and time.')
-       call dataGroup%writeDataset(self%nonCrossingTableRate  ,'nonCrossingRate'  ,'The probability rate of non crossing as a function of variance and time.')
+       call dataGroup%writeDataset(self%nonCrossingTableRate  ,'nonCrossingRate'  ,'The probability rate of non crossing as a function of variance and time.'   )
        call dataGroup%close()
        ! Report.
        message=var_str('wrote excursion set first crossing rates to: ')//char(self%fileName)
@@ -1296,6 +1297,7 @@ contains
        call displayMessage (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
        write (label,'(e22.16)') self%varianceMaximumRate
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
