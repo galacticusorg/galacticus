@@ -575,7 +575,7 @@ contains
   
   function displayYellow()
     !!{
-    Return the ANSI escape code for blue text.
+    Return the ANSI escape code for yellow text.
     !!}
     use :: System_Output, only : stdOutIsATTY
     implicit none
