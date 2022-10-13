@@ -454,6 +454,7 @@ jobs:
           set -o pipefail
           make -j3 Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
+          ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
