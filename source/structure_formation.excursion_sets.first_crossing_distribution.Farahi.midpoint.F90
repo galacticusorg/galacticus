@@ -512,13 +512,6 @@ contains
           call allocateArray(self%timeTableRate         ,[                                                                self%timeTableCountRate]                    )
           call allocateArray(self%firstCrossingTableRate,[1+self%varianceTableCountRate,1+self%varianceTableCountRateBase,self%timeTableCountRate],lowerBounds=[0,0,1])
           call allocateArray(self%nonCrossingTableRate  ,[                              1+self%varianceTableCountRateBase,self%timeTableCountRate],lowerBounds=[  0,1])
-          ! If only times have changed then pre-populate the tables with results previously computed.
-          if (.not.varianceMaximumChanged) then
-             self%firstCrossingTableRate(:,:,countNewLower+1:countNewLower+size(firstCrossingTableRate,dim=3))=firstCrossingTableRate
-             self%  nonCrossingTableRate(  :,countNewLower+1:countNewLower+size(  nonCrossingTableRate,dim=2))=  nonCrossingTableRate
-             deallocate(firstCrossingTableRate)
-             deallocate(  nonCrossingTableRate)
-          end if
           ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
           self%varianceTableRate    (0                                )=0.0d0
           self%varianceTableRate    (1:self%varianceTableCountRate    )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%varianceTableCountRate      ,exponent =1.0d0          )
@@ -828,6 +821,13 @@ contains
              self%  nonCrossingTableRate=mpiSelf%sum(self%  nonCrossingTableRate)
           end if
 #endif
+          ! If only times have changed then copy results previously computed to the tables.
+          if (.not.varianceMaximumChanged) then
+             self%firstCrossingTableRate(:,:,countNewLower+1:countNewLower+size(firstCrossingTableRate,dim=3))=firstCrossingTableRate
+             self%  nonCrossingTableRate(  :,countNewLower+1:countNewLower+size(  nonCrossingTableRate,dim=2))=  nonCrossingTableRate
+             deallocate(firstCrossingTableRate)
+             deallocate(  nonCrossingTableRate)
+          end if
           ! Build the interpolators.
           if (allocated(self%interpolatorVarianceRate    )) deallocate(self%interpolatorVarianceRate    )
           if (allocated(self%interpolatorVarianceRateBase)) deallocate(self%interpolatorVarianceRateBase)
