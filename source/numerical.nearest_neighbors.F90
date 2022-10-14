@@ -215,7 +215,6 @@ contains
 #ifndef ANNAVAIL
     use :: Error            , only : Error_Report
 #endif
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (nearestNeighbors)                           , intent(inout)           :: self
     double precision                  , dimension(:)             , intent(in   )           :: point
@@ -239,10 +238,10 @@ contains
        neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
        ! Resize arrays if necessary.
        if (neighborCount > arraySize) then
-          if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
-          if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
-          call allocateArray(neighborIndex   ,[neighborCount])
-          call allocateArray(neighborDistance,[neighborCount])
+          if (allocated(neighborIndex   )) deallocate(neighborIndex   )
+          if (allocated(neighborDistance)) deallocate(neighborDistance)
+          allocate(neighborIndex   (neighborCount))
+          allocate(neighborDistance(neighborCount))
           ! Call again to get all neighbors.
           neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
        end if

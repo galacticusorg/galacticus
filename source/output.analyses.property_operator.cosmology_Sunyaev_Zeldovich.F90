@@ -91,7 +91,6 @@ contains
     Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray
     implicit none
     type   (outputAnalysisPropertyOperatorCosmologySZ)                        :: self
     class  (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
@@ -102,7 +101,7 @@ contains
     <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *outputTimes_"/>
     !!]
 
-    call allocateArray(self%correctionFactor,[self%outputTimes_%count()])
+    allocate(self%correctionFactor(self%outputTimes_%count()))
     do outputIndex=1,self%outputTimes_%count()
        self%correctionFactor(outputIndex)=(                                                                                       &
             &                              +self%cosmologyFunctions_ %HubbleParameterEpochal(self%outputTimes_%time(outputIndex)) &
@@ -116,11 +115,10 @@ contains
     !!{
     Destructor for the ``cosmologySZ'' output analysis property operator class.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     type(outputAnalysisPropertyOperatorCosmologySZ), intent(inout) :: self
 
-    call deallocateArray(self%correctionFactor)
+    deallocate(self%correctionFactor)
     !![
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />

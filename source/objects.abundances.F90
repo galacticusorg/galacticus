@@ -191,7 +191,6 @@ contains
     !!}
     use :: Atomic_Data      , only : Atom_Lookup
     use :: Input_Parameters , only : inputParameters
-    use :: Memory_Management, only : allocateArray
     implicit none
     type   (inputParameters), intent(inout) :: parameters_
     integer                                 :: iElement
@@ -202,8 +201,8 @@ contains
     propertyCount=elementsCount+1
     ! If tracking elements, read names of which ones to track.
     if (elementsCount > 0) then
-       call allocateArray(elementsToTrack,[elementsCount])
-       call allocateArray(elementsIndices,[elementsCount])
+       allocate(elementsToTrack(elementsCount))
+       allocate(elementsIndices(elementsCount))
        !![
        <inputParameter>
          <name>elementsToTrack</name>
@@ -217,8 +216,10 @@ contains
        end do
     end if
     ! Create zero and unit abundances objects.
-    call allocateArray(zeroAbundances%elementalValue,[elementsCount])
-    call allocateArray(unitAbundances%elementalValue,[elementsCount])
+    if (allocated(zeroAbundances%elementalValue)) deallocate(zeroAbundances%elementalValue)
+    if (allocated(unitAbundances%elementalValue)) deallocate(unitAbundances%elementalValue)
+    allocate(zeroAbundances%elementalValue(elementsCount))
+    allocate(unitAbundances%elementalValue(elementsCount))
     zeroAbundances%metallicityValue=0.0d0
     zeroAbundances%  elementalValue=0.0d0
     unitAbundances%metallicityValue=1.0d0

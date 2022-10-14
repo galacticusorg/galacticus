@@ -1078,7 +1078,6 @@ contains
     use :: Error                           , only : Error_Report       , Warn
     use :: HDF5                            , only : hsize_t
     use :: HDF5_Access                     , only : hdf5Access
-    use :: Memory_Management               , only : Memory_Usage_Record, deallocateArray
     use :: Numerical_Constants_Astronomical, only : gigaYear           , massSolar      , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
@@ -1124,7 +1123,6 @@ contains
     else
        allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
     end if
-    call Memory_Usage_Record(sizeof(nodes))
     !$ call hdf5Access%set()
     if (useNodeSubset) then
        ! nodeIndex, hostIndex, parentNode
@@ -1246,7 +1244,7 @@ contains
              forall(iNode=1:nodeCount(1))
                 nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
              end forall
-             call deallocateArray(angularMomentum3D)
+             deallocate(angularMomentum3D)
           else if (self%angularMomentaIsScalar) then
              if (useNodeSubset) then
                 call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum                                   ,readSelection=nodeSubsetOffset)
@@ -1286,7 +1284,7 @@ contains
              forall(iNode=1:nodeCount(1))
                 nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
              end forall
-          call deallocateArray(spin3D)
+          deallocate(spin3D)
           else if (self%spinIsScalar) then
              if (useNodeSubset) then
                 call self%forestHalos%readDatasetStatic("spin",nodes%spin                                   ,readSelection=nodeSubsetOffset)
@@ -1314,7 +1312,7 @@ contains
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%spin3D=spin3D(:,iNode)
           end forall
-          call deallocateArray(spin3D)
+          deallocate(spin3D)
        end if
        ! Read arbitrary named real datasets.
        if (present(requireNamedReals   )) then
@@ -1333,7 +1331,7 @@ contains
              forall(iNode=1:nodeCount(1))
                 nodes(iNode)%reals   (j)=namedReal   (iNode)
              end forall
-             call deallocateArray(namedReal   )
+             deallocate(namedReal   )
           end do
        end if
        ! Read arbitrary named integer datasets.
@@ -1353,7 +1351,7 @@ contains
              forall(iNode=1:nodeCount(1))
                 nodes(iNode)%integers(j)=namedInteger(iNode)
              end forall
-             call deallocateArray(namedInteger)
+             deallocate(namedInteger)
           end do
        end if
        ! Initialize particle data to null values.
@@ -1429,7 +1427,7 @@ contains
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
           end forall
-       call deallocateArray(angularMomentum3D)
+       deallocate(angularMomentum3D)
        end if
        if (present(requirePositions).and.requirePositions) then
           position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
@@ -1439,8 +1437,8 @@ contains
              nodes(iNode)%position=position(:,iNode)
              nodes(iNode)%velocity=velocity(:,iNode)
           end forall
-          call deallocateArray(position)
-          call deallocateArray(velocity)
+          deallocate(position)
+          deallocate(velocity)
        end if
     end select
     return

@@ -261,7 +261,6 @@ contains
     !!}
     use :: Error                   , only : Error_Report
     use :: ISO_Varying_String      , only : var_str         , varying_string
-    use :: Memory_Management       , only : allocateArray   , deallocateArray
     use :: Numerical_Constants_Math, only : Pi              , e
     use :: String_Handling         , only : operator(//)
     use :: Vectors                 , only : Vector_Magnitude
@@ -297,8 +296,8 @@ contains
        self%outputTimes(iOutput)=self%outputTimes_%time(iOutput)
     end do
     ! Find the minimum and maximum distance associated with each output time.
-    call allocateArray(self%distanceMinimum,shape(self%outputTimes))
-    call allocateArray(self%distanceMaximum,shape(self%outputTimes))
+    allocate(self%distanceMinimum(size(self%outputTimes)))
+    allocate(self%distanceMaximum(size(self%outputTimes)))
     do iOutput=1,size(self%outputTimes)
        if (iOutput == 1                     ) then
           timeMinimum=                                 self%outputTimes(iOutput)
@@ -335,12 +334,12 @@ contains
        outputTime     =self%outputTimes    (size(self%outputTimes))
        distanceMinimum=self%distanceMinimum(size(self%outputTimes))
        distanceMaximum=self%distanceMaximum(                    1 )
-       call deallocateArray(self%outputTimes        )
-       call deallocateArray(self%distanceMinimum    )
-       call deallocateArray(self%distanceMaximum    )
-       call   allocateArray(self%outputTimes    ,[1])
-       call   allocateArray(self%distanceMinimum,[1])
-       call   allocateArray(self%distanceMaximum,[1])
+       deallocate(self%outputTimes        )
+       deallocate(self%distanceMinimum    )
+       deallocate(self%distanceMaximum    )
+       allocate(self%outputTimes    (1))
+       allocate(self%distanceMinimum(1))
+       allocate(self%distanceMaximum(1))
        self%outputTimes    =outputTime
        self%distanceMinimum=distanceMinimum
        self%distanceMaximum=distanceMaximum
@@ -460,7 +459,6 @@ contains
           &                                        nodeComponentSatellite  , treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: ISO_Varying_String  , only : varying_string
-    use            :: Memory_Management   , only : allocateArray
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none
@@ -578,7 +576,7 @@ contains
              end if
           end if
           ! Construct array of positions at output times.
-          call allocateArray(nodePositionHistory,[3_c_size_t,outputMaximum-outputMinimum+1])
+          allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
           do output=1,outputMaximum-outputMinimum+1
              nodePositionHistory(:,output)=position%position()
           end do
@@ -599,7 +597,7 @@ contains
              end if
           end if
           ! Construct array of positions at output times.
-          call allocateArray(nodePositionHistory,[3_c_size_t,outputMaximum-outputMinimum+1])
+          allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
           timeCurrent=basic%time()
           do output=1,outputMaximum-outputMinimum+1
              call basic%timeSet(self%outputTimes(output+outputMinimum-1))

@@ -175,7 +175,6 @@ contains
     use            :: IO_HDF5                       , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Extent          , Filter_Get_Index
-    use            :: Memory_Management             , only : allocateArray
     use            :: Output_Times                  , only : outputTimesClass
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use            :: String_Handling               , only : String_Join            , char
@@ -207,23 +206,23 @@ contains
     call emissionLinesFile%readDataset('ionizingFluxHydrogen'         ,self%ionizingFluxHydrogen        )
     call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen' ,self%ionizingFluxHeliumToHydrogen)
     call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'   ,self%ionizingFluxOxygenToHelium  )
-    call allocateArray(                                          &
-         &             self%luminosity,                          &
-         &             [                                         &
-         &              size(self%ionizingFluxOxygenToHelium  ), &
-         &              size(self%ionizingFluxHeliumToHydrogen), &
-         &              size(self%ionizingFluxHydrogen        ), &
-         &              size(self%densityHydrogen             ), &
-         &              size(self%metallicity                 ), &
-         &              size(self%lineNames                   )  &
-         &             ]                                         &
-         &            )
-    call allocateArray(                                          &
-         &             self%wavelength,                          &
-         &             [                                         &
-         &              size(self%lineNames                   )  &
-         &             ]                                         &
-         &            )
+    allocate(                                          &
+         &   self%luminosity                           &
+         &   (                                         &
+         &    size(self%ionizingFluxOxygenToHelium  ), &
+         &    size(self%ionizingFluxHeliumToHydrogen), &
+         &    size(self%ionizingFluxHydrogen        ), &
+         &    size(self%densityHydrogen             ), &
+         &    size(self%metallicity                 ), &
+         &    size(self%lineNames                   )  &
+         &   )                                         &
+         &  )
+    allocate(                                          &
+         &   self%wavelength                           &
+         &   (                                         &
+         &    size(self%lineNames                   )  &
+         &   )                                         &
+         &  )
     do i=1,size(lineNames)
        call lines      %readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
@@ -241,7 +240,7 @@ contains
     self%ionizingFluxOxygenToHelium  =log10(self%ionizingFluxOxygenToHelium  )
     self%luminosity                  =log10(self%luminosity                  )
     ! Find indices of ionizing continuua filters.
-    call allocateArray(self%ionizingContinuumIndex,[self%outputTimes_%count(),3_c_size_t])
+    allocate(self%ionizingContinuumIndex(self%outputTimes_%count(),3_c_size_t))
     do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%ionizingContinuumIndex(i,:                        )=-1

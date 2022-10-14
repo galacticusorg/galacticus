@@ -176,7 +176,6 @@ contains
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : varying_string
-    use            :: Memory_Management               , only : allocateArray                          , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : gigaYear                               , massSolar
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -205,12 +204,12 @@ contains
           node                  => node                 %firstChild
        end do
        ! Allocate storage space.
-       call                             allocateArray(nodeIndex          ,[int(accretionHistoryCount)  ])
-       call                             allocateArray(nodeTime           ,[int(accretionHistoryCount)  ])
-       call                             allocateArray(nodeExpansionFactor,[int(accretionHistoryCount)  ])
-       call                             allocateArray(nodeMass           ,[int(accretionHistoryCount)  ])
-       if (self%includeSpin      ) call allocateArray(nodeSpin           ,[int(accretionHistoryCount)  ])
-       if (self%includeSpinVector) call allocateArray(nodeSpinVector     ,[int(accretionHistoryCount),3])
+       allocate(nodeIndex          (int(accretionHistoryCount)  ))
+       allocate(nodeTime           (int(accretionHistoryCount)  ))
+       allocate(nodeExpansionFactor(int(accretionHistoryCount)  ))
+       allocate(nodeMass           (int(accretionHistoryCount)  ))
+       if (self%includeSpin      ) allocate(nodeSpin           (int(accretionHistoryCount)  ))
+       if (self%includeSpinVector) allocate(nodeSpinVector     (int(accretionHistoryCount),3))
        ! Extract accretion history.
        accretionHistoryCount =  0
        node                  => treeCurrent%nodeBase
@@ -266,12 +265,12 @@ contains
        call treeGroup       %close         (                                                                                                                                      )
        !$ call hdf5Access%unset()
        ! Deallocate storage space.
-       call                             deallocateArray(nodeIndex          )
-       call                             deallocateArray(nodeTime           )
-       call                             deallocateArray(nodeMass           )
-       call                             deallocateArray(nodeExpansionFactor)
-       if (self%includeSpin      ) call deallocateArray(nodeSpin           )
-       if (self%includeSpinVector) call deallocateArray(nodeSpinVector     )
+       deallocate(nodeIndex          )
+       deallocate(nodeTime           )
+       deallocate(nodeMass           )
+       deallocate(nodeExpansionFactor)
+       if (self%includeSpin      ) deallocate(nodeSpin           )
+       if (self%includeSpinVector) deallocate(nodeSpinVector     )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do

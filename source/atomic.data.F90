@@ -198,7 +198,6 @@ contains
     use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS, &
          &                            xmlNodeList          , XML_Parse
     use :: ISO_Varying_String, only : char
-    use :: Memory_Management , only : Memory_Usage_Record  , allocateArray
     use :: String_Handling   , only : String_Lower_Case    , char
     implicit none
     type            (Node       )              , pointer     :: abundanceTypeElement, doc              , &
@@ -225,10 +224,9 @@ contains
 
        ! Allocate storage space.
        allocate(atoms(size(elementList)))
-       call Memory_Usage_Record(sizeof(atoms))
        ! Allocate abundance pattern array for elements.
        do iAtom=1,size(elementList)
-          call allocateArray(atoms(iAtom)%abundanceByMass,[abundancePatternCount])
+          allocate(atoms(iAtom)%abundanceByMass(abundancePatternCount))
           atoms(iAtom)%abundanceByMass=0.0d0
        end do
        ! Get atom properties.
@@ -244,13 +242,13 @@ contains
        atomicNumberMaximum=maxval(atoms%atomicNumber)
 
        ! Allocate space for atomic number lookup array.
-       call allocateArray(atomicNumberIndex,[atomicNumberMaximum])
+       allocate(atomicNumberIndex(atomicNumberMaximum))
        ! Create lookup array by atomic number.
        forall(iAtom=1:size(atoms))
           atomicNumberIndex(atoms(iAtom)%atomicNumber)=iAtom
        end forall
        ! Allocate metal mass normalizations array.
-       call allocateArray(metalMassNormalization,[abundancePatternCount])
+       allocate(metalMassNormalization(abundancePatternCount))
        ! Load tables of abundance patterns.
        do iAbundancePattern=1,abundancePatternCount
 

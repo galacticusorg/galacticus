@@ -36,7 +36,6 @@ module Galacticus_Nodes
   use            :: Kepler_Orbits                      , only : keplerOrbit
   use            :: Kind_Numbers                       , only : kind_int8
   use            :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
-  use            :: Memory_Management                  , only : Memory_Usage_Record          , memoryTypeNodes
   use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar, megaParsec
   use            :: Numerical_Constants_Prefixes       , only : kilo
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorClass
@@ -277,15 +276,6 @@ module Galacticus_Nodes
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
     if (allocErr/=0) call Error_Report('unable to allocate node'//{introspection:location})
-    !![
-    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-     <description>
-      Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-     </description>
-    </workaround>
-    !!]
-    !call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
-
     ! Initialize the node.
     call Tree_Node_Constructor%initialize(index,hostTree)
     return

@@ -40,7 +40,6 @@ contains
     use            :: Error                   , only : Error_Report
     use, intrinsic :: ISO_C_Binding           , only : c_double_complex  , c_ptr
     use            :: ISO_Varying_String      , only : varying_string
-    use            :: Memory_Management       , only : allocateArray     , deallocateArray
     use            :: Meshes                  , only : Meshes_Apply_Point, cloudTypePoint
     use            :: Numerical_Constants_Math, only : Pi
     use            :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
@@ -69,10 +68,10 @@ contains
     call Error_Report('FFTW3 library is required but was not found'//{introspection:location})
 #endif
     ! Allocate arrays.
-    if (allocated(wavenumber   )) call deallocateArray(wavenumber   )
-    if (allocated(powerSpectrum)) call deallocateArray(powerSpectrum)
-    call allocateArray(wavenumber        ,[wavenumberCount])
-    call allocateArray(powerSpectrum     ,[wavenumberCount])
+    if (allocated(wavenumber   )) deallocate(wavenumber   )
+    if (allocated(powerSpectrum)) deallocate(powerSpectrum)
+    allocate(wavenumber        (wavenumberCount))
+    allocate(powerSpectrum     (wavenumberCount))
     allocate        (powerSpectrumCount (wavenumberCount))
     ! Generate the array of wavenumbers.
     wavenumber                       =Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)

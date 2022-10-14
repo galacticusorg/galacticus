@@ -1015,7 +1015,6 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=)         , char           , varying_string
     use            :: Kind_Numbers      , only : kind_int8
-    use            :: Memory_Management , only : allocateArray         , deallocateArray
     use            :: String_Handling   , only : operator(//)
     use            :: Locks             , only : ompLock
     implicit none
@@ -1046,14 +1045,14 @@ contains
        outputGroup=blackHolesGroup%openGroup(char(groupName),"Properties of black holes for all trees at each output.")
        !$ call hdf5Access%unset()
        ! Allocate array to store profile.
-       call allocateArray(radius             ,[blackHoleCount])
-       call allocateArray(spin               ,[blackHoleCount])
-       call allocateArray(mass               ,[blackHoleCount])
-       call allocateArray(timescale          ,[blackHoleCount])
-       call allocateArray(massAccretionRate  ,[blackHoleCount])
-       call allocateArray(radiativeEfficiency,[blackHoleCount])
-       call allocateArray(nodeIndex          ,[blackHoleCount])
-       call allocateArray(mergerTreeIndex    ,[blackHoleCount])
+       allocate(radius             (blackHoleCount))
+       allocate(spin               (blackHoleCount))
+       allocate(mass               (blackHoleCount))
+       allocate(timescale          (blackHoleCount))
+       allocate(massAccretionRate  (blackHoleCount))
+       allocate(radiativeEfficiency(blackHoleCount))
+       allocate(nodeIndex          (blackHoleCount))
+       allocate(mergerTreeIndex    (blackHoleCount))
        ! Construct arrays of black hole properties.
        do instance=1,blackHoleCount
           blackHole => node%blackHole(instance=instance)
@@ -1091,14 +1090,14 @@ contains
        call    blackHolesGroup%close       (                                                                                                  )
        !$ call hdf5Access%unset()
        ! Deallocatate profile arrays.
-       call deallocateArray(mass               )
-       call deallocateArray(spin               )
-       call deallocateArray(radius             )
-       call deallocateArray(timescale          )
-       call deallocateArray(radiativeEfficiency)
-       call deallocateArray(massAccretionRate  )
-       call deallocateArray(nodeIndex          )
-       call deallocateArray(mergerTreeIndex    )
+       deallocate(mass               )
+       deallocate(spin               )
+       deallocate(radius             )
+       deallocate(timescale          )
+       deallocate(radiativeEfficiency)
+       deallocate(massAccretionRate  )
+       deallocate(nodeIndex          )
+       deallocate(mergerTreeIndex    )
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Properties

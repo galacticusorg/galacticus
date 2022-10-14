@@ -185,7 +185,6 @@ contains
     use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
           &                                     verbosityLevelWorking
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray        , deallocateArray
     use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
@@ -227,6 +226,7 @@ contains
           call Move_Alloc(self%firstCrossingProbabilityTable,firstCrossingProbabilityTablePrevious)
           varianceTableCountPrevious=self%varianceTableCount
        else
+          allocate(firstCrossingProbabilityTablePrevious(0,0))
           varianceTableCountPrevious=-1
        end if
        self%timeMinimumPrevious=self%timeMinimum
@@ -234,20 +234,20 @@ contains
        self%timeTableCount     =int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
        self%varianceTableCount =int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
        ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
-       if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
-       if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
-       call allocateArray(self%varianceTable                ,[1+self%varianceTableCount]                      ,lowerBounds=[0  ])
-       call allocateArray(self%timeTable                                                ,[self%timeTableCount]                  )
-       call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount , self%timeTableCount],lowerBounds=[0,1])
+       if (allocated(self%varianceTable                )) deallocate(self%varianceTable                )
+       if (allocated(self%timeTable                    )) deallocate(self%timeTable                    )
+       if (allocated(self%firstCrossingProbabilityTable)) deallocate(self%firstCrossingProbabilityTable)
+       allocate(self%varianceTable                (0:self%varianceTableCount                    ))
+       allocate(self%timeTable                    (                          self%timeTableCount))
+       allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
        self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
        self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
        self%varianceTableStep=+self%varianceTable(4) &
             &                 -self%varianceTable(0)
        if (tableIsExtendable) then
           self%firstCrossingProbabilityTable(0:varianceTableCountPrevious,:)=firstCrossingProbabilityTablePrevious
-          call deallocateArray(firstCrossingProbabilityTablePrevious)
        end if
+       deallocate(firstCrossingProbabilityTablePrevious)
        ! Loop through the table and solve for the first crossing distribution.
        call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
        do iTime=1,self%timeTableCount

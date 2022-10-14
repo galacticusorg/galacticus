@@ -135,7 +135,6 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Get_Index       , Filter_Wavelength_Effective
-    use            :: Memory_Management             , only : allocateArray
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (nodePropertyExtractorLmnstyStllrCF2000)                                        :: self
@@ -152,8 +151,8 @@ contains
     !!]
 
     self%wavelengthFilterEffective=Filter_Wavelength_Effective(Filter_Get_Index(var_str(filterName)))
-    call allocateArray(self%luminosityIndex      ,[self%outputTimes_%count()])
-    call allocateArray(self%luminosityRecentIndex,[self%outputTimes_%count()])
+    allocate(self%luminosityIndex      (self%outputTimes_%count()))
+    allocate(self%luminosityRecentIndex(self%outputTimes_%count()))
     do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%luminosityIndex      (i)=-1

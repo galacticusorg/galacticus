@@ -121,7 +121,6 @@ contains
     !!}
     use :: Error            , only : Error_Report
     use :: Linear_Algebra   , only : vector       , matrix         , assignment(=), operator(*)
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class          (nbodyOperatorAngularMomentum), intent(inout)                   :: self
     type           (nBodyData                   ), intent(inout), dimension(:    ) :: simulations

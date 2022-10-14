@@ -86,7 +86,6 @@ contains
     use :: Input_Paths      , only : inputPath                     , pathTypeDataStatic
     use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                        , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
          &                           XML_Parse                     , extractDataContent                => extractDataContentTS
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (supernovaeTypeIaNagashima2005)                              :: self
     class           (stellarAstrophysicsClass     ), intent(in   ), target       :: stellarAstrophysics_
@@ -101,7 +100,7 @@ contains
     !!]
 
     ! Allocate an array to store individual element yields.
-    call allocateArray(self%elementYield,[Atomic_Data_Atoms_Count()])
+    allocate(self%elementYield(Atomic_Data_Atoms_Count()))
     self%elementYield=0.0d0
     self%totalYield  =0.0d0
     ! Read in Type Ia yields.

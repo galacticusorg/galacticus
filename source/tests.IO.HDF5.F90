@@ -26,7 +26,6 @@ program Tests_IO_HDF5
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
   use :: Kind_Numbers      , only : kind_int8
-  use :: Memory_Management , only : deallocateArray
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
@@ -263,14 +262,14 @@ program Tests_IO_HDF5
      ! Read an integer 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("integerDataset1dArray",integerValueArrayReread)
      call Assert("re-read 1-D array integer dataset to allocatable array",integerValueArray,integerValueArrayReread)
-     call deallocateArray(integerValueArrayReread)
+     deallocate(integerValueArrayReread)
      ! Read part of an integer 1-D array dataset from the group into a static array.
      call groupObject%readDatasetStatic("integerDataset1dArray",integerValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
      call Assert("re-read part of a 1-D array integer dataset to static array",integerValueArray(3:6),integerValueArrayRereadStatic)
      ! Read part of an integer 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("integerDataset1dArray",integerValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
      call Assert("re-read part of a 1-D array integer dataset to allocatable array",integerValueArray(3:6),integerValueArrayReread)
-     call deallocateArray(integerValueArrayReread)
+     deallocate(integerValueArrayReread)
 
      ! Open the dataset.
      datasetObject=groupObject%openDataset("integerDataset1dArray")
@@ -285,11 +284,11 @@ program Tests_IO_HDF5
      ! Read an integer 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("myReference",integerValueArrayReread)
      call Assert("re-read referenced 1-D array integer dataset to allocatable array",integerValueArray(3:4),integerValueArrayReread(1:2))
-     call deallocateArray(integerValueArrayReread)
+     deallocate(integerValueArrayReread)
      ! Read part of an integer 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("myReference",integerValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
      call Assert("re-read part of referenced 1-D array integer dataset to allocatable array",integerValueArray(4:4),integerValueArrayReread(1:1))
-     call deallocateArray(integerValueArrayReread)
+     deallocate(integerValueArrayReread)
 
      ! Write an extensible long integer 1-D array dataset to the group.
      if (appendableOK) then
@@ -359,14 +358,14 @@ program Tests_IO_HDF5
      ! Read a double 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset1dArray",doubleValueArrayReread)
      call Assert("re-read 1-D array double dataset to allocatable array",doubleValueArray,doubleValueArrayReread)
-     call deallocateArray(doubleValueArrayReread)
+     deallocate(doubleValueArrayReread)
      ! Read part of a double 1-D array dataset from the group into a static array.
      call groupObject%readDatasetStatic("doubleDataset1dArray",doubleValueArrayRereadStatic,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
      call Assert("re-read part of a 1-D array double dataset to static array",doubleValueArray(3:6),doubleValueArrayRereadStatic)
      ! Read part of a double 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset1dArray",doubleValueArrayReread,int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
      call Assert("re-read part of a 1-D array double dataset to allocatable array",doubleValueArray(3:6),doubleValueArrayReread)
-     call deallocateArray(doubleValueArrayReread)
+     deallocate(doubleValueArrayReread)
 
      ! Open the dataset.
      datasetObject=groupObject%openDataset("doubleDataset1dArray")
@@ -381,11 +380,11 @@ program Tests_IO_HDF5
      ! Read a double 1-D array dataset from the group into a static array.
      call groupObject%readDataset("doubleReference",doubleValueArrayReread)
      call Assert("re-read referenced 1-D array double dataset to allocatable array",doubleValueArray(3:4),doubleValueArrayReread(1:2))
-     call deallocateArray(doubleValueArrayReread)
+     deallocate(doubleValueArrayReread)
      ! Read part of a double 1-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleReference",doubleValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
      call Assert("re-read part of referenced 1-D array double dataset to allocatable array",doubleValueArray(4:4),doubleValueArrayReread(1:1))
-     call deallocateArray(doubleValueArrayReread)
+     deallocate(doubleValueArrayReread)
      
      ! Write an extensible double 2-D array dataset to the group.
      if (appendableOK) then
@@ -407,7 +406,7 @@ program Tests_IO_HDF5
         doubleValueArray2dRereadExpect(11,:)=1.414d0
         call Assert("append to arbitrary dimension of a 2-D array double dataset",doubleValueArray2dReread,doubleValueArray2dRereadExpect)
         deallocate(doubleValueArray2dRereadExpect)
-        call deallocateArray(doubleValueArray2dReread)
+        deallocate(doubleValueArray2dReread)
      end if
 
      ! Write a double 2-D array dataset to the group.
@@ -435,14 +434,14 @@ program Tests_IO_HDF5
      ! Read a double 2-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset2dArray",doubleValueArray2dReread)
      call Assert("re-read 2-D array double dataset to allocatable array",doubleValueArray2d,doubleValueArray2dReread)
-        call deallocateArray(doubleValueArray2dReread)
+        deallocate(doubleValueArray2dReread)
      ! Read part of a double 2-D array dataset from the group into a static array.
      call groupObject%readDatasetStatic("doubleDataset2dArray",doubleValueArray2dRereadStatic,int([3,6],kind=HSIZE_T),int([4,3],kind=HSIZE_T))
      call Assert("re-read part of a 2-D array double dataset to static array",doubleValueArray2d(3:6,6:8),doubleValueArray2dRereadStatic(1:4,1:3))
      ! Read part of a double 2-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset2dArray",doubleValueArray2dReread,int([3,6],kind=HSIZE_T),int([4,3],kind=HSIZE_T))
      call Assert("re-read part of a 2-D array double dataset to allocatable array",doubleValueArray2d(3:6,6:8),doubleValueArray2dReread(1:4,1:3))
-     call deallocateArray(doubleValueArray2dReread)
+     deallocate(doubleValueArray2dReread)
 
      ! Open the dataset.
      datasetObject=groupObject%openDataset("doubleDataset2dArray")
@@ -457,12 +456,12 @@ program Tests_IO_HDF5
      ! Read part of a double 2-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("double2dReference",doubleValueArray2dReread,int([2,2],kind=HSIZE_T),int([1,2],kind=HSIZE_T))
      call Assert("re-read part of referenced 2-D array double dataset to allocatable array",doubleValueArray2d(4:4,6:7),doubleValueArray2dReread(1:1,1:2))
-     call deallocateArray(doubleValueArray2dReread)
+     deallocate(doubleValueArray2dReread)
      
      ! Read a double 2-D array dataset from the group into a static array.
      call groupObject%readDataset("double2dReference",doubleValueArray2dReread)
      call Assert("re-read referenced 2-D array double dataset to allocatable array",doubleValueArray2d(3:4,5:7),doubleValueArray2dReread(1:2,1:3))
-     call deallocateArray(doubleValueArray2dReread)
+     deallocate(doubleValueArray2dReread)
 
      ! Write an extensible double 3-D array dataset to the group.
      if (appendableOK) then
@@ -484,7 +483,7 @@ program Tests_IO_HDF5
         doubleValueArray3dRereadExpect(:,11,:)=1.414d0
         call Assert("append to arbitrary dimension of a 3-D array double dataset",doubleValueArray3dReread,doubleValueArray3dRereadExpect)
         deallocate(doubleValueArray3dRereadExpect)
-        call deallocateArray(doubleValueArray3dReread)
+        deallocate(doubleValueArray3dReread)
      end if
 
      ! Write a double 3-D array dataset to the group.
@@ -499,14 +498,14 @@ program Tests_IO_HDF5
      ! Read a double 3-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset3dArray",doubleValueArray3dReread)
      call Assert("re-read 3-D array double dataset to allocatable array",doubleValueArray3d,doubleValueArray3dReread)
-     call deallocateArray(doubleValueArray3dReread)
+     deallocate(doubleValueArray3dReread)
      ! Read part of a double 3-D array dataset from the group into a static array.
      call groupObject%readDatasetStatic("doubleDataset3dArray",doubleValueArray3dRereadStatic,int([3,6,2],kind=HSIZE_T),int([4,3,5],kind=HSIZE_T))
      call Assert("re-read part of a 3-D array double dataset to static array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dRereadStatic(1:4,1:3,1:5))
      ! Read part of a double 3-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset3dArray",doubleValueArray3dReread,int([3,6,2],kind=HSIZE_T),int([4,3,5],kind=HSIZE_T))
      call Assert("re-read part of a 3-D array double dataset to allocatable array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dReread(1:4,1:3,1:5))
-     call deallocateArray(doubleValueArray3dReread)
+     deallocate(doubleValueArray3dReread)
 
      ! Open the dataset.
      datasetObject=groupObject%openDataset("doubleDataset3dArray")
@@ -521,11 +520,11 @@ program Tests_IO_HDF5
      ! Read a double 3-D array dataset from the group into a static array.
      call groupObject%readDataset("double3dReference",doubleValueArray3dReread)
      call Assert("re-read referenced 3-D array double dataset to allocatable array",doubleValueArray3d(3:4,5:7,2:5),doubleValueArray3dReread(1:2,1:3,1:4))
-     call deallocateArray(doubleValueArray3dReread)
+     deallocate(doubleValueArray3dReread)
      ! Read part of a double 3-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("double3dReference",doubleValueArray3dReread,int([2,2,1],kind=HSIZE_T),int([1,2,3],kind=HSIZE_T))
      call Assert("re-read part of referenced 3-D array double dataset to allocatable array",doubleValueArray3d(4:4,6:7,2:4),doubleValueArray3dReread(1:1,1:2,1:3))
-     call deallocateArray(doubleValueArray3dReread)
+     deallocate(doubleValueArray3dReread)
 
      ! Write an extensible double 4-D array dataset to the group.
      if (appendableOK) then
@@ -547,7 +546,7 @@ program Tests_IO_HDF5
         doubleValueArray4dRereadExpect(:,:,11,:)=1.414d0
         call Assert("append to arbitrary dimension of a 4-D array double dataset",doubleValueArray4dReread,doubleValueArray4dRereadExpect)
         deallocate(doubleValueArray4dRereadExpect)
-        call deallocateArray(doubleValueArray4dReread)
+        deallocate(doubleValueArray4dReread)
      end if
 
      ! Write a double 4-D array dataset to the group.
@@ -562,14 +561,14 @@ program Tests_IO_HDF5
      ! Read a double 4-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread)
      call Assert("re-read 4-D array double dataset to allocatable array",doubleValueArray4d,doubleValueArray4dReread)
-     call deallocateArray(doubleValueArray4dReread)
+     deallocate(doubleValueArray4dReread)
      ! Read part of a double 4-D array dataset from the group into a static array.
      call groupObject%readDatasetStatic("doubleDataset4dArray",doubleValueArray4dRereadStatic,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
      call Assert("re-read part of a 4-D array double dataset to static array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dRereadStatic(1:4,1:3,1:5,1:2))
      ! Read part of a double 4-D array dataset from the group into a array.
      call groupObject%readDataset("doubleDataset4dArray",doubleValueArray4dReread,int([3,6,2,7],kind=HSIZE_T),int([4,3,5,2],kind=HSIZE_T))
      call Assert("re-read part of a 4-D array double dataset to allocatable array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dReread(1:4,1:3,1:5,1:2))
-     call deallocateArray(doubleValueArray4dReread)
+     deallocate(doubleValueArray4dReread)
      ! Check the dimensions of the dataset.
      datasetObject=groupObject%openDataset("doubleDataset4dArray")
      call Assert("get dimensions of a dataset",[10,10,10,10],[int(datasetObject%size(1)),int(datasetObject%size(2)),int(datasetObject%size(3)),int(datasetObject%size(4))])
@@ -588,11 +587,11 @@ program Tests_IO_HDF5
      ! Read a double 4-D array dataset from the group into a static array.
      call groupObject%readDataset("double4dReference",doubleValueArray4dReread)
      call Assert("re-read referenced 4-D array double dataset to allocatable array",doubleValueArray4d(3:4,5:7,2:5,6:8),doubleValueArray4dReread(1:2,1:3,1:4,1:3))
-     call deallocateArray(doubleValueArray4dReread)
+     deallocate(doubleValueArray4dReread)
      ! Read part of a double 4-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("double4dReference",doubleValueArray4dReread,int([2,2,1,1],kind=HSIZE_T),int([1,2,3,2],kind=HSIZE_T))
      call Assert("re-read part of referenced 4-D array double dataset to allocatable array",doubleValueArray4d(4:4,6:7,2:4,6:7),doubleValueArray4dReread(1:1,1:2,1:3,1:2))
-     call deallocateArray(doubleValueArray4dReread)
+     deallocate(doubleValueArray4dReread)
 
      ! Write an extensible double 5-D array dataset to the group.
      if (appendableOK) then
@@ -614,7 +613,7 @@ program Tests_IO_HDF5
         doubleValueArray5dRereadExpect(:,:,:,11,:)=1.415d0
         call Assert("append to arbitrary dimension of a 5-D array double dataset",doubleValueArray5dReread,doubleValueArray5dRereadExpect)
         deallocate(doubleValueArray5dRereadExpect)
-        call deallocateArray(doubleValueArray5dReread)
+        deallocate(doubleValueArray5dReread)
      end if
 
      ! Write a double 5-D array dataset to the group.
@@ -629,14 +628,14 @@ program Tests_IO_HDF5
      ! Read a double 5-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset5dArray",doubleValueArray5dReread)
      call Assert("re-read 5-D array double dataset to allocatable array",doubleValueArray5d,doubleValueArray5dReread)
-     call deallocateArray(doubleValueArray5dReread)
+     deallocate(doubleValueArray5dReread)
      ! Read part of a double 5-D array dataset from the group into a static array.
      call groupObject%readDatasetStatic("doubleDataset5dArray",doubleValueArray5dRereadStatic,int([3,6,2,7,2],kind=HSIZE_T),int([4,3,5,2,6],kind=HSIZE_T))
      call Assert("re-read part of a 5-D array double dataset to static array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dRereadStatic(1:4,1:3,1:5,1:2,1:6))
      ! Read part of a double 5-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("doubleDataset5dArray",doubleValueArray5dReread,int([3,6,2,7,2],kind=HSIZE_T),int([4,3,5,2,6],kind=HSIZE_T))
      call Assert("re-read part of a 5-D array double dataset to allocatable array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dReread(1:4,1:3,1:5,1:2,1:6))
-     call deallocateArray(doubleValueArray5dReread)
+     deallocate(doubleValueArray5dReread)
 
      ! Open the dataset.
      datasetObject=groupObject%openDataset("doubleDataset5dArray")
@@ -651,11 +650,11 @@ program Tests_IO_HDF5
      ! Read a double 5-D array dataset from the group into a static array.
      call groupObject%readDataset("double5dReference",doubleValueArray5dReread)
      call Assert("re-read referenced 5-D array double dataset to allocatable array",doubleValueArray5d(3:4,5:7,2:5,6:8,2:9),doubleValueArray5dReread(1:2,1:3,1:4,1:3,1:8))
-     call deallocateArray(doubleValueArray5dReread)
+     deallocate(doubleValueArray5dReread)
      ! Read part of a double 5-D array dataset from the group into an allocatable array.
      call groupObject%readDataset("double5dReference",doubleValueArray5dReread,int([2,2,1,1,4],kind=HSIZE_T),int([1,2,3,2,4],kind=HSIZE_T))
      call Assert("re-read part of referenced 5-D array double dataset to allocatable array",doubleValueArray5d(4:4,6:7,2:4,6:7,5:8),doubleValueArray5dReread(1:1,1:2,1:3,1:2,1:4))
-     call deallocateArray(doubleValueArray5dReread)
+     deallocate(doubleValueArray5dReread)
 
      ! Write a character 1-D array dataset to the group.
      characterValueArray='aAbBcCdDeEfFgGhH'
@@ -663,7 +662,7 @@ program Tests_IO_HDF5
      ! Read the character 1-D array dataset back.
      call groupObject%readDataset("characterDataset1dArray",characterValueArrayReread)
      call Assert("re-read 1-D array character dataset",characterValueArray,characterValueArrayReread)
-     call deallocateArray(characterValueArrayReread)
+     deallocate(characterValueArrayReread)
      ! Read the character 1-D array dataset back to a static array.
      call groupObject%readDatasetStatic("characterDataset1dArray",characterValueArrayRereadStatic)
      call Assert("re-read 1-D array character dataset to static array",characterValueArray,characterValueArrayRereadStatic)
@@ -748,7 +747,7 @@ program Tests_IO_HDF5
      ! Read the long integer 1-D array attribute back.
      call groupObject%readAttribute("integerShortAttribute1dArray",integer8ValueArrayReread)
      call Assert("read 1-D array integer attribute to long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
-     call deallocateArray(integer8ValueArrayReread)
+     deallocate(integer8ValueArrayReread)
      ! Read the long integer 1-D array attribute back to a static array.
      call groupObject%readAttributeStatic("integerShortAttribute1dArray",integer8ValueArrayRereadStatic)
      call Assert("read 1-D array integer attribute to static long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
@@ -759,7 +758,7 @@ program Tests_IO_HDF5
      ! Read the dataset back into a long integer 1-D array dataset.
      call groupObject%readDataset("integerShortDataset1dArray",integer8ValueArrayReread)
      call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
-     call deallocateArray(integer8ValueArrayReread)
+     deallocate(integer8ValueArrayReread)
      ! Read the dataset back into a long integer 1-D array dataset.
      call groupObject%readDatasetStatic("integerShortDataset1dArray",integer8ValueArrayRereadStatic)
      call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
@@ -810,7 +809,7 @@ program Tests_IO_HDF5
        ! Read the dataset.
        call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
        call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)
-       call deallocateArray(integerRangeU32)
+       deallocate(integerRangeU32)
 
        ! Close the group.
        call groupObject%close()

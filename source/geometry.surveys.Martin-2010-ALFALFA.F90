@@ -204,7 +204,6 @@ contains
     !!{
     Initialize random points for the survey.
     !!}
-    use :: Memory_Management               , only : allocateArray
     use :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
@@ -232,8 +231,8 @@ contains
     end do
     regionSolidAngle=regionSolidAngle/regionSolidAngle(regionCount)
     ! Generate random points.
-    call allocateArray(self%randomTheta,[randomsCount])
-    call allocateArray(self%randomPhi  ,[randomsCount])
+    allocate(self%randomTheta(randomsCount))
+    allocate(self%randomPhi  (randomsCount))
     do iRandom=1,randomsCount
        ! Select a region at random.
        uniformRandom=self%randomNumberGenerator_%uniformSample()

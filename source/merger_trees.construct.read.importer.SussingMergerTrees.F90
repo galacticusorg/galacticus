@@ -435,7 +435,6 @@ contains
     use            :: Error                           , only : Error_Report
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Kind_Numbers                    , only : kind_int8
-    use            :: Memory_Management               , only : allocateArray          , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : kilo
     use            :: Sorting                         , only : sortIndex
@@ -792,9 +791,9 @@ contains
     message='Found '
     message=message//self%treesCount//' trees'
     call displayMessage(message,verbosityLevelWorking)
-    call allocateArray(self%treeIndices,[self%treesCount])
-    call allocateArray(self%treeSizes  ,[self%treesCount])
-    call allocateArray(self%treeBegins ,[self%treesCount])
+    allocate(self%treeIndices(self%treesCount))
+    allocate(self%treeSizes  (self%treesCount))
+    allocate(self%treeBegins (self%treesCount))
     treeIndexPrevious=-1
     j                = 0
     self%treeSizes   = 0
@@ -819,9 +818,9 @@ contains
        self%nodes%velocity          (i)=importerUnitConvert(self%nodes%velocity          (i),self%nodes%nodeTime,velocityUnits,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
     end do
     ! Destroy temporary workspace.
-    call deallocateArray(nodeSelfIndices        )
-    call deallocateArray(nodeTreeIndices        )
-    call deallocateArray(nodeDescendentLocations)
+    deallocate(nodeSelfIndices        )
+    deallocate(nodeTreeIndices        )
+    deallocate(nodeDescendentLocations)
     ! Write completion message.
     call displayUnindent('done',verbosityLevelWorking)
    return
@@ -986,7 +985,6 @@ contains
     Import the $i^\mathrm{th}$ merger tree.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : Memory_Usage_Record
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                            :: self
     integer                                    , intent(in   )                            :: i
@@ -1007,7 +1005,6 @@ contains
        if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Error_Report('import of subsets is not supported'       //{introspection:location})
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
-       call Memory_Usage_Record(sizeof(nodes))
        ! Copy data to nodes.
        select type (nodes)
        type is (nodeData)

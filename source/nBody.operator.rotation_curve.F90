@@ -130,7 +130,6 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorRotationCurve), intent(inout)                 :: self
@@ -151,9 +150,9 @@ contains
        ! Allocate workspace.
        position     => simulations(iSimulation)%propertiesRealRank1%value('position'    )
        massparticle =  simulations(iSimulation)%attributesReal     %value('massParticle')
-       call allocateArray(distanceRadialSquared,[  size(     position,dim =2       )                          ])
-       call allocateArray(positionRelative     ,[3,size(     position,dim =2       )                          ])
-       call allocateArray(rotationCurve        ,[  size(self%radius  ,kind=c_size_t),self%bootstrapSampleCount])
+       allocate(distanceRadialSquared(  size(     position,dim =2)                          ))
+       allocate(positionRelative     (3,size(     position,dim =2)                          ))
+       allocate(rotationCurve        (  size(self%radius         ),self%bootstrapSampleCount))
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
           if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
@@ -163,7 +162,7 @@ contains
              call Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
-          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          allocate(selfBoundStatus(size(position,dim=2),self%bootstrapSampleCount))
           do i=1,self%bootstrapSampleCount
              do j=1,size(position,dim=2)
                 selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
@@ -196,10 +195,10 @@ contains
        call rotationCurveGroup%writeDataset(rotationCurve,'rotationCurveVelocity')
        call rotationCurveGroup%close()
        ! Deallocate workspace.
-       call deallocateArray(selfBoundStatus      )
-       call deallocateArray(distanceRadialSquared)
-       call deallocateArray(positionRelative     )
-       call deallocateArray(rotationCurve        )
+       deallocate(selfBoundStatus      )
+       deallocate(distanceRadialSquared)
+       deallocate(positionRelative     )
+       deallocate(rotationCurve        )
     end do
     return
   end subroutine rotationCurveOperate

@@ -139,7 +139,6 @@ contains
     Internal constructor for the {\normalfont \ttfamily file} stellar astrophysics class.
     !!}
     use :: Atomic_Data      , only : Atomic_Data_Atoms_Count
-    use :: Memory_Management, only : allocateArray
     implicit none
     type     (stellarAstrophysicsFile)                :: self
     character(len=*                  ), intent(in   ) :: fileName
@@ -148,8 +147,8 @@ contains
     !!]
 
     ! Allocate array to store number of entries in file for yield of each element.
-    call allocateArray(self%countYieldElement,[Atomic_Data_Atoms_Count()])
-    call allocateArray(self%atomIndexMap     ,[Atomic_Data_Atoms_Count()])
+    allocate(self%countYieldElement(Atomic_Data_Atoms_Count()))
+    allocate(self%atomIndexMap     (Atomic_Data_Atoms_Count()))
     self%interpolationResetMassInitial=.true.
     self%interpolationResetLifetime   =.true.
     self%interpolationResetMassEjected=.true.
@@ -167,7 +166,6 @@ contains
     use :: Error            , only : Error_Report
     use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS, &
          &                           XML_Parse
-    use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)               :: self
     type            (node                   ), pointer                     :: doc              , datum                   , &
@@ -232,18 +230,18 @@ contains
        end if
     end do
     ! Allocate arrays to store stellar properties.
-    call allocateArray(self%lifetimeLifetime          ,[countLifetime                             ])
-    call allocateArray(self%lifetimeMass              ,[countLifetime                             ])
-    call allocateArray(self%lifetimeMetallicity       ,[countLifetime                             ])
-    call allocateArray(self%massEjectedMassEjected    ,[countMassEjected                          ])
-    call allocateArray(self%massEjectedMass           ,[countMassEjected                          ])
-    call allocateArray(self%massEjectedMetallicity    ,[countMassEjected                          ])
-    call allocateArray(self%yieldMetals               ,[countYieldMetals                          ])
-    call allocateArray(self%yieldMetalsMass           ,[countYieldMetals                          ])
-    call allocateArray(self%yieldMetalsMetallicity    ,[countYieldMetals                          ])
-    call allocateArray(self%yieldElement              ,[countYieldElementMaximum,self%countElement])
-    call allocateArray(self%yieldElementMass          ,[countYieldElementMaximum,self%countElement])
-    call allocateArray(self%yieldElementMetallicity   ,[countYieldElementMaximum,self%countElement])
+    allocate(self%lifetimeLifetime          (countLifetime                             ))
+    allocate(self%lifetimeMass              (countLifetime                             ))
+    allocate(self%lifetimeMetallicity       (countLifetime                             ))
+    allocate(self%massEjectedMassEjected    (countMassEjected                          ))
+    allocate(self%massEjectedMass           (countMassEjected                          ))
+    allocate(self%massEjectedMetallicity    (countMassEjected                          ))
+    allocate(self%yieldMetals               (countYieldMetals                          ))
+    allocate(self%yieldMetalsMass           (countYieldMetals                          ))
+    allocate(self%yieldMetalsMetallicity    (countYieldMetals                          ))
+    allocate(self%yieldElement              (countYieldElementMaximum,self%countElement))
+    allocate(self%yieldElementMass          (countYieldElementMaximum,self%countElement))
+    allocate(self%yieldElementMetallicity   (countYieldElementMaximum,self%countElement))
     ! Loop over stars to process their properties.
     countLifetime         =0
     countMassEjected      =0

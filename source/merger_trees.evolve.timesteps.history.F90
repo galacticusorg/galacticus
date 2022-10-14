@@ -152,7 +152,6 @@ contains
     Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeEvolveTimestepHistory)                        :: self
@@ -168,17 +167,17 @@ contains
     !!]
 
     ! Allocate storage arrays.
-    call allocateArray(self%time                     ,[self%historyCount])
-    call allocateArray(self%expansionFactor          ,[self%historyCount])
-    call allocateArray(self%rateStarFormation        ,[self%historyCount])
-    call allocateArray(self%rateStarFormationDisk    ,[self%historyCount])
-    call allocateArray(self%rateStarFormationSpheroid,[self%historyCount])
-    call allocateArray(self%densityStellar           ,[self%historyCount])
-    call allocateArray(self%densityStellarDisk       ,[self%historyCount])
-    call allocateArray(self%densityStellarSpheroid   ,[self%historyCount])
-    call allocateArray(self%densityColdGas           ,[self%historyCount])
-    call allocateArray(self%densityHotHaloGas        ,[self%historyCount])
-    call allocateArray(self%densityNode              ,[self%historyCount])
+    allocate(self%time                     (self%historyCount))
+    allocate(self%expansionFactor          (self%historyCount))
+    allocate(self%rateStarFormation        (self%historyCount))
+    allocate(self%rateStarFormationDisk    (self%historyCount))
+    allocate(self%rateStarFormationSpheroid(self%historyCount))
+    allocate(self%densityStellar           (self%historyCount))
+    allocate(self%densityStellarDisk       (self%historyCount))
+    allocate(self%densityStellarSpheroid   (self%historyCount))
+    allocate(self%densityColdGas           (self%historyCount))
+    allocate(self%densityHotHaloGas        (self%historyCount))
+    allocate(self%densityNode              (self%historyCount))
     ! Initialize arrays.
     self%time=Make_Range(self%timeBegin,self%timeEnd,self%historyCount,rangeTypeLogarithmic)
     do timeIndex=1,self%historyCount

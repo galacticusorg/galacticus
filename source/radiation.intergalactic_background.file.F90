@@ -144,7 +144,6 @@ contains
     use :: Error            , only : Error_Report
     use :: IO_XML           , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
           &                          XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
-    use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                              :: self
     type   (varying_string                           ), intent(in   )               :: fileName
@@ -174,8 +173,8 @@ contains
     self%spectraWavelengthsCount=size(self%spectraWavelengths)
     ! Allocate array for spectra.
     self%spectraTimesCount=size(spectraList)
-    call allocateArray(self%spectra     ,[self%spectraWavelengthsCount,self%spectraTimesCount])
-    call allocateArray(self%spectraTimes,[                             self%spectraTimesCount])
+    allocate(self%spectra     (self%spectraWavelengthsCount,self%spectraTimesCount))
+    allocate(self%spectraTimes(self%spectraTimesCount))
     ! Read times.
     do iSpectrum=1,self%spectraTimesCount
        ! Get the data.

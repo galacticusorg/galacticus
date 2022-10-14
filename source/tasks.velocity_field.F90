@@ -159,7 +159,6 @@ contains
     use            :: Galacticus_Nodes                , only : nodeComponentBasic   , treeNode
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
     use            :: Numerical_Ranges                , only : Make_Range           , rangeTypeLogarithmic
@@ -188,11 +187,11 @@ contains
     ! Compute number of tabulation points.
     massCount=int(log10(self%massMaximum/self%massMinimum)*dble(self%pointsPerDecade))+1
     ! Allocate arrays for velocity field.
-    call allocateArray(epochTime                       ,[                    outputCount])
-    call allocateArray(epochRedshift                   ,[                    outputCount])
-    call allocateArray(mass                            ,[massCount                      ])
-    call allocateArray(velocityDispersion1D            ,[massCount          ,outputCount])
-    call allocateArray(velocityDispersion1DMergingHalos,[massCount,massCount,outputCount])
+    allocate(epochTime                       (outputCount))
+    allocate(epochRedshift                   (outputCount))
+    allocate(mass                            (massCount                      ))
+    allocate(velocityDispersion1D            (massCount          ,outputCount))
+    allocate(velocityDispersion1DMergingHalos(massCount,massCount,outputCount))
     ! Build a range of masss.
     mass(:)=Make_Range(self%massMinimum,self%massMaximum,int(massCount),rangeTypeLogarithmic)
     ! Construct a tree node.

@@ -77,7 +77,6 @@ contains
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
-    use :: Memory_Management      , only : allocateArray
     use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisScatterFunction1D        )                              :: self
@@ -120,8 +119,8 @@ contains
     !!]
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
-    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                     ])
-    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*outputTimes_%count()])
+    allocate(binCenter   (int(parameters%count('binCenter'))                     ))
+    allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
