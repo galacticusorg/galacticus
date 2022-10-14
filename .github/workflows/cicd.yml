@@ -1328,7 +1328,7 @@ jobs:
         with:
           name: validation-darkMatterOnlySubhalos
           path: |
-            'testSuite/outputs/validation_darkMatterOnlySubhalos.json'
+            'testSuite/outputs/validate_darkMatterOnlySubhalos.json'
             'testSuite/outputs/results_darkMatterOnlySubhalos.json'
       - run: echo "This job's status is ${{ job.status }}."
   Validate-Milky-Way-Model:
@@ -1382,7 +1382,7 @@ jobs:
         with:
           name: validation-milkyWayModel
           path: |
-            'testSuite/outputs/validation_milkyWayModel.json'
+            'testSuite/outputs/validate_milkyWayModel.json'
             'testSuite/outputs/results_milkyWayModel.json'
       - name: "Clean datasets"
         run: |
