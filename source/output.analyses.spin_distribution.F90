@@ -360,7 +360,6 @@ contains
     use :: Halo_Mass_Functions                     , only : haloMassFunctionClass
     use :: Halo_Spin_Distributions                 , only : haloSpinDistributionDeltaFunction                , haloSpinDistributionNbodyErrors
     use :: ISO_Varying_String                      , only : var_str
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorSpin
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                       , rangeTypeLogarithmic
@@ -422,10 +421,10 @@ contains
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
 
     ! Build grid of spins.
-    call allocateArray(spins,[countSpins])
+    allocate(spins(countSpins))
     spins=Make_Range(spinMinimum,spinMaximum,int(countSpins),rangeType=rangeTypeLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[countSpins,outputTimes_%count()])
+    allocate(outputWeight(countSpins,outputTimes_%count()))
     outputWeight=0.0d0
     do i=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%time(i),time,absTol=1.0d-10)) outputWeight(:,i)=1.0d0

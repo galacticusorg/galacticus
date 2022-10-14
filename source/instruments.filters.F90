@@ -173,7 +173,6 @@ contains
     use :: IO_XML                   , only : XML_Array_Read         , XML_Parse
     use :: ISO_Varying_String       , only : assignment(=)          , char               , operator(//)      , operator(==)    , &
          &                                   extract
-    use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
     use :: String_Handling          , only : String_Split_Words     , operator(//)
     implicit none
     type            (varying_string), intent(in   )               :: filterName
@@ -196,13 +195,11 @@ contains
     ! Allocate space for this filter.
     if (countFilterResponses == 0) then
        allocate(filterResponses(1))
-       call Memory_Usage_Record(sizeof(filterResponses))
     else if (countFilterResponses == size(filterResponses)) then
        call Move_Alloc(filterResponses,filterResponsesTemporary)
        allocate(filterResponses(2*size(filterResponsesTemporary)))
        filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
        deallocate(filterResponsesTemporary)       
-       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
     end if
     ! Index in array to load into.
     countFilterResponses=countFilterResponses+1
@@ -218,8 +215,8 @@ contains
        word=char(specialFilterWords(3))
        read (word,*) resolution
        filterResponses(filterIndex)%nPoints            =4
-       call allocateArray(filterResponses(filterIndex)%wavelength,[4])
-       call allocateArray(filterResponses(filterIndex)%response  ,[4])
+       allocate(filterResponses(filterIndex)%wavelength(4))
+       allocate(filterResponses(filterIndex)%response  (4))
        filterResponses(filterIndex)%wavelength         =                                                                  &
             & [                                                                                                           &
             &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0d0+1.0d0/cutOffResolution), &
@@ -245,8 +242,8 @@ contains
        word=char(specialFilterWords(3))
        read (word,*) filterWidth
        filterResponses(filterIndex)%nPoints            =4
-       call allocateArray(filterResponses(filterIndex)%wavelength,[4])
-       call allocateArray(filterResponses(filterIndex)%response  ,[4])
+       allocate(filterResponses(filterIndex)%wavelength(4))
+       allocate(filterResponses(filterIndex)%response  (4))
        filterResponses(filterIndex)%wavelength         =                                                              &
             & [                                                                                                       &
             &  centralWavelength-filterWidth/2.0d0-filterWidth/100.0d0                                              , &
@@ -283,8 +280,8 @@ contains
           read (word,*) resolution
        end if
        filterResponses(filterIndex)%nPoints            =4
-       call allocateArray(filterResponses(filterIndex)%wavelength,[4])
-       call allocateArray(filterResponses(filterIndex)%response  ,[4])
+       allocate(filterResponses(filterIndex)%wavelength(4))
+       allocate(filterResponses(filterIndex)%response  (4))
        filterResponses(filterIndex)%wavelength         =                                                                &
             & [                                                                                                         &
             &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0+1.0d0/cutOffResolution), &

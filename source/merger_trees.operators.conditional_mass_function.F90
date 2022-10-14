@@ -207,7 +207,6 @@ contains
     !!{
     Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
     !!}
-    use    :: Memory_Management, only : allocateArray
     !$ use :: OMP_Lib          , only : OMP_Init_Lock
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
@@ -264,7 +263,7 @@ contains
       <description>The maximum mass ratio to bin when constructing conditional halo mass functions.</description>
     </inputParameter>
     !!]
-    call allocateArray(redshiftsParent    ,[max(1,parameters%count('redshiftsParent'    ,zeroIfNotPresent=.true.))])
+    allocate(redshiftsParent    (max(1,parameters%count('redshiftsParent'    ,zeroIfNotPresent=.true.))))
     !![
     <inputParameter>
       <name>redshiftsParent</name>
@@ -273,7 +272,7 @@ contains
       <description>The set of parent halo redshifts to use when constructing conditional halo mass functions.</description>
     </inputParameter>
     !!]
-    call allocateArray(redshiftsProgenitor,[max(1,parameters%count('redshiftsProgenitor',zeroIfNotPresent=.true.))])
+    allocate(redshiftsProgenitor(max(1,parameters%count('redshiftsProgenitor',zeroIfNotPresent=.true.))))
     !![
     <inputParameter>
       <name>redshiftsProgenitor</name>
@@ -357,7 +356,6 @@ contains
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
@@ -383,129 +381,129 @@ contains
     if (size(redshiftsProgenitor) /= self%timeCount) &
          & call Error_Report('mismatch in sizes of parent and progenitor redshift arrays'//{introspection:location})
     ! Allocate arrays.
-    call allocateArray(self%redshiftsParent    ,[self%timeCount        ])
-    call allocateArray(self%redshiftsProgenitor,[self%timeCount        ])
-    call allocateArray(self%timeProgenitors    ,[self%timeCount        ])
-    call allocateArray(self%timeParents        ,[self%timeCount        ])
-    call allocateArray(self%massParents        ,[self%countMassParent+1])
-    call allocateArray(self%massRatios         ,[self%massRatioCount +1])
-    call allocateArray(                                        &
-         &            self%normalization                     , &
-         &           [                                         &
-         &            self%timeCount                         , &
-         &            self%countMassParent                     &
-         &           ]                                         &
-         &          )
-    call allocateArray(                                        &
-         &            self%normalizationError                , &
-         &           [                                         &
-         &            self%timeCount                         , &
-         &            self%countMassParent                     &
-         &           ]                                         &
-         &          )
-    call allocateArray(                                        &
-         &            self%conditionalMassFunction           , &
-         &           [                                         &
-         &            self%timeCount                         , &
-         &            self%countMassParent                   , &
-         &            self%massRatioCount                      &
-         &           ]                                         &
-         &          )
-    call allocateArray(                                        &
-         &            self%conditionalMassFunctionError      , &
-         &           [                                         &
-         &            self%timeCount                         , &
-         &            self%countMassParent                   , &
-         &            self%massRatioCount                      &
-         &           ]                                         &
-         &          )
+    allocate(self%redshiftsParent    (self%timeCount        ))
+    allocate(self%redshiftsProgenitor(self%timeCount        ))
+    allocate(self%timeProgenitors    (self%timeCount        ))
+    allocate(self%timeParents        (self%timeCount        ))
+    allocate(self%massParents        (self%countMassParent+1))
+    allocate(self%massRatios         (self%massRatioCount +1))
+    allocate(                                          &
+         &    self%normalization                       &
+         &   (                                         &
+         &    self%timeCount                         , &
+         &    self%countMassParent                     &
+         &   )                                         &
+         &  )
+    allocate(                                          &
+         &    self%normalizationError                  &
+         &   (                                         &
+         &    self%timeCount                         , &
+         &    self%countMassParent                     &
+         &   )                                         &
+         &  )
+    allocate(                                          &
+         &    self%conditionalMassFunction             &
+         &   (                                         &
+         &    self%timeCount                         , &
+         &    self%countMassParent                   , &
+         &    self%massRatioCount                      &
+         &   )                                         &
+         &  )
+    allocate(                                          &
+         &    self%conditionalMassFunctionError        &
+         &   (                                         &
+         &    self%timeCount                         , &
+         &    self%countMassParent                   , &
+         &    self%massRatioCount                      &
+         &   )                                         &
+         &  )
     if (self%computeCovariances) then
-       call allocateArray(                                        &
-            &            self%conditionalMassFunctionCovariance , &
-            &           [                                         &
-            &            self%timeCount                         , &
-            &            self%countMassParent                   , &
-            &            self%massRatioCount                    , &
-            &            self%timeCount                         , &
-            &            self%countMassParent                   , &
-            &            self%massRatioCount                      &
-            &           ]                                         &
-            &          )
-       call allocateArray(                                        &
-            &            self%normalizationCovariance           , &
-            &           [                                         &
-            &            self%timeCount                         , &
-            &            self%countMassParent                   , &
-            &            self%timeCount                         , &
-            &            self%countMassParent                     &
-            &           ]                                         &
-            &          )
+       allocate(                                          &
+            &    self%conditionalMassFunctionCovariance   &
+            &   (                                         &
+            &    self%timeCount                         , &
+            &    self%countMassParent                   , &
+            &    self%massRatioCount                    , &
+            &    self%timeCount                         , &
+            &    self%countMassParent                   , &
+            &    self%massRatioCount                      &
+            &   )                                         &
+            &  )
+       allocate(                                          &
+            &    self%normalizationCovariance             &
+            &   (                                         &
+            &    self%timeCount                         , &
+            &    self%countMassParent                   , &
+            &    self%timeCount                         , &
+            &    self%countMassParent                     &
+            &   )                                         &
+            &  )
     end if
     if (self%extendedStatistics) then
-       call allocateArray(                                           &
-            &            self%normalizationSubhaloMassFunction     , &
-            &           [                                            &
-            &            self%countMassParent                        &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%normalizationSubhaloMassFunctionError, &
-            &           [                                            &
-            &            self%countMassParent                        &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%primaryProgenitorMassFunction        , &
-            &           [                                            &
-            &            self%timeCount                            , &
-            &            self%countMassParent                      , &
-            &            self%massRatioCount                       , &
-            &            self%depthProgenitorPrimary                 &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%primaryProgenitorMassFunctionError   , &
-            &           [                                            &
-            &            self%timeCount                            , &
-            &            self%countMassParent                      , &
-            &            self%massRatioCount                       , &
-            &            self%depthProgenitorPrimary                 &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%formationRateFunction                , &
-            &           [                                            &
-            &            self%timeCount                            , &
-            &            self%countMassParent                      , &
-            &            self%massRatioCount                       , &
-            &            2                                           &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%formationRateFunctionError           , &
-            &           [                                            &
-            &            self%timeCount                            , &
-            &            self%countMassParent                      , &
-            &            self%massRatioCount                       , &
-            &            2                                           &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%subhaloMassFunction                  , &
-            &           [                                            &
-            &            self%countMassParent                      , &
-            &            self%massRatioCount                       , &
-            &            self%depthHierarchySubhalo                  &
-            &           ]                                            &
-            &          )
-       call allocateArray(                                           &
-            &            self%subhaloMassFunctionError             , &
-            &           [                                            &
-            &            self%countMassParent                      , &
-            &            self%massRatioCount                       , &
-            &            self%depthHierarchySubhalo                  &
-            &           ]                                            &
-            &          )
+       allocate(                                             &
+            &    self%normalizationSubhaloMassFunction       &
+            &   (                                            &
+            &    self%countMassParent                        &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%normalizationSubhaloMassFunctionError  &
+            &   (                                            &
+            &    self%countMassParent                        &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%primaryProgenitorMassFunction          &
+            &   (                                            &
+            &    self%timeCount                            , &
+            &    self%countMassParent                      , &
+            &    self%massRatioCount                       , &
+            &    self%depthProgenitorPrimary                 &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%primaryProgenitorMassFunctionError     &
+            &   (                                            &
+            &    self%timeCount                            , &
+            &    self%countMassParent                      , &
+            &    self%massRatioCount                       , &
+            &    self%depthProgenitorPrimary                 &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%formationRateFunction                  &
+            &   (                                            &
+            &    self%timeCount                            , &
+            &    self%countMassParent                      , &
+            &    self%massRatioCount                       , &
+            &    2                                           &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%formationRateFunctionError             &
+            &   (                                            &
+            &    self%timeCount                            , &
+            &    self%countMassParent                      , &
+            &    self%massRatioCount                       , &
+            &    2                                           &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%subhaloMassFunction                    &
+            &   (                                            &
+            &    self%countMassParent                      , &
+            &    self%massRatioCount                       , &
+            &    self%depthHierarchySubhalo                  &
+            &   )                                            &
+            &  )
+       allocate(                                             &
+            &    self%subhaloMassFunctionError               &
+            &   (                                            &
+            &    self%countMassParent                      , &
+            &    self%massRatioCount                       , &
+            &    self%depthHierarchySubhalo                  &
+            &   )                                            &
+            &  )
     end if
     ! Construct bins for parent node mass.
     self%massParentLogarithmicMinimum        =  log( massParentMinimum)
@@ -1458,7 +1456,6 @@ contains
     use    :: Output_HDF5                     , only : outputFile
     use    :: HDF5_Access                     , only : hdf5Access
     use    :: IO_HDF5                         , only : hdf5Object
-    use    :: Memory_Management               , only : allocateArray       , deallocateArray
     use    :: Numerical_Constants_Astronomical, only : massSolar
     !$ use :: OMP_Lib                         , only : OMP_Get_Num_Threads
     implicit none
@@ -1507,29 +1504,29 @@ contains
     if (outputFile%hasGroup(char(self%nameGroupOutput))) then
        ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
        conditionalMassFunctionGroup=outputFile%openGroup(char(self%nameGroupOutput),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
-       call allocateArray(normalization               ,shape(self%normalization               ))
-       call allocateArray(normalizationError          ,shape(self%normalizationError          ))
-       call allocateArray(conditionalMassFunctionError,shape(self%conditionalMassFunctionError))
+       allocate(normalization               ,mold=self%normalization               )
+       allocate(normalizationError          ,mold=self%normalizationError          )
+       allocate(conditionalMassFunctionError,mold=self%conditionalMassFunctionError)
        call conditionalMassFunctionGroup%readAttribute('accumulationCount'           ,accumulationCount           )
        call conditionalMassFunctionGroup%readDataset  ('normalization'               ,normalization               )
        call conditionalMassFunctionGroup%readDataset  ('normalizationError'          ,normalizationError          )
        call conditionalMassFunctionGroup%readDataset  ('conditionalMassFunction'     ,conditionalMassFunction     )
        call conditionalMassFunctionGroup%readDataset  ('conditionalMassFunctionError',conditionalMassFunctionError)
        if ( self%computeCovariances) then
-          call allocateArray(normalizationCovariance          ,shape(self%normalizationCovariance          ))
-          call allocateArray(conditionalMassFunctionCovariance,shape(self%conditionalMassFunctionCovariance))
+          allocate(normalizationCovariance          ,mold=self%normalizationCovariance          )
+          allocate(conditionalMassFunctionCovariance,mold=self%conditionalMassFunctionCovariance)
           call conditionalMassFunctionGroup%readDataset('normalizationCovariance'          ,normalizationCovariance          )
           call conditionalMassFunctionGroup%readDataset('conditionalMassFunctionCovariance',conditionalMassFunctionCovariance)
        end if
        if (self%extendedStatistics) then
-          call allocateArray(normalizationSubhaloMassFunction     ,shape(self%normalizationSubhaloMassFunction     ))
-          call allocateArray(normalizationSubhaloMassFunctionError,shape(self%normalizationSubhaloMassFunctionError))
-          call allocateArray(primaryProgenitorMassFunction        ,shape(self%primaryProgenitorMassFunction        ))
-          call allocateArray(primaryProgenitorMassFunctionError   ,shape(self%primaryProgenitorMassFunctionError   ))
-          call allocateArray(formationRateFunction                ,shape(self%formationRateFunction                ))
-          call allocateArray(formationRateFunctionError           ,shape(self%formationRateFunctionError           ))
-          call allocateArray(subhaloMassFunction                  ,shape(self%subhaloMassFunction                  ))
-          call allocateArray(subhaloMassFunctionError             ,shape(self%subhaloMassFunctionError             ))
+          allocate(normalizationSubhaloMassFunction     ,mold=self%normalizationSubhaloMassFunction     )
+          allocate(normalizationSubhaloMassFunctionError,mold=self%normalizationSubhaloMassFunctionError)
+          allocate(primaryProgenitorMassFunction        ,mold=self%primaryProgenitorMassFunction        )
+          allocate(primaryProgenitorMassFunctionError   ,mold=self%primaryProgenitorMassFunctionError   )
+          allocate(formationRateFunction                ,mold=self%formationRateFunction                )
+          allocate(formationRateFunctionError           ,mold=self%formationRateFunctionError           )
+          allocate(subhaloMassFunction                  ,mold=self%subhaloMassFunction                  )
+          allocate(subhaloMassFunctionError             ,mold=self%subhaloMassFunctionError             )
           call conditionalMassFunctionGroup%readDataset('normalizationSubhaloMassFunction'     ,normalizationSubhaloMassFunction     )
           call conditionalMassFunctionGroup%readDataset('normalizationSubhaloMassFunctionError',normalizationSubhaloMassFunctionError)
           call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunction'        ,primaryProgenitorMassFunction        )
@@ -1569,18 +1566,18 @@ contains
           self%normalizationSubhaloMassFunctionError=self%normalizationSubhaloMassFunctionError+normalizationSubhaloMassFunctionError
        end if
        if (self%computeCovariances) then
-          call deallocateArray(normalizationCovariance           )
-          call deallocateArray(conditionalMassFunctionCovariance )
+          deallocate(normalizationCovariance           )
+          deallocate(conditionalMassFunctionCovariance )
        end if
        if (self%extendedStatistics) then
-          call deallocateArray(normalizationSubhaloMassFunction     )
-          call deallocateArray(normalizationSubhaloMassFunctionError)
-          call deallocateArray(primaryProgenitorMassFunction        )
-          call deallocateArray(primaryProgenitorMassFunctionError   )
-          call deallocateArray(formationRateFunction                )
-          call deallocateArray(formationRateFunctionError           )
-          call deallocateArray(subhaloMassFunction                  )
-          call deallocateArray(subhaloMassFunctionError             )
+          deallocate(normalizationSubhaloMassFunction     )
+          deallocate(normalizationSubhaloMassFunctionError)
+          deallocate(primaryProgenitorMassFunction        )
+          deallocate(primaryProgenitorMassFunctionError   )
+          deallocate(formationRateFunction                )
+          deallocate(formationRateFunctionError           )
+          deallocate(subhaloMassFunction                  )
+          deallocate(subhaloMassFunctionError             )
        end if
     else
        ! Our group does not already exist. Simply write the data.

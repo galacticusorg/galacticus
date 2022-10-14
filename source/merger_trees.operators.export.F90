@@ -155,7 +155,6 @@ contains
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &
           &                                         treeNode
-    use :: Memory_Management               , only : allocateArray                , deallocateArray
     use :: Merger_Tree_Data_Structure      , only : mergerTreeData               , metaDataTypeCosmology , metaDataTypeProvenance, propertyTypeDescendentIndex, &
           &                                         propertyTypeHostIndex        , propertyTypeNodeIndex , propertyTypeNodeMass  , propertyTypePositionX      , &
           &                                         propertyTypePositionY        , propertyTypePositionZ , propertyTypeRedshift  , propertyTypeSnapshot       , &
@@ -222,18 +221,26 @@ contains
        end do
        call mergerTrees%nodeCountSet(nodeCount)
        ! Allocate arrays for serialization.
-       call allocateArray(treeIndex      ,[nodeCount])
-       call allocateArray(treeWeight     ,[nodeCount])
-       call allocateArray(nodeIndex      ,[nodeCount])
-       call allocateArray(descendentIndex,[nodeCount])
-       call allocateArray(nodeMass       ,[nodeCount])
-       call allocateArray(nodeRedshift   ,[nodeCount])
-       if (self%snapshotsRequired                       ) call allocateArray(nodeSnapshot,[nodeCount  ])
-       if (defaultPositionComponent%positionIsGettable()) call allocateArray(nodePosition,[nodeCount,3])
-       if (defaultPositionComponent%velocityIsGettable()) call allocateArray(nodeVelocity,[nodeCount,3])
+       allocate(treeIndex      (nodeCount))
+       allocate(treeWeight     (nodeCount))
+       allocate(nodeIndex      (nodeCount))
+       allocate(descendentIndex(nodeCount))
+       allocate(nodeMass       (nodeCount))
+       allocate(nodeRedshift   (nodeCount))
+       if (self%snapshotsRequired                       ) allocate(nodeSnapshot(nodeCount  ))
+       if (defaultPositionComponent%positionIsGettable()) then
+          allocate(nodePosition(nodeCount,3))
+       else
+          allocate(nodePosition(        0,0))
+       end if
+       if (defaultPositionComponent%velocityIsGettable()) then
+          allocate(nodeVelocity(nodeCount,3))
+       else
+          allocate(nodeVelocity(        0,0))
+       end if
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (self%snapshotsRequired) then
-          call allocateArray(snapshotTime,[snapshotCountIncrement])
+          allocate(snapshotTime(snapshotCountIncrement))
           node                        => treeCurrent%nodeBase
           basic                       => node       %basic   ()
           snapshotCount               =  1
@@ -245,9 +252,9 @@ contains
                 snapshotCount=snapshotCount+1
                 if (snapshotCount > size(snapshotTime)) then
                    call Move_Alloc(snapshotTime,snapshotTimeTemp)
-                   call allocateArray(snapshotTime,[size(snapshotTimeTemp)+snapshotCountIncrement])
+                   allocate(snapshotTime(size(snapshotTimeTemp)+snapshotCountIncrement))
                    snapshotTime(1:size(snapshotTimeTemp))=snapshotTimeTemp
-                   call deallocateArray(snapshotTimeTemp)
+                   deallocate(snapshotTimeTemp)
                 end if
                 snapshotTime(snapshotCount)=basic%time()
              end if
@@ -299,14 +306,14 @@ contains
        call mergerTrees%export(char(self%outputFileName),self%exportFormat,hdfChunkSize,hdfCompressionLevel,append=.true.)
        !$omp end critical (Merger_Tree_Write)
        ! Deallocate arrays.
-       call deallocateArray(treeIndex      )
-       call deallocateArray(treeWeight     )
-       call deallocateArray(nodeIndex      )
-       call deallocateArray(descendentIndex)
-       call deallocateArray(nodeMass       )
-       call deallocateArray(nodeRedshift   )
-       if (defaultPositionComponent%positionIsGettable()) call deallocateArray(nodePosition)
-       if (defaultPositionComponent%velocityIsGettable()) call deallocateArray(nodeVelocity)
+       deallocate(treeIndex      )
+       deallocate(treeWeight     )
+       deallocate(nodeIndex      )
+       deallocate(descendentIndex)
+       deallocate(nodeMass       )
+       deallocate(nodeRedshift   )
+       if (defaultPositionComponent%positionIsGettable()) deallocate(nodePosition)
+       if (defaultPositionComponent%velocityIsGettable()) deallocate(nodeVelocity)
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do

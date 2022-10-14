@@ -92,7 +92,6 @@ contains
     use :: HDF5_Access                             , only : hdf5Access
     use :: IO_HDF5                                 , only : hdf5Object
     use :: ISO_Varying_String                      , only : var_str                                           , varying_string
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                    , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerUnitarity
@@ -193,7 +192,7 @@ contains
     <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMonteroDorta2009SDSS(band='r',redshiftMinimum=4.0d-3,redshiftMaximum=8.0d-2,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
+    allocate(outputWeight(self%binCount,outputTimes_%count()))
     do iBin=1,self%binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudeMaximum)
     end do

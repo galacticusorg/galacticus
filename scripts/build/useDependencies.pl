@@ -402,11 +402,12 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    (my $moduleName = $moduleUsed) =~ s/\.mod$//;
 	    push(@submodulesUsed,map {$moduleName."\@".lc($_).".smod"} @{$submodules{$moduleUsed}});
 	}
-	print $dependenciesFile $workSubDirectoryName.$objectFileName,": ".join(" ",@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},@submodulesUsed,@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}})." Makefile\n";
+	print $dependenciesFile $workSubDirectoryName.$objectFileName,": ".$workDirectoryName."utility.OpenMP.workaround.o ".join(" ",@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},@submodulesUsed,@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}})." Makefile\n";
 	# Generate rules for dependency files - we first append a ".d" to any module file names used.
 	my @dependenciesUsed = map {$_ =~ m/\.mod$/ ? $_.".d" : $_} @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}};	
 	print $dependenciesFile $workSubDirectoryName.$dependencyFileName,": ".join(" ",@dependenciesUsed,map {(my $modifiedName = $_) =~ s/\.o$/.d/; $modifiedName} @{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}})."\n";
-	print $dependenciesFile "\t\@echo ".$workSubDirectoryName.$objectFileName." > ".$workSubDirectoryName.$dependencyFileName."~\n";
+	print $dependenciesFile "\t\@echo ".$workSubDirectoryName.$objectFileName." > " .$workSubDirectoryName.$dependencyFileName."~\n";
+	print $dependenciesFile "\t\@echo ".$workDirectoryName."utility.OpenMP.workaround.o >> ".$workSubDirectoryName.$dependencyFileName."~\n";
 	foreach my $dependencyExplicit ( @{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}} ) {
 	    (my $dependencyExplicitFileName = $dependencyExplicit) =~ s/\.o$/.d/;
 	    print $dependenciesFile "\t\@cat ".($dependencyExplicit =~ m/\// ? "" : $workDirectoryName).$dependencyExplicitFileName." >> ".$workSubDirectoryName.$dependencyFileName."~\n";

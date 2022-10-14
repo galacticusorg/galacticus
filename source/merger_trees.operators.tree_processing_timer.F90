@@ -204,7 +204,6 @@ contains
     !!{
     Record the CPU time after evolving a tree.
     !!}
-    use    :: Memory_Management, only : allocateArray, deallocateArray
     !$ use :: OMP_Lib          , only : OMP_Get_WTime, OMP_In_Parallel
     implicit none
     class           (mergerTreeOperatorTreeProcessingTimer), intent(inout)               :: self
@@ -226,12 +225,12 @@ contains
     if (self%timePreEvolution > 0.0d0) then
        ! Ensure that record arrays are sufficiently sized.
        if (.not.allocated(self%masses)) then
-          call allocateArray(self%masses          ,[                     treeProcessingTimerIncrement])
-          call allocateArray(self%timesConstruct  ,[                     treeProcessingTimerIncrement])
-          call allocateArray(self%timesEvolve     ,[                     treeProcessingTimerIncrement])
-          call allocateArray(self%treeIDs         ,[                     treeProcessingTimerIncrement])
-          call allocateArray(self%memoryUsagesPeak,[                     treeProcessingTimerIncrement])
-          call allocateArray(self%countsNodes     ,[                     treeProcessingTimerIncrement])
+          allocate(self%masses          (treeProcessingTimerIncrement))
+          allocate(self%timesConstruct  (treeProcessingTimerIncrement))
+          allocate(self%timesEvolve     (treeProcessingTimerIncrement))
+          allocate(self%treeIDs         (treeProcessingTimerIncrement))
+          allocate(self%memoryUsagesPeak(treeProcessingTimerIncrement))
+          allocate(self%countsNodes     (treeProcessingTimerIncrement))
        else if (self%countTrees >= size(self%masses)) then
           call Move_Alloc   (self%masses          ,massesTemporary          )
           call Move_Alloc   (self%timesConstruct  ,timesConstructTemporary  )
@@ -239,24 +238,24 @@ contains
           call Move_Alloc   (self%treeIDs         ,treeIDsTemporary         )
           call Move_Alloc   (self%memoryUsagesPeak,memoryUsagesPeakTemporary)
           call Move_Alloc   (self%countsNodes     ,countsNodesTemporary     )
-          call allocateArray(self%masses          ,[size(massesTemporary)+treeProcessingTimerIncrement])
-          call allocateArray(self%timesConstruct  ,[size(massesTemporary)+treeProcessingTimerIncrement])
-          call allocateArray(self%timesEvolve     ,[size(massesTemporary)+treeProcessingTimerIncrement])
-          call allocateArray(self%treeIDs         ,[size(massesTemporary)+treeProcessingTimerIncrement])
-          call allocateArray(self%memoryUsagesPeak,[size(massesTemporary)+treeProcessingTimerIncrement])
-          call allocateArray(self%countsNodes     ,[size(massesTemporary)+treeProcessingTimerIncrement])
+          allocate(self%masses          (size(massesTemporary)+treeProcessingTimerIncrement))
+          allocate(self%timesConstruct  (size(massesTemporary)+treeProcessingTimerIncrement))
+          allocate(self%timesEvolve     (size(massesTemporary)+treeProcessingTimerIncrement))
+          allocate(self%treeIDs         (size(massesTemporary)+treeProcessingTimerIncrement))
+          allocate(self%memoryUsagesPeak(size(massesTemporary)+treeProcessingTimerIncrement))
+          allocate(self%countsNodes     (size(massesTemporary)+treeProcessingTimerIncrement))
           self%masses          (1:size(massesTemporary))=massesTemporary
           self%timesConstruct  (1:size(massesTemporary))=timesConstructTemporary
           self%timesEvolve     (1:size(massesTemporary))=timesEvolveTemporary
           self%treeIDs         (1:size(massesTemporary))=treeIDsTemporary
           self%memoryUsagesPeak(1:size(massesTemporary))=memoryUsagesPeakTemporary
           self%countsNodes     (1:size(massesTemporary))=countsNodesTemporary
-          call deallocateArray(massesTemporary          )
-          call deallocateArray(timesConstructTemporary  )
-          call deallocateArray(timesEvolveTemporary     )
-          call deallocateArray(treeIDsTemporary         )
-          call deallocateArray(memoryUsagesPeakTemporary)
-          call deallocateArray(countsNodesTemporary     )
+          deallocate(massesTemporary          )
+          deallocate(timesConstructTemporary  )
+          deallocate(timesEvolveTemporary     )
+          deallocate(treeIDsTemporary         )
+          deallocate(memoryUsagesPeakTemporary)
+          deallocate(countsNodesTemporary     )
        end if
        ! Store the timing data.
        self%countTrees                       =self%countTrees       +1

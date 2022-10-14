@@ -21,9 +21,6 @@
 Contains a program to test root finding routines.
 !!}
 
-! Add a dependency on the OpenMP workarounds code.
-!: $(BUILDPATH)/utility.OpenMP.workaround.o
-
 program Test_Root_Finding
   !!{
   Tests that routine finding routines work.

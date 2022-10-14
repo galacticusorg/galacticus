@@ -332,7 +332,6 @@ contains
     Construct the set of tree masses to be built.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Sorting          , only : sortIndex
     implicit none
     class  (mergerTreeConstructorBuild), intent(inout) :: self
@@ -354,8 +353,8 @@ contains
                &   allocated(self%treeMassMaximum) &
                & ) call Error_Report('mass interval should not be set if tree weights are provided'//{introspection:location})
        else
-          call allocateArray(self%treeWeight   ,[self%treeCount])
-          call allocateArray(self%treeMassCount,[self%treeCount])
+          allocate(self%treeWeight   (self%treeCount))
+          allocate(self%treeMassCount(self%treeCount))
           iTreeFirst=0
           do while (iTreeFirst < self%treeCount)
              iTreeFirst=iTreeFirst+1

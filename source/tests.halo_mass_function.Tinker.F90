@@ -36,7 +36,6 @@ program Tests_Halo_Mass_Function_Tinker
   use :: File_Utilities                      , only : Count_Lines_In_File
   use :: Halo_Mass_Functions                 , only : haloMassFunctionTinker2008
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use :: Memory_Management                   , only : allocateArray                                               , deallocateArray
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
@@ -195,10 +194,10 @@ program Tests_Halo_Mass_Function_Tinker
   time=cosmologyFunctions_%cosmicTime(1.0d0)
   ! Determine number of masses in reference data file and allocate arrays.
   massCount=Count_Lines_In_File('testSuite/data/haloMassFunction/tinker.txt')
-  call allocateArray(mass              ,[massCount])
-  call allocateArray(massFunction      ,[massCount])
-  call allocateArray(massFunctionTinker,[massCount])
-  call allocateArray(success           ,[massCount])
+  allocate(mass              (massCount))
+  allocate(massFunction      (massCount))
+  allocate(massFunctionTinker(massCount))
+  allocate(success           (massCount))
   ! Ensure that critical density and critical overdensity for collapse are consistent with values used in our input file to
   ! Tinker's code.
   call Assert('critical density consistency'                 ,cosmologyParameters_%densityCritical(    )/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2,2.7751950000000000d11,relTol=1.0d-6)
@@ -222,10 +221,10 @@ program Tests_Halo_Mass_Function_Tinker
        &      .true.                     &
        &     )
   ! Clean up memory.
-  call deallocateArray(mass              )
-  call deallocateArray(massFunction      )
-  call deallocateArray(massFunctionTinker)
-  call deallocateArray(success           )
+  deallocate(mass              )
+  deallocate(massFunction      )
+  deallocate(massFunctionTinker)
+  deallocate(success           )
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

@@ -170,7 +170,6 @@ contains
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
-    use :: Memory_Management, only : allocateArray , deallocateArray
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
          &                                                                                  haloMassMinimum        , haloMassMaximum       , &
@@ -198,16 +197,16 @@ contains
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )
     ! Compute mass bin limits.
-    call allocateArray(self%massFunction,shape(self%mass))
-    call allocateArray(self%massMinimum ,shape(self%mass))
-    call allocateArray(self%massMaximum ,shape(self%mass))
+    allocate(self%massFunction,mold=self%mass)
+    allocate(self%massMinimum,mold=self%mass)
+    allocate(self%massMaximum,mold=self%mass)
     if (massFunctionFile%hasDataset("massWidthObserved")) then
        call massFunctionFile%readDataset("massWidthObserved",massBinWidth)
        do i=1,size(self%mass)
           self%massMinimum(i)=self%mass(i)/sqrt(massBinWidth(i))
           self%massMaximum(i)=self%mass(i)*sqrt(massBinWidth(i))
        end do
-       call deallocateArray(massBinWidth)
+       deallocate(massBinWidth)
     else
        do i=1,size(self%mass)
           if (i == 1) then

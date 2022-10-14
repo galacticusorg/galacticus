@@ -1,0 +1,210 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!!{
+Contains a module for storing and reporting memory usage by the code.
+!!}
+
+  ! Add a dependence on the file providing the interface to mallinfo2().
+  !: $(BUILDPATH)/utility.memory_reporting.mallinfo2.o
+
+module Memory_Reporting
+  !!{
+  Provide reporting functions for memory usage.
+  !!}
+  use            :: Error        , only : Error_Report
+  use, intrinsic :: ISO_C_Binding, only : c_size_t    , c_int
+  implicit none
+  private
+  public :: reportMemoryUsage
+
+  ! Code memory size initialization status.
+  logical           :: codeMemoryUsageInitialized=.false.
+
+  ! Count of number of successive decreases in memory usage.
+  integer           :: successiveDecreaseCount=0
+
+  ! Record of memory usage at the last time it was reported.
+  integer(c_size_t) :: memoryUsageAtPreviousReport  =0
+
+  ! Record of code size and available memory.
+  integer(c_size_t) :: memoryUsageCode                   , memoryAvailable
+
+  ! Interface to getpagesize() function.
+  interface
+     function getPageSize() bind(c)
+       import c_int
+       integer(c_int) :: getPageSize
+     end function getPageSize
+  end interface
+
+  ! Interface to mallinfo2_c() function.
+  interface
+     function mallinfo2_c() bind(c)
+       import c_size_t
+       integer(c_size_t) :: mallinfo2_c
+     end function mallinfo2_c
+  end interface
+
+  ! Interface to getTotalSystemMemory() function.
+  interface
+     function getTotalSystemMemory() bind(c)
+       import c_size_t
+       integer(c_size_t) :: getTotalSystemMemory
+     end function getTotalSystemMemory
+  end interface
+
+contains
+
+  subroutine reportMemoryUsage()
+    !!{
+    Writes a report on the current memory usage.
+    !!}
+    use :: Display           , only : displayMessage, displayRed  , displayYellow, displayGreen, &
+         &                            displayBold   , displayReset
+    use :: ISO_Varying_String, only : varying_string, operator(//), assignment(=)
+    implicit none
+    double precision                , parameter :: newReportChangeFactor=1.2d0
+    logical                                     :: issueNewReport
+    type            (varying_string)            :: usageText
+    integer         (c_size_t      )            :: memoryUsage                , divisor
+    character       (len =3        )            :: suffix
+    character       (len =7        )            :: label
+    double precision                            :: memoryFraction
+      
+    !$omp critical(memoryUsageReport)
+    ! Ensure that we have the code memory usage.
+    call codeUsageGet()
+    ! Get the current memory usage.
+    memoryUsage=+memoryUsageCode   &
+         &      +mallinfo2_C    ()
+    ! Decide whether to report.
+    issueNewReport=.false.
+    if (memoryUsageAtPreviousReport <= 0) then ! First call, so always report memory usage.
+       issueNewReport=.true.
+    else if (memoryUsage > 0) then
+       ! Only report memory usage if the total usage has changed by more than newReportChangeFactor.
+       if (abs(log(dble(memoryUsage)/dble(memoryUsageAtPreviousReport))) > log(newReportChangeFactor)) then
+          if (memoryUsage < memoryUsageAtPreviousReport) then
+             successiveDecreaseCount=successiveDecreaseCount+1
+             if (successiveDecreaseCount >= 2) then
+                issueNewReport         =.true.
+                successiveDecreaseCount=0
+             end if
+          else
+             successiveDecreaseCount=0
+             issueNewReport         =.true.
+          end if
+       end if
+    end if
+    if (issueNewReport) then
+       ! Record new memory usage reported.
+       memoryUsageAtPreviousReport=memoryUsage
+       ! Generate the report.
+       usageText     ='Memory usage: '
+       memoryFraction=dble(memoryUsage)/dble(memoryAvailable)
+       if      (memoryFraction < 0.25d0) then
+          usageText=usageText//displayGreen ()
+       else if (memoryFraction < 0.50d0) then
+          usageText=usageText//displayYellow()
+       else if (memoryFraction < 0.75d0) then
+          usageText=usageText//displayRed   ()
+       else
+          usageText=usageText//displayRed   ()//displayBold()
+       end if
+       call getSuffix(memoryUsage    ,divisor,suffix)
+       write (label,'(f7.3)') dble(memoryUsage    )/dble(divisor)
+       usageText=usageText//trim(adjustl(label))//' '//trim(adjustl(suffix))//' / '
+       call getSuffix(memoryAvailable,divisor,suffix)
+       write (label,'(f7.3)') dble(memoryAvailable)/dble(divisor)
+       usageText=usageText//trim(adjustl(label))//' '//trim(adjustl(suffix))//displayReset()
+       ! Display the report.
+       call displayMessage(usageText)
+    end if
+    !$omp end critical(memoryUsageReport)
+    return
+  end subroutine reportMemoryUsage
+
+  subroutine getSuffix(memoryUsage,divisor,suffix)
+    !!{
+    Compute an appropriate suffix (and divisor) for a given memory usage.
+    !!}
+    implicit none
+    integer         (c_size_t), intent(in   ) :: memoryUsage
+    integer         (c_size_t), intent(  out) :: divisor
+    character       (len =3  ), intent(  out) :: suffix
+    integer         (c_size_t), parameter     :: kilo       =1024
+    double precision          , parameter     :: log10kilo  =log10(dble(kilo))
+    integer                                   :: usageDecade
+
+    if (memoryUsage > 0) then
+       usageDecade=int(log10(dble(memoryUsage))/log10kilo+0.01d0)
+       select case (usageDecade)
+       case (:0)
+          divisor=1
+          suffix='  b'
+       case (1)
+          divisor=kilo
+          suffix='kib'
+       case (2)
+          divisor=kilo**2
+          suffix='Mib'
+       case (3:)
+          divisor=kilo**3
+          suffix='Gib'
+       end select
+    else
+       divisor=1
+       suffix='  b'
+    end if
+    return
+  end subroutine getSuffix
+
+  subroutine codeUsageGet()
+    !!{
+    Determines the size of the ``text'' (i.e. code) size.
+    !!}
+    implicit none
+    character(len=80) :: procFileName, pid
+    integer           :: ioStatus    , proc         , &
+         &               pagesTotal  , pagesResident, &
+         &               pagesShared , pagesText    , &
+         &               pagesData   , pagesLibrary , &
+         &               pagesDirty
+
+    if (.not.codeMemoryUsageInitialized) then
+       ! Find memory used by code itself.
+       memoryUsageCode=0_c_size_t  ! Default value in case size file is unreadable.
+       write (pid         ,'(i12)'  ) getPID()
+       write (procFileName,'(a,a,a)') '/proc/',trim(adjustl(pid)),'/statm'
+       open (newUnit=proc,file=procFileName,status='old',form='formatted',ioStat=ioStatus)
+       if (ioStatus == 0) then
+          read (proc,*) pagesTotal,pagesResident,pagesShared,pagesText,pagesData,pagesLibrary,pagesDirty
+          if (ioStatus == 0) memoryUsageCode=pagesText*getPageSize()
+       end if
+       close(proc)
+       ! Find available system memory.
+       memoryAvailable=getTotalSystemMemory()
+       ! Mark that these results are now initialized.
+       codeMemoryUsageInitialized=.true.
+    end if
+    return
+  end subroutine codeUsageGet
+
+end module Memory_Reporting

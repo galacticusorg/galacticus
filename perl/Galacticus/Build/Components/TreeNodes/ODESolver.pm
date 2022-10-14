@@ -148,10 +148,6 @@ sub Tree_Node_ODE_Serialize_Values {
 	type        => "void",
 	name        => "treeNodeSerializeValuesToArray",
 	description => "Serialize evolvable properties of a node into an array.",
-	modules     =>
-	    [
-	     "Memory_Management"
-	    ],
 	variables   =>
 	    [
 	     {
@@ -212,10 +208,6 @@ sub Tree_Node_ODE_Deserialize_Values {
 	type        => "void",
 	name        => "treeNodeDeserializeValuesFromArray",
 	description => "Deserialize evolvable properties of a node from an array.",
-	modules     =>
-	    [
-	     "Memory_Management"
-	    ],
 	variables   =>
 	    [
 	     {

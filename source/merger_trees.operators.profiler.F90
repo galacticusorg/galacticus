@@ -126,7 +126,6 @@ contains
     !!{
     Internal constructor for the information content merger tree operator class.
     !!}
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeOperatorProfiler)                        :: self
@@ -151,7 +150,7 @@ contains
     self%massLogarithmicDeltaInverse=dble(self%massBinsCount)/log10(massMaximum/massMinimum)
     self%timeLogarithmicDeltaInverse=dble(self%timeBinsCount)/log10(timeMaximum/timeMinimum)
     ! Allocate bins.
-    call allocateArray(self%nonPrimaryProgenitorCount,[self%massBinsCount,self%timeBinsCount])
+    allocate(self%nonPrimaryProgenitorCount(self%massBinsCount,self%timeBinsCount))
     ! Initialize counts.
     self%nodeCount                =0_kind_int8
     self%singleProgenitorCount    =0_kind_int8

@@ -184,7 +184,6 @@ contains
     !!{
     Implement a gravitational lensing output analysis distribution operator.
     !!}
-    use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
@@ -206,7 +205,7 @@ contains
        !$ call self%tabulateLock(outputIndex)%setWrite(haveReadLock=.true.)
        if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
           redshift=self%outputTimes_%redshift(outputIndex)
-          call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
+          allocate(self%transfer_(outputIndex)%matrix(size(propertyValueMinimum),size(propertyValueMinimum)))
           !$omp parallel private (i,j,k,l,integrator_)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
           !$omp critical(analysesGravitationalLensingDeepCopy)

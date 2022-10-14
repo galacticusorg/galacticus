@@ -903,7 +903,6 @@ contains
     Builds a table of expansion factor vs. time.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsTime
-    use :: Memory_Management    , only : allocateArray  , deallocateArray
     use :: Numerical_Ranges     , only : Make_Range     , rangeTypeLogarithmic
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
@@ -955,8 +954,8 @@ contains
        call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.
-       call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
-       call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       allocate(self%ageTableTime           (self%ageTableNumberPoints))
+       allocate(self%ageTableExpansionFactor(self%ageTableNumberPoints))
        ! Create set of grid points in time variable.
        self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
@@ -965,12 +964,12 @@ contains
        self%ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
        self%ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
        ! Deallocate the temporary arrays.
-       call deallocateArray(ageTableTimeTemporary           )
-       call deallocateArray(ageTableExpansionFactorTemporary)
+       deallocate(ageTableTimeTemporary           )
+       deallocate(ageTableExpansionFactorTemporary)
     else
        ! Allocate the arrays to current required size.
-       call allocateArray(self%ageTableTime,           [self%ageTableNumberPoints])
-       call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       allocate(self%ageTableTime           (self%ageTableNumberPoints))
+       allocate(self%ageTableExpansionFactor(self%ageTableNumberPoints))
        ! Create set of grid points in time variable.
        self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
@@ -1227,7 +1226,6 @@ contains
     !!{
     Builds a table of distance vs. time.
     !!}
-    use :: Memory_Management    , only : allocateArray, deallocateArray
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range   , rangeTypeLogarithmic
     use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
@@ -1245,17 +1243,17 @@ contains
     ! Determine number of points to tabulate.
     self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(matterLambdaDistanceTableNPointsPerDecade))+1
     ! Deallocate arrays if currently allocated.
-    if (allocated(self%distanceTableTime                               )) call deallocateArray(self%distanceTableTime                               )
-    if (allocated(self%distanceTableComovingDistance                   )) call deallocateArray(self%distanceTableComovingDistance                   )
-    if (allocated(self%distanceTableComovingDistanceNegated            )) call deallocateArray(self%distanceTableComovingDistanceNegated            )
-    if (allocated(self%distanceTableLuminosityDistanceNegated          )) call deallocateArray(self%distanceTableLuminosityDistanceNegated          )
-    if (allocated(self%distanceTableLuminosityDistanceKCorrectedNegated)) call deallocateArray(self%distanceTableLuminosityDistanceKCorrectedNegated)
+    if (allocated(self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
+    if (allocated(self%distanceTableComovingDistance                   )) deallocate(self%distanceTableComovingDistance                   )
+    if (allocated(self%distanceTableComovingDistanceNegated            )) deallocate(self%distanceTableComovingDistanceNegated            )
+    if (allocated(self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
+    if (allocated(self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
     ! Allocate the arrays to current required size.
-    call allocateArray(self%distanceTableTime                               ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableComovingDistance                   ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableComovingDistanceNegated            ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableLuminosityDistanceNegated          ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableLuminosityDistanceKCorrectedNegated,[self%distanceTableNumberPoints])
+    allocate(self%distanceTableTime                               (self%distanceTableNumberPoints))
+    allocate(self%distanceTableComovingDistance                   (self%distanceTableNumberPoints))
+    allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
+    allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
+    allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
     ! Create the range of times.
     self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
     ! Integrate to get the comoving distance.

@@ -107,7 +107,6 @@ contains
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (mergerTreeBuildMassesReplicate), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
@@ -119,14 +118,14 @@ contains
 
     call self%mergerTreeBuildMasses_%construct(time,massTmp,massMinimumTmp,massMaximumTmp,weightTmp)
     if (allocated(massTmp).and.allocated(weightTmp)) then
-       call allocateArray(mass  ,shape(massTmp  )*self%replicationCount)
-       call allocateArray(weight,shape(weightTmp)*self%replicationCount)
+       allocate(mass  (size(massTmp  )*self%replicationCount))
+       allocate(weight(size(weightTmp)*self%replicationCount))
        do i=1,size(massTmp)
           mass  ((i-1)*self%replicationCount+1:i*self%replicationCount)=massTmp  (i)
           weight((i-1)*self%replicationCount+1:i*self%replicationCount)=weightTmp(i)/dble(self%replicationCount)
        end do
-       call deallocateArray(massTmp  )
-       call deallocateArray(weightTmp)
+       deallocate(massTmp  )
+       deallocate(weightTmp)
     else
        call Error_Report('masses and weights are required'//{introspection:location})
     end if

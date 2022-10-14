@@ -44,6 +44,9 @@ on:
 concurrency:
   group: cicd-${{ github.ref }}
   cancel-in-progress: true  
+defaults:
+  run:
+    shell: bash
 jobs:
   # Build and deploy
   ## Linux
@@ -58,10 +61,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -72,9 +71,11 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
+          set -o pipefail
           make -j2 all 2>&1 | tee build.log
           grep -v -q Error: build.log
           grep -v -q Warning: build.log
+          set +o pipefail
           grep -v 'is up to date' build.log | grep -v -q make: 
           md5sum Galacticus.exe
       - name: Upload Galacticus executable
@@ -159,10 +160,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -231,10 +228,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -266,10 +259,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -320,10 +309,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -466,14 +451,16 @@ jobs:
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
           export BUILDPATH=./work/build
+          set -o pipefail
           make -j3 Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
+          ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe' build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v3
         with:
           name: galacticus-exec-MacOS
-          path: 'Galacticus.exe'
+          path: 'Galacticus_MacOS.exe'
       - name: Upload test code executables
         uses: actions/upload-artifact@v3
         with:
@@ -489,10 +476,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -670,10 +653,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -812,6 +791,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" -lforutils -o camb
@@ -853,9 +833,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -885,38 +865,23 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./benchmark-darkMatterOnlySubhalos.pl
+          set -o pipefail
           ./benchmark-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v3
         with:
-          name: Dark matter-only subhalos benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
-          gh-pages-branch: gh-pages
-          alert-threshold: 150%
-          fail-threshold: 200%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: benchmark-darkMatterOnlySubhalos
+          path: 'testSuite/outputs/benchmark_darkMatterOnlySubhalos.json'
       - run: echo "This job's status is ${{ job.status }}."
   Benchmark-Milky-Way-Model:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -956,35 +921,20 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./benchmark-milkyWay.pl
+          set -o pipefail
           ./benchmark-milkyWay.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v3
         with:
-          name: Milky Way model benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/benchmark_milkyWay.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/milkyWayModel
-          gh-pages-branch: gh-pages
-          alert-threshold: 150%
-          fail-threshold: 200%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: benchmark-milkyWay
+          path: 'testSuite/outputs/benchmark_milkyWay.json'
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
   # Profiling
   Profile-Dark-Matter-Only-Subhalos:
@@ -994,9 +944,9 @@ jobs:
       options: --privileged
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1009,10 +959,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1045,9 +991,9 @@ jobs:
       options: --privileged
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1067,10 +1013,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1098,8 +1040,8 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
         uses: actions/upload-artifact@v3
         with:
@@ -1112,9 +1054,9 @@ jobs:
       options: --privileged
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1134,10 +1076,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1165,8 +1103,8 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
         uses: actions/upload-artifact@v3
         with:
@@ -1179,9 +1117,9 @@ jobs:
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1194,10 +1132,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1231,9 +1165,9 @@ jobs:
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1253,10 +1187,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1285,8 +1215,8 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
         uses: actions/upload-artifact@v3
         with:
@@ -1299,9 +1229,9 @@ jobs:
       options: --privileged
     needs: Build-Executables-Instrumented-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1321,10 +1251,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Download executables
         uses: actions/download-artifact@v3
         with:
@@ -1353,8 +1279,8 @@ jobs:
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload results
         uses: actions/upload-artifact@v3
         with:
@@ -1366,9 +1292,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1394,43 +1320,25 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./validate-darkMatterOnlySubhalos.pl
+          set -o pipefail
           ./validate-darkMatterOnlySubhalos.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store validation result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload validation result
+        uses: actions/upload-artifact@v3
         with:
-          name: Dark matter-only subhalos benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/validate_darkMatterOnlySubhalos.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
-          gh-pages-branch: gh-pages
-          alert-threshold: 110%
-          fail-threshold: 120%
-          max-items-in-chart: 256
-      - name: Push validation result
-        run: |
-          git checkout gh-pages
-          mv testSuite/outputs/results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
-          git config --local user.email "github@users.noreply.github.com"
-          git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json
-          git commit -m "Update 'darkMatterHaloOnlySubhalos' validation results"
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: validation-darkMatterOnlySubhalos
+          path: |
+            'testSuite/outputs/validate_darkMatterOnlySubhalos.json'
+            'testSuite/outputs/results_darkMatterOnlySubhalos.json'
       - run: echo "This job's status is ${{ job.status }}."
   Validate-Milky-Way-Model:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -1466,40 +1374,22 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./validate-milkyWay.pl
+          set -o pipefail
           ./validate-milkyWay.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - name: Store validation result
-        uses: benchmark-action/github-action-benchmark@v1
+      - name: Upload validation result
+        uses: actions/upload-artifact@v3
         with:
-          name: Milky Way model benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: testSuite/outputs/validate_milkyWayModel.json
-          fail-on-alert: true
-          comment-on-alert: true
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/milkyWayModel
-          gh-pages-branch: gh-pages
-          alert-threshold: 110%
-          fail-threshold: 120%
-          max-items-in-chart: 256
-      - name: Push validation result
-        run: |
-          git checkout gh-pages
-          mv testSuite/outputs/results_milkyWayModel.json dev/valid/milkyWayModel/results.json
-          git config --local user.email "github@users.noreply.github.com"
-          git config --local user.name "github-action-validate"
-          git add dev/valid/milkyWayModel/results.json
-          git commit -m "Update 'milkyWayModel' validation results"
-          git push --set-upstream origin gh-pages
-        if: github.event_name != 'pull_request'
+          name: validation-milkyWayModel
+          path: |
+            'testSuite/outputs/validate_milkyWayModel.json'
+            'testSuite/outputs/results_milkyWayModel.json'
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
   # Tests
   ## Linux
@@ -1535,6 +1425,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.nodes.exe
+          set -o pipefail
           ./tests.nodes.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1569,6 +1460,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.parameters.exe
+          set -o pipefail
           ./tests.parameters.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1603,6 +1495,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.files.exe
+          set -o pipefail
           ./tests.files.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1637,6 +1530,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.IO.HDF5.exe
+          set -o pipefail
           ./tests.IO.HDF5.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1671,6 +1565,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.IO.XML.exe
+          set -o pipefail
           ./tests.IO.XML.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1705,6 +1600,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.ODE_solver.exe
+          set -o pipefail
           ./tests.ODE_solver.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1739,6 +1635,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.random.exe
+          set -o pipefail
           ./tests.random.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1773,6 +1670,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.random.quasi.exe
+          set -o pipefail
           ./tests.random.quasi.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1807,6 +1705,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.arrays.exe
+          set -o pipefail
           ./tests.arrays.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1841,6 +1740,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.meshes.exe
+          set -o pipefail
           ./tests.meshes.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1875,6 +1775,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.convex_hulls.exe
+          set -o pipefail
           ./tests.convex_hulls.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1909,6 +1810,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.comparisons.exe
+          set -o pipefail
           ./tests.comparisons.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1943,6 +1845,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.geometry.coordinate_systems.exe
+          set -o pipefail
           ./tests.geometry.coordinate_systems.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -1977,6 +1880,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.exe
+          set -o pipefail
           ./tests.hashes.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2011,6 +1915,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.perfect.exe
+          set -o pipefail
           ./tests.hashes.perfect.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2045,6 +1950,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.regular_expressions.exe
+          set -o pipefail
           ./tests.regular_expressions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2079,6 +1985,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.cryptographic.exe
+          set -o pipefail
           ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2113,6 +2020,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.integration.exe
+          set -o pipefail
           ./tests.integration.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2147,6 +2055,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.integration2.exe
+          set -o pipefail
           ./tests.integration2.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2181,6 +2090,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.differentiation.exe
+          set -o pipefail
           ./tests.differentiation.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2215,6 +2125,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tables.exe
+          set -o pipefail
           ./tests.tables.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2249,6 +2160,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.interpolation.exe
+          set -o pipefail
           ./tests.interpolation.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2283,6 +2195,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.interpolation.2D.exe
+          set -o pipefail
           ./tests.interpolation.2D.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2317,6 +2230,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.make_ranges.exe
+          set -o pipefail
           ./tests.make_ranges.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2351,6 +2265,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_distributions.exe
+          set -o pipefail
           ./tests.mass_distributions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2385,6 +2300,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math_special_functions.exe
+          set -o pipefail
           ./tests.math_special_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2419,6 +2335,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math_distributions.exe
+          set -o pipefail
           ./tests.math_distributions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2453,6 +2370,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math.fast.exe
+          set -o pipefail
           ./tests.math.fast.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2487,6 +2405,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math.linear_algebra.exe
+          set -o pipefail
           ./tests.math.linear_algebra.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2521,6 +2440,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.root_finding.exe
+          set -o pipefail
           ./tests.root_finding.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2555,6 +2475,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.multi_dimensional_minimizer.exe
+          set -o pipefail
           ./tests.multi_dimensional_minimizer.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2589,6 +2510,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.search.exe
+          set -o pipefail
           ./tests.search.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2623,6 +2545,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Roman_numerals.exe
+          set -o pipefail
           ./tests.Roman_numerals.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2657,6 +2580,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sort.exe
+          set -o pipefail
           ./tests.sort.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2691,6 +2615,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sort.topological.exe
+          set -o pipefail
           ./tests.sort.topological.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2725,6 +2650,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.string_utilities.exe
+          set -o pipefail
           ./tests.string_utilities.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2759,6 +2685,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.vectors.exe
+          set -o pipefail
           ./tests.vectors.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2793,6 +2720,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.multi_counters.exe
+          set -o pipefail
           ./tests.multi_counters.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2827,6 +2755,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tensors.exe
+          set -o pipefail
           ./tests.tensors.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2861,6 +2790,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.cosmic_age.exe
+          set -o pipefail
           ./tests.cosmic_age.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2895,6 +2825,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.open.exe
+          set -o pipefail
           ./tests.spherical_collapse.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2929,6 +2860,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.flat.exe
+          set -o pipefail
           ./tests.spherical_collapse.flat.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2963,6 +2895,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.EdS.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2997,6 +2930,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.open.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3031,6 +2965,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.lambda.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.lambda.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3065,6 +3000,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3099,6 +3035,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3133,6 +3070,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3167,6 +3105,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe
+          set -o pipefail
           ./tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3201,6 +3140,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.baryons_dark_matter.exe
+          set -o pipefail
           ./tests.spherical_collapse.baryons_dark_matter.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3235,6 +3175,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.nonlinear.exe
+          set -o pipefail
           ./tests.spherical_collapse.nonlinear.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3269,6 +3210,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.warm_dark_matter.exe
+          set -o pipefail
           ./tests.warm_dark_matter.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3303,6 +3245,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.cosmological_constant.exe
+          set -o pipefail
           ./tests.linear_growth.cosmological_constant.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3337,6 +3280,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.EdS.exe
+          set -o pipefail
           ./tests.linear_growth.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3371,6 +3315,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.open.exe
+          set -o pipefail
           ./tests.linear_growth.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3405,6 +3350,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.dark_energy.exe
+          set -o pipefail
           ./tests.linear_growth.dark_energy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3439,6 +3385,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.baryons.EdS.exe
+          set -o pipefail
           ./tests.linear_growth.baryons.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3473,6 +3420,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.Tinker.exe
+          set -o pipefail
           ./tests.halo_mass_function.Tinker.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3507,6 +3455,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.Reed2007.exe
+          set -o pipefail
           ./tests.halo_mass_function.Reed2007.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3541,6 +3490,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.environment_averaged.exe
+          set -o pipefail
           ./tests.halo_mass_function.environment_averaged.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3575,6 +3525,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.comoving_distance.exe
+          set -o pipefail
           ./tests.comoving_distance.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3609,6 +3560,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Correa2015.exe
+          set -o pipefail
           ./tests.mass_accretion_history.Correa2015.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3643,6 +3595,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.dark_energy.exe
+          set -o pipefail
           ./tests.Zhao2009_algorithms.dark_energy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3677,6 +3630,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.EdS.exe
+          set -o pipefail
           ./tests.Zhao2009_algorithms.EdS.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3711,6 +3665,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.open.exe
+          set -o pipefail
           ./tests.Zhao2009_algorithms.open.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3745,6 +3700,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.NFW96_concentration.dark_energy.exe
+          set -o pipefail
           ./tests.NFW96_concentration.dark_energy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3779,6 +3735,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Prada2011_concentration.exe
+          set -o pipefail
           ./tests.Prada2011_concentration.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3813,6 +3770,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.DiemerKravtsov2014_concentration.exe
+          set -o pipefail
           ./tests.DiemerKravtsov2014_concentration.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3847,6 +3805,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.concentration.Correa2015.exe
+          set -o pipefail
           ./tests.concentration.Correa2015.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3881,6 +3840,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.concentrations.exe
+          set -o pipefail
           ./tests.concentrations.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3915,6 +3875,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.biases.exe
+          set -o pipefail
           ./tests.biases.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3949,6 +3910,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.kepler_orbits.exe
+          set -o pipefail
           ./tests.kepler_orbits.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -3983,12 +3945,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.abundances.exe
-          echo ls
-          ls
-          echo ls ..
-          ls ..
-          echo ls ../../
-          ls ../../
+          set -o pipefail
           ./tests.abundances.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4023,6 +3980,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sigma.exe
+          set -o pipefail
           ./tests.sigma.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4057,6 +4015,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.power_spectrum.primordial.exe
+          set -o pipefail
           ./tests.power_spectrum.primordial.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4091,6 +4050,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.power_spectrum.exe
+          set -o pipefail
           ./tests.power_spectrum.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4125,6 +4085,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.transfer_functions.exe
+          set -o pipefail
           ./tests.transfer_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4159,6 +4120,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.black_hole_fundamentals.exe
+          set -o pipefail
           ./tests.black_hole_fundamentals.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4193,6 +4155,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.bug745815.exe
+          set -o pipefail
           ./tests.bug745815.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4227,6 +4190,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.gaunt_factors.exe
+          set -o pipefail
           ./tests.gaunt_factors.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4261,6 +4225,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.cooling_functions.exe
+          set -o pipefail
           ./tests.cooling_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4295,6 +4260,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.accretion_disks.exe
+          set -o pipefail
           ./tests.accretion_disks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4329,6 +4295,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Hearin2021.exe
+          set -o pipefail
           ./tests.mass_accretion_history.Hearin2021.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4363,6 +4330,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Hearin2021_stochastic.exe
+          set -o pipefail
           ./tests.mass_accretion_history.Hearin2021_stochastic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4397,6 +4365,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4431,6 +4400,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.adiabaticGnedin2004.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.adiabaticGnedin2004.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."        
@@ -4465,6 +4435,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.heated.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.heated.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4499,6 +4470,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_halo_radius_enclosing_mass.exe
+          set -o pipefail
           ./tests.dark_matter_halo_radius_enclosing_mass.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4533,6 +4505,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.tidal_tracks.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.tidal_tracks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4567,6 +4540,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.generic.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.generic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4601,6 +4575,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.finite_resolution.exe
+          set -o pipefail
           ./tests.dark_matter_profiles.finite_resolution.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4635,6 +4610,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spectra.postprocess.Inoue2014.exe
+          set -o pipefail
           ./tests.spectra.postprocess.Inoue2014.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4669,6 +4645,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.recombination_computed.exe
+          set -o pipefail
           ./tests.recombination_computed.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4703,6 +4680,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.recombination_cooling.Hummer.exe
+          set -o pipefail
           ./tests.recombination_cooling.Hummer.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4737,6 +4715,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.locks.exe
+          set -o pipefail
           ./tests.locks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4771,6 +4750,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.initial_mass_functions.exe
+          set -o pipefail
           ./tests.initial_mass_functions.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4805,6 +4785,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.stellar_populations.exe
+          set -o pipefail
           ./tests.stellar_populations.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4839,6 +4820,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.stellar_populations.luminosities.exe
+          set -o pipefail
           ./tests.stellar_populations.luminosities.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4906,6 +4888,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.fail.exe
+          set -o pipefail
           ./tests.fail.exe 2>&1 | tee test.log
           grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4940,6 +4923,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.excursion_sets.exe
+          set -o pipefail
           ./tests.excursion_sets.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -4974,6 +4958,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.merger_tree_branching.exe
+          set -o pipefail
           ./tests.merger_tree_branching.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5008,6 +4993,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.event_hooks.exe
+          set -o pipefail
           ./tests.event_hooks.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5046,8 +5032,10 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tree_branch_destroy.exe
-          valgrind --error-exitcode=1 ./tests.tree_branch_destroy.exe 2>&1 | tee test.log
+          set -o pipefail
+          valgrind ./tests.tree_branch_destroy.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
+          grep -q "All heap blocks were freed -- no leaks are possible" test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Binary-Search-Trees:
     runs-on: ubuntu-latest
@@ -5084,6 +5072,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.binary_search_trees.exe
+          set -o pipefail
           ./tests.binary_search_trees.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5118,6 +5107,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.orbits.exe
+          set -o pipefail
           ./tests.orbits.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5153,6 +5143,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.MPI.exe
+          set -o pipefail
           mpirun -np 2 --allow-run-as-root ./tests.MPI.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5187,6 +5178,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.radiative_transfer.atomic_matter.state_solver.exe
+          set -o pipefail
           mpirun -np 2 --allow-run-as-root ./tests.radiative_transfer.atomic_matter.state_solver.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5224,6 +5216,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-cosmology.pl
+          set -o pipefail
           ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
           ! grep -q FAIL test.log
@@ -5261,6 +5254,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-cosmology.pl
+          set -o pipefail
           ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
           ! grep -q FAIL test.log
@@ -5305,6 +5299,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-simple.pl
+          set -o pipefail
           ./test-mass-conservation-simple.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5347,6 +5342,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-standard.pl
+          set -o pipefail
           ./test-mass-conservation-standard.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5389,6 +5385,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-coldMode.pl
+          set -o pipefail
           ./test-mass-conservation-coldMode.pl --launchMethod local --threadMaximum 1 --ompThreads 2  2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5432,6 +5429,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:4 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5474,6 +5472,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:4 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5516,6 +5515,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 3:4 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5558,6 +5558,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
+          set -o pipefail
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 4:4 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5600,6 +5601,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-write.pl
+          set -o pipefail
           ./test-merger-tree-write.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5643,6 +5645,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
+          set -o pipefail
           ./test-model-integration.pl --instance 1:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5685,6 +5688,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
+          set -o pipefail
           ./test-model-integration.pl --instance 2:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5722,6 +5726,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-allowed-parameters.pl
+          set -o pipefail
           ./test-allowed-parameters.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5758,6 +5763,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-bar-instability.pl
+          set -o pipefail
           ./test-bar-instability.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5794,6 +5800,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-Bolshoi-tree-builder.pl
+          set -o pipefail
           ./test-Bolshoi-tree-builder.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5830,6 +5837,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-branchlessTrees.pl
+          set -o pipefail
           ./test-branchlessTrees.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5866,6 +5874,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-branchSubsampling.pl
+          set -o pipefail
           ./test-branchSubsampling.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5902,6 +5911,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-CGM-mass-cooled.pl
+          set -o pipefail
           ./test-CGM-mass-cooled.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5938,6 +5948,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-concentration-Ludlow2016.pl
+          set -o pipefail
           ./test-concentration-Ludlow2016.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -5974,6 +5985,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-constraint-deterministic-spins.pl
+          set -o pipefail
           ./test-constraint-deterministic-spins.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6010,6 +6022,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-constraint-mass-function.pl
+          set -o pipefail
           ./test-constraint-mass-function.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6039,6 +6052,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-extract-directives.pl
+          set -o pipefail
           ./test-extract-directives.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6068,6 +6082,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-fortran-utils.pl
+          set -o pipefail
           ./test-fortran-utils.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6104,6 +6119,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-halo-mass-functions.pl
+          set -o pipefail
           ./test-halo-mass-functions.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6140,6 +6156,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-inactive_luminosities.pl
+          set -o pipefail
           ./test-inactive_luminosities.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6177,6 +6194,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-interoutput-star-formation-rate.pl
+          set -o pipefail
           ./test-interoutput-star-formation-rate.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6214,6 +6232,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-host-maximum.pl
+          set -o pipefail
           ./test-mass-host-maximum.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6250,6 +6269,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-Millennium-tree-builder.pl
+          set -o pipefail
           ./test-Millennium-tree-builder.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6286,6 +6306,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-output.pl
+          set -o pipefail
           ./test-output.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6322,6 +6343,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-output-tree-contiguousity.pl
+          set -o pipefail
           ./test-output-tree-contiguousity.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6351,6 +6373,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-parameter-validation.pl
+          set -o pipefail
           ./test-parameter-validation.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6386,6 +6409,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH/testSuite
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./test-perl-modules.pl
+          set -o pipefail
           ./test-perl-modules.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6422,6 +6446,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-reproducibility.pl
+          set -o pipefail
           ./test-reproducibility.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6458,6 +6483,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-splitForests.pl
+          set -o pipefail
           ./test-splitForests.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6494,6 +6520,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-star-formation-histories-adaptive.pl
+          set -o pipefail
           ./test-star-formation-histories-adaptive.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6530,6 +6557,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stateRestore.pl
+          set -o pipefail
           ./test-stateRestore.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6566,6 +6594,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stellar-mass-weighted-ages.pl
+          set -o pipefail
           ./test-stellar-mass-weighted-ages.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6602,6 +6631,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-tidalTracks.pl
+          set -o pipefail
           ./test-tidalTracks.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6638,6 +6668,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-galacticStructureStateDeallocateBug.pl
+          set -o pipefail
           ./test-galacticStructureStateDeallocateBug.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6674,6 +6705,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-inactiveNumerics.pl
+          set -o pipefail
           ./test-inactiveNumerics.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6710,6 +6742,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-impulsiveHeating.pl
+          set -o pipefail
           ./test-impulsiveHeating.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6746,6 +6779,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-haloTriaxiality.pl
+          set -o pipefail
           ./test-haloTriaxiality.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6755,9 +6789,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6783,6 +6817,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl --launchMethod local  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6791,9 +6826,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6819,6 +6854,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6827,9 +6863,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6855,6 +6891,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 3:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6863,9 +6900,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6891,6 +6928,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 4:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6899,9 +6937,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6927,6 +6965,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 5:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6935,9 +6974,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6963,6 +7002,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 6:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -6971,9 +7011,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -6999,6 +7039,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 7:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7007,9 +7048,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7035,6 +7076,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 8:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7043,9 +7085,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7071,6 +7113,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 9:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7079,9 +7122,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -7107,6 +7150,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
+          set -o pipefail
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 10:10 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7143,6 +7187,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/bug1053153.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7179,6 +7224,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/bug1066052.pl
+          set -o pipefail
           ./testSuite/regressions/bug1066052.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7214,6 +7260,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/bug711424.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7249,6 +7296,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/bug725315.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7284,6 +7332,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/coincidentMergerAndBranchJump.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7329,14 +7378,15 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee-2:
     runs-on: ubuntu-latest
@@ -7370,6 +7420,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7405,6 +7456,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7440,6 +7492,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/finalTimeBeforeOutputTime.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7475,6 +7528,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/immediateSubSubMergerThenBranchJump.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7510,6 +7564,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7555,14 +7610,15 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/issue142.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
           echo Retaining:
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -anewer mark.time -print
-          find $GALACTICUS_DATA_PATH/dynamic/ -type f -not -anewer mark.time -print -delete
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -anewer mark.time -print
+          find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-1.3.2 -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-3.0.2 \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - run: echo "This job's status is ${{ job.status }}."
   Regressions-Linear-Growth-For-Future-Model:
     runs-on: ubuntu-latest
@@ -7596,6 +7652,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/linearGrowthForFutureModel.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7631,6 +7688,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7666,6 +7724,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7702,6 +7761,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/mergerTreeBoxSizeWeight.pl
+          set -o pipefail
           ./testSuite/regressions/mergerTreeBoxSizeWeight.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7737,6 +7797,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/particulate.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7773,6 +7834,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/satellitePresetBoundMassNonZero.pl
+          set -o pipefail
           ./testSuite/regressions/satellitePresetBoundMassNonZero.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7815,6 +7877,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/setProperties.pl
+          set -o pipefail
           ./testSuite/regressions/setProperties.pl 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7850,6 +7913,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7885,6 +7949,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/subhaloTwoConsecutiveMergers.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7920,6 +7985,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7955,6 +8021,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/treeWithNoPrimaryProgenitor.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7990,6 +8057,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          set -o pipefail
           ./Galacticus.exe testSuite/regressions/barInstabilityFPE.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -7999,9 +8067,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8027,6 +8095,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 1:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8035,9 +8104,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8063,6 +8132,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 2:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8071,9 +8141,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8099,6 +8169,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 3:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8107,9 +8178,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8135,6 +8206,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 4:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8143,9 +8215,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8171,6 +8243,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 5:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8179,9 +8252,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8207,6 +8280,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 6:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8215,9 +8289,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8243,6 +8317,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 7:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8251,9 +8326,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8279,6 +8354,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 8:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8287,9 +8363,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8315,6 +8391,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 9:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8323,9 +8400,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8351,6 +8428,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 10:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8359,9 +8437,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8387,6 +8465,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 11:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8395,9 +8474,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8423,6 +8502,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 12:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8431,9 +8511,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8459,6 +8539,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 13:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8467,9 +8548,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8495,6 +8576,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 14:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8503,9 +8585,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8531,6 +8613,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 15:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8539,9 +8622,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8567,6 +8650,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 16:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8575,9 +8659,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8603,6 +8687,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 17:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8611,9 +8696,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8639,6 +8724,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 18:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8647,9 +8733,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8675,6 +8761,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 19:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8683,9 +8770,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executable-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8711,6 +8798,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
+          set -o pipefail
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 20:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8748,6 +8836,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-stateRestore_MPI.pl
+          set -o pipefail
           ./test-stateRestore_MPI.pl --processesPerNode 8 --allow-run-as-root yes 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8784,6 +8873,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-radiativeTransfer-StromgrenSphere_MPI.pl
+          set -o pipefail
           ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8819,6 +8909,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           export OMP_NUM_THREADS=1
+          set -o pipefail
           mpirun --allow-run-as-root -np 4 ./Galacticus.exe parameters/tutorials/mcmcConfig.xml 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8828,9 +8919,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8856,6 +8947,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
+          set -o pipefail
           ./test-methods_MPI.pl --launchMethod local --threadMaximum 1 --ompThreads 1 --instance 1:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8864,9 +8956,9 @@ jobs:
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executables-MPI-Linux
     steps:
-      - run: echo "The job was automatically triggered by a $githubevent_name event."
-      - run: echo "This job is now running on a $runneros server."
-      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Check out repository datasets
@@ -8892,6 +8984,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
+          set -o pipefail
           ./test-methods_MPI.pl --launchMethod local --threadMaximum 1 --ompThreads 1 --instance 2:2 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8958,6 +9051,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.cryptographic.exe
+          set -o pipefail
           ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
           ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -8971,14 +9065,14 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Extract branch name
-        shell: bash
-        run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib\"" >> $GITHUB_ENV
+          echo "FCCOMPILER=gfortran-11" >> $GITHUB_ENV
+          echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
+          echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
           echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
           echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
           echo "NODE_OPTIONS=--max-old-space-size=5120" >> $GITHUB_ENV
@@ -9133,6 +9227,8 @@ jobs:
     if: github.ref == 'refs/heads/master'
     needs: [ Build-Executable-Linux, Build-Executables-Instrumented-Linux, Build-Executables-MPI-Linux, Build-Library-Linux, Build-Docker-Linux, Build-Documentation-Linux, Build-Tools, Build-Executable-MacOS, Build-Library-MacOS, Build-Tools-MacOS, Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Profile-Dark-Matter-Only-Subhalos, Profile-Milky-Way-Model, Profile-Milky-Way-SIDM-Model, Profile-Dark-Matter-Only-Subhalos-GProf, Profile-Milky-Way-GProf, Profile-Milky-Way-SIDM-GProf, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Test-Nodes, Test-Parameters, Tests-Files, Tests-IO-HDF5, Tests-IO-XML, Tests-ODE-Solver, Tests-Random, Tests-Random-Quasi, Tests-Arrays, Tests-Meshes, Tests-Convex-Hulls, Tests-Comparisons, Tests-Geometry-Coordinate-Systems, Tests-Hashes, Tests-Hashes-Perfect, Tests-Regular-Expressions, Tests-Hashes-Cryptographic, Tests-Integration, Tests-Integration2, Tests-Differentiation, Tests-Tables, Tests-Interpolation, Tests-Interpolation-2D, Tests-Make-Ranges, Tests-Mass-Distributions, Tests-Math-Special-Functions, Tests-Math-Distributions, Tests-Math-Fast, Tests-Math-Linear-Algebra, Tests-Root-Finding, Tests-Multi-Dimensional-Minimizer, Tests-Search, Tests-Roman-Numerals, Tests-Sort, Tests-Sort-Topological, Tests-String-Utilities, Tests-Vectors, Tests-Multi-Counters, Tests-Tensors, Tests-Cosmic-Age, Tests-Spherical-Collapse-Open, Tests-Spherical-Collapse-Flat, Tests-Spherical-Collapse-Dark-Energy-EdS, Tests-Spherical-Collapse-Dark-Energy-Open, Tests-Spherical-Collapse-Dark-Energy-Lambda, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusHalf, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusTwoThirds, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-6, Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-8, Tests-Spherical-Collapse-Baryons-Dark-Matter, Tests-Spherical-Collapse-Nonlinear, Tests-Warm-Dark-Matter, Tests-Linear-Growth-Cosmological-Constant, Tests-Linear-Growth-EdS, Tests-Linear-Growth-Open, Tests-Linear-Growth-Dark-Energy, Tests-Linear-Growth-Baryons-EdS, Tests-Halo-Mass-Function-Tinker, Tests-Halo-Mass-Function-Reed2007, Tests-Halo-Mass-Function-Environment-Averaged, Tests-Comoving-Distance, Tests-Mass-Accretion-History-Correa2015, Tests-Zhao2009-Algorithms-Dark-Energy, Tests-Zhao2009-Algorithms-EdS, Tests-Zhao2009-Algorithms-Open, Tests-NFW96-Concentration-Dark-Energy, Tests-Prada2011-Concentration, Tests-DiemerKravtsov2014-Concentration, Tests-Concentration-Correa2015, Tests-Concentrations, Tests-Biases, Tests-Kepler-Orbits, Tests-Abundances, Tests-Sigma, Tests-Power-Spectrum-Primordial, Tests-Power-Spectrum, Tests-Transfer-Functions, Tests-Black-Hole-Fundamentals, Tests-Bug745815, Tests-Gaunt-Factors, Tests-Cooling-Functions, Tests-Accretion-Disks, Tests-Mass-Accretion-History-Hearin2021, Tests-Mass-Accretion-History-Hearin2021-Stochastic, Tests-Dark-Matter-Profiles, Tests-Dark-Matter-Profiles-Adiabatic-Gnedin2004, Tests-Dark-Matter-Profiles-Heated, Tests-Dark-Matter-Halo-Radius-Enclosing-Mass, Tests-Dark-Matter-Profiles-Tidal-Tracks, Tests-Dark-Matter-Profiles-Generic, Tests-Dark-Matter-Profiles-Finite_Resolution, Tests-Spectra-Postprocess-Inoue2014, Tests-Recombination-Computed, Tests-Recombination-Cooling-Hummer, Tests-Locks, Tests-Initial-Mass-Functions, Tests-Stellar-Populations, Tests-Stellar-Populations-Luminosities, Tests-Crash, Tests-Fail, Tests-Excursion-Sets, Tests-Merger-Tree-Branching, Tests-Event-Hooks, Tests-Tree-Branch_Destroy, Tests-Binary-Search-Trees, Tests-Orbits, Test-MPI, Test-MPI-Radiative-Transfer-Atomic-Matter-State-Solver, Test-Cosmology-01, Test-Cosmology-02, Test-Mass-Conservation-Simple, Test-Mass-Conservation-Standard, Test-Mass-Conservation-Cold-Mode, Test-Merger-Tree-Builder-01, Test-Merger-Tree-Builder-02, Test-Merger-Tree-Builder-03, Test-Merger-Tree-Builder-04, Test-Merger-Tree-Write, Test-Model-Integration-01, Test-Model-Integration-02, Test-Allowed-Parameters, Test-Bar-Instability, Test-Bolshoi-Tree-Builder, Test-Branchless-Trees, Test-Branch-Subsampling, Test-CGM-Mass-Cooled, Test-Concentration-Ludlow2016, Test-Constraint-Deterministic-Spins, Test-Constraint-Mass-Function, Test-Extract-Directives, Test-Fortran-Utils, Test-Halo-Mass-Functions, Test-Inactive-Luminosities, Test-Interoutput-Star-Formation-Rate, Test-Mass-Host-Maximum, Test-Millennium-Tree-Builder, Test-Output, Test-Output-Tree-Contiguousity, Test-Parameter-Validation, Test-Perl-Modules, Test-Reproducibility, Test-Split-Forests, Test-Star-Formation-Histories-Adaptive, Test-State-Restore, Test-Stellar-Mass-Weighted-Ages, Test-Tidal-Tracks, Test-galacticStructureState-Deallocate-Bug, Test-Inactive-Numerics, Test-Impulsive-Heating, Test-Halo-Triaxiality, Test-Outputs-01, Test-Outputs-02, Test-Outputs-03, Test-Outputs-04, Test-Outputs-05, Test-Outputs-06, Test-Outputs-07, Test-Outputs-08, Test-Outputs-09, Test-Outputs-10, Regressions-Bug-1053153, Regressions-Bug-1066052, Regressions-Bug-711424, Regressions-Bug-725315, Regressions-Coincident-Merger-And-Branch-Jump, Regressions-Cole2000-Tree-Builder-WDM-Node-Well-Ordering, Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee-2, Regressions-Deadlock-Merge-Target-In-Descendent-Of-Mergee, Regressions-Final-Time-Before-Output-Time, Regressions-Immediate-Sub-Sub-Merger-Then-Branch-Jump, Regressions-Initial-Satellite-No-Primary-Progenitor, Regressions-Issue-142, Regressions-Linear-Growth-For-Future-Model, Regressions-Ludlow-Scale-Set-Before-Tree-Initialization, Regressions-Merger-At-Final-Time-In-Tree, Regressions-Merger-Tree-Box-Size-Weight, Regressions-Particulate, Regressions-Satellite-Preset-Bound-Mass-Non-Zero, Regressions-Set-Properties, Regressions-Subhalo-Merges-At-Final-Time-Of-Tree, Regressions-Subhalo-Two-Consecutive-Mergers, Regressions-Tree-With-Initial-Satellite-In-Progenitorless-Host, Regressions-Tree-With-No-Primary-Progenitor, Regressions-Bar-Instability-FPE, Test-Methods-01, Test-Methods-02, Test-Methods-03, Test-Methods-04, Test-Methods-05, Test-Methods-06, Test-Methods-07, Test-Methods-08, Test-Methods-09, Test-Methods-10, Test-Methods-11, Test-Methods-12, Test-Methods-13, Test-Methods-14, Test-Methods-15, Test-Methods-16, Test-Methods-17, Test-Methods-18, Test-Methods-19, Test-Methods-20, Test-MPI-State-Restore, Test-MPI-Radiative-Transfer-Stromgren-Sphere, Test-MPI-MCMC, Test-MPI-Methods-01, Test-MPI-Methods-02, Test-Python-Interface, Tests-Hashes-Cryptographic-MacOS, Test-Python-Interface-MacOS ]
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
       - name: Download artifacts (executable-linux)
         uses: actions/download-artifact@v3
         with:
@@ -9153,8 +9249,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./doc/Galacticus_Usage.pdf ./doc/Galacticus_Physics.pdf ./doc/Galacticus_Development.pdf ./doc/Galacticus_Source.pdf ./datasets/tools.tar.bz2 --clobber
-          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./doc/Galacticus_Usage.pdf ./doc/Galacticus_Physics.pdf ./doc/Galacticus_Development.pdf ./doc/Galacticus_Source.pdf ./datasets/tools.tar.bz2
+          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
+          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@v3
         with:
@@ -9171,9 +9267,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mv ./Galacticus.exe ./Galacticus_MacOS.exe
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./datasets/toolsMacOS.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./datasets/toolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip --clobber
+          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubhalos)
         uses: actions/download-artifact@v3
         with:
@@ -9202,8 +9297,99 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2 ./testSuite/outputs/milkyWay.perf.bz2 ./testSuite/outputs/milkyWay_SIDM.perf.bz2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2 ./testSuite/outputs/milkyWay.gprof.bz2 ./testSuite/outputs/milkyWay_SIDM.gprof.bz2 --clobber
-          rm ./testSuite/outputs/darkMatterOnlySubhalos.perf.bz2 ./testSuite/outputs/milkyWay.perf.bz2 ./testSuite/outputs/milkyWay_SIDM.perf.bz2 ./testSuite/outputs/darkMatterOnlySubhalos.gprof.bz2 ./testSuite/outputs/milkyWay.gprof.bz2 ./testSuite/outputs/milkyWay_SIDM.gprof.bz2
+          gh release upload bleeding-edge ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
+          rm ./darkMatterOnlySubhalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubhalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+      - name: Download artifacts (benchmark-darkMatterOnlySubhalos)
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-darkMatterOnlySubhalos
+      - name: Download artifacts (benchmark-milkyWay)
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-milkyWay
+      - name: Download artifacts (validation-darkMatterOnlySubhalos)
+        uses: actions/download-artifact@v3
+        with:
+          name: validation-darkMatterOnlySubhalos
+      - name: Download artifacts (validation-milkyWay)
+        uses: actions/download-artifact@v3
+        with:
+          name: validation-milkyWay
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Dark matter-only subhalos benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark_darkMatterOnlySubhalos.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
+          gh-pages-branch: gh-pages
+          alert-threshold: 150%
+          fail-threshold: 200%
+          max-items-in-chart: 256
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Milky Way model benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark_milkyWay.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/milkyWayModel
+          gh-pages-branch: gh-pages
+          alert-threshold: 150%
+          fail-threshold: 200%
+          max-items-in-chart: 256
+      - name: Store validation result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Dark matter-only subhalos benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: validate_darkMatterOnlySubhalos.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
+          gh-pages-branch: gh-pages
+          alert-threshold: 110%
+          fail-threshold: 120%
+          max-items-in-chart: 256
+      - name: Store validation result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Milky Way model benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: validate_milkyWayModel.json
+          fail-on-alert: true
+          comment-on-alert: true
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/bench/milkyWayModel
+          gh-pages-branch: gh-pages
+          alert-threshold: 110%
+          fail-threshold: 120%
+          max-items-in-chart: 256
+      - name: Push validation result
+        run: |
+          git checkout gh-pages
+          mv results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_milkyWayModel.json          dev/valid/milkyWayModel/results.json
+          git config --local user.email "github@users.noreply.github.com"
+          git config --local user.name "github-action-validate"
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json
+          git commit -m "Update validation results"
+          git push --set-upstream origin gh-pages
+        if: github.event_name != 'pull_request'
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'

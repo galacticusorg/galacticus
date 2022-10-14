@@ -359,7 +359,6 @@ contains
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Input_Parameters                , only : inputParameters
-    use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
     use            :: Numerical_Integration2          , only : integratorCompositeGaussKronrod1D
     use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
@@ -419,9 +418,9 @@ contains
           !$ call hdf5Access%unset      (                                         )
           call displayUnindent('done',verbosityLevelWorking)
        else
-          call allocateArray(property%age        ,[standardTableAgeCount                              ])
-          call allocateArray(property%metallicity,[                      standardTableMetallicityCount])
-          call allocateArray(property%property   ,[standardTableAgeCount,standardTableMetallicityCount])
+          allocate(property%age        (standardTableAgeCount                              ))
+          allocate(property%metallicity(standardTableMetallicityCount))
+          allocate(property%property   (standardTableAgeCount,standardTableMetallicityCount))
           property%metallicity(1                              )=0.0d0
           property%metallicity(2:standardTableMetallicityCount)=Make_Range(standardTableMetallicityMinimum,standardTableMetallicityMaximum,standardTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
           property%age                                         =Make_Range(standardTableAgeMinimum        ,standardTableAgeMaximum        ,standardTableAgeCount          ,rangeType=rangeTypeLogarithmic)

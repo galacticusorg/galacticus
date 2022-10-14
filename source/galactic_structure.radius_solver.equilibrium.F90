@@ -303,28 +303,27 @@ contains
       use :: Galactic_Structure_Options      , only : massTypeBaryonic               , radiusLarge
       use :: Error                           , only : Error_Report
       use :: ISO_Varying_String              , only : varying_string
-      use :: Memory_Management               , only : allocateArray                  , deallocateArray
       use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       use :: String_Handling                 , only : operator(//)
       implicit none
       type            (treeNode          ), intent(inout)                     :: node
       double precision                    , intent(in   )                     :: specificAngularMomentum
-      procedure       (solverGet         ), intent(in   ) , pointer           :: radiusGet                           , velocityGet
-      procedure       (solverSet         ), intent(in   ) , pointer           :: radiusSet                           , velocitySet
+      procedure       (solverGet         ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
+      procedure       (solverSet         ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
       double precision                    , dimension(:,:), allocatable, save :: radiusHistory
       !$omp threadprivate(radiusHistory)
       double precision                    , dimension(:,:), allocatable       :: radiusHistoryTemporary
-      double precision                    , dimension(:  ), allocatable       :: equilibriumRadiusStoredTmp          , equilibriumVelocityStoredTmp
-      integer                             , dimension(1  ), parameter         :: storeIncrement                 =[10]
-      integer                             , parameter                         :: iterationsForBisectionMinimum  = 10
-      integer                             , parameter                         :: activeComponentMaximumIncrement=  2
+      double precision                    , dimension(:  ), allocatable       :: equilibriumRadiusStoredTmp        , equilibriumVelocityStoredTmp
+      integer                             , parameter                         :: storeIncrement                 =10
+      integer                             , parameter                         :: iterationsForBisectionMinimum  =10
+      integer                             , parameter                         :: activeComponentMaximumIncrement= 2
       integer                                                                 :: activeComponentMaximumCurrent
       character       (len=14            )                                    :: label
       type            (varying_string    ), save                              :: message
       !$omp threadprivate(message)
-      double precision                                                        :: baryonicVelocitySquared             , darkMatterMassFinal         , &
-           &                                                                     darkMatterVelocitySquared           , velocity                    , &
-           &                                                                     radius                              , radiusNew                   , &
+      double precision                                                        :: baryonicVelocitySquared           , darkMatterMassFinal         , &
+           &                                                                     darkMatterVelocitySquared         , velocity                    , &
+           &                                                                     radius                            , radiusNew                   , &
            &                                                                     specificAngularMomentumMaximum
 
       ! Count the number of active comonents.
@@ -360,21 +359,21 @@ contains
          if (.not.equilibriumRevertStructure .and. equilibriumIterationCount == 1) then
             ! Store these quantities.
             if (.not.allocated(equilibriumRadiusStored)) then
-               call allocateArray(  equilibriumRadiusStored,storeIncrement)
-               call allocateArray(equilibriumVelocityStored,storeIncrement)
+               allocate(  equilibriumRadiusStored(storeIncrement))
+               allocate(equilibriumVelocityStored(storeIncrement))
                equilibriumRadiusStored  =0.0d0
                equilibriumVelocityStored=0.0d0
             else if (equilibriumActiveComponentCount > size(equilibriumRadiusStored)) then
-               call move_alloc     (  equilibriumRadiusStored,        equilibriumRadiusStoredTmp                )
-               call move_alloc     (equilibriumVelocityStored,      equilibriumVelocityStoredTmp                )
-               call allocateArray  (  equilibriumRadiusStored,shape(  equilibriumRadiusStoredTmp)+storeIncrement)
-               call allocateArray  (equilibriumVelocityStored,shape(equilibriumVelocityStoredTmp)+storeIncrement)
+               call move_alloc(  equilibriumRadiusStored,       equilibriumRadiusStoredTmp                )
+               call move_alloc(equilibriumVelocityStored,     equilibriumVelocityStoredTmp                )
+               allocate       (  equilibriumRadiusStored(size(  equilibriumRadiusStoredTmp)+storeIncrement))
+               allocate       (equilibriumVelocityStored(size(equilibriumVelocityStoredTmp)+storeIncrement))
                equilibriumRadiusStored  (                        1:size(  equilibriumRadiusStoredTmp))=  equilibriumRadiusStoredTmp
                equilibriumVelocityStored(                        1:size(equilibriumVelocityStoredTmp))=equilibriumVelocityStoredTmp
                equilibriumRadiusStored  (size(  equilibriumRadiusStoredTmp)+1:size(  equilibriumRadiusStored   ))=0.0d0
                equilibriumVelocityStored(size(equilibriumVelocityStoredTmp)+1:size(equilibriumVelocityStored   ))=0.0d0
-               call deallocateArray(  equilibriumRadiusStoredTmp)
-               call deallocateArray(equilibriumVelocityStoredTmp)
+               deallocate(  equilibriumRadiusStoredTmp)
+               deallocate(equilibriumVelocityStoredTmp)
             end if
             equilibriumRadiusStored  (equilibriumActiveComponentCount)=radius
             equilibriumVelocityStored(equilibriumActiveComponentCount)=velocity
@@ -404,15 +403,15 @@ contains
          endif
          ! Ensure that the radius history array is sufficiently sized.
          if (.not.allocated(radiusHistory)) then
-            call allocateArray(radiusHistory,[2,equilibriumActiveComponentCount+activeComponentMaximumIncrement])
+            allocate(radiusHistory(2,equilibriumActiveComponentCount+activeComponentMaximumIncrement))
             radiusHistory=-1.0d0
          else if (size(radiusHistory,dim=2) < equilibriumActiveComponentCount) then
             activeComponentMaximumCurrent=size(radiusHistory,dim=2)
             call Move_Alloc(radiusHistory,radiusHistoryTemporary)
-            call allocateArray(radiusHistory,[2,equilibriumActiveComponentCount+activeComponentMaximumIncrement])
+            allocate(radiusHistory(2,equilibriumActiveComponentCount+activeComponentMaximumIncrement))
             radiusHistory(:,                              1:                                activeComponentMaximumCurrent  )=radiusHistoryTemporary
             radiusHistory(:,activeComponentMaximumCurrent+1:equilibriumActiveComponentCount+activeComponentMaximumIncrement)=-1.0d0
-            call deallocateArray(radiusHistoryTemporary)
+            deallocate(radiusHistoryTemporary)
          end if
          ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
          ! declare a true oscillation until the solver has had time to "burn in".

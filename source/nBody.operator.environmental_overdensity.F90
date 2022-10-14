@@ -130,7 +130,6 @@ contains
     Determine the mean position and velocity of N-body particles.
     !!}
     use    :: Display          , only : displayCounter    , displayCounterClear
-    use    :: Memory_Management, only : allocateArray     , deallocateArray
     use    :: Nearest_Neighbors, only : nearestNeighbors
     !$ use :: OMP_Lib          , only : omp_get_thread_num
     implicit none
@@ -180,8 +179,8 @@ contains
                 end do
              end do
           end do
-          call allocateArray(position    ,[3_c_size_t,particleCount                      ])
-          call allocateArray(particleMask,[           size(position_,dim=2,kind=c_size_t)])
+          allocate(position    (3_c_size_t,particleCount        ))
+          allocate(particleMask(           size(position_,dim=2)))
           particleCount=0_c_size_t
           do l=-1,+1
              i(1)=l
@@ -208,14 +207,14 @@ contains
                 end do
              end do
           end do
-          call deallocateArray(particleMask)
+          deallocate(particleMask)
        else
           ! Non-periodic boundaries - no need to replicate particles.
-          call allocateArray(position,shape(position_))
+          allocate(position,mold=position_)
           position=position_
        end if
        neighborFinder=nearestNeighbors(transpose(position))
-       call allocateArray(overdensity,[size(position_,dim=2,kind=c_size_t)])
+       allocate(overdensity(size(position_,dim=2)))
        overdensity=-2.0d0
        ! Iterate over particles.
        call displayCounter(0,.true.)
@@ -233,7 +232,7 @@ contains
        end do
        !$omp end parallel do
        call displayCounterClear()
-       call deallocateArray(position)
+       deallocate(position)
        call simulations(iSimulation)%analysis%writeDataset(overdensity,'overdensityEnvironmental')
     end do
     return

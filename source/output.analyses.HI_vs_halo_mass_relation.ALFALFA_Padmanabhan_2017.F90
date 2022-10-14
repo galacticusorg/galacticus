@@ -125,7 +125,6 @@ contains
     use :: Galacticus_Nodes                      , only : nodeComponentBasic                                , treeNode
     use :: Geometry_Surveys                      , only : surveyGeometryMartin2010ALFALFA
     use :: ISO_Varying_String                    , only : var_str
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo                     , nodePropertyExtractorMassISM
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Ranges                      , only : Make_Range                                        , rangeTypeLinear
@@ -202,7 +201,7 @@ contains
     <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMartin2010ALFALFA(cosmologyParameters_)"/>
     !!]
     ! Create output time weights.
-    call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])
+    allocate(outputWeight(massHaloCount,outputTimes_%count()))
     outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massHILimit,allowSingleEpoch=.true.)
     forall(iBin=2:massHaloCount)
        outputWeight(iBin,:)=outputWeight(1,:)

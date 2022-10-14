@@ -298,7 +298,6 @@ contains
     use :: Error                         , only : Error_Report
     use :: Linear_Algebra                , only : assignment(=)                  , matrix                         , vector
     use :: MPI_Utilities                 , only : mpiSelf
-    use :: Memory_Management             , only : allocateArray
     use :: Models_Likelihoods_Constants  , only : logImpossible
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass      , posteriorSampleStateCorrelation
@@ -395,17 +394,17 @@ contains
                   &  ']'
              call Error_Report(message//{introspection:location})
           end if
-          call allocateArray(self%polynomialCoefficient,    [self%polynomialCoefficientCount                                ] )
-          call allocateArray(self%likelihoodSums       ,    [self%polynomialCoefficientCount                                ] )
-          call allocateArray(self%stateSums            ,    [self%polynomialCoefficientCount,self%polynomialCoefficientCount] )
-          call allocateArray(self%coefficients         ,    [self%polynomialCoefficientCount                                ] )
-          call allocateArray(self%regressionMatrix     ,int([self%regressionMatrixSize      ,self%regressionMatrixSize      ]))
-          call allocateArray(self%stateOffset          ,int([self%regressionMatrixSize                                      ]))
-          call allocateArray(self%weight               ,int([self%regressionMatrixSize                                      ]))
-          call allocateArray(self%likelihoodResiduals  ,    [self%emulatorRebuildCount                                      ] )
-          call allocateArray(self%statesCombined       ,    [simulationState%dimension()    ,self%emulatorRebuildCount      ] )
-          call allocateArray(self%stateScales          ,    [simulationState%dimension()                                    ] )
-          call allocateArray(self%stateMeans           ,    [simulationState%dimension()                                    ] )
+          allocate(self%polynomialCoefficient(self%polynomialCoefficientCount                                ))
+          allocate(self%likelihoodSums       (self%polynomialCoefficientCount                                ))
+          allocate(self%stateSums            (self%polynomialCoefficientCount,self%polynomialCoefficientCount))
+          allocate(self%coefficients         (self%polynomialCoefficientCount                                ))
+          allocate(self%regressionMatrix     (self%regressionMatrixSize      ,self%regressionMatrixSize      ))
+          allocate(self%stateOffset          (self%regressionMatrixSize                                      ))
+          allocate(self%weight               (self%regressionMatrixSize                                      ))
+          allocate(self%likelihoodResiduals  (self%emulatorRebuildCount                                      ))
+          allocate(self%statesCombined       (simulationState%dimension()    ,self%emulatorRebuildCount      ))
+          allocate(self%stateScales          (simulationState%dimension()                                    ))
+          allocate(self%stateMeans           (simulationState%dimension()                                    ))
           self%initialized=.true.
        end if
        ! Gather the simulator state and likelihood from other chains.
@@ -564,8 +563,8 @@ contains
     self%evaluationCount=self%evaluationCount+1
     ! Ensure arrays are allocated.
     if (.not.allocated(self%simulatorLikelihood)) then
-       call allocateArray(self%simulatorLikelihood,[                            self%emulatorRebuildCount])
-       call allocateArray(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
+       allocate(self%simulatorLikelihood(self%emulatorRebuildCount))
+       allocate(self%simulationState    (simulationState%dimension(),self%emulatorRebuildCount))
     end if
     likelihoodIsSimulated=.false.
     if (self%initialized.and..not.self%regressionMatrixIsSingular) then
@@ -844,12 +843,11 @@ contains
     !!{
     Create a polynomial iterator for a poynomial of specified {\normalfont \ttfamily order} and {\normalfont \ttfamily rank}.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     type   (polynomialIterator)                :: polynomialIteratorConstructor
     integer                    , intent(in   ) :: order                        , rank
 
-    call allocateArray(polynomialIteratorConstructor%indices,[order])
+    allocate(polynomialIteratorConstructor%indices(order))
     polynomialIteratorConstructor     %order=order
     polynomialIteratorConstructor     %rank =rank
     call polynomialIteratorConstructor%reset()
@@ -947,7 +945,6 @@ contains
     !!{
     Respond to possible changes in the likelihood function.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(posteriorSampleLikelihoodGaussianRegression), intent(inout) :: self
 
@@ -959,17 +956,17 @@ contains
     self%emulatorCheckCount   =0
     self%emulatorFailCount    =0
     ! Free allocated space.
-    if (allocated(self%polynomialCoefficient)) call deallocateArray(self%polynomialCoefficient)
-    if (allocated(self%likelihoodSums       )) call deallocateArray(self%likelihoodSums       )
-    if (allocated(self%stateSums            )) call deallocateArray(self%stateSums            )
-    if (allocated(self%coefficients         )) call deallocateArray(self%coefficients         )
-    if (allocated(self%regressionMatrix     )) call deallocateArray(self%regressionMatrix     )
-    if (allocated(self%stateOffset          )) call deallocateArray(self%stateOffset          )
-    if (allocated(self%weight               )) call deallocateArray(self%weight               )
-    if (allocated(self%likelihoodResiduals  )) call deallocateArray(self%likelihoodResiduals  )
-    if (allocated(self%statesCombined       )) call deallocateArray(self%statesCombined       )
-    if (allocated(self%stateScales          )) call deallocateArray(self%stateScales          )
-    if (allocated(self%stateMeans           )) call deallocateArray(self%stateMeans           )
+    if (allocated(self%polynomialCoefficient)) deallocate(self%polynomialCoefficient)
+    if (allocated(self%likelihoodSums       )) deallocate(self%likelihoodSums       )
+    if (allocated(self%stateSums            )) deallocate(self%stateSums            )
+    if (allocated(self%coefficients         )) deallocate(self%coefficients         )
+    if (allocated(self%regressionMatrix     )) deallocate(self%regressionMatrix     )
+    if (allocated(self%stateOffset          )) deallocate(self%stateOffset          )
+    if (allocated(self%weight               )) deallocate(self%weight               )
+    if (allocated(self%likelihoodResiduals  )) deallocate(self%likelihoodResiduals  )
+    if (allocated(self%statesCombined       )) deallocate(self%statesCombined       )
+    if (allocated(self%stateScales          )) deallocate(self%stateScales          )
+    if (allocated(self%stateMeans           )) deallocate(self%stateMeans           )
     ! Let the simulator know that the likelihood function may have changed.
     call self%posteriorSampleLikelihood_%functionChanged()
     return
@@ -1077,7 +1074,6 @@ contains
     !!{
     Process a previous state to restore likelihood function.
     !!}
-    use :: Memory_Management           , only : allocateArray
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
@@ -1087,8 +1083,8 @@ contains
 
     if (logLikelihood > logImpossible) then
        if (.not.allocated(self%simulatorLikelihood)) then
-          call allocateArray(self%simulatorLikelihood,[                      self%emulatorRebuildCount])
-          call allocateArray(self%simulationState    ,[size(simulationState),self%emulatorRebuildCount])
+          allocate(self%simulatorLikelihood(self%emulatorRebuildCount))
+          allocate(self%simulationState    (size(simulationState),self%emulatorRebuildCount))
        end if
        if (self%accumulatedStateCount == self%emulatorRebuildCount) then
           ! Discard the oldest state.

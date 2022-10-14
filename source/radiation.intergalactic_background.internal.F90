@@ -190,7 +190,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
     !!}
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                        :: self
@@ -238,12 +237,12 @@ contains
          &                          )                              &
          &                   )                                     &
          &               +1
-    call allocateArray(self%wavelength   ,[self%wavelengthCount               ]                                    )
-    call allocateArray(self%spectrum     ,[self%wavelengthCount               ]                                    )
-    call allocateArray(self%time         ,[                     self%timeCount]                                    )
-    call allocateArray(self%redshift     ,[                     self%timeCount]                                    )
-    call allocateArray(self%emissivity   ,[self%wavelengthCount,self%timeCount]                                    )
-    call allocateArray(self%emissivityODE,[self%wavelengthCount,2_c_size_t    ],lowerBounds=[1_c_size_t,0_c_size_t])
+    allocate(self%wavelength   (self%wavelengthCount                 ))
+    allocate(self%spectrum     (self%wavelengthCount                 ))
+    allocate(self%time         (                       self%timeCount))
+    allocate(self%redshift     (                       self%timeCount))
+    allocate(self%emissivity   (self%wavelengthCount,  self%timeCount))
+    allocate(self%emissivityODE(self%wavelengthCount,0:2             ))
     self%wavelength=Make_Range(                             &
          &                         self%wavelengthMinimum , &
          &                         self%wavelengthMaximum , &
@@ -270,9 +269,9 @@ contains
     ! Initialize the emissivity to zero.
     self%emissivity=0.0d0
     ! Construct tables of photoionization cross-sections.
-    call allocateArray(self%crossSectionNeutralHydrogen    ,[self%wavelengthCount])
-    call allocateArray(self%crossSectionNeutralHelium      ,[self%wavelengthCount])
-    call allocateArray(self%crossSectionSinglyIonizedHelium,[self%wavelengthCount])
+    allocate(self%crossSectionNeutralHydrogen    (self%wavelengthCount))
+    allocate(self%crossSectionNeutralHelium      (self%wavelengthCount))
+    allocate(self%crossSectionSinglyIonizedHelium(self%wavelengthCount))
     do iWavelength=1,self%wavelengthCount
        self%crossSectionNeutralHydrogen    (iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,self%wavelength(iWavelength))
        self%crossSectionNeutralHelium      (iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(2,1,1,self%wavelength(iWavelength))
