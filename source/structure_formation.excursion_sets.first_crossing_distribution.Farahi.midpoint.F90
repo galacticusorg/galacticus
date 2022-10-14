@@ -120,7 +120,7 @@ contains
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (i == 1 .and. self%useFile .and. makeTable) then
           call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock)
+          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        else
@@ -412,7 +412,7 @@ contains
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
        if (i == 1 .and. self%useFile .and. makeTable) then
           call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock)
+          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        else
