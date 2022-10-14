@@ -281,28 +281,28 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000          ), intent(inout)         :: self
     type            (mergerTree                         ), intent(inout), target :: tree
-    type            (treeNode                           ), pointer               :: nodeNew1                     , nodeNew2                   , node                      , &
+    type            (treeNode                           ), pointer               :: nodeNew1                              , nodeNew2                   , node                      , &
          &                                                                          nodeChild
-    class           (nodeComponentBasic                 ), pointer               :: basicNew1                    , basicNew2                  , basic                     , &
-         &                                                                          basicParent                  , basicChild
+    class           (nodeComponentBasic                 ), pointer               :: basicNew1                             , basicNew2                  , basic                     , &
+         &                                                                          basicParent                           , basicChild
     class           (mergerTreeBranchingProbabilityClass), pointer               :: mergerTreeBranchingProbability_
-    double precision                                     , parameter             :: toleranceTimeEarliest =2.0d-6
-    double precision                                     , parameter             :: toleranceDeltaCritical=1.0d-6
-    double precision                                     , parameter             :: toleranceTime         =1.0d-6
+    double precision                                     , parameter             :: toleranceTimeEarliest          =2.0d-6
+    double precision                                     , parameter             :: toleranceDeltaCritical         =1.0d-6
+    double precision                                     , parameter             :: toleranceTime                  =1.0d-6
     type            (mergerTreeWalkerTreeConstruction   )                        :: treeWalkerConstruction
     type            (mergerTreeWalkerIsolatedNodes      )                        :: treeWalkerIsolated
     integer         (kind=kind_int8                     )                        :: nodeIndex
-    double precision                                                             :: accretionFraction            , timeNodeBase               , branchingProbability      , &
-         &                                                                          collapseTime                 , deltaCritical              , deltaCritical1            , &
-         &                                                                          deltaCritical2               , deltaW                     , nodeMass1                 , &
-         &                                                                          nodeMass2                    , deltaCriticalEarliest      , uniformRandom             , &
-         &                                                                          massResolution               , accretionFractionCumulative, branchMassCurrent         , &
-         &                                                                          branchDeltaCriticalCurrent   , branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                          branchingProbabilityRate     , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                          collapseTimeTruncate         , rootVarianceGrowthFactor   , time                      , &
+    double precision                                                             :: accretionFraction                     , timeNodeBase               , branchingProbability      , &
+         &                                                                          collapseTime                          , deltaCritical              , deltaCritical1            , &
+         &                                                                          deltaCritical2                        , deltaW                     , nodeMass1                 , &
+         &                                                                          nodeMass2                             , deltaCriticalEarliest      , uniformRandom             , &
+         &                                                                          massResolution                        , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                                          branchDeltaCriticalCurrent            , branchingInterval          , branchingIntervalScaleFree, &
+         &                                                                          branchingProbabilityRate              , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                          collapseTimeTruncate                  , rootVarianceGrowthFactor   , time                      , &
          &                                                                          deltaWController
-    logical                                                                      :: doBranch                     , branchIsDone               , snapAccretionFraction     , &
-         &                                                                          snapEarliestTime             , controlLimited
+    logical                                                                      :: doBranch                              , branchIsDone               , snapAccretionFraction     , &
+         &                                                                          snapEarliestTime                      , controlLimited
     type            (varying_string                     )                        :: message
     character       (len=20                             )                        :: label
 
@@ -347,7 +347,6 @@ contains
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.
        branchIsDone                =  .false.
        do while (.not.branchIsDone)
-          !! NOTE: Get the branching probability object here - we're going to use it in multiple places during this tree building step.
           ! Get the branching probability object to use for this step.
           mergerTreeBranchingProbability_ => self%mergerTreeBuildController_%branchingProbabilityObject(node)
           ! Get the growth factor in the root variance at the mass of the current branch.
