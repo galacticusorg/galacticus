@@ -501,6 +501,9 @@ contains
           if (.not.varianceMaximumChanged) then
              call move_alloc(self%firstCrossingTableRate,firstCrossingTableRate)
              call move_alloc(self%nonCrossingTableRate  ,nonCrossingTableRate  )
+          else
+             allocate(firstCrossingTableRate(0,0,0))
+             allocate(nonCrossingTableRate  (  0,0))
           end if
           if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
           if (allocated(self%varianceTableRateBase )) call deallocateArray(self%varianceTableRateBase )
