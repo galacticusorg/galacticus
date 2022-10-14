@@ -120,7 +120,6 @@ contains
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorMassStellarSpheroid
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -177,7 +176,7 @@ contains
        functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
     end do
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[size(masses,kind=c_size_t),outputTimes_%count()])
+    allocate(outputWeight(size(masses),outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0

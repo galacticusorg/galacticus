@@ -321,7 +321,6 @@ contains
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
     use :: ISO_Varying_String                      , only : var_str
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorConcentration              , nodePropertyExtractorMassHalo
     use :: Numerical_Ranges                        , only : Make_Range                                      , rangeTypeLogarithmic
     use :: Numerical_Comparison                    , only : Values_Agree
@@ -383,10 +382,10 @@ contains
     !!]
     
     ! Build grid of concentrations.
-    call allocateArray(concentrations,[countConcentrations])
+    allocate(concentrations(countConcentrations))
     concentrations=Make_Range(concentrationMinimum,concentrationMaximum,int(countConcentrations),rangeType=rangeTypeLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[countConcentrations,outputTimes_%count()])
+    allocate(outputWeight(countConcentrations,outputTimes_%count()))
     outputWeight=0.0d0
     do iOutput=1,outputTimes_%count()
        if (Values_Agree(outputTimes_%time(iOutput),time,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0

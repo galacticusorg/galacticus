@@ -332,7 +332,6 @@ contains
     Set state in the internal intergalatic medium state class.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (*), intent(inout)               :: self
     double precision   , intent(in   ), dimension(:) :: time            , densityHydrogen1, &
@@ -341,22 +340,22 @@ contains
          &                                              temperature     , massFiltering
     select type (self)
     class is (intergalacticMediumStateInternal)
-       if (allocated(self%time            )) call deallocateArray(self%time            )
-       if (allocated(self%temperatureIGM  )) call deallocateArray(self%temperatureIGM  )
-       if (allocated(self%densityHydrogen1)) call deallocateArray(self%densityHydrogen1)
-       if (allocated(self%densityHydrogen2)) call deallocateArray(self%densityHydrogen2)
-       if (allocated(self%densityHelium1  )) call deallocateArray(self%densityHelium1  )
-       if (allocated(self%densityHelium2  )) call deallocateArray(self%densityHelium2  )
-       if (allocated(self%densityHelium3  )) call deallocateArray(self%densityHelium3  )
-       if (allocated(self%massFiltering   )) call deallocateArray(self%massFiltering   )
-       call allocateArray(self%time            ,shape(time            ))
-       call allocateArray(self%temperatureIGM  ,shape(temperature     ))
-       call allocateArray(self%densityHydrogen1,shape(densityHydrogen1))
-       call allocateArray(self%densityHydrogen2,shape(densityHydrogen2))
-       call allocateArray(self%densityHelium1  ,shape(densityHelium1  ))
-       call allocateArray(self%densityHelium2  ,shape(densityHelium2  ))
-       call allocateArray(self%densityHelium3  ,shape(densityHelium3  ))
-       call allocateArray(self%massFiltering   ,shape(massFiltering   ))
+       if (allocated(self%time            )) deallocate(self%time            )
+       if (allocated(self%temperatureIGM  )) deallocate(self%temperatureIGM  )
+       if (allocated(self%densityHydrogen1)) deallocate(self%densityHydrogen1)
+       if (allocated(self%densityHydrogen2)) deallocate(self%densityHydrogen2)
+       if (allocated(self%densityHelium1  )) deallocate(self%densityHelium1  )
+       if (allocated(self%densityHelium2  )) deallocate(self%densityHelium2  )
+       if (allocated(self%densityHelium3  )) deallocate(self%densityHelium3  )
+       if (allocated(self%massFiltering   )) deallocate(self%massFiltering   )
+       allocate(self%time            ,mold=time            )
+       allocate(self%temperatureIGM  ,mold=temperature     )
+       allocate(self%densityHydrogen1,mold=densityHydrogen1)
+       allocate(self%densityHydrogen2,mold=densityHydrogen2)
+       allocate(self%densityHelium1  ,mold=densityHelium1  )
+       allocate(self%densityHelium2  ,mold=densityHelium2  )
+       allocate(self%densityHelium3  ,mold=densityHelium3  )
+       allocate(self%massFiltering   ,mold=massFiltering   )
        self%time            =time
        self%temperatureIGM  =temperature
        self%densityHydrogen1=densityHydrogen1

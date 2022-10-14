@@ -275,7 +275,6 @@ contains
     !!{
     Set the scalings for error control on the absolute values of stellar population properties.
     !!}
-    use :: Memory_Management, only : deallocateArray
     use :: Stellar_Feedback , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                                :: self
@@ -305,7 +304,7 @@ contains
     ! Set scaling factors for energy input rates.
     history_   %data(:,self%rateEnergyInputIndex                    )=max(massStellar                          ,massStellarMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
     ! Destroy temporary array.
-    call deallocateArray(timeSteps)
+    deallocate(timeSteps)
     return
   end subroutine noninstantaneousScales
 

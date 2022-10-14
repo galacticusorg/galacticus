@@ -154,7 +154,7 @@ contains
 
     ! Allocate array for results.
     !![
-    <allocate variable="passed" shape="value1"/>
+    <allocate variable="passed" size="value1"/>
     !!]
     ! Perform the comparison.
     select case (compare_)
@@ -243,9 +243,8 @@ contains
     !!{
     Write out the results of unit testing.
     !!}
-    use :: Display           , only : displayIndent      , displayMessage, displayUnindent
-    use :: ISO_Varying_String, only : assignment(=)      , operator(//)  , operator(/=)
-    use :: Memory_Management , only : Memory_Usage_Record
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent
+    use :: ISO_Varying_String, only : assignment(=), operator(//)  , operator(/=)
     use :: String_Handling   , only : operator(//)
     implicit none
     type   (assertResult  ), pointer :: nextResult, result
@@ -300,7 +299,6 @@ contains
        nextResult => result%nextResult
        call result%label%destroy()
        deallocate(result)
-       call Memory_Usage_Record(sizeof(result),addRemove=-1)
        result => nextResult
     end do
     return
@@ -311,7 +309,6 @@ contains
     Get a new assert result object.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
-    use :: Memory_Management , only : Memory_Usage_Record
     implicit none
     type(assertResult), pointer :: newResult
 
@@ -319,7 +316,6 @@ contains
     select case (firstAssert)
     case (.false.)
        allocate(currentResult%nextResult)
-       call Memory_Usage_Record(sizeof(currentResult%nextResult))
        newResult => currentResult%nextResult
     case (.true. )
        newResult => firstResult

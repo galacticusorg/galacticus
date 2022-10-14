@@ -670,7 +670,6 @@ contains
     !!}
     use :: Error            , only : Error_Report
     use :: Galacticus_Nodes , only : interruptTask, nodeComponentSpheroid, nodeComponentSpheroidStandard
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class    (nodeComponentSpheroid), intent(inout)                    :: self
     type     (history              ), intent(in   )                    :: rate
@@ -692,8 +691,8 @@ contains
          &  .or. rate%time(size(rate%time)) > starFormationHistory%time(size(starFormationHistory%time)) &
          & ) then
        ! It does not, so interrupt evolution and extend the history.
-       if (allocated(starFormationHistoryTemplate)) call deallocateArray(starFormationHistoryTemplate)
-       call allocateArray(starFormationHistoryTemplate,shape(rate%time))
+       if (allocated(starFormationHistoryTemplate)) deallocate(starFormationHistoryTemplate)
+       allocate(starFormationHistoryTemplate(size(rate%time)))
        starFormationHistoryTemplate=rate%time
        interrupt=.true.
        interruptProcedure => Node_Component_Spheroid_Standard_Star_Formation_History_Extend
@@ -713,7 +712,6 @@ contains
     !!}
     use :: Error            , only : Error_Report
     use :: Galacticus_Nodes , only : interruptTask, nodeComponentSpheroid, nodeComponentSpheroidStandard
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class    (nodeComponentSpheroid), intent(inout)                    :: self
     type     (history              ), intent(in   )                    :: rate
@@ -735,8 +733,8 @@ contains
          &  .or. rate%time(size(rate%time)) > stellarPropertiesHistory%time(size(stellarPropertiesHistory%time)) &
          & ) then
        ! It does not, so interrupt evolution and extend the history.
-       if (allocated(stellarPropertiesHistoryTemplate)) call deallocateArray(stellarPropertiesHistoryTemplate)
-       call allocateArray(stellarPropertiesHistoryTemplate,shape(rate%time))
+       if (allocated(stellarPropertiesHistoryTemplate)) deallocate(stellarPropertiesHistoryTemplate)
+       allocate(stellarPropertiesHistoryTemplate(size(rate%time)))
        stellarPropertiesHistoryTemplate=rate%time
        interrupt=.true.
        interruptProcedure => Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend
@@ -1033,8 +1031,8 @@ contains
           call historySpheroid%reset  (                    )
           call diskHost       %starFormationHistorySet(historyDisk    )
           call spheroidHost   %starFormationHistorySet(historySpheroid)
-          call historyDisk    %destroy(recordMemory=.false.)
-          call historySpheroid%destroy(recordMemory=.false.)
+          call historyDisk    %destroy()
+          call historySpheroid%destroy()
        case (destinationMergerSpheroid%ID)
           call spheroidHost%        massStellarSet(                                    &
                &                                    spheroidHost%        massStellar() &
@@ -1074,8 +1072,8 @@ contains
           call historyDisk    %reset  (                    )
           call spheroidHost   %starFormationHistorySet    (historySpheroid)
           call diskHost       %starFormationHistorySet    (historyDisk    )
-          call historyDisk    %destroy(recordMemory=.false.)
-          call historySpheroid%destroy(recordMemory=.false.)
+          call historyDisk    %destroy()
+          call historySpheroid%destroy()
           historyDisk    =diskHost    %starFormationHistory()
           historySpheroid=spheroidHost%starFormationHistory()
        case (destinationMergerUnmoved%ID)
@@ -1155,8 +1153,8 @@ contains
              call historySpheroid%reset                  (                                    )
              call diskHost       %starFormationHistorySet(history_                            )
              call spheroid       %starFormationHistorySet(historySpheroid                     )
-             call history_       %destroy                (                recordMemory=.false.)
-             call historySpheroid%destroy                (                recordMemory=.false.)
+             call history_       %destroy                (                                    )
+             call historySpheroid%destroy                (                                    )
           case (destinationMergerSpheroid%ID)
              call spheroidHost%        massStellarSet( spheroidHost%        massStellar() &
                   &                                   +spheroid    %        massStellar() &
@@ -1181,8 +1179,8 @@ contains
              call historySpheroid%reset                  (                                    )
              call spheroidHost   %starFormationHistorySet(history_                            )
              call spheroid       %starFormationHistorySet(historySpheroid                     )
-             call history_       %destroy                (                recordMemory=.false.)
-             call historySpheroid%destroy                (                recordMemory=.false.)
+             call history_       %destroy                (                                    )
+             call historySpheroid%destroy                (                                    )
           case default
              call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
           end select

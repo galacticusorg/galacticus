@@ -243,7 +243,6 @@ contains
     use :: Error                 , only : Error_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode, &
          &                                mergerTree
-    use :: Memory_Management     , only : allocateArray                          , deallocateArray
     use :: Numerical_Integration , only : integrator
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)                    :: self
@@ -327,7 +326,7 @@ contains
              end if
           end if
        end if
-       if (retabulate)  call deallocateArray(self%distributionTable)
+       if (retabulate)  deallocate(self%distributionTable)
     else
        retabulate=.true.
     end if
@@ -344,7 +343,7 @@ contains
     end if
     self   %spinCount=int(log10(self%spinMaximum/self%spinMinimum)*dble(nbodyErrorsSpinPointsPerDecade))+1
     self   %spinDelta=    log10(self%spinMaximum/self%spinMinimum)/dble(self%spinCount-1)
-    call allocateArray(self%distributionTable,[self%massCount,self%spinCount])
+    allocate(self%distributionTable(self%massCount,self%spinCount))
     ! Build a work node.
     node                  => treeNode                  (                 )
     nodeBasic             => node    %basic            (autoCreate=.true.)

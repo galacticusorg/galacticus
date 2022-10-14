@@ -917,8 +917,8 @@ contains
           call historyNode%reset                  (                                )
           call diskHost   %starFormationHistorySet(historyHost                     )
           call disk       %starFormationHistorySet(historyNode                     )
-          call historyNode%destroy                (            recordMemory=.false.)
-          call historyHost%destroy                (            recordMemory=.false.)
+          call historyNode%destroy                (                                )
+          call historyHost%destroy                (                                )
        case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
@@ -946,8 +946,8 @@ contains
           call historyNode %reset                  (                                )
           call spheroidHost%starFormationHistorySet(historyHost                     )
           call disk        %starFormationHistorySet(historyNode                     )
-          call historyNode %destroy                (            recordMemory=.false.)
-          call historyHost %destroy                (            recordMemory=.false.)
+          call historyNode %destroy                (                                )
+          call historyHost %destroy                (                                )
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select

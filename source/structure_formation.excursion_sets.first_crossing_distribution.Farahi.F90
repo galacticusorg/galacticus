@@ -402,7 +402,6 @@ contains
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble                   , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Memory_Management, only : allocateArray               , deallocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
@@ -469,11 +468,11 @@ contains
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+toleranceRelativeVariance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (makeTable) then
           ! Construct the table of variance on which we will solve for the first crossing distribution.
-          if (allocated(self%variance           )) call deallocateArray(self%variance           )
-          if (allocated(self%time               )) call deallocateArray(self%time               )
-          if (allocated(self%firstCrossingProbability)) call deallocateArray(self%firstCrossingProbability)
-          self%varianceMaximum=max(self%varianceMaximum,variance)
-          self%countVariance  =int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
+          if (allocated(self%variance                )) deallocate(self%variance                )
+          if (allocated(self%time                    )) deallocate(self%time                    )
+          if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
+          self%varianceMaximum   =max(self%varianceMaximum,variance)
+          self%countVariance=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
           if (self%tableInitialized) then
              self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
              self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
@@ -482,13 +481,13 @@ contains
              self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
           end if
           self%countTime=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
-          call allocateArray(self%variance           ,[1+self%countVariance               ],lowerBounds=[0  ])
-          call allocateArray(self%time               ,[                     self%countTime]                  )
-          call allocateArray(self%firstCrossingProbability,[1+self%countVariance,self%countTime],lowerBounds=[0,1])
-          self%time    =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
-          self%variance=Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
-          self%varianceStep =+self%variance(1) &
-               &             -self%variance(0)
+          allocate(self%variance                (0:self%countVariance               ))
+          allocate(self%time                    (                     self%countTime))
+          allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
+          self%time        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
+          self%variance    =Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
+          self%varianceStep=+self%variance(1) &
+               &            -self%variance(0)
           ! Loop through the table and solve for the first crossing distribution.
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -537,7 +536,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiDeepCopy)
-          call allocateArray(barrier,[1+self%countVariance],lowerBounds=[0])
+          allocate(barrier(0:self%countVariance))
           !$omp do schedule(dynamic)
           do iTime=1,self%countTime
 #ifdef USEMPI
@@ -614,7 +613,7 @@ contains
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
           !!]
-          call deallocateArray(barrier)
+          deallocate(barrier)
           !$omp end parallel
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -831,7 +830,6 @@ contains
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble                   , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Memory_Management, only : allocateArray               , deallocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
@@ -918,11 +916,11 @@ contains
        end if
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
        if (makeTable) then
-          if (allocated(self%varianceProgenitorRate)) call deallocateArray(self%varianceProgenitorRate)
-          if (allocated(self%varianceCurrentRate   )) call deallocateArray(self%varianceCurrentRate   )
-          if (allocated(self%timeRate              )) call deallocateArray(self%timeRate              )
-          if (allocated(self%firstCrossingRate     )) call deallocateArray(self%firstCrossingRate     )
-          if (allocated(self%nonCrossingRate       )) call deallocateArray(self%nonCrossingRate       )
+          if (allocated(self%varianceProgenitorRate)) deallocate(self%varianceProgenitorRate)
+          if (allocated(self%varianceCurrentRate   )) deallocate(self%varianceCurrentRate   )
+          if (allocated(self%timeRate              )) deallocate(self%timeRate              )
+          if (allocated(self%firstCrossingRate     )) deallocate(self%firstCrossingRate     )
+          if (allocated(self%nonCrossingRate       )) deallocate(self%nonCrossingRate       )
           if (self%tableInitializedRate) then
              self%timeMinimumRate=min(self%timeMinimumRate,0.5d0*time)
              self%timeMaximumRate=max(self%timeMaximumRate,2.0d0*time)
@@ -968,11 +966,11 @@ contains
           self%varianceMaximumRate        =self%varianceLimit(varianceProgenitor)
           self%countVarianceProgenitorRate=int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
           self%countVarianceCurrentRate   =int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
-          call allocateArray(self%varianceProgenitorRate,[1+self%countVarianceProgenitorRate                                                   ],lowerBounds=[0    ])
-          call allocateArray(self%varianceCurrentRate   ,[                                   1+self%countVarianceCurrentRate                   ],lowerBounds=[0    ])
-          call allocateArray(self%timeRate              ,[                                                                   self%countTimeRate]                    )
-          call allocateArray(self%firstCrossingRate     ,[1+self%countVarianceProgenitorRate,1+self%countVarianceCurrentRate,self%countTimeRate],lowerBounds=[0,0,1])
-          call allocateArray(self%nonCrossingRate       ,[                                   1+self%countVarianceCurrentRate,self%countTimeRate],lowerBounds=[  0,1])
+          allocate(self%varianceProgenitorRate(0:self%countVarianceProgenitorRate                                                   ))
+          allocate(self%varianceCurrentRate   (                                   0:self%countVarianceCurrentRate                   ))
+          allocate(self%timeRate              (                                                                   self%countTimeRate))
+          allocate(self%firstCrossingRate     (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate,self%countTimeRate))
+          allocate(self%nonCrossingRate       (                                   0:self%countVarianceCurrentRate,self%countTimeRate))
           ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
           self%varianceProgenitorRate(0                                 )=0.0d0
           self%varianceProgenitorRate(1:self%countVarianceProgenitorRate)=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%countVarianceProgenitorRate  ,exponent =1.0d0          )
@@ -1036,7 +1034,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiDeepCopy)
-          call allocateArray(barrierRateQuad,[self%countVarianceProgenitorRate])
+          allocate(barrierRateQuad(self%countVarianceProgenitorRate))
           !$omp do schedule(dynamic)
           do iTime=1,self%countTimeRate
              if (.not.allocated(firstCrossingRateQuad)) allocate(firstCrossingRateQuad(0:self%countVarianceProgenitorRate))
@@ -1157,7 +1155,7 @@ contains
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
           !!]
-          call deallocateArray(barrierRateQuad)
+          deallocate(barrierRateQuad)
           !$omp end parallel
           ! Deallocate work arrays.
           deallocate(varianceCurrentRateQuad   )
@@ -1218,12 +1216,11 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : operator(//) , var_str         , varying_string
-    use :: Memory_Management , only : allocateArray, deallocateArray
     use :: String_Handling   , only : operator(//)
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                   , dataGroup
-    double precision                                 , allocatable  , dimension(:    ) :: varianceCurrentTmp       , varianceTmp
+    double precision                                 , allocatable  , dimension(:    ) :: varianceCurrentTmp         , varianceTmp
     double precision                                 , allocatable  , dimension(:,:  ) :: firstCrossingProbabilityTmp, nonCrossingRate
     double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRateTmp
     type            (varying_string                 )                                  :: message
@@ -1239,9 +1236,9 @@ contains
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
-       if (allocated(self%variance                )) call deallocateArray(self%variance                )
-       if (allocated(self%time                    )) call deallocateArray(self%time                    )
-       if (allocated(self%firstCrossingProbability)) call deallocateArray(self%firstCrossingProbability)
+       if (allocated(self%variance                )) deallocate(self%variance                )
+       if (allocated(self%time                    )) deallocate(self%time                    )
+       if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
        ! Read the datasets.
        dataGroup=dataFile%openGroup("probability")
        call dataGroup%readDataset('variance'                ,varianceTmp                )
@@ -1252,12 +1249,12 @@ contains
        self%countVariance=size(varianceTmp)-1
        self%countTime    =size(self%time  )
        ! Transfer to tables.
-       call allocateArray(self%variance                ,[1+self%countVariance               ],lowerBounds=[0  ])
-       call allocateArray(self%firstCrossingProbability,[1+self%countVariance,self%countTime],lowerBounds=[0,1])
-       self%variance                (0:self%countVariance  )=varianceTmp                (1:self%countVariance+1  )
-       self%firstCrossingProbability(0:self%countVariance,:)=firstCrossingProbabilityTmp(1:self%countVariance+1,:)
-       call deallocateArray(varianceTmp                )
-       call deallocateArray(firstCrossingProbabilityTmp)
+       allocate(self%variance                (0:self%countVariance               ))
+       allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
+       self%variance                         (0:self%countVariance  )=varianceTmp                (1:self%countVariance+1  )
+       self%firstCrossingProbability         (0:self%countVariance,:)=firstCrossingProbabilityTmp(1:self%countVariance+1,:)
+       deallocate(varianceTmp                )
+       deallocate(firstCrossingProbabilityTmp)
        ! Set table limits.
        self%timeMinimum     =+self%time    (                 1)
        self%timeMaximum     =+self%time    (self%    countTime)
@@ -1294,11 +1291,11 @@ contains
     ! Check if the rate table is populated.
     if (dataFile%hasGroup('rate')) then
        ! Deallocate arrays if necessary.
-       if (allocated(self%varianceProgenitorRate)) call deallocateArray(self%varianceProgenitorRate)
-       if (allocated(self%varianceCurrentRate   )) call deallocateArray(self%varianceCurrentRate   )
-       if (allocated(self%timeRate              )) call deallocateArray(self%timeRate              )
-       if (allocated(self%firstCrossingRate     )) call deallocateArray(self%firstCrossingRate     )
-       if (allocated(self%nonCrossingRate       )) call deallocateArray(self%nonCrossingRate       )
+       if (allocated(self%varianceProgenitorRate)) deallocate(self%varianceProgenitorRate)
+       if (allocated(self%varianceCurrentRate   )) deallocate(self%varianceCurrentRate   )
+       if (allocated(self%timeRate              )) deallocate(self%timeRate              )
+       if (allocated(self%firstCrossingRate     )) deallocate(self%firstCrossingRate     )
+       if (allocated(self%nonCrossingRate       )) deallocate(self%nonCrossingRate       )
        ! Read the datasets.
        dataGroup=dataFile%openGroup("rate")
        call dataGroup%readDataset('varianceProgenitor',varianceTmp         )
@@ -1308,20 +1305,20 @@ contains
        call dataGroup%readDataset('nonCrossingRate'   ,nonCrossingRate     )
        call dataGroup%close()
        ! Set table sizes and limits.
-       self%countVarianceProgenitorRate=size(varianceTmp       )-1
+       self%countVarianceProgenitorRate=size(varianceTmp      )-1
        self%countVarianceCurrentRate   =size(varianceCurrentTmp)-1
-       self%countTimeRate              =size(self%timeRate     )
-       ! Transfer to tablse.
-       call allocateArray(self%varianceProgenitorRate,[1+self%countVarianceProgenitorRate                                                   ],lowerBounds=[0    ])
-       call allocateArray(self%varianceCurrentRate   ,[                                   1+self%countVarianceCurrentRate                   ],lowerBounds=[  0  ])
-       call allocateArray(self%firstCrossingRate     ,[1+self%countVarianceProgenitorRate,1+self%countVarianceCurrentRate,self%countTimeRate],lowerBounds=[0,0,1])
-       call allocateArray(self%nonCrossingRate       ,[                                   1+self%countVarianceCurrentRate,self%countTimeRate],lowerBounds=[  0,1])
+       self%countTimeRate              =size(self%timeRate    )
+       ! Transfer to tables.
+       allocate(self%varianceProgenitorRate(0:self%countVarianceProgenitorRate                                                   ))
+       allocate(self%varianceCurrentRate   (                                   0:self%countVarianceCurrentRate                   ))
+       allocate(self%firstCrossingRate     (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate,self%countTimeRate))
+       allocate(self%nonCrossingRate       (                                   0:self%countVarianceCurrentRate,self%countTimeRate))
        self%varianceProgenitorRate(0:self%countVarianceProgenitorRate                                  )=varianceTmp         (1:self%countVarianceProgenitorRate+1                                    )
        self%varianceCurrentRate   (                                   0:self%countVarianceCurrentRate  )=varianceCurrentTmp  (                                     1:self%countVarianceCurrentRate+1  )
        self%firstCrossingRate     (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate,:)=firstCrossingRateTmp(1:self%countVarianceProgenitorRate+1,1:self%countVarianceCurrentRate+1,:)
        self%nonCrossingRate       (                                   0:self%countVarianceCurrentRate,:)=nonCrossingRate     (                                     1:self%countVarianceCurrentRate+1,:)
-       call deallocateArray(varianceTmp       )
-       call deallocateArray(varianceCurrentTmp)
+       deallocate(varianceTmp      )
+       deallocate(varianceCurrentTmp)
        ! Set table limits.
        self%varianceMaximumRate =self%varianceProgenitorRate(self%countVarianceProgenitorRate)
        self%timeMinimumRate     =self%timeRate              (                               1)

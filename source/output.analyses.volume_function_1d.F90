@@ -152,7 +152,6 @@ contains
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
-    use :: Memory_Management      , only : allocateArray
     use :: Output_Analyses_Options, only : enumerationOutputAnalysisCovarianceModelEncode
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                              :: self
@@ -194,8 +193,8 @@ contains
     <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
     <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
     !!]
-    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                          ])
-    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*self%outputTimes_%count()])
+    allocate(binCenter   (int(parameters%count('binCenter'))                          ))
+    allocate(outputWeight(int(parameters%count('binCenter'))*self%outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
@@ -436,7 +435,6 @@ contains
     Constructor for the ``volumeFunction1D'' output analysis class for internal use.
     !!}
     use    :: Error                   , only : Error_Report
-    use    :: Memory_Management       , only : allocateArray
     use    :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
     use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
     !$ use :: OMP_Lib                 , only : OMP_Init_Lock
@@ -486,8 +484,8 @@ contains
     self%binCount     =size(binCenter,kind=c_size_t)
     self%binCountTotal=self%binCount+2*bufferCount
     ! Determine bin minima and maxima. Allocate arrays for bins that include buffer regions.
-    call allocateArray(self%binMinimum,dimensions=[self%binCountTotal],lowerBounds=[-bufferCount+1])
-    call allocateArray(self%binMaximum,dimensions=[self%binCountTotal],lowerBounds=[-bufferCount+1])
+    allocate(self%binMinimum(-bufferCount+1:-bufferCount+self%binCountTotal))
+    allocate(self%binMaximum(-bufferCount+1:-bufferCount+self%binCountTotal))
     if (present(binWidth)) then
        self%binMinimum(1:self%binCount)=+binCenter-0.5d0*binWidth
        self%binMaximum(1:self%binCount)=+binCenter+0.5d0*binWidth
@@ -518,8 +516,8 @@ contains
        end do
     end if
     ! Allocate and initialize function values.
-    call allocateArray(self%functionValue     ,[self%binCount              ])
-    call allocateArray(self%functionCovariance,[self%binCount,self%binCount])
+    allocate(self%functionValue     (self%binCount              ))
+    allocate(self%functionCovariance(self%binCount,self%binCount))
     self%functionValue     =0.0d0
     self%functionCovariance=0.0d0
     ! Allocate and initialize binomial covariance model halo arrays if necessary.
@@ -527,8 +525,8 @@ contains
        self%covarianceModelBinomialBinCount                  =int(log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)*dble(self%covarianceBinomialBinsPerDecade)+0.5d0)
        self%covarianceModelHaloMassMinimumLogarithmic        =log10(self%covarianceBinomialMassHaloMinimum)
        self%covarianceModelHaloMassIntervalLogarithmicInverse=dble(self%covarianceModelBinomialBinCount)/log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)
-       call allocateArray(self%weightMainBranch       ,[self%binCount,self%covarianceModelBinomialBinCount])
-       call allocateArray(self%weightMainBranchSquared,[              self%covarianceModelBinomialBinCount])
+       allocate(self%weightMainBranch       (self%binCount,self%covarianceModelBinomialBinCount))
+       allocate(self%weightMainBranchSquared(self%covarianceModelBinomialBinCount))
        self%weightMainBranch       =0.0d0
        self%weightMainBranchSquared=0.0d0
     end if
@@ -808,7 +806,6 @@ contains
     !!{
     Implement a volumeFunction1D output analysis finalization.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (outputAnalysisVolumeFunction1D)                             , intent(inout)           :: self
     double precision                                , allocatable, dimension(:  ), intent(inout), optional :: binCenter         , functionValue
@@ -818,18 +815,19 @@ contains
     call self%finalizeAnalysis()
     ! Return results.
     if (present(binCenter         )) then
-       if (allocated(binCenter         )) call deallocateArray(binCenter         )
-       call allocateArray(binCenter         ,shape(self%binCenter         ))
+       if (allocated(binCenter         )) deallocate(binCenter         )
+       allocate(binCenter(size(self%binCenter)))
        binCenter         =self%binCenter
     end if
     if (present(functionValue     )) then
-       if (allocated(functionValue     )) call deallocateArray(functionValue     )
-       call allocateArray(functionValue     ,shape(self%functionValue     ))
+       if (allocated(functionValue     )) deallocate(functionValue     )
+       allocate(functionValue(size(self%functionValue)))
        functionValue     =self%functionValue
     end if
     if (present(functionCovariance)) then
-       if (allocated(functionCovariance)) call deallocateArray(functionCovariance)
-       call allocateArray(functionCovariance,shape(self%functionCovariance))
+       if (allocated(functionCovariance)) deallocate(functionCovariance)
+        allocate(functionCovariance(size(self%functionCovariance,dim=1),size(self%functionCovariance,dim=2)))
+       !!]
        functionCovariance=self%functionCovariance
     end if
     return

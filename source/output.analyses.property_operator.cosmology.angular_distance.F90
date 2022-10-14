@@ -96,7 +96,6 @@ contains
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray
     implicit none
     type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc)                        :: self
     class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
@@ -110,7 +109,7 @@ contains
     <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData, *outputTimes_"/>
     !!]
 
-    call allocateArray(self%correctionFactor,[self%outputTimes_%count()])
+    allocate(self%correctionFactor(self%outputTimes_%count()))
     do outputIndex=1,self%outputTimes_%count()
        ! Get current redshift.
        redshift        =self%outputTimes_%redshift(outputIndex)
@@ -148,11 +147,10 @@ contains
     !!{
     Destructor for the ``csmlgyAnglrDstnc'' output analysis property operator class.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout) :: self
 
-    call deallocateArray(self%correctionFactor)
+    deallocate(self%correctionFactor)
     !![
     <objectDestructor name="self%cosmologyFunctionsModel"/>
     <objectDestructor name="self%cosmologyFunctionsData" />

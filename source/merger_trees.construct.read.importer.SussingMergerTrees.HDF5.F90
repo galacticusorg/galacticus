@@ -123,7 +123,6 @@ contains
     use :: Display                         , only : displayMessage    , verbosityLevelWarn
     use :: Error                           , only : Error_Report
     use :: HDF5_Access                     , only : hdf5Access
-    use :: Memory_Management               , only : allocateArray     , deallocateArray
     use :: Numerical_Comparison            , only : Values_Differ
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: String_Handling                 , only : operator(//)
@@ -154,11 +153,11 @@ contains
     ! Read expansion factors from the file.
     call self%snapshots%readTable('Snap','a',snapshotExpansionFactors)
     ! Convert expansion factors to times.
-    call allocateArray(self%snapshotTimes,shape(snapshotExpansionFactors))
+    allocate(self%snapshotTimes(size(snapshotExpansionFactors)))
     do i=1,size(snapshotExpansionFactors)
        self%snapshotTimes(i)=self%cosmologyFunctions_%cosmicTime(dble(snapshotExpansionFactors(i)))
     end do
-    call deallocateArray(snapshotExpansionFactors)
+    deallocate(snapshotExpansionFactors)
     ! Read cosmological parameters.
     call self%file%readAttribute('OmegaBaryon',fileOmegaBaryon,allowPseudoScalar=.true.)
     call self%file%readAttribute('OmegaCDM'   ,fileOmegaCDM   ,allowPseudoScalar=.true.)
@@ -243,7 +242,6 @@ contains
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Kind_Numbers     , only : kind_int8
-    use            :: Memory_Management, only : allocateArray          , deallocateArray
     use            :: Sorting          , only : sortIndex
     use            :: String_Handling  , only : operator(//)
     implicit none
@@ -422,11 +420,11 @@ contains
     end forall
     ! Determine indices, ranks, and locations.
     nodeCountTrees=size(self%nodes)
-    call allocateArray(nodeIncomplete         ,[nodeCountTrees])
-    call allocateArray(nodeSelfIndices        ,[nodeCountTrees])
-    call allocateArray(nodeIndexRanks         ,[nodeCountTrees])
-    call allocateArray(nodeDescendentLocations,[nodeCountTrees])
-    call allocateArray(nodeTreeIndices        ,[nodeCountTrees])
+    allocate(nodeIncomplete         (nodeCountTrees))
+    allocate(nodeSelfIndices        (nodeCountTrees))
+    allocate(nodeIndexRanks         (nodeCountTrees))
+    allocate(nodeDescendentLocations(nodeCountTrees))
+    allocate(nodeTreeIndices        (nodeCountTrees))
     nodeSelfIndices=self%nodes%nodeIndex
     nodeTreeIndices=-1
     nodeIndexRanks =sortIndex(nodeSelfIndices)
@@ -450,8 +448,8 @@ contains
           self%nodes(iHalo)%descendentIndex=mergerTreeHaloIndices(mergerTreeDescendentIndices(i)+1-haloIndexOffset)
        end if
     end do
-    call deallocateArray(mergerTreeHaloIndices      )
-    call deallocateArray(mergerTreeDescendentIndices)
+    deallocate(mergerTreeHaloIndices      )
+    deallocate(mergerTreeDescendentIndices)
     call displayCounterClear(       verbosityLevelWorking)
     call displayUnindent     ('done',verbosityLevelWorking)
     call displayIndent ('Locating descendants',verbosityLevelWorking)

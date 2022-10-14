@@ -145,7 +145,6 @@ contains
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: IO_HDF5                               , only : hdf5Object
     use :: ISO_Varying_String                    , only : var_str                                    , varying_string
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Interpolation               , only : gsl_interp_cspline
@@ -237,7 +236,7 @@ contains
     <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryFullSky(redshiftMinimum=redshiftMinimum,redshiftMaximum=redshiftMaximum,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     ! Create output time weights.
-    call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])
+    allocate(outputWeight(massHaloCount,outputTimes_%count()))
     outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massStellarLimit,allowSingleEpoch=.true.)
     forall(iBin=2:massHaloCount)
        outputWeight(iBin,:)=outputWeight(1,:)

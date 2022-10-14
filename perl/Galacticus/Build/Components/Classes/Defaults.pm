@@ -109,8 +109,6 @@ sub Class_Property_Default {
 		unless ( exists($implementationProperty->{'classDefault'}->{'code'}) );
 	    $requiredModules->{$_} = 1
 		foreach ( @{$implementationProperty->{'classDefault'}->{'modules'}} );
-	    $requiredModules->{'Memory_Management,only:allocateArray'} = 1
-		if ( exists($implementationProperty->{'classDefault'}->{'count'}) );
 	    my $classDefault = $implementationProperty->{'classDefault'}->{'code'};
 	    while ( $classDefault =~ m/self([a-zA-Z]+)\s*%/ ) {
 		$requiredComponents->{'all'            }->{$1} = 1;
@@ -167,7 +165,7 @@ CODE
 	    }
 	    if ( exists($code::implementationProperty->{'classDefault'}->{'count'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call allocateArray(classDefault,[{$implementationProperty->{'classDefault'}->{'count'}}])
+   allocate(classDefault({$implementationProperty->{'classDefault'}->{'count'}}))
 CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

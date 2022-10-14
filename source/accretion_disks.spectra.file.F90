@@ -125,17 +125,16 @@ contains
     !!{
     Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
     if (allocated(self%wavelength)) then
-       call deallocateArray(self%wavelength)
+       deallocate(self%wavelength)
     end if
     if (allocated(self%luminosity)) then
-       call deallocateArray(self%luminosity)
+       deallocate(self%luminosity)
     end if
-    if (allocated(self%SED       )) call deallocateArray(self%SED)
+    if (allocated(self%SED       )) deallocate(self%SED)
     return
   end subroutine fileDestructor
 

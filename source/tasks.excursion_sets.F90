@@ -256,7 +256,6 @@ contains
     use :: Output_HDF5             , only : outputFile
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
-    use :: Memory_Management       , only : allocateArray     , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
     implicit none
@@ -284,15 +283,15 @@ contains
     timeCount=max(int(dble(self% timesPerDecade)*log10(self%timeMaximum/self%timeMinimum))+1,2)
     massCount=max(int(dble(self%massesPerDecade)*log10(self%massMaximum/self%massMinimum))+1,2)
     ! Allocate arrays.
-    call allocateArray(mass                    ,[massCount                    ])
-    call allocateArray(variance                ,[massCount          ,timeCount])
-    call allocateArray(wavenumber              ,[massCount                    ])
-    call allocateArray(powerSpectrumValue      ,[massCount          ,timeCount])
-    call allocateArray(time                    ,[                    timeCount])
-    call allocateArray(barrier                 ,[massCount          ,timeCount])
-    call allocateArray(firstCrossingProbability,[massCount          ,timeCount])
-    call allocateArray(massFunctionDifferential,[massCount          ,timeCount])
-    call allocateArray(firstCrossingRate       ,[massCount,massCount,timeCount])
+    allocate(mass                    (massCount                    ))
+    allocate(variance                (massCount          ,timeCount))
+    allocate(wavenumber              (massCount                    ))
+    allocate(powerSpectrumValue      (massCount          ,timeCount))
+    allocate(time                    (                    timeCount))
+    allocate(barrier                 (massCount          ,timeCount))
+    allocate(firstCrossingProbability(massCount          ,timeCount))
+    allocate(massFunctionDifferential(massCount          ,timeCount))
+    allocate(firstCrossingRate       (massCount,massCount,timeCount))
     mass=Make_Range(self%massMinimum,self%massMaximum,massCount,rangeType=rangeTypeLogarithmic)
     time=Make_Range(self%timeMinimum,self%timeMaximum,timeCount,rangeType=rangeTypeLogarithmic)
     ! Set first crossing rates to unphysical values.
@@ -339,14 +338,14 @@ contains
     call outputGroup%writeDataset(firstCrossingRate       ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
     call outputGroup%close()
     ! Deallocate arrays.
-    call deallocateArray(mass                    )
-    call deallocateArray(variance                )
-    call deallocateArray(barrier                 )
-    call deallocateArray(firstCrossingProbability)
-    call deallocateArray(massFunctionDifferential)
-    call deallocateArray(wavenumber              )
-    call deallocateArray(powerSpectrumValue      )
-    call deallocateArray(firstCrossingRate       )
+    deallocate(mass                    )
+    deallocate(variance                )
+    deallocate(barrier                 )
+    deallocate(firstCrossingProbability)
+    deallocate(massFunctionDifferential)
+    deallocate(wavenumber              )
+    deallocate(powerSpectrumValue      )
+    deallocate(firstCrossingRate       )
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: excursion sets' )
     return

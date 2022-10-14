@@ -225,7 +225,6 @@ contains
     use :: Display                         , only : displayMessage         , verbosityLevelWarn
     use :: File_Utilities                  , only : Count_Lines_in_File
     use :: Error                           , only : Error_Report
-    use :: Memory_Management               , only : allocateArray
     use :: Numerical_Comparison            , only : Values_Differ
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Regular_Expressions             , only : regEx
@@ -273,7 +272,7 @@ contains
     end do
     close(fileUnit)
     ! Read the snapshots times file.
-    call allocateArray(self%snapshotTimes,[snapshotFileCount])
+    allocate(self%snapshotTimes(snapshotFileCount))
     open(newUnit=fileUnit,file=char(snapshotTimesFile),status='old',form='formatted',ioStat=ioStat)
     if (ioStat /= 0) call Error_Report('can not open file "'//char(snapshotTimesFile)//'"'//{introspection:location})
     read (fileUnit,*)
@@ -363,7 +362,6 @@ contains
     use            :: Error                           , only : Error_Report
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Kind_Numbers                    , only : kind_int8
-    use            :: Memory_Management               , only : allocateArray          , deallocateArray
     use            :: Numerical_Constants_Astronomical, only : kiloParsec             , massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
     use            :: Sorting                         , only : sort                   , sortIndex
@@ -444,11 +442,11 @@ contains
     forestHaloCountLast =0
     if (self%useForestFile) then
        forestCount=Count_Lines_in_File(self%forestFile,'#')
-       call allocateArray(forestSnapshotHaloCount     ,                                                                        shape(self%snapshotFileName) )
-       call allocateArray(forestSnapshotHaloCountFirst,                                                                        shape(self%snapshotFileName) )
-       call allocateArray(forestSnapshotHaloCountLast ,                                                                        shape(self%snapshotFileName) )
-       call allocateArray(forestSnapshotHaloCounts    ,[self%forestLast-self%forestFirst+1,size (self%snapshotFileName)])
-       call allocateArray(forestID                    ,[self%forestLast-self%forestFirst+1                             ])
+       allocate(forestSnapshotHaloCount     (                                   size(self%snapshotFileName)))
+       allocate(forestSnapshotHaloCountFirst(                                   size(self%snapshotFileName)))
+       allocate(forestSnapshotHaloCountLast (                                   size(self%snapshotFileName)))
+       allocate(forestSnapshotHaloCounts    (self%forestLast-self%forestFirst+1,size(self%snapshotFileName)))
+       allocate(forestID                    (self%forestLast-self%forestFirst+1                            ))
        forestFirst                 =self%forestFirst
        forestLast                  =self%forestLast
        forestSnapshotHaloCountFirst=0
@@ -471,7 +469,7 @@ contains
           end if
        end do
        close(fileUnit)
-       call deallocateArray(forestSnapshotHaloCount)
+       deallocate(forestSnapshotHaloCount)
        ! Reverse order of forest snapshots to match the order of snapshot files if necessary.
        if (self%forestReverseSnapshotOrder) then
           forestSnapshotHaloCountFirst=Array_Reverse(forestSnapshotHaloCountFirst)
@@ -480,6 +478,8 @@ contains
              forestSnapshotHaloCounts(j,:)=Array_Reverse(forestSnapshotHaloCounts(j,:))
           end do
        end if
+    else
+       allocate(forestSnapshotHaloCounts(0,0))
     end if
     ! Open the merger tree file.
     mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
@@ -515,8 +515,8 @@ contains
     end if
     ! Allocate storage for list of nodes in subvolume.
     nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3,kind=c_size_t)+1
-    call allocateArray(nodesInSubvolume,[nodeCountSubVolume])
-    call allocateArray(hostsInSubvolume,[nodeCountSubVolume])
+    allocate(nodesInSubvolume(nodeCountSubVolume))
+    allocate(hostsInSubvolume(nodeCountSubVolume))
     ! Read snapshot halo catalogs.
     call displayIndent('Finding halos in subvolume from AHF format snapshot halo catalogs',verbosityLevelWorking)
     j                 =0
@@ -821,14 +821,14 @@ contains
                & ) then
              nodeCountSubvolume=nodeCountSubvolume+1
              if (nodeCountSubvolume > size(nodesInSubvolume)) then
-                call Move_Alloc(nodesInSubvolume,nodesTmp)
-                call allocateArray(nodesInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
+                call move_alloc(nodesInSubvolume,              nodesTmp            )
+                allocate       (nodesInSubvolume(int(dble(size(nodesTmp))*1.4d0)+1))
                 nodesInSubvolume(1:size(nodesTmp))=nodesTmp
-                call deallocateArray(nodesTmp)
-                call Move_Alloc(hostsInSubvolume,nodesTmp)
-                call allocateArray(hostsInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
+                deallocate(nodesTmp)
+                call move_alloc(hostsInSubvolume,              nodesTmp            )
+                allocate       (hostsInSubvolume(int(dble(size(nodesTmp))*1.4d0)+1))
                 hostsInSubvolume(1:size(nodesTmp))=nodesTmp
-                call deallocateArray(nodesTmp)
+                deallocate(nodesTmp)
              end if
              nodesInSubvolume(nodeCountSubvolume)=ID
              if (hostHalo <= 0) then
@@ -852,7 +852,7 @@ contains
     message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
     call displayMessage(message,verbosityLevelWorking)
     ! Allocate workspaces for merger trees.
-    call allocateArray(nodeSelfIndices,[nodeCountSubvolume])
+    allocate(nodeSelfIndices(nodeCountSubvolume))
     ! Read node indices.
     call displayMessage("Reading node indices",verbosityLevelWorking)
     i     =0
@@ -903,13 +903,13 @@ contains
        message=message//nodeCountTrees//' nodes in subvolume trees [from '//nodeCountSubvolume//' total nodes in subvolume]'
        call displayMessage(message,verbosityLevelWorking)
        call Move_Alloc(nodeSelfIndices,nodesTmp)
-       call allocateArray(nodeSelfIndices,[nodeCountTrees])
+       allocate(nodeSelfIndices(nodeCountTrees))
        nodeSelfIndices(1:nodeCountTrees)=nodesTmp(1:nodeCountTrees)
-       call deallocateArray(nodesTmp)
+       deallocate(nodesTmp)
     end if
     ! Allocate workspaces for merger trees.
-    call allocateArray(nodeDescendentLocations,[nodeCountTrees])
-    call allocateArray(nodeIncomplete         ,[nodeCountTrees])
+    allocate(nodeDescendentLocations(nodeCountTrees))
+    allocate(nodeIncomplete         (nodeCountTrees))
     ! Get a sorted index into the list of nodes.
     call displayMessage('Building node index',verbosityLevelWorking)
     nodeIndexRanks=sortIndex(nodeSelfIndices)
@@ -997,17 +997,17 @@ contains
                             call displayMessage(message,verbosityLevelWorking)
                             ! Expand arrays.
                             call Move_Alloc   (nodeSelfIndices        ,nodesTmp          )
-                            call allocateArray  (nodeSelfIndices        ,[nodeCountTrees+1])
+                            allocate(nodeSelfIndices        (nodeCountTrees+1))
                             nodeSelfIndices        (1:nodeCountTrees)=nodesTmp
-                            call deallocateArray(nodesTmp                                  )
+                            deallocate(nodesTmp                                  )
                             call Move_Alloc   (nodeDescendentLocations,nodesTmp          )
-                            call allocateArray  (nodeDescendentLocations,[nodeCountTrees+1])
+                            allocate(nodeDescendentLocations(nodeCountTrees+1))
                             nodeDescendentLocations(1:nodeCountTrees)=nodesTmp
-                            call deallocateArray(nodesTmp                                  )
+                            deallocate(nodesTmp                                  )
                             call Move_Alloc   (nodeIncomplete         ,nodeIncompleteTmp )
-                            call allocateArray  (nodeIncomplete         ,[nodeCountTrees+1])
+                            allocate(nodeIncomplete         (nodeCountTrees+1))
                             nodeIncomplete         (1:nodeCountTrees)=nodeIncompleteTmp
-                            call deallocateArray(nodeIncompleteTmp                         )
+                            deallocate(nodeIncompleteTmp                         )
                             ! Increment the number of halos in trees.
                             nodeCountTrees=nodeCountTrees+1
                             ! Insert the new halo, assigning the same descendent as its hosted halo.
@@ -1031,7 +1031,7 @@ contains
        iCount=iCount+1
        if (self%useForestFile .and. iCount == forestHaloCountLast) exit
     end do
-    call deallocateArray(hostsInSubvolume)
+    deallocate(hostsInSubvolume)
     ! Close the merger tree file.
     close(fileUnit)
     ! Clear counter.
@@ -1049,7 +1049,7 @@ contains
     end do
     ! Read snapshot halo catalogs.
     call displayIndent('Parsing AHF format snapshot halo catalogs',verbosityLevelWorking)
-    call allocateArray(nodeTreeIndices,[nodeCountTrees])
+    allocate(nodeTreeIndices(nodeCountTrees))
     j=0
     do i=1,size(self%snapshotFileName)
        call displayMessage(self%snapshotFileName(i),verbosityLevelWorking)
@@ -1351,7 +1351,7 @@ contains
        end do
        close(snapshotUnit)
     end do
-    call deallocateArray(nodesInSubvolume)
+    deallocate(nodesInSubvolume)
     ! Record whether tree indices were assigned.
     treeIndicesAssigned    =     self%useForestFile
     ! Record whether branch jump checks are required.

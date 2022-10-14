@@ -120,7 +120,6 @@ contains
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble                   , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Memory_Management, only : allocateArray               , deallocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
@@ -192,9 +191,9 @@ contains
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
        if (makeTable) then
           ! Construct the table of variance on which we will solve for the first crossing distribution.
-          if (allocated(self%variance           )) call deallocateArray(self%variance           )
-          if (allocated(self%time               )) call deallocateArray(self%time               )
-          if (allocated(self%firstCrossingProbability)) call deallocateArray(self%firstCrossingProbability)
+          if (allocated(self%variance                )) deallocate(self%variance                )
+          if (allocated(self%time                    )) deallocate(self%time                    )
+          if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
           self%varianceMaximum=max(self%varianceMaximum,variance)
           self%countVariance  =int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
           if (self%tableInitialized) then
@@ -205,13 +204,14 @@ contains
              self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
           end if
           self%countTime=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
-          call allocateArray(self%variance           ,[1+self%countVariance               ],lowerBounds=[0  ])
-          call allocateArray(self%time               ,[                     self%countTime]                  )
-          call allocateArray(self%firstCrossingProbability,[1+self%countVariance,self%countTime],lowerBounds=[0,1])
-          call allocateArray(     varianceMidpoint        ,[1+self%countVariance               ],lowerBounds=[0  ])
-          self%time    =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
-          self%variance=Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
-          self%varianceStep =self%variance(1)-self%variance(0)
+          allocate(self%variance                (0:self%countVariance               ))
+          allocate(self%time                    (                     self%countTime))
+          allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
+          allocate(     varianceMidpoint        (0:self%countVariance               ))
+          self%time        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%countTime      ,rangeType=rangeTypeLogarithmic)
+          self%variance    =Make_Range(0.0d0           ,self%varianceMaximum,self%countVariance+1,rangeType=rangeTypeLinear     )
+          self%varianceStep=+self%variance(1) &
+               &            -self%variance(0)
           ! Compute the variance at the mid-points.
           varianceMidpoint(0)=0.0d0
           forall(i=1:self%countVariance)
@@ -264,8 +264,8 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
 	  !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          call allocateArray(barrier        ,[1+self%countVariance],lowerBounds=[0])
-          call allocateArray(barrierMidpoint,[1+self%countVariance],lowerBounds=[0])
+          allocate(barrier        (0:self%countVariance))
+          allocate(barrierMidpoint(0:self%countVariance))
           !$omp do schedule(dynamic)
           do iTime=1,self%countTime
 #ifdef USEMPI
@@ -361,14 +361,14 @@ contains
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
 	  !!]
-          call deallocateArray(barrier        )
-          call deallocateArray(barrierMidpoint)
+          deallocate(barrier        )
+          deallocate(barrierMidPoint)
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
           ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
           self%variance(1:self%countVariance-1)=varianceMidpoint(1:self%countVariance-1)
-          call deallocateArray(varianceMidpoint)
+          deallocate(varianceMidpoint)
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
@@ -432,7 +432,6 @@ contains
     use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble                   , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Memory_Management, only : allocateArray               , deallocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
@@ -611,16 +610,16 @@ contains
              allocate(firstCrossingRate(0,0,0))
              allocate(  nonCrossingRate(0,0  ))
           end if
-          if (allocated(self%varianceProgenitorRate)) call deallocateArray(self%varianceProgenitorRate)
-          if (allocated(self%varianceCurrentRate   )) call deallocateArray(self%varianceCurrentRate   )
-          if (allocated(self%timeRate              )) call deallocateArray(self%timeRate              )
-          if (allocated(self%firstCrossingRate     )) call deallocateArray(self%firstCrossingRate     )
-          if (allocated(self%nonCrossingRate       )) call deallocateArray(self%nonCrossingRate       )
-          call allocateArray(self%varianceProgenitorRate,[1+self%countVarianceProgenitorRate                                                   ],lowerBounds=[0    ])
-          call allocateArray(self%varianceCurrentRate   ,[                                   1+self%countVarianceCurrentRate                   ],lowerBounds=[0    ])
-          call allocateArray(self%timeRate              ,[                                                                   self%countTimeRate]                    )
-          call allocateArray(self%firstCrossingRate     ,[1+self%countVarianceProgenitorRate,1+self%countVarianceCurrentRate,self%countTimeRate],lowerBounds=[0,0,1])
-          call allocateArray(self%nonCrossingRate       ,[                                   1+self%countVarianceCurrentRate,self%countTimeRate],lowerBounds=[  0,1])
+          if (allocated(self%varianceProgenitorRate)) deallocate(self%varianceProgenitorRate)
+          if (allocated(self%varianceCurrentRate   )) deallocate(self%varianceCurrentRate   )
+          if (allocated(self%timeRate              )) deallocate(self%timeRate              )
+          if (allocated(self%firstCrossingRate     )) deallocate(self%firstCrossingRate     )
+          if (allocated(self%nonCrossingRate       )) deallocate(self%nonCrossingRate       )
+          allocate(self%varianceProgenitorRate(0:self%countVarianceProgenitorRate                                                   ))
+          allocate(self%varianceCurrentRate   (                                   0:self%countVarianceCurrentRate                   ))
+          allocate(self%timeRate              (                                                                   self%countTimeRate))
+          allocate(self%firstCrossingRate     (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate,self%countTimeRate))
+          allocate(self%nonCrossingRate       (                                   0:self%countVarianceCurrentRate,self%countTimeRate))
           ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
           self%varianceProgenitorRate(0                                 )=0.0d0
           self%varianceProgenitorRate(1:self%countVarianceProgenitorRate)=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%countVarianceProgenitorRate  ,exponent =1.0d0          )
@@ -633,7 +632,7 @@ contains
           ! The time table is logarithmically distributed in time.
           self%timeRate=Make_Range(self%timeMinimumRate,self%timeMaximumRate,self%countTimeRate,rangeType=rangeTypeLogarithmic)
           ! Compute the variance at the mid-points.
-          call allocateArray(varianceMidpointRateQuad,[1+self%countVarianceProgenitorRate],lowerBounds=[0])
+          allocate(varianceMidpointRateQuad(0:self%countVarianceProgenitorRate))
           varianceMidpointRateQuad(0)=0.0_kind_quad
           forall(i=1:self%countVarianceProgenitorRate)
              varianceMidpointRateQuad(i)=(varianceProgenitorRateQuad(i-1)+varianceProgenitorRateQuad(i))/2.0_kind_quad
@@ -693,8 +692,8 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          call allocateArray(barrierRateQuad        ,[self%countVarianceProgenitorRate])
-          call allocateArray(barrierMidpointRateQuad,[self%countVarianceProgenitorRate])
+          allocate(barrierRateQuad        (self%countVarianceProgenitorRate))
+          allocate(barrierMidpointRateQuad(self%countVarianceProgenitorRate))
           do iTime=1,self%countTimeRate
              ! Skip if this time was already computed.
              if (.not.varianceMaximumChanged.and.(iTime > countNewLower .and. self%countTimeRate+1-iTime > countNewUpper)) cycle
@@ -913,14 +912,14 @@ contains
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
           !!]
-          call deallocateArray(barrierRateQuad        )
-          call deallocateArray(barrierMidpointRateQuad)
+          deallocate(barrierRateQuad        )
+          deallocate(barrierMidpointRateQuad)
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
           ! varianceMaximum. This will not affect the result becasue the crossing rate at maximum variance is set to zero anyway.
           self%varianceProgenitorRate(1:self%countVarianceProgenitorRate-1)=real(varianceMidpointRateQuad(1:self%countVarianceProgenitorRate-1),kind=kind_dble)
-          call deallocateArray(varianceMidpointRateQuad)
+          deallocate(varianceMidpointRateQuad)
           ! Deallocate work arrays.
           deallocate(varianceCurrentRateQuad )
           deallocate(varianceProgenitorRateQuad     )

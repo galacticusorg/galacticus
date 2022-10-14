@@ -811,7 +811,6 @@ contains
     !!{
     Extend the size of the double buffer.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)                 :: self
     double precision                             , allocatable  , dimension(:  ) :: scalarTemporary
@@ -1086,7 +1085,6 @@ contains
     use            :: Output_HDF5                     , only : outputFile
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Memory_Management               , only : Memory_Usage_Record
     use            :: Numerical_Constants_Astronomical, only : gigaYear
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -1108,14 +1106,12 @@ contains
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%integerAttributesWritten=.false.
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%doubleAttributesWritten =.false.
           deallocate(outputGroupsTemporary)
-          call Memory_Usage_Record(sizeof(self%outputGroups(1)),blockCount=0)
        else
           self%outputGroupsCount=max(standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
           self%outputGroups%opened                  =.false.
           self%outputGroups%integerAttributesWritten=.false.
           self%outputGroups%doubleAttributesWritten =.false.
-          call Memory_Usage_Record(sizeof(self%outputGroups))
        end if
     end if
     ! Make the enclosing group if it has not been created.

@@ -146,7 +146,6 @@ contains
     use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
@@ -223,7 +222,7 @@ contains
     do iBin=1,binCount
        functionCovarianceTarget(iBin,iBin)=(0.5d0*(function84Target(iBin)-function16Target(iBin)))**2
     end do
-    call allocateArray(outputWeight,[binCount,outputTimes_%count()])
+    allocate(outputWeight(binCount,outputTimes_%count()))
     do iBin=1,binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin))
     end do

@@ -360,7 +360,6 @@ contains
     !!{
     Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
     !!}
-    use :: Memory_Management       , only : allocateArray               , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range                  , rangeTypeLogarithmic
@@ -423,15 +422,15 @@ contains
           self%tableCount=int(log10(self%tableRadiusMaximum/self%tableRadiusMinimum)*dble(sersicTablePointsPerDecade))+1
           ! Allocate arrays for storing the tables.
           if (allocated(self%tableRadius)) then
-             call deallocateArray(self%tableRadius      )
-             call deallocateArray(self%tableDensity     )
-             call deallocateArray(self%tableEnclosedMass)
-             call deallocateArray(self%tablePotential   )
+             deallocate(self%tableRadius      )
+             deallocate(self%tableDensity     )
+             deallocate(self%tableEnclosedMass)
+             deallocate(self%tablePotential   )
           end if
-          call allocateArray(self%tableRadius      ,[self%tableCount])
-          call allocateArray(self%tableDensity     ,[self%tableCount])
-          call allocateArray(self%tableEnclosedMass,[self%tableCount])
-          call allocateArray(self%tablePotential   ,[self%tableCount])
+          allocate(self%tableRadius      (self%tableCount))
+          allocate(self%tableDensity     (self%tableCount))
+          allocate(self%tableEnclosedMass(self%tableCount))
+          allocate(self%tablePotential   (self%tableCount))
           ! Create an array of logarithmically distributed radii.
           self%tableRadius=Make_Range(self%tableRadiusMinimum,self%tableRadiusMaximum,self%tableCount,rangeType=rangeTypeLogarithmic)
           ! Compute the coefficient appearing in the Sérsic profile.

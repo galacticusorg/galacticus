@@ -179,7 +179,6 @@ contains
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
     double precision                                                    , intent(in   )         :: haloMassMinimum    , haloMassMaximum, &
@@ -210,13 +209,13 @@ contains
     if (file%hasDataset("integralConstraint")) then
        call file%readDataset("integralConstraint"               ,self%integralConstraint                  )
     else
-       call allocateArray(self%integralConstraint,shape(self%projectedCorrelationFunctionObserved))
+       allocate(self%integralConstraint,mold=self%projectedCorrelationFunctionObserved)
        self%integralConstraint=1.0d0
     end if
     call file%close()
     !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
-    call allocateArray(self%projectedCorrelationFunction,[size(self%separation),size(self%massMinimum)])
+    allocate(self%projectedCorrelationFunction(size(self%separation),size(self%massMinimum)))
     ! Build the covariance matrix.
     self%covariance=self%covarianceMatrix
     return

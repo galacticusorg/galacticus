@@ -414,12 +414,11 @@ contains
     !!{
     Destroy a 1-D table.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(table1D), intent(inout) :: self
 
-    if (allocated(self%xv)) call deallocateArray(self%xv)
-    if (allocated(self%yv)) call deallocateArray(self%yv)
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
     return
   end subroutine Table_1D_Destroy
 
@@ -595,7 +594,6 @@ contains
     Create a 1-D generic table.
     !!}
     use :: Error                  , only : Error_Report
-    use :: Memory_Management      , only : allocateArray
     use :: Numerical_Interpolation, only : GSL_Interp_Linear
     use :: Table_Labels           , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
@@ -774,7 +772,6 @@ contains
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
@@ -790,8 +787,10 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call allocateArray(self%xv,[xCount                 ])
-    call allocateArray(self%yv,[xCount,tableCountActual])
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    allocate(self%xv(xCount                 ))
+    allocate(self%yv(xCount,tableCountActual))
     self%xv            =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX =1.0d0/(self%xv(2)-self%xv(1))
     self%tablePrevious =-1
@@ -1163,7 +1162,6 @@ contains
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
@@ -1179,13 +1177,20 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call allocateArray(self%xv,[xCount                   ])
-    call allocateArray(self%yv,[xCount  ,tableCountActual])
-    call allocateArray(self%sv,[xCount  ,tableCountActual])
-    call allocateArray(self%av,[xCount-1,tableCountActual])
-    call allocateArray(self%bv,[xCount-1,tableCountActual])
-    call allocateArray(self%cv,[xCount-1,tableCountActual])
-    call allocateArray(self%dv,[xCount-1,tableCountActual])
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%sv)) deallocate(self%sv)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
+    if (allocated(self%dv)) deallocate(self%dv)
+    allocate(self%xv(xCount                   ))
+    allocate(self%yv(xCount  ,tableCountActual))
+    allocate(self%sv(xCount  ,tableCountActual))
+    allocate(self%av(xCount-1,tableCountActual))
+    allocate(self%bv(xCount-1,tableCountActual))
+    allocate(self%cv(xCount-1,tableCountActual))
+    allocate(self%dv(xCount-1,tableCountActual))
     self%xv            =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX =self%xv(2)-self%xv(1)
     self%inverseDeltaX =1.0d0/self%deltaX
@@ -1208,16 +1213,15 @@ contains
     !!{
     Destroy a linear cubic-sline 1-D table.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(table1DLinearCSpline), intent(inout) :: self
 
     call Table_1D_Destroy(self)
-    if (allocated(self%sv)) call deallocateArray(self%sv)
-    if (allocated(self%av)) call deallocateArray(self%av)
-    if (allocated(self%bv)) call deallocateArray(self%bv)
-    if (allocated(self%cv)) call deallocateArray(self%cv)
-    if (allocated(self%dv)) call deallocateArray(self%dv)
+    if (allocated(self%sv)) deallocate(self%sv)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
+    if (allocated(self%dv)) deallocate(self%dv)
     return
   end subroutine Table_Linear_CSpline_1D_Destroy
 
@@ -1520,7 +1524,6 @@ contains
     Create a 1-D monotone cubic spline table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (table1DMonotoneCSpline          ), intent(inout)                         :: self
@@ -1534,11 +1537,11 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=size(x)
-    call allocateArray(self%xv,[self%xCount                   ])
-    call allocateArray(self%yv,[self%xCount  ,tableCountActual])
-    call allocateArray(self%av,[self%xCount  ,tableCountActual])
-    call allocateArray(self%bv,[self%xCount-1,tableCountActual])
-    call allocateArray(self%cv,[self%xCount-1,tableCountActual])
+    allocate(self%xv(self%xCount                   ))
+    allocate(self%yv(self%xCount  ,tableCountActual))
+    allocate(self%av(self%xCount  ,tableCountActual))
+    allocate(self%bv(self%xCount-1,tableCountActual))
+    allocate(self%cv(self%xCount-1,tableCountActual))
     self%xv            =x
     self%tablePrevious =-1
     self%dTablePrevious=-1
@@ -1559,14 +1562,13 @@ contains
     !!{
     Destroy a monotone cubic-sline 1-D table.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
    class(table1DMonotoneCSpline), intent(inout) :: self
 
     call Table_1D_Destroy(self)
-    if (allocated(self%av)) call deallocateArray(self%av)
-    if (allocated(self%bv)) call deallocateArray(self%bv)
-    if (allocated(self%cv)) call deallocateArray(self%cv)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
     return
   end subroutine Table_Monotone_CSpline_1D_Destroy
 
@@ -1917,7 +1919,6 @@ contains
     !!{
     Create a 2-D log-log-linear table.
     !!}
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate
     implicit none
@@ -1942,9 +1943,9 @@ contains
     ! Allocate arrays and construct the ranges.
     self%xCount=xCount
     self%yCount=yCount
-    call allocateArray(self%xv,[xCount                        ])
-    call allocateArray(self%yv,[       yCount                 ])
-    call allocateArray(self%zv,[xCount,yCount,tableCountActual])
+    allocate(self%xv(xCount                        ))
+    allocate(self%yv(yCount                 ))
+    allocate(self%zv(xCount,yCount,tableCountActual))
     self%xv                  =Make_Range(log(xMinimum),log(xMaximum),xCount,rangeType=rangeTypeLinear)
     self%yv                  =Make_Range(log(yMinimum),log(yMaximum),yCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX       =1.0d0/(self%xv(2)-self%xv(1))
@@ -2243,13 +2244,12 @@ contains
     !!{
     Destroy a 2D log-log-linear table.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(table2DLogLogLin), intent(inout) :: self
 
-    if (allocated(self%xv)) call deallocateArray(self%xv)
-    if (allocated(self%yv)) call deallocateArray(self%yv)
-    if (allocated(self%zv)) call deallocateArray(self%zv)
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%zv)) deallocate(self%zv)
     return
   end subroutine Table_2DLogLogLin_Destroy
 
@@ -2269,7 +2269,6 @@ contains
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
@@ -2285,11 +2284,11 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call allocateArray(self%xv,[xCount                   ])
-    call allocateArray(self%yv,[xCount  ,tableCountActual])
-    call allocateArray(self%av,[xCount  ,tableCountActual])
-    call allocateArray(self%bv,[xCount-1,tableCountActual])
-    call allocateArray(self%cv,[xCount-1,tableCountActual])
+    allocate(self%xv(xCount                   ))
+    allocate(self%yv(xCount  ,tableCountActual))
+    allocate(self%av(xCount  ,tableCountActual))
+    allocate(self%bv(xCount-1,tableCountActual))
+    allocate(self%cv(xCount-1,tableCountActual))
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
@@ -2312,14 +2311,13 @@ contains
     !!{
     Destroy a linear cubic-sline 1-D table.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(table1DLinearMonotoneCSpline), intent(inout) :: self
 
     call Table_1D_Destroy(self)
-    if (allocated(self%av)) call deallocateArray(self%av)
-    if (allocated(self%bv)) call deallocateArray(self%bv)
-    if (allocated(self%cv)) call deallocateArray(self%cv)
+    if (allocated(self%av)) deallocate(self%av)
+    if (allocated(self%bv)) deallocate(self%bv)
+    if (allocated(self%cv)) deallocate(self%cv)
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Destroy
 

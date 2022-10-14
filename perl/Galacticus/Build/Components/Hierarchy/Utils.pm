@@ -75,9 +75,8 @@ CODE
 		if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 		    if ( $code::property->{'data'}->{'type'} eq "double" && $code::property->{'data'}->{'rank'} > 0 ) {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      if (allocated(to%{$property->{'name'}}Data)) call deallocateArray(to%{$property->{'name'}}Data)
+      if (allocated(to%{$property->{'name'}}Data)) deallocate(to%{$property->{'name'}}Data)
 CODE
-			$modules{'Memory_Management,only:deallocateArray'} = 1;
 		    }
 		} else {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

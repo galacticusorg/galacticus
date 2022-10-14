@@ -72,7 +72,6 @@ contains
     Constructor for multi-counters where the ranges are provided.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     implicit none
     type   (multiCounter)                              :: self
     integer(c_size_t    ), intent(in   ), dimension(:) :: ranges
@@ -80,8 +79,8 @@ contains
     ! Validate ranges.
     if (any(ranges < 1_c_size_t)) call Error_Report('ranges must be positive'//{introspection:location})
     ! Build the object.
-    call allocateArray(self%ranges,shape(ranges))
-    call allocateArray(self%values,shape(ranges))
+    allocate(self%ranges,mold=ranges)
+    allocate(self%values,mold=ranges)
     self%ranges=ranges
     call self%reset()
     return
@@ -91,11 +90,10 @@ contains
     !!{
     Destroy a multi-counter object.
     !!}
-    use :: Memory_Management, only : deallocateArray
     type(multiCounter), intent(inout) :: self
 
-    if (allocated(self%ranges)) call deallocateArray(self%ranges)
-    if (allocated(self%values)) call deallocateArray(self%values)
+    if (allocated(self%ranges)) deallocate(self%ranges)
+    if (allocated(self%values)) deallocate(self%values)
     return
   end subroutine multiCounterDestructor
 
@@ -138,7 +136,7 @@ contains
 
     ! Validate input.
     if (               .not.allocated(self%ranges)) call Error_Report('no counters defined'//{introspection:location})
-    if (i < 1 .or. i >           size(self%ranges)) call Error_Report('out of range'//{introspection:location})
+    if (i < 1 .or. i >           size(self%ranges)) call Error_Report('out of range'       //{introspection:location})
     ! Return the state.
     multiCounterState=self%values(i)
     return
@@ -148,8 +146,7 @@ contains
     !!{
     Append a new counter with the given {\normalfont \ttfamily range}.
     !!}
-    use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
+    use :: Error, only : Error_Report
     implicit none
     class  (multiCounter), intent(inout)               :: self
     integer(c_size_t    ), intent(in   )               :: range
@@ -159,15 +156,15 @@ contains
     if (range < 1_c_size_t) call Error_Report('range must be positive'//{introspection:location})
     ! Expand the range.
     if (allocated(self%ranges)) then
-       call move_alloc(self%ranges,rangesTmp)
-       call allocateArray(self%ranges,shape(rangesTmp)+1)
+       call move_alloc(self%ranges,     rangesTmp    )
+       allocate       (self%ranges(size(rangesTmp)+1))
        self%ranges(1:size(rangesTmp))=rangesTmp
-       call deallocateArray(rangesTmp                     )
-       call deallocateArray(self%values                   )
-       call   allocateArray(self%values,shape(self%ranges))
+       deallocate(rangesTmp  )
+       deallocate(self%values)
+       allocate(self%values(size(self%ranges)))
     else
-       call allocateArray(self%ranges,[1])
-       call allocateArray(self%values,[1])
+       allocate(self%ranges(1))
+       allocate(self%values(1))
     end if
     self%ranges(size(self%ranges))=range
     call self%reset()
