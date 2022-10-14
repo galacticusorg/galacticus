@@ -428,7 +428,7 @@ contains
     newHistory%data(1:size(historyStarFormation%time),:)=historyStarFormation%data(:,:)
     call historyStarFormation%destroy()
     historyStarFormation=newHistory
-    call newHistory%destroy(recordMemory=.false.)
+    call newHistory%destroy()
     return
   end subroutine metallicitySplitOutput
 

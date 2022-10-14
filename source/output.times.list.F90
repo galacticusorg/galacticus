@@ -57,7 +57,6 @@ contains
     !!}
     use :: Array_Utilities  , only : Array_Reverse
     use :: Input_Parameters , only : inputParameter, inputParameters
-    use :: Memory_Management, only : allocateArray
     use :: Sorting          , only : sort
     implicit none
     type            (outputTimesList        )                            :: self
@@ -76,7 +75,7 @@ contains
     else
        outputCount=1_c_size_t
     end if
-    call allocateArray(times,[outputCount])
+    allocate(times(outputCount))
     if (parameters%isPresent('times')) then
        !![
        <inputParameter>
@@ -114,7 +113,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (outputTimesList        )                              :: self
     double precision                         , intent(in   ), dimension(:) :: times
@@ -123,8 +121,7 @@ contains
     !![
     <constructorAssign variables="times, *cosmologyFunctions_"/>
     !!]
-
-    call allocateArray(self%redshifts,shape(times))
+    allocate(self%redshifts,mold=times)
     do i=1,size(times)
        self%redshifts(i)=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(times(i)))
     end do

@@ -684,7 +684,6 @@ contains
     use    :: Display                    , only : displayMagenta  , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
     use    :: Error                      , only : Error_Report    , Warn
-    use    :: Memory_Management          , only : allocateArray
     use    :: Numerical_Constants_Boolean, only : booleanFalse    , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
     implicit none
@@ -730,7 +729,7 @@ contains
     readSplitForestUniqueID=mpiCounter()
     ! Get array of output times.
     self%outputTimesCount=self%outputTimes_%count()
-    call allocateArray(self%outputTimes,[self%outputTimesCount])
+    allocate(self%outputTimes(self%outputTimesCount))
     do iOutput=1,self%outputTimesCount
        self%outputTimes(iOutput)=self%outputTimes_%time(iOutput)
     end do
@@ -934,7 +933,6 @@ contains
     use    :: Error                     , only : Component_List                   , Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
           &                                      mergerTree                       , treeNodeList
-    use    :: Memory_Management         , only : Memory_Usage_Record              , allocateArray           , deallocateArray
     use    :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
@@ -1028,7 +1026,6 @@ contains
           call self%mergerTreeImporter_%import(int(treeNumberOffset),nodes,structureOnly=.true.)
           ! Find initial root node affinities of all nodes.
           call self%rootNodeAffinitiesInitial(nodes)
-          call Memory_Usage_Record(sizeof(nodes),addRemove=-1)
           deallocate(nodes)
           returnSplitForest      =.true.
           self%splitForestNextTree    =0
@@ -1324,38 +1321,37 @@ contains
           ! Search for subhalos which move between branches/trees.
           call self%scanForBranchJumps      (nodes,nodeList)
           ! Allocate arrays for history building.
-          if (allocated(position)) call deallocateArray(position)
-          if (allocated(velocity)) call deallocateArray(velocity)
-          call allocateArray(historyTime,[int(historyCountMaximum)])
+          if (allocated(position)) deallocate(position)
+          if (allocated(velocity)) deallocate(velocity)
+          allocate(historyTime(int(historyCountMaximum)))
           if (self%presetSubhaloIndices                             ) then
-             call allocateArray(historyIndex,[  int(historyCountMaximum)])
+             allocate(historyIndex(int(historyCountMaximum)))
           else
-             call allocateArray(historyIndex,[                        0 ])
+             allocate(historyIndex(0 ))
           end if
           if (self%presetSubhaloMasses                              ) then
-             call allocateArray(historyMass ,[  int(historyCountMaximum)])
+             allocate(historyMass (int(historyCountMaximum)))
           else
-             call allocateArray(historyMass ,[                        0 ])
+             allocate(historyMass (0 ))
           end if
           if (self%presetPositions    .or.self%presetOrbits) then
-             call allocateArray(position    ,[3,int(historyCountMaximum)])
-             call allocateArray(velocity    ,[3,int(historyCountMaximum)])
+             allocate(position    (3,int(historyCountMaximum)))
+             allocate(velocity    (3,int(historyCountMaximum)))
           else
-             call allocateArray(position    ,[0,                      0 ])
-             call allocateArray(velocity    ,[0,                      0 ])
+             allocate(position    (0,                      0 ))
+             allocate(velocity    (0,                      0 ))
           end if
           ! Build subhalo mass histories if required.
           call self%buildSubhaloMassHistories(nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
           ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
           call readAssignUniqueIDsToClones(nodeList)
           ! Deallocate history building arrays.
-          if (allocated(historyTime)) call deallocateArray(historyTime )
-          if (allocated(historyMass)) call deallocateArray(historyIndex)
-          if (allocated(historyMass)) call deallocateArray(historyMass )
-          if (allocated(position   )) call deallocateArray(position    )
-          if (allocated(velocity   )) call deallocateArray(velocity    )
+          if (allocated(historyTime)) deallocate(historyTime )
+          if (allocated(historyMass)) deallocate(historyIndex)
+          if (allocated(historyMass)) deallocate(historyMass )
+          if (allocated(position   )) deallocate(position    )
+          if (allocated(velocity   )) deallocate(velocity    )
           ! Deallocate the temporary arrays.
-          call Memory_Usage_Record(sizeof(nodeList),addRemove=-1)
           deallocate(nodeList)
           ! Destroy sorted node indices.
           call self%destroyNodeIndices()
@@ -1363,7 +1359,6 @@ contains
           call Error_Report('nodes arrays is of wrong class'//{introspection:location})
        end select
        ! Deallocate nodes.
-       call Memory_Usage_Record(sizeof(nodes),addRemove=-1)
        deallocate(nodes)
     else
        nullify(tree)
@@ -1377,7 +1372,6 @@ contains
     Create a sorted list of node indices with an index into the original array.
     !!}
     use :: Error          , only : Warn
-    use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
@@ -1388,10 +1382,10 @@ contains
     type   (varying_string           )                               :: message
 
     ! Build a sorted list of node indices with an index into the original arrays.
-    call allocateArray(self%nodeLocations          ,shape(nodes))
-    call allocateArray(self%nodeIndicesSorted      ,shape(nodes))
-    call allocateArray(self%descendentLocations    ,shape(nodes))
-    call allocateArray(self%descendentIndicesSorted,shape(nodes))
+    allocate(self%nodeLocations          (size(nodes)))
+    allocate(self%nodeIndicesSorted      (size(nodes)))
+    allocate(self%descendentLocations    (size(nodes)))
+    allocate(self%descendentIndicesSorted(size(nodes)))
     self%nodeLocations      =sortIndex(nodes%nodeIndex      )
     self%descendentLocations=sortIndex(nodes%descendentIndex)
     forall (iNode=1:size(nodes))
@@ -1446,14 +1440,13 @@ contains
     !!{
     Destroy the sorted list of node indices.
     !!}
-    use :: Memory_Management, only : deallocateArray
     implicit none
     class(mergerTreeConstructorRead), intent(inout) :: self
 
-    if (allocated(self%nodeLocations          )) call deallocateArray(self%nodeLocations          )
-    if (allocated(self%nodeIndicesSorted      )) call deallocateArray(self%nodeIndicesSorted      )
-    if (allocated(self%descendentLocations    )) call deallocateArray(self%descendentLocations    )
-    if (allocated(self%descendentIndicesSorted)) call deallocateArray(self%descendentIndicesSorted)
+    if (allocated(self%nodeLocations          )) deallocate(self%nodeLocations          )
+    if (allocated(self%nodeIndicesSorted      )) deallocate(self%nodeIndicesSorted      )
+    if (allocated(self%descendentLocations    )) deallocate(self%descendentLocations    )
+    if (allocated(self%descendentIndicesSorted)) deallocate(self%descendentIndicesSorted)
     return
   end subroutine readDestroyNodeIndices
 
@@ -1706,7 +1699,6 @@ contains
     Create an array of standard nodes and associated structures.
     !!}
     use :: Galacticus_Nodes          , only : mergerTree         , treeNode     , treeNodeList
-    use :: Memory_Management         , only : Memory_Usage_Record, allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead)                           , intent(inout) :: self
@@ -1735,8 +1727,7 @@ contains
 
     ! Allocate nodes.
     allocate(nodeList(isolatedNodeCount+initialSatelliteCount))
-    call Memory_Usage_Record(sizeof(nodeList))
-    call allocateArray(childIsSubhalo,[isolatedNodeCount+initialSatelliteCount])
+    allocate(childIsSubhalo(isolatedNodeCount+initialSatelliteCount))
 
     ! Create the nodes.
     iIsolatedNode          =0
@@ -1870,7 +1861,6 @@ contains
     Build child and sibling links between nodes.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNodeList
-    use :: Memory_Management         , only : deallocateArray
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (nodeData          )             , dimension(:), intent(inout) :: nodes
@@ -1935,7 +1925,7 @@ contains
           end if
        end if
     end do
-    call deallocateArray(childIsSubhalo)
+    deallocate(childIsSubhalo)
     return
   end subroutine readBuildChildAndSiblingLinks
 
@@ -3574,7 +3564,6 @@ contains
     use :: Display                   , only : displayIndent     , displayMessage, displayUnindent, verbosityLevelInfo, &
           &                                   verbosityLevelWarn
     use :: ISO_Varying_String        , only : assignment(=)     , operator(//)  , varying_string
-    use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
@@ -3643,7 +3632,7 @@ contains
        end if
     end do
     ! Get a sorted index into the root node affinities.
-    call allocateArray(self%splitForestMapIndex,shape(nodes))
+    allocate(self%splitForestMapIndex(size(nodes)))
     self%splitForestMapIndex=sortIndex(rootaffinity)
     ! Count trees in the forest.
     treeCount        = 0
@@ -3655,8 +3644,8 @@ contains
        end if
     end do
     ! Identify tree size and start offsets.
-    call allocateArray(self%splitForestTreeSize ,[treeCount])
-    call allocateArray(self%splitForestTreeStart,[treeCount])
+    allocate(self%splitForestTreeSize (treeCount))
+    allocate(self%splitForestTreeStart(treeCount))
     treeIndexPrevious=-1
     treeStartPrevious= 0
     treeCount        = 0

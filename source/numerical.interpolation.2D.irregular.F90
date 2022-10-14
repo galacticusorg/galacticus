@@ -47,8 +47,7 @@ contains
     !!{
     Perform interpolation on a set of points irregularly spaced on a 2D surface.
     !!}
-    use :: Bivar            , only : idbvip
-    use :: Memory_Management, only : Memory_Usage_Record
+    use :: Bivar, only : idbvip
     implicit none
     type            (interp2dIrregularObject)                               , intent(inout)           :: workspace
     double precision                         , dimension(:)                 , intent(in   )           :: dataX                         , dataY                    , &
@@ -94,23 +93,18 @@ contains
     realWorkspaceSize   =8                                   *dataPointCount
     if (allocated(workspace%integerWork)) then
        if (size(workspace%integerWork) < integerWorkspaceSize) then
-          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=-1,file=__FILE__,line=__LINE__)
           deallocate(workspace%integerWork                      )
           allocate  (workspace%integerWork(integerWorkspaceSize))
-          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=+1,file=__FILE__,line=__LINE__)
           workspace%integerWork=0
        end if
        if (size(workspace%realWork   ) < realWorkspaceSize   ) then
-          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=-1,file=__FILE__,line=__LINE__)
           deallocate(workspace%realWork                         )
           allocate  (workspace%realWork   (realWorkspaceSize   ))
-          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=+1,file=__FILE__,line=__LINE__)
           workspace%realWork=0.0d0
        end if
     else
        allocate(workspace%integerWork(integerWorkspaceSize))
        allocate(workspace%realWork   (realWorkspaceSize   ))
-       call Memory_Usage_Record(sizeof(workspace%integerWork)+sizeof(workspace%realWork),blockCount=2,file=__FILE__,line=__LINE__)
        workspace%integerWork=0
        workspace%realWork   =0.0d0
     end if

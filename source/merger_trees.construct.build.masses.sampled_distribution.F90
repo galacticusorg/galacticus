@@ -125,7 +125,6 @@ contains
     !!}
     use            :: Error                  , only : Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Memory_Management      , only : allocateArray       , deallocateArray
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Interpolation, only : interpolator
     use            :: Numerical_Ranges       , only : Make_Range          , rangeTypeLinear
@@ -151,14 +150,14 @@ contains
 
     ! Generate a randomly sampled set of halo masses.
     treeCount=max(2_c_size_t,int(log10(self%massTreeMaximum/self%massTreeMinimum)*self%treesPerDecade,kind=c_size_t))
-    call allocateArray(mass       ,[treeCount])
-    call allocateArray(massMinimum,[treeCount])
-    call allocateArray(massMaximum,[treeCount])
+    allocate(mass       (treeCount))
+    allocate(massMinimum(treeCount))
+    allocate(massMaximum(treeCount))
     ! Create a cumulative probability for sampling halo masses.
     massFunctionSampleCount=max(2,int(log10(self%massTreeMaximum/self%massTreeMinimum)*massFunctionSamplePerDecade))
-    call allocateArray(massFunctionSampleLogMass         ,[massFunctionSampleCount])
-    call allocateArray(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
-    call allocateArray(massFunctionSampleProbability     ,[massFunctionSampleCount])
+    allocate(massFunctionSampleLogMass         (massFunctionSampleCount))
+    allocate(massFunctionSampleLogMassMonotonic(massFunctionSampleCount))
+    allocate(massFunctionSampleProbability     (massFunctionSampleCount))
     massFunctionSampleLogMass    =Make_Range(log10(self%massTreeMinimum),log10(self%massTreeMaximum),massFunctionSampleCount,rangeType=rangeTypeLinear)
     massFunctionSampleLogPrevious=           log10(self%massTreeMinimum)
     jSample=0
@@ -225,9 +224,9 @@ contains
     mass       =10.0d0**mass
     massMinimum=10.0d0**massMinimum
     massMaximum=10.0d0**massMaximum
-    call deallocateArray(massFunctionSampleLogMass         )
-    call deallocateArray(massFunctionSampleProbability     )
-    call deallocateArray(massFunctionSampleLogMassMonotonic)
+    deallocate(massFunctionSampleLogMass         )
+    deallocate(massFunctionSampleProbability     )
+    deallocate(massFunctionSampleLogMassMonotonic)
     return
 
   contains

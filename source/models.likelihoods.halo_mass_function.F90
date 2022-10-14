@@ -133,7 +133,6 @@ contains
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
-    use :: Memory_Management, only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName
@@ -184,9 +183,9 @@ contains
           massCountReduced=massCountReduced+1
        end do
        if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
-       call allocateArray(self%mass        ,[massCountReduced])
-       call allocateArray(self%massFunction,[massCountReduced])
-       call allocateArray(self%countHalos  ,[massCountReduced])
+       allocate(self%mass        (massCountReduced))
+       allocate(self%massFunction(massCountReduced))
+       allocate(self%countHalos  (massCountReduced))
        ii=0
        do i=1,size(massOriginal)
           if (massOriginal(i) <  massRangeMinimum) cycle
@@ -216,9 +215,9 @@ contains
           massCountReduced=massCountReduced+1
        end do
        if (massCountReduced == 0) call Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
-       call allocateArray(self%mass            ,[massCountReduced                 ])
-       call allocateArray(self%massFunction    ,[massCountReduced                 ])
-       call allocateArray(self%covarianceMatrix,[massCountReduced,massCountReduced])
+       allocate(self%mass            (massCountReduced                 ))
+       allocate(self%massFunction    (massCountReduced                 ))
+       allocate(self%covarianceMatrix(massCountReduced,massCountReduced))
        ii=0
        do i=1,size(massOriginal)
           if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
@@ -254,8 +253,8 @@ contains
          &                        +size(massOriginal)              &
          &                        -1                               &
          &                       )
-    call allocateArray(self%massMinimum,shape(self%mass))
-    call allocateArray(self%massMaximum,shape(self%mass))
+    allocate(self%massMinimum,mold=self%mass)
+    allocate(self%massMaximum,mold=self%mass)
     do i=1,size(self%mass)
        self%massMinimum(i)=self%mass(i)*exp(-0.5d0*massIntervalLogarithmic)
        self%massMaximum(i)=self%mass(i)*exp(+0.5d0*massIntervalLogarithmic)

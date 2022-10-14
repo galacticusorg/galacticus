@@ -194,7 +194,6 @@ contains
     use            :: Error                                , only : Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
     use            :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
-    use            :: Memory_Management                    , only : allocateArray
     use            :: Numerical_Comparison                 , only : Values_Agree
     use            :: Numerical_Constants_Astronomical     , only : heliumByMassPrimordial                    , hydrogenByMassPrimordial, massSolar     , megaParsec
     use            :: Numerical_Constants_Atomic           , only : atomicMassHelium                          , atomicMassHydrogen      , atomicMassUnit
@@ -241,15 +240,15 @@ contains
          &             )                               &
          &         +1
      ! Allocate arrays for all required IGM properties.
-     call allocateArray(self%temperature           ,[self%timeCount  ])
-     call allocateArray(self%densityHydrogen       ,[self%timeCount,2])
-     call allocateArray(self%densityHelium         ,[self%timeCount,3])
-     call allocateArray(self%time                  ,[self%timeCount  ])
-     call allocateArray(self%redshift              ,[self%timeCount  ])
-     call allocateArray(self%massFilteringComposite,[self%timeCount,2])
-     call allocateArray(self%clumpingFactor        ,[self%timeCount  ])
-     call allocateArray(self%opticalDepth          ,[self%timeCount  ])
-     call allocateArray(self%massFiltering         ,[self%timeCount  ])
+     allocate(self%temperature           (self%timeCount  ))
+     allocate(self%densityHydrogen       (self%timeCount,2))
+     allocate(self%densityHelium         (self%timeCount,3))
+     allocate(self%time                  (self%timeCount  ))
+     allocate(self%redshift              (self%timeCount  ))
+     allocate(self%massFilteringComposite(self%timeCount,2))
+     allocate(self%clumpingFactor        (self%timeCount  ))
+     allocate(self%opticalDepth          (self%timeCount  ))
+     allocate(self%massFiltering         (self%timeCount  ))
      ! Build grid of times.
      self%time=Make_Range(                      &
           &               self%timeMinimum    , &

@@ -237,7 +237,6 @@ contains
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
-    use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar           , nodePropertyExtractorStarFormationRate
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
@@ -283,7 +282,7 @@ contains
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(masses,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
+    allocate(outputWeight(self%binCount,outputTimes_%count()))
     do iBin=1,self%binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,masses(iBin))
     end do

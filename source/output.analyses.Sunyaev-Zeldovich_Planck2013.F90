@@ -130,7 +130,6 @@ contains
     use :: Galactic_Filters                      , only : galacticFilterStellarMass                          , galacticFilterAll                              , galacticFilterHaloIsolated               , &
          &                                                filterList
     use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
-    use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorICMSZ
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
@@ -230,7 +229,7 @@ contains
     <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.03d0,redshiftMaximum=0.30d0,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[binCount,outputTimes_%count()])
+    allocate(outputWeight(binCount,outputTimes_%count()))
     do iBin=1,binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin),allowSingleEpoch=.true.)
     end do

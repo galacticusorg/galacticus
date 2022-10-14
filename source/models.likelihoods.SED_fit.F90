@@ -184,7 +184,6 @@ contains
     !!}
     use :: ISO_Varying_String , only : var_str         , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index, Filter_Vega_Offset, Filter_Wavelength_Effective
-    use :: Memory_Management  , only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
     double precision                                                   , intent(in   ), dimension(:) :: magnitude                                    , error
@@ -203,11 +202,11 @@ contains
 
     self%photometryCount=size(magnitude)
     allocate          (self%postprocessor            (self%photometryCount))
-    call allocateArray(self%filterIndex             ,[self%photometryCount])
-    call allocateArray(self%luminosityIndex         ,[self%photometryCount])
-    call allocateArray(self%redshift                ,[self%photometryCount])
-    call allocateArray(self%age                     ,[self%photometryCount])
-    call allocateArray(self%wavelengthEffective     ,[self%photometryCount])
+    allocate(self%filterIndex             (self%photometryCount))
+    allocate(self%luminosityIndex         (self%photometryCount))
+    allocate(self%redshift                (self%photometryCount))
+    allocate(self%age                     (self%photometryCount))
+    allocate(self%wavelengthEffective     (self%photometryCount))
     ! Determine indices.
     do i=1,self%photometryCount
        ! Set a luminosity index.
@@ -223,9 +222,9 @@ contains
        self%wavelengthEffective(i)=Filter_Wavelength_Effective(self%filterIndex(i))
     end do
     ! Create burst arrays.
-    call allocateArray(self%burstTimeStart,[self%burstCount])
-    call allocateArray(self%burstTimescale,[self%burstCount])
-    call allocateArray(self%burstFraction ,[self%burstCount])
+    allocate(self%burstTimeStart(self%burstCount))
+    allocate(self%burstTimescale(self%burstCount))
+    allocate(self%burstFraction (self%burstCount))
     ! Find stellar spectra postprocessing chain to use.
     do i=1,self%photometryCount
        self%postprocessor(i)%stellarPopulationSpectraPostprocessor_ => self%stellarPopulationSpectraPostprocessorBuilder_%build(var_str('default'))

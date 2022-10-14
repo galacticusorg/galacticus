@@ -1657,8 +1657,7 @@ contains
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HSIZE_T
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)   , trim
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
+    use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
     class    (hdf5Object    )                           , intent(inout)           :: self
     character(len=*         )                           , intent(in   ), optional :: attributeName
@@ -1727,7 +1726,7 @@ contains
     ! Write the attribute.
     ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
     ! since it is of assumed shape.
-    call allocateArray(attributeValueContiguous,shape(attributeValue))
+    allocate(attributeValueContiguous,mold=attributeValue)
     attributeValueContiguous=attributeValue
     dataBuffer=c_loc(attributeValueContiguous)
     errorCode=H5Awrite(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
@@ -1735,7 +1734,7 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
     end if
-    call deallocateArray(attributeValueContiguous)
+    deallocate(attributeValueContiguous)
 
     ! Close the attribute unless this was an attribute object.
     if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
@@ -2345,10 +2344,9 @@ contains
     Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T          , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f         , h5sclose_f     , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//)   , trim
-    use :: Memory_Management , only : allocateArray     , deallocateArray
+    use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f         , h5sclose_f  , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)     , operator(//), trim
     implicit none
     integer                  , allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -2423,8 +2421,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call deallocateArray(attributeValue)
-    call allocateArray(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) deallocate(attributeValue)
+    !![
+    <allocate variable="attributeValue" shape="attributeDimensions"/>
+    !!]
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
@@ -2670,7 +2670,6 @@ contains
           &                                      h5sclose_f          , h5sget_simple_extent_dims_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)               , trim
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -2746,8 +2745,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call deallocateArray(attributeValue)
-    call allocateArray(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) deallocate(attributeValue)
+    !![
+    <allocate variable="attributeValue" shape="attributeDimensions"/>
+    !!]
 
     ! Read the attribute.
     dataBuffer=c_loc(attributeValue)
@@ -2772,7 +2773,6 @@ contains
           &                                      h5sclose_f          , h5sget_simple_extent_dims_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)               , trim
-    use            :: Memory_Management , only : allocateArray
     implicit none
     integer  (kind=kind_int8)             , dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -2857,7 +2857,7 @@ contains
     ! Read the attribute.
     ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
     ! since it is of assumed shape.
-    call allocateArray(attributeValueContiguous,shape(attributeValue))
+    allocate(attributeValueContiguous,mold=attributeValue)
     dataBuffer=c_loc(attributeValueContiguous)
     errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
     if (errorCode /= 0) then
@@ -2997,10 +2997,9 @@ contains
     Open and read an double scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T          , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f        , h5sclose_f     , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//)   , trim
-    use :: Memory_Management , only : allocateArray    , deallocateArray
+    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
+          &                           h5aread_f        , h5sclose_f  , h5sget_simple_extent_dims_f
+    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
     implicit none
     double precision                , allocatable, dimension(:), intent(  out)           :: attributeValue
     class           (hdf5Object    )                           , intent(inout)           :: self
@@ -3075,8 +3074,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call deallocateArray(attributeValue)
-    call allocateArray(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) deallocate(attributeValue)
+    !![
+    <allocate variable="attributeValue" shape="attributeDimensions"/>
+    !!]
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
@@ -3336,7 +3337,6 @@ contains
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
           &                           h5sclose_f   , h5sget_simple_extent_dims_f, h5tclose_f
     use :: ISO_Varying_String, only : assignment(=), operator(//)               , trim
-    use :: Memory_Management , only : allocateArray, deallocateArray
     implicit none
     character(len=*         ), allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -3414,8 +3414,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) call deallocateArray(attributeValue)
-    call allocateArray(attributeValue,int(attributeDimensions))
+    if (allocated(attributeValue)) deallocate(attributeValue)
+    !![
+    <allocate variable="attributeValue" shape="attributeDimensions"/>
+    !!]
 
     ! Read the attribute.
     call h5aread_f(attributeObject%objectID,dataTypeID(1),attributeValue,attributeDimensions&
@@ -3769,7 +3771,6 @@ contains
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
-    use :: Memory_Management , only : Memory_Usage_Record, deallocateArray
     implicit none
     type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object      )                           , intent(inout)           :: self
@@ -3782,9 +3783,8 @@ contains
 
     ! Transfer the results to the varying string variable.
     allocate(attributeValue(size(temporaryBuffer)))
-    call Memory_Usage_Record(sizeof(attributeValue))
     attributeValue=temporaryBuffer
-    call deallocateArray(temporaryBuffer)
+    deallocate(temporaryBuffer)
 
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read
@@ -5428,7 +5428,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)      , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer                     , allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                           , intent(inout)           :: self
@@ -5664,8 +5663,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
          &,memorySpaceID,datasetDataspaceID)
@@ -6019,7 +6020,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)      , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer                     , allocatable, dimension(:,:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                             , intent(inout)           :: self
@@ -6255,8 +6255,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
          &,memorySpaceID,datasetDataspaceID)
@@ -6312,7 +6314,6 @@ contains
           &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
-    use            :: Memory_Management , only : allocateArray     , deallocateArray
     implicit none
     class    (hdf5Object    )                           , intent(inout)                   :: self
     character(len=*         )                           , intent(in   ), optional         :: commentText                , datasetName
@@ -6448,7 +6449,7 @@ contains
     end if
 
     ! Write the dataset.
-    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
@@ -6456,7 +6457,7 @@ contains
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
     end if
-    call deallocateArray(datasetValueContiguous)
+    deallocate(datasetValueContiguous)
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
@@ -6491,7 +6492,6 @@ contains
           &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
-    use            :: Memory_Management , only : allocateArray     , deallocateArray
     implicit none
     class    (hdf5Object    )                             , intent(inout)                   :: self
     character(len=*         )                             , intent(in   ), optional         :: commentText                , datasetName
@@ -6626,8 +6626,8 @@ contains
        call Error_Report(message//{introspection:location})
     end if
 
-    ! Write the dataset.
-    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    ! Write the dataset
+    allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
@@ -6635,7 +6635,7 @@ contains
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
     end if
-    call deallocateArray(datasetValueContiguous)
+    deallocate(datasetValueContiguous)
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
@@ -6670,7 +6670,6 @@ contains
           &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
-    use            :: Memory_Management , only : allocateArray     , deallocateArray
     implicit none
     class    (hdf5Object    )                               , intent(inout)                   :: self
     character(len=*         )                               , intent(in   ), optional         :: commentText                , datasetName
@@ -6806,7 +6805,7 @@ contains
     end if
 
     ! Write the dataset.
-    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
@@ -6814,7 +6813,7 @@ contains
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
     end if
-    call deallocateArray(datasetValueContiguous)
+    deallocate(datasetValueContiguous)
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
@@ -6851,7 +6850,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer  (kind=kind_int8   )             , dimension(:)          , intent(  out)           :: datasetValue
     class    (hdf5Object       )                                     , intent(inout)           :: self
@@ -7169,7 +7167,7 @@ contains
     end if
 
     ! Read the dataset.
-    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    allocate(datasetValueContiguous,mold=datasetValue)
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
@@ -7177,7 +7175,7 @@ contains
        call Error_Report(message//{introspection:location})
     end if
     datasetValue=datasetValueContiguous
-    call deallocateArray(datasetValueContiguous)
+    deallocate(datasetValueContiguous)
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
@@ -7227,7 +7225,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer  (kind=kind_int8   ), allocatable, dimension(:  ), intent(  out)          , target :: datasetValue
     class    (hdf5Object       )                             , intent(inout)                   :: self
@@ -7538,8 +7535,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
@@ -7597,7 +7596,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer         (kind_int8        ), dimension(:,:), intent(  out), target   :: datasetValue
     class           (hdf5Object       )                , intent(inout)           :: self
@@ -7920,7 +7918,7 @@ contains
     end if
 
     ! Read the dataset.
-    call allocateArray(datasetValueContiguous,shape(datasetValue))
+    allocate(datasetValueContiguous,mold=datasetValue)
     dataBuffer=c_loc(datasetValueContiguous)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
@@ -7928,7 +7926,7 @@ contains
        call Error_Report(message//{introspection:location})
     end if
     datasetValue=datasetValueContiguous
-    call deallocateArray(datasetValueContiguous)
+    deallocate(datasetValueContiguous)
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
@@ -7978,7 +7976,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer         (kind_int8        ), allocatable, dimension(:,:), intent(  out), target   :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: self
@@ -8294,8 +8291,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
@@ -8353,7 +8352,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     integer         (kind_int8        ), allocatable, dimension(:,:,:), intent(  out), target   :: datasetValue
     class           (hdf5Object       )                               , intent(inout)           :: self
@@ -8674,8 +8672,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
@@ -9276,7 +9276,6 @@ contains
           &                                      size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: self
@@ -9593,8 +9592,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -10214,7 +10215,6 @@ contains
           &                                      size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: self
@@ -10530,9 +10530,11 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
-
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
+    
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
          &,memorySpaceID,datasetDataspaceID)
@@ -11069,7 +11071,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)      , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                               , intent(inout)           :: self
@@ -11305,8 +11306,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -11844,7 +11847,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)      , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                                 , intent(inout)           :: self
@@ -12080,8 +12082,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -12619,7 +12623,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)      , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                                   , intent(inout)           :: self
@@ -12854,8 +12857,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -13393,7 +13398,6 @@ contains
           &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)      , trim
-    use            :: Memory_Management , only : allocateArray        , deallocateArray
     implicit none
     double precision                   , allocatable, dimension(:,:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                                     , intent(inout)           :: self
@@ -13628,8 +13632,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
 
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
@@ -14212,7 +14218,6 @@ contains
           &                                      h5tclose_f        , hdset_reg_ref_t_f     , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)          , trim
-    use            :: Memory_Management , only : allocateArray     , deallocateArray
     implicit none
     character(len=*            ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )                           , intent(inout)           :: self
@@ -14451,8 +14456,10 @@ contains
     end if
 
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,int(datasetDimensions))
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    !![
+    <allocate variable="datasetValue" shape="datasetDimensions"/>
+    !!]
     ! Read the dataset.
     call h5dread_f(datasetObject%objectID,dataTypeID(1),datasetValue,int(shape(datasetValue),kind=hsize_t),errorCode&
          &,memorySpaceID,datasetDataspaceID)
@@ -14606,7 +14613,6 @@ contains
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
-    use :: Memory_Management , only : Memory_Usage_Record, deallocateArray
     implicit none
     type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object      )                           , intent(inout)           :: self
@@ -14619,9 +14625,8 @@ contains
 
     ! Transfer the results to the varying string variable.
     allocate(datasetValue(size(temporaryBuffer)))
-    call Memory_Usage_Record(sizeof(datasetValue))
     datasetValue=temporaryBuffer
-    call deallocateArray(temporaryBuffer)
+    deallocate(temporaryBuffer)
 
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read
@@ -14751,7 +14756,6 @@ contains
           &                                      size_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     type            (hdf5VarDouble    ), allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: self
@@ -15317,7 +15321,6 @@ contains
           &                                      size_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     type            (hdf5VarInteger8  ), allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Object       )                             , intent(inout)           :: self
@@ -15880,7 +15883,6 @@ contains
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
     use :: HDF5              , only : H5T_NATIVE_REAL     , HSIZE_T              , h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
-    use :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     real                     , allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -15941,8 +15943,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    allocate(datasetValue(readCountActual))
 
     ! Read the column.
     call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
@@ -15966,7 +15968,6 @@ contains
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
     use :: HDF5              , only : H5T_NATIVE_REAL     , HSIZE_T              , h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
-    use :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     integer                  , allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -16026,8 +16027,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    allocate(datasetValue(readCountActual))
     ! Read the column.
     call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
     if (errorCode /= 0) then
@@ -16051,7 +16052,6 @@ contains
     use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HSIZE_T        , h5tget_size_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc               , c_null_char
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)
-    use            :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     integer  (kind=kind_int8     ), allocatable, dimension(:), intent(  out), target   :: datasetValue
     class    (hdf5Object         )                           , intent(inout)           :: self
@@ -16112,8 +16112,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    allocate(datasetValue(readCountActual))
     ! Read the column.
     call h5tget_size_f(H5T_NATIVE_INTEGER_8,recordTypeSize,errorCode)
     if (errorCode /= 0) then
@@ -16137,7 +16137,6 @@ contains
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
     use :: HDF5              , only : HSIZE_T
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
-    use :: Memory_Management , only : allocateArray       , deallocateArray
     implicit none
     character(len=*                ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object           )                           , intent(inout)           :: self
@@ -16198,8 +16197,8 @@ contains
        readCountActual=recordCount
     end if
     ! Allocate the array to the appropriate size.
-    if (allocated(datasetValue)) call deallocateArray(datasetValue)
-    call allocateArray(datasetValue,[readCountActual])
+    if (allocated(datasetValue)) deallocate(datasetValue)
+    allocate(datasetValue(readCountActual))
     ! Read the column.
     recordTypeSize=len(datasetValue(1))
     call h5tbread_field_name_f(self%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode)

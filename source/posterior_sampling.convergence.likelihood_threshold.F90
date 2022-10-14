@@ -82,7 +82,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
     !!}
-    use :: Memory_Management, only : allocateArray
     use :: MPI_Utilities    , only : mpiSelf
     implicit none
     type            (posteriorSampleConvergenceLikelihoodThreshold)                :: self
@@ -93,7 +92,7 @@ contains
 
     self%converged           =.false.
     self%convergedAtStepCount=huge(0)
-    call allocateArray(self%isOutlier,[mpiSelf%count()])
+    allocate(self%isOutlier(mpiSelf%count()))
     return
   end function likelihoodThresholdConstructorInternal
 

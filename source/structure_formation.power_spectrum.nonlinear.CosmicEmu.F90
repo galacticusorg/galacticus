@@ -176,7 +176,6 @@ contains
     use :: Error               , only : Error_Report
     use :: Input_Paths         , only : inputPath                   , pathTypeDataDynamic
     use :: ISO_Varying_String  , only : varying_string
-    use :: Memory_Management   , only : allocateArray               , deallocateArray
     use :: Numerical_Comparison, only : Values_Differ
     use :: System_Command      , only : System_Command_Do
     use :: System_Download     , only : download
@@ -264,10 +263,10 @@ contains
           call System_Command_Do(inputPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe < "//parameterFile)
           ! Read the data file.
           self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
-          if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )
-          if (allocated(self%powerSpectrumTable)) call deallocateArray(self%powerSpectrumTable)
-          call allocateArray(self%wavenumberTable   ,[self%wavenumberCount])
-          call allocateArray(self%powerSpectrumTable,[self%wavenumberCount])
+          if (allocated(self%wavenumberTable   )) deallocate(self%wavenumberTable   )
+          if (allocated(self%powerSpectrumTable)) deallocate(self%powerSpectrumTable)
+          allocate(self%wavenumberTable   (self%wavenumberCount))
+          allocate(self%powerSpectrumTable(self%wavenumberCount))
           open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
           iWavenumber=0
           do while (iWavenumber < self%wavenumberCount)

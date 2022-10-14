@@ -131,7 +131,6 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , nodeComponentPosition, &
          &                                          treeNode
     use :: IO_HDF5                         , only : hdf5Object
-    use :: Memory_Management               , only : allocateArray           , deallocateArray
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
     implicit none
@@ -166,13 +165,13 @@ contains
        nodesInTree=nodesInTree+1
     end do
     ! Allocate arrays for temporary storage.
-    call allocateArray(nodeIndex      ,[  nodesInTree])
-    call allocateArray(parentIndex    ,[  nodesInTree])
-    call allocateArray(childIndex     ,[  nodesInTree])
-    call allocateArray(time           ,[  nodesInTree])
-    call allocateArray(expansionFactor,[  nodesInTree])
-    call allocateArray(radiusVirial   ,[  nodesInTree])
-    call allocateArray(position_      ,[3,nodesInTree])
+    allocate(nodeIndex      (nodesInTree))
+    allocate(parentIndex    (nodesInTree))
+    allocate(childIndex     (nodesInTree))
+    allocate(time           (nodesInTree))
+    allocate(expansionFactor(nodesInTree))
+    allocate(radiusVirial   (nodesInTree))
+    allocate(position_      (3,nodesInTree))
     ! Populate arrays with data.
     iNode     =0
     treeWalker=mergerTreeWalkerAllNodes(tree)
@@ -206,12 +205,12 @@ contains
     call treeDataset%close         (                                                                                   )
     call fileObject %close         (                                                                                   )
     ! Deallocate temporary arrays.
-    call deallocateArray(nodeIndex      )
-    call deallocateArray(parentIndex    )
-    call deallocateArray(childIndex     )
-    call deallocateArray(time           )
-    call deallocateArray(expansionFactor)
-    call deallocateArray(radiusVirial   )
-    call deallocateArray(position_      )
+    deallocate(nodeIndex      )
+    deallocate(parentIndex    )
+    deallocate(childIndex     )
+    deallocate(time           )
+    deallocate(expansionFactor)
+    deallocate(radiusVirial   )
+    deallocate(position_      )
     return
   end subroutine renderOperatePreEvolution

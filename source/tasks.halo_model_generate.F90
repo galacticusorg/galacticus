@@ -395,7 +395,6 @@ contains
       !!{
       Add a galaxy to the output buffers.
       !!}
-      use :: Memory_Management, only : allocateArray, deallocateArray
       implicit none
       double precision, intent(in   )                 :: mass
       double precision, intent(in   ), dimension(3  ) :: position                     , velocity
@@ -407,23 +406,23 @@ contains
       galaxyCount=galaxyCount+1
       if (allocated(massGalaxy)) then
          if (galaxyCount > size(massGalaxy)) then
-            call Move_Alloc(massGalaxy    ,massGalaxyTmp    )
-            call Move_Alloc(positionGalaxy,positionGalaxyTmp)
-            call Move_Alloc(velocityGalaxy,velocityGalaxyTmp)
-            call allocateArray(massGalaxy    ,[  2*(galaxyCount-1)])
-            call allocateArray(positionGalaxy,[3,2*(galaxyCount-1)])
-            call allocateArray(velocityGalaxy,[3,2*(galaxyCount-1)])
+            call move_alloc(massGalaxy    ,massGalaxyTmp    )
+            call move_alloc(positionGalaxy,positionGalaxyTmp)
+            call move_alloc(velocityGalaxy,velocityGalaxyTmp)
+            allocate(massGalaxy    (  2*(galaxyCount-1)))
+            allocate(positionGalaxy(3,2*(galaxyCount-1)))
+            allocate(velocityGalaxy(3,2*(galaxyCount-1)))
             massGalaxy    (  1:galaxyCount-1)=massGalaxyTmp
             positionGalaxy(:,1:galaxyCount-1)=positionGalaxyTmp
             velocityGalaxy(:,1:galaxyCount-1)=velocityGalaxyTmp
-            call deallocateArray(massGalaxyTmp    )
-            call deallocateArray(positionGalaxyTmp)
-            call deallocateArray(velocityGalaxyTmp)
+            deallocate(massGalaxyTmp    )
+            deallocate(positionGalaxyTmp)
+            deallocate(velocityGalaxyTmp)
          end if
       else
-         call allocateArray(massGalaxy    ,[  galaxyBufferSizeMinimum])
-         call allocateArray(positionGalaxy,[3,galaxyBufferSizeMinimum])
-         call allocateArray(velocityGalaxy,[3,galaxyBufferSizeMinimum])
+         allocate(massGalaxy    (galaxyBufferSizeMinimum))
+         allocate(positionGalaxy(3,galaxyBufferSizeMinimum))
+         allocate(velocityGalaxy(3,galaxyBufferSizeMinimum))
       end if
       ! Store the galaxy.
       massGalaxy    (  galaxyCount)=mass

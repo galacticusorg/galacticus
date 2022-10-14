@@ -240,7 +240,6 @@ contains
     Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
     type            (taskConditionalMassFunction    )                                        :: self
@@ -271,8 +270,8 @@ contains
     if (present(massBinCenters)) then
        self%massLogarithmDelta=log(self%massLogarithmDelta)
     else
-       call allocateArray(self%massBinCenters    ,[countMass])
-       call allocateArray(self%massLogarithmDelta,[countMass])
+       allocate(self%massBinCenters    (countMass))
+       allocate(self%massLogarithmDelta(countMass))
        self%massBinCenters    =Make_Range(massMinimum,massMaximum,countMass,rangeType=rangeTypeLogarithmic)
        self%massLogarithmDelta=log(self%massBinCenters(2)/self%massBinCenters(1))
     end if
@@ -307,7 +306,6 @@ contains
     use :: Output_HDF5          , only : outputFile
     use :: IO_HDF5              , only : hdf5Object
     use :: ISO_Varying_String   , only : char         , var_str           , varying_string
-    use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
     implicit none
@@ -329,8 +327,8 @@ contains
 
     call displayIndent('Begin task: conditional mass function' )
     if(present(status)) status=errorStatusSuccess
-    call allocateArray(conditionalMassFunction          ,[self%countMass])
-    call allocateArray(conditionalMassFunctionIncomplete,[self%countMass])
+    allocate(conditionalMassFunction          (self%countMass))
+    allocate(conditionalMassFunctionIncomplete(self%countMass))
     ! Find logarithmic limits for halo mass in integrations.
     logHaloMassLower=log10(self%massHaloMinimum)
     logHaloMassUpper=log10(self%massHaloMaximum)

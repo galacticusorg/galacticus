@@ -311,7 +311,6 @@ contains
     !!{
     Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.
     !!}
-    use :: Memory_Management               , only : allocateArray
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
@@ -323,8 +322,8 @@ contains
     ! Return the relevant data.
     agesCount         =self%spectra%agesCount
     metallicitiesCount=self%spectra%metallicityCount
-    call allocateArray(ages       ,[agesCount         ])
-    call allocateArray(metallicity,[metallicitiesCount])
+    allocate(ages       (agesCount         ))
+    allocate(metallicity(metallicitiesCount))
     ages              =         self%spectra%ages
     metallicity       =(10.0d0**self%spectra%metallicities)*metallicitySolar
     return
@@ -334,7 +333,6 @@ contains
     !!{
     Return a tabulation of wavelengths at which stellar spectra should be tabulated.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
     integer                                                                  , intent(  out) :: wavelengthsCount
@@ -344,7 +342,7 @@ contains
     call self%readFile()
     ! Return the relevant data.
     wavelengthsCount=self%spectra  %wavelengthsCount
-    call allocateArray(wavelengths,[wavelengthsCount])
+    allocate(wavelengths(wavelengthsCount))
     wavelengths     =self%spectra  %wavelengths
     return
   end subroutine fileWavelengths
@@ -353,7 +351,6 @@ contains
     !!{
     Return a tabulation of wavelengths at which stellar spectra should be tabulated.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
     double precision                                                         , intent(in   ) :: wavelength
@@ -364,7 +361,7 @@ contains
     call self%readFile()
     ! Return the relevant data.
     wavelengthsCount=self%spectra  %wavelengthsCount
-    call allocateArray(wavelengths,[wavelengthsCount])
+    allocate(wavelengths(wavelengthsCount))
     wavelengths     =self%spectra  %wavelengths
     ! Check if wavelength inside range
     if     (                                            &
@@ -375,14 +372,14 @@ contains
        fileWavelengthInterval=-999.9d0
     else
        ! Compute difference in wavelength at position of interest
-       call allocateArray(wavelengthDifference,[wavelengthsCount])
+       allocate(wavelengthDifference(wavelengthsCount))
        wavelengthDifference  =+       wavelengths &
             &                 -       wavelength
        fileWavelengthInterval=+minval(wavelengths,dim=1,mask=wavelengthDifference >  0.0d0) &
             &                 -maxval(wavelengths,dim=1,mask=wavelengthDifference <= 0.0d0)
     end if
-    call deallocateArray(wavelengths)
-    if(allocated(wavelengthDifference)) call deallocateArray(wavelengthDifference)
+    deallocate(wavelengths)
+    if(allocated(wavelengthDifference)) deallocate(wavelengthDifference)
     return
   end function fileWavelengthInterval
 

@@ -365,7 +365,6 @@ contains
     use    :: HDF5_Access               , only : hdf5Access
     use    :: IO_HDF5                   , only : hdf5Object
     use    :: ISO_Varying_String        , only : varying_string                   , var_str
-    use    :: Memory_Management         , only : allocateArray                    , deallocateArray
     use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use    :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Comparison      , only : Values_Agree
@@ -493,9 +492,9 @@ contains
              particleCountActual=nint(particleCountMean)
           end if
           ! Allocate space for particle data.
-          call allocateArray(particlePosition,[3,particleCountActual])
-          call allocateArray(particleVelocity,[3,particleCountActual])
-          call allocateArray(particleIDs     ,[  particleCountActual])
+          allocate(particlePosition(3,particleCountActual))
+          allocate(particleVelocity(3,particleCountActual))
+          allocate(particleIDs     (particleCountActual))
           ! Get required components.
           position  => node%position ()
           satellite => node%satellite()
@@ -741,9 +740,9 @@ contains
           call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
           call particleGroup%close()
           firstNode=.false.
-          call deallocateArray(particlePosition)
-          call deallocateArray(particleVelocity)
-          call deallocateArray(particleIDs     )
+          deallocate(particlePosition)
+          deallocate(particleVelocity)
+          deallocate(particleIDs     )
           ! Update particle counts.
           particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
           call    header    %writeAttribute(particleCounts,'NumPart_ThisFile')

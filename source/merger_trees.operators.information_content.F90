@@ -104,7 +104,6 @@ contains
     Perform a information content operation on a merger tree.
     !!}
     use :: Factorials         , only : Logarithmic_Double_Factorial
-    use :: Memory_Management  , only : allocateArray                , deallocateArray
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeOperatorInformationContent), intent(inout), target       :: self
@@ -149,17 +148,17 @@ contains
        informationContent=(logPossibleBifurcations-logPermittedBifurcations)/log(2.0d0)
        ! Ensure arrays are large enough to store this tree.
        if (.not.allocated(self%treeIndex)) then
-          call allocateArray(self%treeIndex         ,[treeCountIncrement])
-          call allocateArray(self%informationContent,[treeCountIncrement])
+          allocate(self%treeIndex         (treeCountIncrement))
+          allocate(self%informationContent(treeCountIncrement))
        else if (self%treeCount >= size(self%treeIndex)) then
-          call Move_Alloc (self%treeIndex         ,      treeIndexTmp                             )
-          call Move_Alloc (self%informationContent,      informationContentTmp                    )
-          call allocateArray(self%treeIndex         ,shape(treeIndexTmp         )+treeCountIncrement)
-          call allocateArray(self%informationContent,shape(informationContentTmp)+treeCountIncrement)
+          call move_alloc(self%treeIndex         ,     treeIndexTmp                             )
+          call move_alloc(self%informationContent,     informationContentTmp                    )
+          allocate       (self%treeIndex         (size(treeIndexTmp         )+treeCountIncrement))
+          allocate       (self%informationContent(size(informationContentTmp)+treeCountIncrement))
           self%treeIndex         (1:size(treeIndexTmp         ))=treeIndexTmp
           self%informationContent(1:size(informationContentTmp))=informationContentTmp
-          call deallocateArray(treeIndexTmp         )
-          call deallocateArray(informationContentTmp)
+          deallocate(treeIndexTmp         )
+          deallocate(informationContentTmp)
        end if
        ! Store the information content.
        self%treeCount                         =self              %treeCount+1

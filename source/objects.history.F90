@@ -166,7 +166,6 @@ contains
     Create a history object.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     use :: Numerical_Ranges , only : Make_Range         , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
     class           (history), intent(inout)           :: history_
@@ -181,7 +180,6 @@ contains
        allocate(history_%time  (timesCount             ))
        allocate(history_%data  (timesCount,historyCount))
        if (timesCount > 0) then
-          call Memory_Usage_Record(sizeof(history_%time)+sizeof(history_%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
              if (.not.present(timeEnd)) call Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
@@ -201,29 +199,14 @@ contains
     return
   end subroutine History_Create
 
-  subroutine History_Destroy(history_,recordMemory)
+  subroutine History_Destroy(history_)
     !!{
     Destroy a history.
     !!}
-    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
-    class  (history), intent(inout)           :: history_
-    logical         , intent(in   ), optional :: recordMemory
-    logical                                   :: recordMemoryActual
+    class  (history), intent(inout) :: history_
 
     if (allocated(history_%time)) then
-       if (present(recordMemory)) then
-          recordMemoryActual=recordMemory
-       else
-          recordMemoryActual=.true.
-       end if
-       if (recordMemoryActual) call Memory_Usage_Record(                             &
-            &                                             sizeof(history_%time  ) &
-            &                                            +sizeof(history_%data  ) &
-            &                                           ,memoryType=memoryTypeNodes  &
-            &                                           ,addRemove =-1               &
-            &                                           ,blockCount= 3               &
-            &                                          )
        deallocate(history_%time)
        if (allocated(history_%data)) deallocate(history_%data)
     end if
@@ -235,7 +218,6 @@ contains
     Create a history object.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     use :: Numerical_Ranges , only : Make_Range         , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
     class           (longIntegerHistory), intent(inout)           :: history_
@@ -250,7 +232,6 @@ contains
        allocate(history_%time  (timesCount             ))
        allocate(history_%data  (timesCount,historyCount))
        if (timesCount > 0) then
-          call Memory_Usage_Record(sizeof(history_%time)+sizeof(history_%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
              if (.not.present(timeEnd)) call Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
@@ -270,29 +251,14 @@ contains
     return
   end subroutine History_Long_Integer_Create
 
-  subroutine History_Long_Integer_Destroy(history_,recordMemory)
+  subroutine History_Long_Integer_Destroy(history_)
     !!{
     Destroy a history.
     !!}
-    use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
-    class  (longIntegerHistory), intent(inout)           :: history_
-    logical                    , intent(in   ), optional :: recordMemory
-    logical                                              :: recordMemoryActual
+    class  (longIntegerHistory), intent(inout) :: history_
 
     if (allocated(history_%time)) then
-       if (present(recordMemory)) then
-          recordMemoryActual=recordMemory
-       else
-          recordMemoryActual=.true.
-       end if
-       if (recordMemoryActual) call Memory_Usage_Record(                             &
-            &                                             sizeof(history_%time  ) &
-            &                                            +sizeof(history_%data  ) &
-            &                                           ,memoryType=memoryTypeNodes  &
-            &                                           ,addRemove =-1               &
-            &                                           ,blockCount= 3               &
-            &                                          )
        deallocate(history_%time)
        if (allocated(history_%data)) deallocate(history_%data)
     end if
@@ -379,7 +345,6 @@ contains
     !!{
     Read a history object in binary.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     class  (history), intent(inout) :: self
     integer         , intent(in   ) :: fileHandle
@@ -390,8 +355,8 @@ contains
     read (fileHandle) isAllocated
     if (isAllocated) then
        read (fileHandle) historyShape
-       call allocateArray(self%time,[historyShape(1)])
-       call allocateArray(self%data, historyShape    )
+       allocate(self%time(historyShape(1)                ))
+       allocate(self%data(historyShape(1),historyShape(2)))
        read (fileHandle) self%time
        read (fileHandle) self%data
     end if
@@ -459,7 +424,6 @@ contains
     !!{
     Read a history object in binary.
     !!}
-    use :: Memory_Management, only : allocateArray
     implicit none
     class  (longIntegerHistory), intent(inout) :: self
     integer                    , intent(in   ) :: fileHandle
@@ -470,8 +434,8 @@ contains
     read (fileHandle) isAllocated
     if (isAllocated) then
        read (fileHandle) historyShape
-       call allocateArray(self%time,[historyShape(1)])
-       call allocateArray(self%data, historyShape    )
+       allocate(self%time(historyShape(1)                ))
+       allocate(self%data(historyShape(1),historyShape(2)))
        read (fileHandle) self%time
        read (fileHandle) self%data
     end if
@@ -515,19 +479,18 @@ contains
     !!{
     Clone a history object.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray, memoryTypeNodes
     implicit none
     class(history), intent(inout) :: self
     type (history), intent(in   ) :: historyToClone
 
-    if (allocated(self%time)) call deallocateArray(self%time,memoryType=memoryTypeNodes)
-    if (allocated(self%data)) call deallocateArray(self%data,memoryType=memoryTypeNodes)
+    if (allocated(self%time)) deallocate(self%time)
+    if (allocated(self%data)) deallocate(self%data)
     if (allocated(historyToClone%time)) then
-       call allocateArray(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
+       allocate(self%time(size(historyToClone%time)))
        self%time=historyToClone%time
     end if
     if (allocated(historyToClone%data)) then
-       call allocateArray(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
+       allocate(self%data,mold=historyToClone%data)
        self%data=historyToClone%data
     end if
     self%rangeType=historyToClone%rangeType
@@ -549,19 +512,18 @@ contains
     !!{
     Clone a longIntegerHistory object.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray, memoryTypeNodes
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (longIntegerHistory), intent(in   ) :: historyToClone
 
-    if (allocated(self%time)) call deallocateArray(self%time,memoryType=memoryTypeNodes)
-    if (allocated(self%data)) call deallocateArray(self%data,memoryType=memoryTypeNodes)
+    if (allocated(self%time)) deallocate(self%time)
+    if (allocated(self%data)) deallocate(self%data)
     if (allocated(historyToClone%time)) then
-       call allocateArray(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
+       allocate(self%time(size(historyToClone%time)))
        self%time=historyToClone%time
     end if
     if (allocated(historyToClone%data)) then
-       call allocateArray(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
+       allocate(self%data,mold=historyToClone%data)
        self%data=historyToClone%data
     end if
     self%rangeType=historyToClone%rangeType
@@ -691,7 +653,6 @@ contains
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class           (history), intent(inout)           :: history_
     double precision         , intent(in   )           :: currentTime
@@ -743,8 +704,6 @@ contains
        ! Deallocate the temporary arrays.
        deallocate(temporaryHistory%time  )
        deallocate(temporaryHistory%data  )
-       ! Account for change in memory usage.
-       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(history_%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
     end if
     return
   end subroutine History_Trim
@@ -756,7 +715,6 @@ contains
     !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history ), intent(inout)           :: self
     double precision          , intent(in   )           :: time
@@ -766,8 +724,8 @@ contains
 
     ! Ensure the removed history to be returned is initialized.
     if (present(removedHistory).and.allocated(removedHistory%time)) then
-       call deallocateArray(removedHistory%time)
-       call deallocateArray(removedHistory%data)
+       deallocate(removedHistory%time)
+       deallocate(removedHistory%data)
     end if
     ! Return if no history exists or if the final time is prior to the trim time.
     if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
@@ -779,21 +737,21 @@ contains
     call Move_Alloc(self%data,temporaryHistory%data)
     ! Reallocate history to trimmed size and populate.
     if (trimAt > 1) then
-       call allocateArray(self%time,[trimAt-1                                                ])
-       call allocateArray(self%data,[trimAt-1,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       allocate(self%time(trimAt-1                                  ))
+       allocate(self%data(trimAt-1,size(temporaryHistory%data,dim=2)))
        self%time=temporaryHistory%time(1:trimAt-1  )
        self%data=temporaryHistory%data(1:trimAt-1,:)
     end if
     ! If the trimmed history is to be returned, allocate the arrays and populate.
     if (present(removedHistory)) then
-       call allocateArray(removedHistory%time,[trimCount                                                ])
-       call allocateArray(removedHistory%data,[trimCount,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       allocate(removedHistory%time(trimCount                                  ))
+       allocate(removedHistory%data(trimCount,size(temporaryHistory%data,dim=2)))
        removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
        removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
     end if
     ! Clean up temporary history.
-    call deallocateArray(temporaryHistory%time)
-    call deallocateArray(temporaryHistory%data)
+    deallocate(temporaryHistory%time)
+    deallocate(temporaryHistory%data)
     return
   end subroutine History_Trim_Forward
 
@@ -806,7 +764,6 @@ contains
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class           (longIntegerHistory), intent(inout)           :: history_
     double precision                    , intent(in   )           :: currentTime
@@ -858,8 +815,6 @@ contains
        ! Deallocate the temporary arrays.
        deallocate(temporaryHistory%time  )
        deallocate(temporaryHistory%data  )
-       ! Account for change in memory usage.
-       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(history_%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
     end if
     return
   end subroutine History_Long_Integer_Trim
@@ -871,7 +826,6 @@ contains
     !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)           :: self
     double precision                    , intent(in   )           :: time
@@ -881,8 +835,8 @@ contains
 
     ! Ensure the removed history to be returned is initialized.
     if (present(removedHistory).and.allocated(removedHistory%time)) then
-       call deallocateArray(removedHistory%time)
-       call deallocateArray(removedHistory%data)
+       deallocate(removedHistory%time)
+       deallocate(removedHistory%data)
     end if
     ! Return if no history exists or if the final time is prior to the trim time.
     if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
@@ -894,21 +848,21 @@ contains
     call Move_Alloc(self%data,temporaryHistory%data)
     ! Reallocate history to trimmed size and populate.
     if (trimAt > 1) then
-       call allocateArray(self%time,[trimAt-1                                                ])
-       call allocateArray(self%data,[trimAt-1,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       allocate(self%time(trimAt-1                                  ))
+       allocate(self%data(trimAt-1,size(temporaryHistory%data,dim=2)))
        self%time=temporaryHistory%time(1:trimAt-1  )
        self%data=temporaryHistory%data(1:trimAt-1,:)
     end if
     ! If the trimmed history is to be returned, allocate the arrays and populate.
     if (present(removedHistory)) then
-       call allocateArray(removedHistory%time,[trimCount                                                ])
-       call allocateArray(removedHistory%data,[trimCount,size(temporaryHistory%data,dim=2,kind=c_size_t)])
+       allocate(removedHistory%time(trimCount                                  ))
+       allocate(removedHistory%data(trimCount,size(temporaryHistory%data,dim=2)))
        removedHistory%time=temporaryHistory%time(trimAt:trimAt+trimCount-1  )
        removedHistory%data=temporaryHistory%data(trimAt:trimAt+trimCount-1,:)
     end if
     ! Clean up temporary history.
-    call deallocateArray(temporaryHistory%time)
-    call deallocateArray(temporaryHistory%data)
+    deallocate(temporaryHistory%time)
+    deallocate(temporaryHistory%data)
     return
   end subroutine History_Long_Integer_Trim_Forward
 
@@ -917,7 +871,6 @@ contains
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     type            (longIntegerHistory), intent(in   )                 :: append
@@ -933,16 +886,16 @@ contains
        if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
        if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
-       call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
-       call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
+       allocate(timeTmp(size(self%time)+size(append%time)                      ))
+       allocate(dataTmp(size(self%time)+size(append%time),size(self%data,dim=2)))
        timeTmp(                1:size(self%time)                    )=self  %time
        timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
        dataTmp(                1:size(self%time)                  ,:)=self  %data
        dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
-       call deallocateArray(        self%time)
-       call deallocateArray(        self%data)
-       call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)
+       deallocate     (        self%time)
+       deallocate     (        self%data)
+       call move_alloc(timeTmp,self%time)
+       call move_alloc(dataTmp,self%data)
     end if
     return
   end subroutine History_Long_Integer_Append_History
@@ -952,7 +905,6 @@ contains
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (longIntegerHistory), intent(inout)                 :: self
     double precision                    , intent(in   )                 :: time
@@ -962,8 +914,8 @@ contains
 
     if (.not.allocated(self%time)) then
        ! No pre-existing history - simply copy the history to append.
-       call allocateArray(self%time,[1              ])
-       call allocateArray(self%data,[1,size(append)])
+       allocate(self%time(1              ))
+       allocate(self%data(1,size(append)))
        self%time(1  )=time
        self%data(1,:)=append
     else
@@ -971,16 +923,16 @@ contains
        if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
        if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
-       call allocateArray(timeTmp,[size(self%time)+1                      ])
-       call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
+       allocate(timeTmp(size(self%time)+1                      ))
+       allocate(dataTmp(size(self%time)+1,size(self%data,dim=2)))
        timeTmp(                1:size(self%time)    )=self   %time
        timeTmp(size(self%time)+1                    )=        time
        dataTmp(                1:size(self%time)  ,:)=self   %data
        dataTmp(size(self%time)+1                  ,:)=        append
-       call deallocateArray(        self%time)
-       call deallocateArray(        self%data)
-       call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)
+       deallocate     (        self%time)
+       deallocate     (        self%data)
+       call move_alloc(timeTmp,self%time)
+       call move_alloc(dataTmp,self%data)
     end if
     return
   end subroutine History_Long_Integer_Append_Epoch
@@ -990,7 +942,6 @@ contains
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history), intent(inout)                 :: self
     type            (history), intent(in   )                 :: append
@@ -1006,16 +957,16 @@ contains
        if (append%time(1) <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
        if (size(self%data,dim=2) /= size(append%data,dim=2)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do do the append.
-       call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
-       call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
+       allocate(timeTmp(size(self%time)+size(append%time)                      ))
+       allocate(dataTmp(size(self%time)+size(append%time),size(self%data,dim=2)))
        timeTmp(                1:size(self%time)                    )=self  %time
        timeTmp(size(self%time)+1:size(self%time)+size(append%time)  )=append%time
        dataTmp(                1:size(self%time)                  ,:)=self  %data
        dataTmp(size(self%time)+1:size(self%time)+size(append%time),:)=append%data
-       call deallocateArray(        self%time)
-       call deallocateArray(        self%data)
-       call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)
+       deallocate     (        self%time)
+       deallocate     (        self%data)
+       call move_alloc(timeTmp,self%time)
+       call move_alloc(dataTmp,self%data)
     end if
     return
   end subroutine History_Append_History
@@ -1025,7 +976,6 @@ contains
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (history), intent(inout)                 :: self
     double precision         , intent(in   )                 :: time
@@ -1035,8 +985,8 @@ contains
 
     if (.not.allocated(self%time)) then
        ! No pre-existing history - simply copy the history to append.
-       call allocateArray(self%time,[1              ])
-       call allocateArray(self%data,[1,size(append)])
+       allocate(self%time(1              ))
+       allocate(self%data(1,size(append)))
        self%time(1  )=time
        self%data(1,:)=append
     else
@@ -1044,16 +994,16 @@ contains
        if (time <= self%time(size(self%time))) call Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
        if (size(self%data,dim=2) /= size(append)) call Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
-       call allocateArray(timeTmp,[size(self%time)+1                      ])
-       call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
+       allocate(timeTmp(size(self%time)+1                      ))
+       allocate(dataTmp(size(self%time)+1,size(self%data,dim=2)))
        timeTmp(                1:size(self%time)    )=self   %time
        timeTmp(size(self%time)+1                    )=        time
        dataTmp(                1:size(self%time)  ,:)=self   %data
        dataTmp(size(self%time)+1                  ,:)=        append
-       call deallocateArray(        self%time)
-       call deallocateArray(        self%data)
-       call Move_Alloc   (timeTmp,self%time)
-       call Move_Alloc   (dataTmp,self%data)
+       deallocate     (        self%time)
+       deallocate     (        self%data)
+       call move_alloc(timeTmp,self%time)
+       call move_alloc(dataTmp,self%data)
     end if
     return
   end subroutine History_Append_Epoch
@@ -1404,7 +1354,6 @@ contains
     !!{
     Return an array of time intervals in {\normalfont \ttfamily history\_}.
     !!}
-    use :: Memory_Management, only : allocateArray  , memoryTypeNodes
     use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none
     class           (history)                           , intent(in   ) :: history_
@@ -1412,7 +1361,7 @@ contains
     integer                                                             :: iTime
     double precision                                                    :: ratio
 
-    call allocateArray(timeSteps,shape(history_%time),memoryType=memoryTypeNodes)
+    allocate(timeSteps(size(history_%time)))
     select case (history_%rangeType)
     case (rangeTypeLogarithmic)
        ratio=history_%time(2)/history_%time(1)

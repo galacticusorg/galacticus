@@ -171,7 +171,6 @@ contains
 #ifdef USEMPI
     use :: MPI               , only : MPI_Max_Processor_Name , MPI_Thread_Funneled, MPI_Thread_Single, MPI_Comm_World, &
          &                            MPI_Character
-    use :: Memory_Management , only : allocateArray
     use :: Error             , only : Error_Report
     use :: Hashes            , only : integerHash
     use :: ISO_Varying_String, only : assignment(=)          , operator(==), var_str, operator(//), char
@@ -208,7 +207,7 @@ contains
     mpiSelf%hostName=trim(processorName(1))
     call mpiBarrier()
     ! Construct an array containing all ranks.
-    call allocateArray(mpiSelf%allRanks,[mpiSelf%countValue],[0])
+    allocate(mpiSelf%allRanks(0:mpiSelf%countValue-1))
     forall(i=0:mpiSelf%countValue-1)
        mpiSelf%allRanks(i)=i
     end forall

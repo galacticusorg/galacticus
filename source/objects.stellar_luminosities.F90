@@ -1211,7 +1211,6 @@ contains
     use            :: ISO_Varying_String        , only : assignment(=)           , char                         , extract, operator(==), &
           &                                              var_str
     use            :: Input_Parameters          , only : inputParameters
-    use            :: Memory_Management         , only : deallocateArray
     use            :: Stellar_Luminosities_Data , only : outputCount             , outputRedshifts
     use            :: Stellar_Population_Spectra, only : stellarPopulationSpectra, stellarPopulationSpectraClass
     use            :: String_Handling           , only : String_Split_Words      , char
@@ -1658,7 +1657,6 @@ contains
     Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Memory_Management, only : allocateArray
     implicit none
     integer         (c_size_t      ), intent(in   )               :: expandFrom               , expandCount
     integer                         , intent(inout), dimension(:) :: luminosityMap
@@ -1741,20 +1739,19 @@ contains
     !!{
     Map an array of luminosity-related input parameters into a new array accounting for special case processing.
     !!}
-    use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, intent(inout), allocatable, dimension(:) :: parameters
     double precision               , allocatable, dimension(:) :: parametersMapped
     integer                                                    :: i
 
     ! Allocate new array.
-    call allocateArray(parametersMapped,[luminosityCount])
+    allocate(parametersMapped(luminosityCount))
     ! Map from the old array.
     do i=1,luminosityCount
        parametersMapped(i)=parameters(luminosityMap(i))
     end do
     ! Copy the new array.
-    call deallocateArray(parameters)
+    deallocate(parameters)
     call Move_Alloc(parametersMapped,parameters)
     return
   end subroutine Stellar_Luminosities_Parameter_Map_Double

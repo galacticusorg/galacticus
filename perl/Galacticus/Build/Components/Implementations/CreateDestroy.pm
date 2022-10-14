@@ -123,9 +123,8 @@ CODE
 	if ( exists($code::property->{'classDefault'}->{'code'}) ) {
 	    if ( exists($code::property->{'classDefault'}->{'count'}) ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call allocateArray(self%{$property->{'name'}}Data,[{$property->{'classDefault'}->{'count'}}])
+allocate(self%{$property->{'name'}}Data({$property->{'classDefault'}->{'count'}}))
 CODE
-		$modules{'Memory_Management,only:allocateArray'} = 1;
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 self%{$property->{'name'}}Data={$property->{'classDefault'}->{'code'}}
@@ -142,9 +141,8 @@ CODE
 		$code::property->{'data'}->{'rank'} == 1 
 		) {
 	    	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call allocateArray(self%{$property->{'name'}}Data,[{join(",","0" x $property->{'data'}->{'rank'})}])
+allocate(self%{$property->{'name'}}Data({join(",","0" x $property->{'data'}->{'rank'})}))
 CODE
-		$modules{'Memory_Management,only:allocateArray'} = 1;
 	    }
 	    if (&isIntrinsic($code::property->{'data'}->{'type'})) {
 		%code::nullValues = %intrinsicNulls;
@@ -220,10 +218,6 @@ sub Implementation_Finalization {
 	name        => $code::implementationTypeName."Finalize",
 	description => "Finalize a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	content     => "",
-	modules     =>
-	    [
-	     "Memory_Management"
-	    ],
 	variables   =>
 	    [
 	     {
@@ -270,7 +264,7 @@ CODE
 	}
 	if ( $code::property->{'data'}->{'rank'} > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(self%{$property->{'name'}}Data)) call deallocateArray(self%{$property->{'name'}}Data)
+if (allocated(self%{$property->{'name'}}Data)) deallocate(self%{$property->{'name'}}Data)
 CODE
 	}
     }
@@ -301,7 +295,6 @@ sub Implementation_Builder {
 	    [
 	     "Error, only : Error_Report",
 	     "FoX_DOM, only : node, nodeList, getLength, extractDataContent, getElementsByTagName, item",
-	     "Memory_Management",
 	     "ISO_Varying_String"
 	    ],
 	variables   =>
@@ -402,7 +395,8 @@ CODE
 		    $code::property->{'data'}->{'type'} eq "logical"
 		    ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call allocateArray(self%{$property->{'name'}}Data,[getLength(propertyList)])
+  if (allocated(self%{$property->{'name'}}Data)) deallocate(self%{$property->{'name'}}Data)
+  allocate(self%{$property->{'name'}}Data(getLength(propertyList)))
   do i=1,getLength(propertyList)
     property => item(propertyList,i-1)
     call extractDataContent(property,self%{$property->{'name'}}Data(i))
@@ -414,6 +408,7 @@ CODE
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (allocated(self%{$property->{'name'}})) deallocate(self%{$property->{'name'}})
   allocate(self%{$property->{'name'}}(getLength(propertyList)))
   do i=1,getLength(propertyList)
     property => item(propertyList,i-1)
@@ -466,6 +461,7 @@ CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (getLength(propertyList) >= 1) then
+    if (allocated(self%{$prefix}MetaProperties(i)%values)) deallocate(self%{$prefix}MetaProperties(i)%values)
     allocate(self%{$prefix}MetaProperties(i)%values(getLength(propertyList)))
     do j=1,getLength(propertyList)
      property => item(propertyList,j-1)
