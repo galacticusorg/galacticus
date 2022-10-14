@@ -872,7 +872,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: benchmark-darkMatterOnlySubhalos
-          path: 'testSuite/outputs/benchmark_darkMatterOnlySubhalos.json'
+          path: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
       - run: echo "This job's status is ${{ job.status }}."
   Benchmark-Milky-Way-Model:
     runs-on: ubuntu-latest
@@ -928,7 +928,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: benchmark-milkyWay
-          path: 'testSuite/outputs/benchmark_milkyWay.json'
+          path: testSuite/outputs/benchmark_milkyWay.json
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
@@ -1328,8 +1328,8 @@ jobs:
         with:
           name: validation-darkMatterOnlySubhalos
           path: |
-            'testSuite/outputs/validate_darkMatterOnlySubhalos.json'
-            'testSuite/outputs/results_darkMatterOnlySubhalos.json'
+            ./testSuite/outputs/validate_darkMatterOnlySubhalos.json
+            ./testSuite/outputs/results_darkMatterOnlySubhalos.json
       - run: echo "This job's status is ${{ job.status }}."
   Validate-Milky-Way-Model:
     runs-on: ubuntu-latest
@@ -1382,8 +1382,8 @@ jobs:
         with:
           name: validation-milkyWayModel
           path: |
-            'testSuite/outputs/validate_milkyWayModel.json'
-            'testSuite/outputs/results_milkyWayModel.json'
+            ./testSuite/outputs/validate_milkyWayModel.json
+            ./testSuite/outputs/results_milkyWayModel.json
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
