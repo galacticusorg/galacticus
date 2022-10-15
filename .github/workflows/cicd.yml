@@ -9335,6 +9335,7 @@ jobs:
         run: |
           git checkout gh-pages
           git push --set-upstream origin gh-pages
+          git checkout -
         if: github.event_name != 'pull_request'
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -9356,6 +9357,7 @@ jobs:
         run: |
           git checkout gh-pages
           git push --set-upstream origin gh-pages
+          git checkout -
         if: github.event_name != 'pull_request'
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
@@ -9377,6 +9379,7 @@ jobs:
         run: |
           git checkout gh-pages
           git push --set-upstream origin gh-pages
+          git checkout -
         if: github.event_name != 'pull_request'
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
@@ -9398,6 +9401,7 @@ jobs:
         run: |
           git checkout gh-pages
           git push --set-upstream origin gh-pages
+          git checkout -
         if: github.event_name != 'pull_request'
       - name: Push validation result
         run: |
@@ -9409,6 +9413,7 @@ jobs:
           git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
+          git checkout -
         if: github.event_name != 'pull_request'
   Update-Release-Tag:
     runs-on: ubuntu-latest
