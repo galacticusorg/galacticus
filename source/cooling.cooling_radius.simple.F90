@@ -93,8 +93,8 @@
   type            (treeNode           ), pointer :: simpleNode_
   double precision                               :: simpleCoolingTimeAvailable_
   type            (abundances         )          :: simpleGasAbundances_
-  type            (chemicalAbundances )          :: simpleChemicalDensities_
-  !$omp threadprivate(simpleSelf_,simpleNode_,simpleCoolingTimeAvailable_,simpleGasAbundances_,simpleChemicalDensities_)
+  type            (chemicalAbundances )          :: simpleChemicalFractions_
+  !$omp threadprivate(simpleSelf_,simpleNode_,simpleCoolingTimeAvailable_,simpleGasAbundances_,simpleChemicalFractions_)
 
 contains
 
@@ -286,8 +286,8 @@ contains
           coolingTimeAvailable            =self%coolingTimeAvailable_%timeAvailable            (node)
           coolingTimeAvailableIncreaseRate=self%coolingTimeAvailable_%timeAvailableIncreaseRate(node)
           ! Get gradients of cooling time with density and temperature.
-          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (node,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
-          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
+          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (node,temperature,density,simpleGasAbundances_,simpleChemicalFractions_*density,self%radiation)
+          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,simpleGasAbundances_,simpleChemicalFractions_*density,self%radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
              self%radiusGrowthRateStored=+coolingRadius                                        &
@@ -311,8 +311,8 @@ contains
     !!{
     Return the cooling radius in the simple model.
     !!}
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node
@@ -339,15 +339,16 @@ contains
        if (self%chemicalsCount > 0) then
           chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(simpleChemicalDensities_)
-          ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          if (hotHalo%outerRadius() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+          call chemicalMasses%massToNumber(simpleChemicalFractions_)
+          ! Compute factor converting mass of chemicals in (M☉) to number density per unit total mass density (in cm⁻³ / M☉
+          ! Mpc⁻³).
+          if (hotHalo%mass() > 0.0d0) then
+             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
           else
              massToDensityConversion=0.0d0
-          end if
-          ! Convert to number density.
-          simpleChemicalDensities_=simpleChemicalDensities_*massToDensityConversion
+          end if          
+          ! Convert to number density per unit total mass density.
+          simpleChemicalFractions_=simpleChemicalFractions_*massToDensityConversion
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
@@ -384,14 +385,18 @@ contains
     Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
     !!}
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: coolingTime, density, temperature
-
+    double precision                    , intent(in   ) :: radius
+    double precision                                    :: coolingTime     , density, temperature
+    type            (chemicalAbundances), save          :: densityChemicals
+    !$omp threadprivate(densityChemicals)
+    
     ! Compute density, temperature and abundances.
-    density    =simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
-    temperature=simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
+    density         = simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
+    temperature     = simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
+    densityChemicals= simpleChemicalFractions_ &
+         &           *density
     ! Compute the cooling time at the specified radius.
-    coolingTime=simpleSelf_%coolingTime_              %time       (simpleNode_,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleSelf_%radiation)
+    coolingTime=simpleSelf_%coolingTime_              %time       (simpleNode_,temperature,density,simpleGasAbundances_,densityChemicals,simpleSelf_%radiation)
     ! Return the difference between cooling time and time available.
     coolingRadiusRoot=coolingTime-simpleCoolingTimeAvailable_
     return

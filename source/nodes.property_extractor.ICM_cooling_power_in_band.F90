@@ -233,11 +233,11 @@ contains
     subroutine icmProperties(radius,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM)
       use :: Abundances_Structure             , only : abundances
       use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
+      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
       use :: Galacticus_Nodes                 , only : nodeComponentHotHalo
       use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
       use :: Numerical_Constants_Prefixes     , only : hecto
-      use :: Numerical_Constants_Astronomical , only : massSolar                           , megaParsec
+      use :: Numerical_Constants_Astronomical , only : massSolar                            , megaParsec
       implicit none
       double precision                      , intent(in   ) :: radius
       double precision                      , intent(  out) :: numberDensityHydrogen  , temperature
@@ -259,14 +259,16 @@ contains
       massChemicalICM =  hotHalo%chemicals ()
       call abundancesICM  %massToMassFraction(           massICM)
       call massChemicalICM%massToNumber      (densityChemicalICM)
-      ! Compute factor converting mass of chemicals in (M☉/Mₐₘᵤ) to number density in cm⁻³.
-      if (hotHalo%outerRadius() > 0.0d0) then
-         massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+      ! Compute factor converting mass of chemicals in (M☉) to number density in cm⁻³ per total mass density.
+      if (hotHalo%mass() > 0.0d0) then
+         massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
       else
          massToDensityConversion=0.0d0
       end if
       ! Convert to number density.
-      densityChemicalICM=densityChemicalICM*massToDensityConversion
+      densityChemicalICM= densityChemicalICM      &
+           &             *massToDensityConversion &
+           &             *density
       ! Compute number density of hydrogen (in cm⁻³).
       numberDensityHydrogen=+density                                    &
            &                *abundancesICM   %hydrogenMassFraction()    &
