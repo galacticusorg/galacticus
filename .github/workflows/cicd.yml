@@ -9314,7 +9314,7 @@ jobs:
       - name: Download artifacts (validation-milkyWay)
         uses: actions/download-artifact@v3
         with:
-          name: validation-milkyWay
+          name: validation-milkyWayModel
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
