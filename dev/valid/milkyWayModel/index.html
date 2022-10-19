@@ -163,6 +163,8 @@
 
             const data = [];
             const dataTarget = [];
+            var yMin =  Infinity;
+            var yMax = -Infinity;
             for (let i = 0; i < dataset.data.xDataset.length; i++) {
 	      if ( dataset.data.yDataset[i] != 0.0 ) {
                 const p = {x: dataset.data.xDataset[i], y: dataset.data.yDataset[i]};
@@ -171,6 +173,12 @@
 		  p.yMax = dataset.data.yDataset[i]+dataset.data.yError[i];
                 }
 	        data.push(p);
+                if ( p.yMin < yMin && ( dataset.attributes.yAxisIsLog == 0 || p.yMin > 0.0 ) ) {
+                  yMin = p.yMin;
+                }
+                if ( p.yMax > yMax ) {
+                  yMax = p.yMax;
+                }
               }
 	      if ( dataset.data.yDatasetTarget[i] != 0.0 ) {
                 const p = {x: dataset.data.xDataset[i], y: dataset.data.yDatasetTarget[i]};
@@ -179,6 +187,12 @@
 		  p.yMax = dataset.data.yDatasetTarget[i]+dataset.data.yErrorTarget[i];
                 }
 	        dataTarget.push(p);
+                if ( p.yMin < yMin && ( dataset.attributes.yAxisIsLog == 0 || p.yMin > 0.0 ) ) {
+                  yMin = p.yMin;
+                }
+                if ( p.yMax > yMax ) {
+                  yMax = p.yMax;
+                }
               }
 	    }
             const options = {
@@ -186,7 +200,7 @@
                 x: {
                     ticks: {
                       beginAtZero: false,
-                      callback: (val) => (val.toExponential())
+                      callback: (val) => (val.toExponential(2))
                     },
                     title: {
                       display: true,
@@ -196,12 +210,14 @@
                 y: {
                     ticks: {
                       beginAtZero: false,
-                      callback: (val) => (val.toExponential())
+                      callback: (val) => (val.toExponential(2))
                     },
                     title: {
                       display: true,
                       text: dataset.attributes.yAxisLabel
-                    }
+                    },
+                    min: yMin,
+                    max: yMax
                   },
               },
             };
