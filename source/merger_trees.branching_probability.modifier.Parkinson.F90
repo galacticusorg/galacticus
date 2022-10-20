@@ -30,7 +30,7 @@ Implements a merger tree branching probability rate modifier which uses the mode
     the branching probability is multiplied by:
     \begin{equation}
      G(\delta_\mathrm{p},\sigma_\mathrm{c},\sigma_\mathrm{p}) = G_0
-     \left({\sigma_\mathrm{p}\over\sigma_\mathrm{p}}\right)^{\gamma_1}
+     \left({\sigma_\mathrm{c}\over\sigma_\mathrm{p}}\right)^{\gamma_1}
      \left({\delta_\mathrm{p}\over\sigma_\mathrm{p}}\right)^{\gamma_2}
     \end{equation}
     where $\delta_\mathrm{p}$ is the current critical overdensity for collapse for the parent halo, and $\sigma_\mathrm{c}$ and
