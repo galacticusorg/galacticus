@@ -548,7 +548,7 @@ contains
                    deltaCritical=+self%criticalOverdensity_     %value       (time=self%timeEarliest,mass=branchMassCurrent,node=node) &
                         &        *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow     ,mass=branchMassCurrent          ) &
                         &        /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=branchMassCurrent          )
-               else
+                else
                    deltaCritical=+branchDeltaCriticalCurrent &
                         &        +deltaW
                 end if
@@ -575,29 +575,38 @@ contains
                    if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical1=deltaCritical
                    call basicNew1%massSet(nodeMass1     )
                    call basicNew1%timeSet(deltaCritical1)
-                   ! Create second progenitor.
-                   nodeIndex=nodeIndex+1
-                   nodeNew2  => treeNode(nodeIndex,tree)
-                   basicNew2 => nodeNew2%basic(autoCreate=.true.)
-                   ! Compute the critical overdensity of the second new node.
-                   deltaCritical2=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass2,nodeNew2)
-                   ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
-                   if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
-                   call basicNew2%massSet(nodeMass2     )
-                   call basicNew2%timeSet(deltaCritical2)
-                   !! NOTE: Here we can call our new "nodesInserted" function in the controller with the current and new nodes.
-                   ! Inform the build controller of these new nodes.
-                   call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1,nodeNew2)
-                   ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
-                   if (nodeMass2 > nodeMass1) then
-                      node    %firstChild => nodeNew2
-                      nodeNew2%sibling    => nodeNew1
+                   ! Create second progenitor if it would be above the mass resolution.
+                   if (nodeMass2 > massResolution) then
+                      nodeIndex=nodeIndex+1
+                      nodeNew2  => treeNode(nodeIndex,tree)
+                      basicNew2 => nodeNew2%basic(autoCreate=.true.)
+                      ! Compute the critical overdensity of the second new node.
+                      deltaCritical2=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass2,nodeNew2)
+                      ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
+                      if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
+                      call basicNew2%massSet(nodeMass2     )
+                      call basicNew2%timeSet(deltaCritical2)
+                      ! Inform the build controller of these new nodes.
+                      call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1,nodeNew2)
+                      ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
+                      if (nodeMass2 > nodeMass1) then
+                         node    %firstChild => nodeNew2
+                         nodeNew2%sibling    => nodeNew1
+                      else
+                         node    %firstChild => nodeNew1
+                         nodeNew1%sibling    => nodeNew2
+                      end if
+                      nodeNew1%parent        => node
+                      nodeNew2%parent        => node
                    else
+                      ! Second branch would be subresolution - do not create it.
+                      ! Inform the build controller of the new node.
+                      call self%mergerTreeBuildController_%nodesInserted(node,nodeNew1)
+                      ! Create links from old to new nodes and vice-versa.
                       node    %firstChild => nodeNew1
-                      nodeNew1%sibling    => nodeNew2
+                      nodeNew1%sibling    => null()
+                      nodeNew1%parent     => node
                    end if
-                   nodeNew1%parent        => node
-                   nodeNew2%parent        => node
                    branchIsDone           =  .true.
                 case (.false.)
                    ! No branching occurs - create one progenitor.
