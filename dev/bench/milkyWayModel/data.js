@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665894889259,
+  "lastUpdate": 1666391393783,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -2686,6 +2686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.626470723868,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "fb96dd63391b52e801e8c1059e6ece2ca433efd6",
+          "message": "feat: Set orbital angular positions when assigning orbits for N-body subhalos",
+          "timestamp": "2022-10-21T16:38:01Z",
+          "tree_id": "f58ea1f9452fc5816a5ba4eb827bb3760b114b63",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fb96dd63391b52e801e8c1059e6ece2ca433efd6"
+        },
+        "date": 1666391392687,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 384.363,
+            "unit": "seconds",
+            "range": 0.665732754187385
           }
         ]
       }
