@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665894885180,
+  "lastUpdate": 1666391389835,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -3812,6 +3812,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15567.3185226667,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "fb96dd63391b52e801e8c1059e6ece2ca433efd6",
+          "message": "feat: Set orbital angular positions when assigning orbits for N-body subhalos",
+          "timestamp": "2022-10-21T16:38:01Z",
+          "tree_id": "f58ea1f9452fc5816a5ba4eb827bb3760b114b63",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fb96dd63391b52e801e8c1059e6ece2ca433efd6"
+        },
+        "date": 1666391388323,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.174,
+            "unit": "seconds",
+            "range": 0.0241329650079662
           }
         ]
       }
