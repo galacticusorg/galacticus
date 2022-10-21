@@ -120,12 +120,13 @@
   end interface mergerTreeNodeEvolverStandard
 
   ! Maximum number of trials to solve ODEs.
-  integer                               , parameter :: standardTrialCountMaximum=8
+  integer                                        , parameter :: standardTrialCountMaximum=8
 
   ! Pointer to self and solver.
-  class  (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
-  type   (odeSolver                    ), pointer   :: standardSolver
-  !$omp threadprivate(standardSelf,standardSolver)
+  class           (mergerTreeNodeEvolverStandard), pointer   :: standardSelf
+  type            (odeSolver                    ), pointer   :: standardSolver
+  double precision                                           :: timeStartSaved
+  !$omp threadprivate(standardSelf,standardSolver,timeStartSaved)
   !$GLC ignore outlive :: standardSolver
   
 contains
@@ -391,8 +392,7 @@ contains
     type            (odeSolver                          )                            , target  :: solver
     logical                                                                                    :: solvedAnalytically       , solvedNumerically, &
          &                                                                                        jacobianSolver           , solverInitialized
-    double precision                                                                           :: timeStart                , stepSize         , &
-         &                                                                                        timeStartSaved
+    double precision                                                                           :: timeStart                , stepSize
     integer                                                                                    :: lengthMaximum            , odeStatus        , &
          &                                                                                        odeAlgorithm
     integer         (c_size_t                           )                                      :: i
@@ -1115,21 +1115,23 @@ contains
     return
   end subroutine standardPostStepProcessing
 
-  subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
+  subroutine standardStepErrorAnalyzer(time,timeEnd,currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !!{
     Profiles ODE solver step sizes and errors.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     use            :: Interface_GSL, only : GSL_Success
     implicit none
-    real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyValue
-    real            (kind=c_double ), intent(in   ), dimension(*) :: currentPropertyError
-    real            (kind=c_double ), intent(in   ), value        :: timeStep
-    integer         (kind=c_int    ), intent(in   ), value        :: stepStatus
-    double precision                                              :: scale               , scaledError     , &
-         &                                                           scaledErrorMaximum
-    integer         (c_size_t      )                              :: iProperty           , limitingProperty
-    type            (varying_string)                              :: propertyName
+    real            (kind=c_double ), intent(in   ), dimension(*                                ) :: currentPropertyValue
+    real            (kind=c_double ), intent(in   ), dimension(*                                ) :: currentPropertyError
+    real            (kind=c_double ), intent(in   ), value                                        :: time                , timeEnd         , &
+         &                                                                                           timeStep
+    integer         (kind=c_int    ), intent(in   ), value                                        :: stepStatus
+    double precision                                                                              :: scale               , scaledError     , &
+         &                                                                                           scaledErrorMaximum
+    integer         (c_size_t      )                                                              :: iProperty           , limitingProperty
+    type            (varying_string)                                                              :: propertyName
+    double precision                                , dimension(standardSelf%propertyCountActive) :: scale               , rate
 
     ! Count steps.
     standardSelf%countEvaluationsToSuccess=standardSelf%countEvaluationsToSuccess+1_c_size_t
@@ -1140,9 +1142,10 @@ contains
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     limitingProperty  =-1_c_size_t
+    scale             =+standardSelf%odeToleranceAbsolute*    standardSelf%propertyScalesActive(1:standardSelf%propertyCountActive)  &
+         &             +standardSelf%odeToleranceRelative*abs(             currentPropertyValue(1:standardSelf%propertyCountActive))
     do iProperty=1,standardSelf%propertyCountActive
-       scale      =standardSelf%odeToleranceAbsolute*standardSelf%propertyScalesActive(iProperty)+standardSelf%odeToleranceRelative*abs(currentPropertyValue(iProperty))
-       scaledError=abs(currentPropertyError(iProperty))/scale
+       scaledError=abs(currentPropertyError(iProperty))/scale(iProperty)
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError
           limitingProperty  =iProperty
@@ -1155,8 +1158,10 @@ contains
     else
        propertyName="unknown"
     end if
+    ! Serialize rates.
+    call standardSelf%activeNode%deserializeRates(rate,standardSelf%propertyTypeODE)
     ! Profile the step.
-    call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,propertyName,standardSelf%stepTimer%report())
+    call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,time,timeStartSaved,timeEnd,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,limitingProperty,propertyName,currentPropertyValue(1:standardSelf%propertyCountActive),rate,scale,currentPropertyError(1:standardSelf%propertyCountActive),standardSelf%stepTimer%report())
     ! Reset the count of steps to success.
     standardSelf%countEvaluationsToSuccess=0_c_size_t
     ! Restart the timer.

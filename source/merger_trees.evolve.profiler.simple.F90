@@ -55,8 +55,9 @@
      type            (integerHash)                            :: propertyHits
      type            (treeNode   ), pointer                   :: node                     => null()
    contains
-     final     ::            simpleDestructor
-     procedure :: profile => simpleProfile
+     final     ::                   simpleDestructor
+     procedure :: stepDescriptor => simpleStepDescriptor
+     procedure :: profile        => simpleProfile
   end type mergerTreeEvolveProfilerSimple
 
   interface mergerTreeEvolveProfilerSimple
@@ -107,6 +108,18 @@ contains
     return
   end function simpleConstructorParameters
 
+  subroutine simpleStepDescriptor(self,descriptor)
+    !!{
+    Set the descriptor for the current step.
+    !!}
+    implicit none
+    class(mergerTreeEvolveProfilerSimple), intent(inout) :: self
+    type (varying_string                ), intent(in   ) :: descriptor
+    !$GLC attributes unused :: self, descriptor
+    
+    return
+  end subroutine simpleStepDescriptor
+  
   function simpleConstructorInternal(timeStepMinimum,timeStepMaximum,timeStepPointsPerDecade) result(self)
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -241,21 +254,27 @@ contains
     return
   end subroutine simpleDestructor
 
-  subroutine simpleProfile(self,node,timestep,countEvaluations,interrupted,propertyName,timeCPU)
+  subroutine simpleProfile(self,node,time,timeStart,timeEnd,timestep,countEvaluations,interrupted,propertyIndex,propertyName,propertyValue,propertyRate,propertyScale,propertyError,timeCPU)
     !!{
     Profile the differential evolution step.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Arrays_Search, only : searchArray
     implicit none
-    class           (mergerTreeEvolveProfilerSimple), intent(inout) :: self
-    type            (treeNode                      ), intent(in   ) :: node
-    double precision                                , intent(in   ) :: timeStep        , timeCPU
-    integer         (c_size_t                      ), intent(in   ) :: countEvaluations
-    logical                                         , intent(in   ) :: interrupted
-    type            (varying_string                ), intent(in   ) :: propertyName
-    integer                                                         :: hitCount
-    integer         (c_size_t                      )                :: i
+    class           (mergerTreeEvolveProfilerSimple), intent(inout)               :: self
+    type            (treeNode                      ), intent(in   )               :: node
+    double precision                                , intent(in   )               :: time            , timeStep     , &
+         &                                                                           timeStart       , timeEnd      , &
+         &                                                                           timeCPU
+    integer         (c_size_t                      ), intent(in   )               :: countEvaluations
+    logical                                         , intent(in   )               :: interrupted
+    integer         (c_size_t                      ), intent(in   )               :: propertyIndex
+    type            (varying_string                ), intent(in   )               :: propertyName
+    double precision                                , intent(in   ), dimension(:) :: propertyValue   , propertyScale, &
+         &                                                                           propertyError   , propertyRate
+    integer                                                                       :: hitCount
+    integer         (c_size_t                      )                              :: i
+    !$GLC attributes unused :: time, timeStart, timeEnd, propertyIndex, propertyValue, propertyScale, propertyError, propertyRate
 
     ! Accumulate timestep.
     i                                    =searchArray(self%timeStep,timeStep)
