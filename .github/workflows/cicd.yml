@@ -872,7 +872,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: benchmark-darkMatterOnlySubhalos
-          path: 'testSuite/outputs/benchmark_darkMatterOnlySubhalos.json'
+          path: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
       - run: echo "This job's status is ${{ job.status }}."
   Benchmark-Milky-Way-Model:
     runs-on: ubuntu-latest
@@ -928,7 +928,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: benchmark-milkyWay
-          path: 'testSuite/outputs/benchmark_milkyWay.json'
+          path: testSuite/outputs/benchmark_milkyWay.json
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
@@ -1328,8 +1328,8 @@ jobs:
         with:
           name: validation-darkMatterOnlySubhalos
           path: |
-            'testSuite/outputs/validate_darkMatterOnlySubhalos.json'
-            'testSuite/outputs/results_darkMatterOnlySubhalos.json'
+            ./testSuite/outputs/validate_darkMatterOnlySubhalos.json
+            ./testSuite/outputs/results_darkMatterOnlySubhalos.json
       - run: echo "This job's status is ${{ job.status }}."
   Validate-Milky-Way-Model:
     runs-on: ubuntu-latest
@@ -1382,8 +1382,8 @@ jobs:
         with:
           name: validation-milkyWayModel
           path: |
-            'testSuite/outputs/validate_milkyWayModel.json'
-            'testSuite/outputs/results_milkyWayModel.json'
+            ./testSuite/outputs/validate_milkyWayModel.json
+            ./testSuite/outputs/results_milkyWayModel.json
       - name: "Clean datasets"
         run: |
           echo Removing outdated dynamically-generated datasets
@@ -9314,7 +9314,7 @@ jobs:
       - name: Download artifacts (validation-milkyWay)
         uses: actions/download-artifact@v3
         with:
-          name: validation-milkyWay
+          name: validation-milkyWayModel
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9331,6 +9331,12 @@ jobs:
           alert-threshold: 150%
           fail-threshold: 200%
           max-items-in-chart: 256
+      - name: Push benchmark result
+        run: |
+          git checkout gh-pages
+          git push --set-upstream origin gh-pages
+          git checkout -
+        if: github.event_name != 'pull_request'
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9347,6 +9353,12 @@ jobs:
           alert-threshold: 150%
           fail-threshold: 200%
           max-items-in-chart: 256
+      - name: Push benchmark result
+        run: |
+          git checkout gh-pages
+          git push --set-upstream origin gh-pages
+          git checkout -
+        if: github.event_name != 'pull_request'
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9363,6 +9375,12 @@ jobs:
           alert-threshold: 110%
           fail-threshold: 120%
           max-items-in-chart: 256
+      - name: Push benchmark result
+        run: |
+          git checkout gh-pages
+          git push --set-upstream origin gh-pages
+          git checkout -
+        if: github.event_name != 'pull_request'
       - name: Store validation result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -9379,6 +9397,12 @@ jobs:
           alert-threshold: 110%
           fail-threshold: 120%
           max-items-in-chart: 256
+      - name: Push benchmark result
+        run: |
+          git checkout gh-pages
+          git push --set-upstream origin gh-pages
+          git checkout -
+        if: github.event_name != 'pull_request'
       - name: Push validation result
         run: |
           git checkout gh-pages
@@ -9389,6 +9413,7 @@ jobs:
           git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
+          git checkout -
         if: github.event_name != 'pull_request'
   Update-Release-Tag:
     runs-on: ubuntu-latest

@@ -27,13 +27,13 @@ module Chemical_Reaction_Rates_Utilities
   !!}
   implicit none
   private
-  public :: Chemicals_Mass_To_Density_Conversion
+  public :: Chemicals_Mass_To_Density_Conversion, Chemicals_Mass_To_Fraction_Conversion
 
 contains
 
   double precision function Chemicals_Mass_To_Density_Conversion(radius)
     !!{
-    Returns the conversion factor from mass of chemicals in ($M_\odot/M_\mathrm{atomic}$) to number density in cm$^{-3}$ assuming
+    Returns the conversion factor from mass of chemicals in ($M_\odot$) to number density in cm$^{-3}$ assuming
     that the mass is distributed uniformly in a sphere of the given {\normalfont \ttfamily radius} (in Mpc).
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar     , megaParsec
@@ -46,5 +46,20 @@ contains
     Chemicals_Mass_To_Density_Conversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*radius)**3
     return
   end function Chemicals_Mass_To_Density_Conversion
+
+  double precision function Chemicals_Mass_To_Fraction_Conversion(massTotal)
+    !!{
+    Returns the conversion factor from mass of chemicals in ($M_\odot$) to a number density (in cm$^{-3}$) per unit total mass
+    density given a total {\normalfont \ttfamily mass} (in $\mathrm{M}_\odot$).
+    !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar     , megaParsec
+    use :: Numerical_Constants_Atomic      , only : atomicMassUnit
+    use :: Numerical_Constants_Prefixes    , only : hecto
+    implicit none
+    double precision, intent(in   ) :: massTotal
+
+    Chemicals_Mass_To_Fraction_Conversion=massSolar/atomicMassUnit/(hecto*megaParsec)**3/massTotal
+    return
+  end function Chemicals_Mass_To_Fraction_Conversion
 
 end module Chemical_Reaction_Rates_Utilities
