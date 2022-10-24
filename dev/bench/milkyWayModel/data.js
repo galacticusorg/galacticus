@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1666391400970,
+  "lastUpdate": 1666603487611,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -2770,6 +2770,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6635731975341,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "24d4108614fb41085bed168070405b38f5ce936e",
+          "message": "fix: Use isotropic orbits",
+          "timestamp": "2022-10-24T04:45:14Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/24d4108614fb41085bed168070405b38f5ce936e"
+        },
+        "date": 1666603486298,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 380.792,
+            "unit": "seconds",
+            "range": 1.40244486522662
           }
         ]
       }
