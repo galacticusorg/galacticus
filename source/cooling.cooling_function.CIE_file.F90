@@ -331,7 +331,7 @@ contains
     use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout)  :: self 
-    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), intent(inout)  :: node
     double precision                        , intent(in   )  :: numberDensityHydrogen, temperature        , &
          &                                                      energyLow            , energyHigh
     type            (abundances            ), intent(in   )  :: gasAbundances

@@ -95,6 +95,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
     !!}
+    use            :: Error               , only : Component_List      , Error_Report
+    use            :: Galacticus_Nodes    , only : defaultSpinComponent
     implicit none
     type            (virialOrbitSpinCorrelated)                        :: self
     double precision                           , intent(in   )         :: alpha
@@ -104,6 +106,16 @@ contains
     <constructorAssign variables="alpha, *virialOrbit_, *darkMatterProfileDMO_"/>
     !!]
 
+    if (.not.defaultSpinComponent%angularMomentumVectorIsGettable())                                                             &
+            & call Error_Report                                                                                                  &
+            &      (                                                                                                             &
+            &       'spin-correlated orbits require that the angularMomentumVector property of the spin component be gettable'// &
+            &       Component_List(                                                                                              &
+            &                      'spin'                                                                                     ,  &
+            &                       defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.)             &
+            &                     )                                                                                           // &
+            &       {introspection:location}                                                                                     &
+            &      )
     return
   end function spinCorrelatedConstructorInternal
 

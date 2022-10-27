@@ -3372,6 +3372,8 @@ contains
     call orbit%radiusSet            (                                                   Vector_Magnitude(position))
     call orbit%velocityRadialSet    (                    Dot_Product(velocity,position)/Vector_Magnitude(position))
     call orbit%velocityTangentialSet(Vector_Magnitude(Vector_Product(velocity,position)/Vector_Magnitude(position)))
+    call orbit%thetaSet             (acos (position(3)/sqrt(sum(position**2))            ))
+    call orbit%phiSet               (atan2(position(2)                       ,position(1)))
     return
   end function readOrbitConstruct
 

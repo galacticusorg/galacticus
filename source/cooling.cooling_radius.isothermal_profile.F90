@@ -284,8 +284,8 @@ contains
     !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusIsothermal), intent(inout), target  :: self
     type            (treeNode               ), intent(inout), target  :: node
@@ -295,7 +295,7 @@ contains
          &                                                               density          , massToDensityConversion, &
          &                                                               temperature      , radiusVirial
     type            (abundances             )                         :: hotAbundances
-    type            (chemicalAbundances     )                         :: chemicalDensities, chemicalMasses
+    type            (chemicalAbundances     )                         :: chemicalFractions, chemicalMasses
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -311,11 +311,14 @@ contains
        if (self%chemicalsCount > 0) then
           chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalDensities)
-          ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))
-          ! Convert to number density.
-          chemicalDensities=chemicalDensities*massToDensityConversion
+          call chemicalMasses%massToNumber(chemicalFractions)
+          if (hotHalo%mass() > 0.0d0) then
+             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
+          else
+             massToDensityConversion=0.0d0
+          end if          
+          ! Convert to number density per unit total mass density.
+          chemicalFractions=chemicalFractions*massToDensityConversion
        end if
        ! Set epoch for radiation field.
        basic => node%basic()
@@ -326,7 +329,7 @@ contains
        density     =self%hotHaloMassDistribution_  %density    (node,radiusVirial)
        temperature =self%hotHaloTemperatureProfile_%temperature(node,radiusVirial)
        ! Compute the cooling time at the virial radius.
-       coolingTime =self%coolingTime_              %time       (node,temperature,density,hotAbundances,chemicalDensities,self%radiation)
+       coolingTime =self%coolingTime_              %time       (node,temperature,density,hotAbundances,chemicalFractions*density,self%radiation)
        if (coolingTime < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=radiusVirial

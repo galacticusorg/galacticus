@@ -120,6 +120,15 @@ module Bessel_Functions
        real   (c_double), value :: x
      end function gsl_sf_bessel_In
 
+     function gsl_sf_bessel_Inu(nu,x) bind(c,name='gsl_sf_bessel_Inu')
+       !!{
+       Template for the GSL I₁ Bessel function.
+       !!}
+       import
+       real(c_double)        :: gsl_sf_bessel_Inu
+       real(c_double), value :: nu              , x
+     end function gsl_sf_bessel_Inu
+
      function gsl_sf_bessel_K0(x) bind(c,name='gsl_sf_bessel_K0')
        !!{
        Template for the GSL K₀ Bessel function.
@@ -139,6 +148,12 @@ module Bessel_Functions
      end function gsl_sf_bessel_K1
   end interface
 
+  ! Generic interfaces.
+  interface Bessel_Function_In
+     module procedure Bessel_Function_In_Integer_Order
+     module procedure Bessel_Function_In_Fractional_Order
+  end interface Bessel_Function_In
+     
 contains
 
   double precision function Bessel_Function_J0(argument)
@@ -253,16 +268,27 @@ contains
     return
   end function Bessel_Function_I1
 
-  double precision function Bessel_Function_In(n,argument)
+  double precision function Bessel_Function_In_Integer_Order(n,argument) result(In)
     !!{
-    Computes the $I_n$ Bessel function.
+    Computes the $I_n$ Bessel function for integer order.
     !!}
     implicit none
     integer         , intent(in   ) :: n
     double precision, intent(in   ) :: argument
 
-    Bessel_Function_In=GSL_SF_Bessel_In(n,argument)
+    In=GSL_SF_Bessel_In(n,argument)
     return
-  end function Bessel_Function_In
+  end function Bessel_Function_In_Integer_Order
+
+  double precision function Bessel_Function_In_Fractional_Order(n,argument) result(In)
+    !!{
+    Computes the $I_n$ Bessel function for fractional order.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: n, argument
+
+    In=GSL_SF_Bessel_Inu(n,argument)
+    return
+  end function Bessel_Function_In_Fractional_Order
 
 end module Bessel_Functions

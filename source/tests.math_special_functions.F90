@@ -57,7 +57,8 @@ program Test_Math_Special_Functions
        &                             hypergeometric2F1NegativeArgument                                                                                                                                                           , hypergeometric2F1approxNegativeArgument    , &
        &                             hypergeometric3F2NegativeArgument                                                                                                                                                           , hypergeometric3F2Accelerated               , &
        &                             polylogarithm2                                                                                                                                                                              , polylogarithm3                             , &
-       &                             hypergeometric1F2Regularized                                                                                                                                                                , BesselI2
+       &                             hypergeometric1F2Regularized                                                                                                                                                                , BesselI2                                   , &
+       &                             BesselIHalf
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
@@ -80,6 +81,7 @@ program Test_Math_Special_Functions
      BesselI0                                   (i)=Bessel_Function_I0                             (                                          argument(i)                                      )
      BesselI1                                   (i)=Bessel_Function_I1                             (                                          argument(i)                                      )
      BesselI2                                   (i)=Bessel_Function_In                             (2                                ,        argument(i)                                      )
+     BesselIHalf                                (i)=Bessel_Function_In                             (0.5d0                            ,        argument(i)                                      )
      sineIntegral                               (i)=Sine_Integral                                  (                                          argument(i)                                      )
      cosineIntegral                             (i)=Cosine_Integral                                (                                          argument(i)                                      )
      factorials                                 (i)=Factorial                                      (                                                   i                                       )
@@ -277,6 +279,22 @@ program Test_Math_Special_Functions
        &        +3.275958315261646d+2, &
        &        +8.644961939520510d+2, &
        &        +2.281518967726002d+3  &
+       &       ],                      &
+       &       relTol=1.0d-6           &
+       &     )
+  call Assert("Bessel I½(x)",          &
+       &       BesselIHalf,            &
+       &       [                       &
+       &        +9.376748882454880d-1, &
+       &        +2.046236863089055d+0, &
+       &        +4.614822903407601d+0, &
+       &        +1.088710179858842d+1, &
+       &        +2.647754749755906d+1, &
+       &        +6.570503691665827d+1, &
+       &        +1.653567995485437d+2, &
+       &        +4.204563140044776d+2, &
+       &        +1.077554243705911d+3, &
+       &        +2.778784603874571d+3  &
        &       ],                      &
        &       relTol=1.0d-6           &
        &     )

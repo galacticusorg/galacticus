@@ -47,12 +47,19 @@ size_t mallinfo2_c() {
 #ifdef mallinfo2_available
   struct mallinfo2 info;
   info = mallinfo2();
-  return info.uordblks;
+  return info.uordblks+info.usmblks+info.hblkhd;
 #else
   struct mallinfo info;
   info = mallinfo();
   size_t uordblks = info.uordblks;
-  return uordblks;
+  size_t usmblks  = info.usmblks ;
+  size_t hblkhd   = info.hblkhd  ;
+  // Old mallinfo() uses ints which can overflow and become negative. Trap that here - there's nothing more we can do about
+  // this. Newer glibcs support mallinfo2() which does not have this problem.
+  if (uordblks < 0) uordblks=0;
+  if (usmblks  < 0) usmblks =0;
+  if (hblkhd   < 0) hblkhd  =0;
+  return uordblks+usmblks+hblkhd;
 #endif
 #endif
 }
