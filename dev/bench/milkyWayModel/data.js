@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1666603496579,
+  "lastUpdate": 1666928380974,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -2850,6 +2850,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6635731975341,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a47ff0c17d4558c1ed3ce985513cb63fcd161860",
+          "message": "feat: Add support for fractional order regular modified Bessel functions",
+          "timestamp": "2022-10-27T21:53:18Z",
+          "tree_id": "9a9746007df0b1060406674b1ab3e2b8874f2de2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a47ff0c17d4558c1ed3ce985513cb63fcd161860"
+        },
+        "date": 1666928380019,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 372.957,
+            "unit": "seconds",
+            "range": 1.73941947212342
           }
         ]
       }
