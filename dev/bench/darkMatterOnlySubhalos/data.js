@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1666928377065,
+  "lastUpdate": 1666928384697,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -3976,6 +3976,45 @@ window.BENCHMARK_DATA = {
             "value": 50.088,
             "unit": "seconds",
             "range": 0.0215777663339221
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a47ff0c17d4558c1ed3ce985513cb63fcd161860",
+          "message": "feat: Add support for fractional order regular modified Bessel functions",
+          "timestamp": "2022-10-27T21:53:18Z",
+          "tree_id": "9a9746007df0b1060406674b1ab3e2b8874f2de2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a47ff0c17d4558c1ed3ce985513cb63fcd161860"
+        },
+        "date": 1666928383797,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 56.3309328806202,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.5649806186116,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 15567.3185226667,
+            "unit": "-logℒ"
           }
         ]
       }
