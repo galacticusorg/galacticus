@@ -91,7 +91,7 @@
           &                                                                              odeTolerancesInactiveRelative                , odeTolerancesInactiveAbsolute
      logical                                                                          :: profileOdeEvolver                            , reuseODEStepSize
      integer         (kind=kind_int8                     )                            :: activeTreeIndex
-     type            (treeNode                           ), pointer                   :: activeNode
+     type            (treeNode                           ), pointer                   :: activeNode                          => null()
      integer                                                                          :: trialCount                                   , propertyTypeODE              , &
           &                                                                              propertyTypeIntegrator
      logical                                                                          :: interruptFirstFound
@@ -1159,7 +1159,7 @@ contains
        propertyName="unknown"
     end if
     ! Serialize rates.
-    call standardSelf%activeNode%deserializeRates(rate,standardSelf%propertyTypeODE)
+    call standardSelf%activeNode%serializeRates(rate,standardSelf%propertyTypeODE)
     ! Profile the step.
     call standardSelf%mergerTreeEvolveProfiler_%profile(standardSelf%activeNode,time,timeStartSaved,timeEnd,timeStep,standardSelf%countEvaluationsToSuccess,standardSelf%interruptFirstFound,limitingProperty,propertyName,currentPropertyValue(1:standardSelf%propertyCountActive),rate,scale,currentPropertyError(1:standardSelf%propertyCountActive),standardSelf%stepTimer%report())
     ! Reset the count of steps to success.
