@@ -342,13 +342,15 @@ contains
     logical                                                                                           :: computeTable                                  , calculateLuminosity                  , &
          &                                                                                               stellarPopulationHashedDescriptorComputed     , copyDone
     double precision                                                                                  :: toleranceRelative                             , normalization
-    type            (varying_string                                )                                  :: message                                       , luminositiesFileName                 , &
+    type            (varying_string                                ), save                            :: message                                       , luminositiesFileName                 , &
          &                                                                                               descriptorString                              , stellarPopulationHashedDescriptor    , &
          &                                                                                               postprocessorHashedDescriptor
+    !$omp threadprivate(message,luminositiesFileName,descriptorString, stellarPopulationHashedDescriptor,postprocessorHashedDescriptor)
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
-    type            (hdf5Object                                    )                                  :: luminositiesFile
-
+    type            (hdf5Object                                    ), save                            :: luminositiesFile
+    !$omp threadprivate(luminositiesFile)
+    
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()
     ! Allocate table storage. First test if the tables must be resized (or allocated).
