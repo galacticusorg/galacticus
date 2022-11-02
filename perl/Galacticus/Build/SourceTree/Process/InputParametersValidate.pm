@@ -121,7 +121,9 @@ sub Process_InputParametersValidate {
 		content    => $code            ,
 		sibling    => undef()          ,
 		parent     => $node->{'parent'},
-		firstChild => undef()
+		firstChild => undef()          ,
+		source     => "Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate()",
+		line       => 1
 	    };
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$codeNode]);
 	}
