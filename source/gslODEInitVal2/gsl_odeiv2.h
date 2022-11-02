@@ -51,5 +51,5 @@ int gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
 			      const double t1, double y[],
 			      void(*postStep)(double t, double y[], int *s),
 			      void(*latentIntegrator)(double *t),
-			      void(*stepAnalyzer)(double y[], double yerr[], double h, int s)
+			      void(*stepAnalyzer)(double t, double t1, double y[], double yerr[], double h, int s)
 			      );
