@@ -164,9 +164,9 @@ contains
        !   to the excursion set problem must always be a function of δc(M,t)/√S(M,t) then we can simply scale δc by the ratio of
        !   root-variances for the progenitor at the current and earlier times.
        timeProgenitor       =+time*(1.0d0-fractionalTimeChange)
-       massProgenitor       =+self%cosmologicalMassVariance_%mass        (varianceProgenitor,time          )
-       growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(    massProgenitor,time          ) &
-            &                /self%cosmologicalMassVariance_%rootVariance(    massProgenitor,timeProgenitor)
+       massProgenitor       =+self%cosmologicalMassVariance_%mass        (sqrt(varianceProgenitor),time          )
+       growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(         massProgenitor ,time          ) &
+            &                /self%cosmologicalMassVariance_%rootVariance(         massProgenitor ,timeProgenitor)
        linearBarrierRate    =+     barrierEffective(variance,time,variance          ,timeProgenitor)    &
             &                *exp(                                                                      &
             &                     -0.5d0                                                                &
