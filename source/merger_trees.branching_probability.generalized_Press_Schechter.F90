@@ -77,6 +77,8 @@ Implements a merger tree branching probability class using a generalized Press-S
 
      ! Record of mass resolution.
      double precision                                                       :: resolutionSigma                                     , massResolutionPrevious
+     ! Record of parent time.
+     double precision                                                       :: parentTimePrevious
      ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
      double precision                                                       :: deltaStepMaximum
      ! The maximum sigma that we expect to find.
@@ -210,6 +212,7 @@ contains
     self%excursionSetsTested                        =.false.
     self%subresolutionFractionIntegrandFailureWarned=.false.
     self%massResolutionPrevious                     =-1.0d0
+    self%parentTimePrevious                         =-1.0d0
     self%timeNow                                    =self%cosmologyFunctions_      %cosmicTime  (                      1.0d0  )
     self%sigmaMaximum                               =self%cosmologicalMassVariance_%rootVariance(self%massMinimum,self%timeNow)
     self%finder                                     =rootFinder(                                                                           &
@@ -425,6 +428,16 @@ contains
 
     ! Get sigma and delta_critical for the parent halo.
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
+    ! Update the root-variances corresponding to the mass resolution and the minimum subresolution halo if the mass resolution
+    ! or the time of parent halo changes.
+    if (massResolution /= self%massResolutionPrevious .or. self%parentTime /= self%parentTimePrevious) then
+       self%resolutionSigma       =self%cosmologicalMassVariance_%rootVariance(     massResolution,self%parentTime)
+       self%massResolutionPrevious=massResolution
+       if (self%parentTime /= self%parentTimePrevious) then
+          self%sigmaMaximum       =self%cosmologicalMassVariance_%rootVariance(self%massMinimum   ,self%parentTime)
+          self%parentTimePrevious =self%parentTime
+       end if
+    end if
     ! If requested, compute the rate of smooth accretion.
     if (self%smoothAccretion) then
        generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                                                            &
@@ -432,11 +445,6 @@ contains
             &                                         *    self%mergerTreeBranchingProbabilityModifier_%rateModifier   (node,haloMass,self%parentSigma       ,self%sigmaMaximum,self%parentTime     )
     else
        generalizedPressSchechterFractionSubresolution=0.0d0
-    end if
-
-    if (massResolution /= self%massResolutionPrevious) then
-       self%resolutionSigma       =self%cosmologicalMassVariance_%rootVariance(massResolution,self%parentTime)
-       self%massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=self%resolutionSigma/self%parentSigma
     if (resolutionSigmaOverParentSigma >= 1.0d0) then
