@@ -41,8 +41,10 @@ Contains a module which implements a excursion set first crossing statistics cla
      A linearBarrier excursion set barrier class.
      !!}
      private
-     class(excursionSetBarrierClass     ), pointer :: excursionSetBarrier_      => null()
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (excursionSetBarrierClass     ), pointer :: excursionSetBarrier_      => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     ! The fractional step in time used to compute barrier crossing rates.
+     double precision                                         :: fractionalTimeStep
    contains
      final     ::                    linearBarrierDestructor
      procedure :: probability     => linearBarrierProbability
@@ -66,16 +68,23 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (excursionSetFirstCrossingLinearBarrier)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(excursionSetBarrierClass              ), pointer       :: excursionSetBarrier_
-    class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
+    type            (excursionSetFirstCrossingLinearBarrier)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    class           (excursionSetBarrierClass              ), pointer       :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
+    double precision                                                        :: fractionalTimeStep
 
     !![
+    <inputParameter>
+      <name>fractionalTimeStep</name>
+      <defaultValue>0.01d0</defaultValue>
+      <source>parameters</source>
+      <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
+    </inputParameter>
     <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_,cosmologicalMassVariance_)
+    self=excursionSetFirstCrossingLinearBarrier(fractionalTimeStep,excursionSetBarrier_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"     />
@@ -84,16 +93,17 @@ contains
     return
   end function linearBarrierConstructorParameters
 
-  function linearBarrierConstructorInternal(excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function linearBarrierConstructorInternal(fractionalTimeStep,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !!{
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     implicit none
-    type (excursionSetFirstCrossingLinearBarrier)                        :: self
-    class(excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
-    class(cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
+    type            (excursionSetFirstCrossingLinearBarrier)                        :: self
+    double precision                                        , intent(in   )         :: fractionalTimeStep
+    class           (excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
     !![
-    <constructorAssign variables="*excursionSetBarrier_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="fractionalTimeStep, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
     !!]
 
     return
@@ -148,7 +158,6 @@ contains
     double precision                                        , intent(in   ) :: variance                   , varianceProgenitor, &
          &                                                                     time
     type            (treeNode                              ), intent(inout) :: node
-    double precision                                        , parameter     :: fractionalTimeChange=1.0d-3
     double precision                                                        :: timeProgenitor             , massProgenitor    , &
          &                                                                     growthFactorEffective
 
@@ -163,7 +172,7 @@ contains
        !   account for the fact that, at a fixed mass, the root variance will be smaller at that earlier time. Since the solution
        !   to the excursion set problem must always be a function of δc(M,t)/√S(M,t) then we can simply scale δc by the ratio of
        !   root-variances for the progenitor at the current and earlier times.
-       timeProgenitor       =+time*(1.0d0-fractionalTimeChange)
+       timeProgenitor       =+time*(1.0d0-self%fractionalTimeStep)
        massProgenitor       =+self%cosmologicalMassVariance_%mass        (sqrt(varianceProgenitor),time          )
        growthFactorEffective=+self%cosmologicalMassVariance_%rootVariance(         massProgenitor ,time          ) &
             &                /self%cosmologicalMassVariance_%rootVariance(         massProgenitor ,timeProgenitor)
@@ -180,7 +189,7 @@ contains
             &                      *(+varianceProgenitor-variance)                                      &
             &                     )                                                                     &
             &                /time                                                                      &
-            &                /fractionalTimeChange
+            &                /self%fractionalTimeStep
        linearBarrierRate    =max(                   &
             &                    linearBarrierRate, &
             &                    0.0d0              &
