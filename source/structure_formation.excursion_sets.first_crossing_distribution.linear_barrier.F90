@@ -214,18 +214,46 @@ contains
 
   end function linearBarrierRate
 
-  double precision function linearBarrierRateNonCrossing(self,variance,time,node)
+  double precision function linearBarrierRateNonCrossing(self,variance,varianceMaximum,time,node)
     !!{
-    Return the rate for excursion set non-crossing assuming a linearBarrier barrier. For a linearBarrier barrier the integral over the
-    crossing probability (from zero to infinite variance) equals unity, so all trajectories cross. The non-crossing rate is
-    therefore zero.
+    Return the rate for excursion set non-crossing assuming a linearBarrier barrier.
     !!}
+    use :: Error_Functions, only : Error_Function
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
-    double precision                                        , intent(in   ) :: time, variance
+    double precision                                        , intent(in   ) :: time                           , variance                    , &
+         &                                                                     varianceMaximum
     type            (treeNode                              ), intent(inout) :: node
-    !$GLC attributes unused :: self, time, variance, node
+    double precision                                                        :: massMinimum                    , timeProgenitor              , &
+         &                                                                     growthFactorEffective          , barrierEffectiveZeroVariance, &
+         &                                                                     barrierEffectiveMaximumVariance, barrierEffectiveGradient    , &
+         &                                                                     varianceDifference
 
-    linearBarrierRateNonCrossing=0.0d0
+    if (variance < varianceMaximum) then
+       timeProgenitor                 =+time*(1.0d0-self%fractionalTimeStep)
+       massMinimum                    =+self%cosmologicalMassVariance_%mass        (sqrt(varianceMaximum),time          )
+       growthFactorEffective          =+self%cosmologicalMassVariance_%rootVariance(         massMinimum ,time          ) &
+            &                          /self%cosmologicalMassVariance_%rootVariance(         massMinimum ,timeProgenitor)
+       barrierEffectiveZeroVariance   =+self%excursionSetBarrier_%barrier        (variance       ,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective &
+            &                          -self%excursionSetBarrier_%barrier        (variance       ,time          ,node,rateCompute=.false.)
+       barrierEffectiveMaximumVariance=+self%excursionSetBarrier_%barrier        (varianceMaximum,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective &
+            &                          -self%excursionSetBarrier_%barrier        (variance       ,time          ,node,rateCompute=.false.)
+       barrierEffectiveGradient       =+self%excursionSetBarrier_%barrierGradient(varianceMaximum,timeProgenitor,node,rateCompute=.false.)*growthFactorEffective
+       varianceDifference             =+varianceMaximum-variance
+       linearBarrierRateNonCrossing   =+0.5d0                                                                                                                 &
+            &                          *(                                                                                                                     &
+            &                            +1.0d0                                                                                                               &
+            &                            -exp(-2.0d0*barrierEffectiveZeroVariance*barrierEffectiveGradient)                                                   &
+            &                            +Error_Function(                                    barrierEffectiveMaximumVariance /sqrt(2.0d0*varianceDifference)) &
+            &                            +exp(-2.0d0*barrierEffectiveZeroVariance*barrierEffectiveGradient)                                                   &
+            &                            *Error_Function((2.0d0*barrierEffectiveZeroVariance-barrierEffectiveMaximumVariance)/sqrt(2.0d0*varianceDifference)) &
+            &                           )                                                                                                                     &
+            &                          /time                                                                                                                  &
+            &                          /self%fractionalTimeStep
+    else
+       linearBarrierRateNonCrossing   =+1.0d0                   &
+            &                          /time                    &
+            &                          /self%fractionalTimeStep
+    end if
     return
   end function linearBarrierRateNonCrossing

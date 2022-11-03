@@ -56,7 +56,7 @@ module Excursion_Sets_First_Crossings
     <description>Return the rate of non-crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision          , intent(in   ) :: variance, time</argument>
+    <argument>double precision          , intent(in   ) :: variance, varianceMaximum, time</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="coordinatedMPI" >

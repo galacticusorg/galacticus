@@ -56,12 +56,13 @@ program Tests_Merger_Tree_Branching
   type            (mergerTreeBranchingProbabilityModifierIdentity               )               :: mergerTreeBranchingProbabilityModifierIdentity_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly             ), dimension(3) :: mergerTreeBranchingProbabilityParkinsonColeHelly_
-  type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              ), dimension(3) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_
+  type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              ), dimension(5) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_
   double precision                                                                              :: time                                                                              , rootVarianceParent                             , &
        &                                                                                           rootVarianceResolution                                                            , branchingProbabilityRate                       , &
        &                                                                                           accretionRate                                                                     , criticalOverdensity_                           , &
        &                                                                                           expansionFactor                                                                   , timeNow                                        , &
-       &                                                                                           branchingProbabilityRateTargetGeneral                                             , accretionRateTargetGeneral
+       &                                                                                           branchingProbabilityRateTargetGeneral                                             , accretionRateTargetGeneral                     , &
+       &                                                                                           smoothAccretionRateTargetGeneral                                                  , smoothAccretionRate
   double precision                                                               , parameter    :: branchingProbabilityRateTarget                                =2.498324530964044d0, accretionRateTarget       =4.181139013841312d-1
   double precision                                                               , dimension(2) :: redshift                                                      =[0.0d0,1.0d0]
   double precision                                                               , parameter    :: massParent                                                    =1.0d12             , massResolution            =1.0d11
@@ -217,6 +218,28 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       excursionSetFirstCrossing_             =excursionSetFirstCrossingFarahiMidpoint_                     , &
        &                                                                                                                       mergerTreeBranchingProbabilityModifier_=mergerTreeBranchingProbabilityModifierIdentity_                &
        &                                                                                                                      )
+  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(4)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                       &
+       &                                                                                                                       deltaStepMaximum                       =1.0d-1                                                       , &
+       &                                                                                                                       massMinimum                            =1.0d-1*massResolution                                        , &
+       &                                                                                                                       smoothAccretion                        =.true.                                                       , &
+       &                                                                                                                       distributionFunctionLowerHalfOnly      =.true.                                                       , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                       excursionSetFirstCrossing_             =excursionSetFirstCrossingLinearBarrier_                      , &
+       &                                                                                                                       mergerTreeBranchingProbabilityModifier_=mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                      )
+  mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(5)           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr              (                                                                                                       &
+       &                                                                                                                       deltaStepMaximum                       =1.0d-1                                                       , &
+       &                                                                                                                       massMinimum                            =1.0d-1*massResolution                                        , &
+       &                                                                                                                       smoothAccretion                        =.true.                                                       , &
+       &                                                                                                                       distributionFunctionLowerHalfOnly      =.true.                                                       , &
+       &                                                                                                                       cosmologyFunctions_                    =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                       criticalOverdensity_                   =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                       cosmologicalMassVariance_              =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                       excursionSetFirstCrossing_             =excursionSetFirstCrossingFarahiMidpoint_                     , &
+       &                                                                                                                       mergerTreeBranchingProbabilityModifier_=mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                      )
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Merger tree branching")
   ! Set up physical system to be tested.
@@ -267,12 +290,17 @@ program Tests_Merger_Tree_Branching
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTarget           /rootVarianceParent,relTol=2.0d-3)
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_Begin_Group("Generalized Press-Schechter general barrier branching rates")
-     branchingProbabilityRateTargetGeneral=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_ (2)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
-     accretionRateTargetGeneral           =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_ (2)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
-     branchingProbabilityRate             =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_ (3)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
-     accretionRate                        =mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_ (3)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
+     branchingProbabilityRateTargetGeneral= mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
+     accretionRateTargetGeneral           = mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(2)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
+     smoothAccretionRateTargetGeneral     =+mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(4)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node) &
+          &                                -accretionRateTargetGeneral
+     branchingProbabilityRate             = mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%probability          (massParent,criticalOverdensity_,time,massResolution,node)
+     accretionRate                        = mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(3)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node)
+     smoothAccretionRate                  =+mergerTreeBranchingProbabilityGnrlzdPrssSchchtr_(5)%fractionSubresolution(massParent,criticalOverdensity_,time,massResolution,node) &
+          &                                -accretionRate
      call Assert('Branching probability rate',branchingProbabilityRate,branchingProbabilityRateTargetGeneral,relTol=2.5d-2)
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTargetGeneral           ,relTol=2.5d-2)
+     call Assert('Smooth accretion rate'     ,smoothAccretionRate     ,smoothAccretionRateTargetGeneral     ,relTol=2.5d-2)
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_End_Group  (                                             )
   end do

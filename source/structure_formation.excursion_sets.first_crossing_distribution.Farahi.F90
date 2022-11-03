@@ -760,15 +760,15 @@ contains
     return
   end function farahiRateInterpolate
 
-  double precision function farahiRateNonCrossing(self,variance,time,node)
+  double precision function farahiRateNonCrossing(self,variance,varianceMaximum,time,node)
     !!{
     Return the rate for excursion set non-crossing.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time , variance
+    double precision                                 , intent(in   ) :: time           , variance, &
+         &                                                              varianceMaximum
     type            (treeNode                       ), intent(inout) :: node
-
 
     ! Note that this solver follows the convention used through Galacticus that σ(M) grows following linear theory. That is:
     !
@@ -781,22 +781,23 @@ contains
     ! at z=0, and the critical overdensity for collapse is replaced with δ_c(t)/D(t). Mathematically these two approaches are
     ! equivalent, but it can be important to keep these distinctions in mind.
 
-    farahiRateNonCrossing=self%rateNonCrossingInterpolate(variance,time,node)
+    farahiRateNonCrossing=self%rateNonCrossingInterpolate(variance,varianceMaximum,time,node)
     return
   end function farahiRateNonCrossing
 
-  double precision function farahiRateNonCrossingInterpolate(self,variance,time,node)
+  double precision function farahiRateNonCrossingInterpolate(self,variance,varianceMaximum,time,node)
     !!{
     Interpolate the rate for excursion set non-crossing.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time , variance
+    double precision                                 , intent(in   ) :: time           , variance, &
+         &                                                              varianceMaximum
     type            (treeNode                       ), intent(inout) :: node
-    integer                                                          :: jTime, jVariance
+    integer                                                          :: jTime          , jVariance
 
     ! Ensure that the rate is tabulated.
-    call self%rateTabulate(variance,time,node)
+    call self%rateTabulate(varianceMaximum,time,node)
     ! Get interpolation in time.
     if (time /= self%timePreviousRate) then
        self%timePreviousRate    =time

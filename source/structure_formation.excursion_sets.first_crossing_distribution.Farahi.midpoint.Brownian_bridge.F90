@@ -287,13 +287,14 @@ contains
     return
   end function farahiMidpointBrownianBridgeRate
 
-  double precision function farahiMidpointBrownianBridgeRateNonCrossing(self,variance,time,node)
+  double precision function farahiMidpointBrownianBridgeRateNonCrossing(self,variance,varianceMaximum,time,node)
     !!{
     Return the rate for excursion set non-crossing.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
-    double precision                                                       , intent(in   ) :: time                          , variance
+    double precision                                                       , intent(in   ) :: time                          , variance           , &
+         &                                                                                    varianceMaximum
     type            (treeNode                                             ), intent(inout) :: node
     double precision                                                                       :: rootVarianceConstrained       , varianceConstrained, &
          &                                                                                    criticalOverdensityConstrained
@@ -310,13 +311,13 @@ contains
     if (.not.node%isOnMainBranch() .or. self%excursionSetBarrier_%barrier(variance,time,node,rateCompute=.true.) > criticalOverdensityConstrained) then
        ! Node is either not on the main branch, or it is on the main branch, but the time corresponds to a barrier above the
        ! constrained point. In either case we want the unconstrained solution.
-       farahiMidpointBrownianBridgeRateNonCrossing=self%excursionSetFirstCrossing_%rateNonCrossing           (variance,time,node)
+       farahiMidpointBrownianBridgeRateNonCrossing=self%excursionSetFirstCrossing_%rateNonCrossing           (variance,varianceMaximum    ,time,node)
     else if (variance >= varianceConstrained) then
        ! Fo progenitor variances in excess of the constrained variance the non-crossing rate must be zero.
        farahiMidpointBrownianBridgeRateNonCrossing=0.0d0
     else
        ! Use the constrained solution.
-       farahiMidpointBrownianBridgeRateNonCrossing=self                           %rateNonCrossingInterpolate(variance,time,node)
+       farahiMidpointBrownianBridgeRateNonCrossing=self                           %rateNonCrossingInterpolate(variance,varianceConstrained,time,node)
     end if
     return
   end function farahiMidpointBrownianBridgeRateNonCrossing

@@ -683,15 +683,17 @@ contains
     return
   end function farahiRateInterpolate
 
-  double precision function farahiRateNonCrossing(self,variance,time,node)
+  double precision function farahiRateNonCrossing(self,variance,varianceMaximum,time,node)
     !!{
     Return the rate for excursion set non-crossing.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time , variance
+    double precision                                 , intent(in   ) :: time           , variance , &
+         &                                                              varianceMaximum
     type            (treeNode                       ), intent(inout) :: node
-    integer                                                          :: jTime, jVariance
+    integer                                                          :: jTime          , jVariance
+    !$GLC attributes unused :: varianceMaximum
 
     ! Ensure that the rate is tabulated.
     call self%rateTabulate(variance,time,node)
