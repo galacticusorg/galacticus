@@ -184,7 +184,7 @@ Contains a module which implements a excursion set first crossing statistics cla
      integer                                                                        :: varianceNumberPerUnitProbability           , varianceNumberPerUnit   , &
           &                                                                            timeNumberPerDecade                        , varianceNumberPerDecade
      ! The fractional step in time used to compute barrier crossing rates.
-     double precision                                                               :: timeStepFractional
+     double precision                                                               :: fractionalTimeStep
      ! Record of variance and time in previous call to rate functions.
      double precision                                                               :: timeRatePrevious                           , varianceRatePrevious
      double precision                                            , dimension(0:1)   :: hTimeRate                                  , hVarianceRate
@@ -242,7 +242,7 @@ contains
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class           (excursionSetBarrierClass       ), pointer       :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
-    double precision                                                 :: timeStepFractional
+    double precision                                                 :: fractionalTimeStep
     integer                                                          :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
          &                                                              timeNumberPerDecade             , varianceNumberPerDecade
     type            (varying_string                 )                :: fileName
@@ -256,7 +256,7 @@ contains
       <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\normalfont \ttfamily none}'' tables will not be stored.</description>
     </inputParameter>
     <inputParameter>
-      <name>timeStepFractional</name>
+      <name>fractionalTimeStep</name>
       <defaultValue>0.01d0</defaultValue>
       <source>parameters</source>
       <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
@@ -295,7 +295,7 @@ contains
     <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
+    self=excursionSetFirstCrossingFarahi(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -305,13 +305,13 @@ contains
     return
   end function farahiConstructorParameters
 
-  function farahiConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
+  function farahiConstructorInternal(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !!{
     Internal constructor for the Farahi excursion set class first crossing class.
     !!}
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
-    double precision                                 , intent(in   )         :: timeStepFractional
+    double precision                                 , intent(in   )         :: fractionalTimeStep
     integer                                          , intent(in   )         :: varianceNumberPerUnitProbability, varianceNumberPerUnit  , &
          &                                                                      timeNumberPerDecade             , varianceNumberPerDecade
     logical                                          , intent(in   )         :: varianceIsUnlimited
@@ -320,7 +320,7 @@ contains
     class           (excursionSetBarrierClass       ), intent(in   ), target :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
     !![
-    <constructorAssign variables="timeStepFractional, fileName, varianceNumberPerUnitProbability, varianceNumberPerUnit, varianceNumberPerDecade, timeNumberPerDecade, varianceIsUnlimited, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="fractionalTimeStep, fileName, varianceNumberPerUnitProbability, varianceNumberPerUnit, varianceNumberPerDecade, timeNumberPerDecade, varianceIsUnlimited, *cosmologyFunctions_, *excursionSetBarrier_, *cosmologicalMassVariance_"/>
     !!]
 
     self%tableInitialized    =.false.
@@ -815,12 +815,12 @@ contains
           !!]
           !$omp end critical(excursionSetsSolverFarahiDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
-               &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
+               &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%fractionalTimeStep))
           varianceMinimumRate            =min(                                                                                                                      &
                &                              +varianceMinimumRate                                                                                                , &
                &                              +1.0d-2                                                                                                               &
                &                              *(                                                                                                                    &
-               &                                +excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)  &
+               &                                +excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)  &
                &                                *dble(growthFactorEffective)                                                                                        &
                &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
                &                               )**2                                                                                                                 &
@@ -885,7 +885,7 @@ contains
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
           ! is initialized and covers the whole range we are intereseted in.
-          barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
+          barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
           !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
@@ -903,7 +903,7 @@ contains
           do iTime=1,self%timeTableCountRate
              if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))
              ! Compute a suitable progenitor time.
-             timeProgenitor=self%timeTableRate(iTime)*(1.0d0-self%timeStepFractional)
+             timeProgenitor=self%timeTableRate(iTime)*(1.0d0-self%fractionalTimeStep)
              ! Loop through the starting variances.
              do iVariance=0,self%varianceTableCountRateBase
 #ifdef USEMPI
@@ -998,7 +998,7 @@ contains
                 self%nonCrossingTableRate(iVariance,iTime)=real(                                   &
                      &                                          +(1.0_kind_quad-crossingFraction)  &
                      &                                          /self%timeTableRate(iTime)         &
-                     &                                          /self%timeStepFractional         , &
+                     &                                          /self%fractionalTimeStep         , &
                      &                                          kind=kind_dble                     &
                      &                                         )
                 ! Store the compute crossing rate in our table.
@@ -1008,7 +1008,7 @@ contains
              ! Divide through by the time step to get the rate of barrier crossing.
              self%firstCrossingTableRate(:,:,iTime)=+self%firstCrossingTableRate(:,:,iTime) &
                   &                                 /self%timeTableRate         (    iTime) &
-                  &                                 /self%timeStepFractional
+                  &                                 /self%fractionalTimeStep
           end do
           !$omp end do
           !![
