@@ -21,6 +21,7 @@
   An implementation of decaying dark matter halo profiles.
   !!}
   use :: Dark_Matter_Particles       , only : darkMatterParticleClass
+  use :: Statistics_Distributions    , only : distributionFunction1DNonCentralChi
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMODecaying">
@@ -63,6 +64,7 @@
      procedure :: freefallRadius                    => decayingFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => decayingFreefallRadiusIncreaseRate
      procedure :: decayingFactor                    => decayingDecayingFactor
+     procedure :: escapeFraction                    => decayingEscapeFraction
   end type darkMatterProfileDMODecaying
 
   interface darkMatterProfileDMODecaying
@@ -184,7 +186,7 @@ contains
     return
   end subroutine decayingCalculationReset
 
-  subroutine decayingDecayingFactor(self, node, factor)
+  subroutine decayingDecayingFactor(self, node, radius, factor)
     !!{
     Return the change in mass factor.
     !!}
@@ -192,18 +194,43 @@ contains
     implicit none
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: radius
     double precision                              , intent(  out) :: factor
     class           (nodeComponentBasic          ), pointer       :: basic
-    
+    double precision                                              :: fe
     basic             => node%basic()
-    if (self%massLoss_) then 
-      factor = +1.0d0 - self%massSplitting_                   &
+    if (self%massLoss_) then
+      call self%escapeFraction(radius, node, fe)
+      factor = +1.0d0 - (fe - self%massSplitting_ * (1 - fe)) &
         &    *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     else
       factor = +1.0d0
     end if
     return
   end subroutine decayingDecayingFactor
+
+  subroutine decayingEscapeFraction(self, radius, node, fraction)
+    !!{
+    Return the fraction of the particles that escape at a given radius.
+    !!}
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
+    implicit none
+    class            (darkMatterProfileDMODecaying       ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    type             (distributionFunction1DNonCentralChi)                :: nonCentralChi
+    double precision                                      , intent(in   ) :: radius
+    double precision                                      , intent(  out) :: fraction
+    double precision                                                      :: sigma, vEsc
+    sigma = self%radialVelocityDispersion(node, radius)
+    vEsc = +2.0d0 * (-self%potential(node, radius) + self%potential(node, +1.0d3 * self%darkMatterHaloScale_%radiusVirial(node))) !! Check sign
+    nonCentralChi = distributionFunction1DNonCentralChi(       &
+                  & (self%massSplitting_/(speedLight/kilo))**2 &
+                  & / sigma**2)
+    fraction = 1 - nonCentralChi%cumulative(vEsc / sigma**2)
+    return
+  end subroutine decayingEscapeFraction
+
 
   double precision function decayingDensity(self,node,radius)
     !!{
@@ -216,7 +243,7 @@ contains
     double precision                              , intent(in   ) :: radius
     double precision                                              :: factor
     
-    call self%decayingFactor(node, factor)
+    call self%decayingFactor(node, radius, factor)
     decayingDensity=+self%darkMatterProfileDMO_%density(node,radius) * factor
     return
   end function decayingDensity
@@ -231,7 +258,7 @@ contains
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
     
-    decayingDensityLogSlope=+self%darkMatterProfileDMO_%densityLogSlope(node,radius)
+    decayingDensityLogSlope=self%densityLogSlopeNumerical(node, radius)
     return
   end function decayingDensityLogSlope
 
@@ -245,11 +272,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: density
-    double precision                                                      :: factor, oldDensity
     
-    call self%decayingFactor(node, factor)
-    oldDensity = density / factor
-    decayingRadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node, oldDensity)
+    decayingRadiusEnclosingDensity = self%radiusEnclosingDensityNumerical(node, density)
     return
   end function decayingRadiusEnclosingDensity
 
@@ -263,11 +287,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: mass
-    double precision                                                      :: factor, oldMass
-    
-    call self%decayingFactor(node, factor)
-    oldMass = mass / factor
-    decayingRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass(node, oldMass)
+
+    decayingRadiusEnclosingMass=self%radiusEnclosingMassNumerical(node, mass)
     return
   end function decayingRadiusEnclosingMass
 
@@ -281,10 +302,8 @@ contains
     type            (treeNode                    ), intent(inout)           :: node
     double precision                              , intent(in   )           :: moment
     double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    double precision                                                        :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingRadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum) * factor
+    decayingRadialMoment=self%radialMomentNumerical(node, moment, radiusMinimum, radiusMaximum)
     return
   end function decayingRadialMoment
 
@@ -297,10 +316,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    double precision                                              :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius) * factor
+    decayingEnclosedMass=+self%enclosedMassNumerical(node, radius)
     return
   end function decayingEnclosedMass
 
@@ -314,10 +331,8 @@ contains
     type            (treeNode                    ), intent(inout), target   :: node
     double precision                              , intent(in   )           :: radius
     type        (enumerationStructureErrorCodeType), intent(  out), optional:: status
-    double precision                                                        :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingPotential=self%darkMatterProfileDMO_%potential         (node,radius,status) * factor
+    decayingPotential=self%potentialNumerical(node, radius, status)
     return
   end function decayingPotential
 
@@ -330,10 +345,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    double precision                                              :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingCircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius) * sqrt(factor)
+    decayingCircularVelocity=self%circularVelocityNumerical(node, radius)
     return
   end function decayingCircularVelocity
 
@@ -344,10 +357,8 @@ contains
     implicit none
     class(darkMatterProfileDMODecaying), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
-    double precision                                    :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingCircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum         (node) * sqrt(factor)
+    decayingCircularVelocityMaximum=self%circularVelocityMaximumNumerical(node)
     return
   end function decayingCircularVelocityMaximum
 
@@ -359,7 +370,7 @@ contains
     class(darkMatterProfileDMODecaying), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
 
-    decayingRadiusCircularVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum         (node)
+    decayingRadiusCircularVelocityMaximum=self%radiusCircularVelocityMaximumNumerical(node)
     return
   end function decayingRadiusCircularVelocityMaximum
 
@@ -373,10 +384,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    double precision                                              :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius) * sqrt(factor)
+    decayingRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node, radius)
     return
   end function decayingRadialVelocityDispersion
 
@@ -389,10 +398,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: specificAngularMomentum
-    double precision                                              :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum / (sqrt(factor)))
+    decayingRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(node, specificAngularMomentum)
     return
   end function decayingRadiusFromSpecificAngularMomentum
 
@@ -403,10 +410,8 @@ contains
     implicit none
     class(darkMatterProfileDMODecaying), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
-    double precision                                   :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingRotationNormalization=self%darkMatterProfileDMO_%rotationNormalization(node)
+    decayingRotationNormalization=self%rotationNormalizationNumerical(node)
     return
   end function decayingRotationNormalization
 
@@ -417,10 +422,8 @@ contains
     implicit none
     class(darkMatterProfileDMODecaying), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
-    double precision                                   :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingEnergy=self%darkMatterProfileDMO_%energy         (node) * factor**2
+    decayingEnergy=self%energyNumerical(node)
     return
   end function decayingEnergy
 
@@ -433,10 +436,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: waveNumber
-    double precision                                                      :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber) * factor
+    decayingKSpace=self%kSpaceNumerical(node, waveNumber)
     return
   end function decayingKSpace
 
@@ -450,10 +451,8 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: time
-    double precision                                                      :: factor
     
-    call self%decayingFactor(node, factor)
-    decayingFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time * sqrt(factor))
+    decayingFreefallRadius=self%freefallRadiusNumerical(node, time)
     return
   end function decayingFreefallRadius
 
@@ -466,9 +465,7 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: time
-    double precision                                                      :: factor
-    
-    call self%decayingFactor(node, factor)
-    decayingFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time * sqrt(factor))
+
+    decayingFreefallRadiusIncreaseRate=self%freefallRadiusIncreaseRateNumerical(node, time)
     return
   end function decayingFreefallRadiusIncreaseRate

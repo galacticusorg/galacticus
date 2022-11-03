@@ -25,10 +25,10 @@
   
   <darkMatterParticle value="decayingDarkMatter">
     <darkMatterParticle value="CDM" />
-    <massSplitting value="0.0016666666666666668" />
-    <lifetime value="0.1" />
-    <heating value="false" />
-    <massLoss value="false" />
+    <massSplitting value="0.0001" />
+    <lifetime value="20" />
+    <heating value="true" />
+    <massLoss value="true" />
     <gamma value="1.0" />
   </darkMatterParticle>
 
@@ -66,10 +66,7 @@
     <darkMatterProfileDMO value="heatedMonotonic">
       <darkMatterProfileDMO value="NFW" />
       <nonAnalyticSolver value="numerical" />
-      <radiusFractionMinimum value="0.0000001" />
-      <countPerDecadeRadius value="100" />
     </darkMatterProfileDMO>
-    <nonAnalyticSolver value="numerical" />
   </darkMatterProfileDMO>
 
   
@@ -106,7 +103,7 @@
   
   
   
-  <outputFileName value="results/T0.1V500HfalseMLfalseHM1.0e12.hdf5" />
+  <outputFileName value="results/testv2.hdf5" />
   <mergerTreeOutputter value="standard">
     <outputReferences value="false" />
   </mergerTreeOutputter>  
