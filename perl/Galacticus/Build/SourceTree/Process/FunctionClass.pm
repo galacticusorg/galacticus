@@ -1118,8 +1118,6 @@ CODE
 					    $assignments .= "end if\n"
 						if ( $isAllocatable );
 					}
-					$assignments .= "end if\n"
-					    if ( $isAllocatable );
 				}
 				# Deep copy of HDF5 objects.
 				if
