@@ -1,21 +1,22 @@
 window.ANALYSES_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "results" : [
       {
          "attributes" : {
-            "type" : "function1D",
-            "xDataset" : "massStellar",
-            "xAxisLabel" : "M_★/M_☉",
-            "targetLabel" : "Galacticus compilation",
-            "yDatasetTarget" : "metallicityMeanTarget",
-            "name" : "localGroupMassMetallicityRelation",
             "xAxisIsLog" : 1,
-            "yCovariance" : "metallicityMeanCovariance",
-            "logLikelihood" : -13.4812102639445,
-            "yCovarianceTarget" : "metallicityMeanCovarianceTarget",
+            "xAxisLabel" : "M_★/M_☉",
             "yAxisIsLog" : 0,
-            "description" : "Mass-metallicity relation of Local Group satellites",
+            "yAxisLabel" : "[Fe/H]",
+            "yCovariance" : "metallicityMeanCovariance",
+            "type" : "function1D",
+            "logLikelihood" : -13.5749443589599,
+            "targetLabel" : "Galacticus compilation",
+            "yCovarianceTarget" : "metallicityMeanCovarianceTarget",
+            "xDataset" : "massStellar",
             "yDataset" : "metallicityMean",
-            "yAxisLabel" : "[Fe/H]"
+            "description" : "Mass-metallicity relation of Local Group satellites",
+            "name" : "localGroupMassMetallicityRelation",
+            "yDatasetTarget" : "metallicityMeanTarget"
          },
          "data" : {
             "yDatasetTarget" : [
@@ -26,22 +27,6 @@ window.ANALYSES_DATA = {
                -0.94,
                -0.75
             ],
-            "yDataset" : [
-               -1.59922565142775,
-               -1.70275871082281,
-               -1.79727821753409,
-               -1.6347321905659,
-               -1.26880877949569,
-               -0.455771892143178
-            ],
-            "xDataset" : [
-               1000,
-               10000,
-               100000,
-               1000000,
-               10000000,
-               1000000000
-            ],
             "yErrorTarget" : [
                0.143654146822581,
                0.0863217066388112,
@@ -50,33 +35,13 @@ window.ANALYSES_DATA = {
                0.283176427141965,
                0.25
             ],
-            "yError" : [
-               0.289485877850113,
-               0.110366619002345,
-               0.0404826371902365,
-               0.0370148919266457,
-               0.0397345589471926,
-               0.0475129720081381
-            ]
-         }
-      },
-      {
-         "data" : {
-            "yDatasetTarget" : [
-               -4.34266863969646,
-               -4.02819817314939,
-               -3.53203402689612,
-               -3.3194786463902,
-               -3.11248274127889,
-               -2.76268196328921
-            ],
             "yDataset" : [
-               -4.58466798106342,
-               -3.59639999697782,
-               -3.42431659707929,
-               -3.20141582124378,
-               -2.85655979141706,
-               -2.30156214328286
+               -1.59902754432011,
+               -1.70263171255448,
+               -1.78915888947885,
+               -1.63410476374981,
+               -1.26987521269548,
+               -0.456632933180386
             ],
             "xDataset" : [
                1000,
@@ -85,6 +50,50 @@ window.ANALYSES_DATA = {
                1000000,
                10000000,
                1000000000
+            ],
+            "yError" : [
+               0.289562388306429,
+               0.110307371368906,
+               0.0429671738584913,
+               0.0349229732899626,
+               0.0403116983601029,
+               0.0474944701904039
+            ]
+         }
+      },
+      {
+         "attributes" : {
+            "name" : "localGroupMassSizeRelation",
+            "yDatasetTarget" : "radiusHalfMassMeanTarget",
+            "description" : "Mass-size relation of Local Group satellites",
+            "yDataset" : "radiusHalfMassMean",
+            "yCovarianceTarget" : "radiusHalfMassMeanCovarianceTarget",
+            "targetLabel" : "Galacticus compilation",
+            "xDataset" : "massStellar",
+            "logLikelihood" : -8.05949680612858,
+            "yCovariance" : "radiusHalfMassMeanCovariance",
+            "type" : "function1D",
+            "yAxisLabel" : "⟨log₁₀(r_{1/2}/Mpc)⟩",
+            "yAxisIsLog" : 0,
+            "xAxisIsLog" : 1,
+            "xAxisLabel" : "M_★/M_☉"
+         },
+         "data" : {
+            "xDataset" : [
+               1000,
+               10000,
+               100000,
+               1000000,
+               10000000,
+               1000000000
+            ],
+            "yError" : [
+               0.0642639267139117,
+               0.177272266430981,
+               0.132197919734808,
+               0.0997467774779944,
+               0.0854069544313548,
+               0.0736977811937316
             ],
             "yErrorTarget" : [
                0.12035217042774,
@@ -94,48 +103,40 @@ window.ANALYSES_DATA = {
                0.240312119569733,
                0.138012974652347
             ],
-            "yError" : [
-               0.0616124195248361,
-               0.176306373566303,
-               0.124551977724313,
-               0.101311499991553,
-               0.0845609556734534,
-               0.0720914844225266
+            "yDatasetTarget" : [
+               -4.34266863969646,
+               -4.02819817314939,
+               -3.53203402689612,
+               -3.3194786463902,
+               -3.11248274127889,
+               -2.76268196328921
+            ],
+            "yDataset" : [
+               -4.58316054279231,
+               -3.58670638779615,
+               -3.4035780477063,
+               -3.22675947362597,
+               -2.8595132556903,
+               -2.30412370743709
             ]
-         },
-         "attributes" : {
-            "yAxisIsLog" : 0,
-            "description" : "Mass-size relation of Local Group satellites",
-            "yCovarianceTarget" : "radiusHalfMassMeanCovarianceTarget",
-            "logLikelihood" : -8.16066118363493,
-            "yDataset" : "radiusHalfMassMean",
-            "yAxisLabel" : "⟨log₁₀(r_{1/2}/Mpc)⟩",
-            "targetLabel" : "Galacticus compilation",
-            "yDatasetTarget" : "radiusHalfMassMeanTarget",
-            "xDataset" : "massStellar",
-            "xAxisLabel" : "M_★/M_☉",
-            "type" : "function1D",
-            "yCovariance" : "radiusHalfMassMeanCovariance",
-            "xAxisIsLog" : 1,
-            "name" : "localGroupMassSizeRelation"
          }
       },
       {
          "attributes" : {
-            "yCovarianceTarget" : "velocityDispersionMeanCovarianceTarget",
-            "description" : "Mass-velocity dispersion relation of Local Group satellites",
-            "yAxisIsLog" : 0,
-            "logLikelihood" : -1.89899383934746,
-            "yAxisLabel" : "⟨log₁₀(σ_{★, los}/km s⁻¹)⟩",
-            "yDataset" : "velocityDispersionMean",
-            "xAxisLabel" : "M_★/M_☉",
-            "xDataset" : "massStellar",
-            "yDatasetTarget" : "velocityDispersionMeanTarget",
             "targetLabel" : "Galacticus compilation",
-            "type" : "function1D",
+            "yCovarianceTarget" : "velocityDispersionMeanCovarianceTarget",
+            "xDataset" : "massStellar",
+            "description" : "Mass-velocity dispersion relation of Local Group satellites",
+            "yDataset" : "velocityDispersionMean",
+            "name" : "localGroupMassVelocityDispersionRelation",
+            "yDatasetTarget" : "velocityDispersionMeanTarget",
+            "xAxisLabel" : "M_★/M_☉",
             "xAxisIsLog" : 1,
+            "yAxisLabel" : "⟨log₁₀(σ_{★, los}/km s⁻¹)⟩",
+            "yAxisIsLog" : 0,
             "yCovariance" : "velocityDispersionMeanCovariance",
-            "name" : "localGroupMassVelocityDispersionRelation"
+            "type" : "function1D",
+            "logLikelihood" : -1.87073722141366
          },
          "data" : {
             "xDataset" : [
@@ -146,29 +147,21 @@ window.ANALYSES_DATA = {
                10000000,
                1000000000
             ],
-            "yDataset" : [
-               0.199204918951889,
-               0.682164132158878,
-               0.79383744551566,
-               0.960749557471633,
-               1.20723606222089,
-               1.48596838199396
-            ],
-            "yDatasetTarget" : [
-               0.64551128869947,
-               0.716426431475654,
-               0.86525781659423,
-               0.875125697429934,
-               1.02962618014273,
-               1.37313022575592
-            ],
             "yError" : [
-               0.0279055452564737,
-               0.0856024727275824,
-               0.0475607110029357,
-               0.0336391977113668,
-               0.0266342335461994,
-               0.060814444026063
+               0.0291592145631067,
+               0.0858529599705053,
+               0.0505407808613172,
+               0.0335989539286773,
+               0.0266987187513938,
+               0.0602382327466443
+            ],
+            "yDataset" : [
+               0.199954316400648,
+               0.686008934922666,
+               0.80185107667589,
+               0.9499951974594,
+               1.20694732804915,
+               1.48527210920957
             ],
             "yErrorTarget" : [
                0.24603150875239,
@@ -177,101 +170,19 @@ window.ANALYSES_DATA = {
                0.289398133863153,
                0.333445241108508,
                0.409855221552377
+            ],
+            "yDatasetTarget" : [
+               0.64551128869947,
+               0.716426431475654,
+               0.86525781659423,
+               0.875125697429934,
+               1.02962618014273,
+               1.37313022575592
             ]
          }
       },
       {
-         "attributes" : {
-            "yCovarianceTarget" : "fractionOccupationCovarianceTarget",
-            "description" : "Subhalo occupation fraction of Local Group satellites",
-            "yAxisIsLog" : 0,
-            "logLikelihood" : -37.0078259607727,
-            "yAxisLabel" : "f_occupied",
-            "yDataset" : "fractionOccupation",
-            "xAxisLabel" : "M_halo/M_☉",
-            "xDataset" : "massHalo",
-            "yDatasetTarget" : "fractionOccupationTarget",
-            "targetLabel" : "Nadler et al. (2020)",
-            "type" : "function1D",
-            "xAxisIsLog" : 1,
-            "yCovariance" : "fractionOccupationCovariance",
-            "name" : "localGroupOccupationFraction"
-         },
          "data" : {
-            "yErrorTarget" : [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
             "yError" : [
                0,
                0,
@@ -319,32 +230,32 @@ window.ANALYSES_DATA = {
                0,
                0,
                0,
+               3.3556365728674e-24,
+               3.24383312079869e-08,
+               1.30802411480002e-07,
+               5.78312447704865e-07,
+               2.35644705515821e-06,
+               9.37793318740566e-06,
+               4.07814631307504e-05,
+               0.000165272733770163,
+               0.000609741486674358,
+               0.00211263929307608,
+               0.00696279083179298,
+               0.0198789181262034,
+               0.0443286661061676,
+               0.0771995694099457,
+               0.109105641789864,
+               0.127937260830062,
+               0.112539242172583,
+               0.0560892118608986,
+               0.0136422204923928,
+               0.00199617854582316,
+               0.000214526891159083,
+               1.81106193424655e-05,
+               1.1955564125962e-06,
+               5.79744729210143e-08,
                0,
-               3.24383655636791e-08,
-               1.3080256651362e-07,
-               5.78334097739131e-07,
-               2.35652480524956e-06,
-               9.37821085052199e-06,
-               4.0782512709295e-05,
-               0.000165276360324368,
-               0.000609752618751327,
-               0.00211267008707098,
-               0.00696286619259492,
-               0.0198790617252404,
-               0.0443288475511047,
-               0.0771996629987139,
-               0.10910447415941,
-               0.12791426718093,
-               0.112291458415254,
-               0.0553471944365945,
-               0.0131877078207118,
-               0.00190212685672898,
-               0.000204566735842748,
-               1.75892310015735e-05,
-               1.19795896771217e-06,
-               5.98039543031431e-08,
-               0,
-               3.77961931030824e-09
+               3.54116092586697e-09
             ],
             "xDataset" : [
                10274186.1534441,
@@ -494,6 +405,80 @@ window.ANALYSES_DATA = {
                1,
                1
             ],
+            "yErrorTarget" : [
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0,
+               0
+            ],
             "yDataset" : [
                0,
                0,
@@ -542,62 +527,67 @@ window.ANALYSES_DATA = {
                2.22044604925031e-16,
                2.22044604925031e-16,
                2.22044604925031e-16,
-               2.52898257219082e-08,
-               1.12894053057262e-07,
-               5.18562334745317e-07,
-               2.20515443531382e-06,
-               9.20930203405017e-06,
-               4.24615435157594e-05,
-               0.000183325139704241,
-               0.000723249900184596,
-               0.00270114800122886,
-               0.00976646754499659,
-               0.0313871512823737,
-               0.0805767993608468,
-               0.164499563711084,
-               0.281633907037253,
-               0.438994339154685,
-               0.653384150840239,
-               0.870304793087196,
-               0.973410509603352,
-               0.996471705062278,
-               0.999648636174249,
-               0.999972010552741,
-               0.999998228318448,
-               0.999999917361896,
-               0.999999997507586,
-               0.999999999948481
+               2.52898050437712e-08,
+               1.12893963117533e-07,
+               5.18544792131066e-07,
+               2.20509024306038e-06,
+               9.20906583302124e-06,
+               4.24606207933256e-05,
+               0.000183321831197829,
+               0.000723239315830756,
+               0.00270111723269726,
+               0.00976638694595425,
+               0.0313869798884726,
+               0.080576507764737,
+               0.164498637163695,
+               0.281625129068307,
+               0.43890204914505,
+               0.65273661175171,
+               0.868865139580976,
+               0.972623921740835,
+               0.996311516062558,
+               0.999632142630174,
+               0.999971190635747,
+               0.9999982318506,
+               0.999999919960823,
+               0.999999997612757,
+               0.999999999950133
             ]
+         },
+         "attributes" : {
+            "xAxisLabel" : "M_halo/M_☉",
+            "xAxisIsLog" : 1,
+            "yAxisLabel" : "f_occupied",
+            "yAxisIsLog" : 0,
+            "yCovariance" : "fractionOccupationCovariance",
+            "type" : "function1D",
+            "logLikelihood" : -37.0112059093543,
+            "targetLabel" : "Nadler et al. (2020)",
+            "yCovarianceTarget" : "fractionOccupationCovarianceTarget",
+            "xDataset" : "massHalo",
+            "yDataset" : "fractionOccupation",
+            "description" : "Subhalo occupation fraction of Local Group satellites",
+            "name" : "localGroupOccupationFraction",
+            "yDatasetTarget" : "fractionOccupationTarget"
          }
       },
       {
          "attributes" : {
-            "xAxisIsLog" : 1,
-            "yCovariance" : "massFunctionCovariance",
-            "name" : "localGroupStellarMassFunction",
-            "xDataset" : "massStellar",
-            "xAxisLabel" : "M_★ [M_☉]",
-            "targetLabel" : "Observed",
-            "yDatasetTarget" : "massFunctionTarget",
-            "type" : "function1D",
+            "description" : "Local Group stellar mass function",
             "yDataset" : "massFunction",
+            "targetLabel" : "Observed",
+            "xDataset" : "massStellar",
+            "name" : "localGroupStellarMassFunction",
+            "yDatasetTarget" : "massFunctionTarget",
             "yAxisLabel" : "N",
             "yAxisIsLog" : 1,
-            "description" : "Local Group stellar mass function",
-            "logLikelihood" : -285.344909750227
+            "xAxisLabel" : "M_★ [M_☉]",
+            "xAxisIsLog" : 1,
+            "logLikelihood" : -285.541686127235,
+            "yCovariance" : "massFunctionCovariance",
+            "type" : "function1D"
          },
          "data" : {
-            "yError" : [
-               0,
-               0,
-               1.42624361364111e-08,
-               0.481417520740618,
-               0.669382190935711,
-               0.550527301275866,
-               0.438664772997276,
-               0.324898552048663,
-               0.166901275592591
-            ],
             "yDatasetTarget" : [
                0,
                11,
@@ -612,13 +602,13 @@ window.ANALYSES_DATA = {
             "yDataset" : [
                0,
                0,
-               1.42826174165292e-08,
-               1.60457030382566,
-               3.1447024714705,
-               2.13529098774188,
-               1.31947459394785,
-               0.75962055237763,
-               0.203027179773654
+               1.42839276710007e-08,
+               1.43974733031722,
+               3.30928692665675,
+               2.1382118330672,
+               1.31165048808865,
+               0.7669292679983,
+               0.200861090275457
             ],
             "xDataset" : [
                100,
@@ -630,44 +620,30 @@ window.ANALYSES_DATA = {
                100000000,
                1000000000,
                10000000000
+            ],
+            "yError" : [
+               0,
+               0,
+               1.42636875277098e-08,
+               0.452203684986019,
+               0.690005423411625,
+               0.55111505266995,
+               0.436573359742627,
+               0.326437566039762,
+               0.166006659388905
             ]
          }
       },
       {
-         "attributes" : {
-            "yDataset" : "massStellarMean",
-            "yAxisLabel" : "⟨log₁₀(M_★/M_☉)⟩",
-            "logLikelihood" : -10.6308501181142,
-            "yCovarianceTarget" : "massStellarMeanCovarianceTarget",
-            "yAxisIsLog" : 0,
-            "description" : "Stellar mass-halo mass relation of Local Group satellites",
-            "name" : "localGroupStellarMassHaloMassRelation",
-            "xAxisIsLog" : 1,
-            "yCovariance" : "massStellarMeanCovariance",
-            "type" : "function1D",
-            "xDataset" : "massHalo",
-            "xAxisLabel" : "M_halo/M_☉",
-            "targetLabel" : "Nadler et al. (2020)",
-            "yDatasetTarget" : "massStellarMeanTarget"
-         },
          "data" : {
-            "yDataset" : [
+            "yError" : [
                0,
-               3.74584030208015,
-               3.42907720369948,
-               4.76460241200427,
-               6.37882013240259,
-               7.97397118301021,
-               9.23418557662025
-            ],
-            "yDatasetTarget" : [
-               1.89614677,
-               2.90308217,
-               4.09352102,
-               5.38237732,
-               6.39770067,
-               7.57797297,
-               9.20333154
+               0.0697227138303509,
+               0.352746968687666,
+               0.215239284970444,
+               0.0907568514484272,
+               0.142540229652155,
+               0.126235879418744
             ],
             "xDataset" : [
                39810717.0553497,
@@ -678,15 +654,6 @@ window.ANALYSES_DATA = {
                39810717055.3497,
                158489319246.111
             ],
-            "yError" : [
-               0,
-               0.0697096621162789,
-               0.35267788431929,
-               0.210306138524346,
-               0.0917698125290299,
-               0.142211691935886,
-               0.126973238529644
-            ],
             "yErrorTarget" : [
                0.477040413375456,
                0.507082932958263,
@@ -695,19 +662,52 @@ window.ANALYSES_DATA = {
                0.49810195308298,
                0.45789602364131,
                0.273043206208316
+            ],
+            "yDatasetTarget" : [
+               1.89614677,
+               2.90308217,
+               4.09352102,
+               5.38237732,
+               6.39770067,
+               7.57797297,
+               9.20333154
+            ],
+            "yDataset" : [
+               0,
+               3.74588771075054,
+               3.42906981476342,
+               4.75404628695213,
+               6.37508092232162,
+               7.97456126330196,
+               9.23248270257177
             ]
+         },
+         "attributes" : {
+            "logLikelihood" : -10.6422921419233,
+            "type" : "function1D",
+            "yCovariance" : "massStellarMeanCovariance",
+            "yAxisLabel" : "⟨log₁₀(M_★/M_☉)⟩",
+            "yAxisIsLog" : 0,
+            "xAxisLabel" : "M_halo/M_☉",
+            "xAxisIsLog" : 1,
+            "name" : "localGroupStellarMassHaloMassRelation",
+            "yDatasetTarget" : "massStellarMeanTarget",
+            "yDataset" : "massStellarMean",
+            "description" : "Stellar mass-halo mass relation of Local Group satellites",
+            "xDataset" : "massHalo",
+            "yCovarianceTarget" : "massStellarMeanCovarianceTarget",
+            "targetLabel" : "Nadler et al. (2020)"
          }
       }
    ],
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "timestamp" : "Thu, 27 Oct 2022 21:53:18 +0000",
-      "id" : "a47ff0c17d4558c1ed3ce985513cb63fcd161860",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/a47ff0c17d4558c1ed3ce985513cb63fcd161860",
-      "message" : "feat: Add support for fractional order regular modified Bessel functions"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/f3d546548f4dd0ce941eabb865cdf3e0fa563d78",
+      "message" : "fix: Add `copyprivate()` clause to ensure file names are broadcast to all threads",
+      "id" : "f3d546548f4dd0ce941eabb865cdf3e0fa563d78",
+      "timestamp" : "Thu, 3 Nov 2022 17:19:27 +0000"
    }
 }
