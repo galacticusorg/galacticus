@@ -153,8 +153,8 @@ contains
     double precision                                   , intent(in   ), dimension(3)           :: scaleLength
     type            (vector                           ), intent(in   ), dimension(3), optional :: axes
     type            (matrix                           ), intent(in   )              , optional :: rotation
-    double precision                                   , intent(in   ), optional               :: mass
-    logical                                            , intent(in   ), optional               :: dimensionless
+    double precision                                   , intent(in   )              , optional :: mass
+    logical                                            , intent(in   )              , optional :: dimensionless
     !![
     <constructorAssign variables="mass, dimensionless"/>
     !!]
@@ -172,10 +172,6 @@ contains
        end if
        self%mass=1.0d0
     end if
-    ! Store axes.
-    self%axis1=axes(1)
-    self%axis2=axes(2)
-    self%axis3=axes(3)
     ! Initialize structural properties.
     call self%initialize(scaleLength,axes,rotation)
     ! Set acceleration as uninitialized.
@@ -233,12 +229,15 @@ contains
     end do
     ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian axes, and back again.
     if (present(axes)) then
+       self%axis1      =axes(1)
+       self%axis2      =axes(2)
+       self%axis3      =axes(3)
        axesPrinciple(1)=vector([1.0d0,0.0d0,0.0d0])
        axesPrinciple(2)=vector([0.0d0,1.0d0,0.0d0])
        axesPrinciple(3)=vector([0.0d0,0.0d0,1.0d0])
        self%rotationIn =matrixRotation(axes,axesPrinciple)
     else if (present(rotation)) then
-       self%rotationIn=rotation
+       self%rotationIn=matrix(rotation)
     else
        call Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
