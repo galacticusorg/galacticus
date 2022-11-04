@@ -25,6 +25,7 @@
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Rates_Ionization_Collisional   , only : atomicIonizationRateCollisionalClass
   use :: Atomic_Rates_Recombination_Radiative  , only : atomicRecombinationRateRadiativeClass
+  use :: Radiation_Fields                      , only : crossSectionFunctionTemplate
 
   !![
   <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork">
@@ -110,9 +111,17 @@
   end interface chemicalReactionRateHydrogenNetwork
 
   ! Module-scope pointer to self used in integrations.
-  class(chemicalReactionRateHydrogenNetwork), pointer :: hydrogenNetworkSelf
+  class(chemicalReactionRateHydrogenNetwork), pointer   :: hydrogenNetworkSelf
   !$omp threadprivate(hydrogenNetworkSelf)
 
+  ! Pointers to cross-section functions.
+  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron_       => hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2_Gamma_to_2H_                  => hydrogenNetworkCrossSection_H2_Gamma_to_2H
+  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron_ => hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron_     => hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron
+  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus_         => hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus
+  procedure(crossSectionFunctionTemplate   ), pointer   :: hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron_      => hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron
+  
 contains
 
   function hydrogenNetworkConstructorParameters(parameters) result(self)
@@ -1332,7 +1341,7 @@ contains
        class is (radiationFieldCosmicMicrowaveBackground)
           rateCoefficient=0.144d0*(radiation%temperature()**2.13d0)*exp(-8650.0d0/radiation%temperature())
        class default
-          rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron,node)
+          rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron_,node)
        end select
        ! Compute rate.
        rate=rateCoefficient*self%densityAtomicHydrogenAnion
@@ -1444,7 +1453,7 @@ contains
        class is (radiationFieldCosmicMicrowaveBackground)
           rateCoefficient=6.36d5*exp(-71600.0d0/radiation%temperature())
        class default
-          rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus,node)
+          rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus_,node)
        end select
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)
@@ -1616,7 +1625,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionEdgeWavelength],hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron,node)
+       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionEdgeWavelength],hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
        ! Record rate.
@@ -1730,7 +1739,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron,node)
+       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)
        ! Record rate.
@@ -1837,7 +1846,7 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2_Gamma_to_2H,node)
+       rateCoefficient=radiation%integrateOverCrossSection([crossSectionWavelengthLow,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H2_Gamma_to_2H_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
        ! Record rate.
@@ -1968,7 +1977,7 @@ contains
     if (reactionActive) then
        ! Compute rate coefficient.
        hydrogenNetworkSelf => self
-       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron,node)
+       rateCoefficient=radiation%integrateOverCrossSection([0.0d0,crossSectionWavelengthHigh],hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron_,node)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
        ! Record rate.

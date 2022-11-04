@@ -22,7 +22,7 @@ Implements a radiation field class which sums over other radiation fields.
 !!}
 
   type, public :: radiationFieldList
-     class(radiationFieldClass), pointer :: radiationField_
+     class(radiationFieldClass), pointer :: radiationField_ => null()
      type (radiationFieldList ), pointer :: next            => null()
   end type radiationFieldList
 
@@ -44,9 +44,12 @@ Implements a radiation field class which sums over other radiation fields.
        <method description="Return a list of all sub-components." method="list" />
      </methods>
      !!]
-     final     ::         summationDestructor
-     procedure :: flux => summationFlux
-     procedure :: list => summationList
+     final     ::                      summationDestructor
+     procedure :: flux              => summationFlux
+     procedure :: list              => summationList
+     procedure :: time              => summationTime
+     procedure :: timeSet           => summationTimeSet
+     procedure :: timeDependentOnly => summationTimeDependentOnly
   end type radiationFieldSummation
 
   interface radiationFieldSummation
@@ -151,6 +154,65 @@ contains
     end do
     return
   end function summationFlux
+
+  double precision function summationTime(self)
+    !!{
+    Return the time for which this radiation field is set.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (radiationFieldSummation), intent(inout) :: self
+    type            (radiationFieldList     ), pointer       :: radiationField_
+    double precision                                         :: time
+
+    summationTime   =  -huge(0.0d0)  
+    radiationField_ => self%radiationFields
+    do while (associated(radiationField_))
+       time=radiationField_%radiationField_%time()
+       if (time /= summationTime .and. summationTime /= -huge(0.0d0)) &
+            & call Error_Report('inconsistent times in radiation field components'//{introspection:location})
+       summationTime   =  time
+       radiationField_ => radiationField_%next
+    end do
+    return
+  end function summationTime
+
+  subroutine summationTimeSet(self,time)
+    !!{
+    Set the time (and temperature) of the cosmic microwave background radiation field.
+    !!}
+    implicit none
+    class           (radiationFieldSummation), intent(inout) :: self
+    double precision                         , intent(in   ) :: time
+    type            (radiationFieldList     ), pointer       :: radiationField_
+
+    radiationField_ => self%radiationFields
+    do while (associated(radiationField_))
+       call radiationField_%radiationField_%timeSet(time)
+       radiationField_ =>  radiationField_%next
+    end do
+    return
+  end subroutine summationTimeSet
+
+  logical function summationTimeDependentOnly(self)
+    !!{
+    Return true as this radiation field depends on time only.
+    !!}
+    implicit none
+    class(radiationFieldSummation), intent(inout) :: self
+    type (radiationFieldList     ), pointer       :: radiationField_
+
+    summationTimeDependentOnly =  .true.
+    radiationField_            => self%radiationFields
+    do while (associated(radiationField_))
+       if (.not.radiationField_%radiationField_%timeDependentOnly()) then
+          summationTimeDependentOnly=.false.
+          return
+       end if
+       radiationField_ =>  radiationField_%next
+    end do
+    return
+  end function summationTimeDependentOnly
 
   function summationList(self)
     !!{
