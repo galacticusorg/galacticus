@@ -1096,6 +1096,7 @@ CODE
 				     &&
 				     (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 				    ) {
+					my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
 					my $rank = 0;
 					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1105,7 +1106,7 @@ CODE
 					}
 					foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
-						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
+						if ( $isAllocatable );
 					    for(my $i=1;$i<=$rank;++$i) {
 						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
@@ -1115,7 +1116,7 @@ CODE
 						    $assignments .= (" " x ($rank+1-$i))."end do\n";
 					    }
 					    $assignments .= "end if\n"
-						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
+						if ( $isAllocatable );
 					}
 				}
 				# Deep copy of HDF5 objects.
@@ -1336,6 +1337,7 @@ CODE
 			 &&
 			 (grep {$_->{'type'} eq $type} &List::ExtraUtils::as_array($deepCopyActions->{'deepCopyActions'}))
 			) {
+			    my $isAllocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
 			    my $rank = 0;
 			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
@@ -1344,6 +1346,8 @@ CODE
 				    if ( $rank > $rankMaximum );
 			    }
 			    foreach my $variableName ( @{$declaration->{'variableNames'}} ) {
+				$assignments .= "if (allocated(self%".$variableName.")) then\n"
+				    if ( $isAllocatable );
 				for(my $i=1;$i<=$rank;++$i) {
 				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
@@ -1352,6 +1356,8 @@ CODE
 				for(my $i=1;$i<=$rank;++$i) {
 					$assignments .= (" " x ($rank+1-$i))."end do\n";
 				}
+				$assignments .= "end if\n"
+				    if ( $isAllocatable );
 			    }
 		    }
 		    # Deep copy of HDF5 objects.
@@ -2611,7 +2617,9 @@ CODE
 			intrinsic => 0,
 			all       => 1
 		    }
-		}
+		},
+		source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		line       => 1
 	    };
             $usesNode->{'moduleUse'}->{'ISO_C_Binding'} = {intrinsic => 1, all => 1}
                 if ( $debugging );
@@ -2810,7 +2818,9 @@ CODE
 				intrinsic => 0,
 				all       => 1
 			    }
-			}
+			},
+			source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+			line       => 1
 		    };
 		    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
                 }
@@ -3080,14 +3090,18 @@ CODE
 					    content    => $functionNode->{'firstChild'}->{'content'},
 					    sibling    => undef()       ,
 					    parent     => undef()       ,
-					    firstChild => undef()
+					    firstChild => undef()       ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1
 					};
 					my $moduleUseNode =
 					{
 					    type       => "moduleUse",
 					    sibling    => undef()    ,
 					    parent     => undef()    ,
-					    firstChild => $content,
+					    firstChild => $content   ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1          ,
 					    moduleUse  => dclone($functionNode->{'moduleUse' })
 					};
 					$content->{'parent'} = $moduleUseNode;
@@ -3188,15 +3202,19 @@ CODE
 				    my $declarationNew = {
 					type       => "declaration",
 					sibling    => undef()      ,
-					parent     => undef()
+					parent     => undef()      ,
+					source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					line       => 1
 				    };
 				    $declarationNew->{'firstChild'} =
 				    {
-					type       => "code"   ,
-					content    => ""       ,
-					sibling    => undef()  ,
+					type       => "code"         ,
+					content    => ""             ,
+					sibling    => undef()        ,
 					parent     => $declarationNew,
-					firstChild => undef()
+					firstChild => undef()        ,
+					source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					line       => 1
 				    };
 				    push(@{$declarationNew->{'declarations'}},$declaration);
 				    push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
@@ -3221,15 +3239,19 @@ CODE
 					my $declarationNew = {
 					    type       => "declaration",
 					    sibling    => undef()      ,
-					    parent     => undef()
+					    parent     => undef()      ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1
 					};
 					$declarationNew->{'firstChild'} =
 					{
-					    type       => "code"   ,
-					    content    => ""       ,
-					    sibling    => undef()  ,
+					    type       => "code"         ,
+					    content    => ""             ,
+					    sibling    => undef()        ,
 					    parent     => $declarationNew,
-					    firstChild => undef()
+					    firstChild => undef()        ,
+					    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+					    line       => 1
 					};
 					push(@{$declarationNew->{'declarations'}},$moduleDeclaration);
 					push(@{$codeContent->{'module'}->{'interfaces'}},$declarationNew);
@@ -3299,7 +3321,9 @@ CODE
 	        sibling    => undef()    ,
 	        parent     => undef()    ,
 		firstChild => undef()    ,
-                moduleUse  => {ISO_C_Binding => {intrinsic => 1, only => {C_Char => 1}}}
+                moduleUse  => {ISO_C_Binding => {intrinsic => 1, only => {C_Char => 1}}},
+		source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		line       => 1
 	    };
             &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$bindingNode);
 	    # Create functions.
