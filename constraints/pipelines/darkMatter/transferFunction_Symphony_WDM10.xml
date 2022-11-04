@@ -21,12 +21,11 @@
       <mass                      value="10.0"/>
     </darkMatterParticle>
     <!-- Bode2001 transfer function works by modifying a CDM transfer function - so feed it a CDM transfer function here -->
-    <transferFunction value="eisensteinHu1999">
+    <transferFunction value="CAMB">
       <!-- Feed this transfer function a CDM particle - otherwise it will see the WDM particle defined above and complain that it
 	   can not compute WDM transfer functions -->
-      <darkMatterParticle value="CDM" />
-      <neutrinoNumberEffective value="3.046"/>
-      <neutrinoMassSummed      value="0.000"/>
+      <darkMatterParticle value="CDM"  />
+      <redshift           value="3.046"/>
     </transferFunction>
   </transferFunction>
 
