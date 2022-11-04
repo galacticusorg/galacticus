@@ -201,6 +201,7 @@ foreach my $type ( @types ) {
       <redshift               value="{$redshift}"/>
       <massRangeMinimum       value="{$massMinimum}"/> <!-- 3000 times zoom-in {$name} particle mass -->
       <binCountMinimum        value="0"          />    
+      <likelihoodPoisson      value="true"       />
     </posteriorSampleLikelihood>
 CODE
 	    print $configFile $config;
