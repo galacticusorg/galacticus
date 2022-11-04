@@ -74,13 +74,13 @@ module Input_Parameters
      A class to handle input parameters for \glc.
      !!}
      private
-     type   (node             ), pointer                   :: content
-     type   (inputParameter   ), pointer    , public       :: parent                 , firstChild        , &
-          &                                                   sibling                , referenced
+     type   (node             ), pointer                   :: content         => null()
+     type   (inputParameter   ), pointer    , public       :: parent          => null() , firstChild => null() , &
+          &                                                   sibling         => null() , referenced => null()
      type   (genericObjectList), allocatable, dimension(:) :: objects
      type   (varying_string   )                            :: contentOriginal
-     logical                                               :: created        =.false., removed   =.false.,&
-          &                                                   evaluated      =.false.
+     logical                                               :: created         =  .false., removed    =  .false., &
+          &                                                   evaluated       =  .false.
    contains
      !![
      <methods>
@@ -1232,7 +1232,7 @@ contains
     return
   end function inputParametersNode
 
-  logical function inputParametersIsPresent(self,parameterName,requireValue)
+  logical function inputParametersIsPresent(self,parameterName,requireValue,searchInParents)
     !!{
     Return true if the specified parameter is present.
     !!}
@@ -1242,41 +1242,50 @@ contains
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
-    logical                   , intent(in   ), optional :: requireValue
+    logical                   , intent(in   ), optional :: requireValue    , searchInParents
     type     (node           ), pointer                 :: node_
-    type     (inputParameter ), pointer                 :: currentParameter
+    type     (inputParameter ), pointer                 :: currentParameter, currentParent
     !![
-    <optionalArgument name="requireValue" defaultsTo=".true." />
+    <optionalArgument name="requireValue"    defaultsTo=".true." />
+    <optionalArgument name="searchInParents" defaultsTo=".false."/>
     !!]
 
     call self%validateName(parameterName)
     inputParametersIsPresent=.false.
     if (.not.associated(self%parameters)) return
     !$omp critical (FoX_DOM_Access)
-    currentParameter => self%parameters%firstChild
-    do while (associated(currentParameter))
-       if (.not.currentParameter%removed) then
-          node_ => currentParameter%content
-          if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
-             if     (                                  &
-                  &   .not.hasAttribute(node_,'id'   ) &
-                  &  .and.                             &
-                  &   (                                &
-                  &    .not.requireValue_              &
-                  &    .or.                            &
-                  &        hasAttribute(node_,'value') &
-                  &    .or.                            &
-                  &     XML_Path_Exists(node_,"value") &
-                  &    .or.                            &
-                  &        hasAttribute(node_,"idRef") &
-                  &   )                                &
-                  & ) then
-                inputParametersIsPresent=.true.
-                exit
+    currentParent => self%parameters
+    do while (associated(currentParent))
+       currentParameter => currentParent%firstChild
+       do while (associated(currentParameter))
+          if (.not.currentParameter%removed) then
+             node_ => currentParameter%content
+             if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
+                if     (                                  &
+                     &   .not.hasAttribute(node_,'id'   ) &
+                     &  .and.                             &
+                     &   (                                &
+                     &    .not.requireValue_              &
+                     &    .or.                            &
+                     &        hasAttribute(node_,'value') &
+                     &    .or.                            &
+                     &     XML_Path_Exists(node_,"value") &
+                     &    .or.                            &
+                     &        hasAttribute(node_,"idRef") &
+                     &   )                                &
+                     & ) then
+                   inputParametersIsPresent=.true.
+                   exit
+                end if
              end if
           end if
+          currentParameter => currentParameter%sibling
+       end do
+       if (searchInParents_ .and. .not. inputParametersIsPresent) then
+          currentParent => currentParent%parent
+       else
+          currentParent => null()
        end if
-       currentParameter => currentParameter%sibling
     end do
     !$omp end critical (FoX_DOM_Access)
     return
