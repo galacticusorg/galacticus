@@ -19,6 +19,11 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
 
+  <!-- Intergalactic background radiation -->
+  <radiationFieldIntergalacticBackground value="intergalacticBackgroundFile">
+    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_Haardt_Madau_2012_Quasars_Galaxies.xml"/>
+  </radiationFieldIntergalacticBackground>
+
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
   <intergalacticMediumFilteringMass value="gnedin2000"/>
