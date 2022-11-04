@@ -195,7 +195,9 @@ sub Process_ObjectBuilder {
 	    {
 		type       => "code"      ,
 		content    => $builderCode,
-		firstChild => undef()
+		firstChild => undef()     ,
+		source     => "Galacticus::Build::SourceTree::Process::ObjectBuilder::Process_ObjectBuilder()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
@@ -407,9 +409,11 @@ sub Process_ObjectBuilder {
 	    # Build a code node.
 	    my $newNode =
 	    {
-		type       => "code"      ,
+		type       => "code"         ,
 		content    => $destructorCode,
-		firstChild => undef()
+		firstChild => undef()        ,
+		source     => "Galacticus::Build::SourceTree::Process::ObjectBuilder::Process_ObjectBuilder()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
@@ -442,7 +446,7 @@ sub Process_ObjectBuilder {
 	    };
 	    if ( $debugging ) {
 		$usesNode->{'moduleUse'}->{'MPI_Utilities'     } = {intrinsic => 0, all => 1};
-		$usesNode->{'moduleUse'}->{'Display'} = {intrinsic => 0, all => 1};
+		$usesNode->{'moduleUse'}->{'Display'           } = {intrinsic => 0, all => 1};
 		$usesNode->{'moduleUse'}->{'String_Handling'   } = {intrinsic => 0, all => 1};
 		$usesNode->{'moduleUse'}->{'ISO_Varying_String'} = {intrinsic => 0, all => 1};
 		$usesNode->{'moduleUse'}->{'Function_Classes'  } = {intrinsic => 0, all => 1};
@@ -526,9 +530,11 @@ sub Process_ObjectBuilder {
 	    # Build a code node.
 	    my $newNode =
 	    {
-		type       => "code"      ,
+		type       => "code"        ,
 		content    => $incrementCode,
-		firstChild => undef()
+		firstChild => undef()       ,
+		source     => "Galacticus::Build::SourceTree::Process::ObjectBuilder::Process_ObjectBuilder()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
@@ -578,7 +584,9 @@ sub Process_ObjectBuilder {
 	    {
 		type       => "code"      ,
 		content    => $acquireCode,
-		firstChild => undef()
+		firstChild => undef()     ,
+		source     => "Galacticus::Build::SourceTree::Process::ObjectBuilder::Process_ObjectBuilder()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
@@ -677,9 +685,11 @@ sub Process_ObjectBuilder {
 	    }
 	    my $newNode =
 	    {
-		type       => "code"      ,
+		type       => "code"                        ,
 		content    => encode(q{utf8},$constructCode),
-		firstChild => undef()
+		firstChild => undef()                       ,
+		source     => "Galacticus::Build::SourceTree::Process::ObjectBuilder::Process_ObjectBuilder()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
@@ -757,9 +767,11 @@ sub Process_ObjectBuilder {
 	    # Build a code node.
 	    my $newNode =
 	    {
-		type       => "code"      ,
+		type       => "code"       ,
 		content    => $deepCopyCode,
-		firstChild => undef()
+		firstChild => undef()      ,
+		source     => "Galacticus::Build::SourceTree::Process::ObjectBuilder::Process_ObjectBuilder()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
