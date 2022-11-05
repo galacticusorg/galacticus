@@ -45,35 +45,35 @@
      class           (atomicIonizationRateCollisionalClass  ), pointer :: atomicIonizationRateCollisional_   => null()
      class           (atomicRecombinationRateRadiativeClass ), pointer :: atomicRecombinationRateRadiative_  => null()
      class           (atomicCrossSectionIonizationPhotoClass), pointer :: atomicCrossSectionIonizationPhoto_ => null()
-     logical                                                           :: fast
-     integer                                                           :: atomicHydrogenAnionIndex                    , atomicHydrogenCationIndex, &
+     logical                                                           :: fast                                        , includeSelfShielding
+     integer                                                           :: atomicHydrogenAnionIndex                    , atomicHydrogenCationIndex  , &
           &                                                               atomicHydrogenIndex                         , electronIndex
      double precision                                                  :: densityAtomicHydrogenAnion
    contains
      !![
      <methods>
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$." method="rateH_Electron_to_Hplus_2Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$." method="rateHplus_Electron_to_H_Photon" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$." method="rateH_Electron_to_Hminus_Photon" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$." method="rateH_Hminus_to_H2_Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$." method="rateH_Hplus_to_H2plus_Photon" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$." method="rateH2plus_H_to_H2_Hplus" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$." method="rateH2_Hplus_to_H2plus_H" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$." method="rateH2_Electron_to_2H_Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$." method="rateH2_H_to_3H" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$." method="rateHminus_Electron_to_H_2Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$." method="rateHminus_H_to_2H_Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$." method="rateHminus_Hplus_to_2H" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{e}^-$." method="rateHminus_Hplus_to_H2plus_Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$." method="rateH2plus_Electron_to_2H" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$." method="rateH2plus_Hminus_to_H2_H" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \gamma \rightarrow \hbox{H}^+ + \hbox{e}^-$." method="rateH_Gamma_to_Hplus_Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$." method="rateHminus_Gamma_to_H_Electron" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ + \hbox{e}^-$." method="rateH2_Gamma_to_H2plus_Electron" />
-       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$." method="rateH2plus_Gamma_to_H_Hplus" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$." method="rateH2plus_Gamma_to_2Hplus_Electron" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$." method="rateH2_Gamma_to_H2star_to_2H" />
-       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$." method="rateH2_Gamma_to_2H" />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$."     method="rateH_Electron_to_Hplus_2Electron"  />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$."          method="rateHplus_Electron_to_H_Photon"     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$."         method="rateH_Electron_to_Hminus_Photon"    />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$."     method="rateH_Hminus_to_H2_Electron"        />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$."        method="rateH_Hplus_to_H2plus_Photon"       />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."    method="rateH2plus_H_to_H2_Hplus"           />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$."    method="rateH2_Hplus_to_H2plus_H"           />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$."     method="rateH2_Electron_to_2H_Electron"     />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$."                    method="rateH2_H_to_3H"                     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."   method="rateHminus_Electron_to_H_2Electron" />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$."      method="rateHminus_H_to_2H_Electron"        />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$."    method="rateHminus_Hplus_to_2H"             />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{e}^-$." method="rateHminus_Hplus_to_H2plus_Electron"/>
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$."                method="rateH2plus_Electron_to_2H"          />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$."    method="rateH2plus_Hminus_to_H2_H"          />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \gamma \rightarrow \hbox{H}^+ + \hbox{e}^-$."         method="rateH_Gamma_to_Hplus_Electron"      />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$."          method="rateHminus_Gamma_to_H_Electron"     />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ + \hbox{e}^-$."     method="rateH2_Gamma_to_H2plus_Electron"    />
+       <method description="Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$."        method="rateH2plus_Gamma_to_H_Hplus"        />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2plus_Gamma_to_2Hplus_Electron"/>
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2_Gamma_to_H2star_to_2H"       />
+       <method description="Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ + \hbox{e}^-$."    method="rateH2_Gamma_to_2H"                 />
      </methods>
      !!]
      final     ::                                        hydrogenNetworkDestructor
@@ -136,7 +136,7 @@ contains
     class  (atomicIonizationRateCollisionalClass  ), pointer       :: atomicIonizationRateCollisional_
     class  (atomicRecombinationRateRadiativeClass ), pointer       :: atomicRecombinationRateRadiative_
     class  (atomicCrossSectionIonizationPhotoClass), pointer       :: atomicCrossSectionIonizationPhoto_
-    logical                                                        :: fast
+    logical                                                        :: fast                              , includeSelfShielding
 
     !![
     <inputParameter>
@@ -147,11 +147,19 @@ contains
         \citealt{abel_modeling_1997}).</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>includeSelfShielding</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+	If true, include estimates of self-shielding when computing reaction rates involving the radiation field.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="atomicIonizationRateCollisional"   name="atomicIonizationRateCollisional_"   source="parameters"/>
     <objectBuilder class="atomicRecombinationRateRadiative"  name="atomicRecombinationRateRadiative_"  source="parameters"/>
     <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     !!]
-    self=chemicalReactionRateHydrogenNetwork(fast,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_)
+    self=chemicalReactionRateHydrogenNetwork(fast,includeSelfShielding,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="atomicIonizationRateCollisional_"  />
@@ -161,7 +169,7 @@ contains
     return
   end function hydrogenNetworkConstructorParameters
 
-  function hydrogenNetworkConstructorInternal(fast,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
+  function hydrogenNetworkConstructorInternal(fast,includeSelfShielding,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
     input.
@@ -169,23 +177,22 @@ contains
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
     type   (chemicalReactionRateHydrogenNetwork   )                        :: self
-    logical                                        , intent(in   )         :: fast
+    logical                                        , intent(in   )         :: fast                              , includeSelfShielding
     class  (atomicIonizationRateCollisionalClass  ), intent(in   ), target :: atomicIonizationRateCollisional_
     class  (atomicRecombinationRateRadiativeClass ), intent(in   ), target :: atomicRecombinationRateRadiative_
     class  (atomicCrossSectionIonizationPhotoClass), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     !![
-    <constructorAssign variables="fast, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_"/>
+    <constructorAssign variables="fast, includeSelfShielding, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_"/>
     !!]
 
-    ! Get indices for chemicals as necessary.
     if (self%fast) then
-       ! Get indices of chemicals needed for equilbrium hydrogen anion calculation.
+       ! Get indices needed for equilibrium calculation of H⁻.
        self%atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
        self%atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
        self%electronIndex            =Chemicals_Index("Electron"            )
     else
        ! Get actual hydrogen anion index.
-       self%atomicHydrogenAnionIndex =Chemicals_Index("AtomicHydrogenAnion")
+       self%atomicHydrogenAnionIndex=Chemicals_Index("AtomicHydrogenAnion"  )
     end if
     return
   end function hydrogenNetworkConstructorInternal
@@ -205,20 +212,20 @@ contains
     return
   end subroutine hydrogenNetworkDestructor
 
-  subroutine hydrogenNetworkRates(self,temperature,chemicalDensity,radiation,chemicalRates,node)
+  subroutine hydrogenNetworkRates(self,lengthColumn,temperature,chemicalDensity,radiation,chemicalRates,node)
     !!{
     Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
     !!}
     use :: Error           , only : Error_Report
     use :: Radiation_Fields, only : radiationFieldClass
     implicit none
-    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
-    double precision                                     , intent(in   ) :: temperature
-    class           (radiationFieldClass                ), intent(inout) :: radiation
-    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
-    type            (treeNode                           ), intent(inout) :: node
-    double precision                                                     :: creationTerm   , destructionTerm
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout), target :: self
+    type            (chemicalAbundances                 ), intent(in   )         :: chemicalDensity
+    double precision                                     , intent(in   )         :: temperature    , lengthColumn
+    class           (radiationFieldClass                ), intent(inout)         :: radiation
+    type            (chemicalAbundances                 ), intent(inout)         :: chemicalRates
+    type            (treeNode                           ), intent(inout)         :: node
+    double precision                                                             :: creationTerm   , destructionTerm
 
     ! Reset rates to zero initially.
     call chemicalRates%reset()
@@ -245,28 +252,28 @@ contains
     end if
     ! Compute rates. References after each call refer to the rate coefficient in Tegmark et al. (1997) and the equation number in
     ! Abel et al. (1997) respectively.
-    call self%rateH_Electron_to_Hplus_2Electron  (temperature,radiation,chemicalDensity,chemicalRates     ) !    ;  1
-    call self%rateHplus_Electron_to_H_Photon     (temperature,radiation,chemicalDensity,chemicalRates     ) ! k_1;  2
-    call self%rateH_Electron_to_Hminus_Photon    (temperature,radiation,chemicalDensity,chemicalRates     ) ! k_2;  7
-    call self%rateH_Hminus_to_H2_Electron        (temperature,radiation,chemicalDensity,chemicalRates     ) ! k_3;  8
-    call self%rateH_Hplus_to_H2plus_Photon       (temperature,radiation,chemicalDensity,chemicalRates     ) ! k_5;  9
-    call self%rateH2plus_H_to_H2_Hplus           (temperature,radiation,chemicalDensity,chemicalRates     ) ! k_6; 10
-    call self%rateH2_Hplus_to_H2plus_H           (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 11
-    call self%rateH2_Electron_to_2H_Electron     (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 12
-    call self%rateH2_H_to_3H                     (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 13
-    call self%rateHminus_Electron_to_H_2Electron (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 14
-    call self%rateHminus_H_to_2H_Electron        (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 15
-    call self%rateHminus_Hplus_to_2H             (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 16
-    call self%rateHminus_Hplus_to_H2plus_Electron(temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 17
-    call self%rateH2plus_Electron_to_2H          (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 18
-    call self%rateH2plus_Hminus_to_H2_H          (temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 19
-    call self%rateH_Gamma_to_Hplus_Electron      (temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 20
-    call self%rateHminus_Gamma_to_H_Electron     (temperature,radiation,chemicalDensity,chemicalRates,node) ! k_4; 23
-    call self%rateH2_Gamma_to_H2plus_Electron    (temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 24
-    call self%rateH2plus_Gamma_to_H_Hplus        (temperature,radiation,chemicalDensity,chemicalRates,node) ! k_7; 25
-    call self%rateH2plus_Gamma_to_2Hplus_Electron(temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 26
-    call self%rateH2_Gamma_to_H2star_to_2H       (temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 27
-    call self%rateH2_Gamma_to_2H                 (temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 28
+    call self%rateH_Electron_to_Hplus_2Electron  (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ;  1
+    call self%rateHplus_Electron_to_H_Photon     (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_1;  2
+    call self%rateH_Electron_to_Hminus_Photon    (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_2;  7
+    call self%rateH_Hminus_to_H2_Electron        (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_3;  8
+    call self%rateH_Hplus_to_H2plus_Photon       (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_5;  9
+    call self%rateH2plus_H_to_H2_Hplus           (             temperature,radiation,chemicalDensity,chemicalRates     ) ! k_6; 10
+    call self%rateH2_Hplus_to_H2plus_H           (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 11
+    call self%rateH2_Electron_to_2H_Electron     (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 12
+    call self%rateH2_H_to_3H                     (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 13
+    call self%rateHminus_Electron_to_H_2Electron (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 14
+    call self%rateHminus_H_to_2H_Electron        (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 15
+    call self%rateHminus_Hplus_to_2H             (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 16
+    call self%rateHminus_Hplus_to_H2plus_Electron(             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 17
+    call self%rateH2plus_Electron_to_2H          (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 18
+    call self%rateH2plus_Hminus_to_H2_H          (             temperature,radiation,chemicalDensity,chemicalRates     ) !    ; 19
+    call self%rateH_Gamma_to_Hplus_Electron      (             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 20
+    call self%rateHminus_Gamma_to_H_Electron     (             temperature,radiation,chemicalDensity,chemicalRates,node) ! k_4; 23
+    call self%rateH2_Gamma_to_H2plus_Electron    (             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 24
+    call self%rateH2plus_Gamma_to_H_Hplus        (             temperature,radiation,chemicalDensity,chemicalRates,node) ! k_7; 25
+    call self%rateH2plus_Gamma_to_2Hplus_Electron(             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 26
+    call self%rateH2_Gamma_to_H2star_to_2H       (lengthColumn,temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 27
+    call self%rateH2_Gamma_to_2H                 (             temperature,radiation,chemicalDensity,chemicalRates,node) !    ; 28
     return
   end subroutine hydrogenNetworkRates
 
@@ -306,9 +313,9 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Get the rate coefficient.
-       rateCoefficient                  =self%atomicIonizationRateCollisional_%rate(1,1,temperature)
+       rateCoefficient=self%atomicIonizationRateCollisional_%rate(1,1,temperature)
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
+       rate           =rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex) &
@@ -1521,7 +1528,7 @@ contains
     return
   end function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus
 
-  subroutine hydrogenNetworkRateH2_Gamma_to_H2star_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates,node)
+  subroutine hydrogenNetworkRateH2_Gamma_to_H2star_to_2H(self,lengthColumn,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{
     Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow H_2^* \rightarrow
     2\hbox{H}$.
@@ -1533,18 +1540,23 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
-    double precision                                     , intent(in   ) :: temperature
+    double precision                                     , intent(in   ) :: lengthColumn                                                                                           , temperature
     class           (radiationFieldClass                ), intent(inout) :: radiation
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
-    logical                                              , save          :: reactionActive             =.false.                                                                    , reactionInitialized          =.false.
+    logical                                              , save          :: reactionActive             =.false.                                                                    , reactionInitialized                     =.false.
     integer                                              , save          :: atomicHydrogenChemicalIndex                                                                            , chemicalHydrogenChemicalIndex
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
     double precision                                     , parameter     :: energyLymanBand            =12.87d0
-    ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Angstroms).
+    ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Å).
     double precision                                     , parameter     :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)
-    double precision                                                     :: rate                                                                                                   , rateCoefficient
+    ! Exponent appearing in self-shielding equation.
+    double precision                                     , parameter     :: alpha                      =1.1d0
+    double precision                                                     :: rate                                                                                                   , rateCoefficient                                  , &
+         &                                                                  columnDensityMolecularHydrogen                                                                         , columnDensityMolecularHydrogenNormalized         , &
+         &                                                                  velocitySpread                                                                                         , velocitySpreadNormalized                         , &
+         &                                                                  factorSelfShielding
     !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
@@ -1565,14 +1577,46 @@ contains
     if (reactionActive) then
        ! Compute rate coefficient.
        rateCoefficient=1.1d8*(4.0d0*Pi*radiation%flux(wavelengthLymanBand,node))
+       ! Compute the self-shielding factor.
+       if (self%includeSelfShielding) then
+          ! Apply the self-shielding model from Safranek-Shrader et al. (2012;
+          ! https://ui.adsabs.harvard.edu/abs/2012MNRAS.426.1159S). Specifically their equation (11).
+          columnDensityMolecularHydrogen          =+chemicalDensity%abundance(chemicalHydrogenChemicalIndex)          &
+               &                                   *lengthColumn
+          columnDensityMolecularHydrogenNormalized=+columnDensityMolecularHydrogen                                    &
+               &                                   /5.0d14
+          velocitySpread                          =+9.12d0                                                            &
+               &                                   *sqrt(                                                             &
+               &                                         +temperature                                                 &
+               &                                         /1.0d4                                                       &
+               &                                        )
+          velocitySpreadNormalized                =+velocitySpread                                                    &
+               &                                   /1.0d0
+          if (columnDensityMolecularHydrogenNormalized > 0.0d0) then
+             factorSelfShielding                     =+0.965d0                                                           &
+                  &                                   /(                                                                 &
+                  &                                     +1.0d0                                                           &
+                  &                                     +columnDensityMolecularHydrogenNormalized                        &
+                  &                                     /velocitySpreadNormalized                                        &
+                  &                                    )**alpha                                                          &
+                  &                                   +     3.5d-2/sqrt(1.0d0+columnDensityMolecularHydrogenNormalized)  &
+                  &                                   *exp(-8.5d-4*sqrt(1.0d0+columnDensityMolecularHydrogenNormalized))
+          else
+             factorSelfShielding                  =+1.0d0
+          end if
+       else
+          factorSelfShielding                     =+1.0d0
+       end if
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
+       rate   =+rateCoefficient                                          &
+            &  *factorSelfShielding                                      &
+            &  *chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
             & -      rate               )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex  ) &
             & +2.0d0*rate               )
     end if
     return
