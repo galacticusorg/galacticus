@@ -58,7 +58,8 @@
   </coolingFunction>
 
   <chemicalReactionRate value="hydrogenNetwork">
-    <fast value="true"/>
+    <fast                 value="true"/>
+    <includeSelfShielding value="true"/>
   </chemicalReactionRate>
   <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
 
@@ -193,6 +194,10 @@
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
       <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
       <massDestructionFractional value="0.0"                                        />
+    </nodeOperator>
+    <!-- CGM -->
+    <nodeOperator value="CGMChemistry">
+      <fractionTimescaleEquilibrium value="1.0e-3"/>
     </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>

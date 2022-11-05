@@ -1094,7 +1094,7 @@ contains
           ! Get required objects.
           basic => node%basic()
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))/3.0d0
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%outerRadius())/3.0d0
           ! Get the abundances of the outflowed material.
           outflowedAbundances    =self%outflowedAbundances()/self%outflowedMass()
           ! Get the hydrogen mass fraction in outflowed gas.
@@ -1219,32 +1219,24 @@ contains
     !!{
     Compute the hot halo node mass rate of change.
     !!}
-    use :: Abundances_Structure                 , only : abs
+    use :: Abundances_Structure                 , only : abundances                           , abs
     use :: Accretion_Halos                      , only : accretionModeHot                     , accretionModeTotal
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent              , interruptTask                    , nodeComponentBasic, nodeComponentHotHalo, &
           &                                              nodeComponentHotHaloStandard         , propertyInactive                 , treeNode          , nodeComponentSpin
     use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum   , hotHaloAngularMomentumAlwaysGrows
-    use :: Numerical_Constants_Astronomical     , only : gigaYear
     use :: Numerical_Constants_Math             , only : Pi
-    use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
-    type            (treeNode            )           , intent(inout)          :: node
-    logical                                          , intent(inout)          :: interrupt
-    procedure       (interruptTask       )           , intent(inout), pointer :: interruptProcedure
-    integer                                          , intent(in   )          :: propertyType
-    class           (nodeComponentSpin   )                          , pointer :: spin
-    class           (nodeComponentHotHalo)                          , pointer :: hotHalo
-    class           (nodeComponentBasic  )                          , pointer :: basic
-    type            (chemicalAbundances  ), save                              :: chemicalDensitiesRates      , chemicalMasses         , &
-         &                                                                       chemicalMassesRates         , chemicalDensities
-    !$omp threadprivate(chemicalMasses,chemicalDensities,chemicalDensitiesRates,chemicalMassesRates)
-    double precision                                                          :: angularMomentumAccretionRate, temperature            , &
-         &                                                                       densityAtOuterRadius        , rateAccretionMassFailed, &
-         &                                                                       massLossRate                , massToDensityConversion, &
-         &                                                                       outerRadius                 , outerRadiusGrowthRate  , &
-         &                                                                       rateAccretionMass           , massChemicals
+    type            (treeNode            ), intent(inout)          :: node
+    logical                               , intent(inout)          :: interrupt
+    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
+    integer                               , intent(in   )          :: propertyType
+    class           (nodeComponentSpin   )               , pointer :: spin
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic
+    double precision                                               :: angularMomentumAccretionRate, outerRadiusGrowthRate  , &
+         &                                                            densityAtOuterRadius        , rateAccretionMassFailed, &
+         &                                                            massLossRate                , rateAccretionMass      , &
+         &                                                            outerRadius
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -1289,42 +1281,6 @@ contains
        if (chemicalsCount > 0) then
           ! Get the rate at which chemicals are accreted onto this halo.
           call hotHalo%chemicalsRate(accretionHalo_%accretionRateChemicals(node,accretionModeHot),interrupt,interruptProcedure)
-          ! Compute the rates of change of chemical masses due to chemical reactions.
-          ! Get the temperature of the hot reservoir.
-          temperature=darkMatterHaloScale_%temperatureVirial(node)
-          ! Set the radiation background.
-          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
-          if (associated(radiationIntergalacticBackground)) then
-             select type (radiationIntergalacticBackground)
-             class is (radiationFieldIntergalacticBackground)
-                call radiationIntergalacticBackground%timeSet(basic%time())
-             end select
-          end if
-          ! Get the masses of chemicals.
-          chemicalMasses=hotHalo%chemicals()
-          ! Truncate masses to zero to avoid unphysical behavior.
-          call chemicalMasses%enforcePositive()
-          massChemicals=chemicalMasses%sumOver()
-          if     (                                          &
-               &   massChemicals > 0.0d0                    &
-               &  .and.                                     &
-               &   massChemicals > hotHalo%mass()           &
-               & ) chemicalMasses=+        chemicalMasses   &
-               &                  *hotHalo%mass          () &
-               &                  /        massChemicals
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalDensities)
-          ! Compute factor converting mass of chemicals in (M☉/mᵤ) to number density in cm⁻³.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))
-          ! Convert to number density.
-          chemicalDensities=chemicalDensities*massToDensityConversion
-          ! Compute the chemical reaction rates.
-          call chemicalReactionRate_%rates(temperature,chemicalDensities,radiation,chemicalDensitiesRates,node)
-          ! Convert to mass change rates.
-          call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
-          chemicalMassesRates=chemicalMassesRates*gigaYear/massToDensityConversion
-          ! Adjust rates appropriately.
-          call hotHalo%chemicalsRate(chemicalMassesRates,interrupt,interruptProcedure)
        end if
        ! Perform return of outflowed material.
        select type (hotHalo)
@@ -2166,7 +2122,7 @@ contains
        ! Compute mass of chemicals transferred to the hot halo.
        if (chemicalsCount > 0 .and. hotHalo%outflowedMass() > 0.0d0) then
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))/3.0d0
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())/3.0d0
           ! Get abundance mass fractions of the outflowed material.
           outflowedAbundances= hotHalo%outflowedAbundances() &
                &              /hotHalo%outflowedMass      ()
