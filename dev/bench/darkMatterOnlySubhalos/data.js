@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1667590689796,
+  "lastUpdate": 1667704494306,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -4153,6 +4153,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15567.3185226667,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aaf31cb5501332d33be1a2245b0b56427189a567",
+          "message": "Merge pull request #323 from galacticusorg/equilibriumChemistry\n\nEquilibrium atomic chemistry and self-shielding",
+          "timestamp": "2022-11-05T14:46:48-07:00",
+          "tree_id": "87b41e9330972e09338dec87d158028e8b449854",
+          "url": "https://github.com/galacticusorg/galacticus/commit/aaf31cb5501332d33be1a2245b0b56427189a567"
+        },
+        "date": 1667704492801,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.102,
+            "unit": "seconds",
+            "range": 0.0299599732970849
           }
         ]
       }
