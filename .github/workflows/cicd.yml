@@ -9321,7 +9321,6 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_darkMatterOnlySubhalos.json
-          fail-on-alert: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -9329,7 +9328,6 @@ jobs:
           benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
           gh-pages-branch: gh-pages
           alert-threshold: 150%
-          fail-threshold: 200%
           max-items-in-chart: 256
       - name: Push benchmark result
         run: |
@@ -9343,7 +9341,6 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: benchmark_milkyWay.json
-          fail-on-alert: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -9351,7 +9348,6 @@ jobs:
           benchmark-data-dir-path: dev/bench/milkyWayModel
           gh-pages-branch: gh-pages
           alert-threshold: 150%
-          fail-threshold: 200%
           max-items-in-chart: 256
       - name: Push benchmark result
         run: |
@@ -9365,7 +9361,6 @@ jobs:
           name: Dark matter-only subhalos benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_darkMatterOnlySubhalos.json
-          fail-on-alert: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -9373,7 +9368,6 @@ jobs:
           benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
           gh-pages-branch: gh-pages
           alert-threshold: 110%
-          fail-threshold: 120%
           max-items-in-chart: 256
       - name: Push benchmark result
         run: |
@@ -9387,7 +9381,6 @@ jobs:
           name: Milky Way model benchmarks
           tool: 'customSmallerIsBetter'
           output-file-path: validate_milkyWayModel.json
-          fail-on-alert: true
           comment-on-alert: true
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -9395,7 +9388,6 @@ jobs:
           benchmark-data-dir-path: dev/bench/milkyWayModel
           gh-pages-branch: gh-pages
           alert-threshold: 110%
-          fail-threshold: 120%
           max-items-in-chart: 256
       - name: Push benchmark result
         run: |
