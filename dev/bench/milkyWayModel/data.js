@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1667590693352,
+  "lastUpdate": 1667704498180,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -3102,6 +3102,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 10.6804585241654,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aaf31cb5501332d33be1a2245b0b56427189a567",
+          "message": "Merge pull request #323 from galacticusorg/equilibriumChemistry\n\nEquilibrium atomic chemistry and self-shielding",
+          "timestamp": "2022-11-05T14:46:48-07:00",
+          "tree_id": "87b41e9330972e09338dec87d158028e8b449854",
+          "url": "https://github.com/galacticusorg/galacticus/commit/aaf31cb5501332d33be1a2245b0b56427189a567"
+        },
+        "date": 1667704497338,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 12.192,
+            "unit": "seconds",
+            "range": 0.00275680975054628
           }
         ]
       }
