@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1667844825554,
+  "lastUpdate": 1667844834692,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
@@ -4276,6 +4276,43 @@ window.BENCHMARK_DATA = {
             "value": 60.475,
             "unit": "seconds",
             "range": 0.121517488453667
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "e7f31302c256ee2947918223e0d079f1c539c7ba",
+          "message": "fix: Make validation a separate job in CI/CD workflow\n\nAllows it to be run on PR branches",
+          "timestamp": "2022-11-07T15:34:29Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e7f31302c256ee2947918223e0d079f1c539c7ba"
+        },
+        "date": 1667844833377,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 57.2673437667667,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 25.9116641205783,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 25938.6950922771,
+            "unit": "-logℒ"
           }
         ]
       }
