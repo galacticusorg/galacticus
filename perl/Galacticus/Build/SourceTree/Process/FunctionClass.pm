@@ -772,11 +772,9 @@ sub Process_FunctionClass {
 			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
 			}
 		    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
-			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-			$descriptorModules{'Error'} = 1;
+			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."': parameter-based constructor not found");
 		    } elsif (   $supported         != 1 && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
-			$descriptorCode .= " call Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-			$descriptorModules{'Error'} = 1;
+			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."' because:\n   ".join("\n   ",@failureMessage));
 		    }
 		}
 		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
